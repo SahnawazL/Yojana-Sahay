@@ -1765,11 +1765,25 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
 
   const [step,setStep]=useState(()=>{
     if(prefilledAnswers) return TOTAL;
-    try{ const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null"); return s?TOTAL:0; }catch{return 0;}
+    try{
+      const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+      if(!saved) return 0;
+      // New format: { answers, step } — restore exact mid-quiz position
+      if(saved.answers && typeof saved.step==="number") return saved.step;
+      // Legacy format: plain answers object — jump straight to results
+      return TOTAL;
+    }catch{return 0;}
   });
   const [answers,setAnswers]=useState(()=>{
     if(prefilledAnswers) return prefilledAnswers;
-    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")||{}; }catch{return {};}
+    try{
+      const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+      if(!saved) return {};
+      // New format: { answers, step }
+      if(saved.answers && typeof saved.step==="number") return saved.answers;
+      // Legacy format: plain answers object
+      return saved;
+    }catch{return {};}
   });
   const [selected,setSelected]=useState(null);
   const [stateSearch,setStateSearch]=useState(prefilledAnswers?.state||"");
@@ -1781,7 +1795,12 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
     if(prefilledAnswers) return SCHEME_DB.filter(s=>s.match(prefilledAnswers));
     try{
       const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
-      return saved?SCHEME_DB.filter(s=>s.match(saved)):[];
+      if(!saved) return [];
+      const isNew=saved.answers && typeof saved.step==="number";
+      const ans=isNew?saved.answers:saved;
+      const savedStep=isNew?saved.step:TOTAL;
+      // Only compute results if the quiz was actually completed
+      return savedStep===TOTAL?SCHEME_DB.filter(s=>s.match(ans)):[];
     }catch{return [];}
   });
 
@@ -1800,9 +1819,11 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const goNext=()=>{
     if(!canProceed)return;
     const newAnswers={...answers,[q.id]:activeVal};
+    const nextStep=step===TOTAL-1?TOTAL:step+1;
     setAnswers(newAnswers);setSelected(null);setAnimKey(k=>k+1);
+    // Save on every step so the user can resume mid-quiz if they close the app
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify({answers:newAnswers,step:nextStep}));}catch{}
     if(step===TOTAL-1){
-      try{localStorage.setItem(STORAGE_KEY,JSON.stringify(newAnswers));}catch{}
       setResults(initResults(newAnswers));setStep(TOTAL);
     }
     else setStep(s=>s+1);
