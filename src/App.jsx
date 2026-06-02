@@ -163,7 +163,7 @@ const T = {
     aiBannerTitle:"Ask AI Assistant", aiBannerSub:"Ask anything about any scheme in Hindi or English",
     categoriesTitle:"Categories", categoriesSub:"Browse by Category", seeAll:"See All →",
     ctaTitle:"Check Eligibility",
-    ctaSub:(hp)=> hp ? "Results ready from your profile · Tap to view" : "6 quick questions · Get matched instantly",
+    ctaSub:(hp)=> hp ? "Results ready from your profile · Tap to view" : "7 quick questions · Get matched instantly",
     ctaBtn:(hp)=> hp ? "View My Schemes →" : "Start Now →",
     schemesTitle:"Popular Schemes", schemesSub:"Top government benefits",
     matchedTitle:"Matched for You", matchedSub:(n)=>`${n} scheme${n!==1?"s":""} you qualify for`,
@@ -171,14 +171,38 @@ const T = {
     setupProfileBtn:"Set Up Profile →",
     helplineTitle:"Government Helpline", helplineSub:"Available 24×7 · 1800-111-555", helplineBtn:"Call Now",
     navHome:"Home", navSearch:"Search", navSchemes:"Schemes", navAI:"AI Help", navProfile:"Profile",
-    checkerTitle:"Eligibility Check", checkerSub:"6 quick questions",
+    checkerTitle:"Eligibility Check", checkerSub:"7 quick questions",
     stepOf:(c,t)=>`Step ${c} of ${t}`,
     nextBtn:"Next →", backBtn:"← Back", checkBtn:"Find My Schemes 🎯",
     matchSub:(n)=>`You qualify for ${n} scheme${n!==1?"s":""}`,
     centralLabel:"🇮🇳 Central", stateLabel:(s)=>`📍 ${s}`,
     noMatchTitle:"No exact matches", noMatchSub:"Try a different state or change your answers",
-    retakeBtn:"Retake", doneBtn:"Done",
+    retakeBtn:"Retake", doneBtn:"Done", fixAnswerBtn:"← Fix my answer",
     applyLabel:"How to Apply", docsLabel:"Documents Needed", totalBenefit:"Total annual benefit",
+    nearMissTitle:"You're Almost Eligible 🎯",
+    nearMissSub:"These schemes are just out of reach. Here's what's missing:",
+    nearMissMissing:"Missing:",
+    nearMissCriteria:{
+      who_farmer:"Must be a Farmer",
+      who_student:"Must be a Student",
+      who_women:"Must be a Woman / Homemaker",
+      who_senior:"Must be a Senior Citizen",
+      who_business:"Must be a Business Owner",
+      income_lower:"Income must be lower",
+      income_below1:"Income below ₹1 Lakh",
+      income_1to3:"Income below ₹3 Lakh",
+      income_below3:"Income below ₹3 Lakh",
+      income_below6:"Income below ₹6 Lakh",
+      house_no:"Should not own a pucca house",
+      house_kutcha:"Need kutcha/no house",
+      area_rural:"Must live in rural area",
+      area_urban:"Must live in urban/semi-urban area",
+      age_above60:"Age must be 60+",
+      age_below18:"Age must be below 18",
+      age_18to35:"Age must be 18–35",
+      state_match:"Not available in your state",
+      caste_reserved:"Must be SC / ST / OBC / EWS category",
+    },
     searchStatePh:"Search your state...",
     centralSchemes:"Central Government Schemes", stateSchemes:"State Government Schemes",
     profileTitle:"My Profile", setupTitle:"Set Up Profile", setupSub:"Fill once · Used everywhere",
@@ -217,6 +241,8 @@ const T = {
       {id:"state", q:"Which state do you live in?",icon:"🗺️", hint:"Central + your state schemes will be shown", type:"state"},
       {id:"house", q:"Do you own a pucca house?",  icon:"🏠", hint:"Pucca = permanent brick/concrete house",
         options:[{value:"no",label:"No — I need housing"},{value:"yes",label:"Yes — I have a house"},{value:"kutcha",label:"Kutcha / Temporary"}]},
+      {id:"caste", q:"Your social category?",      icon:"🪪", hint:"Used to match SC/ST/OBC reserved schemes",
+        options:[{value:"general",label:"General"},{value:"obc",label:"OBC"},{value:"sc",label:"SC (Scheduled Caste)"},{value:"st",label:"ST (Scheduled Tribe)"},{value:"ews",label:"EWS"}]},
       {id:"age",   q:"What is your age?",          icon:"🎂", hint:"Age of the main applicant",
         options:[{value:"below18",label:"Below 18"},{value:"18to35",label:"18–35 years"},{value:"35to60",label:"35–60 years"},{value:"above60",label:"Above 60 years"}]},
       {id:"area",  q:"Your area type?",            icon:"📍", hint:"Your residential area",
@@ -266,7 +292,7 @@ const T = {
     aiBannerTitle:"AI सहायक से पूछें", aiBannerSub:"हिंदी या अंग्रेज़ी में कोई भी सवाल पूछें",
     categoriesTitle:"श्रेणियां", categoriesSub:"श्रेणी के अनुसार देखें", seeAll:"सभी देखें →",
     ctaTitle:"पात्रता जांचें",
-    ctaSub:(hp)=> hp ? "प्रोफाइल से परिणाम तैयार · देखें" : "6 सवाल · तुरंत जानें",
+    ctaSub:(hp)=> hp ? "प्रोफाइल से परिणाम तैयार · देखें" : "7 सवाल · तुरंत जानें",
     ctaBtn:(hp)=> hp ? "मेरी योजनाएं →" : "शुरू करें →",
     schemesTitle:"लोकप्रिय योजनाएं", schemesSub:"शीर्ष सरकारी लाभ",
     matchedTitle:"आपके लिए योजनाएं", matchedSub:(n)=>`${n} योजनाएं जिनके आप पात्र हैं`,
@@ -274,14 +300,38 @@ const T = {
     setupProfileBtn:"प्रोफाइल बनाएं →",
     helplineTitle:"सरकारी हेल्पलाइन", helplineSub:"24×7 · 1800-111-555", helplineBtn:"कॉल करें",
     navHome:"होम", navSearch:"खोजें", navSchemes:"योजनाएं", navAI:"AI", navProfile:"प्रोफाइल",
-    checkerTitle:"पात्रता जांच", checkerSub:"6 आसान सवाल",
+    checkerTitle:"पात्रता जांच", checkerSub:"7 आसान सवाल",
     stepOf:(c,t)=>`सवाल ${c} / ${t}`,
     nextBtn:"अगला →", backBtn:"← वापस", checkBtn:"मेरी योजनाएं खोजें 🎯",
     matchSub:(n)=>`आप ${n} योजना${n!==1?"ओं":""} के हकदार हैं`,
     centralLabel:"🇮🇳 केंद्रीय", stateLabel:(s)=>`📍 ${s}`,
     noMatchTitle:"कोई मिलान नहीं", noMatchSub:"राज्य या जवाब बदलकर दोबारा कोशिश करें",
-    retakeBtn:"फिर से", doneBtn:"पूरा हुआ",
+    retakeBtn:"फिर से", doneBtn:"पूरा हुआ", fixAnswerBtn:"← जवाब ठीक करें",
     applyLabel:"आवेदन कैसे करें", docsLabel:"ज़रूरी दस्तावेज़", totalBenefit:"कुल वार्षिक लाभ",
+    nearMissTitle:"लगभग पात्र हैं आप 🎯",
+    nearMissSub:"ये योजनाएं बस थोड़ी दूर हैं। यह कमी है:",
+    nearMissMissing:"कमी:",
+    nearMissCriteria:{
+      who_farmer:"किसान होना ज़रूरी है",
+      who_student:"छात्र होना ज़रूरी है",
+      who_women:"महिला / गृहिणी होना ज़रूरी है",
+      who_senior:"वरिष्ठ नागरिक होना ज़रूरी है",
+      who_business:"व्यापारी होना ज़रूरी है",
+      income_lower:"आय कम होनी चाहिए",
+      income_below1:"आय ₹1 लाख से कम चाहिए",
+      income_1to3:"आय ₹3 लाख से कम चाहिए",
+      income_below3:"आय ₹3 लाख से कम चाहिए",
+      income_below6:"आय ₹6 लाख से कम चाहिए",
+      house_no:"पक्का मकान नहीं होना चाहिए",
+      house_kutcha:"कच्चा/कोई मकान नहीं होना चाहिए",
+      area_rural:"ग्रामीण क्षेत्र में रहना ज़रूरी है",
+      area_urban:"शहरी/अर्ध-शहरी क्षेत्र में रहना ज़रूरी है",
+      age_above60:"उम्र 60+ होनी चाहिए",
+      age_below18:"उम्र 18 से कम होनी चाहिए",
+      age_18to35:"उम्र 18–35 होनी चाहिए",
+      state_match:"आपके राज्य में उपलब्ध नहीं",
+      caste_reserved:"SC / ST / OBC / EWS श्रेणी होना ज़रूरी है",
+    },
     searchStatePh:"अपना राज्य खोजें...",
     centralSchemes:"केंद्र सरकार की योजनाएं", stateSchemes:"राज्य सरकार की योजनाएं",
     profileTitle:"मेरी प्रोफाइल", setupTitle:"प्रोफाइल बनाएं", setupSub:"एक बार भरें · हर जगह काम आएगा",
@@ -319,6 +369,8 @@ const T = {
       {id:"state", q:"आप किस राज्य में रहते हैं?",  icon:"🗺️", hint:"केंद्रीय + आपके राज्य की योजनाएं दिखेंगी", type:"state"},
       {id:"house", q:"क्या आपके पास पक्का मकान है?", icon:"🏠", hint:"पक्का = ईंट/सीमेंट का स्थायी मकान",
         options:[{value:"no",label:"नहीं — मुझे चाहिए"},{value:"yes",label:"हां — मेरे पास है"},{value:"kutcha",label:"कच्चा / अस्थायी"}]},
+      {id:"caste", q:"आपकी सामाजिक श्रेणी?",        icon:"🪪", hint:"SC/ST/OBC आरक्षित योजनाओं के मिलान के लिए",
+        options:[{value:"general",label:"सामान्य"},{value:"obc",label:"OBC"},{value:"sc",label:"SC (अनु. जाति)"},{value:"st",label:"ST (अनु. जनजाति)"},{value:"ews",label:"EWS"}]},
       {id:"age",   q:"आपकी उम्र क्या है?",           icon:"🎂", hint:"मुख्य आवेदक की उम्र",
         options:[{value:"below18",label:"18 से कम"},{value:"18to35",label:"18–35 वर्ष"},{value:"35to60",label:"35–60 वर्ष"},{value:"above60",label:"60 से अधिक"}]},
       {id:"area",  q:"आपका क्षेत्र?",                icon:"📍", hint:"आपके रहने का क्षेत्र",
@@ -1819,6 +1871,86 @@ function SchemesTab({lang,dark=false}){
   );
 }
 
+// ─── NEAR-MISS UTILITY ────────────────────────────────────────────────────────
+// For each unmatched scheme, figure out which criteria the user is failing.
+// Strategy: try every single-field substitution; if the scheme matches with that
+// substitution, that field was a barrier. Collect all barriers found.
+// Returns array of unique human-readable reason strings.
+const WHO_VALUES    = ["farmer","student","women","senior","business","general"];
+const INCOME_VALUES = ["below1","1to3","3to6","above6"];
+const CASTE_RESERVED = ["obc","sc","st","ews"];
+
+function getMissingCriteria(scheme, answers, lang){
+  const criteria = T[lang].nearMissCriteria;
+  const reasons  = [];
+
+  // Helper: does the scheme match when we override one field?
+  const matchWith = (overrides) => {
+    try{ return scheme.match({...answers,...overrides}); }catch{ return false; }
+  };
+
+  // 1. who — find the first alternate "who" value that unlocks the scheme
+  const passingWho = WHO_VALUES.find(v => v !== answers.who && matchWith({who:v}));
+  if(passingWho){
+    const key = `who_${passingWho}`;
+    if(criteria[key]) reasons.push(criteria[key]);
+  }
+
+  // 2. income — check if any lower income bracket unlocks the scheme
+  const myIncomeIdx = INCOME_VALUES.indexOf(answers.income);
+  if(myIncomeIdx > 0){
+    const lowerUnlocks = INCOME_VALUES.slice(0, myIncomeIdx).some(v => matchWith({income:v}));
+    if(lowerUnlocks) reasons.push(criteria.income_lower);
+  }
+
+  // 3. house — if user owns pucca house, check if not owning one unlocks the scheme
+  if(answers.house === "yes"){
+    if(matchWith({house:"no"}) || matchWith({house:"kutcha"})){
+      reasons.push(criteria.house_no);
+    }
+  }
+
+  // 4. area — check if switching area type unlocks the scheme
+  if(answers.area !== "rural" && matchWith({area:"rural"}))
+    reasons.push(criteria.area_rural);
+  if(answers.area === "rural" && (matchWith({area:"urban"}) || matchWith({area:"semi"})))
+    reasons.push(criteria.area_urban);
+
+  // 5. age — check if a different age bracket unlocks the scheme
+  if(answers.age !== "above60" && matchWith({age:"above60"})) reasons.push(criteria.age_above60);
+  if(answers.age !== "18to35"  && matchWith({age:"18to35"}))  reasons.push(criteria.age_18to35);
+  if(answers.age !== "below18" && matchWith({age:"below18"})) reasons.push(criteria.age_below18);
+
+  // 6. caste — if user is General, check if a reserved category would unlock the scheme
+  if(answers.caste === "general" || !answers.caste){
+    const reservedUnlocks = CASTE_RESERVED.some(v => matchWith({caste:v}));
+    if(reservedUnlocks) reasons.push(criteria.caste_reserved);
+  }
+
+  // Deduplicate (a single substitution could push the same label twice in theory)
+  return [...new Set(reasons)];
+}
+
+function getNearMissSchemes(answers, matchedIds, lang){
+  // Only look at schemes that weren't matched and have scope matching user state
+  const unmatched = SCHEME_DB.filter(s=>{
+    if(matchedIds.has(s.id)) return false;
+    if(s.scope==="state"&&s.state!==answers.state) return false; // different state schemes aren't near-miss
+    return true;
+  });
+
+  const result = [];
+  for(const scheme of unmatched){
+    const reasons = getMissingCriteria(scheme, answers, lang);
+    // Only surface schemes where 1–2 clear reasons explain the miss
+    if(reasons.length>=1&&reasons.length<=2){
+      result.push({scheme, reasons});
+    }
+    if(result.length>=5) break; // cap at 5 near-miss cards
+  }
+  return result;
+}
+
 // ─── ELIGIBILITY CHECKER ───────────────────────────────────────────────────────
 function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const th=THEME[dark?"dark":"light"];
@@ -1904,8 +2036,10 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const progress=step>=TOTAL?100:Math.round(((step+1)/TOTAL)*100);
   const filteredStates=useMemo(()=>INDIA_STATES.filter(s=>s.toLowerCase().includes(stateSearch.toLowerCase())),[stateSearch]);
   const totalAnnual=useMemo(()=>results.reduce((s,r)=>s+(r.annual||0),0),[results]);
-  const nationalResults=useMemo(()=>results.filter(r=>r.scope==="national"),[results]);
-  const stateResults=useMemo(()=>results.filter(r=>r.scope==="state"),[results]);
+  const nationalResults=useMemo(()=>results.filter(r=>r.scope==="national").sort((a,b)=>(b.annual||0)-(a.annual||0)),[results]);
+  const stateResults=useMemo(()=>results.filter(r=>r.scope==="state").sort((a,b)=>(b.annual||0)-(a.annual||0)),[results]);
+  const matchedIds=useMemo(()=>new Set(results.map(r=>r.id)),[results]);
+  const nearMiss=useMemo(()=>step===TOTAL?getNearMissSchemes(answers,matchedIds,lang):[],[step,TOTAL,answers,matchedIds,lang]);
 
   const goNext=()=>{
     if(!canProceed)return;
@@ -2005,6 +2139,15 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                   )}
                   <span style={{fontSize:9.5,fontWeight:600,color:"#aaa",fontFamily:bf}}>{q?.hint}</span>
                 </div>
+              </div>
+              {/* Progress bar */}
+              <div style={{marginTop:8,height:3,borderRadius:99,background:dark?"#2c2c2e":"#ebebeb",overflow:"hidden"}}>
+                <div style={{
+                  height:"100%",borderRadius:99,
+                  width:`${progress}%`,
+                  background:`linear-gradient(90deg,${SAFFRON},${IND_GREEN})`,
+                  transition:"width 0.35s cubic-bezier(0.4,0,0.2,1)",
+                }}/>
               </div>
             </>
           )}
@@ -2114,13 +2257,160 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                     {nationalResults.map(s=><SchemeCard key={s.id} scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>)}
                   </>
                 )}
+
+                {/* ── NEAR-MISS SECTION ── */}
+                {nearMiss.length>0&&(
+                  <div style={{marginTop:22}}>
+                    {/* Section header */}
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+                      <div style={{height:1,flex:1,background:th.border2}}/>
+                      <span style={{fontSize:11,fontWeight:700,color:"#92400E",background:"#FFFBEB",borderRadius:20,padding:"3px 10px",border:"1px solid #FCD34D",display:"flex",alignItems:"center",gap:4}}>
+                        {t.nearMissTitle}
+                      </span>
+                      <div style={{height:1,flex:1,background:th.border2}}/>
+                    </div>
+                    {/* Subtitle */}
+                    <div style={{fontSize:12,color:th.textSub,marginBottom:12,lineHeight:1.5,fontFamily:bf}}>
+                      {t.nearMissSub}
+                    </div>
+                    {/* Near-miss cards */}
+                    {nearMiss.map(({scheme,reasons})=>(
+                      <div key={scheme.id} style={{
+                        background:dark?"#1c1300":"#FFFDF5",
+                        borderRadius:14,padding:"13px 14px",marginBottom:10,
+                        border:`1.5px dashed ${scheme.color}55`,
+                        position:"relative",overflow:"hidden",
+                      }}>
+                        {/* Faded "Almost" watermark badge */}
+                        <div style={{
+                          position:"absolute",top:8,right:10,
+                          fontSize:8,fontWeight:800,letterSpacing:0.6,
+                          color:scheme.color,background:scheme.color+"18",
+                          borderRadius:20,padding:"2px 8px",
+                          border:`1px solid ${scheme.color}33`,
+                          textTransform:"uppercase",
+                        }}>
+                          {isHindi?"लगभग":"Almost"}
+                        </div>
+                        {/* Scheme identity row */}
+                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:9,paddingRight:60}}>
+                          <div style={{
+                            width:38,height:38,borderRadius:11,flexShrink:0,
+                            background:`${scheme.color}18`,
+                            display:"flex",alignItems:"center",justifyContent:"center",
+                            fontSize:20,border:`1.5px solid ${scheme.color}30`,
+                            filter:"grayscale(40%)",opacity:0.85,
+                          }}>
+                            {scheme.icon}
+                          </div>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:13,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.3,marginBottom:2}}>
+                              {scheme.name[lang]}
+                            </div>
+                            <div style={{fontSize:11,color:th.textSub,fontFamily:bf}}>
+                              {scheme.benefit[lang]}
+                            </div>
+                          </div>
+                        </div>
+                        {/* Missing criteria chips */}
+                        <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
+                          <span style={{fontSize:10,fontWeight:700,color:"#92400E",fontFamily:bf}}>
+                            {t.nearMissMissing}
+                          </span>
+                          {reasons.map((r,i)=>(
+                            <span key={i} style={{
+                              fontSize:10,fontWeight:700,
+                              color:"#B45309",
+                              background:"#FEF3C7",
+                              borderRadius:20,padding:"3px 9px",
+                              border:"1px solid #FCD34D",
+                              display:"flex",alignItems:"center",gap:4,
+                            }}>
+                              ⚠️ {r}
+                            </span>
+                          ))}
+                        </div>
+                        {/* Fix my answer CTA */}
+                        <div
+                          onClick={()=>{haptic();retake();}}
+                          onTouchStart={e=>e.currentTarget.style.background="rgba(255,153,51,0.18)"}
+                          onTouchEnd={e=>e.currentTarget.style.background="rgba(255,153,51,0.10)"}
+                          style={{
+                            marginTop:10,
+                            display:"inline-flex",alignItems:"center",gap:5,
+                            background:"rgba(255,153,51,0.10)",
+                            border:"1.5px solid rgba(255,153,51,0.40)",
+                            borderRadius:10,padding:"7px 13px",
+                            cursor:"pointer",WebkitTapHighlightColor:"transparent",
+                            fontSize:11,fontWeight:700,color:"#CC6600",fontFamily:bf,
+                            transition:"background 0.15s",
+                          }}>
+                          {t.fixAnswerBtn}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </>
             ):(
-              <div style={{textAlign:"center",padding:"40px 20px"}}>
-                <div style={{fontSize:52,marginBottom:16}}>🔍</div>
-                <div style={{fontSize:17,fontWeight:800,color:th.text,marginBottom:8,fontFamily:bf}}>{t.noMatchTitle}</div>
-                <div style={{fontSize:13,color:th.textSub,lineHeight:1.6,fontFamily:bf}}>{t.noMatchSub}</div>
-              </div>
+              <>
+                <div style={{textAlign:"center",padding:"32px 20px 16px"}}>
+                  <div style={{fontSize:48,marginBottom:12}}>🔍</div>
+                  <div style={{fontSize:17,fontWeight:800,color:th.text,marginBottom:8,fontFamily:bf}}>{t.noMatchTitle}</div>
+                  <div style={{fontSize:13,color:th.textSub,lineHeight:1.6,fontFamily:bf}}>{t.noMatchSub}</div>
+                </div>
+                {nearMiss.length>0&&(
+                  <div style={{marginTop:8}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+                      <div style={{height:1,flex:1,background:th.border2}}/>
+                      <span style={{fontSize:11,fontWeight:700,color:"#92400E",background:"#FFFBEB",borderRadius:20,padding:"3px 10px",border:"1px solid #FCD34D"}}>
+                        {t.nearMissTitle}
+                      </span>
+                      <div style={{height:1,flex:1,background:th.border2}}/>
+                    </div>
+                    <div style={{fontSize:12,color:th.textSub,marginBottom:12,lineHeight:1.5,fontFamily:bf}}>{t.nearMissSub}</div>
+                    {nearMiss.map(({scheme,reasons})=>(
+                      <div key={scheme.id} style={{background:dark?"#1c1300":"#FFFDF5",borderRadius:14,padding:"13px 14px",marginBottom:10,border:`1.5px dashed ${scheme.color}55`,position:"relative",overflow:"hidden"}}>
+                        <div style={{position:"absolute",top:8,right:10,fontSize:8,fontWeight:800,letterSpacing:0.6,color:scheme.color,background:scheme.color+"18",borderRadius:20,padding:"2px 8px",border:`1px solid ${scheme.color}33`,textTransform:"uppercase"}}>
+                          {isHindi?"लगभग":"Almost"}
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:9,paddingRight:60}}>
+                          <div style={{width:38,height:38,borderRadius:11,flexShrink:0,background:`${scheme.color}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,border:`1.5px solid ${scheme.color}30`,filter:"grayscale(40%)",opacity:0.85}}>
+                            {scheme.icon}
+                          </div>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:13,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.3,marginBottom:2}}>{scheme.name[lang]}</div>
+                            <div style={{fontSize:11,color:th.textSub,fontFamily:bf}}>{scheme.benefit[lang]}</div>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
+                          <span style={{fontSize:10,fontWeight:700,color:"#92400E",fontFamily:bf}}>{t.nearMissMissing}</span>
+                          {reasons.map((r,i)=>(
+                            <span key={i} style={{fontSize:10,fontWeight:700,color:"#B45309",background:"#FEF3C7",borderRadius:20,padding:"3px 9px",border:"1px solid #FCD34D",display:"flex",alignItems:"center",gap:4}}>⚠️ {r}</span>
+                          ))}
+                        </div>
+                        {/* Fix my answer CTA */}
+                        <div
+                          onClick={()=>{haptic();retake();}}
+                          onTouchStart={e=>e.currentTarget.style.background="rgba(255,153,51,0.18)"}
+                          onTouchEnd={e=>e.currentTarget.style.background="rgba(255,153,51,0.10)"}
+                          style={{
+                            marginTop:10,
+                            display:"inline-flex",alignItems:"center",gap:5,
+                            background:"rgba(255,153,51,0.10)",
+                            border:"1.5px solid rgba(255,153,51,0.40)",
+                            borderRadius:10,padding:"7px 13px",
+                            cursor:"pointer",WebkitTapHighlightColor:"transparent",
+                            fontSize:11,fontWeight:700,color:"#CC6600",fontFamily:bf,
+                            transition:"background 0.15s",
+                          }}>
+                          {t.fixAnswerBtn}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
             <div style={{display:"flex",gap:10,marginTop:16}}>
               <div onClick={()=>{haptic();retake();}} style={{flex:1,padding:14,borderRadius:14,border:"1.5px solid #FF9933",background:th.card,textAlign:"center",fontSize:13,fontWeight:700,color:"#FF8C00",cursor:"pointer",fontFamily:bf}}>{t.retakeBtn}</div>
@@ -5651,7 +5941,7 @@ export default function YojanaSahay(){
                 <div style={{background:th.card,borderRadius:16,overflow:"hidden",border:`1.5px solid ${th.border}`,boxShadow:dark?"0 2px 12px rgba(0,0,0,0.2)":"0 2px 12px rgba(0,0,0,0.05)"}}>
                   {[
                     {num:"1",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,color:"#FF9933",bg:"rgba(255,153,51,0.10)",
-                      title:isHindi?"6 सवाल जवाब दें":"Answer 6 Quick Questions",
+                      title:isHindi?"7 सवाल जवाब दें":"Answer 7 Quick Questions",
                       sub:isHindi?"अपनी जानकारी भरें":"Fill in your basic details"},
                     {num:"2",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,color:"#06038D",bg:"rgba(6,3,141,0.08)",
                       title:isHindi?"AI मिलान करता है":"AI Matches Your Profile",
