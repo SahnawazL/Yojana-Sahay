@@ -221,7 +221,41 @@ const T = {
         options:[{value:"below18",label:"Below 18"},{value:"18to35",label:"18–35 years"},{value:"35to60",label:"35–60 years"},{value:"above60",label:"Above 60 years"}]},
       {id:"area",  q:"Your area type?",            icon:"📍", hint:"Your residential area",
         options:[{value:"rural",label:"Rural / Village 🏡"},{value:"urban",label:"Urban / City 🏙️"},{value:"semi",label:"Semi-urban / Town 🏘️"}]},
-    ]
+    ],
+    // ── Adaptive / conditional bonus questions ──────────────────────────────
+    // Injected into the live queue based on earlier answers
+    adaptiveQuestions:{
+      landHolding:{
+        id:"landHolding", q:"How much farm land do you own?", icon:"🌾",
+        hint:"Kisan schemes are gated by land size",
+        options:[
+          {value:"below1",label:"Below 1 Acre"},
+          {value:"1to2",  label:"1–2 Acres"},
+          {value:"2to5",  label:"2–5 Acres"},
+          {value:"5plus", label:"5+ Acres"},
+        ],
+      },
+      educationLevel:{
+        id:"educationLevel", q:"What is your current education level?", icon:"📚",
+        hint:"Scholarship eligibility differs by class",
+        options:[
+          {value:"class1to8",  label:"Class 1–8 (Primary / Middle)"},
+          {value:"class9to12", label:"Class 9–12 (Secondary)"},
+          {value:"undergrad",  label:"Undergraduate (Degree / Diploma)"},
+          {value:"postgrad",   label:"Postgraduate (Masters / PhD)"},
+        ],
+      },
+      rationCard:{
+        id:"rationCard", q:"What type of ration card do you have?", icon:"🪪",
+        hint:"BPL / AAY card unlocks major welfare schemes",
+        options:[
+          {value:"none", label:"None / Not Applicable 🚫"},
+          {value:"apl",  label:"APL — Above Poverty Line"},
+          {value:"bpl",  label:"BPL — Below Poverty Line 🟡"},
+          {value:"aay",  label:"AAY — Antyodaya (Poorest) 🔴"},
+        ],
+      },
+    },
   },
   hi: {
     appName:"योजना सहाय", appSub:"सरकारी योजना खोजक",
@@ -289,7 +323,40 @@ const T = {
         options:[{value:"below18",label:"18 से कम"},{value:"18to35",label:"18–35 वर्ष"},{value:"35to60",label:"35–60 वर्ष"},{value:"above60",label:"60 से अधिक"}]},
       {id:"area",  q:"आपका क्षेत्र?",                icon:"📍", hint:"आपके रहने का क्षेत्र",
         options:[{value:"rural",label:"ग्रामीण / गांव 🏡"},{value:"urban",label:"शहरी / नगर 🏙️"},{value:"semi",label:"अर्ध-शहरी 🏘️"}]},
-    ]
+    ],
+    // ── अनुकूल / सशर्त अतिरिक्त सवाल ───────────────────────────────────────
+    adaptiveQuestions:{
+      landHolding:{
+        id:"landHolding", q:"आपके पास कितनी कृषि भूमि है?", icon:"🌾",
+        hint:"किसान योजनाएं भूमि आकार पर निर्भर करती हैं",
+        options:[
+          {value:"below1",label:"1 एकड़ से कम"},
+          {value:"1to2",  label:"1–2 एकड़"},
+          {value:"2to5",  label:"2–5 एकड़"},
+          {value:"5plus", label:"5+ एकड़"},
+        ],
+      },
+      educationLevel:{
+        id:"educationLevel", q:"आपकी वर्तमान शिक्षा स्तर क्या है?", icon:"📚",
+        hint:"छात्रवृत्ति कक्षा के अनुसार अलग होती है",
+        options:[
+          {value:"class1to8",  label:"कक्षा 1–8 (प्राथमिक)"},
+          {value:"class9to12", label:"कक्षा 9–12 (माध्यमिक)"},
+          {value:"undergrad",  label:"स्नातक (डिग्री / डिप्लोमा)"},
+          {value:"postgrad",   label:"स्नातकोत्तर (मास्टर्स / पीएचडी)"},
+        ],
+      },
+      rationCard:{
+        id:"rationCard", q:"आपके पास किस प्रकार का राशन कार्ड है?", icon:"🪪",
+        hint:"BPL / AAY कार्ड बड़ी योजनाओं की कुंजी है",
+        options:[
+          {value:"none", label:"कोई नहीं / लागू नहीं 🚫"},
+          {value:"apl",  label:"APL — गरीबी रेखा से ऊपर"},
+          {value:"bpl",  label:"BPL — गरीबी रेखा से नीचे 🟡"},
+          {value:"aay",  label:"AAY — अंत्योदय (सबसे गरीब) 🔴"},
+        ],
+      },
+    },
   }
 };
 
@@ -1758,33 +1825,57 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const t=T[lang];
   const isHindi=lang==="hi";
   const bf=fontFamily(lang);
-  const TOTAL=t.questions.length;
+
+  // ── Adaptive queue builder ────────────────────────────────────────────────
+  // Builds the live question list from base questions + conditional inserts.
+  // Conditional rules (Feature 2 from screenshot):
+  //   who === "farmer"  → inject landHolding after income
+  //   who === "student" → inject educationLevel after income
+  //   income === "below1" → inject rationCard after income (or after landHolding/educationLevel)
+  const buildQueue=useCallback((ans)=>{
+    const aq=t.adaptiveQuestions;
+    const base=[...t.questions]; // [who, income, state, house, age, area]
+    const extra=[];
+    if(ans.who==="farmer")  extra.push(aq.landHolding);
+    if(ans.who==="student") extra.push(aq.educationLevel);
+    if(ans.income==="below1") extra.push(aq.rationCard);
+    // Insert extras after the "income" question (index 1)
+    const incomeIdx=base.findIndex(q=>q.id==="income");
+    base.splice(incomeIdx+1,0,...extra);
+    return base;
+  },[t]);
 
   // Filter SCHEME_DB using match() functions — single source of truth
   const initResults=useCallback((ans)=>SCHEME_DB.filter(s=>s.match(ans)),[]);
 
-  const [step,setStep]=useState(()=>{
-    if(prefilledAnswers) return TOTAL;
-    try{
-      const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
-      if(!saved) return 0;
-      // New format: { answers, step } — restore exact mid-quiz position
-      if(saved.answers && typeof saved.step==="number") return saved.step;
-      // Legacy format: plain answers object — jump straight to results
-      return TOTAL;
-    }catch{return 0;}
-  });
   const [answers,setAnswers]=useState(()=>{
     if(prefilledAnswers) return prefilledAnswers;
     try{
       const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
       if(!saved) return {};
-      // New format: { answers, step }
       if(saved.answers && typeof saved.step==="number") return saved.answers;
-      // Legacy format: plain answers object
       return saved;
     }catch{return {};}
   });
+
+  // Queue is derived from answers — recomputed whenever answers change
+  const queue=useMemo(()=>buildQueue(answers),[answers,buildQueue]);
+  const TOTAL=queue.length;
+
+  const [step,setStep]=useState(()=>{
+    if(prefilledAnswers) return prefilledAnswers ? buildQueue(prefilledAnswers).length : 0;
+    try{
+      const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+      if(!saved) return 0;
+      if(saved.answers && typeof saved.step==="number"){
+        // Clamp saved step to new queue length (answers may have changed)
+        const q=buildQueue(saved.answers);
+        return Math.min(saved.step, q.length);
+      }
+      return buildQueue(saved).length;
+    }catch{return 0;}
+  });
+
   const [selected,setSelected]=useState(null);
   const [stateSearch,setStateSearch]=useState(prefilledAnswers?.state||"");
   const [visible,setVisible]=useState(false);
@@ -1798,15 +1889,15 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
       if(!saved) return [];
       const isNew=saved.answers && typeof saved.step==="number";
       const ans=isNew?saved.answers:saved;
-      const savedStep=isNew?saved.step:TOTAL;
-      // Only compute results if the quiz was actually completed
-      return savedStep===TOTAL?SCHEME_DB.filter(s=>s.match(ans)):[];
+      const builtQ=buildQueue(ans);
+      const savedStep=isNew?saved.step:builtQ.length;
+      return savedStep===builtQ.length?SCHEME_DB.filter(s=>s.match(ans)):[];
     }catch{return [];}
   });
 
   useEffect(()=>{const id=setTimeout(()=>setVisible(true),30);return()=>clearTimeout(id);},[]);
 
-  const q=step<TOTAL?t.questions[step]:null;
+  const q=step<TOTAL?queue[step]:null;
   const isStateQ=q?.type==="state";
   const activeVal=isStateQ?(stateSearch&&INDIA_STATES.includes(stateSearch)?stateSearch:null):(selected||(q?answers[q.id]:null));
   const canProceed=!!activeVal;
@@ -1819,19 +1910,22 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const goNext=()=>{
     if(!canProceed)return;
     const newAnswers={...answers,[q.id]:activeVal};
-    const nextStep=step===TOTAL-1?TOTAL:step+1;
+    // Recompute queue with the freshly updated answers so conditional
+    // questions are injected before we decide if this is the last step
+    const newQueue=buildQueue(newAnswers);
+    const newTotal=newQueue.length;
+    const nextStep=step===newTotal-1?newTotal:step+1;
     setAnswers(newAnswers);setSelected(null);setAnimKey(k=>k+1);
-    // Save on every step so the user can resume mid-quiz if they close the app
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify({answers:newAnswers,step:nextStep}));}catch{}
-    if(step===TOTAL-1){
-      setResults(initResults(newAnswers));setStep(TOTAL);
+    if(step===newTotal-1){
+      setResults(initResults(newAnswers));setStep(newTotal);
     }
-    else setStep(s=>s+1);
+    else setStep(nextStep);
   };
   const goBack=()=>{
     if(step===0){onClose();return;}
     if(step===TOTAL){setStep(TOTAL-1);return;}
-    const prevQ=t.questions[step-1];
+    const prevQ=queue[step-1];
     if(prevQ.type==="state")setStateSearch(answers[prevQ.id]||"");
     else setSelected(answers[prevQ.id]||null);
     setAnimKey(k=>k+1);setStep(s=>s-1);
@@ -1877,18 +1971,20 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
           {step<TOTAL&&(
             <>
               <div style={{display:"flex",alignItems:"center"}}>
-                {t.questions.map((_,i)=>{
+                {queue.map((_,i)=>{
                   const done=i<step,active=i===step;
+                  // Mark adaptive questions with a subtle accent
+                  const isAdaptive=!t.questions.find(bq=>bq.id===queue[i].id);
                   return [
-                    <div key={`dot-${i}`} style={{width:32,height:32,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:done?IND_GREEN:active?SAFFRON:"#fff",border:`2.5px solid ${done?IND_GREEN:active?SAFFRON:"#ddd"}`,boxShadow:active?`0 0 0 5px ${SAFFRON}22,0 2px 10px ${SAFFRON}44`:done?`0 0 0 3px ${IND_GREEN}18`:"none",transition:"all 0.35s cubic-bezier(0.4,0,0.2,1)",zIndex:1,position:"relative"}}>
+                    <div key={`dot-${i}`} style={{width:32,height:32,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:done?IND_GREEN:active?SAFFRON:isAdaptive?"#FFF7ED":"#fff",border:`2.5px solid ${done?IND_GREEN:active?SAFFRON:isAdaptive?"#FF9933":"#ddd"}`,boxShadow:active?`0 0 0 5px ${SAFFRON}22,0 2px 10px ${SAFFRON}44`:done?`0 0 0 3px ${IND_GREEN}18`:"none",transition:"all 0.35s cubic-bezier(0.4,0,0.2,1)",zIndex:1,position:"relative"}}>
                       {done
                         ?<span style={{color:"#fff",fontSize:14,fontWeight:900}}>✓</span>
                         :active
                           ?<AshokaChakra size={16} color="#fff" spinning={true}/>
-                          :<span style={{color:"#ccc",fontSize:11,fontWeight:800}}>{i+1}</span>
+                          :<span style={{color:isAdaptive?"#FF9933":"#ccc",fontSize:11,fontWeight:800}}>{i+1}</span>
                       }
                     </div>,
-                    i<t.questions.length-1&&(
+                    i<queue.length-1&&(
                       <div key={`line-${i}`} style={{flex:1,height:3,borderRadius:3,background:"#ebebeb",position:"relative",overflow:"hidden"}}>
                         {i<step&&<div style={{position:"absolute",inset:0,borderRadius:3,background:`linear-gradient(90deg,${SAFFRON},${IND_GREEN})`}}/>}
                       </div>
@@ -1897,11 +1993,18 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                 })}
               </div>
               {/* Step label row */}
-              <div style={{display:"flex",justifyContent:"space-between",marginTop:7,paddingLeft:3,paddingRight:3}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:7,paddingLeft:3,paddingRight:3}}>
                 <span style={{fontSize:9.5,fontWeight:700,color:ASHOKA_BLUE,letterSpacing:0.4,fontFamily:bf}}>
                   {isHindi?`चरण ${step+1} / ${TOTAL}`:`STEP ${step+1} OF ${TOTAL}`}
                 </span>
-                <span style={{fontSize:9.5,fontWeight:600,color:"#aaa",fontFamily:bf}}>{q?.hint}</span>
+                <div style={{display:"flex",alignItems:"center",gap:4}}>
+                  {q&&!t.questions.find(bq=>bq.id===q.id)&&(
+                    <span style={{fontSize:8.5,fontWeight:700,color:"#CC6600",background:"#FFF7ED",borderRadius:20,padding:"2px 7px",border:"1px solid #FFD8A8",letterSpacing:0.3}}>
+                      {isHindi?"अतिरिक्त":"+ Smart"}
+                    </span>
+                  )}
+                  <span style={{fontSize:9.5,fontWeight:600,color:"#aaa",fontFamily:bf}}>{q?.hint}</span>
+                </div>
               </div>
             </>
           )}
