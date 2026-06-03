@@ -1131,14 +1131,14 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
 // ─── SEARCH TAB ────────────────────────────────────────────────────────────────
 // Paginated + skeleton + deferred query to match SchemesTab performance.
 // Root cause of old lag: dumped ALL SCHEME_DB cards to DOM at once (no pagination).
-function SearchTab({lang,initialQuery="",dark=false}){
+function SearchTab({lang,dark=false}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
   const isHindi=lang==="hi";
   const bf=fontFamily(lang);
 
   // ── Input state — raw query updates instantly (responsive feel)
-  const [query,setQuery]=useState(initialQuery);
+  const [query,setQuery]=useState("");
   const [expandedId,setExpandedId]=useState(null);
   const [visibleCount,setVisibleCount]=useState(PAGE_SIZE);
   const [focused,setFocused]=useState(false);
@@ -2190,6 +2190,11 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const [visible,setVisible]=useState(false);
   const [animKey,setAnimKey]=useState(0);
   const [direction,setDirection]=useState("fwd"); // "fwd" | "bwd"
+  const [lockedAnswer,setLockedAnswer]=useState(null); // tracks the answer currently in the 400ms lock-in window
+  const autoAdvanceTimerRef=useRef(null); // holds the setTimeout id so we can cancel it
+  const [displayCount,setDisplayCount]=useState(0); // visually-animated value of partialCount
+  const animCountRaf=useRef(null);  // rAF handle for the count-up tween
+  const prevCountRef=useRef(0);     // last committed count, so tween starts from it
   const [expandedId,setExpandedId]=useState(null);
 
   const [results,setResults]=useState(()=>{
@@ -2240,9 +2245,10 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const matchedIds=useMemo(()=>new Set(results.map(r=>r.id)),[results]);
   const nearMiss=useMemo(()=>step===TOTAL?getNearMissSchemes(answers,matchedIds,lang):[],[step,TOTAL,answers,matchedIds,lang]);
 
-  const goNext=()=>{
-    if(!canProceed)return;
-    const newAnswers={...answers,[q.id]:activeVal};
+  const goNext=(valOverride=null)=>{
+    const useVal=valOverride!==null?valOverride:activeVal;
+    if(!useVal)return;
+    const newAnswers={...answers,[q.id]:useVal};
     // Recompute queue with the freshly updated answers so conditional
     // questions are injected before we decide if this is the last step
     const newQueue=buildQueue(newAnswers);
@@ -2295,6 +2301,40 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
     else setSelected(answers[prevQ.id]||null);
     setAnimKey(k=>k+1);setDirection("bwd");setStep(s=>s-1);
   };
+  // ── Auto-advance cleanup: cancel pending timer when step changes ──────────
+  useEffect(()=>{
+    return ()=>{
+      if(autoAdvanceTimerRef.current){
+        clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current=null;
+      }
+      setLockedAnswer(null);
+    };
+  },[step]);
+  // ── Animated scheme counter: tween displayCount from prev → partialCount ──
+  useEffect(()=>{
+    if(partialCount===null){
+      if(animCountRaf.current) cancelAnimationFrame(animCountRaf.current);
+      prevCountRef.current=0;
+      setDisplayCount(0);
+      return;
+    }
+    const from=prevCountRef.current;
+    const to=partialCount;
+    prevCountRef.current=to;
+    if(animCountRaf.current) cancelAnimationFrame(animCountRaf.current);
+    const dur=450;
+    const startT=performance.now();
+    const tick=(now)=>{
+      const p=Math.min((now-startT)/dur,1);
+      const ease=1-Math.pow(1-p,3); // cubic ease-out
+      setDisplayCount(Math.round(from+(to-from)*ease));
+      if(p<1) animCountRaf.current=requestAnimationFrame(tick);
+      else animCountRaf.current=null;
+    };
+    animCountRaf.current=requestAnimationFrame(tick);
+    return()=>{ if(animCountRaf.current) cancelAnimationFrame(animCountRaf.current); };
+  },[partialCount]);
   // ── AI Results Brief ──────────────────────────────────────────────────────
   const [brief, setBrief]             = useState(null);
   const [briefLoading, setBriefLoading] = useState(false);
@@ -2572,7 +2612,7 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
             {/* ── Live Scheme Counter ── */}
             {partialCount !== null && (
               <div style={{display:"flex",justifyContent:"center",marginBottom:14,marginTop:-8}}>
-                <div key={partialCount} style={{
+                <div style={{
                   display:"inline-flex",alignItems:"center",gap:6,
                   background: partialCount>=10
                     ? (dark?"rgba(19,136,8,0.15)":"rgba(19,136,8,0.08)")
@@ -2587,7 +2627,7 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                     color:partialCount>=10?IND_GREEN:SAFFRON,
                     letterSpacing:0.1,
                   }}>
-                    ~{partialCount} {isHindi?"योजनाएं मिलेंगी":"schemes match so far"}
+                    ~{displayCount} {isHindi?"योजनाएं मिलेंगी":"schemes match so far"}
                   </span>
                 </div>
               </div>
@@ -2615,13 +2655,42 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {q.options.map(opt=>{
                   const active=activeVal===opt.value;
+                  const locked=lockedAnswer===opt.value;
                   return(
-                    <div key={opt.value} onClick={()=>{haptic();setSelected(opt.value);}}
-                      style={{padding:"13px 16px",borderRadius:13,border:`2px solid ${active?"#FF9933":th.border}`,background:active?th.optionActive:th.optionBg,cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"all 0.18s",boxShadow:active?"0 4px 14px rgba(255,153,51,0.18)":"none"}}>
-                      <div style={{width:20,height:20,borderRadius:"50%",border:`2px solid ${active?"#FF9933":th.border3}`,background:active?"#FF9933":th.optionBg,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                        {active&&<div style={{width:7,height:7,borderRadius:"50%",background:"#fff"}}/>}
+                    <div key={opt.value}
+                      onClick={()=>{
+                        haptic();
+                        setSelected(opt.value);
+                        setLockedAnswer(opt.value);
+                        if(autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+                        autoAdvanceTimerRef.current=setTimeout(()=>{
+                          autoAdvanceTimerRef.current=null;
+                          setLockedAnswer(null);
+                          goNext(opt.value);
+                        },400);
+                      }}
+                      style={{
+                        padding:"13px 16px",borderRadius:13,
+                        border:`2px solid ${locked?"#138808":active?"#FF9933":th.border}`,
+                        background:locked?(dark?"rgba(19,136,8,0.18)":th.optionActive):active?th.optionActive:th.optionBg,
+                        cursor:"pointer",display:"flex",alignItems:"center",gap:12,
+                        transition:"border-color 0.15s,background 0.15s,box-shadow 0.15s",
+                        boxShadow:locked?"0 4px 18px rgba(19,136,8,0.22)":active?"0 4px 14px rgba(255,153,51,0.18)":"none",
+                        animation:locked?"answer-lock-pulse 0.38s cubic-bezier(0.34,1.56,0.64,1) both":"none",
+                      }}>
+                      <div style={{
+                        width:20,height:20,borderRadius:"50%",
+                        border:`2px solid ${locked?"#138808":active?"#FF9933":th.border3}`,
+                        background:locked?"#138808":active?"#FF9933":th.optionBg,
+                        flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
+                        transition:"all 0.15s",
+                      }}>
+                        {locked
+                          ?<span style={{color:"#fff",fontSize:11,fontWeight:900,lineHeight:1}}>✓</span>
+                          :active&&<div style={{width:7,height:7,borderRadius:"50%",background:"#fff"}}/>
+                        }
                       </div>
-                      <span style={{fontSize:13,fontWeight:active?700:400,color:active?"#CC6600":th.text,fontFamily:bf}}>{opt.label}</span>
+                      <span style={{fontSize:13,fontWeight:active||locked?700:400,color:locked?"#138808":active?"#CC6600":th.text,fontFamily:bf}}>{opt.label}</span>
                     </div>
                   );
                 })}
@@ -5963,6 +6032,7 @@ const APP_STYLES = `
         }
         @keyframes tabEnter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
         @keyframes iconPop{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:scale(1)}}
+        @keyframes answer-lock-pulse{0%{transform:scale(1)}35%{transform:scale(1.04)}70%{transform:scale(0.98)}100%{transform:scale(1)}}
         @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
         @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:0.6}}
         @keyframes calc-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(0.85)}}
@@ -6119,8 +6189,7 @@ export default function YojanaSahay(){
   const [dark,setDark]=useState(()=>localStorage.getItem("yojana_dark")==="true");
   const [activeTab,setActiveTab]=useState("home");
   const [showAdmin,setShowAdmin]=useState(false);
-  const [searchFocused,setSearchFocused]=useState(false);
-  const [searchText,setSearchText]=useState("");
+
   const [loaded,setLoaded]=useState(false);
   const [langAnim,setLangAnim]=useState(false);
   const [showChecker,setShowChecker]=useState(false);
@@ -6858,7 +6927,7 @@ export default function YojanaSahay(){
           flexDirection:"column",minHeight:0,overflow:"hidden",
           willChange:activeTab==="search"?"transform":"auto",
         }}>
-        {mountedTabsRef.current.has("search") && <SearchTab lang={lang} initialQuery={searchText} dark={dark}/>}
+        {mountedTabsRef.current.has("search") && <SearchTab lang={lang} dark={dark}/>}
       </div>
 
       {/* SCHEMES — lazy mount: nothing rendered until first visit */}
