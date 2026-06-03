@@ -519,6 +519,92 @@ function parseResponse(raw) {
   return { reply, followUps };
 }
 
+// ─── AI RESULTS BRIEF ────────────────────────────────────────────────────────
+// One-shot call — no conversation history, no scheme index, just the user's
+// results. Called automatically when the eligibility checker shows results.
+const WHO_LABEL    = { farmer:"Farmer", student:"Student", women:"Woman", senior:"Senior Citizen", business:"Business Owner", general:"General Citizen" };
+const INCOME_LABEL = { below1:"Below ₹1 Lakh", "1to3":"₹1–3 Lakh", "3to6":"₹3–6 Lakh", above6:"Above ₹6 Lakh" };
+const AGE_LABEL    = { below18:"Below 18", "18to35":"18–35 yrs", "35to60":"35–60 yrs", above60:"Above 60 yrs" };
+
+export async function generateResultsBrief(answers, matchedSchemes, nearMissSchemes, totalAnnual, lang = "en") {
+  const isHindi = lang === "hi";
+
+  // Build a clean human-readable profile line
+  const casteTag = answers.caste && answers.caste !== "general" ? ` · ${answers.caste.toUpperCase()}` : "";
+  const profileLine = [
+    WHO_LABEL[answers.who] || answers.who,
+    answers.state,
+    INCOME_LABEL[answers.income] || answers.income,
+    AGE_LABEL[answers.age] || answers.age,
+    casteTag,
+  ].filter(Boolean).join(" · ");
+
+  const totalFormatted = totalAnnual >= 100000
+    ? `₹${(totalAnnual / 100000).toFixed(1)} lakh/year`
+    : totalAnnual > 0 ? `₹${totalAnnual.toLocaleString("en-IN")}/year` : "various benefits";
+
+  // Top matched schemes — name + annual value
+  const topMatched = matchedSchemes.slice(0, 5)
+    .map(s => `${s.name.en}${s.annual ? ` (₹${s.annual.toLocaleString("en-IN")}/year)` : ""}`)
+    .join(", ");
+
+  // Top near-misses — name + first reason
+  const topNearMiss = nearMissSchemes.slice(0, 2)
+    .map(s => `${s.scheme?.name?.en || s.name?.en || ""}${s.reasons?.[0] ? ` — needs: ${s.reasons[0]}` : ""}`)
+    .filter(Boolean).join(" | ");
+
+  const systemPrompt = isHindi
+    ? "आप एक भारतीय सरकारी योजना सलाहकार हैं। सरल, गर्मजोशी भरी हिंदी में लिखें। कोई बुलेट या हेडर नहीं — केवल सादा पैराग्राफ।"
+    : "You are a warm Indian welfare advisor. Write in simple, encouraging English. Plain paragraph only — no bullets, no headers, no markdown.";
+
+  const userPrompt = isHindi
+    ? `एक नागरिक की पात्रता जांच पूरी हुई। 3 वाक्यों का व्यक्तिगत सारांश लिखें:
+
+प्रोफाइल: ${profileLine}
+कुल वार्षिक लाभ: ${totalFormatted}
+मिली योजनाएं (${matchedSchemes.length}): ${topMatched || "कोई नहीं"}
+${topNearMiss ? `लगभग मिलने वाली: ${topNearMiss}` : ""}
+
+नियम:
+- पहले वाक्य में कुल लाभ और योजनाओं की संख्या बताएं
+- दूसरे वाक्य में सबसे बड़ी योजना और आवेदन की सलाह दें
+- ${topNearMiss ? "तीसरे वाक्य में सबसे अच्छी near-miss और क्या करना है बताएं" : "तीसरे वाक्य में प्रोत्साहन दें"}
+केवल सादा पैराग्राफ। 3 वाक्य।`
+    : `A citizen just completed the eligibility checker. Write a warm 3-sentence personal brief:
+
+Profile: ${profileLine}
+Total annual benefit: ${totalFormatted}
+Matched schemes (${matchedSchemes.length}): ${topMatched || "none"}
+${topNearMiss ? `Near-misses: ${topNearMiss}` : ""}
+
+Rules:
+- Sentence 1: open with the total benefit and scheme count unlocked
+- Sentence 2: name the highest-value scheme and give one concrete apply step
+- Sentence 3: ${topNearMiss ? "mention the most achievable near-miss and exactly what they need to qualify" : "end with an encouraging nudge to apply now"}
+Plain paragraph only. Exactly 3 sentences. No markdown.`;
+
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model:       MODEL,
+      max_tokens:  300,
+      temperature: 0.4,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user",   content: userPrompt   },
+      ],
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Brief API error (${res.status})`);
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Empty brief");
+  // Strip any accidental CHIPS block or markdown
+  return content.replace(/\n?CHIPS:\s*\[[\s\S]*?\]/g, "").replace(/[#*`]/g, "").trim();
+}
+
 // ─── MAIN EXPORT ─────────────────────────────────────────────────────────────
 // Returns { reply: string, followUps: string[] }
 // FIX Bug 2: accepts profile so buildSmartContext can score schemes against

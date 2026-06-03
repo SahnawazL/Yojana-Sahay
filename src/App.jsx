@@ -22,6 +22,7 @@ import { auth, db } from "./firebase.js";
 import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import AIChat from "./AIChat.jsx";
+import { generateResultsBrief } from "./groqClient.js";
 import AILockedScreen from "./AILockedScreen.jsx";
 import AdminDashboard from "./AdminDashboard.jsx";
 import ReportIssueSheet from "./ReportIssueSheet.jsx";
@@ -2064,9 +2065,25 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
     else setSelected(answers[prevQ.id]||null);
     setAnimKey(k=>k+1);setStep(s=>s-1);
   };
+  // ── AI Results Brief ──────────────────────────────────────────────────────
+  const [brief, setBrief]             = useState(null);
+  const [briefLoading, setBriefLoading] = useState(false);
+
+  useEffect(()=>{
+    if(step !== TOTAL || results.length === 0) return;
+    let cancelled = false;
+    setBrief(null);
+    setBriefLoading(true);
+    generateResultsBrief(answers, results, nearMiss, totalAnnual, lang)
+      .then(text => { if(!cancelled){ setBrief(text); setBriefLoading(false); } })
+      .catch(()  => { if(!cancelled){ setBriefLoading(false); } });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[step, TOTAL]);
+
   const retake=()=>{
     try{localStorage.removeItem(STORAGE_KEY);}catch{}
-    setStep(0);setAnswers({});setSelected(null);setStateSearch("");setResults([]);setExpandedId(null);setAnimKey(k=>k+1);
+    setStep(0);setAnswers({});setSelected(null);setStateSearch("");setResults([]);setExpandedId(null);setAnimKey(k=>k+1);setBrief(null);setBriefLoading(false);
   };
 
   return(
@@ -2236,6 +2253,50 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                     )}
                   </div>
                 </div>
+
+                {/* ── AI Results Brief ── */}
+                {(briefLoading || brief) && (
+                  <div style={{
+                    marginBottom:16,padding:"14px 16px",
+                    background: dark ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.06)",
+                    border:`1.5px solid ${dark?"rgba(99,102,241,0.30)":"rgba(99,102,241,0.22)"}`,
+                    borderRadius:16,
+                  }}>
+                    {/* Header row */}
+                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:9}}>
+                      <span style={{fontSize:14}}>✨</span>
+                      <span style={{fontSize:10,fontWeight:800,letterSpacing:0.7,color:"#6366F1",fontFamily:bf}}>
+                        {isHindi?"AI सलाहकार":"AI ADVISOR"}
+                      </span>
+                      {briefLoading&&(
+                        <span style={{marginLeft:"auto",fontSize:9,fontWeight:700,color:"#6366F1",opacity:0.7,animation:"badgePulse 1.2s ease-in-out infinite",fontFamily:bf}}>
+                          {isHindi?"तैयार हो रहा है…":"generating…"}
+                        </span>
+                      )}
+                    </div>
+                    {/* Skeleton lines while loading */}
+                    {briefLoading&&!brief&&(
+                      <div style={{display:"flex",flexDirection:"column",gap:7}}>
+                        {[92,78,85].map((w,i)=>(
+                          <div key={i} style={{
+                            height:10,width:`${w}%`,borderRadius:6,
+                            background: dark?"rgba(99,102,241,0.18)":"rgba(99,102,241,0.10)",
+                            animation:"badgePulse 1.4s ease-in-out infinite",
+                            animationDelay:`${i*0.18}s`,
+                          }}/>
+                        ))}
+                      </div>
+                    )}
+                    {/* Brief text */}
+                    {brief&&(
+                      <p style={{
+                        margin:0,fontSize:12.5,lineHeight:1.75,
+                        color: dark?"#C7D2FE":"#3730A3",
+                        fontFamily:bf,
+                      }}>{brief}</p>
+                    )}
+                  </div>
+                )}
 
                 {stateResults.length>0&&(
                   <>
@@ -5332,6 +5393,7 @@ const APP_STYLES = `
         .app-root{height:100vh;height:100dvh;}
         .bnav-wrap{flex-shrink:0;position:sticky;bottom:0;padding-bottom:max(20px,env(safe-area-inset-bottom,20px));}
         @keyframes fadeSlide{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes briefSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
         /* Direction-aware slide: swipe-left → new tab enters from right; swipe-right → from left */
         /* Direction-aware slide — opacity stays 1 the whole time, no flash frame */
         @keyframes slideInFromRight{
