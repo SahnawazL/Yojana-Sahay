@@ -611,11 +611,11 @@ function ActivityFeed({ users, dark }) {
 // ─── SCHEME COVERAGE TAB ──────────────────────────────────────────────────────
 function SchemeCoverageTab({ dark }) {
   const th = THEME[dark ? "dark" : "light"];
-  const [query, setQuery] = useState("");
-  const [sortMode, setSortMode] = useState("count"); // "count" | "alpha"
+  const [query, setQuery]         = useState("");
+  const [sortMode, setSortMode]   = useState("count"); // "count" | "alpha"
+  const [tierFilter, setTierFilter] = useState("all"); // "all"|"none"|"low"|"medium"|"good"
 
   // Build per-state and central counts from SCHEME_DB
-  // Structure: scope:"national" → central | scope:"state" + state:"State Name" → per-state
   const { centralCount, stateCounts, totalSchemes } = useMemo(() => {
     const counts = {};
     let central = 0;
@@ -641,40 +641,90 @@ function SchemeCoverageTab({ dark }) {
 
   const maxCount = useMemo(() => Math.max(...rows.map(r => r.count), 1), [rows]);
 
+  // Average schemes per state (only states with at least 1)
+  const avgSchemes = useMemo(() => {
+    const active = rows.filter(r => r.count > 0);
+    if (active.length === 0) return 0;
+    return Math.round(active.reduce((s, r) => s + r.count, 0) / active.length);
+  }, [rows]);
+
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
-    const list = q ? rows.filter(r => r.name.toLowerCase().includes(q)) : rows;
+    let list = q ? rows.filter(r => r.name.toLowerCase().includes(q)) : rows;
+    // Tier filter
+    if (tierFilter !== "all") {
+      list = list.filter(r => coverageTier(r.count) === tierFilter);
+    }
     return [...list].sort((a, b) =>
       sortMode === "count" ? b.count - a.count : a.name.localeCompare(b.name)
     );
-  }, [rows, query, sortMode]);
+  }, [rows, query, sortMode, tierFilter]);
 
   // Summary buckets
   const withSchemes  = rows.filter(r => r.count > 0).length;
   const noSchemes    = rows.filter(r => r.count === 0).length;
-  const highCoverage = rows.filter(r => r.count >= 5).length;
+  const highCoverage = rows.filter(r => r.count > 200).length;
+  const lowCount     = rows.filter(r => r.count > 0   && r.count <= 100).length;
+  const medCount     = rows.filter(r => r.count > 100 && r.count <= 200).length;
 
+  function coverageTier(count) {
+    if (count === 0)   return "none";
+    if (count <= 100)  return "low";
+    if (count <= 200)  return "medium";
+    return "good";
+  }
   function coverageColor(count) {
-    if (count === 0)  return "#E53E3E";
-    if (count <= 2)   return SAFFRON;
-    if (count <= 5)   return "#F59E0B";
+    if (count === 0)   return "#E53E3E";
+    if (count <= 100)  return SAFFRON;
+    if (count <= 200)  return "#F59E0B";
     return IND_GREEN;
   }
   function coverageLabel(count) {
-    if (count === 0)  return "None";
-    if (count <= 2)   return "Low";
-    if (count <= 5)   return "Medium";
+    if (count === 0)   return "None";
+    if (count <= 100)  return "Low";
+    if (count <= 200)  return "Medium";
     return "Good";
   }
+
+  // Gap to next tier
+  function gapToNext(count) {
+    if (count === 0)         return { gap: 1,       label: "+1 to Low" };
+    if (count <= 100)        return { gap: 101 - count, label: `+${101 - count} to Medium` };
+    if (count <= 200)        return { gap: 201 - count, label: `+${201 - count} to Good` };
+    return null; // already Good
+  }
+
+  // Podium accent colors for top 3
+  const podiumColors = ["#F5A623", "#A8A9AD", "#CD7F32"];
+
+  // Dynamic insight line
+  const insightText = (() => {
+    if (noSchemes > 0)
+      return `⚠️ ${noSchemes} state${noSchemes > 1 ? "s" : ""} still have 0 schemes — add there first.`;
+    if (lowCount > 0)
+      return `📈 ${lowCount} state${lowCount > 1 ? "s" : ""} are Low coverage — a good next target.`;
+    if (medCount > 0)
+      return `🎯 ${medCount} state${medCount > 1 ? "s" : ""} are at Medium — push them to Good!`;
+    return `✅ All states have Good coverage. Great work!`;
+  })();
+
+  // Tier filter chips config
+  const tierChips = [
+    { id:"all",    label:"All",    color:th.textMid,  count: rows.length  },
+    { id:"none",   label:"None",   color:"#E53E3E",   count: noSchemes    },
+    { id:"low",    label:"Low",    color:SAFFRON,     count: lowCount     },
+    { id:"medium", label:"Medium", color:"#F59E0B",   count: medCount     },
+    { id:"good",   label:"Good",   color:IND_GREEN,   count: highCoverage },
+  ];
 
   return (
     <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:12 }}>
 
-      {/* Summary pills */}
+      {/* Summary pills — now includes Avg */}
       <div style={{ display:"flex", gap:8 }}>
         {[
-          { label:"Total Schemes", value:totalSchemes, color:NAVY },
-          { label:"🇮🇳 Central",    value:centralCount,  color:VIOLET },
+          { label:"Total Schemes", value:totalSchemes, color:NAVY      },
+          { label:"🇮🇳 Central",    value:centralCount, color:VIOLET    },
           { label:"States Active", value:withSchemes,  color:IND_GREEN },
           { label:"States Empty",  value:noSchemes,    color:"#E53E3E" },
         ].map(({ label, value, color }) => (
@@ -689,7 +739,69 @@ function SchemeCoverageTab({ dark }) {
         ))}
       </div>
 
-      {/* Central schemes banner */}
+      {/* Avg schemes per active state — standalone pill */}
+      <div style={{
+        background:th.card, border:`1.5px solid ${VIOLET}`,
+        borderRadius:12, padding:"10px 14px",
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+      }}>
+        <div>
+          <div style={{ fontSize:11, fontWeight:700, color:th.textMid }}>
+            📐 Avg Schemes per Active State
+          </div>
+          <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>
+            Across {withSchemes} states that have at least 1 scheme
+          </div>
+        </div>
+        <div style={{
+          fontSize:26, fontWeight:800, color:VIOLET,
+        }}>
+          {avgSchemes}
+        </div>
+      </div>
+
+      {/* Coverage distribution stacked bar */}
+      <div style={{
+        background:th.card, border:`1.5px solid ${th.border}`,
+        borderRadius:14, padding:"12px 14px",
+      }}>
+        <div style={{ fontSize:11, fontWeight:700, color:th.textMid, marginBottom:8 }}>
+          📊 Coverage Distribution — {rows.length} States & UTs
+        </div>
+        <div style={{ display:"flex", height:12, borderRadius:8, overflow:"hidden", gap:1 }}>
+          {[
+            { count:noSchemes,    color:"#E53E3E" },
+            { count:lowCount,     color:SAFFRON   },
+            { count:medCount,     color:"#F59E0B" },
+            { count:highCoverage, color:IND_GREEN },
+          ].map(({ count: c, color }, i) => {
+            const pct = (c / rows.length) * 100;
+            return pct > 0 ? (
+              <div key={i} style={{
+                width:`${pct}%`, background:color,
+                transition:"width 0.6s cubic-bezier(0.22,1,0.36,1)",
+              }} />
+            ) : null;
+          })}
+        </div>
+        <div style={{ display:"flex", gap:12, marginTop:8, flexWrap:"wrap" }}>
+          {[
+            { label:"None",   count:noSchemes,    color:"#E53E3E" },
+            { label:"Low",    count:lowCount,     color:SAFFRON   },
+            { label:"Medium", count:medCount,     color:"#F59E0B" },
+            { label:"Good",   count:highCoverage, color:IND_GREEN },
+          ].map(({ label, count: c, color }) => (
+            <div key={label} style={{ display:"flex", alignItems:"center", gap:5 }}>
+              <div style={{ width:8, height:8, borderRadius:2, background:color, flexShrink:0 }} />
+              <span style={{ fontSize:10, color:th.textMid }}>
+                {label} <strong style={{ color:th.text }}>{c}</strong>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Central schemes banner — now shows % of total */}
       <div style={{
         background:`linear-gradient(135deg,${NAVY},#1a56db)`,
         borderRadius:14, padding:"13px 16px",
@@ -702,6 +814,11 @@ function SchemeCoverageTab({ dark }) {
           </div>
           <div style={{ color:"rgba(255,255,255,0.7)", fontSize:11, marginTop:2 }}>
             Available to all states · Apply across India
+          </div>
+          <div style={{ color:"rgba(255,255,255,0.55)", fontSize:10, marginTop:3 }}>
+            {totalSchemes > 0
+              ? `${Math.round((centralCount / totalSchemes) * 100)}% of all ${totalSchemes} schemes`
+              : "—"}
           </div>
         </div>
         <div style={{
@@ -720,10 +837,10 @@ function SchemeCoverageTab({ dark }) {
       }}>
         <div style={{ fontSize:11, color:th.textSub, fontWeight:600, flexShrink:0 }}>Coverage:</div>
         {[
-          { label:"None (0)",  color:"#E53E3E" },
-          { label:"Low (1–2)", color:SAFFRON },
-          { label:"Medium (3–5)", color:"#F59E0B" },
-          { label:"Good (6+)", color:IND_GREEN },
+          { label:"None (0)",         color:"#E53E3E" },
+          { label:"Low (1–100)",      color:SAFFRON   },
+          { label:"Medium (101–200)", color:"#F59E0B" },
+          { label:"Good (200+)",      color:IND_GREEN },
         ].map(({ label, color }) => (
           <div key={label} style={{ display:"flex", alignItems:"center", gap:5 }}>
             <div style={{ width:10, height:10, borderRadius:3, background:color, flexShrink:0 }} />
@@ -762,6 +879,32 @@ function SchemeCoverageTab({ dark }) {
         </div>
       </div>
 
+      {/* Tier filter chips */}
+      <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+        {tierChips.map(({ id, label, color, count: c }) => {
+          const active = tierFilter === id;
+          return (
+            <div key={id} onClick={() => setTierFilter(id)} style={{
+              display:"flex", alignItems:"center", gap:4,
+              padding:"5px 10px", borderRadius:20, cursor:"pointer",
+              fontSize:10, fontWeight:700,
+              background: active ? color : th.card,
+              color: active ? "#fff" : color,
+              border: `1.5px solid ${active ? color : th.border}`,
+              transition:"all 0.15s ease",
+            }}>
+              {label}
+              <span style={{
+                fontSize:9,
+                color: active ? "rgba(255,255,255,0.8)" : th.textSub,
+              }}>
+                {c}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Results count */}
       <div style={{ fontSize:11, color:th.textSub, fontWeight:600, marginTop:-4 }}>
         Showing {filtered.length} of {rows.length} states
@@ -770,56 +913,75 @@ function SchemeCoverageTab({ dark }) {
       {/* State rows */}
       <div style={{
         background:th.card, border:`1.5px solid ${th.border}`,
-        borderRadius:16, padding:"4px 14px",
+        borderRadius:16, overflow:"hidden",
       }}>
         {filtered.length === 0 ? (
           <div style={{ padding:"24px 0", textAlign:"center", color:th.textSub, fontSize:13 }}>
-            No states match "{query}"
+            No states match your filter
           </div>
         ) : (
           filtered.map(({ name, count }, idx) => {
-            const color = coverageColor(count);
-            const pct   = Math.round((count / maxCount) * 100);
+            const color       = coverageColor(count);
+            const pct         = Math.round((count / maxCount) * 100);
+            const isTopThree  = sortMode === "count" && tierFilter === "all" && idx < 3;
+            const podiumColor = isTopThree ? podiumColors[idx] : null;
+            const gap         = gapToNext(count);
             return (
               <div key={name} style={{
                 display:"flex", alignItems:"center", gap:10,
-                padding:"11px 0",
+                padding:"10px 14px",
                 borderBottom: idx < filtered.length - 1 ? `1px solid ${th.border}` : "none",
+                borderLeft: podiumColor ? `3px solid ${podiumColor}` : "3px solid transparent",
+                background: isTopThree
+                  ? (dark ? `${podiumColor}0f` : `${podiumColor}08`)
+                  : "transparent",
               }}>
-                {/* State name */}
+
+                {/* Rank or pin */}
                 <div style={{
-                  width:130, flexShrink:0,
-                  fontSize:12, fontWeight:600, color:th.text,
-                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  width:20, flexShrink:0, textAlign:"center",
+                  fontSize: sortMode === "count" ? 10 : 13,
+                  fontWeight:800,
+                  color: podiumColor || th.textSub,
                 }}>
-                  📍 {name}
+                  {sortMode === "count" ? `#${idx + 1}` : "📍"}
+                </div>
+
+                {/* State name + gap hint */}
+                <div style={{ width:110, flexShrink:0, minWidth:0 }}>
+                  <div style={{
+                    fontSize:12, fontWeight:600, color:th.text,
+                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>
+                    {name}
+                  </div>
+                  {gap && (
+                    <div style={{ fontSize:9, color:th.textSub, marginTop:1, fontWeight:500 }}>
+                      {gap.label}
+                    </div>
+                  )}
                 </div>
 
                 {/* Progress bar */}
                 <div style={{
                   flex:1, height:18, background:th.border,
-                  borderRadius:6, overflow:"hidden", position:"relative",
+                  borderRadius:6, overflow:"hidden",
                 }}>
                   <div style={{
                     height:"100%", borderRadius:6,
-                    width: count > 0 ? `${Math.max(pct, 8)}%` : "0%",
-                    background:`linear-gradient(90deg,${color},${color}cc)`,
+                    width: count > 0 ? `${pct}%` : "0%",
+                    background: podiumColor
+                      ? `linear-gradient(90deg,${podiumColor},${podiumColor}bb)`
+                      : `linear-gradient(90deg,${color},${color}cc)`,
                     transition:"width 0.5s cubic-bezier(0.22,1,0.36,1)",
-                    display:"flex", alignItems:"center", justifyContent:"flex-end",
-                    paddingRight:6,
-                  }}>
-                    {count > 0 && (
-                      <span style={{ fontSize:10, color:"#fff", fontWeight:700 }}>
-                        {count}
-                      </span>
-                    )}
-                  </div>
+                  }} />
                 </div>
 
-                {/* Count badge */}
+                {/* Count */}
                 <div style={{
                   width:38, flexShrink:0, textAlign:"right",
-                  fontSize:13, fontWeight:800, color,
+                  fontSize:13, fontWeight:800,
+                  color: podiumColor || color,
                 }}>
                   {count}
                 </div>
@@ -840,14 +1002,13 @@ function SchemeCoverageTab({ dark }) {
         )}
       </div>
 
-      {/* Tip */}
+      {/* Dynamic insight */}
       <div style={{
         background:th.card2, border:`1.5px dashed ${th.border}`,
         borderRadius:12, padding:"12px 14px",
         fontSize:11, color:th.textSub, lineHeight:1.6,
       }}>
-        💡 <strong style={{ color:th.text }}>Tip:</strong> States in red have 0 schemes — focus your additions there.
-        Sort by <strong style={{ color:th.text }}>Count</strong> to instantly see the gaps.
+        {insightText}
       </div>
     </div>
   );
