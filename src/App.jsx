@@ -2063,6 +2063,62 @@ function getNearMissSchemes(answers, matchedIds, lang){
   return result;
 }
 
+// ─── SHOW-MORE / SHOW-LESS TOGGLE ──────────────────────────────────────────────
+// Reusable pill used in every collapsible results section.
+// hiddenCount  — number of items not yet visible
+// moreText     — label when collapsed  e.g. "more schemes"
+// lessText     — label when expanded   e.g. "Show less"
+function ShowMoreBtn({ expanded, hiddenCount, moreText, lessText, onToggle, dark, th, bf }) {
+  return (
+    <div
+      onClick={onToggle}
+      onTouchStart={e=>{ e.currentTarget.style.opacity="0.65"; }}
+      onTouchEnd={e=>{ e.currentTarget.style.opacity="1"; }}
+      onMouseEnter={e=>{ e.currentTarget.style.opacity="0.82"; }}
+      onMouseLeave={e=>{ e.currentTarget.style.opacity="1"; }}
+      style={{
+        display:"flex",alignItems:"center",justifyContent:"center",gap:9,
+        margin:"4px 0 14px",padding:"13px 20px",
+        borderRadius:14,
+        background: dark
+          ? "linear-gradient(135deg,rgba(255,122,0,0.10),rgba(255,122,0,0.04))"
+          : "linear-gradient(135deg,#FFF7ED,#FFFBF7)",
+        border:`1.5px solid ${dark?"rgba(255,122,0,0.28)":"rgba(255,153,51,0.35)"}`,
+        cursor:"pointer",WebkitTapHighlightColor:"transparent",
+        userSelect:"none",transition:"opacity 0.16s",
+        boxShadow: dark?"none":"0 2px 10px rgba(255,153,51,0.09)",
+      }}>
+      {expanded ? (
+        <>
+          <span style={{
+            fontSize:10,fontWeight:800,lineHeight:1,
+            color:dark?"#FF9933":"#CC6600",
+            transform:"rotate(180deg)",display:"inline-block",
+          }}>▼</span>
+          <span style={{fontSize:13,fontWeight:700,color:dark?"#FF9933":"#CC6600",fontFamily:bf}}>
+            {lessText}
+          </span>
+        </>
+      ) : (
+        <>
+          <span style={{
+            background:"linear-gradient(135deg,#FF9933,#FF8C00)",
+            color:"#fff",fontSize:11,fontWeight:800,
+            borderRadius:20,padding:"2px 10px",
+            boxShadow:"0 2px 7px rgba(255,153,51,0.35)",
+            minWidth:22,textAlign:"center",display:"inline-block",
+            letterSpacing:0.2,
+          }}>+{hiddenCount}</span>
+          <span style={{fontSize:13,fontWeight:700,color:dark?"#FF9933":"#CC6600",fontFamily:bf}}>
+            {moreText}
+          </span>
+          <span style={{fontSize:10,fontWeight:800,color:dark?"rgba(255,153,51,0.55)":"rgba(204,102,0,0.50)",lineHeight:1}}>▼</span>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── ELIGIBILITY CHECKER ───────────────────────────────────────────────────────
 function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const th=THEME[dark?"dark":"light"];
@@ -2248,6 +2304,17 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   // 0=scanning  1=icons-fly-in  2=counter-matched
   const [calcPhase,   setCalcPhase]   = useState(0);
 
+  // ── Collapsible results — constants & state ───────────────────────────────
+  // PREVIEW_COUNT : scheme cards visible before "Show more" in each section.
+  // NM_PREVIEW    : near-miss cards visible before "Show more".
+  // These are intentionally small so Near-Miss and Retake/Done stay reachable
+  // without scrolling, even when there are thousands of schemes.
+  const PREVIEW_COUNT = 4;
+  const NM_PREVIEW    = 3;
+  const [showAllState,   setShowAllState]   = useState(false);
+  const [showAllNational,setShowAllNational] = useState(false);
+  const [showAllNearMiss,setShowAllNearMiss] = useState(false);
+
   useEffect(()=>{
     if(step !== TOTAL || results.length === 0) return;
     let cancelled = false;
@@ -2270,28 +2337,13 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
 
   const retake=()=>{
     try{localStorage.removeItem(STORAGE_KEY);}catch{}
-    if(prefilledAnswers){
-      // Restore to profile-prefilled state (don't blank everything)
-      const fullQueue=buildQueue(prefilledAnswers);
-      const firstMissing=fullQueue.findIndex(q=>{
-        const val=q.type==="state"?prefilledAnswers.state:prefilledAnswers[q.id];
-        return !val;
-      });
-      setAnswers(prefilledAnswers);
-      setStateSearch(prefilledAnswers.state||"");
-      if(firstMissing===-1){
-        // All questions prefilled → stay on results (recompute instead of blank)
-        setStep(fullQueue.length);
-        setResults(SCHEME_DB.filter(s=>s.match(prefilledAnswers)));
-      }else{
-        setStep(firstMissing);
-        setResults([]);
-      }
-    }else{
-      setStep(0);setAnswers({});setStateSearch("");
-      setResults([]);
-    }
+    // Always reset to step 0 with blank answers so the user can retake freely.
+    // prefilledAnswers is only used for the initial open — not for retake.
+    setStep(0);setAnswers({});setStateSearch("");
+    setResults([]);
     setSelected(null);setExpandedId(null);setAnimKey(k=>k+1);setBrief(null);setBriefLoading(false);
+    // Collapse all sections so fresh results always start tidy
+    setShowAllState(false);setShowAllNational(false);setShowAllNearMiss(false);
   };
 
   return(
@@ -2667,11 +2719,26 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                       <span style={{fontSize:11,fontWeight:700,color:"#854D0E",background:"#FEF9C3",borderRadius:20,padding:"3px 10px",border:"1px solid #FEF08A"}}>📍 {t.stateSchemes} ({stateResults.length})</span>
                       <div style={{height:1,flex:1,background:th.border2}}/>
                     </div>
-                    {stateResults.map((s,idx)=>(
-                      <div key={s.id} style={{animation:`fadeSlide 0.35s ease both`,animationDelay:`${idx*60}ms`}}>
+                    {(showAllState?stateResults:stateResults.slice(0,PREVIEW_COUNT)).map((s,idx)=>(
+                      <div key={s.id} style={{
+                        animation:`fadeSlide 0.35s ease both`,
+                        // Newly revealed cards (idx >= PREVIEW_COUNT on expand) animate
+                        // in fresh from 0; initial-render cards keep their original stagger.
+                        animationDelay:`${(showAllState&&idx>=PREVIEW_COUNT?(idx-PREVIEW_COUNT):idx)*60}ms`,
+                      }}>
                         <SchemeCard scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
                       </div>
                     ))}
+                    {stateResults.length>PREVIEW_COUNT&&(
+                      <ShowMoreBtn
+                        expanded={showAllState}
+                        hiddenCount={stateResults.length-PREVIEW_COUNT}
+                        moreText={isHindi?"और राज्य योजनाएं":"more state schemes"}
+                        lessText={isHindi?"कम दिखाएं":"Show less"}
+                        onToggle={()=>{haptic(30);setShowAllState(v=>!v);}}
+                        dark={dark} th={th} bf={bf}
+                      />
+                    )}
                   </>
                 )}
                 {nationalResults.length>0&&(
@@ -2681,11 +2748,26 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                       <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",background:"#EFF6FF",borderRadius:20,padding:"3px 10px",border:"1px solid #BFDBFE"}}>🇮🇳 {t.centralSchemes} ({nationalResults.length})</span>
                       <div style={{height:1,flex:1,background:th.border2}}/>
                     </div>
-                    {nationalResults.map((s,idx)=>(
-                      <div key={s.id} style={{animation:`fadeSlide 0.35s ease both`,animationDelay:`${(stateResults.length+idx)*60}ms`}}>
+                    {(showAllNational?nationalResults:nationalResults.slice(0,PREVIEW_COUNT)).map((s,idx)=>(
+                      <div key={s.id} style={{
+                        animation:`fadeSlide 0.35s ease both`,
+                        // On initial render stagger after state results;
+                        // on expand, newly revealed cards animate in with a clean 0-based stagger.
+                        animationDelay:`${(showAllNational&&idx>=PREVIEW_COUNT?(idx-PREVIEW_COUNT):(stateResults.length+idx))*60}ms`,
+                      }}>
                         <SchemeCard scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
                       </div>
                     ))}
+                    {nationalResults.length>PREVIEW_COUNT&&(
+                      <ShowMoreBtn
+                        expanded={showAllNational}
+                        hiddenCount={nationalResults.length-PREVIEW_COUNT}
+                        moreText={isHindi?"और केंद्रीय योजनाएं":"more central schemes"}
+                        lessText={isHindi?"कम दिखाएं":"Show less"}
+                        onToggle={()=>{haptic(30);setShowAllNational(v=>!v);}}
+                        dark={dark} th={th} bf={bf}
+                      />
+                    )}
                   </>
                 )}
 
@@ -2705,12 +2787,14 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                       {t.nearMissSub}
                     </div>
                     {/* Near-miss cards */}
-                    {nearMiss.map(({scheme,reasons})=>(
+                    {(showAllNearMiss?nearMiss:nearMiss.slice(0,NM_PREVIEW)).map(({scheme,reasons},nmIdx)=>(
                       <div key={scheme.id} style={{
                         background:dark?"#1c1300":"#FFFDF5",
                         borderRadius:14,padding:"13px 14px",marginBottom:10,
                         border:`1.5px dashed ${scheme.color}55`,
                         position:"relative",overflow:"hidden",
+                        animation:`fadeSlide 0.35s ease both`,
+                        animationDelay:`${(showAllNearMiss&&nmIdx>=NM_PREVIEW?(nmIdx-NM_PREVIEW):nmIdx)*60}ms`,
                       }}>
                         {/* Faded "Almost" watermark badge */}
                         <div style={{
@@ -2780,6 +2864,16 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                         </div>
                       </div>
                     ))}
+                    {nearMiss.length>NM_PREVIEW&&(
+                      <ShowMoreBtn
+                        expanded={showAllNearMiss}
+                        hiddenCount={nearMiss.length-NM_PREVIEW}
+                        moreText={isHindi?"और अवसर देखें":"more to unlock"}
+                        lessText={isHindi?"कम दिखाएं":"Show less"}
+                        onToggle={()=>{haptic(30);setShowAllNearMiss(v=>!v);}}
+                        dark={dark} th={th} bf={bf}
+                      />
+                    )}
                   </div>
                 )}
               </>
@@ -2800,8 +2894,8 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                       <div style={{height:1,flex:1,background:th.border2}}/>
                     </div>
                     <div style={{fontSize:12,color:th.textSub,marginBottom:12,lineHeight:1.5,fontFamily:bf}}>{t.nearMissSub}</div>
-                    {nearMiss.map(({scheme,reasons})=>(
-                      <div key={scheme.id} style={{background:dark?"#1c1300":"#FFFDF5",borderRadius:14,padding:"13px 14px",marginBottom:10,border:`1.5px dashed ${scheme.color}55`,position:"relative",overflow:"hidden"}}>
+                    {(showAllNearMiss?nearMiss:nearMiss.slice(0,NM_PREVIEW)).map(({scheme,reasons},nmIdx)=>(
+                      <div key={scheme.id} style={{background:dark?"#1c1300":"#FFFDF5",borderRadius:14,padding:"13px 14px",marginBottom:10,border:`1.5px dashed ${scheme.color}55`,position:"relative",overflow:"hidden",animation:`fadeSlide 0.35s ease both`,animationDelay:`${(showAllNearMiss&&nmIdx>=NM_PREVIEW?(nmIdx-NM_PREVIEW):nmIdx)*60}ms`}}>
                         <div style={{position:"absolute",top:8,right:10,fontSize:8,fontWeight:800,letterSpacing:0.6,color:scheme.color,background:scheme.color+"18",borderRadius:20,padding:"2px 8px",border:`1px solid ${scheme.color}33`,textTransform:"uppercase"}}>
                           {isHindi?"लगभग":"Almost"}
                         </div>
@@ -2839,6 +2933,16 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                         </div>
                       </div>
                     ))}
+                    {nearMiss.length>NM_PREVIEW&&(
+                      <ShowMoreBtn
+                        expanded={showAllNearMiss}
+                        hiddenCount={nearMiss.length-NM_PREVIEW}
+                        moreText={isHindi?"और अवसर देखें":"more to unlock"}
+                        lessText={isHindi?"कम दिखाएं":"Show less"}
+                        onToggle={()=>{haptic(30);setShowAllNearMiss(v=>!v);}}
+                        dark={dark} th={th} bf={bf}
+                      />
+                    )}
                   </div>
                 )}
               </>
