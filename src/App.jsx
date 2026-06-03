@@ -2034,6 +2034,19 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const isStateQ=q?.type==="state";
   const activeVal=isStateQ?(stateSearch&&INDIA_STATES.includes(stateSearch)?stateSearch:null):(selected||(q?answers[q.id]:null));
   const canProceed=!!activeVal;
+
+  // ── Live scheme counter ───────────────────────────────────────────────────
+  // Counts how many schemes match answers-so-far + current selection.
+  // Runs on every render but match() is pure boolean — fast enough on 150 schemes.
+  let partialCount = null;
+  if(step < TOTAL && q && activeVal){
+    const partial = {...answers, [q.id]: activeVal};
+    let c = 0;
+    for(const s of SCHEME_DB){
+      try{ if(s.match(partial)) c++; }catch{}
+    }
+    partialCount = c;
+  }
   const progress=step>=TOTAL?100:Math.round(((step+1)/TOTAL)*100);
   const filteredStates=useMemo(()=>INDIA_STATES.filter(s=>s.toLowerCase().includes(stateSearch.toLowerCase())),[stateSearch]);
   const totalAnnual=useMemo(()=>results.reduce((s,r)=>s+(r.annual||0),0),[results]);
@@ -2053,7 +2066,29 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
     setAnswers(newAnswers);setSelected(null);setAnimKey(k=>k+1);
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify({answers:newAnswers,step:nextStep}));}catch{}
     if(step===newTotal-1){
-      setResults(initResults(newAnswers));setStep(newTotal);
+      const matched=initResults(newAnswers);
+      setResults(matched);
+      setCalculating(true);
+      setCalcCount(0);
+      // Phase 1: count up from 0 → SCHEME_DB.length over ~1000ms
+      const dbTotal=SCHEME_DB.length;
+      const dur=1000;
+      const startT=performance.now();
+      const tick=(now)=>{
+        const p=Math.min((now-startT)/dur,1);
+        const ease=1-Math.pow(1-p,3);
+        setCalcCount(Math.floor(ease*dbTotal));
+        if(p<1){ requestAnimationFrame(tick); }
+        else{
+          setCalcCount(dbTotal);
+          // Phase 2: short pause, then reveal results
+          setTimeout(()=>{
+            setCalculating(false);
+            setStep(newTotal);
+          },500);
+        }
+      };
+      requestAnimationFrame(tick);
     }
     else setStep(nextStep);
   };
@@ -2068,6 +2103,9 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   // ── AI Results Brief ──────────────────────────────────────────────────────
   const [brief, setBrief]             = useState(null);
   const [briefLoading, setBriefLoading] = useState(false);
+  // ── Calculating screen state ──────────────────────────────────────────────
+  const [calculating, setCalculating] = useState(false);
+  const [calcCount,   setCalcCount]   = useState(0);
 
   useEffect(()=>{
     if(step !== TOTAL || results.length === 0) return;
@@ -2170,6 +2208,39 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
           )}
         </div>
 
+        {/* ── CALCULATING SCREEN ── */}
+        {calculating&&(
+          <div style={{
+            display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+            minHeight:"62vh",padding:"40px 24px",textAlign:"center",
+          }}>
+            {/* Spinning Ashoka Chakra */}
+            <div style={{marginBottom:24,animation:"chakra-spin 1.2s linear infinite"}}>
+              <AshokaChakra size={80} color={ASHOKA_BLUE} spinning={false}/>
+            </div>
+            {/* Label */}
+            <div style={{fontSize:14,fontWeight:700,color:th.textMid,fontFamily:bf,marginBottom:14,letterSpacing:0.2}}>
+              {isHindi?"योजनाएं खोज रहे हैं…":"Searching schemes…"}
+            </div>
+            {/* Big count number */}
+            <div style={{fontSize:48,fontWeight:900,color:SAFFRON,fontFamily:bf,lineHeight:1,letterSpacing:-1}}>
+              {calcCount.toLocaleString("en-IN")}
+            </div>
+            <div style={{fontSize:12,color:th.textSub,fontFamily:bf,marginTop:6}}>
+              {isHindi?`${SCHEME_DB.length.toLocaleString("en-IN")} योजनाओं में से`:`of ${SCHEME_DB.length} schemes`}
+            </div>
+            {/* Tricolor progress bar */}
+            <div style={{marginTop:28,width:"68%",height:5,borderRadius:99,background:dark?"#2c2c2e":"#e8e8e8",overflow:"hidden"}}>
+              <div style={{
+                height:"100%",borderRadius:99,
+                width:`${Math.round((calcCount/SCHEME_DB.length)*100)}%`,
+                background:`linear-gradient(90deg,${SAFFRON},${ASHOKA_BLUE},${IND_GREEN})`,
+                transition:"width 0.06s linear",
+              }}/>
+            </div>
+          </div>
+        )}
+
         {/* Question step */}
         {step<TOTAL&&q&&(
           <div key={animKey} style={{padding:"20px 20px 32px",animation:"fadeSlide 0.3s ease"}}>
@@ -2178,6 +2249,30 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
               <div style={{fontSize:17,fontWeight:800,color:th.text,lineHeight:1.3,fontFamily:bf}}>{q.q}</div>
               <div style={{fontSize:12,color:th.textLight,marginTop:5}}>{q.hint}</div>
             </div>
+
+            {/* ── Live Scheme Counter ── */}
+            {partialCount !== null && (
+              <div style={{display:"flex",justifyContent:"center",marginBottom:14,marginTop:-8}}>
+                <div key={partialCount} style={{
+                  display:"inline-flex",alignItems:"center",gap:6,
+                  background: partialCount>=10
+                    ? (dark?"rgba(19,136,8,0.15)":"rgba(19,136,8,0.08)")
+                    : (dark?"rgba(255,153,51,0.18)":"rgba(255,153,51,0.10)"),
+                  border:`1.5px solid ${partialCount>=10?"rgba(19,136,8,0.30)":"rgba(255,153,51,0.35)"}`,
+                  borderRadius:20,padding:"6px 14px",
+                  animation:"briefSlideIn 0.2s ease",
+                }}>
+                  <span style={{fontSize:13}}>🎯</span>
+                  <span style={{
+                    fontSize:12,fontWeight:800,fontFamily:bf,
+                    color:partialCount>=10?IND_GREEN:SAFFRON,
+                    letterSpacing:0.1,
+                  }}>
+                    ~{partialCount} {isHindi?"योजनाएं मिलेंगी":"schemes match so far"}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {isStateQ?(
               <div>
@@ -2305,7 +2400,11 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                       <span style={{fontSize:11,fontWeight:700,color:"#854D0E",background:"#FEF9C3",borderRadius:20,padding:"3px 10px",border:"1px solid #FEF08A"}}>📍 {t.stateSchemes} ({stateResults.length})</span>
                       <div style={{height:1,flex:1,background:th.border2}}/>
                     </div>
-                    {stateResults.map(s=><SchemeCard key={s.id} scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>)}
+                    {stateResults.map((s,idx)=>(
+                      <div key={s.id} style={{animation:`fadeSlide 0.35s ease both`,animationDelay:`${idx*60}ms`}}>
+                        <SchemeCard scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
+                      </div>
+                    ))}
                   </>
                 )}
                 {nationalResults.length>0&&(
@@ -2315,7 +2414,11 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
                       <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",background:"#EFF6FF",borderRadius:20,padding:"3px 10px",border:"1px solid #BFDBFE"}}>🇮🇳 {t.centralSchemes} ({nationalResults.length})</span>
                       <div style={{height:1,flex:1,background:th.border2}}/>
                     </div>
-                    {nationalResults.map(s=><SchemeCard key={s.id} scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>)}
+                    {nationalResults.map((s,idx)=>(
+                      <div key={s.id} style={{animation:`fadeSlide 0.35s ease both`,animationDelay:`${(stateResults.length+idx)*60}ms`}}>
+                        <SchemeCard scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
+                      </div>
+                    ))}
                   </>
                 )}
 
