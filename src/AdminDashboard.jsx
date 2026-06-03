@@ -970,9 +970,7 @@ function SchemeCoverageTab({ dark }) {
                   <div style={{
                     height:"100%", borderRadius:6,
                     width: count > 0 ? `${pct}%` : "0%",
-                    background: podiumColor
-                      ? `linear-gradient(90deg,${podiumColor},${podiumColor}bb)`
-                      : `linear-gradient(90deg,${color},${color}cc)`,
+                    background:`linear-gradient(90deg,${color},${color}cc)`,
                     transition:"width 0.5s cubic-bezier(0.22,1,0.36,1)",
                   }} />
                 </div>
