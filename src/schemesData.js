@@ -613,20 +613,28 @@ export const SCHEME_DB = [
 
 export const CATEGORIES = {
   en: [
-    { icon: "🌾", label: "Farmer",   color: "#138808", bg: "#f0fdf4", filterKey: "farmer"   },
-    { icon: "📚", label: "Student",  color: "#003580", bg: "#eff6ff", filterKey: "student"  },
-    { icon: "👩", label: "Women",    color: "#BE185D", bg: "#fdf2f8", filterKey: "women"    },
-    { icon: "👴", label: "Senior",   color: "#FF9933", bg: "#fff7ed", filterKey: "senior"   },
-    { icon: "💼", label: "Business", color: "#6B21A8", bg: "#faf5ff", filterKey: "business" },
-    { icon: "🏠", label: "Housing",  color: "#0F766E", bg: "#f0fdfa", filterKey: "housing"  },
+    { icon: "🌾", label: "Farmer",    color: "#138808", bg: "#f0fdf4", filterKey: "farmer"    },
+    { icon: "📚", label: "Student",   color: "#003580", bg: "#eff6ff", filterKey: "student"   },
+    { icon: "👩", label: "Women",     color: "#BE185D", bg: "#fdf2f8", filterKey: "women"     },
+    { icon: "👴", label: "Senior",    color: "#FF9933", bg: "#fff7ed", filterKey: "senior"    },
+    { icon: "💼", label: "Business",  color: "#6B21A8", bg: "#faf5ff", filterKey: "business"  },
+    { icon: "🏠", label: "Housing",   color: "#0F766E", bg: "#f0fdfa", filterKey: "housing"   },
+    { icon: "🏥", label: "Health",    color: "#0369A1", bg: "#f0f9ff", filterKey: "health"    },
+    { icon: "🛡️", label: "Insurance", color: "#DC2626", bg: "#fff1f2", filterKey: "insurance" },
+    { icon: "🏛️", label: "Pension",   color: "#7C3AED", bg: "#f5f3ff", filterKey: "pension"   },
+    { icon: "🆓", label: "Free Benefits", color: "#15803D", bg: "#f0fdf4", filterKey: "free"  },
   ],
   hi: [
-    { icon: "🌾", label: "किसान",   color: "#138808", bg: "#f0fdf4", filterKey: "farmer"   },
-    { icon: "📚", label: "छात्र",    color: "#003580", bg: "#eff6ff", filterKey: "student"  },
-    { icon: "👩", label: "महिला",   color: "#BE185D", bg: "#fdf2f8", filterKey: "women"    },
-    { icon: "👴", label: "वरिष्ठ",  color: "#FF9933", bg: "#fff7ed", filterKey: "senior"   },
-    { icon: "💼", label: "व्यापार", color: "#6B21A8", bg: "#faf5ff", filterKey: "business" },
-    { icon: "🏠", label: "आवास",    color: "#0F766E", bg: "#f0fdfa", filterKey: "housing"  },
+    { icon: "🌾", label: "किसान",        color: "#138808", bg: "#f0fdf4", filterKey: "farmer"    },
+    { icon: "📚", label: "छात्र",         color: "#003580", bg: "#eff6ff", filterKey: "student"   },
+    { icon: "👩", label: "महिला",        color: "#BE185D", bg: "#fdf2f8", filterKey: "women"     },
+    { icon: "👴", label: "वरिष्ठ",       color: "#FF9933", bg: "#fff7ed", filterKey: "senior"    },
+    { icon: "💼", label: "व्यापार",      color: "#6B21A8", bg: "#faf5ff", filterKey: "business"  },
+    { icon: "🏠", label: "आवास",         color: "#0F766E", bg: "#f0fdfa", filterKey: "housing"   },
+    { icon: "🏥", label: "स्वास्थ्य",    color: "#0369A1", bg: "#f0f9ff", filterKey: "health"    },
+    { icon: "🛡️", label: "बीमा",         color: "#DC2626", bg: "#fff1f2", filterKey: "insurance" },
+    { icon: "🏛️", label: "पेंशन",        color: "#7C3AED", bg: "#f5f3ff", filterKey: "pension"   },
+    { icon: "🆓", label: "मुफ़्त लाभ",   color: "#15803D", bg: "#f0fdf4", filterKey: "free"      },
   ],
 };
 
@@ -640,6 +648,34 @@ export function getSchemesForCategory(filterKey) {
       s.tag.en.toLowerCase().includes("awas")
     );
   }
+
+  // ── New cross-cutting filters ────────────────────────────────────────────────
+  if (filterKey === "health") {
+    const kws = ["health", "medical", "hospital", "ayushman", "swasthya", "treatment"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "insurance") {
+    const kws = ["insurance", "bima", "suraksha", "jeevan", "jivan"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "pension") {
+    const kws = ["pension", "maan-dhan", "maandhan", "retirement", "old age", "vridha"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "free") {
+    // Schemes that give direct cash transfers or free services (annual benefit > 0)
+    return SCHEME_DB.filter(s => (s.annual || 0) > 0);
+  }
+  // ────────────────────────────────────────────────────────────────────────────
 
   // Tag keywords used to match state schemes, which can't use s.match()
   // (state schemes require a.state === "X", so match() always returns false with state:"")

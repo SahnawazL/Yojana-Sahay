@@ -1608,6 +1608,35 @@ function SchemesTab({lang,dark=false}){
   const [visibleCount,setVisibleCount]=useState(PAGE_SIZE);
   const [isReady,setIsReady]=useState(false);
 
+  // ── One-time filter hint ──────────────────────────────────────────────────
+  // Shows an animated swipe hint on first visit only. Dismissed on:
+  //   • Any pill tap  • Auto-dismiss after 2.5s  • Stored in localStorage
+  const HINT_KEY="ys_filter_hint_seen";
+  const [showFilterHint,setShowFilterHint]=useState(false);
+  const hintTimer=useRef(null);
+  const pillRowRef=useRef(null);
+
+  useEffect(()=>{
+    // Only show if user has never seen it
+    if(localStorage.getItem(HINT_KEY)) return;
+    // Delay slightly so tab slide animation completes first
+    const id=setTimeout(()=>setShowFilterHint(true), 900);
+    return()=>clearTimeout(id);
+  },[]);
+
+  useEffect(()=>{
+    if(!showFilterHint) return;
+    // Auto-dismiss after 3s
+    hintTimer.current=setTimeout(()=>dismissHint(), 3000);
+    return()=>{if(hintTimer.current)clearTimeout(hintTimer.current);};
+  },[showFilterHint]);
+
+  const dismissHint=()=>{
+    setShowFilterHint(false);
+    try{localStorage.setItem(HINT_KEY,"1");}catch{}
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
   const cats=useMemo(()=>CATEGORIES[lang],[lang]);
 
   const scrollContainerRef=useRef(null);
@@ -1711,13 +1740,81 @@ function SchemesTab({lang,dark=false}){
         </div>
 
         {/* Category filter pills */}
-        <div
-          style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:14,scrollbarWidth:"none",WebkitOverflowScrolling:"touch"}}
-          onTouchStart={e=>e.stopPropagation()}
-          onTouchMove={e=>e.stopPropagation()}
-          onTouchEnd={e=>e.stopPropagation()}
-        >
-          <div onClick={()=>{haptic();setFilter("all");}}
+        <div style={{position:"relative"}}>
+          {/* ── One-time filter hint overlay ── */}
+          {showFilterHint&&(
+            <div
+              onClick={dismissHint}
+              style={{
+                position:"absolute",inset:0,zIndex:20,
+                borderRadius:12,
+                pointerEvents:"auto",
+                overflow:"hidden",
+              }}>
+              {/* Frosted backdrop — only over the pill row */}
+              <div style={{
+                position:"absolute",inset:0,
+                background:dark?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.72)",
+                backdropFilter:"blur(3px)",WebkitBackdropFilter:"blur(3px)",
+                borderRadius:12,
+                animation:"hint-fade-in 0.35s ease forwards",
+              }}/>
+              {/* Tooltip bubble */}
+              <div style={{
+                position:"absolute",
+                top:"50%",left:"50%",
+                transform:"translate(-50%,-50%)",
+                display:"flex",flexDirection:"column",alignItems:"center",gap:6,
+                animation:"hint-pop-in 0.40s cubic-bezier(0.34,1.56,0.64,1) forwards",
+                pointerEvents:"none",
+                whiteSpace:"nowrap",
+              }}>
+                {/* Animated finger */}
+                <div style={{
+                  fontSize:26,lineHeight:1,
+                  animation:"hint-finger-slide 1.1s cubic-bezier(0.4,0,0.2,1) 0.2s infinite",
+                  filter:"drop-shadow(0 2px 6px rgba(0,0,0,0.25))",
+                }}>
+                  👆
+                </div>
+                {/* Label */}
+                <div style={{
+                  background:dark?"rgba(255,153,51,0.95)":"#FF9933",
+                  color:"#fff",
+                  fontSize:12,fontWeight:800,
+                  fontFamily:bf,letterSpacing:0.3,
+                  borderRadius:20,padding:"5px 14px",
+                  boxShadow:"0 4px 16px rgba(255,153,51,0.50)",
+                  border:"1.5px solid rgba(255,255,255,0.30)",
+                }}>
+                  {isHindi?"श्रेणी चुनें — योजनाएं फ़िल्टर होंगी":"Tap a pill to filter schemes"}
+                </div>
+                {/* Dismiss hint */}
+                <div style={{
+                  fontSize:9.5,fontWeight:600,
+                  color:dark?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.35)",
+                  fontFamily:bf,letterSpacing:0.3,marginTop:2,
+                }}>
+                  {isHindi?"टैप करके बंद करें":"tap anywhere to dismiss"}
+                </div>
+              </div>
+              {/* Sliding highlight beam — shows the pill row is scrollable */}
+              <div style={{
+                position:"absolute",top:0,bottom:0,width:60,
+                background:"linear-gradient(90deg,transparent,rgba(255,153,51,0.18),transparent)",
+                animation:"hint-beam-slide 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s infinite",
+                pointerEvents:"none",
+              }}/>
+            </div>
+          )}
+          <div
+            ref={pillRowRef}
+            style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:14,scrollbarWidth:"none",WebkitOverflowScrolling:"touch"}}
+            onTouchStart={e=>e.stopPropagation()}
+            onTouchMove={e=>e.stopPropagation()}
+            onTouchEnd={e=>e.stopPropagation()}
+          >
+          <div onClick={()=>{haptic();setFilter("all");dismissHint();}}
             className="fpill"
             style={{
               background:filter==="all"?"linear-gradient(135deg,#002060,#003580)":th.pillBg,
@@ -1731,7 +1828,7 @@ function SchemesTab({lang,dark=false}){
           {cats.map(cat=>{
             const active=filter===cat.filterKey;
             return(
-            <div key={cat.filterKey} onClick={()=>{haptic();setFilter(cat.filterKey);}}
+            <div key={cat.filterKey} onClick={()=>{haptic();setFilter(cat.filterKey);dismissHint();}}
               className="fpill"
               style={{
                 background:active?cat.color:th.pillBg,
@@ -1743,7 +1840,8 @@ function SchemesTab({lang,dark=false}){
               {cat.label}
             </div>
           );})}
-        </div>
+          </div>{/* end pill row */}
+        </div>{/* end pill row wrapper */}
 
         {/* Active state chip row */}
         {selectedState!=="all"&&(
@@ -2032,8 +2130,6 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   });
 
   const [selected,setSelected]=useState(null);
-  const [lockingValue,setLockingValue]=useState(null); // value being "locked in" (answer-lock animation)
-  const autoAdvanceTimer=useRef(null); // ref so cleanup never captures stale closures
   const [stateSearch,setStateSearch]=useState(prefilledAnswers?.state||"");
   const [visible,setVisible]=useState(false);
   const [animKey,setAnimKey]=useState(0);
@@ -2088,11 +2184,9 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const matchedIds=useMemo(()=>new Set(results.map(r=>r.id)),[results]);
   const nearMiss=useMemo(()=>step===TOTAL?getNearMissSchemes(answers,matchedIds,lang):[],[step,TOTAL,answers,matchedIds,lang]);
 
-  const goNext=(forceVal)=>{
-    // forceVal is passed by auto-advance timer to bypass stale-closure on activeVal
-    const val=forceVal!==undefined?forceVal:activeVal;
-    if(!val)return;
-    const newAnswers={...answers,[q.id]:val};
+  const goNext=()=>{
+    if(!canProceed)return;
+    const newAnswers={...answers,[q.id]:activeVal};
     // Recompute queue with the freshly updated answers so conditional
     // questions are injected before we decide if this is the last step
     const newQueue=buildQueue(newAnswers);
@@ -2138,9 +2232,6 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
     else setStep(nextStep);
   };
   const goBack=()=>{
-    // Cancel any in-flight auto-advance
-    if(autoAdvanceTimer.current){clearTimeout(autoAdvanceTimer.current);autoAdvanceTimer.current=null;}
-    setLockingValue(null);
     if(step===0){onClose();return;}
     if(step===TOTAL){setDirection("bwd");setAnimKey(k=>k+1);setStep(TOTAL-1);return;}
     const prevQ=queue[step-1];
@@ -2200,8 +2291,6 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
       setStep(0);setAnswers({});setStateSearch("");
       setResults([]);
     }
-    if(autoAdvanceTimer.current){clearTimeout(autoAdvanceTimer.current);autoAdvanceTimer.current=null;}
-    setLockingValue(null);
     setSelected(null);setExpandedId(null);setAnimKey(k=>k+1);setBrief(null);setBriefLoading(false);
   };
 
@@ -2474,80 +2563,13 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {q.options.map(opt=>{
                   const active=activeVal===opt.value;
-                  const locking=lockingValue===opt.value;
                   return(
-                    <div key={opt.value}
-                      onClick={()=>{
-                        if(lockingValue)return; // prevent double-tap during lock
-                        haptic([30,0,30]);
-                        setSelected(opt.value);
-                        setLockingValue(opt.value);
-                        // Auto-advance after 400ms lock-in delay
-                        autoAdvanceTimer.current=setTimeout(()=>{
-                          autoAdvanceTimer.current=null;
-                          setLockingValue(null);
-                          goNext(opt.value);
-                        },400);
-                      }}
-                      style={{
-                        padding:"13px 16px",borderRadius:13,
-                        border:`2px solid ${locking?"#138808":active?"#FF9933":th.border}`,
-                        background:locking
-                          ? (dark?"rgba(19,136,8,0.18)":"rgba(19,136,8,0.08)")
-                          : active?th.optionActive:th.optionBg,
-                        cursor:lockingValue?"default":"pointer",
-                        display:"flex",alignItems:"center",gap:12,
-                        transition:"border-color 0.18s,background 0.18s,box-shadow 0.18s,transform 0.15s",
-                        boxShadow:locking
-                          ?"0 0 0 4px rgba(19,136,8,0.18),0 6px 20px rgba(19,136,8,0.22)"
-                          :active?"0 4px 14px rgba(255,153,51,0.18)":"none",
-                        animation:locking?"lock-pulse 0.38s cubic-bezier(0.34,1.56,0.64,1) forwards":undefined,
-                        WebkitTapHighlightColor:"transparent",
-                        userSelect:"none",
-                        position:"relative",
-                        overflow:"hidden",
-                      }}>
-                      {/* Radio circle OR animated checkmark */}
-                      <div style={{
-                        width:22,height:22,borderRadius:"50%",flexShrink:0,
-                        display:"flex",alignItems:"center",justifyContent:"center",
-                        border:`2.5px solid ${locking?"#138808":active?"#FF9933":th.border3}`,
-                        background:locking?"#138808":active?"#FF9933":th.optionBg,
-                        transition:"all 0.18s",
-                        boxShadow:locking?"0 0 0 4px rgba(19,136,8,0.20)":active?"0 0 0 3px rgba(255,153,51,0.20)":"none",
-                      }}>
-                        {locking
-                          ? <span style={{color:"#fff",fontSize:12,fontWeight:900,lineHeight:1,animation:"lock-check-in 0.28s cubic-bezier(0.34,1.56,0.64,1) both"}}>✓</span>
-                          : active&&<div style={{width:7,height:7,borderRadius:"50%",background:"#fff"}}/>
-                        }
+                    <div key={opt.value} onClick={()=>{haptic();setSelected(opt.value);}}
+                      style={{padding:"13px 16px",borderRadius:13,border:`2px solid ${active?"#FF9933":th.border}`,background:active?th.optionActive:th.optionBg,cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"all 0.18s",boxShadow:active?"0 4px 14px rgba(255,153,51,0.18)":"none"}}>
+                      <div style={{width:20,height:20,borderRadius:"50%",border:`2px solid ${active?"#FF9933":th.border3}`,background:active?"#FF9933":th.optionBg,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                        {active&&<div style={{width:7,height:7,borderRadius:"50%",background:"#fff"}}/>}
                       </div>
-                      <span style={{
-                        fontSize:13,fontWeight:active||locking?700:400,
-                        color:locking?"#16a34a":active?"#CC6600":th.text,
-                        fontFamily:bf,flex:1,
-                        transition:"color 0.18s",
-                      }}>{opt.label}</span>
-                      {/* Lock-in ripple overlay */}
-                      {locking&&(
-                        <div style={{
-                          position:"absolute",inset:0,borderRadius:11,
-                          background:"linear-gradient(135deg,rgba(19,136,8,0.08),rgba(19,136,8,0.04))",
-                          animation:"lock-shimmer 0.38s ease forwards",
-                          pointerEvents:"none",
-                        }}/>
-                      )}
-                      {/* Tiny "✓ Locked" badge top-right */}
-                      {locking&&(
-                        <div style={{
-                          flexShrink:0,display:"flex",alignItems:"center",gap:3,
-                          background:"#138808",borderRadius:20,padding:"3px 9px",
-                          animation:"lock-badge-in 0.30s cubic-bezier(0.34,1.56,0.64,1) both",
-                        }}>
-                          <span style={{fontSize:9,fontWeight:900,color:"#fff",letterSpacing:0.4}}>
-                            {isHindi?"✓ चुना":"✓ Locked"}
-                          </span>
-                        </div>
-                      )}
+                      <span style={{fontSize:13,fontWeight:active?700:400,color:active?"#CC6600":th.text,fontFamily:bf}}>{opt.label}</span>
                     </div>
                   );
                 })}
@@ -2556,14 +2578,8 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
 
             <div style={{display:"flex",gap:10,marginTop:24}}>
               <div onClick={()=>{haptic();goBack();}} style={{flex:1,padding:14,borderRadius:14,border:`1.5px solid ${th.border3}`,background:th.card,textAlign:"center",fontSize:14,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>{t.backBtn}</div>
-              <div onClick={()=>{if(canProceed&&!lockingValue){haptic();goNext();}}} style={{flex:2,padding:14,borderRadius:14,background:canProceed?"linear-gradient(135deg,#FF9933,#FF8C00)":"#e0e0e0",textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:(canProceed&&!lockingValue)?"pointer":"default",fontFamily:bf,boxShadow:canProceed?"0 4px 16px rgba(255,153,51,0.35)":"none",transition:"all 0.2s",opacity:lockingValue?0.55:1}}>
-                {lockingValue
-                  ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                      <span style={{display:"inline-block",animation:"lock-check-in 0.28s cubic-bezier(0.34,1.56,0.64,1) both"}}>✓</span>
-                      <span>{isHindi?"आगे जा रहे हैं…":"Moving on…"}</span>
-                    </span>
-                  : step===TOTAL-1?t.checkBtn:t.nextBtn
-                }
+              <div onClick={()=>{if(canProceed)haptic();goNext();}} style={{flex:2,padding:14,borderRadius:14,background:canProceed?"linear-gradient(135deg,#FF9933,#FF8C00)":"#e0e0e0",textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canProceed?"pointer":"default",fontFamily:bf,boxShadow:canProceed?"0 4px 16px rgba(255,153,51,0.35)":"none",transition:"all 0.2s"}}>
+                {step===TOTAL-1?t.checkBtn:t.nextBtn}
               </div>
             </div>
           </div>
@@ -5960,30 +5976,29 @@ const APP_STYLES = `
           background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.07) 50%,transparent 100%);
         }
 
-        /* ── Answer Lock Animation (Feature 6) ── */
-        @keyframes lock-pulse{
-          0%  {transform:scale(1);}
-          30% {transform:scale(1.032);}
-          60% {transform:scale(0.982);}
-          100%{transform:scale(1);}
+        /* ── Filter Hint Animations ── */
+        @keyframes hint-fade-in{
+          from{opacity:0}to{opacity:1}
         }
-        @keyframes lock-check-in{
-          0%  {transform:scale(0) rotate(-12deg);opacity:0;}
-          60% {transform:scale(1.30) rotate(4deg);opacity:1;}
-          100%{transform:scale(1)   rotate(0deg);opacity:1;}
+        @keyframes hint-pop-in{
+          0%  {opacity:0;transform:translate(-50%,-50%) scale(0.7);}
+          65% {opacity:1;transform:translate(-50%,-50%) scale(1.06);}
+          100%{opacity:1;transform:translate(-50%,-50%) scale(1);}
         }
-        @keyframes lock-badge-in{
-          0%  {transform:scale(0) translateX(8px);opacity:0;}
-          65% {transform:scale(1.12) translateX(-2px);opacity:1;}
-          100%{transform:scale(1)   translateX(0);opacity:1;}
+        @keyframes hint-finger-slide{
+          0%  {transform:translateX(-18px) rotate(-8deg);opacity:0.5;}
+          35% {transform:translateX(0px)   rotate(0deg); opacity:1;}
+          65% {transform:translateX(18px)  rotate(8deg); opacity:0.5;}
+          100%{transform:translateX(-18px) rotate(-8deg);opacity:0.5;}
         }
-        @keyframes lock-shimmer{
-          0%  {opacity:0;transform:translateX(-100%);}
-          50% {opacity:1;}
-          100%{opacity:0;transform:translateX(100%);}
+        @keyframes hint-beam-slide{
+          0%  {left:-60px;opacity:0;}
+          15% {opacity:1;}
+          85% {opacity:0.6;}
+          100%{left:calc(100% + 60px);opacity:0;}
         }
 
-
+        /* ── Login toast animations (moved from ProfileTab inline <style>) ── */
         @keyframes toastSlideIn {
           from { opacity: 0; transform: translateX(-50%) translateY(16px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
