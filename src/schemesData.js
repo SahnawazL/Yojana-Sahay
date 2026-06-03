@@ -602,6 +602,306 @@ export const SCHEME_DB = [
     match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
+  {
+    id: "pm_kusum",
+    icon: "☀️", color: "#D97706", scope: "national",
+    ministry: { en: "Ministry of New & Renewable Energy", hi: "नवीन एवं नवीकरणीय ऊर्जा मंत्रालय" },
+    name:    { en: "PM KUSUM (Solar Pump Scheme)",                     hi: "पीएम कुसुम (सौर पंप योजना)" },
+    benefit: { en: "90% subsidy on solar pump (up to 7.5 HP) for irrigation", hi: "सिंचाई के लिए सोलर पंप (7.5 HP तक) पर 90% सब्सिडी" },
+    tag:     { en: "Farmer / Solar", hi: "किसान / सौर" },
+    annual: 0,
+    apply:   { en: "pmkusum.mnre.gov.in", hi: "pmkusum.mnre.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Land Records (Khasra)","Bank Account","Electricity Bill (if any)","Passport Photo"],
+               hi: ["आधार कार्ड","जमीन के कागज़ (खसरा)","बैंक खाता","बिजली बिल (यदि हो)","पासपोर्ट फोटो"] },
+    // Eligibility: farmer with own agricultural land
+    match: (a) => a.who === "farmer",
+  },
+
+  {
+    id: "surya_ghar",
+    icon: "🌞", color: "#F59E0B", scope: "national",
+    ministry: { en: "Ministry of New & Renewable Energy", hi: "नवीन एवं नवीकरणीय ऊर्जा मंत्रालय" },
+    name:    { en: "PM Surya Ghar Muft Bijli Yojana",                  hi: "पीएम सूर्य घर मुफ्त बिजली योजना" },
+    benefit: { en: "300 units free electricity/month via rooftop solar + subsidy up to ₹78,000", hi: "रूफटॉप सोलर से 300 यूनिट मुफ्त बिजली/माह + ₹78,000 तक सब्सिडी" },
+    tag:     { en: "Solar / Electricity", hi: "सौर / बिजली" },
+    annual: 36000,
+    apply:   { en: "pmsuryaghar.gov.in", hi: "pmsuryaghar.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Electricity Consumer Number","Bank Account","Passport Photo","Roof Ownership Proof"],
+               hi: ["आधार कार्ड","बिजली उपभोक्ता नंबर","बैंक खाता","पासपोर्ट फोटो","छत का स्वामित्व प्रमाण"] },
+    // Eligibility: residential consumer with own roof and electricity connection
+    match: (a) => a.house === "yes" || ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "nikshay_poshan",
+    icon: "🩺", color: "#059669", scope: "national",
+    ministry: { en: "Ministry of Health & Family Welfare", hi: "स्वास्थ्य एवं परिवार कल्याण मंत्रालय" },
+    name:    { en: "Nikshay Poshan Yojana (TB Nutritional Support)",   hi: "निक्षय पोषण योजना (टीबी पोषण सहायता)" },
+    benefit: { en: "₹500/month nutritional support directly to bank account during TB treatment", hi: "टीबी उपचार के दौरान ₹500/माह सीधे बैंक में पोषण सहायता" },
+    tag:     { en: "Health / TB", hi: "स्वास्थ्य / टीबी" },
+    annual: 6000,
+    apply:   { en: "nikshay.in", hi: "nikshay.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","TB Notification / NIKSHAY ID (from doctor)","Bank Account (Aadhaar-linked)"],
+               hi: ["आधार कार्ड","डॉक्टर से टीबी अधिसूचना / NIKSHAY ID","बैंक खाता (आधार लिंक)"] },
+    // Eligibility: any TB patient registered under NIKSHAY portal (all incomes)
+    match: (a) => true,
+  },
+
+  {
+    id: "pm_svamitva",
+    icon: "📜", color: "#7C3AED", scope: "national",
+    ministry: { en: "Ministry of Panchayati Raj", hi: "पंचायती राज मंत्रालय" },
+    name:    { en: "PM SVAMITVA Yojana (Property Card)",               hi: "पीएम स्वामित्व योजना (संपत्ति कार्ड)" },
+    benefit: { en: "Free legal property card for rural households · Enables using property as loan collateral", hi: "ग्रामीण घरों को मुफ्त कानूनी संपत्ति कार्ड · संपत्ति पर बैंक लोन लेने योग्य" },
+    tag:     { en: "Rural / Property", hi: "ग्रामीण / संपत्ति" },
+    annual: 0,
+    apply:   { en: "svamitva.nic.in", hi: "svamitva.nic.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Existing Land / House Records","Village Abadi Land Proof","Bank Account"],
+               hi: ["आधार कार्ड","मौजूदा भूमि/घर के कागज़","ग्राम आबादी भूमि प्रमाण","बैंक खाता"] },
+    // Eligibility: any rural household resident
+    match: (a) => a.area === "rural",
+  },
+
+  {
+    id: "igndps",
+    icon: "♿", color: "#6366F1", scope: "national",
+    ministry: { en: "Ministry of Rural Development (NSAP)", hi: "ग्रामीण विकास मंत्रालय (NSAP)" },
+    name:    { en: "Indira Gandhi National Disability Pension (IGNDPS)", hi: "इंदिरा गांधी राष्ट्रीय विकलांगता पेंशन" },
+    benefit: { en: "₹300/month pension for BPL persons with 80%+ disability (age 18–79 years)", hi: "80%+ विकलांगता वाले BPL व्यक्तियों (18–79 वर्ष) को ₹300/माह पेंशन" },
+    tag:     { en: "Disability / Pension", hi: "विकलांगता / पेंशन" },
+    annual: 3600,
+    apply:   { en: "nsap.nic.in", hi: "nsap.nic.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Disability Certificate (80%+)","BPL Certificate","Age Proof","Bank Account"],
+               hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (80%+)","BPL प्रमाण","आयु प्रमाण","बैंक खाता"] },
+    // Eligibility: BPL, 80%+ disability, age 18-79
+    match: (a) => ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age),
+  },
+
+  {
+    id: "one_stop_centre",
+    icon: "🆘", color: "#BE185D", scope: "national",
+    ministry: { en: "Ministry of Women & Child Development", hi: "महिला एवं बाल विकास मंत्रालय" },
+    name:    { en: "One Stop Centre – Sakhi (Women in Distress)",      hi: "वन स्टॉप सेंटर – सखी (संकट में महिलाएं)" },
+    benefit: { en: "Free legal aid, medical help, shelter & psychological support for women in distress · Call 181", hi: "संकट में महिलाओं को मुफ्त कानूनी सहायता, चिकित्सा, आश्रय व मनोवैज्ञानिक समर्थन · 181 पर कॉल करें" },
+    tag:     { en: "Women / Legal Aid", hi: "महिला / कानूनी सहायता" },
+    annual: 0,
+    apply:   { en: "181 Helpline (call or walk-in)", hi: "181 हेल्पलाइन (कॉल या सीधे जाएं)" }, applyType: "offline",
+    docs:    { en: ["No documents required in emergency","Aadhaar Card (preferred)"],
+               hi: ["आपातकाल में कोई दस्तावेज़ नहीं","आधार कार्ड (बेहतर)"] },
+    // Eligibility: any woman in distress, no income/age restriction
+    match: (a) => a.who === "women",
+  },
+
+  {
+    id: "daynulm",
+    icon: "🏘️", color: "#0F766E", scope: "national",
+    ministry: { en: "Ministry of Housing & Urban Affairs", hi: "आवासन और शहरी कार्य मंत्रालय" },
+    name:    { en: "DAY-NULM (Urban Livelihoods Mission)",             hi: "डीएवाई-एनयूएलएम (शहरी आजीविका मिशन)" },
+    benefit: { en: "₹10,000–₹2 Lakh loan at 5–7% interest + free skill training for urban poor", hi: "शहरी गरीबों के लिए ₹10,000–₹2 लाख 5–7% ब्याज पर लोन + मुफ्त कौशल प्रशिक्षण" },
+    tag:     { en: "Business / Urban", hi: "व्यापार / शहरी" },
+    annual: 0,
+    apply:   { en: "nulm.gov.in", hi: "nulm.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","BPL / EWS Certificate","Bank Account","Address Proof","Business Activity Proof"],
+               hi: ["आधार कार्ड","BPL/EWS प्रमाण","बैंक खाता","पता प्रमाण","व्यापार गतिविधि प्रमाण"] },
+    // Eligibility: urban poor, BPL/EWS, seeking self-employment
+    match: (a) => ["urban","semi"].includes(a.area) && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "pm_internship",
+    icon: "🏢", color: "#1D4ED8", scope: "national",
+    ministry: { en: "Ministry of Corporate Affairs", hi: "कॉर्पोरेट मामलों का मंत्रालय" },
+    name:    { en: "PM Internship Scheme",                             hi: "पीएम इंटर्नशिप योजना" },
+    benefit: { en: "₹5,000/month stipend + ₹6,000 one-time grant · 12-month internship in top 500 companies", hi: "₹5,000/माह स्टाइपेंड + ₹6,000 एकमुश्त अनुदान · शीर्ष 500 कंपनियों में 12 माह इंटर्नशिप" },
+    tag:     { en: "Youth / Internship", hi: "युवा / इंटर्नशिप" },
+    annual: 60000,
+    apply:   { en: "pminternship.mca.gov.in", hi: "pminternship.mca.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Educational Certificates (Class 10/12/Diploma/Degree)","Bank Account (Aadhaar-linked)","Passport Photo"],
+               hi: ["आधार कार्ड","शैक्षणिक प्रमाण (कक्षा 10/12/डिप्लोमा/डिग्री)","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
+    // Eligibility: youth aged 21-24, family income below ₹8 Lakh, not in full-time education/employment
+    match: (a) => a.who === "student" && a.age === "18to35" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "annapurna",
+    icon: "🍚", color: "#92400E", scope: "national",
+    ministry: { en: "Ministry of Rural Development (NSAP)", hi: "ग्रामीण विकास मंत्रालय (NSAP)" },
+    name:    { en: "Annapurna Scheme (Free Food for Destitute Seniors)", hi: "अन्नपूर्णा योजना (निराश्रित वरिष्ठों के लिए मुफ्त अनाज)" },
+    benefit: { en: "10 kg free food grain per month for destitute senior citizens (65+) not covered under NOAPS", hi: "NOAPS में शामिल न होने वाले निराश्रित बुजुर्गों (65+) को 10 किलो मुफ्त अनाज/माह" },
+    tag:     { en: "Senior / Food", hi: "वरिष्ठ / भोजन" },
+    annual: 6000,
+    apply:   { en: "nsap.nic.in", hi: "nsap.nic.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Age Proof (65+ years)","BPL Certificate","Proof of No Pension","Bank Account"],
+               hi: ["आधार कार्ड","आयु प्रमाण (65+ वर्ष)","BPL प्रमाण","पेंशन न होने का प्रमाण","बैंक खाता"] },
+    // Eligibility: destitute senior (65+), BPL, not receiving any other pension
+    match: (a) => (a.who === "senior" || a.age === "above60") && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "pm_vidyalaxmi",
+    icon: "📖", color: "#6D28D9", scope: "national",
+    ministry: { en: "Ministry of Education & Ministry of Finance", hi: "शिक्षा मंत्रालय एवं वित्त मंत्रालय" },
+    name:    { en: "PM Vidyalaxmi (Education Loan Scheme)",            hi: "पीएम विद्यालक्ष्मी (शिक्षा ऋण योजना)" },
+    benefit: { en: "Education loan up to ₹10 Lakh · 3% interest subvention (1% for girls) · No collateral", hi: "₹10 लाख तक शिक्षा ऋण · 3% ब्याज सब्सिडी (बेटियों को 1%) · बिना गारंटी" },
+    tag:     { en: "Student / Education Loan", hi: "छात्र / शिक्षा ऋण" },
+    annual: 0,
+    apply:   { en: "vidyalaxmi.ac.in", hi: "vidyalaxmi.ac.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","PAN Card","Admission Letter from Institute","10th/12th/Graduation Mark Sheets","Income Certificate","Bank Account"],
+               hi: ["आधार कार्ड","पैन कार्ड","संस्था का प्रवेश पत्र","10वीं/12वीं/स्नातक मार्कशीट","आय प्रमाण पत्र","बैंक खाता"] },
+    // Eligibility: student admitted to recognised higher education institution, family income below ₹8L
+    match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "jsy",
+    icon: "🏥", color: "#EC4899", scope: "national",
+    ministry: { en: "Ministry of Health & Family Welfare", hi: "स्वास्थ्य एवं परिवार कल्याण मंत्रालय" },
+    name:    { en: "Janani Suraksha Yojana (JSY)",                     hi: "जननी सुरक्षा योजना (JSY)" },
+    benefit: { en: "₹1,400 cash (rural) or ₹700 (urban) for safe institutional delivery", hi: "सरकारी अस्पताल में प्रसव पर ₹1,400 (ग्रामीण) या ₹700 (शहरी) नकद सहायता" },
+    tag:     { en: "Maternity / Women", hi: "मातृत्व / महिला" },
+    annual: 1400,
+    apply:   { en: "nhm.gov.in / Nearest PHC or Hospital", hi: "nhm.gov.in / नजदीकी PHC या अस्पताल" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","MCH Card / MCP Card","BPL / SC / ST Certificate","Bank Account","Address Proof"],
+               hi: ["आधार कार्ड","MCH कार्ड / MCP कार्ड","BPL/SC/ST प्रमाण पत्र","बैंक खाता","पता प्रमाण"] },
+    // Eligibility: BPL / SC / ST pregnant women for institutional delivery
+    match: (a) => a.who === "women" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "mission_indradhanush",
+    icon: "💉", color: "#0891B2", scope: "national",
+    ministry: { en: "Ministry of Health & Family Welfare", hi: "स्वास्थ्य एवं परिवार कल्याण मंत्रालय" },
+    name:    { en: "Mission Indradhanush (Free Vaccination)",          hi: "मिशन इंद्रधनुष (मुफ्त टीकाकरण)" },
+    benefit: { en: "Free vaccines for children under 2 yrs & pregnant women · 12 diseases covered (polio, TB, hepatitis B, etc.)", hi: "2 वर्ष से कम बच्चों और गर्भवती महिलाओं को मुफ्त टीकाकरण · 12 बीमारियाँ (पोलियो, TB, हेपेटाइटिस B आदि)" },
+    tag:     { en: "Health / Child", hi: "स्वास्थ्य / बच्चे" },
+    annual: 0,
+    apply:   { en: "nhm.gov.in / Nearest Anganwadi or PHC", hi: "nhm.gov.in / नजदीकी आंगनवाड़ी या PHC" }, applyType: "offline",
+    docs:    { en: ["Child's Birth Certificate","MCH Card (Mother & Child Health Card)","Aadhaar Card (parent)"],
+               hi: ["बच्चे का जन्म प्रमाण पत्र","MCH कार्ड (माँ और बच्चा स्वास्थ्य कार्ड)","आधार कार्ड (माता-पिता)"] },
+    // Eligibility: children under 2 years and pregnant women, all incomes
+    match: (a) => a.who === "women",
+  },
+
+  {
+    id: "pmvvy",
+    icon: "💰", color: "#1D4ED8", scope: "national",
+    ministry: { en: "Ministry of Finance (LIC of India)", hi: "वित्त मंत्रालय (भारतीय जीवन बीमा निगम)" },
+    name:    { en: "PM Vaya Vandana Yojana (PMVVY)",                   hi: "प्रधानमंत्री वय वंदना योजना (PMVVY)" },
+    benefit: { en: "7.4% guaranteed pension · Invest up to ₹15 Lakh · Min. ₹1,000/month pension guaranteed for 10 years", hi: "7.4% गारंटीड पेंशन · ₹15 लाख तक निवेश · 10 वर्ष के लिए न्यूनतम ₹1,000/माह पेंशन" },
+    tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
+    annual: 12000,
+    apply:   { en: "licindia.in", hi: "licindia.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Age Proof (60+ years)","PAN Card","Bank Account","Passport Photo"],
+               hi: ["आधार कार्ड","आयु प्रमाण (60+ वर्ष)","पैन कार्ड","बैंक खाता","पासपोर्ट फोटो"] },
+    // Eligibility: senior citizens 60 years and above
+    match: (a) => a.who === "senior" || a.age === "above60",
+  },
+
+  {
+    id: "pmmsy",
+    icon: "🐟", color: "#0369A1", scope: "national",
+    ministry: { en: "Ministry of Fisheries, Animal Husbandry & Dairying", hi: "मत्स्य पालन, पशुपालन एवं डेयरी मंत्रालय" },
+    name:    { en: "PM Matsya Sampada Yojana (PMMSY)",                hi: "पीएम मत्स्य संपदा योजना (PMMSY)" },
+    benefit: { en: "40–60% subsidy on boats, nets & fish farm units (80% for SC/ST/Women)", hi: "नाव, जाल और मछली फार्म पर 40–60% सब्सिडी (SC/ST/महिलाओं को 80%)" },
+    tag:     { en: "Fisherman / Farmer", hi: "मछुआरा / किसान" },
+    annual: 0,
+    apply:   { en: "pmmsy.dof.gov.in", hi: "pmmsy.dof.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST if applicable)","Bank Account","Land / Water Body Lease Proof","Fisherman Registration Certificate"],
+               hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST हो तो)","बैंक खाता","जमीन/जल निकाय पट्टा","मछुआरा पंजीकरण प्रमाण"] },
+    // Eligibility: fishermen, fish farmers, aquaculture workers
+    match: (a) => a.who === "farmer" || (a.area === "rural" && ["below1","1to3"].includes(a.income)),
+  },
+
+  {
+    id: "startup_india",
+    icon: "🚀", color: "#7C3AED", scope: "national",
+    ministry: { en: "Ministry of Commerce & Industry (DPIIT)", hi: "वाणिज्य एवं उद्योग मंत्रालय (DPIIT)" },
+    name:    { en: "Startup India – Seed Fund & Recognition",          hi: "स्टार्टअप इंडिया – बीज निधि एवं मान्यता" },
+    benefit: { en: "Up to ₹50 Lakh seed funding · 3-year income-tax exemption · DPIIT recognition certificate", hi: "₹50 लाख तक बीज निधि · 3 साल आयकर छूट · DPIIT मान्यता प्रमाण पत्र" },
+    tag:     { en: "Business / Startup", hi: "व्यापार / स्टार्टअप" },
+    annual: 0,
+    apply:   { en: "startupindia.gov.in", hi: "startupindia.gov.in" }, applyType: "online",
+    docs:    { en: ["Company / LLP / Partnership Registration Proof","Founders' Aadhaar & PAN","Business / Innovation Proof","Pitch Deck or Business Plan","Bank Account"],
+               hi: ["कंपनी/LLP/साझेदारी पंजीकरण प्रमाण","संस्थापकों का आधार व पैन","व्यापार/नवाचार प्रमाण","पिच डेक या व्यापार योजना","बैंक खाता"] },
+    // Eligibility: registered startup, business age < 10 years, innovative product or service
+    match: (a) => a.who === "business" && ["18to35","35to60"].includes(a.age),
+  },
+
+  {
+    id: "pms_sc_st",
+    icon: "📕", color: "#B45309", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Ministry of Tribal Affairs", hi: "सामाजिक न्याय मंत्रालय एवं जनजातीय कार्य मंत्रालय" },
+    name:    { en: "Post Matric Scholarship – SC / ST Students",       hi: "पोस्ट मैट्रिक छात्रवृत्ति – SC/ST छात्र" },
+    benefit: { en: "Full tuition fee reimbursement + maintenance allowance ₹230–₹1,200/month · All post-Class 10 courses", hi: "पूरी ट्यूशन फीस + ₹230–₹1,200/माह रखरखाव भत्ता · Class 10 के बाद सभी कोर्स" },
+    tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
+    annual: 14400,
+    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","SC / ST Caste Certificate","Income Certificate (≤₹2.5L/year)","Previous Year Mark Sheet","Institution Admission Letter","Bank Account (Aadhaar-linked)"],
+               hi: ["आधार कार्ड","SC/ST जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
+    // Eligibility: SC/ST student post Class 10, family income ≤ ₹2.5L
+    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "poshan_abhiyaan",
+    icon: "🥗", color: "#16A34A", scope: "national",
+    ministry: { en: "Ministry of Women & Child Development", hi: "महिला एवं बाल विकास मंत्रालय" },
+    name:    { en: "POSHAN Abhiyaan 2.0 (National Nutrition Mission)", hi: "पोषण अभियान 2.0 (राष्ट्रीय पोषण मिशन)" },
+    benefit: { en: "Free take-home ration + nutrition supplements + counselling for children (0–6 yrs) & pregnant/lactating women via Anganwadi", hi: "आंगनवाड़ी से बच्चों (0–6 वर्ष) और गर्भवती/धात्री महिलाओं को मुफ्त राशन, पोषण आहार और परामर्श" },
+    tag:     { en: "Nutrition / Women", hi: "पोषण / महिला" },
+    annual: 6000,
+    apply:   { en: "poshan.gov.in / Nearest Anganwadi Centre", hi: "poshan.gov.in / नजदीकी आंगनवाड़ी केंद्र" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Child's Birth Certificate (if applicable)","MCH Card","Address Proof"],
+               hi: ["आधार कार्ड","बच्चे का जन्म प्रमाण पत्र (लागू हो तो)","MCH कार्ड","पता प्रमाण"] },
+    // Eligibility: pregnant/lactating women and children 0–6 years, any income
+    match: (a) => a.who === "women" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "pkvy",
+    icon: "🌿", color: "#15803D", scope: "national",
+    ministry: { en: "Ministry of Agriculture & Farmers Welfare", hi: "कृषि एवं किसान कल्याण मंत्रालय" },
+    name:    { en: "Paramparagat Krishi Vikas Yojana (PKVY)",          hi: "परंपरागत कृषि विकास योजना (PKVY)" },
+    benefit: { en: "₹50,000/hectare over 3 years for switching to organic farming · Free training & organic certification", hi: "जैविक खेती अपनाने पर 3 वर्षों में ₹50,000/हेक्टेयर · मुफ्त प्रशिक्षण और जैविक प्रमाणीकरण" },
+    tag:     { en: "Farmer / Organic", hi: "किसान / जैविक" },
+    annual: 16667,
+    apply:   { en: "pgsindia.net / Local Krishi Vigyan Kendra (KVK)", hi: "pgsindia.net / स्थानीय कृषि विज्ञान केंद्र (KVK)" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Land Records (minimum 0.4 hectare)","Bank Account","Group Formation Proof (cluster of 50 farmers preferred)"],
+               hi: ["आधार कार्ड","भूमि अभिलेख (न्यूनतम 0.4 हेक्टेयर)","बैंक खाता","समूह गठन प्रमाण (50 किसानों का समूह बेहतर)"] },
+    // Eligibility: farmer willing to convert to organic farming with min 0.4 ha
+    match: (a) => a.who === "farmer" && a.area === "rural",
+  },
+
+  {
+    id: "naps",
+    icon: "🔧", color: "#0F766E", scope: "national",
+    ministry: { en: "Ministry of Skill Development & Entrepreneurship", hi: "कौशल विकास एवं उद्यमिता मंत्रालय" },
+    name:    { en: "National Apprenticeship Promotion Scheme (NAPS)", hi: "राष्ट्रीय शिक्षुता प्रोत्साहन योजना (NAPS)" },
+    benefit: { en: "Govt. pays 25% of stipend (up to ₹1,500/month) · 1–3 year on-the-job trade training with a certificate", hi: "सरकार 25% स्टाइपेंड देती है (₹1,500/माह तक) · 1–3 वर्ष नौकरी-आधारित व्यापार प्रशिक्षण + प्रमाण पत्र" },
+    tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
+    annual: 18000,
+    apply:   { en: "apprenticeshipindia.gov.in", hi: "apprenticeshipindia.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Educational Certificate (Class 8 / 10 / 12 / ITI)","Bank Account","Passport Photo"],
+               hi: ["आधार कार्ड","शैक्षणिक प्रमाण (कक्षा 8/10/12/ITI)","बैंक खाता","पासपोर्ट फोटो"] },
+    // Eligibility: youth 14+ years, at least Class 5 pass, registered on portal
+    match: (a) => a.age === "18to35" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "adip",
+    icon: "🦽", color: "#6366F1", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Empowerment", hi: "सामाजिक न्याय एवं अधिकारिता मंत्रालय" },
+    name:    { en: "Assistance to Disabled Persons (ADIP) Scheme",    hi: "विकलांग व्यक्तियों की सहायता (ADIP) योजना" },
+    benefit: { en: "Free assistive devices: wheelchair, hearing aid, artificial limb, braille kit, tricycle & more", hi: "मुफ्त सहायक उपकरण: व्हीलचेयर, श्रवण यंत्र, कृत्रिम अंग, ब्रेल किट, ट्राईसाइकिल आदि" },
+    tag:     { en: "Disability / Aids", hi: "विकलांगता / सहायक उपकरण" },
+    annual: 0,
+    apply:   { en: "alimco.in / Nearest District Social Welfare Office", hi: "alimco.in / नजदीकी जिला समाज कल्याण कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Disability Certificate (≥40% disability)","Income Certificate (≤₹2L/year)","Passport Photo","Bank Account"],
+               hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (≥40% विकलांगता)","आय प्रमाण (≤₹2 लाख/वर्ष)","पासपोर्ट फोटो","बैंक खाता"] },
+    // Eligibility: person with ≥40% disability, family income ≤ ₹2L/year
+    match: (a) => ["below1","1to3"].includes(a.income),
+  },
+
   // ADD MORE NATIONAL SCHEMES HERE ↓
   // { id: "new_national_scheme", icon: "🆕", color: "#123456", scope: "national", ... }
 
