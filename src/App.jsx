@@ -82,6 +82,19 @@ const googleSearchScheme = (name) => {
 // ─── STAT TARGETS (stable reference — prevents useCountUp from re-animating) ──
 const STAT_TARGETS = [3000, 28, 50];
 const STORAGE_KEY = "yojana_eligibility_answers";
+
+// ─── REVEAL SCREEN ICONS (stable — module level) ───────────────────────────────
+// Positions are % within the 300×260 icon-orbit container; anim = CSS keyframe name
+const REVEAL_ICONS = [
+  {icon:"🌾", x:"18%", y:"18%", anim:"fly-from-tl", delay:"0s"   },
+  {icon:"💰", x:"70%", y:"18%", anim:"fly-from-tr", delay:"0.07s"},
+  {icon:"🏠", x:"10%", y:"50%", anim:"fly-from-l",  delay:"0.14s"},
+  {icon:"📚", x:"80%", y:"50%", anim:"fly-from-r",  delay:"0.04s"},
+  {icon:"👴", x:"18%", y:"72%", anim:"fly-from-bl", delay:"0.11s"},
+  {icon:"🏥", x:"68%", y:"72%", anim:"fly-from-br", delay:"0.18s"},
+  {icon:"💊", x:"44%", y:"12%", anim:"fly-from-t",  delay:"0.02s"},
+  {icon:"🚜", x:"44%", y:"80%", anim:"fly-from-b",  delay:"0.15s"},
+];
 // ─── TAB ORDER (stable reference — defined once at module level) ───────────────
 const TABS = ["home","search","schemes","ai","profile"];
 const fontFamily = (lang) => lang==="hi"
@@ -428,7 +441,7 @@ const PT = {
     resendBtn:"Resend OTP",
     demoNote:"Enter any 6-digit OTP (UI Demo)",
     step1Title:"Your Name & Gender",
-    step2Title:"State & Category",
+    step2Title:"State, Category & Social Info",
     step1of3:"STEP 1 OF 3",step2of3:"STEP 2 OF 3",step3of3:"STEP 3 OF 3",
     step3Title:"Income, Area & Welfare",
     fillOnce:"Fill once · Used everywhere",
@@ -542,7 +555,7 @@ const PT = {
     resendBtn:"OTP दोबारा भेजें",
     demoNote:"कोई भी 6 अंक दर्ज करें (UI Demo)",
     step1Title:"आपका नाम और लिंग",
-    step2Title:"राज्य और श्रेणी",
+    step2Title:"राज्य, श्रेणी और सामाजिक जानकारी",
     step1of3:"चरण 1 / 3",step2of3:"चरण 2 / 3",step3of3:"चरण 3 / 3",
     step3Title:"आय, क्षेत्र और कल्याण",
     fillOnce:"एक बार भरें · हर जगह काम आएगा",
@@ -1996,7 +2009,16 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const TOTAL=queue.length;
 
   const [step,setStep]=useState(()=>{
-    if(prefilledAnswers) return prefilledAnswers ? buildQueue(prefilledAnswers).length : 0;
+    if(prefilledAnswers){
+      const fullQueue=buildQueue(prefilledAnswers);
+      // Find first question that doesn't have a pre-filled answer
+      const firstMissing=fullQueue.findIndex(q=>{
+        const val=q.type==="state"?prefilledAnswers.state:prefilledAnswers[q.id];
+        return !val;
+      });
+      // All answered → jump straight to results; else start at first gap
+      return firstMissing===-1?fullQueue.length:firstMissing;
+    }
     try{
       const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
       if(!saved) return 0;
@@ -2010,9 +2032,12 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   });
 
   const [selected,setSelected]=useState(null);
+  const [lockingValue,setLockingValue]=useState(null); // value being "locked in" (answer-lock animation)
+  const autoAdvanceTimer=useRef(null); // ref so cleanup never captures stale closures
   const [stateSearch,setStateSearch]=useState(prefilledAnswers?.state||"");
   const [visible,setVisible]=useState(false);
   const [animKey,setAnimKey]=useState(0);
+  const [direction,setDirection]=useState("fwd"); // "fwd" | "bwd"
   const [expandedId,setExpandedId]=useState(null);
 
   const [results,setResults]=useState(()=>{
@@ -2048,6 +2073,14 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
     partialCount = c;
   }
   const progress=step>=TOTAL?100:Math.round(((step+1)/TOTAL)*100);
+  // How many questions were already answered from the profile prefill
+  const prefillCount=useMemo(()=>{
+    if(!prefilledAnswers)return 0;
+    return queue.filter(q=>{
+      const val=q.type==="state"?prefilledAnswers.state:prefilledAnswers[q.id];
+      return !!val;
+    }).length;
+  },[queue,prefilledAnswers]);
   const filteredStates=useMemo(()=>INDIA_STATES.filter(s=>s.toLowerCase().includes(stateSearch.toLowerCase())),[stateSearch]);
   const totalAnnual=useMemo(()=>results.reduce((s,r)=>s+(r.annual||0),0),[results]);
   const nationalResults=useMemo(()=>results.filter(r=>r.scope==="national").sort((a,b)=>(b.annual||0)-(a.annual||0)),[results]);
@@ -2055,50 +2088,65 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   const matchedIds=useMemo(()=>new Set(results.map(r=>r.id)),[results]);
   const nearMiss=useMemo(()=>step===TOTAL?getNearMissSchemes(answers,matchedIds,lang):[],[step,TOTAL,answers,matchedIds,lang]);
 
-  const goNext=()=>{
-    if(!canProceed)return;
-    const newAnswers={...answers,[q.id]:activeVal};
+  const goNext=(forceVal)=>{
+    // forceVal is passed by auto-advance timer to bypass stale-closure on activeVal
+    const val=forceVal!==undefined?forceVal:activeVal;
+    if(!val)return;
+    const newAnswers={...answers,[q.id]:val};
     // Recompute queue with the freshly updated answers so conditional
     // questions are injected before we decide if this is the last step
     const newQueue=buildQueue(newAnswers);
     const newTotal=newQueue.length;
     const nextStep=step===newTotal-1?newTotal:step+1;
-    setAnswers(newAnswers);setSelected(null);setAnimKey(k=>k+1);
+    setAnswers(newAnswers);setSelected(null);setDirection("fwd");setAnimKey(k=>k+1);
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify({answers:newAnswers,step:nextStep}));}catch{}
     if(step===newTotal-1){
       const matched=initResults(newAnswers);
       setResults(matched);
       setCalculating(true);
+      setCalcPhase(0);
       setCalcCount(0);
-      // Phase 1: count up from 0 → SCHEME_DB.length over ~1000ms
-      const dbTotal=SCHEME_DB.length;
-      const dur=1000;
-      const startT=performance.now();
-      const tick=(now)=>{
-        const p=Math.min((now-startT)/dur,1);
-        const ease=1-Math.pow(1-p,3);
-        setCalcCount(Math.floor(ease*dbTotal));
-        if(p<1){ requestAnimationFrame(tick); }
-        else{
-          setCalcCount(dbTotal);
-          // Phase 2: short pause, then reveal results
-          setTimeout(()=>{
-            setCalculating(false);
-            setStep(newTotal);
-          },500);
-        }
-      };
-      requestAnimationFrame(tick);
+
+      // Phase 0 → Scanning (900ms)
+      setTimeout(()=>{
+        setCalcPhase(1); // icons fly-in phase
+        // Phase 1 → Matching (750ms — icons settle)
+        setTimeout(()=>{
+          setCalcPhase(2); // counter phase
+          const matchedTotal=matched.length;
+          if(matchedTotal===0){
+            setTimeout(()=>{ setCalculating(false); setStep(newTotal); },700);
+            return;
+          }
+          const dur=1100;
+          const startT=performance.now();
+          const tick=(now)=>{
+            const p=Math.min((now-startT)/dur,1);
+            const ease=1-Math.pow(1-p,3); // cubic ease-out
+            setCalcCount(Math.floor(ease*matchedTotal));
+            if(p<1){ requestAnimationFrame(tick); }
+            else{
+              setCalcCount(matchedTotal);
+              // Linger on final number, then reveal results
+              setTimeout(()=>{ setCalculating(false); setStep(newTotal); },750);
+            }
+          };
+          requestAnimationFrame(tick);
+        },750);
+      },900);
     }
     else setStep(nextStep);
   };
   const goBack=()=>{
+    // Cancel any in-flight auto-advance
+    if(autoAdvanceTimer.current){clearTimeout(autoAdvanceTimer.current);autoAdvanceTimer.current=null;}
+    setLockingValue(null);
     if(step===0){onClose();return;}
-    if(step===TOTAL){setStep(TOTAL-1);return;}
+    if(step===TOTAL){setDirection("bwd");setAnimKey(k=>k+1);setStep(TOTAL-1);return;}
     const prevQ=queue[step-1];
     if(prevQ.type==="state")setStateSearch(answers[prevQ.id]||"");
     else setSelected(answers[prevQ.id]||null);
-    setAnimKey(k=>k+1);setStep(s=>s-1);
+    setAnimKey(k=>k+1);setDirection("bwd");setStep(s=>s-1);
   };
   // ── AI Results Brief ──────────────────────────────────────────────────────
   const [brief, setBrief]             = useState(null);
@@ -2106,10 +2154,20 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
   // ── Calculating screen state ──────────────────────────────────────────────
   const [calculating, setCalculating] = useState(false);
   const [calcCount,   setCalcCount]   = useState(0);
+  // 0=scanning  1=icons-fly-in  2=counter-matched
+  const [calcPhase,   setCalcPhase]   = useState(0);
 
   useEffect(()=>{
     if(step !== TOTAL || results.length === 0) return;
     let cancelled = false;
+    // ── Sync matched count back to Firestore so Profile "Schemes" stat stays accurate ──
+    const uid=auth.currentUser?.uid;
+    if(uid){
+      try{
+        updateDoc(doc(db,"users",uid),{matchedCount:results.length,lastChecked:serverTimestamp()})
+          .catch(()=>{}); // silent — non-critical
+      }catch{}
+    }
     setBrief(null);
     setBriefLoading(true);
     generateResultsBrief(answers, results, nearMiss, totalAnnual, lang)
@@ -2121,7 +2179,30 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
 
   const retake=()=>{
     try{localStorage.removeItem(STORAGE_KEY);}catch{}
-    setStep(0);setAnswers({});setSelected(null);setStateSearch("");setResults([]);setExpandedId(null);setAnimKey(k=>k+1);setBrief(null);setBriefLoading(false);
+    if(prefilledAnswers){
+      // Restore to profile-prefilled state (don't blank everything)
+      const fullQueue=buildQueue(prefilledAnswers);
+      const firstMissing=fullQueue.findIndex(q=>{
+        const val=q.type==="state"?prefilledAnswers.state:prefilledAnswers[q.id];
+        return !val;
+      });
+      setAnswers(prefilledAnswers);
+      setStateSearch(prefilledAnswers.state||"");
+      if(firstMissing===-1){
+        // All questions prefilled → stay on results (recompute instead of blank)
+        setStep(fullQueue.length);
+        setResults(SCHEME_DB.filter(s=>s.match(prefilledAnswers)));
+      }else{
+        setStep(firstMissing);
+        setResults([]);
+      }
+    }else{
+      setStep(0);setAnswers({});setStateSearch("");
+      setResults([]);
+    }
+    if(autoAdvanceTimer.current){clearTimeout(autoAdvanceTimer.current);autoAdvanceTimer.current=null;}
+    setLockingValue(null);
+    setSelected(null);setExpandedId(null);setAnimKey(k=>k+1);setBrief(null);setBriefLoading(false);
   };
 
   return(
@@ -2208,42 +2289,139 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
           )}
         </div>
 
-        {/* ── CALCULATING SCREEN ── */}
+        {/* ── CALCULATING REVEAL SCREEN (full-screen theatrical) ── */}
         {calculating&&(
           <div style={{
+            position:"fixed",inset:0,zIndex:9999,
+            background:"linear-gradient(160deg,#03031a 0%,#06038D 55%,#03031a 100%)",
             display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-            minHeight:"62vh",padding:"40px 24px",textAlign:"center",
+            animation:"reveal-overlay-in 0.4s ease forwards",
+            overflow:"hidden",
           }}>
-            {/* Spinning Ashoka Chakra */}
-            <div style={{marginBottom:24,animation:"chakra-spin 1.2s linear infinite"}}>
-              <AshokaChakra size={80} color={ASHOKA_BLUE} spinning={false}/>
+            {/* Dot-grid background */}
+            <div style={{
+              position:"absolute",inset:0,
+              backgroundImage:"radial-gradient(rgba(255,255,255,0.55) 1px,transparent 1px)",
+              backgroundSize:"34px 34px",
+              animation:"reveal-bg-pulse 3s ease-in-out infinite",
+              pointerEvents:"none",
+            }}/>
+            {/* Central glow orb */}
+            <div style={{
+              position:"absolute",width:320,height:320,borderRadius:"50%",
+              background:"radial-gradient(circle,rgba(6,3,141,0.55) 0%,transparent 70%)",
+              pointerEvents:"none",
+            }}/>
+
+            {/* ── Phase 0: Scanning ── */}
+            {calcPhase===0&&(
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:22,animation:"reveal-overlay-in 0.45s ease"}}>
+                <div style={{animation:"chakra-spin 0.9s linear infinite",filter:"drop-shadow(0 0 22px rgba(255,153,51,0.65)) drop-shadow(0 0 45px rgba(6,3,141,0.9))"}}>
+                  <AshokaChakra size={112} color={SAFFRON} spinning={false}/>
+                </div>
+                <div>
+                  <div style={{fontSize:20,fontWeight:800,color:"#fff",fontFamily:bf,letterSpacing:-0.3,marginBottom:7}}>
+                    {isHindi?"योजनाएं स्कैन हो रही हैं…":"Scanning schemes…"}
+                  </div>
+                  <div style={{fontSize:13,color:"rgba(255,255,255,0.48)",fontFamily:bf}}>
+                    {isHindi?`${SCHEME_DB.length} सरकारी योजनाएं जाँच रहे हैं`:`Checking ${SCHEME_DB.length} government schemes`}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Phase 1: Icons flying in ── */}
+            {calcPhase===1&&(
+              <div style={{position:"relative",width:300,height:260,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                {/* Center chakra */}
+                <div style={{position:"relative",zIndex:2,display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+                  <div style={{animation:"chakra-spin 0.8s linear infinite",filter:"drop-shadow(0 0 18px rgba(255,153,51,0.7)) drop-shadow(0 0 36px rgba(6,3,141,1))"}}>
+                    <AshokaChakra size={74} color={SAFFRON} spinning={false}/>
+                  </div>
+                  <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.65)",fontFamily:bf,letterSpacing:0.2}}>
+                    {isHindi?"आपकी प्रोफाइल से मिलान…":"Matching to your profile…"}
+                  </div>
+                </div>
+                {/* Flying scheme icons */}
+                {REVEAL_ICONS.map((ic,idx)=>(
+                  <div key={idx} style={{
+                    position:"absolute",left:ic.x,top:ic.y,
+                    fontSize:30,lineHeight:1,zIndex:1,
+                    animation:`${ic.anim} 0.55s ${ic.delay} cubic-bezier(0.22,1,0.36,1) both`,
+                    filter:"drop-shadow(0 3px 10px rgba(0,0,0,0.55))",
+                  }}>
+                    {ic.icon}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── Phase 2: Big matched counter ── */}
+            {calcPhase===2&&(
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",animation:"reveal-count-pop 0.7s cubic-bezier(0.34,1.56,0.64,1) both"}}>
+                <div style={{
+                  fontSize:100,fontWeight:900,lineHeight:1,
+                  fontFamily:bf,letterSpacing:-5,
+                  color:SAFFRON,
+                  textShadow:"0 0 40px rgba(255,153,51,0.6),0 0 80px rgba(255,153,51,0.3)",
+                  animation:"reveal-found-glow 1.5s ease-in-out infinite",
+                }}>
+                  {calcCount}
+                </div>
+                <div style={{fontSize:18,fontWeight:700,color:"#fff",fontFamily:bf,marginTop:6,letterSpacing:0.2}}>
+                  {isHindi?"योजनाएं मिलीं आपके लिए 🎯":"schemes found for you 🎯"}
+                </div>
+                {/* Tricolor bar */}
+                <div style={{display:"flex",margin:"18px auto 0",width:76,height:4,borderRadius:99,overflow:"hidden"}}>
+                  <div style={{flex:1,background:SAFFRON}}/>
+                  <div style={{flex:1,background:"rgba(255,255,255,0.9)"}}/>
+                  <div style={{flex:1,background:IND_GREEN}}/>
+                </div>
+              </div>
+            )}
+
+            {/* Phase progress dots */}
+            <div style={{position:"absolute",bottom:54,display:"flex",gap:7,alignItems:"center"}}>
+              {[0,1,2].map(i=>(
+                <div key={i} style={{
+                  width:i===calcPhase?26:7,height:7,borderRadius:99,
+                  background:i<=calcPhase?SAFFRON:"rgba(255,255,255,0.18)",
+                  transition:"all 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+                  boxShadow:i===calcPhase?`0 0 12px ${SAFFRON}`:"none",
+                }}/>
+              ))}
             </div>
-            {/* Label */}
-            <div style={{fontSize:14,fontWeight:700,color:th.textMid,fontFamily:bf,marginBottom:14,letterSpacing:0.2}}>
-              {isHindi?"योजनाएं खोज रहे हैं…":"Searching schemes…"}
-            </div>
-            {/* Big count number */}
-            <div style={{fontSize:48,fontWeight:900,color:SAFFRON,fontFamily:bf,lineHeight:1,letterSpacing:-1}}>
-              {calcCount.toLocaleString("en-IN")}
-            </div>
-            <div style={{fontSize:12,color:th.textSub,fontFamily:bf,marginTop:6}}>
-              {isHindi?`${SCHEME_DB.length.toLocaleString("en-IN")} योजनाओं में से`:`of ${SCHEME_DB.length} schemes`}
-            </div>
-            {/* Tricolor progress bar */}
-            <div style={{marginTop:28,width:"68%",height:5,borderRadius:99,background:dark?"#2c2c2e":"#e8e8e8",overflow:"hidden"}}>
-              <div style={{
-                height:"100%",borderRadius:99,
-                width:`${Math.round((calcCount/SCHEME_DB.length)*100)}%`,
-                background:`linear-gradient(90deg,${SAFFRON},${ASHOKA_BLUE},${IND_GREEN})`,
-                transition:"width 0.06s linear",
-              }}/>
+          </div>
+        )}
+
+        {/* ── Profile Pre-fill Banner ── */}
+        {prefillCount>0&&step<TOTAL&&(
+          <div style={{
+            margin:"0 20px 0",
+            display:"flex",alignItems:"center",gap:9,
+            background:dark?"rgba(19,136,8,0.12)":"rgba(19,136,8,0.07)",
+            border:`1.5px solid ${dark?"rgba(19,136,8,0.35)":"rgba(19,136,8,0.22)"}`,
+            borderRadius:14,padding:"10px 14px",
+          }}>
+            <span style={{fontSize:18,flexShrink:0}}>🧠</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:12,fontWeight:800,color:IND_GREEN,fontFamily:bf,lineHeight:1.3}}>
+                {isHindi
+                  ?`${prefillCount} जवाब प्रोफाइल से भरे गए ✓`
+                  :`${prefillCount} of ${TOTAL} answers pre-filled from your profile ✓`}
+              </div>
+              <div style={{fontSize:10.5,color:th.textSub,marginTop:2,fontFamily:bf}}>
+                {isHindi
+                  ?`सिर्फ ${TOTAL-step} सवाल बचे हैं`
+                  :`Just ${TOTAL-step} question${TOTAL-step!==1?"s":""} remaining`}
+              </div>
             </div>
           </div>
         )}
 
         {/* Question step */}
         {step<TOTAL&&q&&(
-          <div key={animKey} style={{padding:"20px 20px 32px",animation:"fadeSlide 0.3s ease"}}>
+          <div key={animKey} style={{padding:"20px 20px 32px",animation:`${direction==="fwd"?"q-enter-fwd":"q-enter-bwd"} 0.32s cubic-bezier(0.25,1,0.5,1) both`}}>
             <div style={{textAlign:"center",marginBottom:20}}>
               <div style={{fontSize:42,marginBottom:10}}>{q.icon}</div>
               <div style={{fontSize:17,fontWeight:800,color:th.text,lineHeight:1.3,fontFamily:bf}}>{q.q}</div>
@@ -2296,13 +2474,80 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {q.options.map(opt=>{
                   const active=activeVal===opt.value;
+                  const locking=lockingValue===opt.value;
                   return(
-                    <div key={opt.value} onClick={()=>{haptic();setSelected(opt.value);}}
-                      style={{padding:"13px 16px",borderRadius:13,border:`2px solid ${active?"#FF9933":th.border}`,background:active?th.optionActive:th.optionBg,cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"all 0.18s",boxShadow:active?"0 4px 14px rgba(255,153,51,0.18)":"none"}}>
-                      <div style={{width:20,height:20,borderRadius:"50%",border:`2px solid ${active?"#FF9933":th.border3}`,background:active?"#FF9933":th.optionBg,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                        {active&&<div style={{width:7,height:7,borderRadius:"50%",background:"#fff"}}/>}
+                    <div key={opt.value}
+                      onClick={()=>{
+                        if(lockingValue)return; // prevent double-tap during lock
+                        haptic([30,0,30]);
+                        setSelected(opt.value);
+                        setLockingValue(opt.value);
+                        // Auto-advance after 400ms lock-in delay
+                        autoAdvanceTimer.current=setTimeout(()=>{
+                          autoAdvanceTimer.current=null;
+                          setLockingValue(null);
+                          goNext(opt.value);
+                        },400);
+                      }}
+                      style={{
+                        padding:"13px 16px",borderRadius:13,
+                        border:`2px solid ${locking?"#138808":active?"#FF9933":th.border}`,
+                        background:locking
+                          ? (dark?"rgba(19,136,8,0.18)":"rgba(19,136,8,0.08)")
+                          : active?th.optionActive:th.optionBg,
+                        cursor:lockingValue?"default":"pointer",
+                        display:"flex",alignItems:"center",gap:12,
+                        transition:"border-color 0.18s,background 0.18s,box-shadow 0.18s,transform 0.15s",
+                        boxShadow:locking
+                          ?"0 0 0 4px rgba(19,136,8,0.18),0 6px 20px rgba(19,136,8,0.22)"
+                          :active?"0 4px 14px rgba(255,153,51,0.18)":"none",
+                        animation:locking?"lock-pulse 0.38s cubic-bezier(0.34,1.56,0.64,1) forwards":undefined,
+                        WebkitTapHighlightColor:"transparent",
+                        userSelect:"none",
+                        position:"relative",
+                        overflow:"hidden",
+                      }}>
+                      {/* Radio circle OR animated checkmark */}
+                      <div style={{
+                        width:22,height:22,borderRadius:"50%",flexShrink:0,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        border:`2.5px solid ${locking?"#138808":active?"#FF9933":th.border3}`,
+                        background:locking?"#138808":active?"#FF9933":th.optionBg,
+                        transition:"all 0.18s",
+                        boxShadow:locking?"0 0 0 4px rgba(19,136,8,0.20)":active?"0 0 0 3px rgba(255,153,51,0.20)":"none",
+                      }}>
+                        {locking
+                          ? <span style={{color:"#fff",fontSize:12,fontWeight:900,lineHeight:1,animation:"lock-check-in 0.28s cubic-bezier(0.34,1.56,0.64,1) both"}}>✓</span>
+                          : active&&<div style={{width:7,height:7,borderRadius:"50%",background:"#fff"}}/>
+                        }
                       </div>
-                      <span style={{fontSize:13,fontWeight:active?700:400,color:active?"#CC6600":th.text,fontFamily:bf}}>{opt.label}</span>
+                      <span style={{
+                        fontSize:13,fontWeight:active||locking?700:400,
+                        color:locking?"#16a34a":active?"#CC6600":th.text,
+                        fontFamily:bf,flex:1,
+                        transition:"color 0.18s",
+                      }}>{opt.label}</span>
+                      {/* Lock-in ripple overlay */}
+                      {locking&&(
+                        <div style={{
+                          position:"absolute",inset:0,borderRadius:11,
+                          background:"linear-gradient(135deg,rgba(19,136,8,0.08),rgba(19,136,8,0.04))",
+                          animation:"lock-shimmer 0.38s ease forwards",
+                          pointerEvents:"none",
+                        }}/>
+                      )}
+                      {/* Tiny "✓ Locked" badge top-right */}
+                      {locking&&(
+                        <div style={{
+                          flexShrink:0,display:"flex",alignItems:"center",gap:3,
+                          background:"#138808",borderRadius:20,padding:"3px 9px",
+                          animation:"lock-badge-in 0.30s cubic-bezier(0.34,1.56,0.64,1) both",
+                        }}>
+                          <span style={{fontSize:9,fontWeight:900,color:"#fff",letterSpacing:0.4}}>
+                            {isHindi?"✓ चुना":"✓ Locked"}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -2311,8 +2556,14 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
 
             <div style={{display:"flex",gap:10,marginTop:24}}>
               <div onClick={()=>{haptic();goBack();}} style={{flex:1,padding:14,borderRadius:14,border:`1.5px solid ${th.border3}`,background:th.card,textAlign:"center",fontSize:14,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>{t.backBtn}</div>
-              <div onClick={()=>{if(canProceed)haptic();goNext();}} style={{flex:2,padding:14,borderRadius:14,background:canProceed?"linear-gradient(135deg,#FF9933,#FF8C00)":"#e0e0e0",textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canProceed?"pointer":"default",fontFamily:bf,boxShadow:canProceed?"0 4px 16px rgba(255,153,51,0.35)":"none",transition:"all 0.2s"}}>
-                {step===TOTAL-1?t.checkBtn:t.nextBtn}
+              <div onClick={()=>{if(canProceed&&!lockingValue){haptic();goNext();}}} style={{flex:2,padding:14,borderRadius:14,background:canProceed?"linear-gradient(135deg,#FF9933,#FF8C00)":"#e0e0e0",textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:(canProceed&&!lockingValue)?"pointer":"default",fontFamily:bf,boxShadow:canProceed?"0 4px 16px rgba(255,153,51,0.35)":"none",transition:"all 0.2s",opacity:lockingValue?0.55:1}}>
+                {lockingValue
+                  ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                      <span style={{display:"inline-block",animation:"lock-check-in 0.28s cubic-bezier(0.34,1.56,0.64,1) both"}}>✓</span>
+                      <span>{isHindi?"आगे जा रहे हैं…":"Moving on…"}</span>
+                    </span>
+                  : step===TOTAL-1?t.checkBtn:t.nextBtn
+                }
               </div>
             </div>
           </div>
@@ -2637,6 +2888,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   const [setupRation,    setSetupRation]    =useState(profile?.ration    ||"");
   const [setupDisability,setSetupDisability]=useState(profile?.disability||"none");
   const [setupMarital,   setSetupMarital]   =useState(profile?.marital   ||"");
+  const [setupCaste,     setSetupCaste]     =useState(profile?.caste     ||"");
   // ── Step 4 — occupation-conditional + children fields ──────────────────────
   const [setupLandHolding,    setSetupLandHolding]    =useState(profile?.landHolding    ||"");
   const [setupKisanCard,      setSetupKisanCard]      =useState(profile?.kisanCard      ||"");
@@ -2764,6 +3016,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         if(savedAnswers.age)    setSetupAge(savedAnswers.age);
         if(savedAnswers.area)   setSetupArea(savedAnswers.area);
         if(savedAnswers.house)  setSetupHouse(savedAnswers.house);
+        if(savedAnswers.caste)  setSetupCaste(savedAnswers.caste);
       }
       setStage("setup1");
     }catch(err){
@@ -2793,6 +3046,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     const profileData={
       name:setupName.trim(),phone,gender:setupGender,
       state:setupState,occupation:setupCat,
+      caste:setupCaste||"general",
       income:setupIncome||"1to3",
       house:setupHouse||"no",
       age:setupAge||"18to35",
@@ -2834,6 +3088,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     setSetupRation(profile?.ration||"");
     setSetupDisability(profile?.disability||"none");
     setSetupMarital(profile?.marital||"");
+    setSetupCaste(profile?.caste||"");
     setSetupLandHolding(profile?.landHolding||"");
     setSetupKisanCard(profile?.kisanCard||"");
     setSetupEducationLevel(profile?.educationLevel||"");
@@ -2854,7 +3109,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     setPhone("");setOtp(["","","","","",""]);
     setSetupName("");setSetupGender("");setSetupState("");setStateSearch("");setSetupCat("");
     setSetupIncome("");setSetupAge("");setSetupArea("");setSetupHouse("");
-    setSetupRation("");setSetupDisability("none");setSetupMarital("");
+    setSetupRation("");setSetupDisability("none");setSetupMarital("");setSetupCaste("");
     setSetupLandHolding("");setSetupKisanCard("");
     setSetupEducationLevel("");setSetupInstitutionType("");
     setSetupNumChildren("");setSetupHasGirls("");
@@ -2878,6 +3133,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       if(savedAnswers.age)    setSetupAge(savedAnswers.age);
       if(savedAnswers.area)   setSetupArea(savedAnswers.area);
       if(savedAnswers.house)  setSetupHouse(savedAnswers.house);
+      if(savedAnswers.caste)  setSetupCaste(savedAnswers.caste);
     }
     setStage("setup1");
   },[]);
@@ -2913,6 +3169,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         if(savedAnswers.age)    setSetupAge(savedAnswers.age);
         if(savedAnswers.area)   setSetupArea(savedAnswers.area);
         if(savedAnswers.house)  setSetupHouse(savedAnswers.house);
+        if(savedAnswers.caste)  setSetupCaste(savedAnswers.caste);
       }
       setStage("setup1");
       setGoogleLoading(false); // reset spinner for new user entering setup flow
@@ -2943,6 +3200,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       if(savedAnswers.age)    setSetupAge(savedAnswers.age);
       if(savedAnswers.area)   setSetupArea(savedAnswers.area);
       if(savedAnswers.house)  setSetupHouse(savedAnswers.house);
+      if(savedAnswers.caste)  setSetupCaste(savedAnswers.caste);
     }
     setStage("setup1");
   };
@@ -3027,7 +3285,17 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   // Matched scheme count for dashboard
   const matchedCount=useMemo(()=>{
     if(!profile)return 0;
-    const ans={who:profile.occupation,income:profile.income,house:profile.house,age:profile.age,area:profile.area,state:profile.state};
+    const ans={
+      who:profile.occupation,income:profile.income,
+      house:profile.house,age:profile.age,
+      area:profile.area,state:profile.state,
+      caste:profile.caste||"general",
+      // Adaptive fields included so match() sees the full picture
+      ...(profile.landHolding?{landHolding:profile.landHolding}:{}),
+      ...(profile.kisanCard?{kisanCard:profile.kisanCard}:{}),
+      ...(profile.ration&&profile.ration!=="none"?{rationCard:profile.ration}:{}),
+      ...(profile.educationLevel?{educationLevel:profile.educationLevel}:{}),
+    };
     return SCHEME_DB.filter(s=>s.match(ans)).length;
   },[profile]);
 
@@ -3611,6 +3879,36 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
 
+          {/* Social Caste Category */}
+          <div style={{marginBottom:22}}>
+            <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:8}}>
+              <div style={{fontSize:12,fontWeight:700,color:th.textMid,fontFamily:bf,letterSpacing:0.3}}>🪪 {T[lang].fields.caste}</div>
+              <span style={{fontSize:10,fontWeight:500,color:th.textSub,background:th.pillBg,borderRadius:20,padding:"1px 8px",border:`1px solid ${th.border3}`}}>
+                {isHindi?"पात्रता मिलान के लिए":"For scheme matching"}
+              </span>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+              {T[lang].fields.castes.map(c=>{
+                const a=setupCaste===c.v;
+                const accentColor=c.v==="sc"||c.v==="st"?"#7C3AED":c.v==="obc"?"#1D4ED8":c.v==="ews"?"#D97706":"#138808";
+                return(
+                  <div key={c.v} onClick={()=>{haptic();setSetupCaste(c.v);}}
+                    style={{
+                      padding:"11px 10px",borderRadius:13,cursor:"pointer",
+                      border:`2px solid ${a?accentColor:th.border3}`,
+                      background:a?(dark?`${accentColor}22`:`${accentColor}10`):th.optionBg,
+                      fontSize:12,fontWeight:a?700:400,
+                      color:a?(dark?`${accentColor}ee`:accentColor):th.text,
+                      fontFamily:bf,transition:"all 0.18s",
+                      boxShadow:a?`0 4px 14px ${accentColor}33`:"none",textAlign:"center",
+                    }}>
+                    {c.l}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div style={{display:"flex",gap:8}}>
             <div onClick={()=>{haptic();setStage("setup1");}}
               style={{flex:1,padding:14,borderRadius:14,border:`1.5px solid ${th.border3}`,background:th.card,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>
@@ -4012,7 +4310,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         :null;  // nothing to show if no phone and no email
 
   // Profile completeness score
-  const profileFields=[profile?.name,profile?.gender,profile?.state,profile?.occupation,profile?.income,profile?.age,profile?.area,profile?.house,profile?.ration,profile?.marital];
+  const profileFields=[profile?.name,profile?.gender,profile?.state,profile?.occupation,profile?.caste,profile?.income,profile?.age,profile?.area,profile?.house,profile?.ration,profile?.marital];
   const completeness=Math.round((profileFields.filter(Boolean).length/profileFields.length)*100);
   const incomeLabel=T[lang].fields.incomes.find(i=>i.v===profile?.income)?.l||profile?.income||"—";
   const ageLabel=T[lang].fields.ages.find(a=>a.v===profile?.age)?.l||profile?.age||"—";
@@ -4176,6 +4474,36 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           }}>→</div>
         </div>
 
+        {/* ── Incomplete Profile Nudge — shown when key eligibility fields are missing ── */}
+        {(!profile?.caste||completeness<80)&&(
+          <div onClick={()=>{haptic();handleEdit();}}
+            style={{
+              display:"flex",alignItems:"center",gap:12,
+              background:dark?"rgba(255,153,51,0.10)":"rgba(255,153,51,0.07)",
+              border:`1.5px solid ${dark?"rgba(255,153,51,0.35)":"rgba(255,153,51,0.30)"}`,
+              borderRadius:16,padding:"13px 16px",marginBottom:14,cursor:"pointer",
+              boxShadow:"0 2px 12px rgba(255,153,51,0.10)",
+            }}>
+            <div style={{
+              width:40,height:40,borderRadius:12,flexShrink:0,
+              background:"linear-gradient(135deg,#FF9933,#FF8C00)",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,
+              boxShadow:"0 4px 12px rgba(255,153,51,0.30)",
+            }}>⚡</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:12.5,fontWeight:800,color:dark?"#FFB347":SAFFRON,fontFamily:bf,lineHeight:1.3}}>
+                {isHindi?"प्रोफाइल पूरा करें — और योजनाएं पाएं":"Complete Profile · Unlock More Schemes"}
+              </div>
+              <div style={{fontSize:10.5,color:th.textSub,marginTop:2,fontFamily:bf}}>
+                {!profile?.caste
+                  ?(isHindi?"सामाजिक वर्ग जोड़ें — SC/ST/OBC योजनाएं अनलॉक होंगी":"Add social category to unlock SC/ST/OBC reserved schemes")
+                  :(isHindi?`${completeness}% पूर्ण — शेष जानकारी भरें`:`${completeness}% complete — fill remaining details`)}
+              </div>
+            </div>
+            <div style={{fontSize:13,color:SAFFRON,fontWeight:700,flexShrink:0}}>→</div>
+          </div>
+        )}
+
         {/* ── Citizen Profile Details Card ── */}
         <div style={{
           background:th.card,borderRadius:18,overflow:"hidden",marginBottom:14,
@@ -4199,6 +4527,9 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                 {icon:"🎂",label:isHindi?"आयु वर्ग":"Age Group",value:ageLabel,color:ASHOKA_BLUE},
                 {icon:"🏘️",label:isHindi?"क्षेत्र":"Area",value:areaLabel,color:IND_GREEN},
                 {icon:"🏠",label:isHindi?"मकान":"Housing",value:houseVal,color:SAFFRON},
+                {icon:"🪪",label:isHindi?"सामाजिक वर्ग":"Social Category",
+                  value:T[lang].fields.castes.find(c=>c.v===profile?.caste)?.l||profile?.caste||"—",
+                  color:"#7C3AED"},
               ].map((item,i)=>(
                 <div key={i} style={{
                   background:dark?th.card2:`${item.color}09`,
@@ -5496,6 +5827,9 @@ const APP_STYLES = `
         .app-root{height:100vh;height:100dvh;}
         .bnav-wrap{flex-shrink:0;position:sticky;bottom:0;padding-bottom:max(20px,env(safe-area-inset-bottom,20px));}
         @keyframes fadeSlide{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+        /* ── Direction-aware question transitions ── */
+        @keyframes q-enter-fwd{from{opacity:0;transform:translateX(52px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes q-enter-bwd{from{opacity:0;transform:translateX(-52px)}to{opacity:1;transform:translateX(0)}}
         @keyframes briefSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
         /* Direction-aware slide: swipe-left → new tab enters from right; swipe-right → from left */
         /* Direction-aware slide — opacity stays 1 the whole time, no flash frame */
@@ -5514,6 +5848,28 @@ const APP_STYLES = `
         @keyframes calc-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(0.85)}}
         @keyframes calc-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         @keyframes calc-slide-in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+
+        /* ── Theatrical Reveal Screen ─────────────────────────────────────────── */
+        @keyframes reveal-overlay-in{from{opacity:0}to{opacity:1}}
+        @keyframes reveal-bg-pulse{0%,100%{opacity:0.06}50%{opacity:0.13}}
+        @keyframes reveal-count-pop{
+          0%  {opacity:0;transform:scale(0.4) translateY(22px)}
+          65% {transform:scale(1.07) translateY(-4px)}
+          100%{opacity:1;transform:scale(1) translateY(0)}
+        }
+        @keyframes reveal-found-glow{
+          0%,100%{text-shadow:0 0 28px rgba(255,153,51,0.45),0 0 55px rgba(255,153,51,0.2)}
+          50%    {text-shadow:0 0 50px rgba(255,153,51,0.85),0 0 90px rgba(255,153,51,0.45)}
+        }
+        /* 8-directional fly-in keyframes for scheme icons */
+        @keyframes fly-from-tl{from{opacity:0;transform:translate(-100px,-90px) scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
+        @keyframes fly-from-tr{from{opacity:0;transform:translate(100px,-90px)  scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
+        @keyframes fly-from-bl{from{opacity:0;transform:translate(-100px,90px)  scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
+        @keyframes fly-from-br{from{opacity:0;transform:translate(100px,90px)   scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
+        @keyframes fly-from-t {from{opacity:0;transform:translate(0,-100px)     scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
+        @keyframes fly-from-b {from{opacity:0;transform:translate(0,100px)      scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
+        @keyframes fly-from-l {from{opacity:0;transform:translate(-100px,0)     scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
+        @keyframes fly-from-r {from{opacity:0;transform:translate(100px,0)      scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
         @keyframes vault-slide-down{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
         @keyframes vault-row-in{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
         @keyframes vault-check{from{stroke-dashoffset:20}to{stroke-dashoffset:0}}
@@ -5604,7 +5960,30 @@ const APP_STYLES = `
           background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.07) 50%,transparent 100%);
         }
 
-        /* ── Login toast animations (moved from ProfileTab inline <style>) ── */
+        /* ── Answer Lock Animation (Feature 6) ── */
+        @keyframes lock-pulse{
+          0%  {transform:scale(1);}
+          30% {transform:scale(1.032);}
+          60% {transform:scale(0.982);}
+          100%{transform:scale(1);}
+        }
+        @keyframes lock-check-in{
+          0%  {transform:scale(0) rotate(-12deg);opacity:0;}
+          60% {transform:scale(1.30) rotate(4deg);opacity:1;}
+          100%{transform:scale(1)   rotate(0deg);opacity:1;}
+        }
+        @keyframes lock-badge-in{
+          0%  {transform:scale(0) translateX(8px);opacity:0;}
+          65% {transform:scale(1.12) translateX(-2px);opacity:1;}
+          100%{transform:scale(1)   translateX(0);opacity:1;}
+        }
+        @keyframes lock-shimmer{
+          0%  {opacity:0;transform:translateX(-100%);}
+          50% {opacity:1;}
+          100%{opacity:0;transform:translateX(100%);}
+        }
+
+
         @keyframes toastSlideIn {
           from { opacity: 0; transform: translateX(-50%) translateY(16px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -5819,7 +6198,19 @@ export default function YojanaSahay(){
     return counts;
   },[]);
 
-  const profileAnswers=useMemo(()=>profile?{who:profile.occupation,income:profile.income,house:profile.house,age:profile.age,area:profile.area,state:profile.state}:null,[profile]);
+  const profileAnswers=useMemo(()=>profile?{
+    who:profile.occupation,
+    income:profile.income,
+    house:profile.house,
+    age:profile.age,
+    area:profile.area,
+    state:profile.state,
+    caste:profile.caste,
+    // Adaptive fields — only included when they exist and are relevant
+    ...(profile.occupation==="farmer"&&profile.landHolding?{landHolding:profile.landHolding}:{}),
+    ...(profile.occupation==="student"&&profile.educationLevel?{educationLevel:profile.educationLevel}:{}),
+    ...(profile.income==="below1"&&profile.ration?{rationCard:profile.ration}:{}),
+  }:null,[profile]);
 
   // Top 3 matched schemes for home "Matched for You" section
   const matchedSchemes=useMemo(()=>{
