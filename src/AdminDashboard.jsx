@@ -611,7 +611,6 @@ function ActivityFeed({ users, dark }) {
 // ─── SCHEME COVERAGE TAB ──────────────────────────────────────────────────────
 function SchemeCoverageTab({ dark }) {
   const th = THEME[dark ? "dark" : "light"];
-  const [query, setQuery]         = useState("");
   const [sortMode, setSortMode]   = useState("count"); // "count" | "alpha"
   const [tierFilter, setTierFilter] = useState("all"); // "all"|"none"|"low"|"medium"|"good"
 
@@ -649,16 +648,15 @@ function SchemeCoverageTab({ dark }) {
   }, [rows]);
 
   const filtered = useMemo(() => {
-    const q = query.toLowerCase();
-    let list = q ? rows.filter(r => r.name.toLowerCase().includes(q)) : rows;
+    let list = [...rows];
     // Tier filter
     if (tierFilter !== "all") {
       list = list.filter(r => coverageTier(r.count) === tierFilter);
     }
-    return [...list].sort((a, b) =>
+    return list.sort((a, b) =>
       sortMode === "count" ? b.count - a.count : a.name.localeCompare(b.name)
     );
-  }, [rows, query, sortMode, tierFilter]);
+  }, [rows, sortMode, tierFilter]);
 
   // Summary buckets
   const withSchemes  = rows.filter(r => r.count > 0).length;
@@ -846,34 +844,22 @@ function SchemeCoverageTab({ dark }) {
         ))}
       </div>
 
-      {/* Search + sort controls */}
-      <div style={{ display:"flex", gap:8 }}>
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="🔍  Search state…"
-          style={{
-            flex:1, padding:"9px 12px", borderRadius:10,
-            border:`1.5px solid ${th.border}`, background:th.inputBg,
-            color:th.text, fontSize:12, outline:"none", fontFamily:"inherit",
-          }}
-        />
-        <div style={{ display:"flex", gap:4 }}>
-          {[
-            { id:"count", label:"# Count" },
-            { id:"alpha", label:"A–Z" },
-          ].map(({ id, label }) => (
-            <div key={id} onClick={() => setSortMode(id)} style={{
-              padding:"8px 11px", borderRadius:10, fontSize:11, fontWeight:700,
-              cursor:"pointer", flexShrink:0,
-              background: sortMode === id ? NAVY : th.border,
-              color: sortMode === id ? "#fff" : th.textMid,
-              border: sortMode === id ? `1.5px solid ${NAVY}` : `1.5px solid ${th.border}`,
-            }}>
-              {label}
-            </div>
-          ))}
-        </div>
+      {/* Sort controls */}
+      <div style={{ display:"flex", gap:4 }}>
+        {[
+          { id:"count", label:"# Count" },
+          { id:"alpha", label:"A–Z" },
+        ].map(({ id, label }) => (
+          <div key={id} onClick={() => setSortMode(id)} style={{
+            padding:"8px 11px", borderRadius:10, fontSize:11, fontWeight:700,
+            cursor:"pointer", flexShrink:0,
+            background: sortMode === id ? NAVY : th.border,
+            color: sortMode === id ? "#fff" : th.textMid,
+            border: sortMode === id ? `1.5px solid ${NAVY}` : `1.5px solid ${th.border}`,
+          }}>
+            {label}
+          </div>
+        ))}
       </div>
 
       {/* Tier filter chips */}
@@ -902,10 +888,12 @@ function SchemeCoverageTab({ dark }) {
         })}
       </div>
 
-      {/* Results count */}
-      <div style={{ fontSize:11, color:th.textSub, fontWeight:600, marginTop:-4 }}>
-        Showing {filtered.length} of {rows.length} states
-      </div>
+      {/* Results count — only shown when a tier filter is active */}
+      {tierFilter !== "all" && (
+        <div style={{ fontSize:11, color:th.textSub, fontWeight:600, marginTop:-4 }}>
+          Showing {filtered.length} of {rows.length} states
+        </div>
+      )}
 
       {/* State rows */}
       <div style={{
@@ -914,7 +902,7 @@ function SchemeCoverageTab({ dark }) {
       }}>
         {filtered.length === 0 ? (
           <div style={{ padding:"24px 0", textAlign:"center", color:th.textSub, fontSize:13 }}>
-            No states match your filter
+            No states in this tier
           </div>
         ) : (
           filtered.map(({ name, count }, idx) => {
