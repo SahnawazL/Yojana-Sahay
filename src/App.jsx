@@ -1607,6 +1607,7 @@ function SchemesTab({lang,dark=false}){
   const [showStatePicker,setShowStatePicker]=useState(false);
   const [visibleCount,setVisibleCount]=useState(PAGE_SIZE);
   const [isReady,setIsReady]=useState(false);
+  const [scrollingTo,setScrollingTo]=useState(null); // "state" | "central" | null
 
   // ── One-time filter hint ──────────────────────────────────────────────────
   // Shows an animated swipe hint on first visit only. Dismissed on:
@@ -1693,15 +1694,17 @@ function SchemesTab({lang,dark=false}){
   useEffect(()=>{
     if(!pendingScrollCentral.current||visibleNat.length===0)return;
     pendingScrollCentral.current=false;
-    requestAnimationFrame(()=>scrollToRef(centralHeaderRef));
+    requestAnimationFrame(()=>scrollToRef(centralHeaderRef,"central"));
   },[visibleNat.length]);
 
-  const scrollToRef=(ref)=>{
+  const scrollToRef=(ref,target=null)=>{
     if(!ref.current||!scrollContainerRef.current)return;
     const container=scrollContainerRef.current;
     const containerTop=container.getBoundingClientRect().top;
     const elTop=ref.current.getBoundingClientRect().top;
+    if(target) setScrollingTo(target);
     container.scrollTo({top:elTop-containerTop+container.scrollTop-12,behavior:"smooth"});
+    setTimeout(()=>setScrollingTo(null),900);
   };
 
   const skeletonCount=!isReady||isStale?6:0;
@@ -1851,29 +1854,40 @@ function SchemesTab({lang,dark=false}){
               <span style={{fontSize:11,fontWeight:600,color:SAFFRON,fontFamily:bf}}>{selectedState}</span>
               <span onClick={()=>{haptic();setSelectedState("all");}} style={{fontSize:14,color:SAFFRON,cursor:"pointer",marginLeft:2,lineHeight:1,fontWeight:700}}>✕</span>
             </div>
-            <div onClick={()=>{if(stateSchemes.length>0){haptic(30);scrollToRef(stateHeaderRef);}}}
+            <div onClick={()=>{if(stateSchemes.length>0){haptic(30);scrollToRef(stateHeaderRef,"state");}}}
               style={{display:"flex",alignItems:"center",gap:4,
-                background:stateSchemes.length>0?"#FEF9C3":"#f5f5f0",
-                border:`1.5px solid ${stateSchemes.length>0?"#d97706":"#e0e0e0"}`,
+                background:scrollingTo==="state"?"#FEF08A":stateSchemes.length>0?"#FEF9C3":"#f5f5f0",
+                border:`1.5px solid ${scrollingTo==="state"?"#ca8a04":stateSchemes.length>0?"#d97706":"#e0e0e0"}`,
                 borderRadius:20,padding:"4px 10px",
                 cursor:stateSchemes.length>0?"pointer":"default",
-                opacity:stateSchemes.length>0?1:0.55}}>
+                opacity:stateSchemes.length>0?1:0.55,
+                transform:scrollingTo==="state"?"scale(0.93)":"scale(1)",
+                boxShadow:scrollingTo==="state"?"0 0 0 3px #fde04780":"none",
+                transition:"background 0.15s,border-color 0.15s,transform 0.15s,box-shadow 0.15s"}}>
               <span style={{fontSize:11}}>📍</span>
               <span style={{fontSize:11,fontWeight:700,color:stateSchemes.length>0?"#92400e":"#999",fontFamily:bf}}>
                 {isHindi?"राज्य":"State"} ({stateSchemes.length})
               </span>
-              {stateSchemes.length>0&&<span style={{fontSize:9,color:"#b45309",marginLeft:1}}>↓</span>}
+              {scrollingTo==="state"
+                ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><AshokaChakra size={11} color="#b45309" spinning={true}/></span>
+                :stateSchemes.length>0&&<span style={{fontSize:9,color:"#b45309",marginLeft:1}}>↓</span>}
             </div>
-            <div onClick={()=>{if(national.length>0){haptic(30);if(visibleNat.length>0){scrollToRef(centralHeaderRef);}else{pendingScrollCentral.current=true;setVisibleCount(stateSchemes.length+PAGE_SIZE);}}}}
+            <div onClick={()=>{if(national.length>0){haptic(30);setScrollingTo("central");if(visibleNat.length>0){scrollToRef(centralHeaderRef,"central");}else{pendingScrollCentral.current=true;setVisibleCount(stateSchemes.length+PAGE_SIZE);}}}}
               style={{display:"flex",alignItems:"center",gap:4,
-                background:"#EFF6FF",border:"1.5px solid #3b82f6",
+                background:scrollingTo==="central"?"#BFDBFE":"#EFF6FF",
+                border:`1.5px solid ${scrollingTo==="central"?"#1d4ed8":"#3b82f6"}`,
                 borderRadius:20,padding:"4px 10px",
-                cursor:national.length>0?"pointer":"default"}}>
+                cursor:national.length>0?"pointer":"default",
+                transform:scrollingTo==="central"?"scale(0.93)":"scale(1)",
+                boxShadow:scrollingTo==="central"?"0 0 0 3px #93c5fd80":"none",
+                transition:"background 0.15s,border-color 0.15s,transform 0.15s,box-shadow 0.15s"}}>
               <span style={{fontSize:11}}>🇮🇳</span>
               <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",fontFamily:bf}}>
                 {isHindi?"केंद्रीय":"Central"} ({national.length})
               </span>
-              {national.length>0&&<span style={{fontSize:9,color:"#2563eb",marginLeft:1}}>↓</span>}
+              {scrollingTo==="central"
+                ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><AshokaChakra size={11} color="#1D4ED8" spinning={true}/></span>
+                :national.length>0&&<span style={{fontSize:9,color:"#2563eb",marginLeft:1}}>↓</span>}
             </div>
           </div>
         )}
