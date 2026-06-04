@@ -669,18 +669,562 @@ export const MAHARASHTRA_SCHEMES = [
     match: (a) => a.state === "Maharashtra" && (a.who === "senior" || a.age === "above60") && ["below1","1to3"].includes(a.income),
   },
 
+  // ── Dairy / Animal Husbandry ──────────────────────────────────────────────────
+
+  {
+    id: "maha_milch_animal_distribution",
+    icon: "🐄", color: "#78350F", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Animal Husbandry & Dairy Development Dept.", hi: "महाराष्ट्र पशुसंवर्धन व दुग्धव्यवसाय विभाग" },
+    name:    { en: "Milch Animal Distribution Scheme (2 Cows / Buffaloes)",    hi: "दुधाळ जनावरे वाटप योजना (2 गाय / म्हैस)" },
+    benefit: { en: "50% subsidy (75% for SC/ST) on 2 crossbred milch cows or 2 buffaloes (unit value ₹1.57L–₹1.79L) to boost rural milk income for small farmers & SHG women", hi: "लघु किसानों व SHG महिलाओं को 2 दुधाळ गाय या म्हैस पर 50% सब्सिडी (SC/ST को 75%), एकक मूल्य ₹1.57L–₹1.79L" },
+    tag:     { en: "Farmer / Dairy / Animal Husbandry", hi: "किसान / दुग्धव्यवसाय / पशुसंवर्धन" },
+    annual: 0,
+    apply:   { en: "ahdmaharashtra.gov.in / Zilla Parishad Animal Husbandry Office", hi: "ahdmaharashtra.gov.in / जिला परिषद पशुसंवर्धन कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "7/12 Land Extract or BPL Certificate", "Caste Certificate (SC/ST for higher subsidy)", "SHG Certificate (if applicable)", "Bank Passbook", "Passport Photo"],
+               hi: ["आधार कार्ड", "7/12 उतारा या BPL प्रमाण पत्र", "जाति प्रमाण (SC/ST अधिक सब्सिडी हेतु)", "SHG प्रमाण पत्र (यदि लागू)", "बैंक पासबुक", "पासपोर्ट फोटो"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "maha_sheli_mendhi_palan",
+    icon: "🐐", color: "#92400E", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Animal Husbandry & Dairy Development Dept.", hi: "महाराष्ट्र पशुसंवर्धन व दुग्धव्यवसाय विभाग" },
+    name:    { en: "Goat & Sheep Rearing Scheme (Sheli-Mendhi Gat Vatap)",     hi: "शेळी-मेंढी गट वाटप योजना" },
+    benefit: { en: "50% subsidy (75% SC/ST) on a unit of 10 goats/sheep + 1 buck/ram (Osmanabadi/Sangamaneri breed); unit value ₹78,000–₹1.29L for supplementary farm income", hi: "10 शेळी/मेंढी + 1 बोकड/बकरा (ओसमानाबादी/सांगमनेरी नस्ल) के एकक पर 50% सब्सिडी (SC/ST को 75%), एकक मूल्य ₹78,000–₹1.29L" },
+    tag:     { en: "Farmer / Goat / Sheep / Animal Husbandry", hi: "किसान / शेळी / मेंढी / पशुसंवर्धन" },
+    annual: 0,
+    apply:   { en: "ahdmaharashtra.gov.in / Zilla Parishad Animal Husbandry Office", hi: "ahdmaharashtra.gov.in / जिला परिषद पशुसंवर्धन कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "7/12 Land Extract / BPL Certificate", "Caste Certificate (SC/ST for 75% subsidy)", "Income Certificate", "Bank Passbook", "Shed/Grazing Land Proof"],
+               hi: ["आधार कार्ड", "7/12 उतारा / BPL प्रमाण", "जाति प्रमाण (SC/ST 75% सब्सिडी हेतु)", "आय प्रमाण पत्र", "बैंक पासबुक", "शेड/चराई भूमि प्रमाण"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Street Vendors & Urban Informal Workers ───────────────────────────────────
+
+  {
+    id: "maha_pm_svanidhi",
+    icon: "🛒", color: "#D97706", scope: "state", state: "Maharashtra",
+    ministry: { en: "Ministry of Housing & Urban Affairs (implemented by Maharashtra ULBs)", hi: "आवासन व शहरी कार्य मंत्रालय (महाराष्ट्र नगरपालिकाओं द्वारा क्रियान्वित)" },
+    name:    { en: "PM SVANidhi – Street Vendor Micro-Credit Scheme (2025 Revamp)", hi: "PM SVANidhi – पथविक्रेता सूक्ष्म ऋण योजना (2025 पुनर्गठन)" },
+    benefit: { en: "Collateral-free loans: ₹15,000 (1st), ₹25,000 (2nd), ₹50,000 (3rd tranche) + 7% interest subsidy + UPI-linked RuPay credit card (₹30,000 limit) + ₹1,200/yr cashback on digital payments", hi: "बिना गारंटी लोन: ₹15,000 (1ली), ₹25,000 (2री), ₹50,000 (3री किस्त) + 7% ब्याज सब्सिडी + UPI-लिंक्ड RuPay क्रेडिट कार्ड (₹30,000 सीमा) + डिजिटल भुगतान पर ₹1,200/वर्ष कैशबैक" },
+    tag:     { en: "Street Vendor / Urban / Micro Credit", hi: "पथविक्रेता / शहरी / सूक्ष्म ऋण" },
+    annual: 1200,
+    apply:   { en: "pmsvanidhi.mohua.gov.in / nearest ULB office or bank", hi: "pmsvanidhi.mohua.gov.in / नजदीकी नगरपालिका कार्यालय या बैंक" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Vending Certificate / Letter of Recommendation from ULB / Town Vending Committee", "Bank Passbook", "Passport Photo", "Mobile Number (for UPI)"],
+               hi: ["आधार कार्ड", "वेंडिंग प्रमाण पत्र / ULB/टाउन वेंडिंग कमेटी से अनुशंसा पत्र", "बैंक पासबुक", "पासपोर्ट फोटो", "मोबाइल नंबर (UPI हेतु)"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "business" && ["urban","semi"].includes(a.area) && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Handloom Weavers ──────────────────────────────────────────────────────────
+
+  {
+    id: "maha_handloom_weaver_welfare",
+    icon: "🧵", color: "#4F46E5", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Textile & Handloom Dept.", hi: "महाराष्ट्र वस्त्रोद्योग व हातमाग विभाग" },
+    name:    { en: "Handloom Weavers Comprehensive Welfare Scheme (Maharashtra)", hi: "हातमाग विणकर सर्वसमावेशक कल्याण योजना (महाराष्ट्र)" },
+    benefit: { en: "Life & accident insurance (PMJJBY + PMSBY) + ₹15,000 health package + 90% subsidy on new loom/accessories (Hathkargha Samvardhan Sahayata) for registered handloom weavers", hi: "पंजीकृत हातमाग विणकरों को PMJJBY + PMSBY बीमा + ₹15,000 स्वास्थ्य पैकेज + नया करघा/सहायक उपकरण पर 90% सब्सिडी (हस्तकरघा समवर्धन सहायता)" },
+    tag:     { en: "Artisan / Handloom / Weaver", hi: "कारीगर / हातमाग / विणकर" },
+    annual: 15000,
+    apply:   { en: "handloom.maharashtra.gov.in / nearest District Handloom Office", hi: "handloom.maharashtra.gov.in / नजदीकी जिला हातमाग कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Handloom Weaver Identity Card / Registration", "Loom Ownership Proof", "Bank Passbook", "Passport Photo"],
+               hi: ["आधार कार्ड", "हातमाग विणकर पहचान पत्र / पंजीकरण", "करघा स्वामित्व प्रमाण", "बैंक पासबुक", "पासपोर्ट फोटो"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Horticulture ─────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_sant_savata_mali_horticulture",
+    icon: "🌿", color: "#15803D", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Horticulture Dept. (NHM component)", hi: "महाराष्ट्र फलोत्पादन विभाग (NHM घटक)" },
+    name:    { en: "Sant Savata Mali Horticulture Scheme (Fruit & Vegetable Cultivation)", hi: "संत सावता माळी फलोत्पादन योजना (फळबाग व भाजीपाला लागवड)" },
+    benefit: { en: "50% subsidy on fruit orchard establishment (mango, banana, pomegranate, grapes) + drip irrigation + protected cultivation (polyhouse) under National Horticulture Mission", hi: "राष्ट्रीय फलोत्पादन मिशन के तहत फळबाग लागवड (आम, केला, डाळिंब, द्राक्षे) + ठिबक सिंचन + संरक्षित शेती (पॉलीहाउस) पर 50% सब्सिडी" },
+    tag:     { en: "Farmer / Horticulture", hi: "किसान / फलोत्पादन" },
+    annual: 35000,
+    apply:   { en: "horticulture.maharashtra.gov.in / MahaDBT portal", hi: "horticulture.maharashtra.gov.in / MahaDBT पोर्टल" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Soil & Water Test Report", "Bank Passbook", "Photograph of Farm Land", "Caste Certificate (SC/ST for higher subsidy)"],
+               hi: ["आधार कार्ड", "7/12 उतारा", "मिट्टी व पानी जांच रिपोर्ट", "बैंक पासबुक", "खेत की फोटो", "जाति प्रमाण (SC/ST अधिक सब्सिडी हेतु)"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer",
+  },
+
+  // ── VJNT / Nomadic Tribes ──────────────────────────────────────────────────────
+
+  {
+    id: "maha_vjnt_scholarship",
+    icon: "📖", color: "#B45309", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra VJNT, OBC & SBC Welfare Dept.", hi: "महाराष्ट्र VJNT, OBC व SBC कल्याण विभाग" },
+    name:    { en: "Post-Matric Scholarship for VJNT / NT / SBC Students",     hi: "VJNT / NT / SBC विद्यार्थ्यांसाठी मॅट्रिकोत्तर शिष्यवृत्ती" },
+    benefit: { en: "Full tuition fee + ₹250–₹550/month maintenance allowance for VJNT/NT/SBC students in degree & diploma courses (income ≤₹2.5L/year)", hi: "VJNT/NT/SBC छात्रों को डिग्री व डिप्लोमा पाठ्यक्रमों में पूर्ण ट्यूशन शुल्क + ₹250–₹550/माह भत्ता (आय ≤₹2.5 लाख/वर्ष)" },
+    tag:     { en: "Student / VJNT / Nomadic Tribe", hi: "छात्र / VJNT / भटक्या जाती" },
+    annual: 6600,
+    apply:   { en: "mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "VJNT / NT / SBC Caste Certificate", "Income Certificate (≤₹2.5L/year)", "Previous Year Mark Sheet", "College Bonafide & Fee Receipt", "Bank Passbook"],
+               hi: ["आधार कार्ड", "VJNT / NT / SBC जाति प्रमाण पत्र", "आय प्रमाण (≤₹2.5 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज बोनाफाइड व शुल्क रसीद", "बैंक पासबुक"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "maha_vjnt_housing",
+    icon: "🏠", color: "#92400E", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra VJNT, OBC & SBC Welfare Dept.", hi: "महाराष्ट्र VJNT, OBC व SBC कल्याण विभाग" },
+    name:    { en: "Yashwantrao Chavan Mukta Vasahat Yojana (VJNT Housing)",   hi: "यशवंतराव चव्हाण मुक्त वसाहत योजना (VJNT आवास)" },
+    benefit: { en: "Free permanent settlement (plot + pucca house construction grant ₹1.5L) for de-notified & nomadic tribe families currently living in temporary shelters", hi: "अस्थायी आश्रयस्थान में रहने वाले विमुक्त व भटक्या जाती परिवारों को मुफ्त स्थायी वसाहत (प्लॉट + ₹1.5 लाख पक्का मकान अनुदान)" },
+    tag:     { en: "Housing / VJNT / Nomadic Tribe", hi: "आवास / VJNT / भटक्या जाती" },
+    annual: 150000,
+    apply:   { en: "vjnt.maharashtra.gov.in / District VJNT Welfare Office", hi: "vjnt.maharashtra.gov.in / जिला VJNT कल्याण कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "VJNT / NT Caste Certificate", "No Permanent House Declaration", "Ration Card / BPL Certificate", "Maharashtra Domicile", "Bank Passbook"],
+               hi: ["आधार कार्ड", "VJNT / NT जाति प्रमाण पत्र", "स्थायी मकान न होने का घोषणापत्र", "राशन कार्ड / BPL प्रमाण पत्र", "महाराष्ट्र अधिवास", "बैंक पासबुक"] },
+    match: (a) => a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Migrant / Inter-State Workers ─────────────────────────────────────────────
+
+  {
+    id: "maha_sthalantar_kamgar",
+    icon: "🚌", color: "#0369A1", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Labour Dept.", hi: "महाराष्ट्र कामगार विभाग" },
+    name:    { en: "Maharashtra Sthalantar Kamgar Kalyan Scheme (Migrant Worker Welfare)", hi: "महाराष्ट्र स्थलांतर कामगार कल्याण योजना" },
+    benefit: { en: "Registration + helpline support + access to food, shelter & medical aid for inter-state migrant workers employed in Maharashtra; state-level nodal centres in 6 major cities", hi: "महाराष्ट्र में कार्यरत अंतर-राज्यीय प्रवासी कामगारों का पंजीकरण + हेल्पलाइन सहायता + भोजन, आश्रय व चिकित्सा सहायता; 6 प्रमुख शहरों में नोडल केंद्र" },
+    tag:     { en: "Labour / Migrant Worker", hi: "श्रमिक / स्थलांतर कामगार" },
+    annual: 0,
+    apply:   { en: "mahalabour.gov.in / e-Shram portal (eshram.gov.in)", hi: "mahalabour.gov.in / e-Shram पोर्टल (eshram.gov.in)" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "e-Shram UAN Card", "Employer Contract / Letter", "Bank Passbook", "Passport Photo"],
+               hi: ["आधार कार्ड", "e-Shram UAN कार्ड", "नियोक्ता अनुबंध / पत्र", "बैंक पासबुक", "पासपोर्ट फोटो"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Urban Sanitation ──────────────────────────────────────────────────────────
+
+  {
+    id: "maha_slum_sanitation",
+    icon: "🚿", color: "#0891B2", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Urban Development Dept. / Swachh Bharat Mission (Urban)", hi: "महाराष्ट्र नगरविकास विभाग / स्वच्छ भारत मिशन (शहरी)" },
+    name:    { en: "Individual Household Toilet (IHHL) Construction Scheme – SBM Urban", hi: "वैयक्तिक घरगुती शौचालय बांधकाम योजना – SBM शहरी" },
+    benefit: { en: "₹15,000 grant for BPL / EWS urban households to construct individual toilets + ODF+ certification support for slum communities", hi: "BPL / EWS शहरी परिवारों को वैयक्तिक शौचालय बांधणीसाठी ₹15,000 अनुदान + झोपडपट्टी समुदायांना ODF+ प्रमाणपत्र सहाय्य" },
+    tag:     { en: "Sanitation / Urban Poor / BPL", hi: "स्वच्छता / शहरी गरीब / BPL" },
+    annual: 15000,
+    apply:   { en: "swachhbharaturban.gov.in / Ward Office of local ULB", hi: "swachhbharaturban.gov.in / स्थानीय नगरपालिका वार्ड कार्यालय" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "BPL / EWS Income Certificate", "Ration Card", "House Ownership / Tenancy Proof", "Bank Passbook", "Passport Photo"],
+               hi: ["आधार कार्ड", "BPL / EWS आय प्रमाण", "राशन कार्ड", "मकान स्वामित्व / किरायेदारी प्रमाण", "बैंक पासबुक", "पासपोर्ट फोटो"] },
+    match: (a) => a.state === "Maharashtra" && ["urban","semi"].includes(a.area) && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Journalist Welfare ────────────────────────────────────────────────────────
+
+  {
+    id: "maha_patrakar_arogya",
+    icon: "📰", color: "#1D4ED8", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Information & Public Relations Dept.", hi: "महाराष्ट्र माहिती व जनसंपर्क विभाग" },
+    name:    { en: "Patrakar Arogya Vima Yojana (Journalist Health Insurance Scheme)", hi: "पत्रकार आरोग्य विमा योजना" },
+    benefit: { en: "₹5 Lakh health insurance (cashless hospitalisation) + ₹10 Lakh accident cover for accredited journalists and their dependents; state pays premium", hi: "मान्यताप्राप्त पत्रकारों और उनके परिजनों को ₹5 लाख स्वास्थ्य बीमा (कॅशलेस उपचार) + ₹10 लाख अपघात विमा; प्रीमियम राज्य सरकार भरते" },
+    tag:     { en: "Journalist / Health Insurance", hi: "पत्रकार / आरोग्य विमा" },
+    annual: 0,
+    apply:   { en: "mahainfo.maharashtra.gov.in / District Information Office", hi: "mahainfo.maharashtra.gov.in / जिला माहिती कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Press Accreditation Card (Maharashtra Government)", "Employer Certificate (newspaper/channel)", "Dependent Details (family)", "Bank Passbook"],
+               hi: ["आधार कार्ड", "प्रेस अभिस्वीकृती कार्ड (महाराष्ट्र सरकार)", "नियोक्ता प्रमाण पत्र (अखबार/चैनल)", "परिजनों का विवरण", "बैंक पासबुक"] },
+    match: (a) => a.state === "Maharashtra",
+  },
+
+  // ── Entrepreneur / Startup ────────────────────────────────────────────────────
+
+  {
+    id: "maha_mukhyamantri_udyojak",
+    icon: "🏭", color: "#0F766E", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Industries, Energy & Labour Dept.", hi: "महाराष्ट्र उद्योग, ऊर्जा व कामगार विभाग" },
+    name:    { en: "Mukhyamantri Rojgar Nirman Karyakram (CMEGP) – Micro Enterprise",  hi: "मुख्यमंत्री रोजगार निर्मिती कार्यक्रम (CMEGP) – सूक्ष्म उद्योग" },
+    benefit: { en: "15–35% subsidy on project cost (₹5L–₹50L) to set up micro enterprises in manufacturing or service sector; urban 15%, rural 25%, SC/ST/women/disabled 35%", hi: "सूक्ष्म उद्योग (₹5L–₹50L) स्थापनेसाठी परियोजना लागत पर 15–35% सब्सिडी; शहरी 15%, ग्रामीण 25%, SC/ST/महिला/दिव्यांग 35%" },
+    tag:     { en: "Business / Entrepreneur / Micro Enterprise", hi: "व्यापार / उद्योजक / सूक्ष्म उद्योग" },
+    annual: 0,
+    apply:   { en: "maha-cmegp.gov.in", hi: "maha-cmegp.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "8th Pass Certificate (minimum)", "Business / Project Report", "Quotations for Machinery", "Caste / Disability / Domicile Certificate (as applicable)", "Bank Passbook"],
+               hi: ["आधार कार्ड", "8वीं पास प्रमाण पत्र (न्यूनतम)", "व्यापार / परियोजना रिपोर्ट", "मशीनरी की कोटेशन", "जाति / दिव्यांगता / अधिवास प्रमाण (यदि लागू)", "बैंक पासबुक"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "business" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  // ── Senior Citizens – Pilgrimage ──────────────────────────────────────────────
+
+  {
+    id: "maha_teerth_darshan",
+    icon: "🛕", color: "#B45309", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Tourism Dept. / IRCTC (MoU 2024)", hi: "महाराष्ट्र पर्यटन विभाग / IRCTC (MoU 2024)" },
+    name:    { en: "Mukhyamantri Teerth Darshan Yojana (Free Senior Pilgrimage)", hi: "मुख्यमंत्री तीर्थ दर्शन योजना (वरिष्ठांसाठी मुफ्त तीर्थयात्रा)" },
+    benefit: { en: "Free once-in-a-lifetime pilgrimage to 139 religious sites across India (all faiths) for senior citizens aged 60+. Covers train travel, food, accommodation. ₹30,000 per person borne by state. Citizens above 75 may bring one caretaker.", hi: "60+ वर्ष वरिष्ठ नागरिकों को भारत के 139 तीर्थस्थलों (सभी धर्म) की जीवनकाल में एक बार मुफ्त यात्रा — ट्रेन, भोजन, आवास सहित। राज्य ₹30,000/व्यक्ति वहन करता है। 75+ वर्ष के नागरिक एक सहायक साथ ले सकते हैं।" },
+    tag:     { en: "Senior / Pilgrimage / Free Travel", hi: "वरिष्ठ / तीर्थयात्रा / मुफ्त प्रवास" },
+    annual: 30000,
+    apply:   { en: "aaplesarkar.mahaonline.gov.in / District Collector Office", hi: "aaplesarkar.mahaonline.gov.in / जिला कलेक्टर कार्यालय" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Age Proof (60+)", "Income Certificate (≤₹2.5L/year)", "Maharashtra Domicile", "Passport-size Photo", "Caretaker Aadhaar (if 75+)"],
+               hi: ["आधार कार्ड", "आयु प्रमाण (60+)", "आय प्रमाण (≤₹2.5 लाख/वर्ष)", "महाराष्ट्र अधिवास", "पासपोर्ट फोटो", "सहायक का आधार (75+ वर्ष के लिए)"] },
+    match: (a) => a.state === "Maharashtra" && (a.who === "senior" || a.age === "above60") && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Girl Child ────────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_lek_ladki",
+    icon: "👶", color: "#DB2777", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Women & Child Development Dept.", hi: "महाराष्ट्र महिला व बाल विकास विभाग" },
+    name:    { en: "Lek Ladki Yojana (Girl Child Financial Empowerment)",       hi: "लेक लाडकी योजना (बालिका आर्थिक सक्षमीकरण)" },
+    benefit: { en: "₹1,01,000 total in 5 instalments from birth to age 18: ₹5,000 at birth → ₹6,000 (Class 1) → ₹7,000 (Class 6) → ₹8,000 (Class 11) → ₹75,000 lump-sum at 18. For yellow/orange ration card families.", hi: "जन्म से 18 वर्ष तक 5 किश्तों में कुल ₹1,01,000: जन्म पर ₹5,000 → कक्षा 1 में ₹6,000 → कक्षा 6 में ₹7,000 → कक्षा 11 में ₹8,000 → 18 वर्ष पर ₹75,000 एकमुश्त। पीले/नारंगी राशन कार्ड धारक परिवारों के लिए।" },
+    tag:     { en: "Women / Girl Child / Education", hi: "महिला / बालिका / शिक्षा" },
+    annual: 0,
+    apply:   { en: "womenchild.maharashtra.gov.in / Anganwadi Centre", hi: "womenchild.maharashtra.gov.in / अंगणवाडी केंद्र" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card (parent)", "Girl Child's Birth Certificate (born after Apr 1, 2023)", "Yellow / Orange Ration Card", "Bank Account in girl's name", "Maharashtra Domicile"],
+               hi: ["आधार कार्ड (माता-पिता)", "बालिका का जन्म प्रमाण पत्र (1 अप्रैल 2023 के बाद जन्म)", "पीला/नारंगी राशन कार्ड", "बालिका के नाम बैंक खाता", "महाराष्ट्र अधिवास"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Health – MJPJAY Expansion ─────────────────────────────────────────────────
+
+  {
+    id: "maha_mjpjay",
+    icon: "🏥", color: "#0891B2", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Health Dept. (State + Ayushman Bharat integration)", hi: "महाराष्ट्र आरोग्य विभाग (राज्य + आयुष्मान भारत एकत्रीकरण)" },
+    name:    { en: "Mahatma Jyotiba Phule Jan Arogya Yojana (MJPJAY) 2025",    hi: "महात्मा जोतिबा फुले जन आरोग्य योजना (MJPJAY) 2025" },
+    benefit: { en: "Cashless hospitalisation up to ₹1.5L/year (₹2.5L for renal transplants) across 1,000+ empanelled hospitals. Since July 2024, integrated with AB-PMJAY covering all Maharashtra families. 1,000+ surgeries & therapies covered.", hi: "1,000+ सूचीबद्ध अस्पतालों में ₹1.5L/वर्ष तक कॅशलेस उपचार (गुर्दा प्रत्यारोपण ₹2.5L)। जुलाई 2024 से AB-PMJAY के साथ एकत्रित — महाराष्ट्र के सभी परिवार पात्र।" },
+    tag:     { en: "Health / Cashless Treatment", hi: "आरोग्य / कॅशलेस उपचार" },
+    annual: 150000,
+    apply:   { en: "jeevandayee.gov.in / nearest empanelled hospital Aarogyamitra", hi: "jeevandayee.gov.in / नजदीकी सूचीबद्ध अस्पताल आरोग्यमित्र" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Yellow / Orange / Antyodaya / Annapurna Ration Card", "Ayushman Card (if available)", "Income Certificate (for non-ration card holders)"],
+               hi: ["आधार कार्ड", "पीला/नारंगी/अंत्योदय/अन्नपूर्णा राशन कार्ड", "आयुष्मान कार्ड (यदि उपलब्ध)", "आय प्रमाण पत्र (राशन कार्ड न होने पर)"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  // ── Beekeeping / Apiculture ───────────────────────────────────────────────────
+
+  {
+    id: "maha_madhmakhi_palan",
+    icon: "🐝", color: "#CA8A04", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Agriculture / Horticulture Dept. (National Beekeeping & Honey Mission)", hi: "महाराष्ट्र कृषि / फलोत्पादन विभाग (राष्ट्रीय मधुमक्खी पालन व मध अभियान)" },
+    name:    { en: "National Beekeeping & Honey Mission – Maharashtra Component",  hi: "राष्ट्रीय मधुमक्खी पालन व मध अभियान – महाराष्ट्र घटक" },
+    benefit: { en: "80% subsidy on beehive boxes, equipment & training to start/expand beekeeping units. Up to 50 boxes per farmer; SC/ST/women get priority. Supports honey production & crop pollination income.", hi: "मधुमक्खी पालन सुरू/विस्तारसाठी मधुपेटी, उपकरणे व प्रशिक्षणावर 80% सब्सिडी। प्रति शेतकरी 50 पेटी पर्यंत; SC/ST/महिलांना प्राधान्य। मध उत्पादन व परागीभवन उत्पन्नास मदत।" },
+    tag:     { en: "Farmer / Beekeeping / Apiculture", hi: "किसान / मधुमक्खी पालन / मधुपालन" },
+    annual: 20000,
+    apply:   { en: "horticulture.maharashtra.gov.in / mahadbt.gov.in", hi: "horticulture.maharashtra.gov.in / mahadbt.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "7/12 Land Extract or Farm Land Proof", "Caste Certificate (SC/ST for priority)", "Bank Passbook", "Passport Photo", "Training Certificate (if completed)"],
+               hi: ["आधार कार्ड", "7/12 उतारा या खेत प्रमाण", "जाति प्रमाण (SC/ST प्राधान्यासाठी)", "बैंक पासबुक", "पासपोर्ट फोटो", "प्रशिक्षण प्रमाण पत्र (पूर्ण झाल्यास)"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  // ── Agri Cold Storage / Processing ────────────────────────────────────────────
+
+  {
+    id: "maha_agri_infra_fund",
+    icon: "🏗️", color: "#0369A1", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Agriculture Dept. / NABARD (AIF – Agriculture Infrastructure Fund)", hi: "महाराष्ट्र कृषि विभाग / NABARD (कृषी पायाभूत सुविधा निधी)" },
+    name:    { en: "Agriculture Infrastructure Fund (AIF) – Maharashtra",         hi: "कृषी पायाभूत सुविधा निधी (AIF) – महाराष्ट्र" },
+    benefit: { en: "3% interest subvention on loans up to ₹2 Crore for post-harvest infrastructure (cold storage, warehouses, processing units, primary processing centres) for farmers, FPOs & agri-entrepreneurs", hi: "किसान, FPO व कृषी उद्योजकांसाठी कापणीपश्चात पायाभूत सुविधा (शीतगृह, गोदाम, प्रक्रिया युनिट) साठी ₹2 कोटींपर्यंत कर्जावर 3% व्याज सवलत" },
+    tag:     { en: "Farmer / Agri Processing / Cold Storage", hi: "किसान / कृषी प्रक्रिया / शीतगृह" },
+    annual: 0,
+    apply:   { en: "agriinfra.dac.gov.in / mahadbt.gov.in", hi: "agriinfra.dac.gov.in / mahadbt.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card / Company PAN", "Project Report / DPR", "Land Ownership / Lease Deed", "Bank Loan Sanction Letter", "7/12 Land Extract (farmers)", "FPO / Society Registration (if applicable)"],
+               hi: ["आधार कार्ड / कंपनी PAN", "परियोजना रिपोर्ट / DPR", "भूमि स्वामित्व / लीज डीड", "बैंक लोन स्वीकृति पत्र", "7/12 उतारा (किसानों के लिए)", "FPO / सोसायटी पंजीकरण (यदि लागू)"] },
+    match: (a) => a.state === "Maharashtra" && (a.who === "farmer" || a.who === "business") && ["3to6","6to10","above10"].includes(a.income),
+  },
+
+  // ── Sericulture ───────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_resham_udyog",
+    icon: "🪱", color: "#7C3AED", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Sericulture Dept. / Central Silk Board", hi: "महाराष्ट्र रेशीम संचालनालय / केंद्रीय रेशीम बोर्ड" },
+    name:    { en: "Maharashtra Sericulture Development Scheme (Mulberry Silk Farming)", hi: "महाराष्ट्र रेशीम विकास योजना (तुती रेशीम शेती)" },
+    benefit: { en: "50–75% subsidy on mulberry plantation, rearing equipment & silk reeling units; free training + ₹10,000 startup support for new sericulture farmers in Marathwada & Vidarbha", hi: "तुती लागवड, संगोपन उपकरणे व सूत काढण्याच्या युनिटवर 50–75% सब्सिडी; मराठवाडा व विदर्भातील नवीन रेशीम शेतकऱ्यांना मुफ्त प्रशिक्षण + ₹10,000 प्रारंभ सहाय्य" },
+    tag:     { en: "Farmer / Sericulture / Silk", hi: "किसान / रेशीम शेती / सिल्क" },
+    annual: 25000,
+    apply:   { en: "silkmMaharashtra.gov.in / District Sericulture Officer", hi: "silkmMaharashtra.gov.in / जिला रेशीम अधिकारी" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "7/12 Land Extract (min. 0.5 acre for mulberry)", "Bank Passbook", "Caste Certificate (SC/ST for higher subsidy)", "Training Completion Certificate (if available)"],
+               hi: ["आधार कार्ड", "7/12 उतारा (न्यूनतम 0.5 एकड़ तुती लागवडीसाठी)", "बैंक पासबुक", "जाति प्रमाण (SC/ST अधिक सब्सिडी हेतु)", "प्रशिक्षण पूर्णता प्रमाण पत्र (उपलब्ध असल्यास)"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  // ── Digital / AI Agriculture ──────────────────────────────────────────────────
+
+  {
+    id: "maha_ai_agriculture_policy",
+    icon: "🤖", color: "#0F766E", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Agriculture Dept. / IT Dept.", hi: "महाराष्ट्र कृषि विभाग / माहिती तंत्रज्ञान विभाग" },
+    name:    { en: "Maharashtra AI Agriculture Policy & Digital Farm Scheme 2025", hi: "महाराष्ट्र AI कृषी धोरण व डिजिटल शेती योजना 2025" },
+    benefit: { en: "India's first state AI Agriculture Policy (₹500 Cr budget) — free AI-based soil & crop advisory via WhatsApp/app, digital farmer ID, smart farm schools, satellite crop monitoring & precision farming tools for 50,000+ farmers", hi: "भारताचे पहिले राज्य AI कृषी धोरण (₹500 कोटी बजेट) — WhatsApp/ॲपद्वारे मुफ्त AI आधारित माती व पीक सल्ला, डिजिटल शेतकरी ओळखपत्र, स्मार्ट शेती शाळा व उपग्रह पीक निरीक्षण" },
+    tag:     { en: "Farmer / Digital / AI Agriculture", hi: "किसान / डिजिटल / AI शेती" },
+    annual: 0,
+    apply:   { en: "mahadbt.gov.in / CropSAP app / WhatsApp helpline 14447", hi: "mahadbt.gov.in / CropSAP ॲप / WhatsApp हेल्पलाइन 14447" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Farmer Registry / Digital Farmer ID", "7/12 Land Extract", "Mobile Number (Aadhaar-linked)"],
+               hi: ["आधार कार्ड", "शेतकरी नोंदणी / डिजिटल शेतकरी ओळखपत्र", "7/12 उतारा", "मोबाइल नंबर (आधार से लिंक)"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer",
+  },
+
+  // ── Youth – Employment ────────────────────────────────────────────────────────
+
+  {
+    id: "maha_ladka_bhau",
+    icon: "👨‍🎓", color: "#1D4ED8", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Skills, Employment, Entrepreneurship & Innovation Dept.", hi: "महाराष्ट्र कौशल, रोजगार, उद्योजकता व नवोपक्रम विभाग" },
+    name:    { en: "Mukhyamantri Majha Ladka Bhau Yojana (Youth Employment Stipend)", hi: "मुख्यमंत्री माझा लाडका भाऊ योजना (युवा रोजगार वेतन)" },
+    benefit: { en: "Monthly stipend ₹6,000–₹10,000 for unemployed youth (18–35) during vocational training/apprenticeship + job placement support; complements Ladki Bahin scheme", hi: "व्यावसायिक प्रशिक्षण/अप्रेंटिसशिप दरम्यान 18–35 वर्षांच्या बेरोजगार युवकांना ₹6,000–₹10,000/माह वेतन + रोजगार प्लेसमेंट सहाय्य" },
+    tag:     { en: "Youth / Employment / Stipend", hi: "युवा / रोजगार / वेतन" },
+    annual: 120000,
+    apply:   { en: "rojgar.mahaswayam.gov.in", hi: "rojgar.mahaswayam.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Educational Certificate (12th/ITI/Diploma/Graduate)", "Maharashtra Domicile", "Unemployment Registration Certificate", "Bank Passbook", "Passport Photo"],
+               hi: ["आधार कार्ड", "शैक्षणिक प्रमाण पत्र (12वीं/ITI/डिप्लोमा/ग्रेजुएट)", "महाराष्ट्र अधिवास", "बेरोजगारी पंजीकरण प्रमाण पत्र", "बैंक पासबुक", "पासपोर्ट फोटो"] },
+    match: (a) => a.state === "Maharashtra" && ["18to35"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  // ── Unorganised Workers ───────────────────────────────────────────────────────
+
+  {
+    id: "maha_pm_shram_yogi",
+    icon: "👷", color: "#78350F", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Labour Dept. (PM-SYM – Central scheme implemented in Maharashtra)", hi: "महाराष्ट्र कामगार विभाग (PM-SYM – महाराष्ट्रात राबवण्यात आलेली केंद्रीय योजना)" },
+    name:    { en: "PM Shram Yogi Maandhan Yojana (PM-SYM) – Unorganised Worker Pension", hi: "PM श्रम योगी मानधन योजना (PM-SYM) – असंघटित कामगार पेंशन" },
+    benefit: { en: "₹3,000/month guaranteed pension at age 60 for unorganised workers. Contribution ₹55–₹200/month (age 18–40); central govt contributes equal matching amount. Spouse also eligible at same contribution.", hi: "असंघटित कामगारांना 60 वर्षांनंतर ₹3,000/माह गॅरंटीड पेंशन। 18–40 वयोगटात ₹55–₹200/माह योगदान; केंद्र सरकार समान रक्कम योगदान देते। पती/पत्नी देखील पात्र।" },
+    tag:     { en: "Labour / Pension / Unorganised Worker", hi: "श्रमिक / पेंशन / असंघटित कामगार" },
+    annual: 36000,
+    apply:   { en: "maandhan.in / CSC / eshram.gov.in", hi: "maandhan.in / CSC / eshram.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Savings Bank Account (Aadhaar-linked)", "Mobile Number", "Age Proof", "e-Shram UAN Card (recommended)", "Self-declaration of monthly income ≤₹15,000"],
+               hi: ["आधार कार्ड", "बचत बैंक खाता (आधार लिंक)", "मोबाइल नंबर", "आयु प्रमाण", "e-Shram UAN कार्ड (अनुशंसित)", "मासिक आय ≤₹15,000 का स्व-घोषणापत्र"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Minorities – Self Employment ──────────────────────────────────────────────
+
+  {
+    id: "maha_minority_self_employment",
+    icon: "🕌", color: "#0F766E", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Minority Development Dept. / MSDFC", hi: "महाराष्ट्र अल्पसंख्याक विकास विभाग / MSDFC" },
+    name:    { en: "Maharashtra State Minorities Finance & Development Corporation Loan Scheme", hi: "महाराष्ट्र राज्य अल्पसंख्याक वित्त व विकास महामंडळ कर्ज योजना" },
+    benefit: { en: "Soft loan ₹50,000–₹5 Lakh at 4–6% interest for self-employment / small business for minorities (Muslim, Christian, Buddhist, Sikh, Jain, Parsi); income ≤₹3L/year", hi: "मुस्लिम, ख्रिश्चन, बौद्ध, शीख, जैन, पारसी अल्पसंख्याकांसाठी स्वयंरोजगार / छोटा व्यवसायासाठी ₹50,000–₹5 लाख 4–6% व्याजावर सॉफ्ट लोन; उत्पन्न ≤₹3 लाख/वर्ष" },
+    tag:     { en: "Business / Minority / Self Employment", hi: "व्यापार / अल्पसंख्याक / स्वयंरोजगार" },
+    annual: 0,
+    apply:   { en: "msdfc.maharashtra.gov.in / District Minority Welfare Office", hi: "msdfc.maharashtra.gov.in / जिला अल्पसंख्याक कल्याण कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "Income Certificate (≤₹3L/year)", "Business Plan", "Bank Passbook", "Two Guarantors"],
+               hi: ["आधार कार्ड", "अल्पसंख्याक समुदाय प्रमाण पत्र", "आय प्रमाण (≤₹3 लाख/वर्ष)", "व्यापार योजना", "बैंक पासबुक", "दो जमानतदार"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "business" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Child Welfare ─────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_bal_sangopan",
+    icon: "🧒", color: "#9D174D", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Women & Child Development Dept.", hi: "महाराष्ट्र महिला व बाल विकास विभाग" },
+    name:    { en: "Bal Sangopan Yojana (Foster Care & Child Support Scheme)",   hi: "बाल संगोपन योजना (पालकत्व व बाल सहाय्य योजना)" },
+    benefit: { en: "₹1,125/month per child support for orphans, children of single parents, or families in crisis placed in foster care; covers nutrition, clothing & education costs", hi: "अनाथ, एकल पालक, संकटग्रस्त कुटुंबातील मुलांना पालकत्व सेवेत ठेवण्यासाठी ₹1,125/माह प्रति बालक सहाय्य; पोषण, कपडे व शिक्षण खर्च समाविष्ट" },
+    tag:     { en: "Child Welfare / Orphan / Foster Care", hi: "बाल कल्याण / अनाथ / पालकत्व" },
+    annual: 13500,
+    apply:   { en: "womenchild.maharashtra.gov.in / Child Development Project Officer (CDPO)", hi: "womenchild.maharashtra.gov.in / बाल विकास प्रकल्प अधिकारी (CDPO)" }, applyType: "offline",
+    docs:    { en: ["Child's Aadhaar Card / Birth Certificate", "Orphan / Single Parent Certificate or Crisis Proof", "Foster Parent's Aadhaar & Income Certificate", "Bank Passbook (foster parent)", "Maharashtra Domicile"],
+               hi: ["बच्चे का आधार कार्ड / जन्म प्रमाण पत्र", "अनाथ / एकल पालक प्रमाण या संकट प्रमाण", "पालक माता-पिता का आधार व आय प्रमाण", "बैंक पासबुक (पालक माता-पिता)", "महाराष्ट्र अधिवास"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Farmer Market Access ──────────────────────────────────────────────────────
+
+  {
+    id: "maha_enam_maharashtra",
+    icon: "📊", color: "#0369A1", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Agriculture Dept. / APMC (e-NAM integration)", hi: "महाराष्ट्र कृषि विभाग / APMC (e-NAM एकत्रीकरण)" },
+    name:    { en: "e-NAM & One Taluka One APMC Market Scheme (Maharashtra)",    hi: "e-NAM व एक तालुका एक कृषी बाजार समिती योजना (महाराष्ट्र)" },
+    benefit: { en: "Free registration on e-NAM digital mandi + transparent online price discovery + direct payment to farmer's bank account within 3 days; 'One Taluka One APMC' ensures every taluka has an accessible market committee", hi: "e-NAM डिजिटल मंडीवर मुफ्त नोंदणी + पारदर्शी ऑनलाइन भाव शोध + 3 दिवसात शेतकऱ्याच्या बैंक खात्यात थेट पेमेंट; 'एक तालुका एक APMC' प्रत्येक तालुक्याला बाजार समिती सुनिश्चित करते" },
+    tag:     { en: "Farmer / Market Access / Digital Mandi", hi: "किसान / बाजार प्रवेश / डिजिटल मंडी" },
+    annual: 0,
+    apply:   { en: "enam.gov.in / nearest APMC / Farmer Registry portal", hi: "enam.gov.in / नजदीकी APMC / शेतकरी नोंदणी पोर्टल" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Farmer Registry / Digital Farmer ID", "7/12 Land Extract", "Bank Passbook (Aadhaar-linked)", "Mobile Number"],
+               hi: ["आधार कार्ड", "शेतकरी नोंदणी / डिजिटल शेतकरी ID", "7/12 उतारा", "बैंक पासबुक (आधार लिंक)", "मोबाइल नंबर"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer",
+  },
+
   // ADD MORE MAHARASHTRA SCHEMES ABOVE THIS LINE ↓
   // {
-  //   id: "maharashtra_new_scheme",
-  //   icon: "🆕", color: "#123456", scope: "state", state: "Maharashtra",
-  //   ministry: { en: "Dept. Name", hi: "विभाग का नाम" },
-  //   name:    { en: "Scheme Name", hi: "योजना का नाम" },
-  //   benefit: { en: "Benefit details", hi: "लाभ विवरण" },
-  //   tag:     { en: "Tag", hi: "टैग" },
-  //   annual: 0,
-  //   apply:   { en: "website.gov.in", hi: "website.gov.in" }, applyType: "online",
-  //   docs:    { en: ["Aadhaar Card"], hi: ["आधार कार्ड"] },
-  //   match: (a) => a.state === "Maharashtra",
-  // },
+  // ── Electric Vehicle (EV) Subsidy ──────────────────────────────────────────────
+
+  {
+    id: "maha_ev_policy_2025",
+    icon: "⚡", color: "#0F766E", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Transport Dept. (EV Policy 2025–2030)", hi: "महाराष्ट्र परिवहन विभाग (EV धोरण 2025–2030)" },
+    name:    { en: "Maharashtra Electric Vehicle Policy 2025–2030 (EV Purchase Subsidy)", hi: "महाराष्ट्र इलेक्ट्रिक वाहन धोरण 2025–2030 (EV खरेदी अनुदान)" },
+    benefit: { en: "Purchase subsidies: ₹10,000 on e-2 wheelers, ₹30,000 on e-auto rickshaws, up to ₹2L on EV taxis, 15% on e-tractors & agri EVs. 100% exemption from road tax & registration fees on all EVs (2025–2030). ₹11,373 Cr total allocation.", hi: "खरेदी अनुदान: e-दुचाकी ₹10,000, e-ऑटो रिक्षा ₹30,000, EV टॅक्सी ₹2L पर्यंत, e-ट्रॅक्टर व कृषी EV वर 15%. सर्व EV वर रोड टॅक्स व नोंदणी शुल्क 100% माफ (2025–2030). एकूण ₹11,373 कोटी तरतूद." },
+    tag:     { en: "Transport / EV / Green Energy", hi: "परिवहन / EV / हरित ऊर्जा" },
+    annual: 30000,
+    apply:   { en: "transport.maharashtra.gov.in / through authorised dealer at RTO registration", hi: "transport.maharashtra.gov.in / अधिकृत डीलरमार्फत RTO नोंदणीवेळी" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Vehicle Purchase Invoice (approved EV model)", "Maharashtra Address Proof", "Bank Passbook", "Vehicle Registration Certificate (RC)"],
+               hi: ["आधार कार्ड", "वाहन खरेदी चलान (मंजूर EV मॉडेल)", "महाराष्ट्र पता प्रमाण", "बैंक पासबुक", "वाहन नोंदणी प्रमाणपत्र (RC)"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6","6to10"].includes(a.income),
+  },
+
+  // ── Farm Machinery ────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_krishi_yantra_subsidy",
+    icon: "🚜", color: "#78350F", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Agriculture Dept. (Sub-Mission on Agricultural Mechanisation – SMAM)", hi: "महाराष्ट्र कृषि विभाग (कृषी यांत्रिकीकरण उप-अभियान – SMAM)" },
+    name:    { en: "State Agriculture Mechanisation Scheme – Farm Machinery Subsidy (MahaDBT)", hi: "राज्य कृषी यांत्रिकीकरण योजना – शेती यंत्र अनुदान (MahaDBT)" },
+    benefit: { en: "40–50% subsidy (higher for SC/ST/women) on tractors, rotavators, seed drills, sprayers, threshers & sugarcane harvesters via MahaDBT portal. Up to ₹35L on sugarcane harvester. First-come-first-served from 2025–26.", hi: "MahaDBT पोर्टलमार्फत ट्रॅक्टर, रोटाव्हेटर, सीड ड्रिल, फवारणी यंत्र, थ्रेशर व ऊस तोडणी यंत्रावर 40–50% अनुदान (SC/ST/महिलांना अधिक). ऊस तोडणी यंत्रावर ₹35L पर्यंत. 2025–26 पासून 'प्रथम अर्ज प्रथम प्राधान्य'." },
+    tag:     { en: "Farmer / Farm Machinery / Mechanisation", hi: "किसान / शेती यंत्रे / यांत्रिकीकरण" },
+    annual: 0,
+    apply:   { en: "mahadbt.maharashtra.gov.in (Farmer portal)", hi: "mahadbt.maharashtra.gov.in (शेतकरी पोर्टल)" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "7/12 Land Extract & 8A", "Caste Certificate (SC/ST for higher subsidy)", "Income Certificate", "Quotations for Machinery (from authorised dealer)", "Bank Passbook"],
+               hi: ["आधार कार्ड", "7/12 उतारा व 8अ", "जाति प्रमाण (SC/ST अधिक सब्सिडी हेतु)", "आय प्रमाण", "यंत्राचे कोटेशन (अधिकृत डीलरकडून)", "बैंक पासबुक"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer",
+  },
+
+  // ── Auto / Taxi Driver Welfare ────────────────────────────────────────────────
+
+  {
+    id: "maha_auto_taxi_welfare",
+    icon: "🛺", color: "#B45309", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Transport Dept. / Auto-Taxi Driver Welfare Board (₹50 Cr, GR 2024)", hi: "महाराष्ट्र परिवहन विभाग / ऑटो-टॅक्सी चालक कल्याण मंडळ (₹50 कोटी, GR 2024)" },
+    name:    { en: "Maharashtra Auto & Taxi Driver Welfare Board Scheme",        hi: "महाराष्ट्र ऑटो व टॅक्सी चालक कल्याण मंडळ योजना" },
+    benefit: { en: "Health insurance, accidental death benefit, children's education scholarship, pension support & financial assistance for registered auto-rickshaw and taxi drivers & their families (₹50 Cr GR issued Mar 2024)", hi: "नोंदणीकृत ऑटो-रिक्षा व टॅक्सी चालकांना व त्यांच्या कुटुंबाला आरोग्य विमा, अपघात मृत्यू लाभ, मुलांची शिष्यवृत्ती, निवृत्तीवेतन व आर्थिक सहाय्य (मार्च 2024 GR, ₹50 कोटी)" },
+    tag:     { en: "Transport / Auto-Taxi Driver", hi: "परिवहन / ऑटो-टॅक्सी चालक" },
+    annual: 0,
+    apply:   { en: "transport.maharashtra.gov.in / Regional Transport Office (RTO)", hi: "transport.maharashtra.gov.in / प्रादेशिक परिवहन कार्यालय (RTO)" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Valid Driving Licence (commercial badge)", "Vehicle Registration Certificate (auto/taxi)", "Permit Copy", "Bank Passbook", "Passport Photo"],
+               hi: ["आधार कार्ड", "वैध वाहन चालन परवाना (व्यावसायिक बॅज)", "वाहन नोंदणी प्रमाणपत्र (ऑटो/टॅक्सी)", "परवाना प्रत", "बैंक पासबुक", "पासपोर्ट फोटो"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Urban Housing – PMAY-U 2.0 ───────────────────────────────────────────────
+
+  {
+    id: "maha_pmay_urban_2",
+    icon: "🏘️", color: "#1D4ED8", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Housing Dept. / MoHUA (PMAY-U 2.0)", hi: "महाराष्ट्र गृहनिर्माण विभाग / MoHUA (PMAY-U 2.0)" },
+    name:    { en: "Pradhan Mantri Awas Yojana – Urban 2.0 (PMAY-U 2.0)",       hi: "प्रधानमंत्री आवास योजना – शहरी 2.0 (PMAY-U 2.0)" },
+    benefit: { en: "Up to ₹2.5L central grant + state top-up for EWS/LIG urban families to buy/construct pucca house. Special priority for widows, single women, transgender, disabled & minorities. Affordable Rental Housing for urban migrants.", hi: "EWS/LIG शहरी परिवारांना पक्के घर खरेदी/बांधणीसाठी ₹2.5L केंद्रीय अनुदान + राज्य टॉप-अप. विधवा, एकल महिला, ट्रान्सजेंडर, दिव्यांग व अल्पसंख्याकांना विशेष प्राधान्य. शहरी स्थलांतरितांसाठी परवडणारी भाड्याची घरे." },
+    tag:     { en: "Housing / Urban / EWS", hi: "आवास / शहरी / EWS" },
+    annual: 250000,
+    apply:   { en: "pmaymis.gov.in / ULB / Ward Office", hi: "pmaymis.gov.in / नगरपालिका / वार्ड कार्यालय" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Income Certificate (EWS ≤₹3L/yr, LIG ≤₹6L/yr)", "No Pucca House Declaration (self & spouse)", "Address Proof", "Ration Card", "Bank Passbook", "Caste Certificate (if SC/ST/OBC/Minority)"],
+               hi: ["आधार कार्ड", "आय प्रमाण (EWS ≤₹3L/वर्ष, LIG ≤₹6L/वर्ष)", "पक्के घर नसल्याचे घोषणापत्र (स्वतः व पती/पत्नी)", "पता प्रमाण", "राशन कार्ड", "बैंक पासबुक", "जाति प्रमाण (SC/ST/OBC/अल्पसंख्याक)"] },
+    match: (a) => a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["urban","semi"].includes(a.area) && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  // ── Soil Health ───────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_soil_health_card",
+    icon: "🌱", color: "#16A34A", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Agriculture Dept. (Soil Health Card Scheme)", hi: "महाराष्ट्र कृषि विभाग (माती आरोग्य पत्रिका योजना)" },
+    name:    { en: "Soil Health Card Scheme – Maharashtra",                      hi: "माती आरोग्य पत्रिका योजना – महाराष्ट्र" },
+    benefit: { en: "Free soil testing every 2 years + personalised Soil Health Card with crop-wise fertiliser & amendment recommendations → reduces input costs by 15–20% and boosts yield", hi: "दर 2 वर्षांनी मोफत माती परीक्षण + पिकनिहाय खत व सुधारणा शिफारशींसह माती आरोग्य पत्रिका → इनपुट खर्च 15–20% कमी, उत्पन्न वाढ" },
+    tag:     { en: "Farmer / Soil Health / Input Subsidy", hi: "किसान / माती आरोग्य / निविष्ठा अनुदान" },
+    annual: 3000,
+    apply:   { en: "soilhealth.dac.gov.in / nearest Krishi Sevak / Agriculture Dept. office", hi: "soilhealth.dac.gov.in / नजदीकी कृषी सेवक / कृषी विभाग कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Soil Sample (collected by Krishi Sevak)", "Mobile Number"],
+               hi: ["आधार कार्ड", "7/12 उतारा", "माती नमुना (कृषी सेवकाने गोळा केलेला)", "मोबाइल नंबर"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer",
+  },
+
+  // ── Women's Safety ────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_nirbhaya_sakhi",
+    icon: "🛡️", color: "#DC2626", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Home Dept. / Women & Child Development Dept. (Nirbhaya Fund)", hi: "महाराष्ट्र गृह विभाग / महिला व बाल विकास विभाग (निर्भया निधी)" },
+    name:    { en: "Sakhi – One Stop Centre Scheme (Maharashtra)",               hi: "सखी – वन स्टॉप सेंटर योजना (महाराष्ट्र)" },
+    benefit: { en: "Free integrated support for women facing violence: medical aid, police assistance, legal counsel, psychosocial counselling & temporary shelter under one roof at 36 district centres (24×7). Funded by Nirbhaya Fund.", hi: "हिंसाग्रस्त महिलांसाठी 36 जिल्हा केंद्रांवर एकाच छताखाली मोफत वैद्यकीय सहाय्य, पोलीस मदत, कायदेशीर सल्ला, समुपदेशन व तात्पुरते आश्रय (24×7). निर्भया निधीतून अर्थसहाय्य." },
+    tag:     { en: "Women / Safety / One Stop Centre", hi: "महिला / सुरक्षा / वन स्टॉप सेंटर" },
+    annual: 0,
+    apply:   { en: "Call 181 (Women Helpline) / visit nearest Sakhi One Stop Centre", hi: "181 (महिला हेल्पलाइन) वर कॉल करा / नजदीकचे सखी वन स्टॉप सेंटर गाठा" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card (if available)", "Any proof of identity", "Police complaint / medical record (if available — not mandatory for emergency walk-in)"],
+               hi: ["आधार कार्ड (उपलब्ध असल्यास)", "कोणतेही ओळखपत्र", "पोलीस तक्रार / वैद्यकीय रेकॉर्ड (उपलब्ध असल्यास — आपत्कालीन प्रवेशासाठी अनिवार्य नाही)"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "women",
+  },
+
+  // ── Farmer Producer Organisations ────────────────────────────────────────────
+
+  {
+    id: "maha_fpo_support",
+    icon: "🤝", color: "#0369A1", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Agriculture Dept. / NABARD / SFAC (10,000 FPO Scheme)", hi: "महाराष्ट्र कृषि विभाग / NABARD / SFAC (10,000 FPO योजना)" },
+    name:    { en: "Formation & Promotion of Farmer Producer Organisations (FPOs) – Maharashtra", hi: "शेतकरी उत्पादक संघटना (FPO) स्थापना व संवर्धन – महाराष्ट्र" },
+    benefit: { en: "₹18L per FPO over 3 years (₹15L handholding + ₹3L matching equity grant) to register & run farmer collectives; plus ₹10–50L credit guarantee cover and market linkage support for 500–1000 member FPOs", hi: "3 वर्षांत प्रति FPO ₹18L (₹15L हँडहोल्डिंग + ₹3L समतुल्य इक्विटी अनुदान); तसेच 500–1000 सदस्य FPO साठी ₹10–50L क्रेडिट गॅरंटी कव्हर व बाजारपेठ जोडणी सहाय्य" },
+    tag:     { en: "Farmer / FPO / Collective Farming", hi: "किसान / FPO / सामूहिक शेती" },
+    annual: 60000,
+    apply:   { en: "sfacindia.com / nabard.org / mahadbt.maharashtra.gov.in", hi: "sfacindia.com / nabard.org / mahadbt.maharashtra.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card (all promoter farmers)", "7/12 Land Extract (members)", "FPO Registration Certificate (Companies Act / Cooperative Society)", "Business Plan", "Bank Account in FPO's name"],
+               hi: ["आधार कार्ड (सर्व प्रवर्तक शेतकरी)", "7/12 उतारा (सदस्य)", "FPO नोंदणी प्रमाणपत्र (कंपनी कायदा/सहकारी संस्था)", "व्यापार योजना", "FPO च्या नावे बैंक खाते"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["1to3","3to6","6to10"].includes(a.income),
+  },
+
+  // ── Disability – Employment ───────────────────────────────────────────────────
+
+  {
+    id: "maha_divyang_rojgar",
+    icon: "💼", color: "#6B21A8", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Social Justice & Special Assistance Dept.", hi: "महाराष्ट्र सामाजिक न्याय व विशेष सहाय्य विभाग" },
+    name:    { en: "Maharashtra Divyang Rojgar Guarantee Scheme (3% Reservation & Self-Employment Loan)", hi: "महाराष्ट्र दिव्यांग रोजगार हमी योजना (3% आरक्षण व स्वयंरोजगार कर्ज)" },
+    benefit: { en: "3% reservation in all govt jobs for persons with disabilities + self-employment loan up to ₹5L at 4% interest + free skill training through NHFDC for 40%+ disability certificate holders", hi: "सर्व सरकारी नोकऱ्यांमध्ये दिव्यांगांसाठी 3% आरक्षण + 40%+ दिव्यांगता प्रमाणपत्रधारकांसाठी 4% व्याजावर ₹5L स्वयंरोजगार कर्ज + NHFDC मार्फत मोफत कौशल्य प्रशिक्षण" },
+    tag:     { en: "Disability / Employment / Self Employment", hi: "दिव्यांग / रोजगार / स्वयंरोजगार" },
+    annual: 0,
+    apply:   { en: "sjsa.maharashtra.gov.in / District Social Welfare Office / nhfdc.nic.in", hi: "sjsa.maharashtra.gov.in / जिला समाज कल्याण कार्यालय / nhfdc.nic.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ from Civil Surgeon)", "Income Certificate", "Educational Qualification Certificate", "Bank Passbook", "Business Plan (for self-employment loan)"],
+               hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+, सिविल सर्जनकडून)", "आय प्रमाण पत्र", "शैक्षणिक पात्रता प्रमाण पत्र", "बैंक पासबुक", "व्यापार योजना (स्वयंरोजगार कर्जासाठी)"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  // ── Rural Roads ───────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_pmgsy_rural_roads",
+    icon: "🛣️", color: "#78350F", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Rural Development Dept. (PMGSY – Rural Roads)", hi: "महाराष्ट्र ग्रामविकास विभाग (PMGSY – ग्रामीण रस्ते)" },
+    name:    { en: "Pradhan Mantri Gram Sadak Yojana (PMGSY) – Maharashtra Component", hi: "प्रधानमंत्री ग्राम सडक योजना (PMGSY) – महाराष्ट्र घटक" },
+    benefit: { en: "All-weather pucca road connectivity to unconnected villages (population 250+ in plains, 100+ in tribal/hilly areas). Enables market access, school & hospital reach for rural communities", hi: "मैदानी भागातील 250+ लोकसंख्येच्या व आदिवासी/डोंगरी भागातील 100+ लोकसंख्येच्या जोडलेल्या नसलेल्या गावांना सर्व हवामान पक्के रस्ते जोडणी. ग्रामीण समुदायांसाठी बाजार, शाळा व रुग्णालय सुलभ" },
+    tag:     { en: "Rural / Infrastructure / Road", hi: "ग्रामीण / पायाभूत सुविधा / रस्ता" },
+    annual: 0,
+    apply:   { en: "pmgsy.nic.in / District Rural Development Agency (DRDA)", hi: "pmgsy.nic.in / जिला ग्रामीण विकास अभिकरण (DRDA)" }, applyType: "offline",
+    docs:    { en: ["Gram Panchayat Resolution (requesting road)", "Village Population Certificate", "Land Map / Survey", "No Objection Certificate from landowners on alignment"],
+               hi: ["ग्राम पंचायत ठराव (रस्त्याची मागणी)", "गावाचे लोकसंख्या प्रमाण", "जमीन नकाशा / सर्वेक्षण", "मार्गावरील जमीनमालकांकडून ना-हरकत प्रमाणपत्र"] },
+    match: (a) => a.state === "Maharashtra" && a.area === "rural",
+  },
+
+  // ── Beedi / Unorganised Sector Workers ───────────────────────────────────────
+
+  {
+    id: "maha_beedi_worker_welfare",
+    icon: "🏭", color: "#92400E", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Labour Dept. / Ministry of Labour (Beedi Workers Welfare Fund)", hi: "महाराष्ट्र कामगार विभाग / श्रम मंत्रालय (बिडी कामगार कल्याण निधी)" },
+    name:    { en: "Beedi Workers Welfare Fund Scheme – Maharashtra",             hi: "बिडी कामगार कल्याण निधी योजना – महाराष्ट्र" },
+    benefit: { en: "Free housing, medical aid (ESI hospitals), children's scholarship (₹1,500–₹7,500/yr), maternity benefit ₹1,000, group insurance & drinking water facilities for registered beedi workers and families", hi: "नोंदणीकृत बिडी कामगार व कुटुंबाला मोफत घर, वैद्यकीय सहाय्य (ESI रुग्णालय), मुलांची शिष्यवृत्ती (₹1,500–₹7,500/वर्ष), मातृत्व लाभ ₹1,000, सामूहिक विमा व पिण्याचे पाणी सुविधा" },
+    tag:     { en: "Labour / Beedi Worker / Welfare", hi: "श्रमिक / बिडी कामगार / कल्याण" },
+    annual: 7500,
+    apply:   { en: "labour.maharashtra.gov.in / Beedi Workers Welfare Commissioner office", hi: "labour.maharashtra.gov.in / बिडी कामगार कल्याण आयुक्त कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Beedi Worker Identity Card / Registration Certificate", "Employer Certificate (beedi factory)", "Bank Passbook", "Family Details"],
+               hi: ["आधार कार्ड", "बिडी कामगार ओळखपत्र / नोंदणी प्रमाणपत्र", "नियोक्ता प्रमाणपत्र (बिडी कारखाना)", "बैंक पासबुक", "कुटुंब तपशील"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Legal Aid ─────────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_legal_aid_services",
+    icon: "⚖️", color: "#1D4ED8", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra State Legal Services Authority (MSLSA)", hi: "महाराष्ट्र राज्य विधी सेवा प्राधिकरण (MSLSA)" },
+    name:    { en: "Maharashtra Free Legal Aid & Lok Adalat Scheme",             hi: "महाराष्ट्र मोफत कायदेशीर सहाय्य व लोक अदालत योजना" },
+    benefit: { en: "Completely free legal representation, advice & drafting services for BPL, SC/ST, women, children, disabled, victims of disasters and those with income ≤₹3L/year. Lok Adalats settle disputes quickly with no court fee.", hi: "BPL, SC/ST, महिला, बालके, दिव्यांग, आपत्तीग्रस्त व ₹3L/वर्षापर्यंत उत्पन्न असलेल्यांसाठी पूर्णपणे मोफत कायदेशीर प्रतिनिधित्व, सल्ला व मसुदा सेवा. लोक अदालत न्यायालय शुल्काशिवाय वाद जलद निकाली काढते." },
+    tag:     { en: "Legal Aid / Access to Justice", hi: "कायदेशीर सहाय्य / न्यायापर्यंत प्रवेश" },
+    annual: 0,
+    apply:   { en: "mslsa.gov.in / District Legal Services Authority (DLSA) / Taluka Legal Services Committee", hi: "mslsa.gov.in / जिला विधी सेवा प्राधिकरण (DLSA) / तालुका विधी सेवा समिती" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Income Certificate (≤₹3L/year for income criterion)", "Caste Certificate (SC/ST)", "Disability Certificate (if applicable)", "Case/Dispute Details"],
+               hi: ["आधार कार्ड", "आय प्रमाण (≤₹3L/वर्ष, आय निकषासाठी)", "जाति प्रमाण (SC/ST)", "दिव्यांगता प्रमाण (लागू असल्यास)", "खटला/वाद तपशील"] },
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
+  },
+
+  // ── Sugarcane ─────────────────────────────────────────────────────────────────
+
+  {
+    id: "maha_sugarcane_frp",
+    icon: "🌾", color: "#15803D", scope: "state", state: "Maharashtra",
+    ministry: { en: "Maharashtra Sugar Commissionerate (Co-operation, Marketing & Textiles Dept.)", hi: "महाराष्ट्र साखर आयुक्तालय (सहकार, पणन व वस्त्रोद्योग विभाग)" },
+    name:    { en: "Fair & Remunerative Price (FRP) Enforcement + State Advisory Price (SAP) – Sugarcane Farmers", hi: "ऊस उत्पादकांसाठी उचित व लाभदायक मूल्य (FRP) अंमलबजावणी + राज्य सल्लागार मूल्य (SAP)" },
+    benefit: { en: "Legally guaranteed FRP (₹340/quintal for 2024–25 season + premium for higher recovery) paid within 14 days of cane supply, with interest for delay. Sugar factories penalised for non-payment. Ethanol-linked bonus payments.", hi: "ऊस पुरवठ्याच्या 14 दिवसांत FRP (2024–25 हंगाम ₹340/क्विंटल + जास्त उताऱ्यासाठी प्रीमियम) कायदेशीर हमी; विलंबावर व्याज, कारखान्यांवर दंड. इथेनॉल-लिंक्ड बोनस देयके." },
+    tag:     { en: "Farmer / Sugarcane / FRP", hi: "किसान / ऊस / FRP" },
+    annual: 85000,
+    apply:   { en: "sugarcommissioner.maharashtra.gov.in / co-operative sugar factory", hi: "sugarcommissioner.maharashtra.gov.in / सहकारी साखर कारखाना" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Sugarcane Supply Slip / Cane Registration with Factory", "Bank Passbook (linked to factory payment)"],
+               hi: ["आधार कार्ड", "7/12 उतारा", "ऊस पुरवठा चिठ्ठी / कारखान्याकडे ऊस नोंदणी", "बैंक पासबुक (कारखाना देयकाशी जोडलेले)"] },
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer",
+  },
 
 ];
