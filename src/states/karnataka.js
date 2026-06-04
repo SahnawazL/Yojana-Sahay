@@ -1013,6 +1013,394 @@ export const KARNATAKA_SCHEMES = [
     match: (a) => a.state === "Karnataka" && a.who === "business" && ["18to35", "35to60"].includes(a.age),
   },
 
+  // ── MIGRANT WORKERS ───────────────────────────────────────────────────────
+
+  {
+    id: "karnataka_migrant_worker_helpline",
+    icon: "🧳", color: "#B45309", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Labour Dept. / Pravasi Bharatiya Sahayata Kendra", hi: "कर्नाटक श्रम विभाग / प्रवासी भारतीय सहायता केंद्र" },
+    name:    { en: "Inter-State Migrant Worker Welfare Scheme (KA)",               hi: "अंतरराज्यीय प्रवासी श्रमिक कल्याण योजना (कर्नाटक)" },
+    benefit: { en: "Accident insurance ₹1 Lakh, repatriation assistance up to ₹10,000, free medical aid & helpline (1800-425-1000) for migrant workers in Karnataka", hi: "कर्नाटक में प्रवासी मज़दूरों को ₹1 लाख दुर्घटना बीमा, ₹10,000 तक वापसी सहायता, मुफ्त चिकित्सा और हेल्पलाइन (1800-425-1000)" },
+    tag:     { en: "Labour", hi: "श्रमिक" },
+    annual: 0,
+    apply:   { en: "labour.karnataka.gov.in / Nearest Labour Office", hi: "labour.karnataka.gov.in / नज़दीकी श्रम कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Migration Certificate / Employer Contract", "Bank Account"],
+               hi: ["आधार कार्ड", "प्रवास प्रमाण / नियोक्ता अनुबंध", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income) && ["18to35", "35to60"].includes(a.age),
+  },
+
+  // ── WASTE PICKERS / SAFAI KARAMCHARIS ─────────────────────────────────────
+
+  {
+    id: "karnataka_safai_karamchari",
+    icon: "♻️", color: "#065F46", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of Social Welfare / BBMP", hi: "कर्नाटक समाज कल्याण विभाग / BBMP" },
+    name:    { en: "Safai Karamchari & Waste Picker Welfare Scheme (KA)",          hi: "सफाई कर्मचारी व कचरा बीनने वाले कल्याण योजना (कर्नाटक)" },
+    benefit: { en: "₹1,000/month allowance, free PPE kits, health insurance ₹2 Lakh & children's scholarship for registered sanitation workers & waste pickers", hi: "पंजीकृत सफाई कर्मियों को ₹1,000/माह, मुफ्त PPE किट, ₹2 लाख स्वास्थ्य बीमा और बच्चों की छात्रवृत्ति" },
+    tag:     { en: "Labour", hi: "श्रमिक" },
+    annual: 12000,
+    apply:   { en: "sevasindhu.karnataka.gov.in / Nearest ULB office", hi: "sevasindhu.karnataka.gov.in / नज़दीकी ULB कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Identity Card from ULB/Employer", "BPL Ration Card", "Bank Account"],
+               hi: ["आधार कार्ड", "ULB/नियोक्ता का पहचान पत्र", "BPL राशन कार्ड", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── DAIRY / ANIMAL HUSBANDRY ──────────────────────────────────────────────
+
+  {
+    id: "karnataka_ksddp_dairy",
+    icon: "🐄", color: "#78350F", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Milk Federation (KMF) / Dept. of Animal Husbandry", hi: "कर्नाटक दुग्ध महासंघ (KMF) / पशुपालन विभाग" },
+    name:    { en: "KMF Dairy Development Scheme — Nandini Milk Cooperative",      hi: "KMF डेयरी विकास योजना — नंदिनी दुग्ध सहकारी" },
+    benefit: { en: "Subsidised cattle feed, free veterinary visits, milk procurement at guaranteed price & loan up to ₹1 Lakh for dairy farmers joining KMF cooperative", hi: "KMF सहकारी में शामिल डेयरी किसानों को सब्सिडी पर पशु चारा, मुफ्त पशु चिकित्सा, गारंटीड दूध खरीद और ₹1 लाख तक ऋण" },
+    tag:     { en: "Farmer", hi: "किसान" },
+    annual: 0,
+    apply:   { en: "kmfnandini.coop / Nearest KMF Cooperative Society", hi: "kmfnandini.coop / नज़दीकी KMF सहकारी समिति" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Land / Cattle Ownership Proof", "Bank Account", "KMF Membership Form"],
+               hi: ["आधार कार्ड", "जमीन / पशु स्वामित्व प्रमाण", "बैंक खाता", "KMF सदस्यता फॉर्म"] },
+    match: (a) => a.state === "Karnataka" && a.who === "farmer" && a.area === "rural",
+  },
+
+  {
+    id: "karnataka_cold_storage_subsidy",
+    icon: "🧊", color: "#0369A1", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of Horticulture / NHB", hi: "कर्नाटक बागवानी विभाग / NHB" },
+    name:    { en: "Cold Storage & Pack House Subsidy Scheme (KA)",                hi: "शीत भंडारण और पैक हाउस सब्सिडी योजना (कर्नाटक)" },
+    benefit: { en: "35%–50% capital subsidy (max ₹10 Lakh) for setting up cold storage, ripening chambers & pack houses for fruits & vegetables", hi: "फल व सब्जियों के लिए शीत भंडारण, पकान कक्ष और पैक हाउस स्थापना पर 35%–50% पूंजी सब्सिडी (अधिकतम ₹10 लाख)" },
+    tag:     { en: "Farmer", hi: "किसान" },
+    annual: 0,
+    apply:   { en: "horticulture.karnataka.gov.in", hi: "horticulture.karnataka.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Land/Lease Documents", "Project Report", "Bank Loan Sanction Letter", "Bank Account"],
+               hi: ["आधार कार्ड", "जमीन/पट्टा दस्तावेज़", "परियोजना रिपोर्ट", "बैंक ऋण स्वीकृति पत्र", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && a.who === "farmer",
+  },
+
+  // ── MID-DAY MEAL ─────────────────────────────────────────────────────────
+
+  {
+    id: "karnataka_midday_meal",
+    icon: "🍛", color: "#CA8A04", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of Public Instruction (DPI)", hi: "कर्नाटक लोक शिक्षण विभाग (DPI)" },
+    name:    { en: "PM POSHAN (Mid-Day Meal) Scheme — KA",                         hi: "पीएम पोषण (मिड-डे मील) योजना — कर्नाटक" },
+    benefit: { en: "Free hot cooked meal every school day for all students (Class 1–8) in govt. & aided schools, with eggs thrice a week", hi: "सरकारी व अनुदान प्राप्त स्कूलों में कक्षा 1–8 के सभी छात्रों को प्रत्येक स्कूल दिन मुफ्त पका हुआ भोजन, सप्ताह में तीन बार अंडे सहित" },
+    tag:     { en: "Education", hi: "शिक्षा" },
+    annual: 0,
+    apply:   { en: "School enrollment is sufficient — no separate application", hi: "स्कूल नामांकन पर्याप्त है — अलग आवेदन जरूरी नहीं" }, applyType: "offline",
+    docs:    { en: ["School Enrollment Proof", "Aadhaar Card (for Aadhaar-seeded attendance)"],
+               hi: ["स्कूल नामांकन प्रमाण", "आधार कार्ड (उपस्थिति सीडिंग हेतु)"] },
+    match: (a) => a.state === "Karnataka" && a.who === "student" && a.area !== "urban",
+  },
+
+  // ── DIGITAL LITERACY ─────────────────────────────────────────────────────
+
+  {
+    id: "karnataka_digital_literacy",
+    icon: "💻", color: "#1D4ED8", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of Electronics, IT, BT & Science & Technology", hi: "कर्नाटक इलेक्ट्रॉनिक्स, IT, BT एवं विज्ञान प्रौद्योगिकी विभाग" },
+    name:    { en: "PM Gramin Digital Saksharta Abhiyan — KA (PMGDISHA)",          hi: "पीएम ग्रामीण डिजिटल साक्षरता अभियान — KA (PMGDISHA)" },
+    benefit: { en: "Free 20-hour digital literacy training covering internet, UPI, e-govt services & cybersecurity for one member per rural household", hi: "ग्रामीण परिवार के एक सदस्य को इंटरनेट, UPI, ई-सरकारी सेवाओं और साइबर सुरक्षा पर 20 घंटे का मुफ्त डिजिटल प्रशिक्षण" },
+    tag:     { en: "General", hi: "सामान्य" },
+    annual: 0,
+    apply:   { en: "pmgdisha.in / Nearest CSC (Common Service Centre)", hi: "pmgdisha.in / नज़दीकी CSC (सामान्य सेवा केंद्र)" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Mobile Number"],
+               hi: ["आधार कार्ड", "मोबाइल नंबर"] },
+    match: (a) => a.state === "Karnataka" && a.area === "rural" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── PRISON / AFTER-RELEASE WELFARE ───────────────────────────────────────
+
+  {
+    id: "karnataka_prison_rehabilitation",
+    icon: "🔓", color: "#374151", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Prisons & Correctional Services Dept.", hi: "कर्नाटक कारागार एवं सुधारात्मक सेवा विभाग" },
+    name:    { en: "After-Release Rehabilitation Scheme (KA)",                     hi: "रिहाई के बाद पुनर्वास योजना (कर्नाटक)" },
+    benefit: { en: "₹5,000 one-time release grant, skill training in prison, job placement assistance & priority in state welfare schemes for released prisoners", hi: "रिहा कैदियों को ₹5,000 एकमुश्त अनुदान, जेल में कौशल प्रशिक्षण, नौकरी सहायता और राज्य कल्याण योजनाओं में प्राथमिकता" },
+    tag:     { en: "General", hi: "सामान्य" },
+    annual: 0,
+    apply:   { en: "Karnataka Prisons Dept. / Nearest Probation Officer", hi: "कर्नाटक कारागार विभाग / नज़दीकी परिवीक्षा अधिकारी" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Release Order from Jail", "Bank Account"],
+               hi: ["आधार कार्ड", "जेल से रिहाई आदेश", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── ACID ATTACK / CRIME VICTIMS ───────────────────────────────────────────
+
+  {
+    id: "karnataka_acid_attack_victim",
+    icon: "🩹", color: "#BE123C", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Home Dept. / State Legal Services Authority", hi: "कर्नाटक गृह विभाग / राज्य विधिक सेवा प्राधिकरण" },
+    name:    { en: "Acid Attack & Crime Victim Compensation Scheme (KA)",          hi: "एसिड हमला और अपराध पीड़ित मुआवजा योजना (कर्नाटक)" },
+    benefit: { en: "Compensation ₹3 Lakh–₹8 Lakh for acid attack victims + free reconstructive surgery, legal aid & rehabilitation support", hi: "एसिड हमले पीड़ितों को ₹3 लाख–₹8 लाख मुआवजा + मुफ्त पुनर्निर्माण शल्य, कानूनी सहायता और पुनर्वास" },
+    tag:     { en: "Women", hi: "महिला" },
+    annual: 0,
+    apply:   { en: "Nearest DLSA (District Legal Services Authority) / Police Station", hi: "नज़दीकी DLSA (जिला विधिक सेवा प्राधिकरण) / पुलिस स्टेशन" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "FIR Copy", "Medical Certificate", "Bank Account"],
+               hi: ["आधार कार्ड", "FIR की प्रति", "चिकित्सा प्रमाण पत्र", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && a.who === "women",
+  },
+
+  // ── SENIOR CITIZEN (ADDITIONAL) ───────────────────────────────────────────
+
+  {
+    id: "karnataka_senior_daycare",
+    icon: "🏡", color: "#D97706", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of Social Security & Pensions", hi: "कर्नाटक सामाजिक सुरक्षा एवं पेंशन विभाग" },
+    name:    { en: "Vayoshreshtha Samman — Senior Citizen Day Care Centres (KA)",  hi: "वयोश्रेष्ठ सम्मान — वरिष्ठ नागरिक दिवस देखभाल केंद्र (कर्नाटक)" },
+    benefit: { en: "Free day-care centres for BPL senior citizens with meals, recreation, physiotherapy & health checkups across districts", hi: "BPL वरिष्ठ नागरिकों के लिए भोजन, मनोरंजन, फिज़ियोथेरेपी और स्वास्थ्य जांच के साथ मुफ्त दिवस देखभाल केंद्र" },
+    tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
+    annual: 0,
+    apply:   { en: "Nearest Zilla Panchayat / Social Welfare Office", hi: "नज़दीकी ज़िला पंचायत / समाज कल्याण कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Age Proof (60+)", "BPL Ration Card", "Domicile Certificate"],
+               hi: ["आधार कार्ड", "आयु प्रमाण (60+)", "BPL राशन कार्ड", "अधिवास प्रमाण"] },
+    match: (a) => a.state === "Karnataka" && (a.who === "senior" || a.age === "above60") && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── TOURISM / RURAL LIVELIHOODS ───────────────────────────────────────────
+
+  {
+    id: "karnataka_rural_homestay",
+    icon: "🌄", color: "#15803D", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Tourism Dept. / KSTDC", hi: "कर्नाटक पर्यटन विभाग / KSTDC" },
+    name:    { en: "Karnataka Rural Homestay Scheme",                              hi: "कर्नाटक ग्रामीण होमस्टे योजना" },
+    benefit: { en: "Subsidy up to ₹5 Lakh & interest-free loan for setting up rural homestays + branding & listing support via KarnataKa Tourism portal", hi: "ग्रामीण होमस्टे स्थापना हेतु ₹5 लाख तक सब्सिडी व ब्याज मुक्त ऋण + कर्नाटक पर्यटन पोर्टल पर ब्रांडिंग एवं लिस्टिंग सहायता" },
+    tag:     { en: "Business", hi: "व्यापार" },
+    annual: 0,
+    apply:   { en: "karnatakatourism.org / Nearest Tourism Office", hi: "karnatakatourism.org / नज़दीकी पर्यटन कार्यालय" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Land/Property Ownership Proof", "Bank Account", "NOC from Gram Panchayat", "Project Plan"],
+               hi: ["आधार कार्ड", "जमीन/संपत्ति स्वामित्व प्रमाण", "बैंक खाता", "ग्राम पंचायत NOC", "परियोजना योजना"] },
+    match: (a) => a.state === "Karnataka" && a.who === "business" && a.area === "rural",
+  },
+
+  {
+    id: "karnataka_msme_subsidy",
+    icon: "🏗️", color: "#0C4A6E", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of MSME", hi: "कर्नाटक MSME विभाग" },
+    name:    { en: "Karnataka MSME Investment Promotion Scheme",                   hi: "कर्नाटक MSME निवेश संवर्धन योजना" },
+    benefit: { en: "15%–25% capital investment subsidy (max ₹50 Lakh), 5-year power tariff subsidy & stamp duty exemption for new MSME units in Karnataka", hi: "कर्नाटक में नई MSME इकाइयों को 15%–25% पूंजी निवेश सब्सिडी (अधिकतम ₹50 लाख), 5 वर्ष बिजली शुल्क सब्सिडी और स्टाम्प ड्यूटी छूट" },
+    tag:     { en: "Business", hi: "व्यापार" },
+    annual: 0,
+    apply:   { en: "udyamimitra.in / Karnataka Udyog Mitra portal", hi: "udyamimitra.in / कर्नाटक उद्योग मित्र पोर्टल" }, applyType: "online",
+    docs:    { en: ["Aadhaar/PAN", "Udyam Registration Certificate", "Project Report", "Land/Factory Documents", "Bank Account"],
+               hi: ["आधार/पैन", "उद्यम पंजीकरण प्रमाण पत्र", "परियोजना रिपोर्ट", "जमीन/कारखाना दस्तावेज़", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && a.who === "business" && ["18to35", "35to60"].includes(a.age),
+  },
+
+  // ── CLIMATE / DISASTER RELIEF ─────────────────────────────────────────────
+
+  {
+    id: "karnataka_natural_calamity_relief",
+    icon: "🌊", color: "#1E3A5F", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Revenue Dept. / SDRF", hi: "कर्नाटक राजस्व विभाग / SDRF" },
+    name:    { en: "State Disaster Relief Fund (SDRF) Crop & House Loss Compensation — KA", hi: "राज्य आपदा राहत कोष (SDRF) फसल और मकान नुकसान मुआवजा — कर्नाटक" },
+    benefit: { en: "Crop loss: ₹8,500–₹17,000/hectare; house fully damaged: ₹95,100; partially: ₹5,200; human life loss: ₹4 Lakh ex-gratia", hi: "फसल नुकसान: ₹8,500–₹17,000/हेक्टेयर; पूरा मकान क्षतिग्रस्त: ₹95,100; आंशिक: ₹5,200; मानव जीवन हानि: ₹4 लाख अनुग्रह राशि" },
+    tag:     { en: "General", hi: "सामान्य" },
+    annual: 0,
+    apply:   { en: "Nearest Tahsildar / Revenue Office", hi: "नज़दीकी तहसीलदार / राजस्व कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Land Records (RTC) / House Ownership Proof", "Damage Assessment Certificate from Revenue Dept.", "Bank Account"],
+               hi: ["आधार कार्ड", "जमीन के कागज़ (RTC) / मकान स्वामित्व प्रमाण", "राजस्व विभाग का नुकसान आकलन प्रमाण", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
+  },
+
+  {
+    id: "karnataka_fasal_bima",
+    icon: "🌧️", color: "#0369A1", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Agriculture Dept. / PMFBY", hi: "कर्नाटक कृषि विभाग / PMFBY" },
+    name:    { en: "Pradhan Mantri Fasal Bima Yojana — KA (Crop Insurance)",       hi: "प्रधानमंत्री फसल बीमा योजना — KA (फसल बीमा)" },
+    benefit: { en: "Crop insurance covering drought, flood, pest & disease; farmer premium just 1.5%–5% of sum insured; claim up to ₹50,000/hectare", hi: "सूखा, बाढ़, कीट और बीमारी से फसल बीमा; किसान प्रीमियम केवल 1.5%–5%; ₹50,000/हेक्टेयर तक दावा" },
+    tag:     { en: "Farmer", hi: "किसान" },
+    annual: 0,
+    apply:   { en: "pmfby.gov.in / Nearest Bank / CSC", hi: "pmfby.gov.in / नज़दीकी बैंक / CSC" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Bank Account", "Crop Sowing Certificate"],
+               hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बैंक खाता", "फसल बुवाई प्रमाण"] },
+    match: (a) => a.state === "Karnataka" && a.who === "farmer",
+  },
+
+  // ── OBC WELFARE ───────────────────────────────────────────────────────────
+
+  {
+    id: "karnataka_obc_prematric",
+    icon: "📖", color: "#7C3AED", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of Backward Classes Welfare", hi: "कर्नाटक पिछड़ा वर्ग कल्याण विभाग" },
+    name:    { en: "Pre-Matric Scholarship for OBC Students (KA)",                 hi: "OBC छात्रों के लिए प्री-मैट्रिक छात्रवृत्ति (कर्नाटक)" },
+    benefit: { en: "₹600–₹1,000/month + free uniform, books & stationery for OBC students (Class 1–10) with family income below ₹1 Lakh", hi: "₹1 लाख से कम आय वाले OBC परिवारों के छात्रों (कक्षा 1–10) को ₹600–₹1,000/माह + मुफ्त वर्दी, किताबें और स्टेशनरी" },
+    tag:     { en: "Education", hi: "शिक्षा" },
+    annual: 12000,
+    apply:   { en: "scholarships.karnataka.gov.in", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate (< ₹1L)", "School Enrollment Proof", "Bank Account"],
+               hi: ["आधार कार्ड", "OBC जाति प्रमाण", "आय प्रमाण (< ₹1 लाख)", "स्कूल नामांकन प्रमाण", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+  },
+
+  {
+    id: "karnataka_obc_hostel",
+    icon: "🏠", color: "#5B21B6", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of Backward Classes Welfare", hi: "कर्नाटक पिछड़ा वर्ग कल्याण विभाग" },
+    name:    { en: "OBC Boys & Girls Hostel Scheme (KA)",                          hi: "OBC बालक-बालिका छात्रावास योजना (कर्नाटक)" },
+    benefit: { en: "Free residential hostel with meals, bedding & study room for OBC students studying away from home (Classes 5–Degree)", hi: "घर से दूर पढ़ने वाले OBC छात्रों को मुफ्त आवासीय छात्रावास, भोजन, बिस्तर और अध्ययन कक्ष (कक्षा 5–स्नातक)" },
+    tag:     { en: "Education", hi: "शिक्षा" },
+    annual: 0,
+    apply:   { en: "backwardclasses.karnataka.gov.in", hi: "backwardclasses.karnataka.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate", "School/College Admission Letter", "Bank Account"],
+               hi: ["आधार कार्ड", "OBC जाति प्रमाण", "आय प्रमाण", "स्कूल/कॉलेज प्रवेश पत्र", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── SC/ST LAND RIGHTS ─────────────────────────────────────────────────────
+
+  {
+    id: "karnataka_land_grant_scst",
+    icon: "📜", color: "#78350F", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Revenue Dept.", hi: "कर्नाटक राजस्व विभाग" },
+    name:    { en: "SC/ST Free Land Grant Scheme (KA)",                            hi: "SC/ST मुफ्त भूमि अनुदान योजना (कर्नाटक)" },
+    benefit: { en: "Free govt. land (up to 2 acres irrigated / 5 acres dry) allotted to landless SC/ST families for agriculture or house construction", hi: "भूमिहीन SC/ST परिवारों को कृषि या मकान निर्माण हेतु 2 एकड़ (सिंचित) / 5 एकड़ (असिंचित) मुफ्त सरकारी जमीन आवंटन" },
+    tag:     { en: "Housing", hi: "आवास" },
+    annual: 0,
+    apply:   { en: "Nearest Tahsildar / Revenue Office", hi: "नज़दीकी तहसीलदार / राजस्व कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "SC/ST Caste Certificate", "Income Certificate", "No Land Ownership Certificate", "Domicile Certificate"],
+               hi: ["आधार कार्ड", "SC/ST जाति प्रमाण", "आय प्रमाण", "भूमिहीन प्रमाण पत्र", "अधिवास प्रमाण"] },
+    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income) && a.area === "rural",
+  },
+
+  // ── FOLK ARTISTS / CULTURE ────────────────────────────────────────────────
+
+  {
+    id: "karnataka_folk_artist_pension",
+    icon: "🎭", color: "#BE185D", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of Kannada & Culture", hi: "कर्नाटक कन्नड़ और संस्कृति विभाग" },
+    name:    { en: "Folk & Traditional Artist Pension Scheme (KA)",                hi: "लोक एवं पारंपरिक कलाकार पेंशन योजना (कर्नाटक)" },
+    benefit: { en: "₹2,000/month pension for recognised folk artists (Yakshagana, Dollu Kunitha, Kamsale etc.) aged 60+ with low income", hi: "60+ आयु के कम आय वाले मान्यता प्राप्त लोक कलाकारों (यक्षगान, डोल्लु कुनिता, कमसाले आदि) को ₹2,000/माह पेंशन" },
+    tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
+    annual: 24000,
+    apply:   { en: "kannadakalasahitya.kar.nic.in / Nearest Dept. of Kannada & Culture office", hi: "kannadakalasahitya.kar.nic.in / नज़दीकी कन्नड़ एवं संस्कृति विभाग कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Age Proof (60+)", "Artist Recognition Certificate", "Income Certificate", "Bank Account"],
+               hi: ["आधार कार्ड", "आयु प्रमाण (60+)", "कलाकार मान्यता प्रमाण पत्र", "आय प्रमाण", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && (a.who === "senior" || a.age === "above60") && ["below1", "1to3"].includes(a.income),
+  },
+
+  {
+    id: "karnataka_kannada_book_grant",
+    icon: "📚", color: "#9D174D", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Sahitya Parishat / Dept. of Kannada & Culture", hi: "कर्नाटक साहित्य परिषत् / कन्नड़ एवं संस्कृति विभाग" },
+    name:    { en: "Kannada Sahitya Parishat Book Grant & Author Support",         hi: "कन्नड़ साहित्य परिषत् पुस्तक अनुदान और लेखक सहायता" },
+    benefit: { en: "Up to ₹25,000 publication grant for new Kannada literary works + ₹5,000 honorarium for selected authors from BPL background", hi: "नई कन्नड़ साहित्यिक रचनाओं को ₹25,000 तक प्रकाशन अनुदान + BPL पृष्ठभूमि के चयनित लेखकों को ₹5,000 मानदेय" },
+    tag:     { en: "General", hi: "सामान्य" },
+    annual: 0,
+    apply:   { en: "ksp.karnataka.gov.in", hi: "ksp.karnataka.gov.in" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Manuscript of the Book", "Author Bio", "Income Certificate (for BPL honorarium)", "Bank Account"],
+               hi: ["आधार कार्ड", "पुस्तक की पांडुलिपि", "लेखक का परिचय", "आय प्रमाण (BPL मानदेय हेतु)", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── FILM / MEDIA WORKERS ──────────────────────────────────────────────────
+
+  {
+    id: "karnataka_film_worker_welfare",
+    icon: "🎬", color: "#374151", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Chalanachitra Academy / Dept. of Kannada & Culture", hi: "कर्नाटक चलनचित्र अकादमी / कन्नड़ एवं संस्कृति विभाग" },
+    name:    { en: "Karnataka Film Worker Welfare Fund",                            hi: "कर्नाटक फिल्म कर्मचारी कल्याण कोष" },
+    benefit: { en: "₹1,000/month pension for senior/retired Kannada film workers (60+), medical reimbursement ₹10,000/year & funeral aid ₹5,000", hi: "वरिष्ठ/सेवानिवृत्त कन्नड़ फिल्म कर्मचारियों (60+) को ₹1,000/माह पेंशन, ₹10,000/वर्ष चिकित्सा प्रतिपूर्ति और ₹5,000 अंत्येष्टि सहायता" },
+    tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
+    annual: 12000,
+    apply:   { en: "Karnataka Chalanachitra Academy Office, Bengaluru", hi: "कर्नाटक चलनचित्र अकादमी कार्यालय, बेंगलुरु" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Age Proof (60+)", "Film Industry Work Experience Proof", "Bank Account"],
+               hi: ["आधार कार्ड", "आयु प्रमाण (60+)", "फिल्म उद्योग कार्य अनुभव प्रमाण", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && (a.who === "senior" || a.age === "above60") && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── HEALTH (ADDITIONAL) ───────────────────────────────────────────────────
+
+  {
+    id: "karnataka_thalassemia_sickle",
+    icon: "🩸", color: "#BE123C", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Health & Family Welfare Dept.", hi: "कर्नाटक स्वास्थ्य एवं परिवार कल्याण विभाग" },
+    name:    { en: "Thalassemia & Sickle Cell Anaemia Control Programme (KA)",     hi: "थैलेसीमिया और सिकल सेल एनीमिया नियंत्रण कार्यक्रम (कर्नाटक)" },
+    benefit: { en: "Free blood transfusion, iron chelation therapy, hydroxyurea & bone marrow transplant support for registered thalassemia/sickle cell patients", hi: "पंजीकृत थैलेसीमिया/सिकल सेल रोगियों को मुफ्त रक्त आधान, आयरन चिलेशन थेरेपी, हाइड्रॉक्सीयूरिया और अस्थि मज्जा प्रत्यारोपण सहायता" },
+    tag:     { en: "Health", hi: "स्वास्थ्य" },
+    annual: 0,
+    apply:   { en: "Nearest Govt. Medical College Hospital / karunadu.karnataka.gov.in", hi: "नज़दीकी सरकारी मेडिकल कॉलेज अस्पताल / karunadu.karnataka.gov.in" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Disease Diagnosis Report", "BPL Card (for additional support)", "Bank Account"],
+               hi: ["आधार कार्ड", "रोग निदान रिपोर्ट", "BPL कार्ड (अतिरिक्त सहायता हेतु)", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
+  },
+
+  {
+    id: "karnataka_dialysis_scheme",
+    icon: "🏥", color: "#0F766E", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Health & Family Welfare Dept. / PMNDP", hi: "कर्नाटक स्वास्थ्य एवं परिवार कल्याण विभाग / PMNDP" },
+    name:    { en: "Pradhan Mantri National Dialysis Programme — KA",              hi: "प्रधानमंत्री राष्ट्रीय डायलिसिस कार्यक्रम — कर्नाटक" },
+    benefit: { en: "Free haemodialysis sessions (up to 3 per week) at govt. hospitals for BPL patients with chronic kidney disease", hi: "चिरकालिक गुर्दा रोग वाले BPL रोगियों को सरकारी अस्पतालों में सप्ताह में 3 बार मुफ्त हीमोडायलिसिस" },
+    tag:     { en: "Health", hi: "स्वास्थ्य" },
+    annual: 0,
+    apply:   { en: "Nearest Govt. District / Taluk Hospital", hi: "नज़दीकी सरकारी जिला / तालुक अस्पताल" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "BPL Ration Card", "Nephrologist Prescription / Diagnosis Report", "Bank Account"],
+               hi: ["आधार कार्ड", "BPL राशन कार्ड", "नेफ्रोलॉजिस्ट पर्चा / निदान रिपोर्ट", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── SELF-HELP GROUPS (RURAL WOMEN) ───────────────────────────────────────
+
+  {
+    id: "karnataka_sanjeevini_shg",
+    icon: "🤝", color: "#16A34A", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Rural Development & Panchayat Raj (RDPR) / NRLM", hi: "कर्नाटक ग्रामीण विकास एवं पंचायत राज (RDPR) / NRLM" },
+    name:    { en: "Sanjeevini — NRLM Women SHG Credit Linkage (KA)",              hi: "संजीवनी — NRLM महिला SHG ऋण संपर्क (कर्नाटक)" },
+    benefit: { en: "Bank linkage loan ₹1–₹5 Lakh at 7% interest (with 4% govt. subvention = effective 3%) for active women SHGs + enterprise support", hi: "सक्रिय महिला SHG को 7% ब्याज (4% सरकारी सब्सिडी = प्रभावी 3%) पर ₹1–₹5 लाख बैंक संपर्क ऋण + उद्यम सहायता" },
+    tag:     { en: "Women", hi: "महिला" },
+    annual: 0,
+    apply:   { en: "aajeevika.gov.in / Nearest NRLM Block Mission Management Unit", hi: "aajeevika.gov.in / नज़दीकी NRLM ब्लॉक मिशन प्रबंधन इकाई" }, applyType: "offline",
+    docs:    { en: ["SHG Registration Documents", "Group Bank Account Passbook", "Meeting Minutes & Ledger", "Members' Aadhaar Cards"],
+               hi: ["SHG पंजीकरण दस्तावेज़", "समूह बैंक खाता पासबुक", "बैठक कार्यवृत्त और बही खाता", "सदस्यों के आधार कार्ड"] },
+    match: (a) => a.state === "Karnataka" && a.who === "women" && a.area === "rural" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── BOOK BANK / HIGHER EDUCATION ─────────────────────────────────────────
+
+  {
+    id: "karnataka_book_bank",
+    icon: "📗", color: "#1D4ED8", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Dept. of Higher Education", hi: "कर्नाटक उच्च शिक्षा विभाग" },
+    name:    { en: "Book Bank Scheme for SC/ST/OBC College Students (KA)",         hi: "SC/ST/OBC कॉलेज छात्रों के लिए बुक बैंक योजना (कर्नाटक)" },
+    benefit: { en: "Free set of textbooks for one full academic year (returnable) for SC/ST/OBC college students from government colleges", hi: "सरकारी कॉलेजों के SC/ST/OBC छात्रों को एक पूरे शैक्षणिक वर्ष के लिए मुफ्त पाठ्यपुस्तक सेट (वापसी योग्य)" },
+    tag:     { en: "Education", hi: "शिक्षा" },
+    annual: 0,
+    apply:   { en: "College Library / Dept. of Collegiate Education", hi: "कॉलेज पुस्तकालय / कॉलेजिएट शिक्षा विभाग" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Caste Certificate", "College Admission Proof", "Income Certificate"],
+               hi: ["आधार कार्ड", "जाति प्रमाण", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण"] },
+    match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── URBAN POOR / SLUM DEVELOPMENT ────────────────────────────────────────
+
+  {
+    id: "karnataka_urban_slum_upgrade",
+    icon: "🏙️", color: "#0C4A6E", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Slum Development Board (KSDB)", hi: "कर्नाटक झुग्गी विकास बोर्ड (KSDB)" },
+    name:    { en: "In-Situ Slum Upgradation Scheme — KA (KSDB)",                 hi: "इन-सीटू झुग्गी उन्नयन योजना — KA (KSDB)" },
+    benefit: { en: "Free/subsidised pucca house construction for slum dwellers with legal tenure + basic amenities (water, sanitation, electricity)", hi: "कानूनी अधिकार वाले झुग्गी निवासियों को मुफ्त/सब्सिडी पर पक्का मकान निर्माण + बुनियादी सुविधाएं (पानी, स्वच्छता, बिजली)" },
+    tag:     { en: "Housing", hi: "आवास" },
+    annual: 0,
+    apply:   { en: "ksdb.karnataka.gov.in / Nearest KSDB Office", hi: "ksdb.karnataka.gov.in / नज़दीकी KSDB कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "BPL Ration Card", "Slum Tenancy/Voter ID (as address proof)", "No Property Ownership Certificate", "Bank Account"],
+               hi: ["आधार कार्ड", "BPL राशन कार्ड", "झुग्गी किरायेदारी / मतदाता पहचान (पते के प्रमाण हेतु)", "संपत्ति न होने का प्रमाण", "बैंक खाता"] },
+    match: (a) => a.state === "Karnataka" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3"].includes(a.income) && ["urban", "semi"].includes(a.area),
+  },
+
+  // ── RATION CARD / FOOD SECURITY ───────────────────────────────────────────
+
+  {
+    id: "karnataka_sakaala_ration",
+    icon: "🛍️", color: "#A16207", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka Food, Civil Supplies & Consumer Affairs Dept.", hi: "कर्नाटक खाद्य, नागरिक आपूर्ति एवं उपभोक्ता मामले विभाग" },
+    name:    { en: "Sakala — Priority Household Ration Card (PHH) Fast-Track",     hi: "सकाला — प्राथमिकता परिवार राशन कार्ड (PHH) फास्ट-ट्रैक" },
+    benefit: { en: "5 kg rice/wheat per family member/month at ₹2–₹3/kg under NFSA; fast-track issuance within 30 days under Sakala framework", hi: "NFSA के तहत परिवार के प्रत्येक सदस्य को ₹2–₹3/किलो पर 5 किलो चावल/गेहूं/माह; सकाला ढांचे में 30 दिन के अंदर राशन कार्ड जारी" },
+    tag:     { en: "General", hi: "सामान्य" },
+    annual: 0,
+    apply:   { en: "ahara.kar.nic.in / Nearest Ration Shop or Tahsildar Office", hi: "ahara.kar.nic.in / नज़दीकी राशन दुकान या तहसीलदार कार्यालय" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Income Proof", "Address Proof", "Family Photo"],
+               hi: ["आधार कार्ड", "आय प्रमाण", "पता प्रमाण", "परिवार की फोटो"] },
+    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
+  },
+
   // ADD MORE KARNATAKA SCHEMES ABOVE THIS LINE ↓
   // {
   //   id: "karnataka_new_scheme",
