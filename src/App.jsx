@@ -6822,25 +6822,75 @@ export default function YojanaSahay(){
                   {t.seeAll}
                 </div>
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
                 {categories.map((cat,i)=>{
                   const count=categoryCounts[cat.filterKey]||0;
                   return(
                     <div key={i} className={`fu ch c${i} ${loaded?"show":""}`}
                       onClick={()=>{haptic();setSelectedCategory(cat);}}
-                      style={{background:cat.bg,borderRadius:15,padding:"14px 8px 12px",textAlign:"center",
-                        border:`1.5px solid ${cat.color}22`,position:"relative",
-                        boxShadow:dark?"0 2px 8px rgba(0,0,0,0.2)":"0 2px 8px rgba(0,0,0,0.04)",
-                        transition:"transform 0.2s,box-shadow 0.2s"}}
-                      onTouchStart={e=>{e.currentTarget.style.transform="scale(0.95)";}}
-                      onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";}}>
-                      {/* Scheme count badge */}
-                      <div style={{position:"absolute",top:7,right:7,
-                        background:cat.color,color:"#fff",fontSize:9,fontWeight:800,
-                        borderRadius:20,padding:"2px 6px",minWidth:18,lineHeight:"14px",textAlign:"center",
-                        boxShadow:`0 2px 6px ${cat.color}55`}}>{count}</div>
-                      <div style={{fontSize:26,marginBottom:6}}>{cat.icon}</div>
-                      <div style={{fontSize:11,fontWeight:700,color:cat.color,fontFamily:bf,lineHeight:1.3}}>{cat.label}</div>
+                      style={{
+                        background:dark
+                          ?`linear-gradient(155deg,${cat.color}1a 0%,${cat.color}09 100%)`
+                          :`linear-gradient(155deg,${cat.color}16 0%,${cat.color}07 100%)`,
+                        backdropFilter:"blur(18px)",
+                        WebkitBackdropFilter:"blur(18px)",
+                        borderRadius:13,
+                        padding:"9px 5px 8px",
+                        textAlign:"center",
+                        border:`1px solid ${cat.color}2e`,
+                        boxShadow:dark
+                          ?`0 3px 14px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.07)`
+                          :`0 2px 10px ${cat.color}1c,0 1px 3px rgba(0,0,0,0.04),inset 0 1px 0 rgba(255,255,255,0.72)`,
+                        position:"relative",
+                        overflow:"hidden",
+                        transition:"transform 0.14s cubic-bezier(.34,1.56,.64,1),box-shadow 0.18s",
+                      }}
+                      onTouchStart={e=>{
+                        e.currentTarget.style.transform="scale(0.93)";
+                        e.currentTarget.style.boxShadow=`0 1px 4px ${cat.color}14`;
+                      }}
+                      onTouchEnd={e=>{
+                        e.currentTarget.style.transform="scale(1)";
+                        e.currentTarget.style.boxShadow=dark
+                          ?`0 3px 14px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.07)`
+                          :`0 2px 10px ${cat.color}1c,0 1px 3px rgba(0,0,0,0.04),inset 0 1px 0 rgba(255,255,255,0.72)`;
+                      }}>
+                      {/* Top glass shine line */}
+                      <div style={{
+                        position:"absolute",top:0,left:"15%",right:"15%",height:"1px",
+                        background:`linear-gradient(90deg,transparent,${cat.color}60,transparent)`,
+                        pointerEvents:"none",
+                      }}/>
+                      {/* Soft radial glow behind icon */}
+                      <div style={{
+                        position:"absolute",top:"18%",left:"50%",transform:"translateX(-50%)",
+                        width:34,height:34,borderRadius:"50%",
+                        background:`radial-gradient(circle,${cat.color}22 0%,transparent 72%)`,
+                        pointerEvents:"none",
+                      }}/>
+                      {/* Count badge — mini glass pill */}
+                      <div style={{
+                        position:"absolute",top:5,right:5,
+                        background:dark
+                          ?`linear-gradient(135deg,${cat.color}cc,${cat.color}99)`
+                          :`linear-gradient(135deg,${cat.color},${cat.color}cc)`,
+                        color:"#fff",fontSize:7.5,fontWeight:900,
+                        borderRadius:8,padding:"1.5px 4.5px",minWidth:14,
+                        lineHeight:"12px",textAlign:"center",letterSpacing:0.2,
+                        boxShadow:`0 1px 5px ${cat.color}55`,
+                        fontFamily:"'Noto Sans',sans-serif",
+                      }}>{count}</div>
+                      {/* Emoji icon */}
+                      <div style={{
+                        fontSize:19,marginBottom:5,lineHeight:1,
+                        filter:`drop-shadow(0 2px 5px ${cat.color}4a)`,
+                      }}>{cat.icon}</div>
+                      {/* Label */}
+                      <div style={{
+                        fontSize:9.5,fontWeight:700,color:cat.color,
+                        fontFamily:bf,lineHeight:1.25,letterSpacing:0.1,
+                        textShadow:dark?`0 0 8px ${cat.color}55`:"none",
+                      }}>{cat.label}</div>
                     </div>
                   );
                 })}
