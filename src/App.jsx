@@ -1604,6 +1604,7 @@ function SchemesTab({lang,dark=false}){
   const [expandedId,setExpandedId]=useState(null);
   const [filter,setFilter]=useState("all");
   const [selectedState,setSelectedState]=useState("all");
+  const [dismissingState,setDismissingState]=useState(false);
   const [showStatePicker,setShowStatePicker]=useState(false);
   const [visibleCount,setVisibleCount]=useState(PAGE_SIZE);
   const [isReady,setIsReady]=useState(false);
@@ -1670,6 +1671,16 @@ function SchemesTab({lang,dark=false}){
 
   // Reset pagination when filter changes
   useEffect(()=>{setVisibleCount(PAGE_SIZE);setExpandedId(null);},[filter,selectedState]);
+
+  // Smooth state-chip dismiss: play exit animation, then clear state
+  const handleClearState=useCallback(()=>{
+    haptic(30);
+    setDismissingState(true);
+    setTimeout(()=>{
+      setSelectedState("all");
+      setDismissingState(false);
+    },280);
+  },[]);
 
   // Paginated slices — state schemes first, then central
   const visibleState=useMemo(()=>stateSchemes.slice(0,Math.min(visibleCount,stateSchemes.length)),[stateSchemes,visibleCount]);
@@ -1847,12 +1858,52 @@ function SchemesTab({lang,dark=false}){
         </div>{/* end pill row wrapper */}
 
         {/* Active state chip row */}
-        {selectedState!=="all"&&(
+        {(selectedState!=="all"||dismissingState)&&(
           <div style={{display:"flex",alignItems:"center",gap:6,paddingBottom:10,flexWrap:"wrap"}}>
-            <div style={{display:"flex",alignItems:"center",gap:5,background:SAFFRON+"14",border:`1px solid ${SAFFRON}40`,borderRadius:20,padding:"4px 10px"}}>
-              <svg width="10" height="12" viewBox="0 0 10 12" fill={SAFFRON}><path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 7 5 7s5-3.25 5-7c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 1 1 5 3.5a1.5 1.5 0 0 1 0 3z"/></svg>
-              <span style={{fontSize:11,fontWeight:600,color:SAFFRON,fontFamily:bf}}>{selectedState}</span>
-              <span onClick={()=>{haptic();setSelectedState("all");}} style={{fontSize:14,color:SAFFRON,cursor:"pointer",marginLeft:2,lineHeight:1,fontWeight:700}}>✕</span>
+            {/* ── Premium state chip ── */}
+            <div className={dismissingState?"state-chip-exit":"state-chip-enter"}
+              style={{
+                display:"flex",alignItems:"center",gap:6,
+                background:`linear-gradient(135deg,${SAFFRON}20 0%,${SAFFRON}0d 100%)`,
+                border:`1.5px solid ${SAFFRON}55`,
+                borderRadius:50,
+                padding:"4px 6px 4px 9px",
+                boxShadow:`0 2px 14px ${SAFFRON}20,inset 0 1px 0 rgba(255,255,255,0.09)`,
+              }}>
+              {/* Location dot bubble */}
+              <div style={{
+                width:18,height:18,borderRadius:"50%",
+                background:`${SAFFRON}22`,
+                border:`1px solid ${SAFFRON}35`,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                flexShrink:0,
+              }}>
+                <svg width="8" height="10" viewBox="0 0 10 12" fill={SAFFRON}>
+                  <path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 7 5 7s5-3.25 5-7c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 1 1 5 3.5a1.5 1.5 0 0 1 0 3z"/>
+                </svg>
+              </div>
+              {/* State name */}
+              <span style={{
+                fontSize:12,fontWeight:700,color:SAFFRON,
+                fontFamily:bf,letterSpacing:0.1,
+                maxWidth:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
+              }}>{selectedState}</span>
+              {/* Premium ✕ close button */}
+              <div
+                className="state-chip-close"
+                onClick={handleClearState}
+                style={{
+                  width:20,height:20,borderRadius:"50%",
+                  background:`${SAFFRON}22`,
+                  border:`1px solid ${SAFFRON}30`,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  cursor:"pointer",flexShrink:0,
+                  transition:"background 0.18s,transform 0.15s cubic-bezier(0.34,1.56,0.64,1),border-color 0.18s",
+                }}>
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                  <path d="M1.5 1.5L6.5 6.5M6.5 1.5L1.5 6.5" stroke={SAFFRON} strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </div>
             </div>
             <div onClick={()=>{if(stateSchemes.length>0){haptic(30);scrollToRef(stateHeaderRef,"state");}}}
               style={{display:"flex",alignItems:"center",gap:4,
@@ -6194,6 +6245,30 @@ const APP_STYLES = `
         @keyframes toastFadeOut {
           from { opacity: 1; }
           to   { opacity: 0; }
+        }
+
+        /* ── State chip enter / exit animations ── */
+        @keyframes state-chip-in{
+          0%  { opacity:0; transform:scale(0.65) translateX(-10px); }
+          65% { opacity:1; transform:scale(1.04) translateX(1px); }
+          100%{ opacity:1; transform:scale(1)    translateX(0); }
+        }
+        @keyframes state-chip-out{
+          0%  { opacity:1; transform:scale(1)    translateX(0)   scaleY(1); max-width:200px; }
+          40% { opacity:0.4; transform:scale(0.88) translateX(-6px) scaleY(0.9); }
+          100%{ opacity:0; transform:scale(0.6)  translateX(-14px) scaleY(0.7); max-width:0; }
+        }
+        .state-chip-enter{
+          animation:state-chip-in 0.38s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+        .state-chip-exit{
+          animation:state-chip-out 0.28s cubic-bezier(0.4,0,0.6,1) forwards;
+          pointer-events:none;
+          overflow:hidden;
+        }
+        .state-chip-close:active{
+          transform:scale(0.82) !important;
+          background:rgba(255,153,51,0.42) !important;
         }
 `;
 
