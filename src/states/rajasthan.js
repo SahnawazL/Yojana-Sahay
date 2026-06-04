@@ -368,6 +368,269 @@ export const RAJASTHAN_SCHEMES = [
     match: (a) => a.state === "Rajasthan" && a.income === "below1",
   },
 
+  // ── FREE HEALTH SERVICES ─────────────────────────────────────────────────────
+
+  {
+    id: "raj_nishulk_dawa",
+    icon: "💊", color: "#DC2626", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Health Dept. (RMSC)", hi: "राजस्थान स्वास्थ्य विभाग (RMSC)" },
+    name:    { en: "Mukhyamantri Nishulk Dawa Yojana",                                                  hi: "मुख्यमंत्री निःशुल्क दवा योजना" },
+    benefit: { en: "2,000+ essential medicines free at all govt hospitals & PHCs — no cost to patient",  hi: "सभी सरकारी अस्पतालों और PHC पर 2,000+ आवश्यक दवाइयाँ बिल्कुल मुफ्त" },
+    tag:     { en: "Health / Medicine", hi: "स्वास्थ्य / दवा" },
+    annual: 0,
+    apply:   { en: "rajswasthya.nic.in", hi: "rajswasthya.nic.in" }, applyType: "offline",
+    docs:    { en: ["Doctor's Prescription (from govt hospital OPD)", "Aadhaar Card (for record)"],
+               hi: ["डॉक्टर का पर्चा (सरकारी OPD से)", "आधार कार्ड (रिकॉर्ड के लिए)"] },
+    match: (a) => a.state === "Rajasthan" && ["below1", "1to3", "3to6"].includes(a.income),
+  },
+
+  {
+    id: "raj_nishulk_jaanch",
+    icon: "🔬", color: "#0369A1", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Health Dept.", hi: "राजस्थान स्वास्थ्य विभाग" },
+    name:    { en: "Mukhyamantri Nishulk Jaanch Yojana",                                                                hi: "मुख्यमंत्री निःशुल्क जाँच योजना" },
+    benefit: { en: "90+ free diagnostic tests (blood, urine, X-ray, ECG, CT scan, MRI) at govt hospitals",              hi: "सरकारी अस्पतालों पर 90+ निःशुल्क जाँच (खून, मूत्र, X-रे, ECG, CT स्कैन, MRI)" },
+    tag:     { en: "Health / Diagnostics", hi: "स्वास्थ्य / जाँच" },
+    annual: 0,
+    apply:   { en: "rajswasthya.nic.in", hi: "rajswasthya.nic.in" }, applyType: "offline",
+    docs:    { en: ["Doctor's Referral Slip (from govt hospital OPD)", "Aadhaar Card"],
+               hi: ["डॉक्टर की रेफरल पर्ची (सरकारी OPD से)", "आधार कार्ड"] },
+    match: (a) => a.state === "Rajasthan" && ["below1", "1to3", "3to6"].includes(a.income),
+  },
+
+  // ── GIRL MERIT AWARD ─────────────────────────────────────────────────────────
+
+  {
+    id: "raj_gargi_puraskar",
+    icon: "🏅", color: "#B45309", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Education Dept. (BSER)", hi: "राजस्थान शिक्षा विभाग (BSER)" },
+    name:    { en: "Gargi Puraskar (Rajasthan)",                                                                              hi: "गार्गी पुरस्कार (राजस्थान)" },
+    benefit: { en: "Cash award for girls scoring ≥75% in RBSE board: ₹3,000 (Class 10) · ₹5,000 (Class 12) + certificate", hi: "RBSE बोर्ड में ≥75% पाने वाली बालिकाओं को: ₹3,000 (कक्षा 10) · ₹5,000 (कक्षा 12) + प्रमाण पत्र" },
+    tag:     { en: "Education / Merit", hi: "शिक्षा / मेरिट" },
+    annual: 5000,
+    apply:   { en: "rajshaladarpan.nic.in", hi: "rajshaladarpan.nic.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "RBSE 10th / 12th Mark Sheet (≥75%)", "School Enrolment Certificate (studies must be continuing)", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "RBSE 10वीं / 12वीं मार्कशीट (≥75%)", "स्कूल नामांकन प्रमाण (पढ़ाई जारी होनी चाहिए)", "बैंक खाता"] },
+    // Eligibility: girl scoring ≥75% in RBSE Class 10 or 12, still enrolled in studies
+    match: (a) => a.state === "Rajasthan" && a.who === "student",
+  },
+
+  // ── HIGHER EDUCATION SCHOLARSHIP ─────────────────────────────────────────────
+
+  {
+    id: "raj_cm_higher_scholarship",
+    icon: "🎓", color: "#1D4ED8", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Higher Education Dept.", hi: "राजस्थान उच्च शिक्षा विभाग" },
+    name:    { en: "Mukhyamantri Uchch Shiksha Scholarship Yojana",                                                            hi: "मुख्यमंत्री उच्च शिक्षा छात्रवृत्ति योजना" },
+    benefit: { en: "₹5,000/year scholarship for students scoring >60% in Class 12, pursuing graduation at govt college",      hi: "सरकारी कॉलेज में स्नातक पढ़ रहे कक्षा 12 में >60% छात्रों को ₹5,000/वर्ष छात्रवृत्ति" },
+    tag:     { en: "Education / Scholarship", hi: "शिक्षा / छात्रवृत्ति" },
+    annual: 5000,
+    apply:   { en: "hte.rajasthan.gov.in", hi: "hte.rajasthan.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Class 12 Mark Sheet (>60%)", "Income Certificate (family ≤ ₹2.5 lakh/year)", "Govt College Admission Proof", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "कक्षा 12 मार्कशीट (>60%)", "आय प्रमाण (परिवार ≤ ₹2.5 लाख/वर्ष)", "सरकारी कॉलेज प्रवेश प्रमाण", "बैंक खाता"] },
+    match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── WOMEN / SHG LOAN ─────────────────────────────────────────────────────────
+
+  {
+    id: "raj_mahila_nidhi",
+    icon: "👩‍💼", color: "#BE185D", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan State Rural Livelihoods Mission (RSLM)", hi: "राजस्थान राज्य ग्रामीण आजीविका मिशन (RSLM)" },
+    name:    { en: "Rajasthan Mahila Nidhi (SHG Microfinance)",                                                             hi: "राजस्थान महिला निधि (SHG माइक्रोफाइनेंस)" },
+    benefit: { en: "Microloans ₹15,000–₹1,00,000 at 1–4% interest for women SHG members for livelihood activities",       hi: "महिला SHG सदस्यों को आजीविका के लिए ₹15,000–₹1,00,000 तक 1–4% ब्याज पर माइक्रोलोन" },
+    tag:     { en: "Women / SHG / Loan", hi: "महिला / SHG / ऋण" },
+    annual: 0,
+    apply:   { en: "rajmahilanidhi.org", hi: "rajmahilanidhi.org" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "SHG Membership Proof (group min 6 months old)", "SHG Passbook & Meeting Register", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "SHG सदस्यता प्रमाण (समूह न्यूनतम 6 माह पुराना)", "SHG पासबुक और बैठक रजिस्टर", "बैंक खाता"] },
+    match: (a) => a.state === "Rajasthan" && a.who === "women" && a.area === "rural",
+  },
+
+  // ── SENIOR PILGRIMAGE ─────────────────────────────────────────────────────────
+
+  {
+    id: "raj_teerth_yatra",
+    icon: "🛕", color: "#F59E0B", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Devasthan Dept.", hi: "राजस्थान देवस्थान विभाग" },
+    name:    { en: "Mukhyamantri Vriddhjan Teerth Yatra Yojana",                                                                           hi: "मुख्यमंत्री वृद्धजन तीर्थ यात्रा योजना" },
+    benefit: { en: "Free pilgrimage (train + stay + meals) to Ayodhya, Haridwar, Varanasi, Tirupati, Shirdi etc. — once in a lifetime",    hi: "जीवन में एक बार अयोध्या, हरिद्वार, वाराणसी, तिरुपति, शिर्डी आदि — निःशुल्क ट्रेन, ठहरना और भोजन" },
+    tag:     { en: "Senior / Pilgrimage", hi: "वरिष्ठ / तीर्थ यात्रा" },
+    annual: 0,
+    apply:   { en: "devasthan.rajasthan.gov.in", hi: "devasthan.rajasthan.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Age Proof (60+)", "Rajasthan Domicile Certificate", "Medical Fitness Certificate", "Passport Photo"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "आयु प्रमाण (60+)", "राजस्थान मूल निवास प्रमाण पत्र", "चिकित्सा स्वास्थ्य प्रमाण पत्र", "पासपोर्ट फोटो"] },
+    match: (a) => a.state === "Rajasthan" && (a.who === "senior" || a.age === "above60"),
+  },
+
+  // ── SC / ST ENTERPRISE ───────────────────────────────────────────────────────
+
+  {
+    id: "raj_dadups",
+    icon: "🏗️", color: "#6D28D9", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Industries Dept. / SJE Dept.", hi: "राजस्थान उद्योग विभाग / सामाजिक न्याय विभाग" },
+    name:    { en: "Dr. B.R. Ambedkar Dalit Adivasi Udhyam Protsahan Yojana (DADUPS)",                                        hi: "डॉ. भीमराव अंबेडकर दलित आदिवासी उद्यम प्रोत्साहन योजना (DADUPS)" },
+    benefit: { en: "Interest-free loan: ₹25 lakh (manufacturing) · ₹10 lakh (services) for SC/ST entrepreneurs",             hi: "SC/ST उद्यमियों को ब्याजमुक्त ऋण: विनिर्माण ₹25 लाख · सेवा क्षेत्र ₹10 लाख तक" },
+    tag:     { en: "Business / SC-ST", hi: "व्यापार / SC-ST" },
+    annual: 0,
+    apply:   { en: "industries.rajasthan.gov.in", hi: "industries.rajasthan.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "SC / ST Caste Certificate", "Business / Udyam Registration", "Project Report", "Income Certificate", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "SC / ST जाति प्रमाण पत्र", "व्यापार / उद्यम पंजीकरण", "प्रोजेक्ट रिपोर्ट", "आय प्रमाण पत्र", "बैंक खाता"] },
+    match: (a) => a.state === "Rajasthan" && a.who === "business" && ["below1", "1to3", "3to6"].includes(a.income),
+  },
+
+  // ── SKILL TRAINING ───────────────────────────────────────────────────────────
+
+  {
+    id: "raj_rsldc_skill",
+    icon: "🔧", color: "#0F766E", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Skill & Livelihoods Development Corporation (RSLDC)", hi: "राजस्थान कौशल एवं आजीविका विकास निगम (RSLDC)" },
+    name:    { en: "RSLDC Free Vocational Skill Training",                                                                              hi: "RSLDC निःशुल्क व्यावसायिक कौशल प्रशिक्षण" },
+    benefit: { en: "Free 3–6 month training in 50+ trades (IT, retail, construction, beauty, healthcare etc.) + placement support",    hi: "50+ ट्रेड में 3–6 माह का निःशुल्क प्रशिक्षण (IT, रिटेल, निर्माण, ब्यूटी, स्वास्थ्य आदि) + रोज़गार सहायता" },
+    tag:     { en: "Skill / Employment", hi: "कौशल / रोज़गार" },
+    annual: 0,
+    apply:   { en: "rsldc.org", hi: "rsldc.org" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Educational Certificate (Class 8 / 10 / 12 per trade requirement)", "Passport Photo", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "शैक्षणिक प्रमाण (ट्रेड अनुसार कक्षा 8/10/12)", "पासपोर्ट फोटो", "बैंक खाता"] },
+    match: (a) => a.state === "Rajasthan" && ["18to35", "35to60"].includes(a.age) && ["below1", "1to3", "3to6"].includes(a.income),
+  },
+
+  // ── FARMER / ELECTRICITY ─────────────────────────────────────────────────────
+
+  {
+    id: "raj_kisan_mitra_urja",
+    icon: "⚡", color: "#15803D", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Energy Dept.", hi: "राजस्थान ऊर्जा विभाग" },
+    name:    { en: "Mukhyamantri Kisan Mitra Urja Yojana",                                                                hi: "मुख्यमंत्री किसान मित्र ऊर्जा योजना" },
+    benefit: { en: "₹1,000/month electricity subsidy (max ₹12,000/year) for farmers with metered agricultural connections", hi: "मीटर वाले कृषि बिजली कनेक्शन के किसानों को ₹1,000/माह बिजली सब्सिडी (अधिकतम ₹12,000/वर्ष)" },
+    tag:     { en: "Farmer / Electricity", hi: "किसान / बिजली" },
+    annual: 12000,
+    apply:   { en: "energy.rajasthan.gov.in", hi: "energy.rajasthan.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Agricultural Electricity Connection Number", "Land Records (Jamabandi)", "Bank Account (Aadhaar-linked)"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "कृषि बिजली कनेक्शन नंबर", "जमाबंदी (भूमि अभिलेख)", "बैंक खाता (आधार लिंक)"] },
+    // Eligibility: Rajasthan farmer with metered agricultural electricity connection; subsidy auto-credited to bill
+    match: (a) => a.state === "Rajasthan" && a.who === "farmer",
+  },
+
+  // ── FARMER / HORTICULTURE ─────────────────────────────────────────────────────
+
+  {
+    id: "raj_polyhouse",
+    icon: "🌱", color: "#16A34A", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Horticulture Dept.", hi: "राजस्थान उद्यान विभाग" },
+    name:    { en: "Rajasthan Protected Cultivation Scheme (Polyhouse / Shadenet)",                                              hi: "राजस्थान संरक्षित खेती योजना (पॉलीहाउस / शेडनेट)" },
+    benefit: { en: "50% subsidy on polyhouse or shadenet construction · up to ₹500/sqm for horticulture growers",               hi: "पॉलीहाउस या शेडनेट निर्माण पर 50% सब्सिडी · बागवानी किसानों को ₹500/वर्गमीटर तक" },
+    tag:     { en: "Farmer / Horticulture", hi: "किसान / बागवानी" },
+    annual: 0,
+    apply:   { en: "horticulture.rajasthan.gov.in", hi: "horticulture.rajasthan.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Land Records (Jamabandi)", "Bank Account", "Quotation from approved vendor", "Soil & Water Test Report"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "जमाबंदी (भूमि अभिलेख)", "बैंक खाता", "अनुमोदित विक्रेता का कोटेशन", "मिट्टी और पानी परीक्षण रिपोर्ट"] },
+    // Eligibility: Rajasthan farmer with min. 0.5 acres land intending to grow horticulture crops under protected structure
+    match: (a) => a.state === "Rajasthan" && a.who === "farmer" && a.area === "rural",
+  },
+
+  // ── WOMEN / MATERNITY ─────────────────────────────────────────────────────────
+
+  {
+    id: "raj_janani_suraksha",
+    icon: "🤱", color: "#DB2777", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Health Dept. (NHM)", hi: "राजस्थान स्वास्थ्य विभाग (NHM)" },
+    name:    { en: "Janani Shishu Suraksha Karyakram (JSSK) — Rajasthan",                                                             hi: "जननी शिशु सुरक्षा कार्यक्रम (JSSK) — राजस्थान" },
+    benefit: { en: "Free delivery + free medicines + free diet + free transport + ₹1,400 cash (rural) / ₹1,000 (urban) for institutional delivery", hi: "संस्थागत प्रसव पर निःशुल्क डिलीवरी + दवाइयाँ + आहार + परिवहन + ₹1,400 (ग्रामीण) / ₹1,000 (शहरी) नकद" },
+    tag:     { en: "Women / Maternity", hi: "महिला / मातृत्व" },
+    annual: 1400,
+    apply:   { en: "rajswasthya.nic.in / Nearest govt hospital / ANM", hi: "rajswasthya.nic.in / नज़दीकी सरकारी अस्पताल / ANM" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Pregnancy Registration Card (ANC card)", "BPL / NFSA Card (if applicable)", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "गर्भावस्था पंजीकरण कार्ड (ANC कार्ड)", "BPL / NFSA कार्ड (यदि लागू हो)", "बैंक खाता"] },
+    // Eligibility: any pregnant woman delivering at a government health facility in Rajasthan
+    match: (a) => a.state === "Rajasthan" && a.who === "women",
+  },
+
+  // ── WOMEN / DESTITUTE ────────────────────────────────────────────────────────
+
+  {
+    id: "raj_shakti_swaroopa",
+    icon: "🌸", color: "#9333EA", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Women & Child Development Dept.", hi: "राजस्थान महिला एवं बाल विकास विभाग" },
+    name:    { en: "Shakti Swaroopa Yojana (Rajasthan)",                                                                                hi: "शक्ति स्वरूपा योजना (राजस्थान)" },
+    benefit: { en: "₹2,000 one-time grant + interest-free microloan + free skill training for destitute / divorced / abandoned women",  hi: "निराश्रित / तलाकशुदा / परित्यक्त महिलाओं को ₹2,000 एकमुश्त अनुदान + ब्याजमुक्त माइक्रोलोन + निःशुल्क कौशल प्रशिक्षण" },
+    tag:     { en: "Women / Destitute", hi: "महिला / निराश्रित" },
+    annual: 2000,
+    apply:   { en: "wcd.rajasthan.gov.in", hi: "wcd.rajasthan.gov.in" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Destitution / Divorce / Abandonment Proof", "Income Certificate (≤ ₹50,000/year)", "Age Proof (18–45 years)", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "निराश्रिता / तलाक / परित्याग प्रमाण", "आय प्रमाण (≤ ₹50,000/वर्ष)", "आयु प्रमाण (18–45 वर्ष)", "बैंक खाता"] },
+    // Eligibility: destitute/divorced/abandoned/separated Rajasthan woman aged 18–45, income ≤ ₹50,000/year
+    match: (a) => a.state === "Rajasthan" && a.who === "women" && a.income === "below1",
+  },
+
+  // ── LIVESTOCK / FARMER ───────────────────────────────────────────────────────
+
+  {
+    id: "raj_pashudhan_dawai",
+    icon: "🐄", color: "#92400E", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Animal Husbandry Dept.", hi: "राजस्थान पशुपालन विभाग" },
+    name:    { en: "Mukhyamantri Pashudhan Nishulk Dawai Yojana",                                                            hi: "मुख्यमंत्री पशुधन निःशुल्क दवाई योजना" },
+    benefit: { en: "Free veterinary medicines & vaccines for all livestock at govt animal hospitals & sub-centres",           hi: "सरकारी पशु चिकित्सालयों और उप-केंद्रों पर सभी पशुओं के लिए निःशुल्क पशु चिकित्सा दवाइयाँ और टीके" },
+    tag:     { en: "Farmer / Livestock", hi: "किसान / पशुपालन" },
+    annual: 0,
+    apply:   { en: "animalhusbandry.rajasthan.gov.in / Nearest Govt Vet Hospital", hi: "animalhusbandry.rajasthan.gov.in / नज़दीकी सरकारी पशु अस्पताल" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Animal / Livestock Ownership Proof (or self-declaration)"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "पशु स्वामित्व प्रमाण (या स्व-घोषणा)"] },
+    // Eligibility: any Rajasthan livestock owner visiting a govt veterinary facility
+    match: (a) => a.state === "Rajasthan" && a.who === "farmer",
+  },
+
+  // ── EDUCATION / TOP MERIT ────────────────────────────────────────────────────
+
+  {
+    id: "raj_hamari_beti",
+    icon: "🥇", color: "#CA8A04", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Education Dept. (RMSA)", hi: "राजस्थान शिक्षा विभाग (RMSA)" },
+    name:    { en: "Hamari Beti Yojana (Rajasthan)",                                                                                      hi: "हमारी बेटी योजना (राजस्थान)" },
+    benefit: { en: "Top-4 girl toppers per district (Class 12 RBSE): laptop + ₹1 lakh scholarship · State topper: additional ₹1 lakh for international study", hi: "प्रत्येक जिले की RBSE 12वीं टॉप-4 बालिकाओं को: लैपटॉप + ₹1 लाख छात्रवृत्ति · राज्य टॉपर को अतिरिक्त ₹1 लाख अंतर्राष्ट्रीय अध्ययन के लिए" },
+    tag:     { en: "Education / Top Merit", hi: "शिक्षा / टॉप मेरिट" },
+    annual: 100000,
+    apply:   { en: "rajshaladarpan.nic.in", hi: "rajshaladarpan.nic.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "RBSE Class 12 Mark Sheet (district top-4 rank proof)", "College Admission Proof", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "RBSE 12वीं मार्कशीट (जिला टॉप-4 रैंक प्रमाण)", "कॉलेज प्रवेश प्रमाण", "बैंक खाता"] },
+    // Eligibility: girl student ranked in top 4 of district in RBSE Class 12 board exam
+    match: (a) => a.state === "Rajasthan" && a.who === "student",
+  },
+
+  // ── MINORITY / SCHOLARSHIP ───────────────────────────────────────────────────
+
+  {
+    id: "raj_minority_scholarship",
+    icon: "📜", color: "#0284C7", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Minority Affairs Dept.", hi: "राजस्थान अल्पसंख्यक मामलात विभाग" },
+    name:    { en: "Rajasthan Minority Post-Matric Scholarship",                                                                           hi: "राजस्थान अल्पसंख्यक पोस्ट-मैट्रिक छात्रवृत्ति" },
+    benefit: { en: "₹825–₹1,500/month scholarship for minority students (Muslim, Christian, Sikh, Buddhist, Parsi, Jain) in Class 11 onwards", hi: "कक्षा 11 से आगे पढ़ने वाले अल्पसंख्यक छात्रों (मुस्लिम, ईसाई, सिख, बौद्ध, पारसी, जैन) को ₹825–₹1,500/माह छात्रवृत्ति" },
+    tag:     { en: "Student / Minority", hi: "छात्र / अल्पसंख्यक" },
+    annual: 18000,
+    apply:   { en: "minority.rajasthan.gov.in", hi: "minority.rajasthan.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Minority Community Certificate", "Income Certificate (family ≤ ₹2 lakh/year)", "Previous Year Mark Sheet", "School / College Enrolment Proof", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "आय प्रमाण (परिवार ≤ ₹2 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "स्कूल / कॉलेज नामांकन प्रमाण", "बैंक खाता"] },
+    // Eligibility: minority community student, family income ≤ ₹2 lakh/year, enrolled Class 11 onwards
+    match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+  },
+
+  // ── CONSTRUCTION WORKERS ─────────────────────────────────────────────────────
+
+  {
+    id: "raj_bocw_welfare",
+    icon: "🏗️", color: "#78350F", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Labour Dept. (BOCW Welfare Board)", hi: "राजस्थान श्रम विभाग (BOCW कल्याण बोर्ड)" },
+    name:    { en: "Rajasthan BOCW Construction Worker Welfare Scheme",                                                                           hi: "राजस्थान BOCW निर्माण श्रमिक कल्याण योजना" },
+    benefit: { en: "Package for registered construction workers: ₹2 lakh death benefit + children scholarship + maternity ₹21,000 + housing loan", hi: "पंजीकृत निर्माण श्रमिकों को: ₹2 लाख मृत्यु लाभ + बच्चों की छात्रवृत्ति + मातृत्व ₹21,000 + आवास ऋण" },
+    tag:     { en: "Labour / Construction", hi: "श्रम / निर्माण" },
+    annual: 0,
+    apply:   { en: "labour.rajasthan.gov.in", hi: "labour.rajasthan.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Construction Work Proof (90+ days in last 12 months)", "Employer / Contractor Certificate", "Passport Photo", "Bank Account"],
+               hi: ["आधार कार्ड", "जन आधार कार्ड", "निर्माण कार्य प्रमाण (पिछले 12 माह में 90+ दिन)", "नियोक्ता / ठेकेदार प्रमाण पत्र", "पासपोर्ट फोटो", "बैंक खाता"] },
+    // Eligibility: construction worker who has worked 90+ days in last 12 months; register first with BOCW board
+    match: (a) => a.state === "Rajasthan" && (a.who === "general" || a.who === "business") && ["below1", "1to3"].includes(a.income),
+  },
+
   // ADD MORE RAJASTHAN SCHEMES ABOVE THIS LINE ↑
   // {
   //   id: "rajasthan_new_scheme",
