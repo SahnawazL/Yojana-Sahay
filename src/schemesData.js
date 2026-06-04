@@ -902,8 +902,189 @@ export const SCHEME_DB = [
     match: (a) => ["below1","1to3"].includes(a.income),
   },
 
-  // ADD MORE NATIONAL SCHEMES HERE ↓
-  // { id: "new_national_scheme", icon: "🆕", color: "#123456", scope: "national", ... }
+  // ── NEW NATIONAL SCHEMES ──────────────────────────────────────────────────
+
+  {
+    id: "pmkmy_kisan",
+    icon: "🧑‍🌾", color: "#15803D", scope: "national",
+    ministry: { en: "Ministry of Agriculture & Farmers Welfare", hi: "कृषि एवं किसान कल्याण मंत्रालय" },
+    name:    { en: "PM Kisan Maan Dhan Yojana (PMKMY)",             hi: "पीएम किसान मान-धन योजना (PMKMY)" },
+    benefit: { en: "₹3,000/month guaranteed pension after age 60 for small/marginal farmers · Govt. matches your contribution", hi: "छोटे/सीमांत किसानों को 60 वर्ष के बाद ₹3,000/माह पेंशन · सरकार बराबर अंशदान देती है" },
+    tag:     { en: "Farmer", hi: "किसान" },
+    annual: 36000,
+    apply:   { en: "maandhan.in", hi: "maandhan.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Land Records (up to 2 hectares)","Bank Account (Aadhaar-linked)","Mobile Number"],
+               hi: ["आधार कार्ड","जमीन के कागज़ (2 हेक्टेयर तक)","बैंक खाता (आधार लिंक)","मोबाइल नंबर"] },
+    match: (a) => a.who === "farmer" && ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "pmksy",
+    icon: "💧", color: "#0369A1", scope: "national",
+    ministry: { en: "Ministry of Agriculture & Farmers Welfare", hi: "कृषि एवं किसान कल्याण मंत्रालय" },
+    name:    { en: "PM Krishi Sinchai Yojana – Per Drop More Crop", hi: "पीएम कृषि सिंचाई योजना – प्रति बूंद अधिक फसल" },
+    benefit: { en: "55% subsidy (80% for SC/ST) on drip & sprinkler irrigation systems", hi: "ड्रिप और स्प्रिंकलर सिंचाई पर 55% सब्सिडी (SC/ST को 80%)" },
+    tag:     { en: "Farmer", hi: "किसान" },
+    annual: 0,
+    apply:   { en: "pmksy.gov.in", hi: "pmksy.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Land Records (Khasra/Khatauni)","Bank Account","Caste Certificate (SC/ST if applicable)","Electricity Bill"],
+               hi: ["आधार कार्ड","जमीन के कागज़ (खसरा/खतौनी)","बैंक खाता","जाति प्रमाण (SC/ST हो तो)","बिजली बिल"] },
+    match: (a) => a.who === "farmer" && a.area === "rural",
+  },
+
+  {
+    id: "nfbs",
+    icon: "💸", color: "#B45309", scope: "national",
+    ministry: { en: "Ministry of Rural Development (NSAP)", hi: "ग्रामीण विकास मंत्रालय (NSAP)" },
+    name:    { en: "National Family Benefit Scheme (NFBS)",          hi: "राष्ट्रीय परिवार लाभ योजना (NFBS)" },
+    benefit: { en: "₹20,000 one-time lump sum to BPL family on death of primary breadwinner (age 18–59)", hi: "BPL परिवार के मुखिया (18–59 वर्ष) की मृत्यु पर एकमुश्त ₹20,000" },
+    tag:     { en: "Labour / General", hi: "श्रमिक / सामान्य" },
+    annual: 0,
+    apply:   { en: "nsap.nic.in / District Social Welfare Office", hi: "nsap.nic.in / जिला समाज कल्याण कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Death Certificate of Breadwinner","BPL Certificate","Age Proof of Deceased","Bank Account","Relationship Proof"],
+               hi: ["आधार कार्ड","मुखिया का मृत्यु प्रमाण पत्र","BPL प्रमाण","मृतक का आयु प्रमाण","बैंक खाता","संबंध प्रमाण"] },
+    match: (a) => ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "jan_aushadhi",
+    icon: "💊", color: "#059669", scope: "national",
+    ministry: { en: "Ministry of Chemicals & Fertilizers", hi: "रसायन एवं उर्वरक मंत्रालय" },
+    name:    { en: "PM Bharatiya Janaushadhi Pariyojana",            hi: "पीएम भारतीय जनऔषधि परियोजना" },
+    benefit: { en: "Generic medicines at 50–90% lower price than branded drugs at Jan Aushadhi Kendras", hi: "Jan Aushadhi केंद्र पर ब्रांडेड दवाओं से 50–90% सस्ती जेनेरिक दवाएं" },
+    tag:     { en: "Health", hi: "स्वास्थ्य" },
+    annual: 12000,
+    apply:   { en: "janaushadhi.gov.in / Nearest Jan Aushadhi Kendra", hi: "janaushadhi.gov.in / नजदीकी जन औषधि केंद्र" }, applyType: "offline",
+    docs:    { en: ["Doctor's Prescription (for Rx medicines)","No registration required"],
+               hi: ["डॉक्टर का पर्चा (Rx दवाओं के लिए)","पंजीकरण की आवश्यकता नहीं"] },
+    match: (a) => true,
+  },
+
+  {
+    id: "rvy",
+    icon: "🦯", color: "#7C3AED", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Empowerment", hi: "सामाजिक न्याय एवं अधिकारिता मंत्रालय" },
+    name:    { en: "Rashtriya Vayoshri Yojana (RVY)",                hi: "राष्ट्रीय वयोश्री योजना (RVY)" },
+    benefit: { en: "Free assistive devices for BPL senior citizens 60+: walking stick, elbow crutches, wheelchair, hearing aid, spectacles", hi: "BPL वरिष्ठ नागरिकों (60+) को मुफ्त सहायक उपकरण: छड़ी, बैसाखी, व्हीलचेयर, श्रवण यंत्र, चश्मा" },
+    tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
+    annual: 0,
+    apply:   { en: "alimco.in / District Social Welfare Office", hi: "alimco.in / जिला समाज कल्याण कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Age Proof (60+ years)","BPL Certificate","Medical Certificate (disability/age-related infirmity)","Passport Photo"],
+               hi: ["आधार कार्ड","आयु प्रमाण (60+ वर्ष)","BPL प्रमाण","चिकित्सा प्रमाण पत्र","पासपोर्ट फोटो"] },
+    match: (a) => (a.who === "senior" || a.age === "above60") && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "saubhagya",
+    icon: "⚡", color: "#D97706", scope: "national",
+    ministry: { en: "Ministry of Power", hi: "विद्युत मंत्रालय" },
+    name:    { en: "Saubhagya – Pradhan Mantri Sahaj Bijli Har Ghar Yojana", hi: "सौभाग्य – पीएम सहज बिजली हर घर योजना" },
+    benefit: { en: "Free electricity connection for BPL households · Free wiring & meter installation", hi: "BPL परिवारों को मुफ्त बिजली कनेक्शन · मुफ्त वायरिंग और मीटर" },
+    tag:     { en: "Solar / Electricity", hi: "सौर / बिजली" },
+    annual: 0,
+    apply:   { en: "saubhagya.gov.in / State DISCOM office", hi: "saubhagya.gov.in / राज्य DISCOM कार्यालय" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Ration Card / BPL Certificate","Address Proof","Passport Photo"],
+               hi: ["आधार कार्ड","राशन कार्ड / BPL प्रमाण","पता प्रमाण","पासपोर्ट फोटो"] },
+    match: (a) => ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "icds",
+    icon: "👶", color: "#EC4899", scope: "national",
+    ministry: { en: "Ministry of Women & Child Development", hi: "महिला एवं बाल विकास मंत्रालय" },
+    name:    { en: "Integrated Child Development Services (ICDS) – Anganwadi", hi: "समेकित बाल विकास सेवाएं (ICDS) – आंगनवाड़ी" },
+    benefit: { en: "Free supplementary nutrition, immunization, health checkup & pre-school education for children (0–6 yrs) and pregnant/nursing mothers", hi: "बच्चों (0–6 वर्ष) और गर्भवती/धात्री माताओं को मुफ्त पूरक पोषण, टीकाकरण, स्वास्थ्य जांच और पूर्व-स्कूली शिक्षा" },
+    tag:     { en: "Health / Child", hi: "स्वास्थ्य / बच्चे" },
+    annual: 6000,
+    apply:   { en: "Nearest Anganwadi Centre (no online registration needed)", hi: "नजदीकी आंगनवाड़ी केंद्र (ऑनलाइन पंजीकरण जरूरी नहीं)" }, applyType: "offline",
+    docs:    { en: ["Child's Birth Certificate","Aadhaar Card (parent)","MCH Card","Address Proof"],
+               hi: ["बच्चे का जन्म प्रमाण पत्र","आधार कार्ड (माता-पिता)","MCH कार्ड","पता प्रमाण"] },
+    match: (a) => a.who === "women" || (a.age === "below18" && ["below1","1to3"].includes(a.income)),
+  },
+
+  {
+    id: "premat_st_scholarship",
+    icon: "📗", color: "#065F46", scope: "national",
+    ministry: { en: "Ministry of Tribal Affairs", hi: "जनजातीय कार्य मंत्रालय" },
+    name:    { en: "Pre-Matric Scholarship for ST Students (Class 9–10)", hi: "ST छात्रों के लिए प्री-मैट्रिक छात्रवृत्ति (कक्षा 9–10)" },
+    benefit: { en: "₹150/month (day scholar) to ₹350/month (hosteller) + full tuition & fees reimbursement", hi: "₹150/माह (डे स्कॉलर) से ₹350/माह (छात्रावास) + पूर्ण ट्यूशन और शुल्क प्रतिपूर्ति" },
+    tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
+    annual: 4200,
+    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","ST Caste Certificate","Income Certificate (≤₹2.5L/year)","Class 8 Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
+               hi: ["आधार कार्ड","ST जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","कक्षा 8 मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
+    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "pmgdisha",
+    icon: "💻", color: "#1D4ED8", scope: "national",
+    ministry: { en: "Ministry of Electronics & Information Technology", hi: "इलेक्ट्रॉनिक्स एवं सूचना प्रौद्योगिकी मंत्रालय" },
+    name:    { en: "PM Gramin Digital Saksharta Abhiyan (PMGDISHA)",  hi: "पीएम ग्रामीण डिजिटल साक्षरता अभियान (PMGDISHA)" },
+    benefit: { en: "Free 15-hour digital literacy training: internet, mobile banking, govt. e-services for rural households", hi: "ग्रामीण परिवारों के लिए मुफ्त 15 घंटे का डिजिटल साक्षरता प्रशिक्षण: इंटरनेट, मोबाइल बैंकिंग, सरकारी ई-सेवाएं" },
+    tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
+    annual: 0,
+    apply:   { en: "pmgdisha.in / CSC Centre (Common Service Centre)", hi: "pmgdisha.in / CSC केंद्र (कॉमन सर्विस सेंटर)" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Address Proof (rural)","Mobile Number"],
+               hi: ["आधार कार्ड","पता प्रमाण (ग्रामीण)","मोबाइल नंबर"] },
+    match: (a) => a.area === "rural" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "national_creche",
+    icon: "🍼", color: "#BE185D", scope: "national",
+    ministry: { en: "Ministry of Women & Child Development", hi: "महिला एवं बाल विकास मंत्रालय" },
+    name:    { en: "National Creche Scheme (Palna)",                  hi: "राष्ट्रीय क्रेच योजना (पालना)" },
+    benefit: { en: "Free/subsidized daycare for children 6 months–6 years of working mothers · Nutrition, healthcare & early education", hi: "कामकाजी माताओं के 6 माह–6 वर्ष के बच्चों के लिए मुफ्त/सब्सिडीयुक्त डेकेयर · पोषण, स्वास्थ्य देखभाल और प्रारंभिक शिक्षा" },
+    tag:     { en: "Women / SHG", hi: "महिला / SHG" },
+    annual: 9600,
+    apply:   { en: "wcd.gov.in / State WCD Department / Nearest Creche", hi: "wcd.gov.in / राज्य WCD विभाग / नजदीकी क्रेच" }, applyType: "offline",
+    docs:    { en: ["Child's Birth Certificate","Mother's Work Certificate / Aadhaar","Income Certificate (≤₹12,000/month)","Address Proof"],
+               hi: ["बच्चे का जन्म प्रमाण पत्र","माँ का कार्य प्रमाण पत्र / आधार","आय प्रमाण (≤₹12,000/माह)","पता प्रमाण"] },
+    match: (a) => a.who === "women" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "pmlvmy",
+    icon: "🛍️", color: "#6B21A8", scope: "national",
+    ministry: { en: "Ministry of Labour & Employment", hi: "श्रम एवं रोजगार मंत्रालय" },
+    name:    { en: "PM Laghu Vyapari Maan-dhan Yojana (PMLVMY)",     hi: "पीएम लघु व्यापारी मान-धन योजना (PMLVMY)" },
+    benefit: { en: "₹3,000/month pension after age 60 for shopkeepers, retail traders & self-employed persons · Govt. matches contribution", hi: "दुकानदारों, खुदरा व्यापारियों और स्व-नियोजित लोगों को 60 वर्ष बाद ₹3,000/माह पेंशन · सरकार बराबर अंशदान देती है" },
+    tag:     { en: "Business", hi: "व्यापार" },
+    annual: 36000,
+    apply:   { en: "maandhan.in", hi: "maandhan.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Bank Account (Aadhaar-linked)","GST Registration / Shop Registration Proof","Self-Declaration of Annual Turnover < ₹1.5 Crore","Mobile Number"],
+               hi: ["आधार कार्ड","बैंक खाता (आधार लिंक)","GST/दुकान पंजीकरण प्रमाण","वार्षिक टर्नओवर < ₹1.5 करोड़ स्व-घोषणा","मोबाइल नंबर"] },
+    match: (a) => a.who === "business" && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "seekho_kamao",
+    icon: "🎓", color: "#0F766E", scope: "national",
+    ministry: { en: "Ministry of Minority Affairs", hi: "अल्पसंख्यक कार्य मंत्रालय" },
+    name:    { en: "Seekho aur Kamao (Learn & Earn)",                 hi: "सीखो और कमाओ (Learn & Earn)" },
+    benefit: { en: "Free market-driven skill training (3–12 months) for minority youth + placement assistance · Stipend during training", hi: "अल्पसंख्यक युवाओं के लिए मुफ्त कौशल प्रशिक्षण (3–12 माह) + रोजगार सहायता · प्रशिक्षण के दौरान वजीफा" },
+    tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
+    annual: 18000,
+    apply:   { en: "seekhoaurkamao.nic.in", hi: "seekhoaurkamao.nic.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Minority Community Certificate (Muslim/Christian/Sikh/Buddhist/Jain/Parsi)","Educational Certificate","Bank Account","Passport Photo"],
+               hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","शैक्षणिक प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
+    match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "pm_daksh",
+    icon: "🔩", color: "#92400E", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Empowerment", hi: "सामाजिक न्याय एवं अधिकारिता मंत्रालय" },
+    name:    { en: "PM DAKSH Yojana (Skill Training for SC/OBC/EBC)", hi: "पीएम दक्ष योजना (SC/OBC/EBC हेतु कौशल प्रशिक्षण)" },
+    benefit: { en: "Free skill training (short-term & long-term) for SC/OBC/EBC · ₹1,000–₹1,500/month stipend + placement support", hi: "SC/OBC/EBC के लिए मुफ्त कौशल प्रशिक्षण · ₹1,000–₹1,500/माह वजीफा + रोजगार सहायता" },
+    tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
+    annual: 18000,
+    apply:   { en: "pmdaksh.gov.in", hi: "pmdaksh.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","SC / OBC / EBC Caste Certificate","Income Certificate","Educational Certificate (Class 8/10/12 as applicable)","Bank Account","Passport Photo"],
+               hi: ["आधार कार्ड","SC/OBC/EBC जाति प्रमाण पत्र","आय प्रमाण","शैक्षणिक प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
+    match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
+  },
 
   // ══════════════════════ STATE SCHEMES ════════════════════════════════════════
   // All state schemes live in stateSchemes.js — edit that file to add/change them.
@@ -913,28 +1094,44 @@ export const SCHEME_DB = [
 
 export const CATEGORIES = {
   en: [
-    { icon: "🌾", label: "Farmer",    color: "#138808", bg: "#f0fdf4", filterKey: "farmer"    },
-    { icon: "📚", label: "Student",   color: "#003580", bg: "#eff6ff", filterKey: "student"   },
-    { icon: "👩", label: "Women",     color: "#BE185D", bg: "#fdf2f8", filterKey: "women"     },
-    { icon: "👴", label: "Senior",    color: "#FF9933", bg: "#fff7ed", filterKey: "senior"    },
-    { icon: "💼", label: "Business",  color: "#6B21A8", bg: "#faf5ff", filterKey: "business"  },
-    { icon: "🏠", label: "Housing",   color: "#0F766E", bg: "#f0fdfa", filterKey: "housing"   },
-    { icon: "🏥", label: "Health",    color: "#0369A1", bg: "#f0f9ff", filterKey: "health"    },
-    { icon: "🛡️", label: "Insurance", color: "#DC2626", bg: "#fff1f2", filterKey: "insurance" },
-    { icon: "🏛️", label: "Pension",   color: "#7C3AED", bg: "#f5f3ff", filterKey: "pension"   },
-    { icon: "🆓", label: "Free Benefits", color: "#15803D", bg: "#f0fdf4", filterKey: "free"  },
+    { icon: "🌾", label: "Farmer",       color: "#138808", bg: "#f0fdf4", filterKey: "farmer"    },
+    { icon: "📚", label: "Student",      color: "#003580", bg: "#eff6ff", filterKey: "student"   },
+    { icon: "👩", label: "Women",        color: "#BE185D", bg: "#fdf2f8", filterKey: "women"     },
+    { icon: "👴", label: "Senior",       color: "#FF9933", bg: "#fff7ed", filterKey: "senior"    },
+    { icon: "💼", label: "Business",     color: "#6B21A8", bg: "#faf5ff", filterKey: "business"  },
+    { icon: "🏠", label: "Housing",      color: "#0F766E", bg: "#f0fdfa", filterKey: "housing"   },
+    { icon: "🏥", label: "Health",       color: "#0369A1", bg: "#f0f9ff", filterKey: "health"    },
+    { icon: "🛡️", label: "Insurance",   color: "#DC2626", bg: "#fff1f2", filterKey: "insurance" },
+    { icon: "🏛️", label: "Pension",      color: "#7C3AED", bg: "#f5f3ff", filterKey: "pension"   },
+    { icon: "🆓", label: "Free Benefits",color: "#15803D", bg: "#f0fdf4", filterKey: "free"      },
+    { icon: "🎯", label: "Skill & Youth",color: "#D97706", bg: "#fffbeb", filterKey: "skill"     },
+    { icon: "👶", label: "Child & Girl", color: "#EC4899", bg: "#fdf4ff", filterKey: "child"     },
+    { icon: "⚒️", label: "Labour",       color: "#92400E", bg: "#fef3c7", filterKey: "labour"    },
+    { icon: "🍱", label: "Food",         color: "#B45309", bg: "#fef9c3", filterKey: "food"      },
+    { icon: "🌿", label: "Rural",        color: "#065F46", bg: "#ecfdf5", filterKey: "rural"     },
+    { icon: "🦽", label: "Disability",   color: "#4F46E5", bg: "#eef2ff", filterKey: "disability"},
+    { icon: "☀️", label: "Solar",        color: "#CA8A04", bg: "#fefce8", filterKey: "solar"     },
+    { icon: "🤱", label: "Maternity",    color: "#9D174D", bg: "#fff1f2", filterKey: "maternity" },
   ],
   hi: [
-    { icon: "🌾", label: "किसान",        color: "#138808", bg: "#f0fdf4", filterKey: "farmer"    },
-    { icon: "📚", label: "छात्र",         color: "#003580", bg: "#eff6ff", filterKey: "student"   },
-    { icon: "👩", label: "महिला",        color: "#BE185D", bg: "#fdf2f8", filterKey: "women"     },
-    { icon: "👴", label: "वरिष्ठ",       color: "#FF9933", bg: "#fff7ed", filterKey: "senior"    },
-    { icon: "💼", label: "व्यापार",      color: "#6B21A8", bg: "#faf5ff", filterKey: "business"  },
-    { icon: "🏠", label: "आवास",         color: "#0F766E", bg: "#f0fdfa", filterKey: "housing"   },
-    { icon: "🏥", label: "स्वास्थ्य",    color: "#0369A1", bg: "#f0f9ff", filterKey: "health"    },
-    { icon: "🛡️", label: "बीमा",         color: "#DC2626", bg: "#fff1f2", filterKey: "insurance" },
-    { icon: "🏛️", label: "पेंशन",        color: "#7C3AED", bg: "#f5f3ff", filterKey: "pension"   },
-    { icon: "🆓", label: "मुफ़्त लाभ",   color: "#15803D", bg: "#f0fdf4", filterKey: "free"      },
+    { icon: "🌾", label: "किसान",          color: "#138808", bg: "#f0fdf4", filterKey: "farmer"    },
+    { icon: "📚", label: "छात्र",           color: "#003580", bg: "#eff6ff", filterKey: "student"   },
+    { icon: "👩", label: "महिला",          color: "#BE185D", bg: "#fdf2f8", filterKey: "women"     },
+    { icon: "👴", label: "वरिष्ठ",         color: "#FF9933", bg: "#fff7ed", filterKey: "senior"    },
+    { icon: "💼", label: "व्यापार",        color: "#6B21A8", bg: "#faf5ff", filterKey: "business"  },
+    { icon: "🏠", label: "आवास",           color: "#0F766E", bg: "#f0fdfa", filterKey: "housing"   },
+    { icon: "🏥", label: "स्वास्थ्य",      color: "#0369A1", bg: "#f0f9ff", filterKey: "health"    },
+    { icon: "🛡️", label: "बीमा",           color: "#DC2626", bg: "#fff1f2", filterKey: "insurance" },
+    { icon: "🏛️", label: "पेंशन",          color: "#7C3AED", bg: "#f5f3ff", filterKey: "pension"   },
+    { icon: "🆓", label: "मुफ़्त लाभ",     color: "#15803D", bg: "#f0fdf4", filterKey: "free"      },
+    { icon: "🎯", label: "कौशल व युवा",    color: "#D97706", bg: "#fffbeb", filterKey: "skill"     },
+    { icon: "👶", label: "बच्चे व बालिका", color: "#EC4899", bg: "#fdf4ff", filterKey: "child"     },
+    { icon: "⚒️", label: "श्रमिक",         color: "#92400E", bg: "#fef3c7", filterKey: "labour"    },
+    { icon: "🍱", label: "खाद्य",          color: "#B45309", bg: "#fef9c3", filterKey: "food"      },
+    { icon: "🌿", label: "ग्रामीण",        color: "#065F46", bg: "#ecfdf5", filterKey: "rural"     },
+    { icon: "🦽", label: "विकलांगता",      color: "#4F46E5", bg: "#eef2ff", filterKey: "disability"},
+    { icon: "☀️", label: "सौर ऊर्जा",      color: "#CA8A04", bg: "#fefce8", filterKey: "solar"     },
+    { icon: "🤱", label: "मातृत्व",         color: "#9D174D", bg: "#fff1f2", filterKey: "maternity" },
   ],
 };
 
@@ -977,14 +1174,80 @@ export function getSchemesForCategory(filterKey) {
   }
   // ────────────────────────────────────────────────────────────────────────────
 
+  // ── New category filters ──────────────────────────────────────────────────
+  if (filterKey === "skill") {
+    const kws = ["skill", "youth", "internship", "apprentice", "training", "kaushal", "rozgar"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "child") {
+    const kws = ["child", "girl", "beti", "balika", "sukanya", "anganwadi", "nutrition", "poshan"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "labour") {
+    const kws = ["labour", "labor", "worker", "shramik", "mazdoor", "mgnrega", "nrega", "employment"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "food") {
+    const kws = ["food", "ration", "nutrition", "annapoorna", "annapurna", "midday", "mid-day", "poshan"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "rural") {
+    const kws = ["rural", "gram", "village", "panchayat", "gramin", "pradhan mantri gram", "jal jeevan", "swajal"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "disability") {
+    const kws = ["disability", "disabled", "divyang", "handicap", "viklang", "adip", "assistive"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "solar") {
+    const kws = ["solar", "electricity", "energy", "bijli", "surya", "pm kusum", "rooftop", "ujala"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+
+  if (filterKey === "maternity") {
+    const kws = ["maternity", "maternal", "pregnancy", "pradhan mantri matru", "pmmvy", "janani", "delivery"];
+    return SCHEME_DB.filter(s => kws.some(kw =>
+      s.tag.en.toLowerCase().includes(kw) || s.name.en.toLowerCase().includes(kw)
+    ));
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   // Tag keywords used to match state schemes, which can't use s.match()
   // (state schemes require a.state === "X", so match() always returns false with state:"")
   const STATE_TAG_KEYWORDS = {
-    farmer:   ["farmer", "kisan", "rythu", "shetkari", "kalia", "krishi"],
-    student:  ["student", "education", "scholarship", "merit"],
-    women:    ["women", "girl", "widow", "maternity", "shg", "naari", "marriage"],
-    senior:   ["senior", "pension", "old age"],
-    business: ["business", "artisan", "vendor", "entrepreneur"],
+    farmer:     ["farmer", "kisan", "rythu", "shetkari", "kalia", "krishi"],
+    student:    ["student", "education", "scholarship", "merit"],
+    women:      ["women", "girl", "widow", "maternity", "shg", "naari", "marriage"],
+    senior:     ["senior", "pension", "old age"],
+    business:   ["business", "artisan", "vendor", "entrepreneur"],
+    skill:      ["skill", "youth", "internship", "apprentice", "training"],
+    child:      ["child", "girl", "balika", "sukanya", "nutrition", "poshan"],
+    labour:     ["labour", "labor", "worker", "shramik", "nrega", "employment"],
+    food:       ["food", "ration", "nutrition", "annapoorna", "midday"],
+    rural:      ["rural", "gram", "village", "gramin", "jal"],
+    disability: ["disability", "disabled", "divyang", "viklang", "adip"],
+    solar:      ["solar", "electricity", "energy", "surya", "ujala"],
+    maternity:  ["maternity", "maternal", "pregnancy", "janani", "pmmvy"],
   };
   const stateKeywords = STATE_TAG_KEYWORDS[filterKey] || [];
 
