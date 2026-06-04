@@ -6825,71 +6825,75 @@ export default function YojanaSahay(){
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
                 {categories.map((cat,i)=>{
                   const count=categoryCounts[cat.filterKey]||0;
+                  // Light: visible tinted border; Dark: brighter border so it pops on black
+                  const cardBorder=dark?`1.5px solid ${cat.color}70`:`1.5px solid ${cat.color}55`;
+                  const cardBg=dark
+                    ?`linear-gradient(155deg,${cat.color}28 0%,${cat.color}12 100%)`
+                    :`linear-gradient(155deg,${cat.color}1c 0%,${cat.color}0a 100%)`;
+                  const cardShadow=dark
+                    ?`0 3px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.08)`
+                    :`0 2px 8px ${cat.color}28,0 1px 3px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.80)`;
+                  // Dark mode: white text so it's always readable against dark glass
+                  // Light mode: use cat.color for branded coloured text
+                  const labelColor=dark?"rgba(255,255,255,0.90)":cat.color;
                   return(
                     <div key={i} className={`fu ch c${i} ${loaded?"show":""}`}
                       onClick={()=>{haptic();setSelectedCategory(cat);}}
                       style={{
-                        background:dark
-                          ?`linear-gradient(155deg,${cat.color}1a 0%,${cat.color}09 100%)`
-                          :`linear-gradient(155deg,${cat.color}16 0%,${cat.color}07 100%)`,
+                        background:cardBg,
                         backdropFilter:"blur(18px)",
                         WebkitBackdropFilter:"blur(18px)",
                         borderRadius:13,
                         padding:"9px 5px 8px",
                         textAlign:"center",
-                        border:`1px solid ${cat.color}2e`,
-                        boxShadow:dark
-                          ?`0 3px 14px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.07)`
-                          :`0 2px 10px ${cat.color}1c,0 1px 3px rgba(0,0,0,0.04),inset 0 1px 0 rgba(255,255,255,0.72)`,
+                        border:cardBorder,
+                        boxShadow:cardShadow,
                         position:"relative",
                         overflow:"hidden",
                         transition:"transform 0.14s cubic-bezier(.34,1.56,.64,1),box-shadow 0.18s",
                       }}
                       onTouchStart={e=>{
                         e.currentTarget.style.transform="scale(0.93)";
-                        e.currentTarget.style.boxShadow=`0 1px 4px ${cat.color}14`;
+                        e.currentTarget.style.boxShadow=`0 1px 4px ${cat.color}18`;
                       }}
                       onTouchEnd={e=>{
                         e.currentTarget.style.transform="scale(1)";
-                        e.currentTarget.style.boxShadow=dark
-                          ?`0 3px 14px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.07)`
-                          :`0 2px 10px ${cat.color}1c,0 1px 3px rgba(0,0,0,0.04),inset 0 1px 0 rgba(255,255,255,0.72)`;
+                        e.currentTarget.style.boxShadow=cardShadow;
                       }}>
                       {/* Top glass shine line */}
                       <div style={{
                         position:"absolute",top:0,left:"15%",right:"15%",height:"1px",
-                        background:`linear-gradient(90deg,transparent,${cat.color}60,transparent)`,
+                        background:`linear-gradient(90deg,transparent,${cat.color}70,transparent)`,
                         pointerEvents:"none",
                       }}/>
                       {/* Soft radial glow behind icon */}
                       <div style={{
-                        position:"absolute",top:"18%",left:"50%",transform:"translateX(-50%)",
-                        width:34,height:34,borderRadius:"50%",
-                        background:`radial-gradient(circle,${cat.color}22 0%,transparent 72%)`,
+                        position:"absolute",top:"14%",left:"50%",transform:"translateX(-50%)",
+                        width:36,height:36,borderRadius:"50%",
+                        background:`radial-gradient(circle,${cat.color}30 0%,transparent 72%)`,
                         pointerEvents:"none",
                       }}/>
-                      {/* Count badge — mini glass pill */}
+                      {/* Count badge */}
                       <div style={{
                         position:"absolute",top:5,right:5,
-                        background:dark
-                          ?`linear-gradient(135deg,${cat.color}cc,${cat.color}99)`
-                          :`linear-gradient(135deg,${cat.color},${cat.color}cc)`,
+                        background:`linear-gradient(135deg,${cat.color},${cat.color}bb)`,
                         color:"#fff",fontSize:7.5,fontWeight:900,
                         borderRadius:8,padding:"1.5px 4.5px",minWidth:14,
                         lineHeight:"12px",textAlign:"center",letterSpacing:0.2,
-                        boxShadow:`0 1px 5px ${cat.color}55`,
+                        boxShadow:`0 1px 5px ${cat.color}66`,
                         fontFamily:"'Noto Sans',sans-serif",
                       }}>{count}</div>
                       {/* Emoji icon */}
                       <div style={{
                         fontSize:19,marginBottom:5,lineHeight:1,
-                        filter:`drop-shadow(0 2px 5px ${cat.color}4a)`,
+                        filter:`drop-shadow(0 2px 5px ${cat.color}55)`,
                       }}>{cat.icon}</div>
-                      {/* Label */}
+                      {/* Label — white in dark mode, brand colour in light */}
                       <div style={{
-                        fontSize:9.5,fontWeight:700,color:cat.color,
+                        fontSize:9.5,fontWeight:700,
+                        color:labelColor,
                         fontFamily:bf,lineHeight:1.25,letterSpacing:0.1,
-                        textShadow:dark?`0 0 8px ${cat.color}55`:"none",
+                        textShadow:dark?`0 1px 6px rgba(0,0,0,0.6)`:"none",
                       }}>{cat.label}</div>
                     </div>
                   );
