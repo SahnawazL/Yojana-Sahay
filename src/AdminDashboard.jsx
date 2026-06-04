@@ -676,7 +676,7 @@ function SchemeCoverageTab({ dark }) {
   function coverageColor(count) {
     if (count === 0)   return "#E53E3E";
     if (count <= 100)  return SAFFRON;
-    if (count <= 200)  return "#F59E0B";
+    if (count <= 200)  return "#3B82F6";
     return IND_GREEN;
   }
   function coverageLabel(count) {
@@ -694,9 +694,6 @@ function SchemeCoverageTab({ dark }) {
     return null; // already Good
   }
 
-  // Podium accent colors for top 3
-  const podiumColors = ["#F5A623", "#A8A9AD", "#CD7F32"];
-
   // Dynamic insight line
   const insightText = (() => {
     if (noSchemes > 0)
@@ -713,7 +710,7 @@ function SchemeCoverageTab({ dark }) {
     { id:"all",    label:"All",    color:th.textMid,  count: rows.length  },
     { id:"none",   label:"None",   color:"#E53E3E",   count: noSchemes    },
     { id:"low",    label:"Low",    color:SAFFRON,     count: lowCount     },
-    { id:"medium", label:"Medium", color:"#F59E0B",   count: medCount     },
+    { id:"medium", label:"Medium", color:"#3B82F6",   count: medCount     },
     { id:"good",   label:"Good",   color:IND_GREEN,   count: highCoverage },
   ];
 
@@ -772,7 +769,7 @@ function SchemeCoverageTab({ dark }) {
           {[
             { count:noSchemes,    color:"#E53E3E" },
             { count:lowCount,     color:SAFFRON   },
-            { count:medCount,     color:"#F59E0B" },
+            { count:medCount,     color:"#3B82F6" },
             { count:highCoverage, color:IND_GREEN },
           ].map(({ count: c, color }, i) => {
             const pct = (c / rows.length) * 100;
@@ -788,7 +785,7 @@ function SchemeCoverageTab({ dark }) {
           {[
             { label:"None",   count:noSchemes,    color:"#E53E3E" },
             { label:"Low",    count:lowCount,     color:SAFFRON   },
-            { label:"Medium", count:medCount,     color:"#F59E0B" },
+            { label:"Medium", count:medCount,     color:"#3B82F6" },
             { label:"Good",   count:highCoverage, color:IND_GREEN },
           ].map(({ label, count: c, color }) => (
             <div key={label} style={{ display:"flex", alignItems:"center", gap:5 }}>
@@ -839,7 +836,7 @@ function SchemeCoverageTab({ dark }) {
         {[
           { label:"None (0)",         color:"#E53E3E" },
           { label:"Low (1–100)",      color:SAFFRON   },
-          { label:"Medium (101–200)", color:"#F59E0B" },
+          { label:"Medium (101–200)", color:"#3B82F6" },
           { label:"Good (200+)",      color:IND_GREEN },
         ].map(({ label, color }) => (
           <div key={label} style={{ display:"flex", alignItems:"center", gap:5 }}>
@@ -923,18 +920,12 @@ function SchemeCoverageTab({ dark }) {
           filtered.map(({ name, count }, idx) => {
             const color       = coverageColor(count);
             const pct         = Math.round((count / maxCount) * 100);
-            const isTopThree  = sortMode === "count" && tierFilter === "all" && idx < 3;
-            const podiumColor = isTopThree ? podiumColors[idx] : null;
-            const gap         = gapToNext(count);
+            const gap = gapToNext(count);
             return (
               <div key={name} style={{
                 display:"flex", alignItems:"center", gap:10,
                 padding:"10px 14px",
                 borderBottom: idx < filtered.length - 1 ? `1px solid ${th.border}` : "none",
-                borderLeft: podiumColor ? `3px solid ${podiumColor}` : "3px solid transparent",
-                background: isTopThree
-                  ? (dark ? `${podiumColor}0f` : `${podiumColor}08`)
-                  : "transparent",
               }}>
 
                 {/* Rank or pin */}
@@ -942,7 +933,7 @@ function SchemeCoverageTab({ dark }) {
                   width:20, flexShrink:0, textAlign:"center",
                   fontSize: sortMode === "count" ? 10 : 13,
                   fontWeight:800,
-                  color: podiumColor || th.textSub,
+                  color: th.textSub,
                 }}>
                   {sortMode === "count" ? `#${idx + 1}` : "📍"}
                 </div>
@@ -979,7 +970,7 @@ function SchemeCoverageTab({ dark }) {
                 <div style={{
                   width:38, flexShrink:0, textAlign:"right",
                   fontSize:13, fontWeight:800,
-                  color: podiumColor || color,
+                  color: color,
                 }}>
                   {count}
                 </div>
