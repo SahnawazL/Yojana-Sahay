@@ -2307,6 +2307,10 @@ export default function AdminDashboard({ onClose, dark = false }) {
   const [exportStep,    setExportStep]    = useState(-1);
   const [exportDone,    setExportDone]    = useState(false);
 
+  // ── Swipe navigation ───────────────────────────────────────────────────────
+  const swipeTouchX  = useRef(null);  // stores touchstart X
+  const tabsBarRef   = useRef(null);  // ref to the scrollable tab bar
+
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchUsers = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true); else setLoading(true);
@@ -2847,6 +2851,27 @@ export default function AdminDashboard({ onClose, dark = false }) {
     ["cleanup",   "🗑️ Cleanup"],
   ];
 
+  // Swipe handler — called on touchend with delta
+  const handleSwipe = useCallback((deltaX) => {
+    const tabIds = TABS.map(([id]) => id);
+    const curr   = tabIds.indexOf(activeSection);
+    if (Math.abs(deltaX) < 60) return; // ignore small drags
+    if (deltaX < 0 && curr < tabIds.length - 1) setActiveSection(tabIds[curr + 1]); // swipe left → next
+    if (deltaX > 0 && curr > 0)                 setActiveSection(tabIds[curr - 1]); // swipe right → prev
+  }, [activeSection]);
+
+  // Auto-scroll tab bar to keep active tab visible
+  useEffect(() => {
+    if (!tabsBarRef.current) return;
+    const bar    = tabsBarRef.current;
+    const active = bar.querySelector("[data-active='true']");
+    if (!active) return;
+    const barRect    = bar.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    const offset     = activeRect.left - barRect.left - (barRect.width / 2) + (activeRect.width / 2);
+    bar.scrollBy({ left: offset, behavior: "smooth" });
+  }, [activeSection]);
+
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:9999,
@@ -2904,7 +2929,7 @@ export default function AdminDashboard({ onClose, dark = false }) {
         </div>
 
         {/* Tabs */}
-        <div style={{ display:"flex", gap:6, marginTop:14, overflowX:"auto", paddingBottom:1 }}>
+        <div ref={tabsBarRef} style={{ display:"flex", gap:6, marginTop:14, overflowX:"auto", paddingBottom:1 }}>
           {TABS.map(([id, label]) => {
             const STATUS_HINTS = id === "reports" ? [
               {
@@ -2939,7 +2964,9 @@ export default function AdminDashboard({ onClose, dark = false }) {
             ].filter(s => s.count > 0) : [];
 
             return (
-              <div key={id} onClick={() => setActiveSection(id)} style={{
+              <div key={id} onClick={() => setActiveSection(id)}
+                data-active={activeSection === id ? "true" : "false"}
+                style={{
                 padding: STATUS_HINTS.length > 0 ? "7px 13px 20px" : "7px 13px",
                 borderRadius:"20px 20px 0 0",
                 fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0,
@@ -3006,6 +3033,17 @@ export default function AdminDashboard({ onClose, dark = false }) {
           </div>
         </div>
       )}
+
+      {/* ── TAB CONTENT — swipe left/right to navigate ── */}
+      <div
+        onTouchStart={e => { swipeTouchX.current = e.touches[0].clientX; }}
+        onTouchEnd={e => {
+          if (swipeTouchX.current === null) return;
+          handleSwipe(swipeTouchX.current - e.changedTouches[0].clientX);
+          swipeTouchX.current = null;
+        }}
+        style={{ flex:1, display:"flex", flexDirection:"column" }}
+      >
 
       {/* ══ OVERVIEW ══ */}
       {!loading && !error && activeSection === "overview" && (
@@ -3449,6 +3487,8 @@ export default function AdminDashboard({ onClose, dark = false }) {
           onDeleteDone={fetchReports}
         />
       )}
+
+      </div>{/* end swipe wrapper */}
 
       {/* User Detail Drawer */}
       {selectedUser && (
