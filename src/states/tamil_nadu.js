@@ -35,7 +35,7 @@ export const TAMIL_NADU_SCHEMES = [
     benefit: { en: "₹1,000/month direct cash transfer to women heads of household", hi: "परिवार की महिला मुखिया को ₹1,000/माह प्रत्यक्ष नकद" },
     tag:     { en: "Women", hi: "महिला" },
     annual:  12000,
-    apply:   { en: "magalируримаи.tn.gov.in", hi: "magalurimai.tn.gov.in" }, applyType: "online",
+    apply:   { en: "magalurimai.tn.gov.in", hi: "magalurimai.tn.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card", "Bank Account", "Income Certificate"],
                hi: ["आधार कार्ड", "राशन कार्ड", "बैंक खाता", "आय प्रमाण पत्र"] },
     // Eligibility: TN women (18–60), income below ₹3 lakh
@@ -586,7 +586,6 @@ export const TAMIL_NADU_SCHEMES = [
     match: (a) => a.state === "Tamil Nadu" && (a.who === "farmer" || a.who === "business"),
   },
 
-];
 
   // ════════════════ ADDITIONAL NEW SCHEMES (2025) ══════════════════════════════
 
