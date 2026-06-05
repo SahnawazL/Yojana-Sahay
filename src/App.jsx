@@ -7457,13 +7457,57 @@ export default function YojanaSahay(){
                   border:`1.5px solid rgba(255,153,51,0.35)`,
                   display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,
                 }}>🎯</div>
-                <div>
+                <div style={{flex:1}}>
                   <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf,lineHeight:1.2}}>
-                    {isHindi?"परिणाम तैयार है!":"Results Ready!"}
+                    {isHindi?"पात्रता जाँच पूरी!":"Eligibility Check Done!"}
                   </div>
-                  <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>
-                    {isHindi?"क्या आप अपना प्रोफाइल अपडेट करना चाहते हैं?":"Want to update your profile with these answers?"}
-                  </div>
+                  {(()=>{
+                    // Count how many checker answers differ from current saved profile
+                    const diff=[
+                      checkerAnswers.who&&checkerAnswers.who!==profile?.occupation,
+                      checkerAnswers.income&&checkerAnswers.income!==profile?.income,
+                      checkerAnswers.state&&checkerAnswers.state!==profile?.state,
+                      checkerAnswers.age&&checkerAnswers.age!==profile?.age,
+                      checkerAnswers.area&&checkerAnswers.area!==profile?.area,
+                      checkerAnswers.house&&checkerAnswers.house!==profile?.house,
+                      checkerAnswers.caste&&checkerAnswers.caste!==profile?.caste,
+                      checkerAnswers.landHolding&&checkerAnswers.landHolding!==profile?.landHolding,
+                      checkerAnswers.educationLevel&&checkerAnswers.educationLevel!==profile?.educationLevel,
+                      checkerAnswers.rationCard&&checkerAnswers.rationCard!==profile?.ration,
+                    ].filter(Boolean).length;
+                    // Fall back to total captured count if nothing differs (edge case)
+                    const captured=[checkerAnswers.who,checkerAnswers.income,checkerAnswers.state,checkerAnswers.age,checkerAnswers.area,checkerAnswers.house,checkerAnswers.caste,checkerAnswers.landHolding,checkerAnswers.educationLevel,checkerAnswers.rationCard].filter(Boolean).length;
+                    // Preview chips — up to 3 key fields
+                    const chips=[
+                      checkerAnswers.state&&`📍 ${checkerAnswers.state}`,
+                      checkerAnswers.who&&`👤 ${checkerAnswers.who}`,
+                      checkerAnswers.income&&`💰 ${checkerAnswers.income}`,
+                    ].filter(Boolean).slice(0,3);
+                    return(<>
+                      <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf,lineHeight:1.45}}>
+                        {isHindi
+                          ?(diff>0
+                            ?`पात्रता जाँच से ${diff} जवाब आपके प्रोफाइल से अलग हैं`
+                            :`पात्रता जाँच के ${captured} जवाब प्रोफाइल में सेव करें`)
+                          :(diff>0
+                            ?`${diff} answer${diff!==1?"s":""} from your eligibility check differ from your profile`
+                            :`${captured} answer${captured!==1?"s":""} captured from your eligibility check`)}
+                      </div>
+                      {chips.length>0&&(
+                        <div style={{display:"flex",gap:4,marginTop:5,flexWrap:"wrap"}}>
+                          {chips.map((c,i)=>(
+                            <span key={i} style={{
+                              fontSize:9.5,fontFamily:bf,lineHeight:1,
+                              background:dark?"rgba(255,153,51,0.15)":"rgba(255,153,51,0.10)",
+                              color:dark?"#ffb347":"#a04800",
+                              border:`1px solid ${dark?"rgba(255,153,51,0.30)":"rgba(255,153,51,0.22)"}`,
+                              borderRadius:20,padding:"2.5px 8px",whiteSpace:"nowrap",
+                            }}>{c}</span>
+                          ))}
+                        </div>
+                      )}
+                    </>);
+                  })()}
                 </div>
               </div>
             </div>
