@@ -3084,7 +3084,7 @@ function EligibilityChecker({lang,onClose,onComplete,prefilledAnswers,dark=false
             )}
             <div style={{display:"flex",gap:10,marginTop:16}}>
               <div onClick={()=>{haptic();retake();}} style={{flex:1,padding:14,borderRadius:14,border:"1.5px solid #FF9933",background:th.card,textAlign:"center",fontSize:13,fontWeight:700,color:"#FF8C00",cursor:"pointer",fontFamily:bf}}>{t.retakeBtn}</div>
-              <div onClick={()=>{haptic();onClose();}} style={{flex:1,padding:14,borderRadius:14,background:"linear-gradient(135deg,#003580,#1a56db)",textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:bf}}>{t.doneBtn}</div>
+              <div onClick={()=>{haptic();onComplete?.(answers);onClose();}} style={{flex:1,padding:14,borderRadius:14,background:"linear-gradient(135deg,#003580,#1a56db)",textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:bf}}>{t.doneBtn}</div>
             </div>
           </div>
         )}
@@ -6380,6 +6380,8 @@ export default function YojanaSahay(){
   const [langAnim,setLangAnim]=useState(false);
   const [showChecker,setShowChecker]=useState(false);
   const [checkerAnswers,setCheckerAnswers]=useState(null); // answers from latest eligibility recheck
+  const [checkerRunId,setCheckerRunId]=useState(0);        // increments each checker run → forces BenefitCard remount
+  const [showUpdateProfileSheet,setShowUpdateProfileSheet]=useState(false); // "just checking / update profile" popup
   const [selectedScheme,setSelectedScheme]=useState(null);   // SchemeDetailSheet
   const [selectedCategory,setSelectedCategory]=useState(null); // CategorySheet
   const [showAvatarModal,setShowAvatarModal]=useState(false);
@@ -6856,13 +6858,13 @@ export default function YojanaSahay(){
               </div>
             </div>
 
-            {/* Benefit Calculator — shown when profile has matched schemes with annual benefits */}
-            {profile&&allMatchedSchemes.length>0&&(
-              <BenefitCalculatorCard allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
+            {/* Benefit Calculator — shown when profile OR checker answers exist with annual benefits */}
+            {(profile||checkerAnswers)&&allMatchedSchemes.length>0&&(
+              <BenefitCalculatorCard key={checkerRunId} allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
             )}
 
             {/* Document Vault — auto-generated checklist from matched schemes */}
-            {profile&&allMatchedSchemes.length>0&&(
+            {(profile||checkerAnswers)&&allMatchedSchemes.length>0&&(
               <DocumentVaultCard allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} uid={auth.currentUser?.uid||null}/>
             )}
 
@@ -7416,11 +7418,152 @@ export default function YojanaSahay(){
       {showAdmin&&(
         <AdminDashboard onClose={()=>setShowAdmin(false)} dark={dark}/>
       )}
+      {/* ── "Just Checking / Update Profile?" Smart Sheet ─────────────────────────
+           Appears after eligibility checker completes when a saved profile exists.
+           Gives user a clear choice: update profile with new answers, or keep
+           existing profile and treat this as a one-off lookup.                     */}
+      {showUpdateProfileSheet&&checkerAnswers&&(
+        <div
+          onClick={()=>setShowUpdateProfileSheet(false)}
+          style={{
+            position:"fixed",inset:0,zIndex:250,
+            background:"rgba(0,0,0,0.52)",
+            display:"flex",alignItems:"flex-end",
+            animation:"avBg 0.22s ease forwards",
+          }}>
+          <div
+            onClick={e=>e.stopPropagation()}
+            style={{
+              width:"100%",maxWidth:420,margin:"0 auto",
+              background:th.card,borderRadius:"24px 24px 0 0",
+              padding:"0 0 max(28px,env(safe-area-inset-bottom,28px))",
+              fontFamily:bf,
+              animation:"avCard 0.38s cubic-bezier(0.32,0.72,0,1) forwards",
+            }}>
+
+            {/* Drag handle */}
+            <div style={{display:"flex",justifyContent:"center",padding:"12px 0 4px"}}>
+              <div style={{width:40,height:4,background:th.handle,borderRadius:2}}/>
+            </div>
+
+            {/* Header */}
+            <div style={{padding:"12px 20px 14px",borderBottom:`1px solid ${th.border}`}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{
+                  width:40,height:40,borderRadius:12,flexShrink:0,
+                  background:dark?"rgba(255,153,51,0.14)":"rgba(255,153,51,0.10)",
+                  border:`1.5px solid rgba(255,153,51,0.35)`,
+                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,
+                }}>🎯</div>
+                <div>
+                  <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf,lineHeight:1.2}}>
+                    {isHindi?"परिणाम तैयार है!":"Results Ready!"}
+                  </div>
+                  <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>
+                    {isHindi?"क्या आप अपना प्रोफाइल अपडेट करना चाहते हैं?":"Want to update your profile with these answers?"}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Options */}
+            <div style={{padding:"14px 18px",display:"flex",flexDirection:"column",gap:10}}>
+
+              {/* Update Profile option */}
+              <div
+                onClick={()=>{
+                  haptic();
+                  // Merge checker answers into profile
+                  const updated={
+                    ...profile,
+                    occupation:checkerAnswers.who||profile.occupation,
+                    income:checkerAnswers.income||profile.income,
+                    house:checkerAnswers.house||profile.house,
+                    age:checkerAnswers.age||profile.age,
+                    area:checkerAnswers.area||profile.area,
+                    state:checkerAnswers.state||profile.state,
+                    caste:checkerAnswers.caste||profile.caste,
+                    ...(checkerAnswers.landHolding?{landHolding:checkerAnswers.landHolding}:{}),
+                    ...(checkerAnswers.educationLevel?{educationLevel:checkerAnswers.educationLevel}:{}),
+                    ...(checkerAnswers.rationCard?{ration:checkerAnswers.rationCard}:{}),
+                  };
+                  setProfile(updated);
+                  if(auth.currentUser){
+                    try{updateDoc(doc(db,"users",auth.currentUser.uid),{...updated,lastSeen:serverTimestamp()}).catch(()=>{});}catch{}
+                  }
+                  setCheckerAnswers(null); // profile now reflects these answers
+                  setShowUpdateProfileSheet(false);
+                }}
+                style={{
+                  display:"flex",alignItems:"center",gap:14,
+                  background:dark?"rgba(19,136,8,0.14)":"rgba(19,136,8,0.06)",
+                  border:`1.5px solid ${dark?"rgba(19,136,8,0.40)":"rgba(19,136,8,0.22)"}`,
+                  borderRadius:16,padding:"14px 16px",cursor:"pointer",
+                  WebkitTapHighlightColor:"transparent",transition:"transform 0.12s",
+                }}
+                onTouchStart={e=>e.currentTarget.style.transform="scale(0.98)"}
+                onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+                onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}>
+                <div style={{
+                  width:42,height:42,borderRadius:12,flexShrink:0,
+                  background:dark?"rgba(19,136,8,0.20)":"rgba(19,136,8,0.10)",
+                  border:`1.5px solid rgba(19,136,8,0.30)`,
+                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
+                }}>💾</div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13.5,fontWeight:800,color:IND_GREEN,fontFamily:bf,lineHeight:1.25}}>
+                    {isHindi?"प्रोफाइल अपडेट करें":"Update My Profile"}
+                  </div>
+                  <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf,lineHeight:1.4}}>
+                    {isHindi?"नए जवाब प्रोफाइल में सेव करें — सटीक मिलान के लिए":"Save new answers to profile for better matching"}
+                  </div>
+                </div>
+                <span style={{color:IND_GREEN,fontSize:18,flexShrink:0}}>›</span>
+              </div>
+
+              {/* Just Checking option */}
+              <div
+                onClick={()=>{haptic();setShowUpdateProfileSheet(false);}}
+                style={{
+                  display:"flex",alignItems:"center",gap:14,
+                  background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.03)",
+                  border:`1.5px solid ${th.border2}`,
+                  borderRadius:16,padding:"14px 16px",cursor:"pointer",
+                  WebkitTapHighlightColor:"transparent",transition:"transform 0.12s",
+                }}
+                onTouchStart={e=>e.currentTarget.style.transform="scale(0.98)"}
+                onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+                onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}>
+                <div style={{
+                  width:42,height:42,borderRadius:12,flexShrink:0,
+                  background:dark?"rgba(255,153,51,0.12)":"rgba(255,153,51,0.08)",
+                  border:`1.5px solid rgba(255,153,51,0.28)`,
+                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
+                }}>🔍</div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13.5,fontWeight:800,color:th.text,fontFamily:bf,lineHeight:1.25}}>
+                    {isHindi?"बस देख रहा था":"Just Checking"}
+                  </div>
+                  <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf,lineHeight:1.4}}>
+                    {isHindi?"पुराना प्रोफाइल रखें — ये परिणाम अस्थायी हैं":"Keep existing profile — results shown temporarily"}
+                  </div>
+                </div>
+                <span style={{color:th.textSub,fontSize:18,flexShrink:0}}>›</span>
+              </div>
+
+              {/* Dismiss hint */}
+              <div style={{textAlign:"center",marginTop:2,color:th.textLight,fontSize:10,fontFamily:bf}}>
+                {isHindi?"बाहर टैप करें या खारिज करें":"Tap outside to dismiss"}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {showChecker&&(
         <EligibilityChecker
           lang={lang}
           onClose={()=>setShowChecker(false)}
-          onComplete={(answers)=>setCheckerAnswers(answers)}
+          onComplete={(answers)=>{setCheckerAnswers(answers);setCheckerRunId(id=>id+1);if(profile)setShowUpdateProfileSheet(true);}}
           prefilledAnswers={profileAnswers||undefined}
           dark={dark}/>
       )}
