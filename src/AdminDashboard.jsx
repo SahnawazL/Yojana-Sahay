@@ -2284,6 +2284,7 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
 // ─── USAGE SECTION COMPONENT ──────────────────────────────────────────────────
 function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   const th = THEME[dark ? "dark" : "light"];
+  const [activeTab, setActiveTab] = React.useState("runs"); // "runs" | "searches"
 
   if (loading) {
     return (
@@ -2312,52 +2313,50 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   }
 
   // ── Compute derived stats ──────────────────────────────────────────────────
-  const checkerRuns   = Array.isArray(usageData.checkerRuns) ? usageData.checkerRuns : [];
+  const checkerRuns    = Array.isArray(usageData.checkerRuns)    ? usageData.checkerRuns    : [];
   const schemeSearches = Array.isArray(usageData.schemeSearches) ? usageData.schemeSearches : [];
   const stateSelections = Array.isArray(usageData.stateSelections) ? usageData.stateSelections : [];
 
   const totalRuns     = usageData.checkerTotal || checkerRuns.length;
   const totalSearches = usageData.searchTotal  || schemeSearches.length;
 
-  // Avg matched schemes from checker runs
   const avgMatched = checkerRuns.length > 0
     ? (checkerRuns.reduce((s, r) => s + (r.matchedCount || 0), 0) / checkerRuns.length).toFixed(1)
     : "—";
+  const maxMatched = checkerRuns.length > 0
+    ? Math.max(...checkerRuns.map(r => r.matchedCount || 0))
+    : 0;
 
-  // % of total users who ran checker (by matchedCount field on user docs)
   const usersWithChecker = users.filter(u => u.matchedCount != null).length;
   const checkerPct = users.length > 0 ? Math.round(usersWithChecker / users.length * 100) : 0;
 
-  // Top states from checker runs + state selections combined
+  // Top states
   const stateCounts = {};
   checkerRuns.forEach(r => { if (r.state) stateCounts[r.state] = (stateCounts[r.state] || 0) + 1; });
   stateSelections.forEach(r => { if (r.state) stateCounts[r.state] = (stateCounts[r.state] || 0) + 1; });
-  const topStates = Object.entries(stateCounts)
-    .sort((a, b) => b[1] - a[1]).slice(0, 10)
+  const topStates = Object.entries(stateCounts).sort((a, b) => b[1] - a[1]).slice(0, 6)
     .map(([label, value]) => ({ label, value }));
 
-  // Top search queries (normalize + count)
+  // Top search queries
   const queryCounts = {};
   schemeSearches.forEach(r => {
     if (!r.q) return;
     const k = r.q.toLowerCase().trim();
     queryCounts[k] = (queryCounts[k] || 0) + 1;
   });
-  const topQueries = Object.entries(queryCounts)
-    .sort((a, b) => b[1] - a[1]).slice(0, 15);
+  const topQueries = Object.entries(queryCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
-  // Checker run "who" distribution
+  // Who ran checker
   const whoCounts = {};
   checkerRuns.forEach(r => { if (r.who) whoCounts[r.who] = (whoCounts[r.who] || 0) + 1; });
-  const whoData = Object.entries(whoCounts)
-    .sort((a, b) => b[1] - a[1])
+  const whoData = Object.entries(whoCounts).sort((a, b) => b[1] - a[1])
     .map(([key, value]) => ({ label: OCC_LABELS[key] || key, value }));
 
-  // Recent 7-day checker run sparkline
-  const now = Date.now();
+  // 7-day sparkline
+  const nowMs = Date.now();
   const ONE_DAY = 86400000;
   const spark7 = Array.from({ length: 7 }, (_, i) => {
-    const dayStart = now - (6 - i) * ONE_DAY;
+    const dayStart = nowMs - (6 - i) * ONE_DAY;
     const dayEnd   = dayStart + ONE_DAY;
     return checkerRuns.filter(r => {
       if (!r.ts) return false;
@@ -2365,274 +2364,342 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
       return ms >= dayStart && ms < dayEnd;
     }).length;
   });
-
   const maxSpark = Math.max(...spark7, 1);
-  const dayLabels = ["6d", "5d", "4d", "3d", "2d", "1d", "Today"];
+  const dayLabels = ["6d","5d","4d","3d","2d","1d","Today"];
+
+  // Time formatter — dark-mode safe (never use th.textLight)
+  const fmtTime = (ts) => ts
+    ? new Date(ts).toLocaleString("en-IN", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })
+    : "—";
 
   const cardStyle = {
     background: th.card, border: `1.5px solid ${th.border}`,
-    borderRadius: 16, padding: "14px 16px",
+    borderRadius: 16, padding: "13px 14px",
   };
 
   return (
-    <div style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ padding: "14px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
 
-      {/* ── Header row ── */}
+      {/* ── Header ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: th.text }}>📈 App Usage Insights</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: th.text }}>📈 Usage Insights</div>
         <div onClick={onRefresh} style={{
-          fontSize: 11, color: SAFFRON, fontWeight: 700, cursor: "pointer", padding: "5px 10px",
-          background: SAFFRON + "18", borderRadius: 8,
+          fontSize: 11, color: SAFFRON, fontWeight: 700, cursor: "pointer",
+          padding: "5px 10px", background: SAFFRON + "18", borderRadius: 8,
         }}>🔄 Refresh</div>
       </div>
 
-      {/* ── Top stat pills ── */}
-      <div style={{ display: "flex", gap: 10 }}>
-        {[
-          { icon: "🎯", label: "Checker Runs",  value: totalRuns,        color: NAVY },
-          { icon: "🔍", label: "Scheme Searches", value: totalSearches,   color: IND_GREEN },
-          { icon: "👤", label: "Users Checked",  value: usersWithChecker, color: SAFFRON },
-          { icon: "%",  label: "Adoption Rate",  value: checkerPct + "%", color: VIOLET },
-        ].map(({ icon, label, value, color }) => (
-          <div key={label} style={{
-            flex: 1, background: th.card, border: `1.5px solid ${th.border}`,
-            borderRadius: 14, padding: "10px 8px", textAlign: "center",
-            borderTop: `3px solid ${color}`,
-          }}>
-            <div style={{ fontSize: 16, marginBottom: 2 }}>{icon}</div>
-            <div style={{ fontSize: 17, fontWeight: 800, color: th.text, lineHeight: 1 }}>{value}</div>
-            <div style={{ fontSize: 9, color: th.textSub, marginTop: 3, lineHeight: 1.2 }}>{label}</div>
-          </div>
-        ))}
+      {/* ── SECTION 1: Key numbers — 4 stats + avg + max in one card ── */}
+      <div style={cardStyle}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: th.textMid, marginBottom: 10, letterSpacing: 0.3 }}>
+          OVERVIEW
+        </div>
+        {/* Top row: 4 pills */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+          {[
+            { icon: "🎯", label: "Checker Runs",    value: totalRuns,          color: NAVY },
+            { icon: "🔍", label: "Searches",         value: totalSearches,      color: IND_GREEN },
+            { icon: "👤", label: "Users Checked",    value: usersWithChecker,   color: SAFFRON },
+            { icon: "📊", label: "Adoption",         value: checkerPct + "%",   color: VIOLET },
+          ].map(({ icon, label, value, color }) => (
+            <div key={label} style={{
+              flex: 1, background: color + "12", border: `1px solid ${color}33`,
+              borderRadius: 12, padding: "8px 4px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 14 }}>{icon}</div>
+              <div style={{ fontSize: 15, fontWeight: 900, color: color, lineHeight: 1.1, marginTop: 2 }}>{value}</div>
+              <div style={{ fontSize: 8, color: th.textSub, marginTop: 2, lineHeight: 1.2 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+        {/* Second row: avg + max + runs count inline */}
+        <div style={{
+          display: "flex", gap: 8,
+          background: th.card2, borderRadius: 10, padding: "9px 12px",
+        }}>
+          {[
+            { label: "Avg Matched", value: avgMatched, color: NAVY },
+            { label: "Max Matched", value: maxMatched || "—", color: IND_GREEN },
+            { label: "Total Runs",  value: checkerRuns.length, color: VIOLET },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ flex: 1, textAlign: "center" }}>
+              <div style={{ fontSize: 16, fontWeight: 900, color }}>{value}</div>
+              <div style={{ fontSize: 9, color: th.textSub, marginTop: 1 }}>{label}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* ── Avg schemes matched ── */}
-      <div style={{ display: "flex", gap: 10 }}>
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <div style={{ fontSize: 11, color: th.textSub, marginBottom: 4 }}>Avg Schemes Matched / Run</div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: NAVY }}>{avgMatched}</div>
-          <div style={{ fontSize: 10, color: th.textSub, marginTop: 2 }}>across {checkerRuns.length} recorded runs</div>
-        </div>
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <div style={{ fontSize: 11, color: th.textSub, marginBottom: 4 }}>Users with matchedCount</div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: IND_GREEN }}>{usersWithChecker}</div>
-          <div style={{ fontSize: 10, color: th.textSub, marginTop: 2 }}>{checkerPct}% of {users.length} total users</div>
-        </div>
-      </div>
-
-      {/* ── 7-day checker run trend ── */}
+      {/* ── SECTION 2: 7-day bar + Who (side by side) ── */}
       {checkerRuns.length > 0 && (
-        <div style={cardStyle}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 12 }}>
-            📅 Checker Runs — Last 7 Days
+        <div style={{ display: "flex", gap: 10 }}>
+          {/* 7-day mini bar */}
+          <div style={{ ...cardStyle, flex: 1.4 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: th.textMid, marginBottom: 8 }}>
+              📅 LAST 7 DAYS
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 48 }}>
+              {spark7.map((val, i) => (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                  {val > 0 && <div style={{ fontSize: 7, color: th.textSub, fontWeight: 700 }}>{val}</div>}
+                  <div style={{
+                    width: "100%", borderRadius: "3px 3px 0 0",
+                    background: i === 6 ? SAFFRON : NAVY,
+                    height: `${Math.round((val / maxSpark) * 36) + 2}px`,
+                    opacity: val > 0 ? 1 : 0.2,
+                    transition: "height 0.4s ease",
+                  }} />
+                  <div style={{ fontSize: 6.5, color: th.textSub }}>{dayLabels[i]}</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 60 }}>
-            {spark7.map((val, i) => (
-              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-                <div style={{ fontSize: 8, color: th.textSub, fontWeight: 600 }}>{val || ""}</div>
-                <div style={{
-                  width: "100%", borderRadius: "4px 4px 0 0",
-                  background: val > 0 ? NAVY : th.border,
-                  height: `${Math.round((val / maxSpark) * 44) + 2}px`,
-                  transition: "height 0.4s ease",
-                }} />
-                <div style={{ fontSize: 7, color: th.textLight }}>{dayLabels[i]}</div>
+          {/* Who ran checker */}
+          {whoData.length > 0 && (
+            <div style={{ ...cardStyle, flex: 1 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: th.textMid, marginBottom: 8 }}>
+                👤 WHO
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {whoData.slice(0, 4).map(({ label, value }) => {
+                  const maxVal = whoData[0].value || 1;
+                  return (
+                    <div key={label}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                        <div style={{ fontSize: 9, color: th.textMid, fontWeight: 600 }}>{label}</div>
+                        <div style={{ fontSize: 9, color: th.text, fontWeight: 800 }}>{value}</div>
+                      </div>
+                      <div style={{ height: 4, borderRadius: 2, background: th.border, overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%", borderRadius: 2,
+                          background: VIOLET,
+                          width: `${Math.round(value / maxVal * 100)}%`,
+                          transition: "width 0.5s ease",
+                        }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SECTION 3: States + Top Queries side by side ── */}
+      {(topStates.length > 0 || topQueries.length > 0) && (
+        <div style={{ display: "flex", gap: 10 }}>
+          {topStates.length > 0 && (
+            <div style={{ ...cardStyle, flex: 1 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: th.textMid, marginBottom: 8 }}>
+                📍 TOP STATES
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {topStates.slice(0, 5).map(({ label, value }) => {
+                  const maxVal = topStates[0].value || 1;
+                  return (
+                    <div key={label}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                        <div style={{ fontSize: 9, color: th.textMid, fontWeight: 600,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "78%" }}>
+                          {label}
+                        </div>
+                        <div style={{ fontSize: 9, color: th.text, fontWeight: 800 }}>{value}</div>
+                      </div>
+                      <div style={{ height: 4, borderRadius: 2, background: th.border, overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%", borderRadius: 2, background: SAFFRON,
+                          width: `${Math.round(value / maxVal * 100)}%`,
+                          transition: "width 0.5s ease",
+                        }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {topQueries.length > 0 && (
+            <div style={{ ...cardStyle, flex: 1 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: th.textMid, marginBottom: 8 }}>
+                🔍 TOP SEARCHES
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {topQueries.slice(0, 5).map(([q, count], i) => (
+                  <div key={q} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <div style={{
+                      width: 14, height: 14, borderRadius: "50%", flexShrink: 0,
+                      background: i < 3 ? SAFFRON : th.border,
+                      color: i < 3 ? "#fff" : th.textSub,
+                      fontSize: 7, fontWeight: 900,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>{i + 1}</div>
+                    <div style={{
+                      flex: 1, fontSize: 9, color: th.text, fontWeight: 600,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>
+                      {q}
+                    </div>
+                    <div style={{
+                      fontSize: 9, fontWeight: 800, color: NAVY,
+                      background: NAVY + "18", borderRadius: 5, padding: "1px 5px", flexShrink: 0,
+                    }}>
+                      {count}×
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SECTION 4: Tabbed recent activity (Runs / Searches) ── */}
+      {(checkerRuns.length > 0 || schemeSearches.length > 0) && (
+        <div style={cardStyle}>
+          {/* Tab switcher */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+            {[
+              { id: "runs",     label: `🕐 Checker Runs (${checkerRuns.length})` },
+              { id: "searches", label: `🔍 Searches (${schemeSearches.length})` },
+            ].map(({ id, label }) => (
+              <div
+                key={id}
+                onClick={() => setActiveTab(id)}
+                style={{
+                  flex: 1, textAlign: "center",
+                  padding: "6px 8px", borderRadius: 10,
+                  fontSize: 10, fontWeight: 700, cursor: "pointer",
+                  background: activeTab === id ? NAVY : th.card2,
+                  color: activeTab === id ? "#fff" : th.textMid,
+                  border: `1.5px solid ${activeTab === id ? NAVY : th.border}`,
+                  transition: "all 0.18s",
+                }}
+              >
+                {label}
               </div>
             ))}
           </div>
-        </div>
-      )}
 
-      {/* ── Top states ── */}
-      {topStates.length > 0 && (
-        <div style={cardStyle}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 12 }}>
-            📍 Most Selected States
-            <span style={{ fontWeight: 400, fontSize: 10, color: th.textSub, marginLeft: 6 }}>
-              (Checker + Browse)
-            </span>
-          </div>
-          <BarChart data={topStates} color={SAFFRON} dark={dark} />
-        </div>
-      )}
-
-      {/* ── Checker "Who" breakdown ── */}
-      {whoData.length > 0 && (
-        <div style={cardStyle}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 12 }}>
-            👤 Who Ran the Checker
-          </div>
-          <BarChart data={whoData} color={VIOLET} dark={dark} />
-        </div>
-      )}
-
-      {/* ── Top scheme searches ── */}
-      {topQueries.length > 0 && (
-        <div style={cardStyle}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 12 }}>
-            🔍 Top Scheme Search Queries
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {topQueries.map(([q, count], i) => {
-              const maxCount = topQueries[0][1] || 1;
-              return (
-                <div key={q} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{
-                    width: 18, height: 18, borderRadius: "50%",
-                    background: i < 3 ? SAFFRON : th.border,
-                    color: i < 3 ? "#fff" : th.textSub,
-                    fontSize: 9, fontWeight: 800,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0,
+          {/* Checker Runs list */}
+          {activeTab === "runs" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              {[...checkerRuns].reverse().slice(0, 15).map((r, i) => {
+                const user = users.find(u => u.id === r.uid);
+                const userName  = user?.name  || "—";
+                const userEmail = user?.email || user?.phone || "—";
+                const matched   = r.matchedCount ?? null;
+                const matchColor = matched != null ? (matched > 5 ? IND_GREEN : SAFFRON) : th.textSub;
+                const tags = [
+                  r.state  && { label: r.state,                                                   color: NAVY },
+                  r.who    && { label: OCC_LABELS[r.who]    || r.who,                             color: VIOLET },
+                  r.income && { label: INC_LABELS[r.income] || r.income,                          color: IND_GREEN },
+                  r.area   && { label: AREA_LABELS[r.area]  || r.area,                            color: SAFFRON },
+                ].filter(Boolean);
+                return (
+                  <div key={i} style={{
+                    background: th.card2, borderRadius: 10,
+                    padding: "9px 11px", border: `1px solid ${th.border}`,
                   }}>
-                    {i + 1}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: th.text, marginBottom: 2 }}>
-                      "{q}"
-                    </div>
-                    <div style={{
-                      height: 5, borderRadius: 3,
-                      background: th.border, overflow: "hidden",
-                    }}>
+                    {/* Row 1: name + time + match badge */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontSize: 11, fontWeight: 700, color: th.text,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        }}>{userName}</div>
+                        <div style={{
+                          fontSize: 9, color: th.textSub, marginTop: 1,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        }}>{userEmail}</div>
+                      </div>
+                      {/* Schemes matched badge */}
+                      {matched != null && (
+                        <div style={{
+                          fontSize: 11, fontWeight: 900, color: matchColor,
+                          background: matchColor + "18", borderRadius: 8,
+                          padding: "2px 8px", flexShrink: 0,
+                          border: `1px solid ${matchColor}44`,
+                        }}>
+                          {matched} <span style={{ fontSize: 8, fontWeight: 600 }}>matched</span>
+                        </div>
+                      )}
+                      {/* Timestamp — fixed dark mode color */}
                       <div style={{
-                        height: "100%", borderRadius: 3,
-                        background: `linear-gradient(90deg, ${NAVY}, ${SAFFRON})`,
-                        width: `${Math.round(count / maxCount * 100)}%`,
-                        transition: "width 0.4s ease",
-                      }} />
+                        fontSize: 9, fontWeight: 600,
+                        color: th.textMid,   // ✅ was th.textLight (invisible in dark)
+                        flexShrink: 0, textAlign: "right", minWidth: 60,
+                      }}>
+                        {fmtTime(r.ts)}
+                      </div>
                     </div>
+                    {/* Row 2: compact tags */}
+                    {tags.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                        {tags.map(({ label, color }) => (
+                          <span key={label} style={{
+                            fontSize: 9, fontWeight: 700, color,
+                            background: color + "18", borderRadius: 5,
+                            padding: "1px 6px",
+                          }}>{label}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div style={{
-                    fontSize: 11, fontWeight: 800, color: NAVY,
-                    minWidth: 28, textAlign: "right",
-                  }}>
-                    {count}×
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                );
+              })}
+            </div>
+          )}
 
-      {/* ── Recent checker runs table ── */}
-      {checkerRuns.length > 0 && (
-        <div style={cardStyle}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 10 }}>
-            🕐 Recent Checker Runs
-            <span style={{ fontWeight: 400, fontSize: 10, color: th.textSub, marginLeft: 6 }}>last 20</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[...checkerRuns].reverse().slice(0, 20).map((r, i) => {
-              const user = users.find(u => u.id === r.uid);
-              const userName  = user?.name  || "—";
-              const userEmail = user?.email || user?.phone || "—";
-              return (
-                <div key={i} style={{
-                  background: th.appBg, borderRadius: 12,
-                  padding: "10px 12px", border: `1px solid ${th.border}`,
-                }}>
-                  {/* Row 1: user identity + time */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: th.text }}>{userName}</div>
-                      <div style={{ fontSize: 10, color: th.textSub, marginTop: 1 }}>{userEmail}</div>
-                    </div>
-                    <div style={{ fontSize: 9, color: th.textLight, textAlign: "right" }}>
-                      {r.ts ? new Date(r.ts).toLocaleString("en-IN", {
-                        day: "2-digit", month: "short",
-                        hour: "2-digit", minute: "2-digit",
-                      }) : "—"}
-                    </div>
-                  </div>
-                  {/* Row 2: profile tags */}
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 }}>
-                    {[
-                      r.state && { label: "📍 " + r.state,                          color: NAVY },
-                      r.who   && { label: (OCC_LABELS[r.who]   || r.who),            color: VIOLET },
-                      r.income&& { label: (INC_LABELS[r.income] || r.income),        color: IND_GREEN },
-                      r.age   && { label: (AGE_LABELS[r.age]    || r.age),           color: PINK },
-                      r.area  && { label: (AREA_LABELS[r.area]  || r.area),          color: SAFFRON },
-                      r.gender&& { label: (GENDER_LABELS[r.gender]?.replace(/[👨👩🧑]/gu,"").trim() || r.gender), color: GOOGLE_B },
-                      r.ration&& { label: (RATION_LABELS[r.ration]?.replace(/[🚫🟡🔴]/gu,"").trim() || r.ration), color: "#888" },
-                    ].filter(Boolean).map(({ label, color }) => (
-                      <span key={label} style={{
-                        fontSize: 9, fontWeight: 700, color,
-                        background: color + "18", borderRadius: 6,
-                        padding: "2px 7px",
-                      }}>{label}</span>
-                    ))}
-                  </div>
-                  {/* Row 3: matched count */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 10, color: th.textSub }}>Schemes matched:</span>
-                    <span style={{
-                      fontSize: 12, fontWeight: 800,
-                      color: (r.matchedCount || 0) > 5 ? IND_GREEN : SAFFRON,
-                      background: (r.matchedCount || 0) > 5 ? IND_GREEN + "18" : SAFFRON + "18",
-                      borderRadius: 8, padding: "1px 10px",
+          {/* Scheme Searches list */}
+          {activeTab === "searches" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {[...schemeSearches].reverse().slice(0, 15).map((s, i) => {
+                const user = users.find(u => u.id === s.uid);
+                return (
+                  <div key={i} style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    background: th.card2, borderRadius: 10,
+                    padding: "8px 11px", border: `1px solid ${th.border}`,
+                  }}>
+                    {/* Query */}
+                    <div style={{
+                      background: NAVY + "18", color: dark ? "#7ea8e8" : NAVY,
+                      borderRadius: 7, padding: "3px 8px",
+                      fontSize: 10, fontWeight: 700, flexShrink: 0,
+                      maxWidth: 110, overflow: "hidden",
+                      textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}>
-                      {r.matchedCount ?? "—"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── Recent scheme searches table ── */}
-      {schemeSearches.length > 0 && (
-        <div style={cardStyle}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 10 }}>
-            🔍 Recent Scheme Searches
-            <span style={{ fontWeight: 400, fontSize: 10, color: th.textSub, marginLeft: 6 }}>last 20</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {[...schemeSearches].reverse().slice(0, 20).map((s, i) => {
-              const user = users.find(u => u.id === s.uid);
-              const userName  = user?.name  || "—";
-              const userEmail = user?.email || user?.phone || "—";
-              return (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "8px 12px", borderRadius: 10,
-                  background: th.appBg, border: `1px solid ${th.border}`,
-                }}>
-                  {/* Query badge */}
-                  <div style={{
-                    background: NAVY + "18", color: NAVY,
-                    borderRadius: 8, padding: "4px 10px",
-                    fontSize: 11, fontWeight: 700, flexShrink: 0,
-                    maxWidth: 120, overflow: "hidden",
-                    textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>
-                    "{s.q}"
-                  </div>
-                  {/* User info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: th.text,
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {userName}
+                      "{s.q}"
                     </div>
-                    <div style={{ fontSize: 9, color: th.textSub, marginTop: 1,
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {userEmail}
+                    {/* User */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: 10, fontWeight: 600, color: th.text,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      }}>
+                        {user?.name || "—"}
+                      </div>
+                      <div style={{
+                        fontSize: 8.5, color: th.textSub,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      }}>
+                        {user?.email || user?.phone || "—"}
+                      </div>
+                    </div>
+                    {/* Time — fixed dark mode */}
+                    <div style={{
+                      fontSize: 9, fontWeight: 600,
+                      color: th.textMid,   // ✅ was th.textLight
+                      flexShrink: 0, textAlign: "right",
+                    }}>
+                      {fmtTime(s.ts)}
                     </div>
                   </div>
-                  {/* Time */}
-                  <div style={{ fontSize: 9, color: th.textLight, flexShrink: 0, textAlign: "right" }}>
-                    {s.ts ? new Date(s.ts).toLocaleString("en-IN", {
-                      day: "2-digit", month: "short",
-                      hour: "2-digit", minute: "2-digit",
-                    }) : "—"}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -2669,8 +2736,8 @@ export default function AdminDashboard({ onClose, dark = false }) {
   const [usageLoading,  setUsageLoading]  = useState(false);
 
   // ── Smart tab navigation ──────────────────────────────────────────────────
-  const tabsBarRef       = useRef(null);   // ref to the scrollable tab bar
-  const [tabTransition,  setTabTransition] = useState(null); // "left" | "right" | null
+  const tabsBarRef      = useRef(null);
+  const [tabTransition, setTabTransition] = useState(null); // "left" | "right" | null
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchUsers = useCallback(async (isRefresh = false) => {
@@ -3231,7 +3298,7 @@ export default function AdminDashboard({ onClose, dark = false }) {
     ["cleanup",   "🗑️ Cleanup"],
   ];
 
-  // ── Smart tab change (with direction-aware transition) ────────────────────
+  // ── navigateTab — direction-aware, animated tab change ───────────────────
   const navigateTab = useCallback((targetId) => {
     const tabIds = TABS.map(([id]) => id);
     const curr   = tabIds.indexOf(activeSection);
@@ -3244,11 +3311,11 @@ export default function AdminDashboard({ onClose, dark = false }) {
     }, 160);
   }, [activeSection]);
 
-  // Keyboard arrow-key navigation
+  // Keyboard ← → navigation
   useEffect(() => {
     const tabIds = TABS.map(([id]) => id);
     const handler = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+      if (["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
       if (e.key === "ArrowRight") {
         const curr = tabIds.indexOf(activeSection);
         if (curr < tabIds.length - 1) navigateTab(tabIds[curr + 1]);
@@ -3261,7 +3328,7 @@ export default function AdminDashboard({ onClose, dark = false }) {
     return () => window.removeEventListener("keydown", handler);
   }, [activeSection, navigateTab]);
 
-  // Auto-scroll tab bar to keep active tab visible
+  // Auto-scroll tab bar to keep active tab centred
   useEffect(() => {
     if (!tabsBarRef.current) return;
     const bar    = tabsBarRef.current;
@@ -3296,12 +3363,53 @@ export default function AdminDashboard({ onClose, dark = false }) {
             display:"flex", alignItems:"center", justifyContent:"center",
             cursor:"pointer", fontSize:16, flexShrink:0,
           }}>←</div>
-          <div style={{ flex:1 }}>
+          <div style={{ flex:1, minWidth:0 }}>
             <div style={{ color:"#fff", fontSize:17, fontWeight:800 }}>
               🛡️ Admin Dashboard
             </div>
-            <div style={{ color:"rgba(255,255,255,0.7)", fontSize:11, marginTop:2 }}>
-              Yojana Sahay · {loading ? "Loading…" : `${users.length} users`}
+            {/* Active-tab smart pill */}
+            <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:3 }}>
+              <div style={{ color:"rgba(255,255,255,0.6)", fontSize:10 }}>
+                {loading ? "Loading…" : `${users.length} users`}
+              </div>
+              <div style={{
+                display:"flex", alignItems:"center", gap:4,
+                background:"rgba(255,255,255,0.18)",
+                border:"1px solid rgba(255,255,255,0.28)",
+                borderRadius:20, padding:"2px 9px 2px 5px",
+                backdropFilter:"blur(8px)",
+              }}>
+                {/* Prev arrow */}
+                {(() => {
+                  const tabIds = TABS.map(([id]) => id);
+                  const curr   = tabIds.indexOf(activeSection);
+                  return curr > 0 ? (
+                    <span
+                      onClick={(e) => { e.stopPropagation(); navigateTab(tabIds[curr - 1]); }}
+                      style={{ fontSize:11, color:"rgba(255,255,255,0.7)", cursor:"pointer", lineHeight:1, padding:"0 2px" }}
+                    >‹</span>
+                  ) : (
+                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.2)", lineHeight:1, padding:"0 2px" }}>‹</span>
+                  );
+                })()}
+                {/* Current tab label */}
+                <span style={{ fontSize:10, fontWeight:800, color:"#fff", letterSpacing:0.2 }}>
+                  {TABS.find(([id]) => id === activeSection)?.[1] || ""}
+                </span>
+                {/* Next arrow */}
+                {(() => {
+                  const tabIds = TABS.map(([id]) => id);
+                  const curr   = tabIds.indexOf(activeSection);
+                  return curr < tabIds.length - 1 ? (
+                    <span
+                      onClick={(e) => { e.stopPropagation(); navigateTab(tabIds[curr + 1]); }}
+                      style={{ fontSize:11, color:"rgba(255,255,255,0.7)", cursor:"pointer", lineHeight:1, padding:"0 2px" }}
+                    >›</span>
+                  ) : (
+                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.2)", lineHeight:1, padding:"0 2px" }}>›</span>
+                  );
+                })()}
+              </div>
             </div>
           </div>
           {/* Refresh */}
@@ -3435,18 +3543,16 @@ export default function AdminDashboard({ onClose, dark = false }) {
         </div>
       )}
 
-      {/* ── TAB CONTENT — smooth animated tab navigation ── */}
-      <div
-        style={{
-          flex:1, display:"flex", flexDirection:"column",
-          opacity:    tabTransition ? 0 : 1,
-          transform:  tabTransition === "left"  ? "translateX(-18px)" :
-                      tabTransition === "right" ? "translateX(18px)"  : "translateX(0)",
-          transition: tabTransition
-            ? "opacity 0.16s ease, transform 0.16s ease"
-            : "opacity 0.18s ease, transform 0.18s cubic-bezier(0.22,1,0.36,1)",
-        }}
-      >
+      {/* ── TAB CONTENT — animated tab navigation ── */}
+      <div style={{
+        flex:1, display:"flex", flexDirection:"column",
+        opacity:   tabTransition ? 0 : 1,
+        transform: tabTransition === "left"  ? "translateX(-18px)" :
+                   tabTransition === "right" ? "translateX(18px)"  : "translateX(0)",
+        transition: tabTransition
+          ? "opacity 0.16s ease, transform 0.16s ease"
+          : "opacity 0.2s ease, transform 0.2s cubic-bezier(0.22,1,0.36,1)",
+      }}>
 
       {/* ══ OVERVIEW ══ */}
       {!loading && !error && activeSection === "overview" && (
@@ -3902,85 +4008,60 @@ export default function AdminDashboard({ onClose, dark = false }) {
         />
       )}
 
-      </div>{/* end animated tab content wrapper */}
+      </div>{/* end animated tab content */}
 
-      {/* ── Prev / Next Tab Navigation Bar ── */}
+      {/* ── Bottom Prev/Next nav + position dots ── */}
       {!loading && !error && (() => {
-        const tabIds = TABS.map(([id]) => id);
-        const curr   = tabIds.indexOf(activeSection);
+        const tabIds  = TABS.map(([id]) => id);
+        const curr    = tabIds.indexOf(activeSection);
         const hasPrev = curr > 0;
         const hasNext = curr < tabIds.length - 1;
-        const prevLabel = hasPrev ? TABS[curr - 1][1] : null;
-        const nextLabel = hasNext ? TABS[curr + 1][1] : null;
         return (
           <div style={{
             display:"flex", alignItems:"center", justifyContent:"space-between",
-            padding:"10px 14px 4px",
-            flexShrink:0,
+            padding:"10px 14px 4px", flexShrink:0,
             borderTop:`1px solid ${th.border}`,
           }}>
-            {/* Prev button */}
-            <div
-              onClick={() => hasPrev && navigateTab(tabIds[curr - 1])}
-              style={{
-                display:"flex", alignItems:"center", gap:6,
-                padding:"8px 14px", borderRadius:20,
-                background: hasPrev ? (dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)") : "transparent",
-                cursor: hasPrev ? "pointer" : "default",
-                opacity: hasPrev ? 1 : 0,
-                pointerEvents: hasPrev ? "auto" : "none",
-                transition:"background 0.15s, transform 0.15s",
-                userSelect:"none",
-              }}
-              onMouseDown={e => { if (hasPrev) e.currentTarget.style.transform = "scale(0.95)"; }}
-              onMouseUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
-            >
-              <span style={{ fontSize:14, color:th.textMid }}>‹</span>
-              <span style={{ fontSize:11, fontWeight:700, color:th.textMid, maxWidth:90,
-                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                {prevLabel}
+            {/* Prev */}
+            <div onClick={() => hasPrev && navigateTab(tabIds[curr - 1])} style={{
+              display:"flex", alignItems:"center", gap:5,
+              padding:"7px 13px", borderRadius:20,
+              background: hasPrev ? (dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.05)") : "transparent",
+              cursor: hasPrev ? "pointer" : "default",
+              opacity: hasPrev ? 1 : 0, pointerEvents: hasPrev ? "auto" : "none",
+              transition:"all 0.15s", userSelect:"none",
+            }}>
+              <span style={{ fontSize:13, color:th.textMid }}>‹</span>
+              <span style={{ fontSize:10, fontWeight:700, color:th.textMid,
+                maxWidth:80, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {TABS[curr - 1]?.[1]}
               </span>
             </div>
-
             {/* Position dots */}
             <div style={{ display:"flex", gap:5, alignItems:"center" }}>
               {tabIds.map((id, i) => (
-                <div
-                  key={id}
-                  onClick={() => navigateTab(id)}
-                  style={{
-                    width:  i === curr ? 18 : 6,
-                    height: 6,
-                    borderRadius: 3,
-                    background: i === curr ? NAVY : (dark ? "#444" : "#ddd"),
-                    transition:"all 0.25s cubic-bezier(0.22,1,0.36,1)",
-                    cursor:"pointer",
-                  }}
-                />
+                <div key={id} onClick={() => navigateTab(id)} style={{
+                  width: i === curr ? 18 : 6, height:6, borderRadius:3,
+                  background: i === curr ? NAVY : (dark?"#444":"#ddd"),
+                  transition:"all 0.25s cubic-bezier(0.22,1,0.36,1)",
+                  cursor:"pointer",
+                }} />
               ))}
             </div>
-
-            {/* Next button */}
-            <div
-              onClick={() => hasNext && navigateTab(tabIds[curr + 1])}
-              style={{
-                display:"flex", alignItems:"center", gap:6,
-                padding:"8px 14px", borderRadius:20,
-                background: hasNext ? (dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)") : "transparent",
-                cursor: hasNext ? "pointer" : "default",
-                opacity: hasNext ? 1 : 0,
-                pointerEvents: hasNext ? "auto" : "none",
-                transition:"background 0.15s, transform 0.15s",
-                userSelect:"none",
-              }}
-              onMouseDown={e => { if (hasNext) e.currentTarget.style.transform = "scale(0.95)"; }}
-              onMouseUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
-            >
-              <span style={{ fontSize:11, fontWeight:700, color:th.textMid, maxWidth:90,
-                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                {nextLabel}
+            {/* Next */}
+            <div onClick={() => hasNext && navigateTab(tabIds[curr + 1])} style={{
+              display:"flex", alignItems:"center", gap:5,
+              padding:"7px 13px", borderRadius:20,
+              background: hasNext ? (dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.05)") : "transparent",
+              cursor: hasNext ? "pointer" : "default",
+              opacity: hasNext ? 1 : 0, pointerEvents: hasNext ? "auto" : "none",
+              transition:"all 0.15s", userSelect:"none",
+            }}>
+              <span style={{ fontSize:10, fontWeight:700, color:th.textMid,
+                maxWidth:80, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {TABS[curr + 1]?.[1]}
               </span>
-              <span style={{ fontSize:14, color:th.textMid }}>›</span>
+              <span style={{ fontSize:13, color:th.textMid }}>›</span>
             </div>
           </div>
         );
