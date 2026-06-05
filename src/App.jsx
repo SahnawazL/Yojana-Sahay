@@ -7426,7 +7426,7 @@ export default function YojanaSahay(){
            existing profile and treat this as a one-off lookup.                     */}
       {showUpdateProfileSheet&&checkerAnswers&&(
         <div
-          onClick={()=>setShowUpdateProfileSheet(false)}
+          onClick={()=>{setShowUpdateProfileSheet(false);setCheckerAnswers(null);}}
           style={{
             position:"fixed",inset:0,zIndex:250,
             background:"rgba(0,0,0,0.52)",
@@ -7495,6 +7495,7 @@ export default function YojanaSahay(){
                   }
                   // Commit the checker answers so BenefitCard reflects the new profile
                   setCommittedCheckerAnswers(checkerAnswers);
+                  setCheckerRunId(id=>id+1); // remount BenefitCard now that answers are committed
                   setCheckerAnswers(null); // profile now reflects these answers
                   setShowUpdateProfileSheet(false);
                 }}
@@ -7574,13 +7575,13 @@ export default function YojanaSahay(){
           lang={lang}
           onClose={()=>setShowChecker(false)}
       onComplete={(answers)=>{
-        setCheckerAnswers(answers);
-        setCheckerRunId(id=>id+1);
-        // If there's no profile, the update-profile sheet will NOT appear,
-        // so commit the answers immediately so BenefitCard updates right away.
-        // If there IS a profile, we wait for the user's sheet choice.
-        if(!profile) setCommittedCheckerAnswers(answers);
-      }}
+          setCheckerAnswers(answers);
+          // If there's no profile, the update-profile sheet will NOT appear,
+          // so commit the answers immediately so BenefitCard updates right away.
+          // If there IS a profile, we wait for the user's sheet choice before
+          // committing or incrementing checkerRunId.
+          if(!profile){ setCommittedCheckerAnswers(answers); setCheckerRunId(id=>id+1); }
+        }}
           onExitFromResults={(answersAreFromProfile)=>{if(profile&&!answersAreFromProfile)setTimeout(()=>setShowUpdateProfileSheet(true),420);}}
           prefilledAnswers={profileAnswers||undefined}
           dark={dark}/>
