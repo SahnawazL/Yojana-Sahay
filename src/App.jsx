@@ -6379,7 +6379,8 @@ export default function YojanaSahay(){
   const [loaded,setLoaded]=useState(false);
   const [langAnim,setLangAnim]=useState(false);
   const [showChecker,setShowChecker]=useState(false);
-  const [checkerAnswers,setCheckerAnswers]=useState(null); // answers from latest eligibility recheck
+  const [checkerAnswers,setCheckerAnswers]=useState(null); // answers from latest eligibility recheck (raw, pre-decision)
+  const [committedCheckerAnswers,setCommittedCheckerAnswers]=useState(null); // answers committed to BenefitCard only after "Update My Profile" (or when no profile exists)
   const [checkerRunId,setCheckerRunId]=useState(0);        // increments each checker run → forces BenefitCard remount
   const [showUpdateProfileSheet,setShowUpdateProfileSheet]=useState(false); // "just checking / update profile" popup
   const [selectedScheme,setSelectedScheme]=useState(null);   // SchemeDetailSheet
@@ -6595,14 +6596,15 @@ export default function YojanaSahay(){
     return SCHEME_DB.filter(s=>s.match(profileAnswers)).slice(0,3);
   },[profileAnswers]);
 
-  // All matched schemes — used for BenefitCalculatorCard.
-  // Prefers the latest eligibility-recheck answers (if any) over the saved profile,
-  // so the card immediately reflects a fresh recheck without a full profile save.
+  // All matched schemes — used for BenefitCalculatorCard and DocumentVaultCard.
+  // Uses committedCheckerAnswers (set only when user clicks "Update My Profile",
+  // or immediately when there's no profile so no sheet appears) so the cards
+  // never update from a raw checker run before the user makes their choice.
   const allMatchedSchemes=useMemo(()=>{
-    const answers=checkerAnswers||profileAnswers;
+    const answers=committedCheckerAnswers||profileAnswers;
     if(!answers)return[];
     return SCHEME_DB.filter(s=>s.match(answers));
-  },[checkerAnswers,profileAnswers]);
+  },[committedCheckerAnswers,profileAnswers]);
 
   const navItems=useMemo(()=>[
     {
@@ -6858,13 +6860,13 @@ export default function YojanaSahay(){
               </div>
             </div>
 
-            {/* Benefit Calculator — shown when profile OR checker answers exist with annual benefits */}
-            {(profile||checkerAnswers)&&allMatchedSchemes.length>0&&(
+            {/* Benefit Calculator — shown when profile OR committed checker answers exist with annual benefits */}
+            {(profile||committedCheckerAnswers)&&allMatchedSchemes.length>0&&(
               <BenefitCalculatorCard key={checkerRunId} allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
             )}
 
             {/* Document Vault — auto-generated checklist from matched schemes */}
-            {(profile||checkerAnswers)&&allMatchedSchemes.length>0&&(
+            {(profile||committedCheckerAnswers)&&allMatchedSchemes.length>0&&(
               <DocumentVaultCard allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} uid={auth.currentUser?.uid||null}/>
             )}
 
@@ -7491,6 +7493,8 @@ export default function YojanaSahay(){
                   if(auth.currentUser){
                     try{updateDoc(doc(db,"users",auth.currentUser.uid),{...updated,lastSeen:serverTimestamp()}).catch(()=>{});}catch{}
                   }
+                  // Commit the checker answers so BenefitCard reflects the new profile
+                  setCommittedCheckerAnswers(checkerAnswers);
                   setCheckerAnswers(null); // profile now reflects these answers
                   setShowUpdateProfileSheet(false);
                 }}
@@ -7523,7 +7527,13 @@ export default function YojanaSahay(){
 
               {/* Just Checking option */}
               <div
-                onClick={()=>{haptic();setShowUpdateProfileSheet(false);}}
+                onClick={()=>{
+                  haptic();
+                  // Discard the raw checker answers — do NOT commit them.
+                  // BenefitCard stays on the existing profile data.
+                  setCheckerAnswers(null);
+                  setShowUpdateProfileSheet(false);
+                }}
                 style={{
                   display:"flex",alignItems:"center",gap:14,
                   background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.03)",
@@ -7563,7 +7573,14 @@ export default function YojanaSahay(){
         <EligibilityChecker
           lang={lang}
           onClose={()=>setShowChecker(false)}
-          onComplete={(answers)=>{setCheckerAnswers(answers);setCheckerRunId(id=>id+1);}}
+      onComplete={(answers)=>{
+        setCheckerAnswers(answers);
+        setCheckerRunId(id=>id+1);
+        // If there's no profile, the update-profile sheet will NOT appear,
+        // so commit the answers immediately so BenefitCard updates right away.
+        // If there IS a profile, we wait for the user's sheet choice.
+        if(!profile) setCommittedCheckerAnswers(answers);
+      }}
           onExitFromResults={(answersAreFromProfile)=>{if(profile&&!answersAreFromProfile)setTimeout(()=>setShowUpdateProfileSheet(true),420);}}
           prefilledAnswers={profileAnswers||undefined}
           dark={dark}/>
