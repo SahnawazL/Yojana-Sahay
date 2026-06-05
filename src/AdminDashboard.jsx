@@ -2668,9 +2668,9 @@ export default function AdminDashboard({ onClose, dark = false }) {
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
-  // ── Swipe navigation ───────────────────────────────────────────────────────
-  const swipeTouchX  = useRef(null);  // stores touchstart X
-  const tabsBarRef   = useRef(null);  // ref to the scrollable tab bar
+  // ── Smart tab navigation ──────────────────────────────────────────────────
+  const tabsBarRef       = useRef(null);   // ref to the scrollable tab bar
+  const [tabTransition,  setTabTransition] = useState(null); // "left" | "right" | null
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchUsers = useCallback(async (isRefresh = false) => {
@@ -3231,14 +3231,35 @@ export default function AdminDashboard({ onClose, dark = false }) {
     ["cleanup",   "🗑️ Cleanup"],
   ];
 
-  // Swipe handler — called on touchend with delta
-  const handleSwipe = useCallback((deltaX) => {
+  // ── Smart tab change (with direction-aware transition) ────────────────────
+  const navigateTab = useCallback((targetId) => {
     const tabIds = TABS.map(([id]) => id);
     const curr   = tabIds.indexOf(activeSection);
-    if (Math.abs(deltaX) < 60) return; // ignore small drags
-    if (deltaX < 0 && curr < tabIds.length - 1) setActiveSection(tabIds[curr + 1]); // swipe left → next
-    if (deltaX > 0 && curr > 0)                 setActiveSection(tabIds[curr - 1]); // swipe right → prev
+    const next   = tabIds.indexOf(targetId);
+    if (next === curr || next === -1) return;
+    setTabTransition(next > curr ? "left" : "right");
+    setTimeout(() => {
+      setActiveSection(targetId);
+      setTabTransition(null);
+    }, 160);
   }, [activeSection]);
+
+  // Keyboard arrow-key navigation
+  useEffect(() => {
+    const tabIds = TABS.map(([id]) => id);
+    const handler = (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+      if (e.key === "ArrowRight") {
+        const curr = tabIds.indexOf(activeSection);
+        if (curr < tabIds.length - 1) navigateTab(tabIds[curr + 1]);
+      } else if (e.key === "ArrowLeft") {
+        const curr = tabIds.indexOf(activeSection);
+        if (curr > 0) navigateTab(tabIds[curr - 1]);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [activeSection, navigateTab]);
 
   // Auto-scroll tab bar to keep active tab visible
   useEffect(() => {
@@ -3344,7 +3365,7 @@ export default function AdminDashboard({ onClose, dark = false }) {
             ].filter(s => s.count > 0) : [];
 
             return (
-              <div key={id} onClick={() => setActiveSection(id)}
+              <div key={id} onClick={() => navigateTab(id)}
                 data-active={activeSection === id ? "true" : "false"}
                 style={{
                 padding: STATUS_HINTS.length > 0 ? "7px 13px 20px" : "7px 13px",
@@ -3414,15 +3435,17 @@ export default function AdminDashboard({ onClose, dark = false }) {
         </div>
       )}
 
-      {/* ── TAB CONTENT — swipe left/right to navigate ── */}
+      {/* ── TAB CONTENT — smooth animated tab navigation ── */}
       <div
-        onTouchStart={e => { swipeTouchX.current = e.touches[0].clientX; }}
-        onTouchEnd={e => {
-          if (swipeTouchX.current === null) return;
-          handleSwipe(swipeTouchX.current - e.changedTouches[0].clientX);
-          swipeTouchX.current = null;
+        style={{
+          flex:1, display:"flex", flexDirection:"column",
+          opacity:    tabTransition ? 0 : 1,
+          transform:  tabTransition === "left"  ? "translateX(-18px)" :
+                      tabTransition === "right" ? "translateX(18px)"  : "translateX(0)",
+          transition: tabTransition
+            ? "opacity 0.16s ease, transform 0.16s ease"
+            : "opacity 0.18s ease, transform 0.18s cubic-bezier(0.22,1,0.36,1)",
         }}
-        style={{ flex:1, display:"flex", flexDirection:"column" }}
       >
 
       {/* ══ OVERVIEW ══ */}
@@ -3523,7 +3546,7 @@ export default function AdminDashboard({ onClose, dark = false }) {
               marginBottom:4,
             }}>
               <div style={{ fontSize:13, fontWeight:800, color:th.text }}>🕐 Recent Sign-ups</div>
-              <div onClick={() => setActiveSection("users")} style={{
+              <div onClick={() => navigateTab("users")} style={{
                 fontSize:11, color:SAFFRON, fontWeight:700, cursor:"pointer",
               }}>
                 See all →
@@ -3879,7 +3902,89 @@ export default function AdminDashboard({ onClose, dark = false }) {
         />
       )}
 
-      </div>{/* end swipe wrapper */}
+      </div>{/* end animated tab content wrapper */}
+
+      {/* ── Prev / Next Tab Navigation Bar ── */}
+      {!loading && !error && (() => {
+        const tabIds = TABS.map(([id]) => id);
+        const curr   = tabIds.indexOf(activeSection);
+        const hasPrev = curr > 0;
+        const hasNext = curr < tabIds.length - 1;
+        const prevLabel = hasPrev ? TABS[curr - 1][1] : null;
+        const nextLabel = hasNext ? TABS[curr + 1][1] : null;
+        return (
+          <div style={{
+            display:"flex", alignItems:"center", justifyContent:"space-between",
+            padding:"10px 14px 4px",
+            flexShrink:0,
+            borderTop:`1px solid ${th.border}`,
+          }}>
+            {/* Prev button */}
+            <div
+              onClick={() => hasPrev && navigateTab(tabIds[curr - 1])}
+              style={{
+                display:"flex", alignItems:"center", gap:6,
+                padding:"8px 14px", borderRadius:20,
+                background: hasPrev ? (dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)") : "transparent",
+                cursor: hasPrev ? "pointer" : "default",
+                opacity: hasPrev ? 1 : 0,
+                pointerEvents: hasPrev ? "auto" : "none",
+                transition:"background 0.15s, transform 0.15s",
+                userSelect:"none",
+              }}
+              onMouseDown={e => { if (hasPrev) e.currentTarget.style.transform = "scale(0.95)"; }}
+              onMouseUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
+            >
+              <span style={{ fontSize:14, color:th.textMid }}>‹</span>
+              <span style={{ fontSize:11, fontWeight:700, color:th.textMid, maxWidth:90,
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {prevLabel}
+              </span>
+            </div>
+
+            {/* Position dots */}
+            <div style={{ display:"flex", gap:5, alignItems:"center" }}>
+              {tabIds.map((id, i) => (
+                <div
+                  key={id}
+                  onClick={() => navigateTab(id)}
+                  style={{
+                    width:  i === curr ? 18 : 6,
+                    height: 6,
+                    borderRadius: 3,
+                    background: i === curr ? NAVY : (dark ? "#444" : "#ddd"),
+                    transition:"all 0.25s cubic-bezier(0.22,1,0.36,1)",
+                    cursor:"pointer",
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Next button */}
+            <div
+              onClick={() => hasNext && navigateTab(tabIds[curr + 1])}
+              style={{
+                display:"flex", alignItems:"center", gap:6,
+                padding:"8px 14px", borderRadius:20,
+                background: hasNext ? (dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)") : "transparent",
+                cursor: hasNext ? "pointer" : "default",
+                opacity: hasNext ? 1 : 0,
+                pointerEvents: hasNext ? "auto" : "none",
+                transition:"background 0.15s, transform 0.15s",
+                userSelect:"none",
+              }}
+              onMouseDown={e => { if (hasNext) e.currentTarget.style.transform = "scale(0.95)"; }}
+              onMouseUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
+            >
+              <span style={{ fontSize:11, fontWeight:700, color:th.textMid, maxWidth:90,
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {nextLabel}
+              </span>
+              <span style={{ fontSize:14, color:th.textMid }}>›</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* User Detail Drawer */}
       {selectedUser && (
