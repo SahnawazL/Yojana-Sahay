@@ -5446,6 +5446,7 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
   const bf = fontFamily(lang);
   const [revealed, setRevealed] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const schemesWithBenefit = useMemo(
     () => allMatchedSchemes.filter(s => s.annual > 0).sort((a, b) => b.annual - a.annual),
@@ -5467,6 +5468,36 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
 
   const formatINR = (n) => `₹${n.toLocaleString("en-IN")}`;
   const visibleSchemes = expanded ? schemesWithBenefit : schemesWithBenefit.slice(0, 3);
+
+  // ── Collapsed pill ──────────────────────────────────────────────────────────
+  if (!open) return (
+    <div onClick={() => { haptic(); setOpen(true); }} style={{
+      display:"flex", alignItems:"center", gap:10,
+      background:"linear-gradient(135deg,#0c1445,#0f2a5c)",
+      border:"1px solid rgba(255,255,255,0.12)",
+      borderRadius:50, padding:"10px 14px", marginBottom:12,
+      cursor:"pointer", WebkitTapHighlightColor:"transparent",
+      boxShadow:"0 4px 16px rgba(6,3,141,0.22)",
+      transition:"transform 0.14s", willChange:"transform",
+    }}
+    onTouchStart={e=>e.currentTarget.style.transform="scale(0.97)"}
+    onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+    onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}>
+      <div style={{width:34,height:34,background:"rgba(255,153,51,0.2)",border:"1.5px solid rgba(255,153,51,0.45)",borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>💰</div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{color:"rgba(255,255,255,0.55)",fontSize:9,fontWeight:600,letterSpacing:0.4,textTransform:"uppercase",fontFamily:bf}}>{isHindi?"सरकारी योजना":"Govt. Money You Can Receive"}</div>
+        <div style={{color:"#FFD700",fontSize:13,fontWeight:900,letterSpacing:-0.3,fontVariantNumeric:"tabular-nums",lineHeight:1.2}}>
+          {formatINR(totalAnnual)}<span style={{fontSize:8.5,fontWeight:600,color:"rgba(255,215,0,0.55)",fontFamily:bf}}>/yr</span>
+        </div>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+        <div style={{background:"rgba(74,222,128,0.14)",border:"1px solid rgba(74,222,128,0.3)",borderRadius:20,padding:"3px 8px",color:"#4ade80",fontSize:8,fontWeight:800,letterSpacing:0.4}}>
+          {schemesWithBenefit.length} {isHindi?"योजनाएं":"schemes"}
+        </div>
+        <span style={{color:"rgba(255,255,255,0.35)",fontSize:16,lineHeight:1,marginTop:1}}>›</span>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{
@@ -5499,12 +5530,17 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
               : `You may qualify for ${schemesWithBenefit.length} scheme${schemesWithBenefit.length !== 1 ? "s" : ""}`}
           </div>
         </div>
-        {/* Live indicator */}
-        <div style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(74,222,128,0.15)", border:"1px solid rgba(74,222,128,0.35)", borderRadius:20, padding:"4px 9px" }}>
-          <div style={{ width:6, height:6, borderRadius:"50%", background:"#4ade80", animation:"calc-pulse 1.6s ease-in-out infinite" }}/>
-          <span style={{ color:"#4ade80", fontSize:9, fontWeight:800, letterSpacing:0.7 }}>
-            {isHindi ? "परिणाम" : "YOUR RESULT"}
-          </span>
+        {/* Live indicator + collapse */}
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <div style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(74,222,128,0.15)", border:"1px solid rgba(74,222,128,0.35)", borderRadius:20, padding:"4px 9px" }}>
+            <div style={{ width:6, height:6, borderRadius:"50%", background:"#4ade80", animation:"calc-pulse 1.6s ease-in-out infinite" }}/>
+            <span style={{ color:"#4ade80", fontSize:9, fontWeight:800, letterSpacing:0.7 }}>
+              {isHindi ? "परिणाम" : "YOUR RESULT"}
+            </span>
+          </div>
+          <div onClick={(e)=>{e.stopPropagation();haptic();setOpen(false);}} style={{width:24,height:24,borderRadius:12,background:"rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}>
+            <span style={{color:"rgba(255,255,255,0.6)",fontSize:13,lineHeight:1,marginTop:-1}}>×</span>
+          </div>
         </div>
       </div>
 
@@ -5650,6 +5686,7 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
   const bf = fontFamily(lang);
   const [showAll, setShowAll] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  const [open, setOpen] = useState(false);
   // ── UID-namespaced key so each account has its own checklist ──
   const vaultKey = uid ? `yojana_doc_vault_${uid}` : "yojana_doc_vault_guest";
 
@@ -5721,6 +5758,39 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
 
   const progressColor = pct === 100 ? "#138808" : pct >= 60 ? "#FF9933" : "#e53e3e";
 
+  // ── Collapsed pill ──────────────────────────────────────────────────────────
+  if (!open) return (
+    <div onClick={() => { haptic(); setOpen(true); }} style={{
+      display:"flex", alignItems:"center", gap:10,
+      background: dark ? "linear-gradient(135deg,#1a1a2e,#16213e)" : "linear-gradient(135deg,#EFF6FF,#F0FDF4)",
+      border: `1px solid ${dark?"rgba(255,255,255,0.1)":th.border}`,
+      borderRadius:50, padding:"10px 14px", marginBottom:12,
+      cursor:"pointer", WebkitTapHighlightColor:"transparent",
+      boxShadow: dark?"0 4px 16px rgba(0,0,0,0.22)":"0 2px 10px rgba(0,0,0,0.06)",
+      transition:"transform 0.14s", willChange:"transform",
+    }}
+    onTouchStart={e=>e.currentTarget.style.transform="scale(0.97)"}
+    onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+    onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}>
+      <div style={{width:34,height:34,background:`linear-gradient(135deg,${ASHOKA_BLUE}22,${ASHOKA_BLUE}0a)`,border:`1.5px solid ${ASHOKA_BLUE}30`,borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>📁</div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{color:th.textSub,fontSize:9,fontWeight:600,letterSpacing:0.4,textTransform:"uppercase"}}>{isHindi?"दस्तावेज़ चेकलिस्ट":"Document Checklist"}</div>
+        <div style={{display:"flex",alignItems:"center",gap:6,marginTop:2}}>
+          <div style={{flex:1,height:4,background:dark?"rgba(255,255,255,0.1)":"#e2e8f0",borderRadius:4,overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${pct}%`,background:pct===100?"linear-gradient(90deg,#22c55e,#16a34a)":pct>=60?"linear-gradient(90deg,#FF9933,#f97316)":"linear-gradient(90deg,#ef4444,#dc2626)",borderRadius:4,transition:"width 0.6s"}}/>
+          </div>
+          <span style={{color:th.text,fontSize:10,fontWeight:800,fontVariantNumeric:"tabular-nums",flexShrink:0}}>{checkedCount}<span style={{color:th.textSub,fontWeight:500}}>/{total}</span></span>
+        </div>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+        <div style={{background:pct===100?"rgba(34,197,94,0.15)":dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1px solid ${pct===100?"rgba(34,197,94,0.3)":th.border}`,borderRadius:20,padding:"3px 8px",color:pct===100?"#22c55e":th.textSub,fontSize:8,fontWeight:800}}>
+          {pct}%
+        </div>
+        <span style={{color:th.textSub,fontSize:16,lineHeight:1,marginTop:1}}>›</span>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{
       background: th.card, borderRadius: 20, marginBottom: 16,
@@ -5751,21 +5821,26 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
                 : `Collect these ${total} documents before applying`}
             </div>
           </div>
-          {/* Progress pill */}
-          <div style={{
-            background: pct === 100 ? "#DCFCE7" : dark ? "#2c2c2e" : "#F1F5F9",
-            border: `1.5px solid ${pct === 100 ? "#86EFAC" : th.border2}`,
-            borderRadius: 20, padding: "5px 11px",
-            display:"flex", alignItems:"center", gap:5, transition:"all 0.4s",
-          }}>
-            <span style={{ fontSize:13 }}>{pct === 100 ? "🎉" : "📋"}</span>
-            <div>
-              <div style={{ fontSize:12, fontWeight:800, color: pct === 100 ? "#16a34a" : th.text, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>
-                {checkedCount}<span style={{ fontWeight:500, color:th.textSub }}>/{total}</span>
+          {/* Progress pill + collapse */}
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <div style={{
+              background: pct === 100 ? "#DCFCE7" : dark ? "#2c2c2e" : "#F1F5F9",
+              border: `1.5px solid ${pct === 100 ? "#86EFAC" : th.border2}`,
+              borderRadius: 20, padding: "5px 11px",
+              display:"flex", alignItems:"center", gap:5, transition:"all 0.4s",
+            }}>
+              <span style={{ fontSize:13 }}>{pct === 100 ? "🎉" : "📋"}</span>
+              <div>
+                <div style={{ fontSize:12, fontWeight:800, color: pct === 100 ? "#16a34a" : th.text, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>
+                  {checkedCount}<span style={{ fontWeight:500, color:th.textSub }}>/{total}</span>
+                </div>
+                <div style={{ fontSize:9, color:th.textSub, fontWeight:600 }}>
+                  {isHindi ? "मिले" : "Collected"}
+                </div>
               </div>
-              <div style={{ fontSize:9, color:th.textSub, fontWeight:600 }}>
-                {isHindi ? "मिले" : "Collected"}
-              </div>
+            </div>
+            <div onClick={(e)=>{e.stopPropagation();haptic();setOpen(false);}} style={{width:24,height:24,borderRadius:12,background:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.06)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}>
+              <span style={{color:th.textSub,fontSize:13,lineHeight:1,marginTop:-1}}>×</span>
             </div>
           </div>
         </div>
@@ -6825,7 +6900,7 @@ export default function YojanaSahay(){
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
                 {categories.map((cat,i)=>{
                   const count=categoryCounts[cat.filterKey]||0;
-                  // No backdrop-filter — glass look via gradient+border only (zero GPU cost)
+                  // No backdrop-filter — glass via gradient+border only (zero GPU cost)
                   const cardBg=dark
                     ?`linear-gradient(155deg,${cat.color}30 0%,${cat.color}14 100%)`
                     :`linear-gradient(155deg,${cat.color}1e 0%,${cat.color}0c 100%)`;
@@ -6833,6 +6908,7 @@ export default function YojanaSahay(){
                   const cardShadow=dark
                     ?`0 2px 8px rgba(0,0,0,0.30),inset 0 1px 0 rgba(255,255,255,0.07)`
                     :`0 2px 8px ${cat.color}22,inset 0 1px 0 rgba(255,255,255,0.75)`;
+                  // Dark: white text (cat.color is often dark navy/green — unreadable on dark bg)
                   const labelColor=dark?"rgba(255,255,255,0.90)":cat.color;
                   return(
                     <div key={i} className={`fu ch c${i} ${loaded?"show":""}`}
@@ -6850,7 +6926,8 @@ export default function YojanaSahay(){
                         willChange:"transform",
                       }}
                       onTouchStart={e=>{e.currentTarget.style.transform="scale(0.93)";e.currentTarget.style.opacity="0.85";}}
-                      onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.opacity="1";}}>
+                      onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.opacity="1";}}
+                      onTouchCancel={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.opacity="1";}}>
                       {/* Count badge */}
                       <div style={{
                         position:"absolute",top:5,right:5,
