@@ -81,7 +81,11 @@ const googleSearchScheme = (name) => {
 
 // ─── STAT TARGETS (stable reference — prevents useCountUp from re-animating) ──
 const STAT_TARGETS = [3000, 28, 50];
-const STORAGE_KEY = "yojana_eligibility_answers";
+const STORAGE_KEY      = "yojana_eligibility_answers";
+const BRIEF_CACHE_KEY  = "yojana_brief_cache";
+// Stable serialisation for answer fingerprinting — sorted keys avoid false misses
+const answerFingerprint = (ans) =>
+  JSON.stringify(Object.keys(ans).sort().reduce((o,k)=>{o[k]=ans[k];return o;},{}));
 
 // ─── REVEAL SCREEN ICONS (stable — module level) ───────────────────────────────
 // Positions are % within the 300×260 icon-orbit container; anim = CSS keyframe name
@@ -2402,7 +2406,18 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
     return()=>{ if(animCountRaf.current) cancelAnimationFrame(animCountRaf.current); };
   },[partialCount]);
   // ── AI Results Brief ──────────────────────────────────────────────────────
-  const [brief, setBrief]             = useState(null);
+  // Initialise from cache so the brief is visible immediately when the checker
+  // re-opens (no API call needed for the same set of answers).
+  const [brief, setBrief] = useState(()=>{
+    try{
+      const saved   = JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+      if(!saved) return null;
+      const savedAns = (saved.answers && typeof saved.step==="number") ? saved.answers : saved;
+      const cached   = JSON.parse(localStorage.getItem(BRIEF_CACHE_KEY)||"null");
+      if(cached?.brief && cached.answersKey===answerFingerprint(savedAns)) return cached.brief;
+    }catch{}
+    return null;
+  });
   const [briefLoading, setBriefLoading] = useState(false);
   // ── Calculating screen state ──────────────────────────────────────────────
   const [calculating, setCalculating] = useState(false);
@@ -2432,10 +2447,31 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
           .catch(()=>{}); // silent — non-critical
       }catch{}
     }
+    // ── Cache check — skip API if we already have a brief for these exact answers ──
+    try{
+      const cached = JSON.parse(localStorage.getItem(BRIEF_CACHE_KEY)||"null");
+      if(cached?.brief && cached.answersKey===answerFingerprint(answers)){
+        setBrief(cached.brief);   // restore silently — no loading state, no API call
+        return;
+      }
+    }catch{}
+    // No cache hit → call the AI
     setBrief(null);
     setBriefLoading(true);
-    generateResultsBrief(answers, results, nearMiss, totalAnnual, lang)
-      .then(text => { if(!cancelled){ setBrief(text); setBriefLoading(false); } })
+    generateResultsBrief(answers, [...results].sort((a,b)=>(b.annual||0)-(a.annual||0)), nearMiss, totalAnnual, lang)
+      .then(text => {
+        if(!cancelled){
+          setBrief(text);
+          setBriefLoading(false);
+          // Persist so next open reuses this result without another API call
+          try{
+            localStorage.setItem(BRIEF_CACHE_KEY, JSON.stringify({
+              answersKey: answerFingerprint(answers),
+              brief: text,
+            }));
+          }catch{}
+        }
+      })
       .catch(()  => { if(!cancelled){ setBriefLoading(false); } });
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2443,6 +2479,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
 
   const retake=()=>{
     try{localStorage.removeItem(STORAGE_KEY);}catch{}
+    try{localStorage.removeItem(BRIEF_CACHE_KEY);}catch{}  // clear cached brief so retake always gets a fresh AI message
     // Always reset to step 0 with blank answers so the user can retake freely.
     // prefilledAnswers is only used for the initial open — not for retake.
     setStep(0);setAnswers({});setStateSearch("");
@@ -2805,45 +2842,144 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
 
                 {/* ── AI Results Brief ── */}
                 {(briefLoading || brief) && (
+                  /* Gradient-border wrapper */
                   <div style={{
-                    marginBottom:16,padding:"14px 16px",
-                    background: dark ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.06)",
-                    border:`1.5px solid ${dark?"rgba(99,102,241,0.30)":"rgba(99,102,241,0.22)"}`,
-                    borderRadius:16,
+                    marginBottom:16,borderRadius:20,
+                    padding:1.5,
+                    background: dark
+                      ? "linear-gradient(135deg,rgba(99,102,241,0.55),rgba(139,92,246,0.45),rgba(99,102,241,0.55))"
+                      : "linear-gradient(135deg,rgba(99,102,241,0.38),rgba(139,92,246,0.28),rgba(59,130,246,0.32))",
+                    boxShadow: dark
+                      ? "0 8px 32px rgba(99,102,241,0.22),0 2px 8px rgba(0,0,0,0.30)"
+                      : "0 8px 28px rgba(99,102,241,0.13),0 2px 8px rgba(0,0,0,0.06)",
                   }}>
-                    {/* Header row */}
-                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:9}}>
-                      <span style={{fontSize:14}}>✨</span>
-                      <span style={{fontSize:10,fontWeight:800,letterSpacing:0.7,color:"#6366F1",fontFamily:bf}}>
-                        {isHindi?"AI सलाहकार":"AI ADVISOR"}
-                      </span>
-                      {briefLoading&&(
-                        <span style={{marginLeft:"auto",fontSize:9,fontWeight:700,color:"#6366F1",opacity:0.7,animation:"badgePulse 1.2s ease-in-out infinite",fontFamily:bf}}>
-                          {isHindi?"तैयार हो रहा है…":"generating…"}
-                        </span>
-                      )}
-                    </div>
-                    {/* Skeleton lines while loading */}
-                    {briefLoading&&!brief&&(
-                      <div style={{display:"flex",flexDirection:"column",gap:7}}>
-                        {[92,78,85].map((w,i)=>(
-                          <div key={i} style={{
-                            height:10,width:`${w}%`,borderRadius:6,
-                            background: dark?"rgba(99,102,241,0.18)":"rgba(99,102,241,0.10)",
-                            animation:"badgePulse 1.4s ease-in-out infinite",
-                            animationDelay:`${i*0.18}s`,
-                          }}/>
-                        ))}
+                    {/* Inner card */}
+                    <div style={{
+                      borderRadius:19,overflow:"hidden",position:"relative",
+                      background: dark ? "#16162a" : "#FAFAFF",
+                      padding:"14px 16px",
+                    }}>
+                      {/* Shine sweep */}
+                      <div style={{
+                        position:"absolute",top:0,left:"-60%",width:"40%",height:"100%",
+                        background:"linear-gradient(90deg,transparent,rgba(99,102,241,0.07),transparent)",
+                        transform:"skewX(-15deg)",
+                        animation:"premiumShine 3.5s ease-in-out 1.2s infinite",
+                        pointerEvents:"none",
+                      }}/>
+
+                      {/* ── Header row ── */}
+                      <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:10}}>
+                        {/* AI icon chip */}
+                        <div style={{
+                          width:30,height:30,borderRadius:10,flexShrink:0,
+                          background:"linear-gradient(135deg,#6366F1,#8B5CF6)",
+                          display:"flex",alignItems:"center",justifyContent:"center",
+                          boxShadow:"0 3px 10px rgba(99,102,241,0.42)",
+                          fontSize:15,
+                        }}>✨</div>
+
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:10.5,fontWeight:800,letterSpacing:0.7,
+                            color:"#6366F1",fontFamily:bf,lineHeight:1}}>
+                            {isHindi?"AI सलाहकार":"AI ADVISOR"}
+                          </div>
+                          <div style={{fontSize:9,marginTop:2,fontFamily:bf,lineHeight:1,
+                            color:dark?"rgba(165,180,252,0.65)":"rgba(79,70,229,0.55)"}}>
+                            {isHindi?"आपकी प्रोफाइल के अनुसार":"Personalised for your profile"}
+                          </div>
+                        </div>
+
+                        {/* Loading dots OR language tag */}
+                        {briefLoading ? (
+                          <div style={{display:"flex",gap:4,alignItems:"center",flexShrink:0}}>
+                            {[0,1,2].map(i=>(
+                              <div key={i} style={{
+                                width:5,height:5,borderRadius:"50%",
+                                background:"#6366F1",
+                                animation:"briefDot 1.3s ease-in-out infinite",
+                                animationDelay:`${i*0.2}s`,
+                              }}/>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{
+                            fontSize:8.5,fontWeight:700,fontFamily:bf,flexShrink:0,
+                            color:dark?"rgba(165,180,252,0.55)":"rgba(99,102,241,0.50)",
+                            background:dark?"rgba(99,102,241,0.10)":"rgba(99,102,241,0.07)",
+                            border:`1px solid ${dark?"rgba(99,102,241,0.18)":"rgba(99,102,241,0.13)"}`,
+                            padding:"2px 8px",borderRadius:20,letterSpacing:0.3,
+                          }}>
+                            {isHindi?"हिंदी · AI":"EN · AI"}
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {/* Brief text */}
-                    {brief&&(
-                      <p style={{
-                        margin:0,fontSize:12.5,lineHeight:1.75,
-                        color: dark?"#C7D2FE":"#3730A3",
-                        fontFamily:bf,
-                      }}>{brief}</p>
-                    )}
+
+                      {/* Divider */}
+                      <div style={{
+                        height:1,marginBottom:11,
+                        background:dark
+                          ?"linear-gradient(90deg,transparent,rgba(99,102,241,0.22),transparent)"
+                          :"linear-gradient(90deg,transparent,rgba(99,102,241,0.13),transparent)",
+                      }}/>
+
+                      {/* ── Skeleton ── */}
+                      {briefLoading&&!brief&&(
+                        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                          {[88,72,82,58].map((w,i)=>(
+                            <div key={i} style={{
+                              height:9,width:`${w}%`,borderRadius:6,
+                              background:dark?"rgba(99,102,241,0.14)":"rgba(99,102,241,0.08)",
+                              animation:"badgePulse 1.6s ease-in-out infinite",
+                              animationDelay:`${i*0.16}s`,
+                            }}/>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* ── Brief text ── */}
+                      {brief&&(
+                        <p style={{
+                          margin:0,fontSize:12.5,lineHeight:1.8,fontFamily:bf,
+                          color:dark?"#C7D2FE":"#3730A3",
+                          animation:"briefTextReveal 0.55s cubic-bezier(0.16,1,0.3,1) both",
+                        }}>{brief}</p>
+                      )}
+
+                      {/* ── Smart insight chips (data-driven, no extra API) ── */}
+                      {brief&&results.length>0&&(()=>{
+                        const chips=[];
+                        const topS=[...results].sort((a,b)=>(b.annual||0)-(a.annual||0))[0];
+                        if(topS?.annual>0) chips.push({
+                          icon:"💰",
+                          label:isHindi?`₹${(topS.annual/1000).toFixed(0)}K/वर्ष तक`:`Up to ₹${(topS.annual/1000).toFixed(0)}K/yr`,
+                        });
+                        if(nearMiss.length>0) chips.push({
+                          icon:"⚡",
+                          label:isHindi?`${nearMiss.length} निकट योजना`:`${nearMiss.length} near-miss`,
+                        });
+                        if(results.some(r=>r.applyType==="online")) chips.push({
+                          icon:"🌐",
+                          label:isHindi?"ऑनलाइन आवेदन":"Apply online",
+                        });
+                        if(!chips.length) return null;
+                        return(
+                          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:11}}>
+                            {chips.map((c,i)=>(
+                              <div key={i} style={{
+                                display:"flex",alignItems:"center",gap:4,
+                                background:dark?"rgba(99,102,241,0.11)":"rgba(99,102,241,0.07)",
+                                border:`1px solid ${dark?"rgba(99,102,241,0.20)":"rgba(99,102,241,0.14)"}`,
+                                borderRadius:20,padding:"3px 10px",
+                                fontSize:10,fontWeight:700,color:dark?"#A5B4FC":"#4F46E5",fontFamily:bf,
+                              }}>
+                                <span style={{fontSize:10}}>{c.icon}</span>{c.label}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
                 )}
 
@@ -6182,6 +6318,8 @@ const APP_STYLES = `
         @keyframes q-enter-fwd{from{opacity:0;transform:translateX(52px)}to{opacity:1;transform:translateX(0)}}
         @keyframes q-enter-bwd{from{opacity:0;transform:translateX(-52px)}to{opacity:1;transform:translateX(0)}}
         @keyframes briefSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes briefDot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+        @keyframes briefTextReveal{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
         /* Direction-aware slide: swipe-left → new tab enters from right; swipe-right → from left */
         /* Direction-aware slide — opacity stays 1 the whole time, no flash frame */
         @keyframes slideInFromRight{
