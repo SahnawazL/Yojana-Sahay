@@ -5448,6 +5448,10 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
   const [revealed, setRevealed] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [open, setOpen] = useState(false);
+  // Tracks whether the [totalAnnual] effect has fired once on mount.
+  // First fire: stay as pill (home screen load intended design).
+  // Subsequent fires: profile edit / recheck → auto-open + re-animate.
+  const isFirstTotalAnnualRun = useRef(true);
 
   const schemesWithBenefit = useMemo(
     () => allMatchedSchemes.filter(s => s.annual > 0).sort((a, b) => b.annual - a.annual),
@@ -5460,19 +5464,24 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
 
   const [animTotal] = useCountUp([totalAnnual], revealed, 2200);
 
+  // Prepares count-up in background so it is ready when user taps the pill.
   useEffect(() => {
     const t = setTimeout(() => setRevealed(true), 350);
     return () => clearTimeout(t);
   }, []);
 
-  // Auto-open card AND re-trigger count-up animation whenever totalAnnual changes.
-  // Without the revealed reset, animTotal stays frozen at the old value after a
-  // profile edit or eligibility recheck — useCountUp only fires when trigger changes.
+  // Auto-open + re-animate ONLY when totalAnnual changes after mount.
+  // Skips first fire so the card stays as a pill on page load.
   useEffect(() => {
+    if (isFirstTotalAnnualRun.current) {
+      isFirstTotalAnnualRun.current = false;
+      return; // first mount → stay as pill
+    }
     if (totalAnnual > 0) {
       setOpen(true);
-      setRevealed(false); // reset count-up to 0 ...
-      const t = setTimeout(() => setRevealed(true), 80); // ... then re-animate to new total
+      setExpanded(false);   // reset show-more when results change
+      setRevealed(false);   // reset animTotal to 0 ...
+      const t = setTimeout(() => setRevealed(true), 80); // ... then count-up to new total
       return () => clearTimeout(t);
     }
   }, [totalAnnual]);
@@ -5484,7 +5493,7 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
 
   // ── Collapsed pill ──────────────────────────────────────────────────────────
   if (!open) return (
-    <div onClick={() => { haptic(); setOpen(true); }} style={{
+    <div onClick={() => { haptic(); setRevealed(false); setOpen(true); setTimeout(() => setRevealed(true), 50); }} style={{
       display:"flex", alignItems:"center", gap:10,
       background:"linear-gradient(135deg,#0c1445,#0f2a5c)",
       border:"1px solid rgba(255,255,255,0.12)",
