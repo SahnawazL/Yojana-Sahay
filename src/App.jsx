@@ -2185,7 +2185,7 @@ function ShowMoreBtn({ expanded, hiddenCount, moreText, lessText, onToggle, dark
 }
 
 // ─── ELIGIBILITY CHECKER ───────────────────────────────────────────────────────
-function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
+function EligibilityChecker({lang,onClose,onComplete,prefilledAnswers,dark=false}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
   const isHindi=lang==="hi";
@@ -2324,6 +2324,7 @@ function EligibilityChecker({lang,onClose,prefilledAnswers,dark=false}){
     if(step===newTotal-1){
       const matched=initResults(newAnswers);
       setResults(matched);
+      onComplete?.(newAnswers); // notify parent so BenefitCalculatorCard reflects fresh results
       setCalculating(true);
       setCalcPhase(0);
       setCalcCount(0);
@@ -5464,6 +5465,18 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
     return () => clearTimeout(t);
   }, []);
 
+  // Auto-open card AND re-trigger count-up animation whenever totalAnnual changes.
+  // Without the revealed reset, animTotal stays frozen at the old value after a
+  // profile edit or eligibility recheck — useCountUp only fires when trigger changes.
+  useEffect(() => {
+    if (totalAnnual > 0) {
+      setOpen(true);
+      setRevealed(false); // reset count-up to 0 ...
+      const t = setTimeout(() => setRevealed(true), 80); // ... then re-animate to new total
+      return () => clearTimeout(t);
+    }
+  }, [totalAnnual]);
+
   if (schemesWithBenefit.length === 0 || totalAnnual === 0) return null;
 
   const formatINR = (n) => `₹${n.toLocaleString("en-IN")}`;
@@ -6357,6 +6370,7 @@ export default function YojanaSahay(){
   const [loaded,setLoaded]=useState(false);
   const [langAnim,setLangAnim]=useState(false);
   const [showChecker,setShowChecker]=useState(false);
+  const [checkerAnswers,setCheckerAnswers]=useState(null); // answers from latest eligibility recheck
   const [selectedScheme,setSelectedScheme]=useState(null);   // SchemeDetailSheet
   const [selectedCategory,setSelectedCategory]=useState(null); // CategorySheet
   const [showAvatarModal,setShowAvatarModal]=useState(false);
@@ -6570,11 +6584,14 @@ export default function YojanaSahay(){
     return SCHEME_DB.filter(s=>s.match(profileAnswers)).slice(0,3);
   },[profileAnswers]);
 
-  // All matched schemes — used for BenefitCalculatorCard
+  // All matched schemes — used for BenefitCalculatorCard.
+  // Prefers the latest eligibility-recheck answers (if any) over the saved profile,
+  // so the card immediately reflects a fresh recheck without a full profile save.
   const allMatchedSchemes=useMemo(()=>{
-    if(!profileAnswers)return[];
-    return SCHEME_DB.filter(s=>s.match(profileAnswers));
-  },[profileAnswers]);
+    const answers=checkerAnswers||profileAnswers;
+    if(!answers)return[];
+    return SCHEME_DB.filter(s=>s.match(answers));
+  },[checkerAnswers,profileAnswers]);
 
   const navItems=useMemo(()=>[
     {
@@ -7391,7 +7408,12 @@ export default function YojanaSahay(){
         <AdminDashboard onClose={()=>setShowAdmin(false)} dark={dark}/>
       )}
       {showChecker&&(
-        <EligibilityChecker lang={lang} onClose={()=>setShowChecker(false)} prefilledAnswers={profileAnswers||undefined} dark={dark}/>
+        <EligibilityChecker
+          lang={lang}
+          onClose={()=>setShowChecker(false)}
+          onComplete={(answers)=>setCheckerAnswers(answers)}
+          prefilledAnswers={profileAnswers||undefined}
+          dark={dark}/>
       )}
       {selectedScheme&&(
         <SchemeDetailSheet schemeId={selectedScheme} lang={lang} onClose={()=>setSelectedScheme(null)} dark={dark}/>
