@@ -2523,42 +2523,115 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
             🕐 Recent Checker Runs
             <span style={{ fontWeight: 400, fontSize: 10, color: th.textSub, marginLeft: 6 }}>last 20</span>
           </div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
-              <thead>
-                <tr>
-                  {["Time", "State", "Profile", "Matched"].map(h => (
-                    <th key={h} style={{
-                      textAlign: "left", padding: "5px 6px",
-                      borderBottom: `1.5px solid ${th.border}`,
-                      color: th.textSub, fontWeight: 700, whiteSpace: "nowrap",
-                    }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[...checkerRuns].reverse().slice(0, 20).map((r, i) => (
-                  <tr key={i} style={{ borderBottom: `1px solid ${th.border}` }}>
-                    <td style={{ padding: "5px 6px", color: th.textSub }}>
-                      {r.ts ? new Date(r.ts).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}
-                    </td>
-                    <td style={{ padding: "5px 6px", color: th.text, fontWeight: 600 }}>{r.state || "—"}</td>
-                    <td style={{ padding: "5px 6px", color: th.textMid }}>
-                      {[OCC_LABELS[r.who] || r.who, INC_LABELS[r.income] || r.income].filter(Boolean).join(", ") || "—"}
-                    </td>
-                    <td style={{ padding: "5px 6px" }}>
-                      <span style={{
-                        background: (r.matchedCount || 0) > 5 ? IND_GREEN + "22" : SAFFRON + "22",
-                        color: (r.matchedCount || 0) > 5 ? IND_GREEN : SAFFRON,
-                        borderRadius: 8, padding: "2px 8px", fontWeight: 800,
-                      }}>
-                        {r.matchedCount ?? "—"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[...checkerRuns].reverse().slice(0, 20).map((r, i) => {
+              const user = users.find(u => u.id === r.uid);
+              const userName  = user?.name  || "—";
+              const userEmail = user?.email || user?.phone || "—";
+              return (
+                <div key={i} style={{
+                  background: th.appBg, borderRadius: 12,
+                  padding: "10px 12px", border: `1px solid ${th.border}`,
+                }}>
+                  {/* Row 1: user identity + time */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: th.text }}>{userName}</div>
+                      <div style={{ fontSize: 10, color: th.textSub, marginTop: 1 }}>{userEmail}</div>
+                    </div>
+                    <div style={{ fontSize: 9, color: th.textLight, textAlign: "right" }}>
+                      {r.ts ? new Date(r.ts).toLocaleString("en-IN", {
+                        day: "2-digit", month: "short",
+                        hour: "2-digit", minute: "2-digit",
+                      }) : "—"}
+                    </div>
+                  </div>
+                  {/* Row 2: profile tags */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 }}>
+                    {[
+                      r.state && { label: "📍 " + r.state,                          color: NAVY },
+                      r.who   && { label: (OCC_LABELS[r.who]   || r.who),            color: VIOLET },
+                      r.income&& { label: (INC_LABELS[r.income] || r.income),        color: IND_GREEN },
+                      r.age   && { label: (AGE_LABELS[r.age]    || r.age),           color: PINK },
+                      r.area  && { label: (AREA_LABELS[r.area]  || r.area),          color: SAFFRON },
+                      r.gender&& { label: (GENDER_LABELS[r.gender]?.replace(/[👨👩🧑]/gu,"").trim() || r.gender), color: GOOGLE_B },
+                      r.ration&& { label: (RATION_LABELS[r.ration]?.replace(/[🚫🟡🔴]/gu,"").trim() || r.ration), color: "#888" },
+                    ].filter(Boolean).map(({ label, color }) => (
+                      <span key={label} style={{
+                        fontSize: 9, fontWeight: 700, color,
+                        background: color + "18", borderRadius: 6,
+                        padding: "2px 7px",
+                      }}>{label}</span>
+                    ))}
+                  </div>
+                  {/* Row 3: matched count */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 10, color: th.textSub }}>Schemes matched:</span>
+                    <span style={{
+                      fontSize: 12, fontWeight: 800,
+                      color: (r.matchedCount || 0) > 5 ? IND_GREEN : SAFFRON,
+                      background: (r.matchedCount || 0) > 5 ? IND_GREEN + "18" : SAFFRON + "18",
+                      borderRadius: 8, padding: "1px 10px",
+                    }}>
+                      {r.matchedCount ?? "—"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Recent scheme searches table ── */}
+      {schemeSearches.length > 0 && (
+        <div style={cardStyle}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 10 }}>
+            🔍 Recent Scheme Searches
+            <span style={{ fontWeight: 400, fontSize: 10, color: th.textSub, marginLeft: 6 }}>last 20</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {[...schemeSearches].reverse().slice(0, 20).map((s, i) => {
+              const user = users.find(u => u.id === s.uid);
+              const userName  = user?.name  || "—";
+              const userEmail = user?.email || user?.phone || "—";
+              return (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "8px 12px", borderRadius: 10,
+                  background: th.appBg, border: `1px solid ${th.border}`,
+                }}>
+                  {/* Query badge */}
+                  <div style={{
+                    background: NAVY + "18", color: NAVY,
+                    borderRadius: 8, padding: "4px 10px",
+                    fontSize: 11, fontWeight: 700, flexShrink: 0,
+                    maxWidth: 120, overflow: "hidden",
+                    textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    "{s.q}"
+                  </div>
+                  {/* User info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: th.text,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {userName}
+                    </div>
+                    <div style={{ fontSize: 9, color: th.textSub, marginTop: 1,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {userEmail}
+                    </div>
+                  </div>
+                  {/* Time */}
+                  <div style={{ fontSize: 9, color: th.textLight, flexShrink: 0, textAlign: "right" }}>
+                    {s.ts ? new Date(s.ts).toLocaleString("en-IN", {
+                      day: "2-digit", month: "short",
+                      hour: "2-digit", minute: "2-digit",
+                    }) : "—"}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

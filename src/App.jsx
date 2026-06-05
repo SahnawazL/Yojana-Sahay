@@ -1173,7 +1173,7 @@ function SearchTab({lang,dark=false}){
     if(q.length<3) return;
     try{
       setDoc(doc(db,"appStats","usage"),{
-        schemeSearches:arrayUnion({q,ts:new Date().toISOString()}),
+        schemeSearches:arrayUnion({q,uid:auth.currentUser?.uid||"anon",ts:new Date().toISOString()}),
         searchTotal:increment(1),
       },{merge:true}).catch(()=>{});
     }catch{}
@@ -2480,6 +2480,10 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
         state:answers.state||null,
         who:answers.who||null,
         income:answers.income||null,
+        age:answers.age||null,
+        area:answers.area||null,
+        gender:answers.gender||null,
+        ration:answers.ration||null,
         ts:new Date().toISOString(),
       };
       setDoc(doc(db,"appStats","usage"),{
