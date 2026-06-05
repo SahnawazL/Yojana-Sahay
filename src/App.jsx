@@ -2453,7 +2453,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
   };
 
   return(
-    <div onClick={e=>{if(e.target===e.currentTarget){if(step===TOTAL)onExitFromResults?.();onClose();}}}
+    <div onClick={e=>{if(e.target===e.currentTarget){onClose();}}}
       style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
       <div style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",maxHeight:"93vh",overflowY:"auto",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
 
@@ -2482,7 +2482,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                 </div>
               </div>
             </div>
-            <div onClick={()=>{if(step===TOTAL)onExitFromResults?.();onClose();}} style={{width:30,height:30,borderRadius:"50%",background:th.pillBg,border:`1.5px solid ${th.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:12,color:th.textSub,fontWeight:700}}>✕</div>
+            <div onClick={()=>{onClose();}} style={{width:30,height:30,borderRadius:"50%",background:th.pillBg,border:`1.5px solid ${th.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:12,color:th.textSub,fontWeight:700}}>✕</div>
           </div>
           {/* Premium numbered stepper — replaces both old bars */}
           {step<TOTAL&&(
@@ -3084,7 +3084,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
             )}
             <div style={{display:"flex",gap:10,marginTop:16}}>
               <div onClick={()=>{haptic();retake();}} style={{flex:1,padding:14,borderRadius:14,border:"1.5px solid #FF9933",background:th.card,textAlign:"center",fontSize:13,fontWeight:700,color:"#FF8C00",cursor:"pointer",fontFamily:bf}}>{t.retakeBtn}</div>
-              <div onClick={()=>{haptic();onExitFromResults?.();onClose();}} style={{flex:1,padding:14,borderRadius:14,background:"linear-gradient(135deg,#003580,#1a56db)",textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:bf}}>{t.doneBtn}</div>
+              <div onClick={()=>{haptic();onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>answers[k]!==prefilledAnswers[k]));onClose();}} style={{flex:1,padding:14,borderRadius:14,background:"linear-gradient(135deg,#003580,#1a56db)",textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:bf}}>{t.doneBtn}</div>
             </div>
           </div>
         )}
@@ -7564,7 +7564,7 @@ export default function YojanaSahay(){
           lang={lang}
           onClose={()=>setShowChecker(false)}
           onComplete={(answers)=>{setCheckerAnswers(answers);setCheckerRunId(id=>id+1);}}
-          onExitFromResults={()=>{if(profile)setTimeout(()=>setShowUpdateProfileSheet(true),420);}}
+          onExitFromResults={(answersAreFromProfile)=>{if(profile&&!answersAreFromProfile)setTimeout(()=>setShowUpdateProfileSheet(true),420);}}
           prefilledAnswers={profileAnswers||undefined}
           dark={dark}/>
       )}
