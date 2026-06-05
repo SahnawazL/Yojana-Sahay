@@ -12,7 +12,7 @@
 // and Cleanup tab for purging old resolved reports.
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDoc } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
 import emailjs from "@emailjs/browser";
@@ -2281,6 +2281,292 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
   );
 }
 
+// ─── USAGE SECTION COMPONENT ──────────────────────────────────────────────────
+function UsageSection({ usageData, users, loading, onRefresh, dark }) {
+  const th = THEME[dark ? "dark" : "light"];
+
+  if (loading) {
+    return (
+      <div style={{ padding: "32px 16px", textAlign: "center", color: th.textSub, fontSize: 13 }}>
+        Loading usage stats…
+      </div>
+    );
+  }
+
+  if (!usageData || Object.keys(usageData).length === 0) {
+    return (
+      <div style={{ padding: "32px 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+        <div style={{ fontSize: 36 }}>📭</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: th.text }}>No usage data yet</div>
+        <div style={{ fontSize: 12, color: th.textSub, textAlign: "center", maxWidth: 260 }}>
+          Once users run the Eligibility Checker or search for schemes, data will appear here automatically.
+        </div>
+        <div onClick={onRefresh} style={{
+          marginTop: 8, padding: "9px 20px", borderRadius: 12,
+          background: NAVY, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+        }}>
+          🔄 Refresh
+        </div>
+      </div>
+    );
+  }
+
+  // ── Compute derived stats ──────────────────────────────────────────────────
+  const checkerRuns   = Array.isArray(usageData.checkerRuns) ? usageData.checkerRuns : [];
+  const schemeSearches = Array.isArray(usageData.schemeSearches) ? usageData.schemeSearches : [];
+  const stateSelections = Array.isArray(usageData.stateSelections) ? usageData.stateSelections : [];
+
+  const totalRuns     = usageData.checkerTotal || checkerRuns.length;
+  const totalSearches = usageData.searchTotal  || schemeSearches.length;
+
+  // Avg matched schemes from checker runs
+  const avgMatched = checkerRuns.length > 0
+    ? (checkerRuns.reduce((s, r) => s + (r.matchedCount || 0), 0) / checkerRuns.length).toFixed(1)
+    : "—";
+
+  // % of total users who ran checker (by matchedCount field on user docs)
+  const usersWithChecker = users.filter(u => u.matchedCount != null).length;
+  const checkerPct = users.length > 0 ? Math.round(usersWithChecker / users.length * 100) : 0;
+
+  // Top states from checker runs + state selections combined
+  const stateCounts = {};
+  checkerRuns.forEach(r => { if (r.state) stateCounts[r.state] = (stateCounts[r.state] || 0) + 1; });
+  stateSelections.forEach(r => { if (r.state) stateCounts[r.state] = (stateCounts[r.state] || 0) + 1; });
+  const topStates = Object.entries(stateCounts)
+    .sort((a, b) => b[1] - a[1]).slice(0, 10)
+    .map(([label, value]) => ({ label, value }));
+
+  // Top search queries (normalize + count)
+  const queryCounts = {};
+  schemeSearches.forEach(r => {
+    if (!r.q) return;
+    const k = r.q.toLowerCase().trim();
+    queryCounts[k] = (queryCounts[k] || 0) + 1;
+  });
+  const topQueries = Object.entries(queryCounts)
+    .sort((a, b) => b[1] - a[1]).slice(0, 15);
+
+  // Checker run "who" distribution
+  const whoCounts = {};
+  checkerRuns.forEach(r => { if (r.who) whoCounts[r.who] = (whoCounts[r.who] || 0) + 1; });
+  const whoData = Object.entries(whoCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([key, value]) => ({ label: OCC_LABELS[key] || key, value }));
+
+  // Recent 7-day checker run sparkline
+  const now = Date.now();
+  const ONE_DAY = 86400000;
+  const spark7 = Array.from({ length: 7 }, (_, i) => {
+    const dayStart = now - (6 - i) * ONE_DAY;
+    const dayEnd   = dayStart + ONE_DAY;
+    return checkerRuns.filter(r => {
+      if (!r.ts) return false;
+      const ms = new Date(r.ts).getTime();
+      return ms >= dayStart && ms < dayEnd;
+    }).length;
+  });
+
+  const maxSpark = Math.max(...spark7, 1);
+  const dayLabels = ["6d", "5d", "4d", "3d", "2d", "1d", "Today"];
+
+  const cardStyle = {
+    background: th.card, border: `1.5px solid ${th.border}`,
+    borderRadius: 16, padding: "14px 16px",
+  };
+
+  return (
+    <div style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 14 }}>
+
+      {/* ── Header row ── */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: th.text }}>📈 App Usage Insights</div>
+        <div onClick={onRefresh} style={{
+          fontSize: 11, color: SAFFRON, fontWeight: 700, cursor: "pointer", padding: "5px 10px",
+          background: SAFFRON + "18", borderRadius: 8,
+        }}>🔄 Refresh</div>
+      </div>
+
+      {/* ── Top stat pills ── */}
+      <div style={{ display: "flex", gap: 10 }}>
+        {[
+          { icon: "🎯", label: "Checker Runs",  value: totalRuns,        color: NAVY },
+          { icon: "🔍", label: "Scheme Searches", value: totalSearches,   color: IND_GREEN },
+          { icon: "👤", label: "Users Checked",  value: usersWithChecker, color: SAFFRON },
+          { icon: "%",  label: "Adoption Rate",  value: checkerPct + "%", color: VIOLET },
+        ].map(({ icon, label, value, color }) => (
+          <div key={label} style={{
+            flex: 1, background: th.card, border: `1.5px solid ${th.border}`,
+            borderRadius: 14, padding: "10px 8px", textAlign: "center",
+            borderTop: `3px solid ${color}`,
+          }}>
+            <div style={{ fontSize: 16, marginBottom: 2 }}>{icon}</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: th.text, lineHeight: 1 }}>{value}</div>
+            <div style={{ fontSize: 9, color: th.textSub, marginTop: 3, lineHeight: 1.2 }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Avg schemes matched ── */}
+      <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ ...cardStyle, flex: 1 }}>
+          <div style={{ fontSize: 11, color: th.textSub, marginBottom: 4 }}>Avg Schemes Matched / Run</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: NAVY }}>{avgMatched}</div>
+          <div style={{ fontSize: 10, color: th.textSub, marginTop: 2 }}>across {checkerRuns.length} recorded runs</div>
+        </div>
+        <div style={{ ...cardStyle, flex: 1 }}>
+          <div style={{ fontSize: 11, color: th.textSub, marginBottom: 4 }}>Users with matchedCount</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: IND_GREEN }}>{usersWithChecker}</div>
+          <div style={{ fontSize: 10, color: th.textSub, marginTop: 2 }}>{checkerPct}% of {users.length} total users</div>
+        </div>
+      </div>
+
+      {/* ── 7-day checker run trend ── */}
+      {checkerRuns.length > 0 && (
+        <div style={cardStyle}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 12 }}>
+            📅 Checker Runs — Last 7 Days
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 60 }}>
+            {spark7.map((val, i) => (
+              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                <div style={{ fontSize: 8, color: th.textSub, fontWeight: 600 }}>{val || ""}</div>
+                <div style={{
+                  width: "100%", borderRadius: "4px 4px 0 0",
+                  background: val > 0 ? NAVY : th.border,
+                  height: `${Math.round((val / maxSpark) * 44) + 2}px`,
+                  transition: "height 0.4s ease",
+                }} />
+                <div style={{ fontSize: 7, color: th.textLight }}>{dayLabels[i]}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Top states ── */}
+      {topStates.length > 0 && (
+        <div style={cardStyle}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 12 }}>
+            📍 Most Selected States
+            <span style={{ fontWeight: 400, fontSize: 10, color: th.textSub, marginLeft: 6 }}>
+              (Checker + Browse)
+            </span>
+          </div>
+          <BarChart data={topStates} color={SAFFRON} dark={dark} />
+        </div>
+      )}
+
+      {/* ── Checker "Who" breakdown ── */}
+      {whoData.length > 0 && (
+        <div style={cardStyle}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 12 }}>
+            👤 Who Ran the Checker
+          </div>
+          <BarChart data={whoData} color={VIOLET} dark={dark} />
+        </div>
+      )}
+
+      {/* ── Top scheme searches ── */}
+      {topQueries.length > 0 && (
+        <div style={cardStyle}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 12 }}>
+            🔍 Top Scheme Search Queries
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {topQueries.map(([q, count], i) => {
+              const maxCount = topQueries[0][1] || 1;
+              return (
+                <div key={q} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{
+                    width: 18, height: 18, borderRadius: "50%",
+                    background: i < 3 ? SAFFRON : th.border,
+                    color: i < 3 ? "#fff" : th.textSub,
+                    fontSize: 9, fontWeight: 800,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}>
+                    {i + 1}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: th.text, marginBottom: 2 }}>
+                      "{q}"
+                    </div>
+                    <div style={{
+                      height: 5, borderRadius: 3,
+                      background: th.border, overflow: "hidden",
+                    }}>
+                      <div style={{
+                        height: "100%", borderRadius: 3,
+                        background: `linear-gradient(90deg, ${NAVY}, ${SAFFRON})`,
+                        width: `${Math.round(count / maxCount * 100)}%`,
+                        transition: "width 0.4s ease",
+                      }} />
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: 11, fontWeight: 800, color: NAVY,
+                    minWidth: 28, textAlign: "right",
+                  }}>
+                    {count}×
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Recent checker runs table ── */}
+      {checkerRuns.length > 0 && (
+        <div style={cardStyle}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 10 }}>
+            🕐 Recent Checker Runs
+            <span style={{ fontWeight: 400, fontSize: 10, color: th.textSub, marginLeft: 6 }}>last 20</span>
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+              <thead>
+                <tr>
+                  {["Time", "State", "Profile", "Matched"].map(h => (
+                    <th key={h} style={{
+                      textAlign: "left", padding: "5px 6px",
+                      borderBottom: `1.5px solid ${th.border}`,
+                      color: th.textSub, fontWeight: 700, whiteSpace: "nowrap",
+                    }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[...checkerRuns].reverse().slice(0, 20).map((r, i) => (
+                  <tr key={i} style={{ borderBottom: `1px solid ${th.border}` }}>
+                    <td style={{ padding: "5px 6px", color: th.textSub }}>
+                      {r.ts ? new Date(r.ts).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}
+                    </td>
+                    <td style={{ padding: "5px 6px", color: th.text, fontWeight: 600 }}>{r.state || "—"}</td>
+                    <td style={{ padding: "5px 6px", color: th.textMid }}>
+                      {[OCC_LABELS[r.who] || r.who, INC_LABELS[r.income] || r.income].filter(Boolean).join(", ") || "—"}
+                    </td>
+                    <td style={{ padding: "5px 6px" }}>
+                      <span style={{
+                        background: (r.matchedCount || 0) > 5 ? IND_GREEN + "22" : SAFFRON + "22",
+                        color: (r.matchedCount || 0) > 5 ? IND_GREEN : SAFFRON,
+                        borderRadius: 8, padding: "2px 8px", fontWeight: 800,
+                      }}>
+                        {r.matchedCount ?? "—"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 const PAGE_SIZE = 20;
 
@@ -2306,6 +2592,8 @@ export default function AdminDashboard({ onClose, dark = false }) {
   const [exportModal,   setExportModal]   = useState(false);
   const [exportStep,    setExportStep]    = useState(-1);
   const [exportDone,    setExportDone]    = useState(false);
+  const [usageData,     setUsageData]     = useState(null);
+  const [usageLoading,  setUsageLoading]  = useState(false);
 
   // ── Swipe navigation ───────────────────────────────────────────────────────
   const swipeTouchX  = useRef(null);  // stores touchstart X
@@ -2351,6 +2639,24 @@ export default function AdminDashboard({ onClose, dark = false }) {
 
   useEffect(() => {
     if (activeSection === "reports") fetchReports();
+  }, [activeSection]);
+
+  // ── Fetch Usage Stats ─────────────────────────────────────────────────────
+  const fetchUsage = useCallback(async () => {
+    setUsageLoading(true);
+    try {
+      const snap = await getDoc(doc(db, "appStats", "usage"));
+      setUsageData(snap.exists() ? snap.data() : {});
+    } catch (err) {
+      console.error("Failed to load usage stats:", err);
+      setUsageData({});
+    } finally {
+      setUsageLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeSection === "usage") fetchUsage();
   }, [activeSection]);
 
   // ── Computed stats ────────────────────────────────────────────────────────
@@ -2846,6 +3152,7 @@ export default function AdminDashboard({ onClose, dark = false }) {
     ["users",     "👥 Users"],
     ["analytics", "🧮 Analytics"],
     ["activity",  "🕐 Activity"],
+    ["usage",     "📈 Usage"],
     ["schemes",   "🗺️ Schemes"],
     ["reports",   "📬 Reports"],
     ["cleanup",   "🗑️ Cleanup"],
@@ -3436,6 +3743,17 @@ export default function AdminDashboard({ onClose, dark = false }) {
             )}
           </div>
         </div>
+      )}
+
+      {/* ══ USAGE INSIGHTS ══ */}
+      {activeSection === "usage" && (
+        <UsageSection
+          usageData={usageData}
+          users={users}
+          loading={usageLoading}
+          onRefresh={fetchUsage}
+          dark={dark}
+        />
       )}
 
       {/* ══ SCHEMES COVERAGE ══ */}

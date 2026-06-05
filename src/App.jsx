@@ -20,7 +20,7 @@ import {
 } from "./schemesData.js";
 import { auth, db } from "./firebase.js";
 import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, arrayUnion, increment } from "firebase/firestore";
 import AIChat from "./AIChat.jsx";
 import { generateResultsBrief } from "./groqClient.js";
 import AILockedScreen from "./AILockedScreen.jsx";
@@ -1167,6 +1167,18 @@ function SearchTab({lang,dark=false}){
     setExpandedId(null);
   },[deferredQuery]);
 
+  // ── Track search queries (debounced via deferredQuery, min 3 chars) ──────
+  useEffect(()=>{
+    const q=deferredQuery.trim();
+    if(q.length<3) return;
+    try{
+      setDoc(doc(db,"appStats","usage"),{
+        schemeSearches:arrayUnion({q,ts:new Date().toISOString()}),
+        searchTotal:increment(1),
+      },{merge:true}).catch(()=>{});
+    }catch{}
+  },[deferredQuery]);
+
   // Filtered results — runs only when deferred query settles (not on every keystroke)
   const results=useMemo(()=>{
     if(!isReady) return [];
@@ -1614,6 +1626,19 @@ function SchemesTab({lang,dark=false}){
   const [isReady,setIsReady]=useState(false);
   const [scrollingTo,setScrollingTo]=useState(null); // "state" | "central" | null
 
+  // ── Track state selections ────────────────────────────────────────────────
+  const handleStateSelect=useCallback((st)=>{
+    setSelectedState(st);
+    if(st && st!=="all"){
+      try{
+        setDoc(doc(db,"appStats","usage"),{
+          stateSelections:arrayUnion({state:st,ts:new Date().toISOString()}),
+          [`stateCount_${st.replace(/\s+/g,"_")}`]:increment(1),
+        },{merge:true}).catch(()=>{});
+      }catch{}
+    }
+  },[]);
+
   // ── One-time filter hint ──────────────────────────────────────────────────
   // Shows an animated swipe hint on first visit only. Dismissed on:
   //   • Any pill tap  • Auto-dismiss after 2.5s  • Stored in localStorage
@@ -2042,7 +2067,7 @@ function SchemesTab({lang,dark=false}){
       {showStatePicker&&(
         <StatePickerSheet
           selectedState={selectedState}
-          onSelect={setSelectedState}
+          onSelect={handleStateSelect}
           onClose={()=>setShowStatePicker(false)}
           lang={lang}
           dark={dark}
@@ -2447,6 +2472,22 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
           .catch(()=>{}); // silent — non-critical
       }catch{}
     }
+    // ── Log checker run to appStats/usage for admin analytics ──
+    try{
+      const runRecord={
+        uid:uid||"anon",
+        matchedCount:results.length,
+        state:answers.state||null,
+        who:answers.who||null,
+        income:answers.income||null,
+        ts:new Date().toISOString(),
+      };
+      setDoc(doc(db,"appStats","usage"),{
+        checkerRuns:arrayUnion(runRecord),
+        checkerTotal:increment(1),
+        lastRun:new Date().toISOString(),
+      },{merge:true}).catch(()=>{});
+    }catch{}
     // ── Cache check — skip API if we already have a brief for these exact answers ──
     try{
       const cached = JSON.parse(localStorage.getItem(BRIEF_CACHE_KEY)||"null");
