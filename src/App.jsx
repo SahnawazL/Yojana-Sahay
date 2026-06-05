@@ -11,7 +11,7 @@
  * See the LICENSE file in the project root for full license terms.
  */
 
-import { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo } from "react";
 import {
   INDIA_STATES,
   SCHEME_DB,
@@ -24,7 +24,7 @@ import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, ar
 import AIChat from "./AIChat.jsx";
 import { generateResultsBrief } from "./groqClient.js";
 import AILockedScreen from "./AILockedScreen.jsx";
-import AdminDashboard from "./AdminDashboard.jsx";
+const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 import ReportIssueSheet from "./ReportIssueSheet.jsx";
 import UserReportsTab from "./UserReportsTab.jsx";
 import AboutTab from "./AboutTab.jsx";
@@ -7611,7 +7611,9 @@ export default function YojanaSahay(){
         </div>
       )}
       {showAdmin&&(
-        <AdminDashboard onClose={()=>setShowAdmin(false)} dark={dark}/>
+        <React.Suspense fallback={null}>
+          <AdminDashboard onClose={()=>setShowAdmin(false)} dark={dark}/>
+        </React.Suspense>
       )}
       {/* ── "Just Checking / Update Profile?" Smart Sheet ─────────────────────────
            Appears after eligibility checker completes when a saved profile exists.
