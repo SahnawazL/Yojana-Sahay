@@ -6279,6 +6279,16 @@ const APP_STYLES = `
           from { opacity:0; transform:scale(0.66) translateY(28px); }
           to   { opacity:1; transform:scale(1)    translateY(0);    }
         }
+        @keyframes premiumSheetUp {
+          from { opacity:0; transform:translateY(100%); }
+          to   { opacity:1; transform:translateY(0);    }
+        }
+        @keyframes premiumShine {
+          0%   { left:-60%; opacity:0; }
+          10%  { opacity:1; }
+          60%  { left:120%; opacity:1; }
+          100% { left:120%; opacity:0; }
+        }
         @keyframes avShine {
           0%   { transform:translateX(-200%); }
           100% { transform:translateX(420%);  }
@@ -7424,102 +7434,158 @@ export default function YojanaSahay(){
            Appears after eligibility checker completes when a saved profile exists.
            Gives user a clear choice: update profile with new answers, or keep
            existing profile and treat this as a one-off lookup.                     */}
-      {showUpdateProfileSheet&&checkerAnswers&&(
+      {showUpdateProfileSheet&&checkerAnswers&&(()=>{
+        // ── Compute diff & chips once ──────────────────────────────────────
+        const diff=[
+          checkerAnswers.who&&checkerAnswers.who!==profile?.occupation,
+          checkerAnswers.income&&checkerAnswers.income!==profile?.income,
+          checkerAnswers.state&&checkerAnswers.state!==profile?.state,
+          checkerAnswers.age&&checkerAnswers.age!==profile?.age,
+          checkerAnswers.area&&checkerAnswers.area!==profile?.area,
+          checkerAnswers.house&&checkerAnswers.house!==profile?.house,
+          checkerAnswers.caste&&checkerAnswers.caste!==profile?.caste,
+          checkerAnswers.landHolding&&checkerAnswers.landHolding!==profile?.landHolding,
+          checkerAnswers.educationLevel&&checkerAnswers.educationLevel!==profile?.educationLevel,
+          checkerAnswers.rationCard&&checkerAnswers.rationCard!==profile?.ration,
+        ].filter(Boolean).length;
+        const captured=[checkerAnswers.who,checkerAnswers.income,checkerAnswers.state,checkerAnswers.age,checkerAnswers.area,checkerAnswers.house,checkerAnswers.caste,checkerAnswers.landHolding,checkerAnswers.educationLevel,checkerAnswers.rationCard].filter(Boolean).length;
+        const chips=[
+          checkerAnswers.state&&{icon:"📍",label:checkerAnswers.state},
+          checkerAnswers.who&&{icon:"👤",label:checkerAnswers.who},
+          checkerAnswers.income&&{icon:"💰",label:checkerAnswers.income},
+        ].filter(Boolean).slice(0,3);
+        const subtitleEn=diff>0
+          ?`${diff} answer${diff!==1?"s":""} from your check differ from your profile`
+          :`${captured} answer${captured!==1?"s":""} captured from your eligibility check`;
+        const subtitleHi=diff>0
+          ?`पात्रता जाँच से ${diff} जवाब आपके प्रोफाइल से अलग हैं`
+          :`पात्रता जाँच के ${captured} जवाब प्रोफाइल में सेव करें`;
+
+        return(
         <div
           onClick={()=>{setShowUpdateProfileSheet(false);setCheckerAnswers(null);}}
           style={{
             position:"fixed",inset:0,zIndex:250,
-            background:"rgba(0,0,0,0.52)",
+            background:"rgba(0,0,0,0.65)",
             display:"flex",alignItems:"flex-end",
-            animation:"avBg 0.22s ease forwards",
+            backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)",
+            animation:"avBg 0.28s ease forwards",
           }}>
+          {/* ── Sheet ── */}
           <div
             onClick={e=>e.stopPropagation()}
             style={{
-              width:"100%",maxWidth:420,margin:"0 auto",
-              background:th.card,borderRadius:"24px 24px 0 0",
-              padding:"0 0 max(28px,env(safe-area-inset-bottom,28px))",
+              width:"100%",maxWidth:440,margin:"0 auto",
+              background:dark
+                ?"linear-gradient(160deg,#1a1f1a 0%,#111811 100%)"
+                :"linear-gradient(160deg,#f8fdf8 0%,#eef7ee 100%)",
+              borderRadius:"28px 28px 0 0",
+              padding:"0 0 max(32px,env(safe-area-inset-bottom,32px))",
               fontFamily:bf,
-              animation:"avCard 0.38s cubic-bezier(0.32,0.72,0,1) forwards",
+              boxShadow:dark
+                ?"0 -8px 40px rgba(0,0,0,0.55), 0 -1px 0 rgba(19,136,8,0.25)"
+                :"0 -8px 40px rgba(0,0,0,0.18), 0 -1px 0 rgba(19,136,8,0.20)",
+              animation:"premiumSheetUp 0.52s cubic-bezier(0.22,1,0.36,1) forwards",
+              overflow:"hidden",
+              border:`1px solid ${dark?"rgba(19,136,8,0.18)":"rgba(19,136,8,0.14)"}`,
+              borderBottom:"none",
             }}>
 
-            {/* Drag handle */}
-            <div style={{display:"flex",justifyContent:"center",padding:"12px 0 4px"}}>
-              <div style={{width:40,height:4,background:th.handle,borderRadius:2}}/>
+            {/* ── Decorative top glow bar ── */}
+            <div style={{
+              position:"absolute",top:0,left:0,right:0,height:2,
+              background:"linear-gradient(90deg,transparent,#138808,#80c342,#138808,transparent)",
+              opacity:0.7,
+            }}/>
+
+            {/* ── Drag handle ── */}
+            <div style={{display:"flex",justifyContent:"center",paddingTop:14,paddingBottom:6}}>
+              <div style={{
+                width:36,height:4,borderRadius:2,
+                background:dark?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.14)",
+              }}/>
             </div>
 
-            {/* Header */}
-            <div style={{padding:"12px 20px 14px",borderBottom:`1px solid ${th.border}`}}>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
+            {/* ── Hero header ── */}
+            <div style={{padding:"10px 22px 18px",position:"relative"}}>
+              {/* Faint radial glow behind icon */}
+              <div style={{
+                position:"absolute",top:0,left:18,
+                width:80,height:80,borderRadius:"50%",
+                background:"radial-gradient(circle,rgba(19,136,8,0.18) 0%,transparent 70%)",
+                pointerEvents:"none",
+              }}/>
+              <div style={{display:"flex",alignItems:"flex-start",gap:14,position:"relative"}}>
+                {/* Premium icon badge */}
                 <div style={{
-                  width:40,height:40,borderRadius:12,flexShrink:0,
-                  background:dark?"rgba(255,153,51,0.14)":"rgba(255,153,51,0.10)",
-                  border:`1.5px solid rgba(255,153,51,0.35)`,
-                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,
-                }}>🎯</div>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf,lineHeight:1.2}}>
+                  width:52,height:52,borderRadius:16,flexShrink:0,
+                  background:dark
+                    ?"linear-gradient(135deg,rgba(19,136,8,0.30),rgba(128,195,66,0.18))"
+                    :"linear-gradient(135deg,rgba(19,136,8,0.14),rgba(128,195,66,0.10))",
+                  border:`1.5px solid ${dark?"rgba(19,136,8,0.45)":"rgba(19,136,8,0.30)"}`,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:24,
+                  boxShadow:dark?"0 4px 16px rgba(19,136,8,0.25)":"0 4px 14px rgba(19,136,8,0.15)",
+                }}>✅</div>
+
+                <div style={{flex:1,paddingTop:2}}>
+                  {/* Title */}
+                  <div style={{
+                    fontSize:18,fontWeight:900,
+                    background:"linear-gradient(90deg,#138808,#4caf50)",
+                    WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",
+                    backgroundClip:"text",
+                    fontFamily:bf,lineHeight:1.15,letterSpacing:"-0.3px",
+                  }}>
                     {isHindi?"पात्रता जाँच पूरी!":"Eligibility Check Done!"}
                   </div>
-                  {(()=>{
-                    // Count how many checker answers differ from current saved profile
-                    const diff=[
-                      checkerAnswers.who&&checkerAnswers.who!==profile?.occupation,
-                      checkerAnswers.income&&checkerAnswers.income!==profile?.income,
-                      checkerAnswers.state&&checkerAnswers.state!==profile?.state,
-                      checkerAnswers.age&&checkerAnswers.age!==profile?.age,
-                      checkerAnswers.area&&checkerAnswers.area!==profile?.area,
-                      checkerAnswers.house&&checkerAnswers.house!==profile?.house,
-                      checkerAnswers.caste&&checkerAnswers.caste!==profile?.caste,
-                      checkerAnswers.landHolding&&checkerAnswers.landHolding!==profile?.landHolding,
-                      checkerAnswers.educationLevel&&checkerAnswers.educationLevel!==profile?.educationLevel,
-                      checkerAnswers.rationCard&&checkerAnswers.rationCard!==profile?.ration,
-                    ].filter(Boolean).length;
-                    // Fall back to total captured count if nothing differs (edge case)
-                    const captured=[checkerAnswers.who,checkerAnswers.income,checkerAnswers.state,checkerAnswers.age,checkerAnswers.area,checkerAnswers.house,checkerAnswers.caste,checkerAnswers.landHolding,checkerAnswers.educationLevel,checkerAnswers.rationCard].filter(Boolean).length;
-                    // Preview chips — up to 3 key fields
-                    const chips=[
-                      checkerAnswers.state&&`📍 ${checkerAnswers.state}`,
-                      checkerAnswers.who&&`👤 ${checkerAnswers.who}`,
-                      checkerAnswers.income&&`💰 ${checkerAnswers.income}`,
-                    ].filter(Boolean).slice(0,3);
-                    return(<>
-                      <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf,lineHeight:1.45}}>
-                        {isHindi
-                          ?(diff>0
-                            ?`पात्रता जाँच से ${diff} जवाब आपके प्रोफाइल से अलग हैं`
-                            :`पात्रता जाँच के ${captured} जवाब प्रोफाइल में सेव करें`)
-                          :(diff>0
-                            ?`${diff} answer${diff!==1?"s":""} from your eligibility check differ from your profile`
-                            :`${captured} answer${captured!==1?"s":""} captured from your eligibility check`)}
-                      </div>
-                      {chips.length>0&&(
-                        <div style={{display:"flex",gap:4,marginTop:5,flexWrap:"wrap"}}>
-                          {chips.map((c,i)=>(
-                            <span key={i} style={{
-                              fontSize:9.5,fontFamily:bf,lineHeight:1,
-                              background:dark?"rgba(255,153,51,0.15)":"rgba(255,153,51,0.10)",
-                              color:dark?"#ffb347":"#a04800",
-                              border:`1px solid ${dark?"rgba(255,153,51,0.30)":"rgba(255,153,51,0.22)"}`,
-                              borderRadius:20,padding:"2.5px 8px",whiteSpace:"nowrap",
-                            }}>{c}</span>
-                          ))}
-                        </div>
-                      )}
-                    </>);
-                  })()}
+                  {/* Subtitle */}
+                  <div style={{
+                    fontSize:11.5,color:th.textSub,marginTop:4,
+                    fontFamily:bf,lineHeight:1.5,
+                  }}>
+                    {isHindi?subtitleHi:subtitleEn}
+                  </div>
+
+                  {/* ── Chips row ── */}
+                  {chips.length>0&&(
+                    <div style={{display:"flex",gap:5,marginTop:8,flexWrap:"wrap"}}>
+                      {chips.map((c,i)=>(
+                        <span key={i} style={{
+                          display:"inline-flex",alignItems:"center",gap:3,
+                          fontSize:10,fontFamily:bf,fontWeight:600,
+                          background:dark
+                            ?"rgba(19,136,8,0.16)":"rgba(19,136,8,0.09)",
+                          color:dark?"#6ed46e":"#1a6b1a",
+                          border:`1px solid ${dark?"rgba(19,136,8,0.35)":"rgba(19,136,8,0.22)"}`,
+                          borderRadius:20,padding:"3px 9px",
+                          whiteSpace:"nowrap",
+                          boxShadow:dark?"0 1px 4px rgba(19,136,8,0.12)":"none",
+                        }}>
+                          <span style={{fontSize:11}}>{c.icon}</span>{c.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Options */}
-            <div style={{padding:"14px 18px",display:"flex",flexDirection:"column",gap:10}}>
+            {/* ── Divider ── */}
+            <div style={{
+              margin:"0 18px",height:1,
+              background:dark
+                ?"linear-gradient(90deg,transparent,rgba(19,136,8,0.30),transparent)"
+                :"linear-gradient(90deg,transparent,rgba(19,136,8,0.18),transparent)",
+            }}/>
 
-              {/* Update Profile option */}
+            {/* ── Action buttons ── */}
+            <div style={{padding:"16px 18px 0",display:"flex",flexDirection:"column",gap:10}}>
+
+              {/* PRIMARY — Update My Profile */}
               <div
                 onClick={()=>{
                   haptic();
-                  // Merge checker answers into profile
                   const updated={
                     ...profile,
                     occupation:checkerAnswers.who||profile.occupation,
@@ -7537,83 +7603,96 @@ export default function YojanaSahay(){
                   if(auth.currentUser){
                     try{updateDoc(doc(db,"users",auth.currentUser.uid),{...updated,lastSeen:serverTimestamp()}).catch(()=>{});}catch{}
                   }
-                  // Commit the checker answers so BenefitCard reflects the new profile
                   setCommittedCheckerAnswers(checkerAnswers);
-                  setCheckerRunId(id=>id+1); // remount BenefitCard now that answers are committed
-                  setCheckerAnswers(null); // profile now reflects these answers
+                  setCheckerRunId(id=>id+1);
+                  setCheckerAnswers(null);
                   setShowUpdateProfileSheet(false);
                 }}
                 style={{
+                  position:"relative",overflow:"hidden",
                   display:"flex",alignItems:"center",gap:14,
-                  background:dark?"rgba(19,136,8,0.14)":"rgba(19,136,8,0.06)",
-                  border:`1.5px solid ${dark?"rgba(19,136,8,0.40)":"rgba(19,136,8,0.22)"}`,
-                  borderRadius:16,padding:"14px 16px",cursor:"pointer",
-                  WebkitTapHighlightColor:"transparent",transition:"transform 0.12s",
+                  background:"linear-gradient(135deg,#138808 0%,#1aac09 60%,#4caf50 100%)",
+                  borderRadius:18,padding:"15px 18px",cursor:"pointer",
+                  WebkitTapHighlightColor:"transparent",transition:"transform 0.14s,box-shadow 0.14s",
+                  boxShadow:"0 4px 18px rgba(19,136,8,0.35), 0 1px 0 rgba(255,255,255,0.12) inset",
                 }}
-                onTouchStart={e=>e.currentTarget.style.transform="scale(0.98)"}
-                onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
-                onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}>
+                onTouchStart={e=>{e.currentTarget.style.transform="scale(0.975)";e.currentTarget.style.boxShadow="0 2px 10px rgba(19,136,8,0.25)";}}
+                onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 4px 18px rgba(19,136,8,0.35), 0 1px 0 rgba(255,255,255,0.12) inset";}}
+                onTouchCancel={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 4px 18px rgba(19,136,8,0.35), 0 1px 0 rgba(255,255,255,0.12) inset";}}>
+                {/* Shine sweep */}
                 <div style={{
-                  width:42,height:42,borderRadius:12,flexShrink:0,
-                  background:dark?"rgba(19,136,8,0.20)":"rgba(19,136,8,0.10)",
-                  border:`1.5px solid rgba(19,136,8,0.30)`,
+                  position:"absolute",top:0,left:"-60%",width:"40%",height:"100%",
+                  background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)",
+                  transform:"skewX(-15deg)",
+                  animation:"premiumShine 2.4s ease-in-out 0.6s infinite",
+                  pointerEvents:"none",
+                }}/>
+                <div style={{
+                  width:40,height:40,borderRadius:12,flexShrink:0,
+                  background:"rgba(255,255,255,0.18)",
                   display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
                 }}>💾</div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:13.5,fontWeight:800,color:IND_GREEN,fontFamily:bf,lineHeight:1.25}}>
+                  <div style={{fontSize:14,fontWeight:800,color:"#fff",fontFamily:bf,lineHeight:1.2,letterSpacing:"-0.2px"}}>
                     {isHindi?"प्रोफाइल अपडेट करें":"Update My Profile"}
                   </div>
-                  <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf,lineHeight:1.4}}>
-                    {isHindi?"नए जवाब प्रोफाइल में सेव करें — सटीक मिलान के लिए":"Save new answers to profile for better matching"}
+                  <div style={{fontSize:10.5,color:"rgba(255,255,255,0.78)",marginTop:2.5,fontFamily:bf,lineHeight:1.4}}>
+                    {isHindi?"नए जवाब सेव करें — सटीक मिलान के लिए":"Save answers for better scheme matching"}
                   </div>
                 </div>
-                <span style={{color:IND_GREEN,fontSize:18,flexShrink:0}}>›</span>
+                <div style={{
+                  width:28,height:28,borderRadius:8,flexShrink:0,
+                  background:"rgba(255,255,255,0.20)",
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:16,color:"#fff",fontWeight:700,
+                }}>›</div>
               </div>
 
-              {/* Just Checking option */}
+              {/* SECONDARY — Just Checking */}
               <div
                 onClick={()=>{
                   haptic();
-                  // Discard the raw checker answers — do NOT commit them.
-                  // BenefitCard stays on the existing profile data.
                   setCheckerAnswers(null);
                   setShowUpdateProfileSheet(false);
                 }}
                 style={{
                   display:"flex",alignItems:"center",gap:14,
-                  background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.03)",
-                  border:`1.5px solid ${th.border2}`,
-                  borderRadius:16,padding:"14px 16px",cursor:"pointer",
-                  WebkitTapHighlightColor:"transparent",transition:"transform 0.12s",
+                  background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.04)",
+                  border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.09)"}`,
+                  borderRadius:18,padding:"13px 18px",cursor:"pointer",
+                  WebkitTapHighlightColor:"transparent",transition:"transform 0.14s",
                 }}
-                onTouchStart={e=>e.currentTarget.style.transform="scale(0.98)"}
+                onTouchStart={e=>e.currentTarget.style.transform="scale(0.975)"}
                 onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
                 onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}>
                 <div style={{
-                  width:42,height:42,borderRadius:12,flexShrink:0,
-                  background:dark?"rgba(255,153,51,0.12)":"rgba(255,153,51,0.08)",
-                  border:`1.5px solid rgba(255,153,51,0.28)`,
+                  width:40,height:40,borderRadius:12,flexShrink:0,
+                  background:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.06)",
                   display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
                 }}>🔍</div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:13.5,fontWeight:800,color:th.text,fontFamily:bf,lineHeight:1.25}}>
+                  <div style={{fontSize:13.5,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.2}}>
                     {isHindi?"बस देख रहा था":"Just Checking"}
                   </div>
-                  <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf,lineHeight:1.4}}>
-                    {isHindi?"पुराना प्रोफाइल रखें — ये परिणाम अस्थायी हैं":"Keep existing profile — results shown temporarily"}
+                  <div style={{fontSize:10.5,color:th.textSub,marginTop:2.5,fontFamily:bf,lineHeight:1.4}}>
+                    {isHindi?"पुराना प्रोफाइल रखें — परिणाम अस्थायी हैं":"Keep existing profile — results shown temporarily"}
                   </div>
                 </div>
-                <span style={{color:th.textSub,fontSize:18,flexShrink:0}}>›</span>
+                <span style={{color:th.textSub,fontSize:16,flexShrink:0}}>›</span>
               </div>
 
               {/* Dismiss hint */}
-              <div style={{textAlign:"center",marginTop:2,color:th.textLight,fontSize:10,fontFamily:bf}}>
-                {isHindi?"बाहर टैप करें या खारिज करें":"Tap outside to dismiss"}
+              <div style={{
+                textAlign:"center",paddingTop:2,paddingBottom:2,
+                color:th.textLight,fontSize:10,fontFamily:bf,opacity:0.6,letterSpacing:"0.2px",
+              }}>
+                {isHindi?"बाहर टैप करके बंद करें":"Tap outside to dismiss"}
               </div>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
       {showChecker&&(
         <EligibilityChecker
           lang={lang}
@@ -7626,7 +7705,7 @@ export default function YojanaSahay(){
           // committing or incrementing checkerRunId.
           if(!profile){ setCommittedCheckerAnswers(answers); setCheckerRunId(id=>id+1); }
         }}
-          onExitFromResults={(answersAreFromProfile)=>{if(profile&&!answersAreFromProfile)setTimeout(()=>setShowUpdateProfileSheet(true),420);}}
+          onExitFromResults={(answersAreFromProfile)=>{if(profile&&!answersAreFromProfile)setTimeout(()=>setShowUpdateProfileSheet(true),800);}}
           prefilledAnswers={profileAnswers||undefined}
           dark={dark}/>
       )}
