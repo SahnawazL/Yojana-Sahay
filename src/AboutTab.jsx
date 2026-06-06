@@ -600,15 +600,11 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
       0%   { transform: translateX(-200%); }
       100% { transform: translateX(400%); }
     }
-    @keyframes shz-ring-rotate {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
     @keyframes shz-sweep {
-      0%   { transform: translateX(-90px); opacity: 0; }
-      18%  { opacity: 1; }
-      82%  { opacity: 1; }
-      100% { transform: translateX(165px); opacity: 0; }
+      0%   { transform: translateX(-22px); opacity: 0; }
+      12%  { opacity: 0.85; }
+      88%  { opacity: 0.85; }
+      100% { transform: translateX(104px); opacity: 0; }
     }
     @keyframes shz-badge-sweep {
       0%   { transform: translateX(-160%); }
@@ -1717,222 +1713,206 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
 
               <div style={{ display: "flex", alignItems: "flex-start", gap: 14, position: "relative" }}>
                 {/* SHZ Premium Logo Avatar */}
-                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
-                  <svg width="74" height="74" viewBox="0 0 74 74" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "block" }}>
-                    <defs>
-                      {/* Clip to inner circle */}
-                      <clipPath id="shz-body-clip">
-                        <circle cx="37" cy="37" r="30"/>
-                      </clipPath>
-                      {/* Radial dark body gradient */}
-                      <radialGradient id="shz-bg-grad" cx="38%" cy="28%" r="72%" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%"  stopColor="#17254E"/>
-                        <stop offset="55%" stopColor="#080F27"/>
-                        <stop offset="100%" stopColor="#020810"/>
-                      </radialGradient>
-                      {/* Gold gradient for outer ring — sweeps diagonally */}
-                      <linearGradient id="shz-ring-grad" x1="0" y1="0" x2="74" y2="74" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%"   stopColor="#FFE899"/>
-                        <stop offset="22%"  stopColor="#C9A84C"/>
-                        <stop offset="50%"  stopColor="#FFF0B0"/>
-                        <stop offset="78%"  stopColor="#A07428"/>
-                        <stop offset="100%" stopColor="#FFE899"/>
-                      </linearGradient>
-                      {/* Gold gradient for SHZ mark — left-to-right warmth shift */}
-                      <linearGradient id="shz-mark-grad" x1="11" y1="26" x2="63" y2="48" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%"   stopColor="#FFF4C0"/>
-                        <stop offset="30%"  stopColor="#F5D36A"/>
-                        <stop offset="60%"  stopColor="#C9A84C"/>
-                        <stop offset="100%" stopColor="#FFF4C0"/>
-                      </linearGradient>
-                      {/* Glow filter for the mark */}
-                      <filter id="shz-mark-glow" x="-25%" y="-25%" width="150%" height="150%">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="1.3" result="blur"/>
-                        <feMerge>
-                          <feMergeNode in="blur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                      {/* Ring glow */}
-                      <filter id="shz-ring-glow" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>
-                        <feMerge>
-                          <feMergeNode in="blur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-
-                    {/* ── Outermost whisper ring (static) ── */}
-                    <circle cx="37" cy="37" r="36"
-                      fill="none"
-                      stroke="rgba(201,168,76,0.10)"
-                      strokeWidth="0.7"
-                    />
-
-                    {/* ── Spinning primary arc ring ── */}
-                    <circle cx="37" cy="37" r="34"
-                      fill="none"
-                      stroke="url(#shz-ring-grad)"
-                      strokeWidth="1.6"
-                      strokeDasharray="54 160"
-                      strokeLinecap="round"
-                      filter="url(#shz-ring-glow)"
-                      style={{ animation: "shz-ring-rotate 5.5s linear infinite", transformOrigin: "37px 37px" }}
-                    />
-
-                    {/* ── Counter-spinning secondary arc (dimmer, slower) ── */}
-                    <circle cx="37" cy="37" r="34"
-                      fill="none"
-                      stroke="rgba(201,168,76,0.22)"
-                      strokeWidth="0.8"
-                      strokeDasharray="20 194"
-                      strokeLinecap="round"
-                      style={{ animation: "shz-ring-rotate 10s linear infinite reverse", transformOrigin: "37px 37px" }}
-                    />
-
-                    {/* ── Body fill ── */}
-                    <circle cx="37" cy="37" r="30.5" fill="url(#shz-bg-grad)"/>
-
-                    {/* ── Inner gold border ── */}
-                    <circle cx="37" cy="37" r="30.5"
-                      fill="none"
-                      stroke="rgba(201,168,76,0.28)"
-                      strokeWidth="1"
-                    />
-
-                    {/* ── Fine cross-hair texture lines (very subtle) ── */}
-                    <g clipPath="url(#shz-body-clip)" opacity="0.18">
-                      <line x1="7" y1="37" x2="67" y2="37" stroke="rgba(201,168,76,0.4)" strokeWidth="0.5"/>
-                      <line x1="37" y1="7" x2="37" y2="67" stroke="rgba(201,168,76,0.4)" strokeWidth="0.5"/>
-                      <line x1="16" y1="16" x2="58" y2="58" stroke="rgba(201,168,76,0.25)" strokeWidth="0.4"/>
-                      <line x1="58" y1="16" x2="16" y2="58" stroke="rgba(201,168,76,0.25)" strokeWidth="0.4"/>
-                    </g>
-
-                    {/* ── Top highlight gleam (soft ellipse) ── */}
-                    <ellipse cx="34" cy="22" rx="14" ry="6.5"
-                      fill="rgba(255,255,255,0.09)"
-                      clipPath="url(#shz-body-clip)"
-                    />
-
-                    {/* ── Gold sparkle particles ── */}
-                    <g clipPath="url(#shz-body-clip)">
-                      <circle cx="20" cy="17" r="0.85" fill="rgba(255,228,130,0.55)"/>
-                      <circle cx="54" cy="15" r="0.65" fill="rgba(255,228,130,0.40)"/>
-                      <circle cx="60" cy="46" r="0.80" fill="rgba(255,228,130,0.30)"/>
-                      <circle cx="13" cy="51" r="0.65" fill="rgba(255,228,130,0.38)"/>
-                      <circle cx="37" cy="11" r="0.55" fill="rgba(255,228,130,0.50)"/>
-                      <circle cx="61" cy="24" r="0.50" fill="rgba(255,228,130,0.30)"/>
-                      <circle cx="12" cy="28" r="0.45" fill="rgba(255,228,130,0.28)"/>
-                    </g>
-
-                    {/* ══ SHZ Monogram — pure SVG path letterforms ══ */}
-                    {/*
-                        Layout (74×74 SVG, mark area 52px wide × 22px tall, centered):
-                          S  →  x: 11–25,  y: 26–48  (width 14, height 22)
-                          H  →  x: 30–44,  y: 26–48  (width 14, height 22)
-                          Z  →  x: 49–63,  y: 26–48  (width 14, height 22)
-                        Center of mark: x = 37, y = 37 ✓
-                    */}
-                    <g filter="url(#shz-mark-glow)" clipPath="url(#shz-body-clip)">
-
-                      {/* S — drawn as two-arc cubic bezier (no text element) */}
-                      {/* M 25,27 → top-right start; C -1,27 39,48 12,48 → bottom-left finish */}
-                      {/* Creates: top arc curves LEFT, waist at (18.5,37.5), bottom arc curves RIGHT */}
-                      <path
-                        d="M 25,27 C -1,27 39,48 12,48"
-                        stroke="url(#shz-mark-grad)"
-                        strokeWidth="3.4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        fill="none"
-                      />
-
-                      {/* H — two verticals + crossbar */}
-                      <path
-                        d="M 30,27 V 48 M 44,27 V 48 M 30,37.5 H 44"
-                        stroke="url(#shz-mark-grad)"
-                        strokeWidth="3.4"
-                        strokeLinecap="round"
-                        fill="none"
-                      />
-
-                      {/* Z — top bar → diagonal → bottom bar */}
-                      <path
-                        d="M 49,27 H 63 L 49,48 H 63"
-                        stroke="url(#shz-mark-grad)"
-                        strokeWidth="3.4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        fill="none"
-                      />
-
-                    </g>
-
-                    {/* ── Thin gold separator line below mark ── */}
-                    <g clipPath="url(#shz-body-clip)">
-                      <line x1="22" y1="53" x2="52" y2="53"
-                        stroke="rgba(201,168,76,0.30)" strokeWidth="0.7" strokeLinecap="round"/>
-                    </g>
-
-                    {/* ── Shimmer sweep (properly clipped inside circle) ── */}
-                    <g clipPath="url(#shz-body-clip)">
-                      <rect x="-55" y="7" width="34" height="60"
-                        fill="rgba(255,255,255,0.09)"
-                        style={{ animation: "shz-sweep 4s ease-in-out infinite" }}
-                      />
-                    </g>
-
-                    {/* ── Bottom shadow vignette ── */}
-                    <ellipse cx="37" cy="62" rx="20" ry="7.5"
-                      fill="rgba(0,0,0,0.22)"
-                      clipPath="url(#shz-body-clip)"
-                    />
-                  </svg>
-
-                  {/* ── HYPER ZENITH badge ── */}
+                {/*
+                  Structure: outer column div (flex col, no gap) wraps a single bordered+shadowed
+                  container div (overflow:hidden, borderRadius:18) that clips both the SVG rectangle
+                  and the HYPER ZENITH footer band into one unified unit.
+                */}
+                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  {/* ── Unified bordered container ── */}
                   <div style={{
-                    position: "relative",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                    padding: "4px 11px",
-                    borderRadius: 20,
-                    background: "linear-gradient(135deg, rgba(201,168,76,0.10) 0%, rgba(255,228,130,0.06) 100%)",
-                    border: "1px solid rgba(201,168,76,0.38)",
+                    width: 72,
+                    borderRadius: 18,
                     overflow: "hidden",
+                    border: "1px solid rgba(201,168,76,0.35)",
+                    boxShadow: "0 0 18px rgba(201,168,76,0.18)",
+                    position: "relative",
+                    flexShrink: 0,
                   }}>
-                    {/* Shimmer sweep inside badge */}
+
+                    {/* ── Avatar rectangle SVG (72×64, rx=18) ── */}
+                    <svg
+                      width="72" height="64" viewBox="0 0 72 64"
+                      fill="none" xmlns="http://www.w3.org/2000/svg"
+                      style={{ display: "block" }}
+                    >
+                      <defs>
+                        {/* Deep navy radial background */}
+                        <radialGradient id="shz-bg" cx="42%" cy="32%" r="78%" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%"   stopColor="#17254E"/>
+                          <stop offset="58%"  stopColor="#0A1530"/>
+                          <stop offset="100%" stopColor="#020810"/>
+                        </radialGradient>
+
+                        {/* Gold gradient for SHZ mark: #FFF4C0 → #F5D36A → #C9A84C */}
+                        <linearGradient id="shz-gold" x1="10" y1="14" x2="62" y2="50" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%"   stopColor="#FFF4C0"/>
+                          <stop offset="35%"  stopColor="#F5D36A"/>
+                          <stop offset="70%"  stopColor="#C9A84C"/>
+                          <stop offset="100%" stopColor="#FFF4C0"/>
+                        </linearGradient>
+
+                        {/*
+                          Glow filter: feGaussianBlur merged UNDER SourceGraphic
+                          — creates the gold halo beneath the mark strokes
+                        */}
+                        <filter id="shz-glow" x="-35%" y="-35%" width="170%" height="170%">
+                          <feGaussianBlur in="SourceGraphic" stdDeviation="2.8" result="blur"/>
+                          <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+
+                        {/* Shimmer sweep clip — rounded rect */}
+                        <clipPath id="shz-clip">
+                          <rect x="0" y="0" width="72" height="64" rx="18" ry="18"/>
+                        </clipPath>
+                      </defs>
+
+                      {/* ── Background fill ── */}
+                      <rect x="0" y="0" width="72" height="64" fill="url(#shz-bg)"/>
+
+                      {/*
+                        ══ SHZ Interlocked Geometric Monogram ══
+                        Luxury brand–style: S, H, Z form ONE unified connected glyph.
+
+                        Mark bounds (72×64 SVG):
+                          Y: 14 → 50  (36 tall, centred on y=32)
+                          X: S curves  x≈10–24
+                             H          x=24–48   (left vertical shared with S endpoints)
+                             Z          x=48–62   (left of Z diagonal shared with H right vertical)
+
+                        Connection points:
+                          (24,14) = S top terminus  = H left vertical top
+                          (24,50) = S bottom terminus = H left vertical bottom
+                          (48,14) = Z top-left        = H right vertical top
+                          (48,50) = Z diagonal left end = H right vertical bottom
+
+                        S path: luxury two-arc cubic bezier
+                          — starts at (24,14), arcs leftward to midpoint (~11,32),
+                            then arcs back right to (24,50).
+                          — right extremes sit on x=24, sharing H's left vertical.
+
+                        H path: three sub-paths in one <path> element
+                          — left vertical M24,14 V50 (fused with S)
+                          — crossbar      M24,32 H48
+                          — right vertical M48,14 V50 (fused with Z)
+
+                        Z path: top bar → diagonal → bottom bar
+                          — M48,14 H62  (top bar, left end at H right vertical top)
+                          — L48,50      (diagonal, lands on H right vertical bottom)
+                          — H62         (bottom bar)
+                      */}
+                      <g filter="url(#shz-glow)">
+                        {/* S */}
+                        <path
+                          d="M 24,14 C 10,14 8,26 11,32 C 14,38 22,50 24,50"
+                          stroke="url(#shz-gold)"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          fill="none"
+                        />
+                        {/* H — left vertical / crossbar / right vertical */}
+                        <path
+                          d="M 24,14 V 50 M 24,32 H 48 M 48,14 V 50"
+                          stroke="url(#shz-gold)"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          fill="none"
+                        />
+                        {/* Z */}
+                        <path
+                          d="M 48,14 H 62 L 48,50 H 62"
+                          stroke="url(#shz-gold)"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          fill="none"
+                        />
+                      </g>
+
+                      {/* ── Tricolor pip — top-left corner (saffron / white / green) ── */}
+                      <rect x="7" y="9"  width="11" height="2" rx="1" fill="#FF9933" opacity="0.92"/>
+                      <rect x="7" y="12" width="11" height="2" rx="1" fill="rgba(255,255,255,0.82)"/>
+                      <rect x="7" y="15" width="11" height="2" rx="1" fill="#138808" opacity="0.92"/>
+
+                      {/* ── Diagonal shimmer sweep (clipped to rounded rect) ── */}
+                      {/*
+                        Pre-skewed polygon (tilted ~14°) sweeps left→right via CSS translateX.
+                        clipPath="shz-clip" masks it to the rounded rectangle.
+                      */}
+                      <g clipPath="url(#shz-clip)">
+                        <polygon
+                          points="-4,-4 16,-4 12,74 -8,74"
+                          fill="rgba(255,255,255,0.09)"
+                          style={{ animation: "shz-sweep 4s ease-in-out infinite" }}
+                        />
+                      </g>
+                    </svg>
+
+                    {/* ── Dot-grid texture overlay (absolutely positioned over SVG area) ── */}
                     <div style={{
-                      position: "absolute", top: 0, bottom: 0, width: "48%",
-                      background: "linear-gradient(90deg, transparent 0%, rgba(255,228,130,0.20) 50%, transparent 100%)",
-                      animation: "shz-badge-sweep 4s ease-in-out infinite",
+                      position: "absolute",
+                      top: 0, left: 0,
+                      width: "100%", height: 64,
+                      backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.065) 1px, transparent 1px)",
+                      backgroundSize: "15px 15px",
                       pointerEvents: "none",
                     }}/>
-                    {/* Left dot */}
-                    <span style={{
-                      display: "block", width: 3.5, height: 3.5, borderRadius: "50%", flexShrink: 0,
-                      background: "linear-gradient(135deg, #FFE285 0%, #C9A84C 100%)",
-                    }}/>
-                    <span style={{
-                      fontSize: 7.5, fontWeight: 700, letterSpacing: 1.9,
-                      textTransform: "uppercase",
-                      background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 40%, #F5D36A 65%, #C9A84C 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                      fontFamily: "'DM Sans', sans-serif",
+
+                    {/* ── HYPER ZENITH footer band ── */}
+                    {/*
+                      Flush below the SVG rectangle with NO gap.
+                      borderTop only (no pill radius — parent overflow:hidden handles bottom rx=18).
+                      Background: rgba(201,168,76,0.08). Shimmer sweep identical to logo.
+                    */}
+                    <div style={{
                       position: "relative",
-                      lineHeight: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 5,
+                      padding: "5px 0",
+                      background: "rgba(201,168,76,0.08)",
+                      borderTop: "1px solid rgba(201,168,76,0.25)",
+                      overflow: "hidden",
                     }}>
-                      HYPER ZENITH
-                    </span>
-                    {/* Right dot */}
-                    <span style={{
-                      display: "block", width: 3.5, height: 3.5, borderRadius: "50%", flexShrink: 0,
-                      background: "linear-gradient(135deg, #FFE285 0%, #C9A84C 100%)",
-                    }}/>
-                  </div>
+                      {/* Badge shimmer sweep */}
+                      <div style={{
+                        position: "absolute", top: 0, bottom: 0, left: 0, width: "42%",
+                        background: "linear-gradient(90deg, transparent 0%, rgba(255,228,130,0.20) 50%, transparent 100%)",
+                        animation: "shz-badge-sweep 4s ease-in-out infinite",
+                        pointerEvents: "none",
+                      }}/>
+                      {/* Left 3px gold dot ornament */}
+                      <span style={{
+                        display: "block", width: 3, height: 3, borderRadius: "50%", flexShrink: 0,
+                        background: "linear-gradient(135deg, #FFE285 0%, #C9A84C 100%)",
+                      }}/>
+                      {/* Gold gradient text */}
+                      <span style={{
+                        fontSize: 7.5, fontWeight: 700, letterSpacing: 2,
+                        textTransform: "uppercase",
+                        background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 40%, #F5D36A 65%, #C9A84C 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        fontFamily: "'DM Sans', sans-serif",
+                        position: "relative",
+                        lineHeight: 1,
+                        userSelect: "none",
+                      }}>
+                        HYPER ZENITH
+                      </span>
+                      {/* Right 3px gold dot ornament */}
+                      <span style={{
+                        display: "block", width: 3, height: 3, borderRadius: "50%", flexShrink: 0,
+                        background: "linear-gradient(135deg, #FFE285 0%, #C9A84C 100%)",
+                      }}/>
+                    </div>
+
+                  </div>{/* end unified bordered container */}
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0, paddingTop: 5 }}>
