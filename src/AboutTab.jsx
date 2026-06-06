@@ -1821,15 +1821,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                           pointerEvents: "none", zIndex: 4,
                         }} />
 
-                        {/* Tricolor pip — top-left */}
-                        <div style={{
-                          position: "absolute", top: 7, left: 6, zIndex: 5,
-                          display: "flex", flexDirection: "column", gap: 2,
-                        }}>
-                          <div style={{ width: 11, height: 2, borderRadius: 1, background: "#FF9933", opacity: 0.95 }} />
-                          <div style={{ width: 11, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.85)" }} />
-                          <div style={{ width: 11, height: 2, borderRadius: 1, background: "#138808", opacity: 0.95 }} />
-                        </div>
+
                       </div>
 
                       {/* ── HYPER ZENITH footer band ── */}
