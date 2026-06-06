@@ -110,7 +110,7 @@ const STRINGS = {
       {
         icon:"🎯", color:SAFFRON,
         title:"Eligibility Checker",
-        desc:"An adaptive 7–11 question checker that analyses your profile and instantly presents the schemes you qualify for — with AI guidance on your eligibility results.",
+        desc:"A smart adaptive questionnaire that reads your occupation, income, and state — then instantly surfaces every scheme you qualify for, eliminating guesswork. Backed by AI guidance so you know exactly what to do next.",
       },
       {
         icon:"🤖", color:"#8B5CF6",
@@ -227,7 +227,7 @@ const STRINGS = {
     devTags:     ["React PWA", "Firebase", "Groq AI", "Vercel Edge", "UI/UX"],
     devLink:     "sahnawaz-portfolio.vercel.app →",
 
-    contactTitle: "Developer Contact",
+    contactTitle: "YojanaSahay Support",
     contactNote:  "For platform-related inquiries only. For scheme-specific support, please use the in-app Report & Query feature.",
 
     lastUpdated: "Last Updated · May 2026",
@@ -286,7 +286,7 @@ const STRINGS = {
     featuresTitle: "मुख्य क्षमताएं",
     features: [
       { icon:"🔍", color:NAVY,      title:"स्मार्ट योजना खोज",       desc:"केंद्र और राज्य सरकार की योजनाओं को श्रेणी, राज्य और लाभार्थी प्रकार के अनुसार खोजें। पात्रता, लाभ और आवेदन मार्गदर्शन सहित तत्काल परिणाम।" },
-      { icon:"🎯", color:SAFFRON,   title:"पात्रता जांचक",            desc:"आपके व्यवसाय के अनुसार 7–11 अनुकूलित प्रश्नों के माध्यम से पात्र योजनाओं की सूची तुरंत प्रस्तुत करता है — और AI से अपनी पात्रता पर मार्गदर्शन पाएं।" },
+      { icon:"🎯", color:SAFFRON,   title:"पात्रता जांचक",            desc:"एक स्मार्ट अनुकूलित प्रश्नावली जो आपके व्यवसाय, आय और राज्य को समझकर तुरंत आपकी सभी पात्र योजनाएं सामने रख देती है — बिना अनुमान लगाए। AI मार्गदर्शन के साथ ताकि आगे का हर कदम बिल्कुल स्पष्ट हो।" },
       { icon:"🤖", color:"#8B5CF6", title:"AI सहायक",                 desc:"हिंदी और अंग्रेजी में योजना संबंधी प्रश्नों के लिए वास्तविक समय AI सहायक। व्यक्तिगत मार्गदर्शन, योजना तुलना और अगले कदमों की जानकारी।" },
       { icon:"📬", color:IND_GREEN, title:"रिपोर्ट और समाधान केंद्र", desc:"बग, योजना अनुरोध, सामान्य प्रश्न और सुझाव सबमिट करने की इन-ऐप सुविधा। टीम द्वारा हर सबमिशन की समीक्षा और सीधा उत्तर।" },
     ],
@@ -393,7 +393,7 @@ const STRINGS = {
     devTags:     ["React PWA", "Firebase", "Groq AI", "Vercel Edge", "UI/UX"],
     devLink:     "sahnawaz-portfolio.vercel.app →",
 
-    contactTitle: "डेवलपर संपर्क",
+    contactTitle: "YojanaSahay सपोर्ट",
     contactNote:  "केवल प्लेटफ़ॉर्म संबंधी पूछताछ के लिए। योजना-विशिष्ट सहायता के लिए इन-ऐप Report & Query सुविधा का उपयोग करें।",
 
     lastUpdated: "अंतिम अपडेट · मई 2026",
@@ -1702,18 +1702,92 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
               }} />
 
               <div style={{ display: "flex", alignItems: "center", gap: 14, position: "relative" }}>
-                {/* Monogram avatar */}
-                <div style={{
-                  width: 52, height: 52, borderRadius: 15, flexShrink: 0,
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.07))",
-                  border: "1.5px solid rgba(255,255,255,0.24)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
-                }}>
-                  <span style={{
-                    fontSize: 18, fontWeight: 800, color: "#fff",
-                    fontFamily: "'DM Sans', sans-serif", letterSpacing: -0.5,
-                  }}>SHL</span>
+                {/* SHZ Premium SVG Avatar */}
+                <div style={{ flexShrink: 0, position: "relative" }}>
+                  <style>{`
+                    @keyframes shz-shimmer {
+                      0%   { transform: translateX(-110%) rotate(20deg); }
+                      100% { transform: translateX(110%) rotate(20deg); }
+                    }
+                    @keyframes shz-pulse {
+                      0%, 100% { opacity: 0.55; }
+                      50%       { opacity: 0.90; }
+                    }
+                  `}</style>
+                  <svg width="58" height="58" viewBox="0 0 58 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      {/* Outer glow filter */}
+                      <filter id="shz-glow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                      </filter>
+                      {/* Glass body gradient */}
+                      <linearGradient id="shz-glass" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%"   stopColor="rgba(255,255,255,0.28)"/>
+                        <stop offset="50%"  stopColor="rgba(255,255,255,0.10)"/>
+                        <stop offset="100%" stopColor="rgba(255,255,255,0.18)"/>
+                      </linearGradient>
+                      {/* Top highlight gleam */}
+                      <linearGradient id="shz-gleam" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%"   stopColor="rgba(255,255,255,0.55)"/>
+                        <stop offset="100%" stopColor="rgba(255,255,255,0.00)"/>
+                      </linearGradient>
+                      {/* Text fill — gold shimmer */}
+                      <linearGradient id="shz-text" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%"   stopColor="#FFE9A0"/>
+                        <stop offset="45%"  stopColor="#FFFFFF"/>
+                        <stop offset="100%" stopColor="#E8C96A"/>
+                      </linearGradient>
+                      {/* Clip to rounded rect */}
+                      <clipPath id="shz-clip">
+                        <rect x="2" y="2" width="54" height="54" rx="16"/>
+                      </clipPath>
+                    </defs>
+
+                    {/* Outer glow ring */}
+                    <rect x="0.75" y="0.75" width="56.5" height="56.5" rx="17"
+                      fill="none" stroke="rgba(255,220,120,0.30)" strokeWidth="1.5"
+                      filter="url(#shz-glow)"/>
+
+                    {/* Glass body */}
+                    <rect x="2" y="2" width="54" height="54" rx="16"
+                      fill="url(#shz-glass)"/>
+
+                    {/* Inner border */}
+                    <rect x="2.75" y="2.75" width="52.5" height="52.5" rx="15.25"
+                      fill="none" stroke="rgba(255,255,255,0.30)" strokeWidth="1"/>
+
+                    {/* Top gleam strip */}
+                    <rect x="2" y="2" width="54" height="22" rx="16"
+                      fill="url(#shz-gleam)" clipPath="url(#shz-clip)"/>
+
+                    {/* Shimmer sweep — animated */}
+                    <g clipPath="url(#shz-clip)">
+                      <rect
+                        x="-20" y="2" width="22" height="54"
+                        fill="rgba(255,255,255,0.18)"
+                        style={{ animation: "shz-shimmer 2.6s ease-in-out infinite" }}
+                      />
+                    </g>
+
+                    {/* SHZ signature text */}
+                    <text
+                      x="29" y="35"
+                      textAnchor="middle"
+                      fill="url(#shz-text)"
+                      fontSize="17"
+                      fontWeight="800"
+                      fontFamily="'DM Sans', 'Arial', sans-serif"
+                      letterSpacing="-0.5"
+                      style={{ animation: "shz-pulse 3s ease-in-out infinite" }}
+                    >SHZ</text>
+
+                    {/* Bottom inner shadow line */}
+                    <rect x="2" y="50" width="54" height="6" rx="0"
+                      fill="rgba(0,0,0,0.12)" clipPath="url(#shz-clip)"/>
+                    <rect x="10" y="52.5" width="38" height="1"
+                      rx="1" fill="rgba(255,255,255,0.10)"/>
+                  </svg>
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -1862,7 +1936,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                   {CONTACT_EMAIL}
                 </div>
                 <div style={{ fontSize: 10, color: th.textSub, marginTop: 2, fontFamily: bf }}>
-                  {isHindi ? "डेवलपर ईमेल" : "Developer Email"}
+                  {isHindi ? "सपोर्ट ईमेल" : "Official Support Email"}
                 </div>
               </div>
               <div style={{ color: th.textSub, fontSize: 16 }}>›</div>
