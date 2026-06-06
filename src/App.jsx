@@ -1,5 +1,5 @@
 /**
- * Yojana Sahay — Official Government Scheme Finder
+ * Yojana Sahay — Independent Civic Scheme Discovery Platform
  *
  * Copyright (c) 2026 Sahnawaz Ahmed Laskar
  * SPDX-License-Identifier: MIT
@@ -173,7 +173,7 @@ const WATERMARK_SPOKES=(()=>{
 })();
 const T = {
   en: {
-    appName:"Yojana Sahay", appSub:"Official Scheme Finder",
+    appName:"Yojana Sahay", appSub:"Scheme Discovery Platform",
     greeting:(n)=> n ? `Namaste, ${n} 🙏` : "Namaste, Citizen 🙏",
     headline:"Find Your Schemes", subheadline:"Discover benefits you truly deserve",
     searchPlaceholder:"Search schemes...", searchBtn:"Search",
@@ -181,15 +181,15 @@ const T = {
     aiBannerTitle:"Ask AI Assistant", aiBannerSub:"Ask anything about any scheme in Hindi or English",
     categoriesTitle:"Categories", categoriesSub:"Browse by Category", seeAll:"See All →",
     ctaTitle:"Check Eligibility",
-    ctaSub:(hp)=> hp ? "Results ready from your profile · Tap to view" : "7 quick questions · Get matched instantly",
+    ctaSub:(hp)=> hp ? "Results ready from your profile · Tap to view" : "Quick eligibility check · Get matched instantly",
     ctaBtn:(hp)=> hp ? "View My Schemes →" : "Start Now →",
     schemesTitle:"Popular Schemes", schemesSub:"Top government benefits",
     matchedTitle:"Matched for You", matchedSub:(n)=>`${n} scheme${n!==1?"s":""} you qualify for`,
     noProfileTitle:"Get Personalised Schemes", noProfileSub:"Complete your profile once — we'll show schemes tailored just for you.",
     setupProfileBtn:"Set Up Profile →",
-    helplineTitle:"Government Helpline", helplineSub:"Available 24×7 · 1800-111-555", helplineBtn:"Call Now",
+    helplineTitle:"Citizen Helpline", helplineSub:"Unofficial · 1800-111-555", helplineBtn:"Call Now",
     navHome:"Home", navSearch:"Search", navSchemes:"Schemes", navAI:"AI Help", navProfile:"Profile",
-    checkerTitle:"Eligibility Check", checkerSub:"7 quick questions",
+    checkerTitle:"Eligibility Check", checkerSub:"Check complete — scroll to explore",
     stepOf:(c,t)=>`Step ${c} of ${t}`,
     nextBtn:"Next →", backBtn:"← Back", checkBtn:"Find My Schemes 🎯",
     matchSub:(n)=>`You qualify for ${n} scheme${n!==1?"s":""}`,
@@ -302,7 +302,7 @@ const T = {
     },
   },
   hi: {
-    appName:"योजना सहाय", appSub:"सरकारी योजना खोजक",
+    appName:"योजना सहाय", appSub:"योजना खोज मंच",
     greeting:(n)=> n ? `नमस्ते, ${n} 🙏` : "नमस्ते, नागरिक 🙏",
     headline:"आपकी योजनाएं खोजें", subheadline:"जानें आप किन लाभों के हकदार हैं",
     searchPlaceholder:"योजना खोजें...", searchBtn:"खोजें",
@@ -310,15 +310,15 @@ const T = {
     aiBannerTitle:"AI सहायक से पूछें", aiBannerSub:"हिंदी या अंग्रेज़ी में कोई भी सवाल पूछें",
     categoriesTitle:"श्रेणियां", categoriesSub:"श्रेणी के अनुसार देखें", seeAll:"सभी देखें →",
     ctaTitle:"पात्रता जांचें",
-    ctaSub:(hp)=> hp ? "प्रोफाइल से परिणाम तैयार · देखें" : "7 सवाल · तुरंत जानें",
+    ctaSub:(hp)=> hp ? "प्रोफाइल से परिणाम तैयार · देखें" : "त्वरित पात्रता जांच · तुरंत जानें",
     ctaBtn:(hp)=> hp ? "मेरी योजनाएं →" : "शुरू करें →",
     schemesTitle:"लोकप्रिय योजनाएं", schemesSub:"शीर्ष सरकारी लाभ",
     matchedTitle:"आपके लिए योजनाएं", matchedSub:(n)=>`${n} योजनाएं जिनके आप पात्र हैं`,
     noProfileTitle:"अपनी योजनाएं पर्सनल बनाएं", noProfileSub:"एक बार प्रोफाइल बनाएं — हम आपके लिए सही योजनाएं दिखाएंगे।",
     setupProfileBtn:"प्रोफाइल बनाएं →",
-    helplineTitle:"सरकारी हेल्पलाइन", helplineSub:"24×7 · 1800-111-555", helplineBtn:"कॉल करें",
+    helplineTitle:"नागरिक हेल्पलाइन", helplineSub:"अनौपचारिक · 1800-111-555", helplineBtn:"कॉल करें",
     navHome:"होम", navSearch:"खोजें", navSchemes:"योजनाएं", navAI:"AI", navProfile:"प्रोफाइल",
-    checkerTitle:"पात्रता जांच", checkerSub:"7 आसान सवाल",
+    checkerTitle:"पात्रता जांच", checkerSub:"जांच पूरी — परिणाम नीचे देखें",
     stepOf:(c,t)=>`सवाल ${c} / ${t}`,
     nextBtn:"अगला →", backBtn:"← वापस", checkBtn:"मेरी योजनाएं खोजें 🎯",
     matchSub:(n)=>`आप ${n} योजना${n!==1?"ओं":""} के हकदार हैं`,
@@ -3743,14 +3743,14 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   if(stage==="phone") return(
     <div style={{flex:1,display:"flex",flexDirection:"column",background:th.appBg,overflowY:"auto"}}>
       <TriHeader>
-        {/* ── Official Platform badge ── */}
+        {/* ── Independent Platform badge ── */}
         <div style={{marginBottom:14}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:5,
             background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.28)",
             borderRadius:20,padding:"4px 11px"}}>
             <AshokaChakra size={11} color="#fff"/>
             <span style={{fontSize:9,fontWeight:800,color:"#fff",letterSpacing:0.9,textTransform:"uppercase"}}>
-              {isHindi?"आधिकारिक प्लेटफ़ॉर्म":"Official Platform"}
+              {isHindi?"स्वतंत्र प्लेटफ़ॉर्म":"Independent Platform"}
             </span>
           </div>
         </div>
@@ -3759,7 +3759,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         <div style={{marginBottom:8}}>
           <div style={{color:"#fff",fontSize:25,fontWeight:900,fontFamily:bf,lineHeight:1.1,letterSpacing:-0.3}}>{pt.signInTitle}</div>
           <div style={{color:"rgba(255,255,255,0.72)",fontSize:11.5,marginTop:5,fontFamily:bf,letterSpacing:0.2}}>
-            🇮🇳&nbsp; Yojana Sahay · Government of India
+            🇮🇳&nbsp; Yojana Sahay · Independent Civic Platform
           </div>
         </div>
         <div style={{color:"rgba(255,255,255,0.84)",fontSize:12.5,lineHeight:1.65,fontFamily:bf,marginBottom:12}}>{pt.signInSub}</div>
@@ -6249,6 +6249,7 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
 
 // ─── APP STYLES (module-level — allocated once, never recreated on re-render) ──
 const APP_STYLES = `
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
         .fu{opacity:0;transform:translateY(20px);transition:all 0.5s cubic-bezier(0.22,1,0.36,1);}
         .fu.show{opacity:1;transform:translateY(0);}
@@ -6725,7 +6726,7 @@ export default function YojanaSahay(){
   const t=T[lang];
   const isHindi=lang==="hi";
   const bf=fontFamily(lang);
-  const toggleLang=useCallback(()=>{setLangAnim(true);setTimeout(()=>{setLang(l=>l==="en"?"hi":"en");requestAnimationFrame(()=>requestAnimationFrame(()=>setLangAnim(false)));},220);},[]);
+  const toggleLang=useCallback(()=>{setLangAnim(true);setTimeout(()=>{setLang(l=>l==="en"?"hi":"en");setLangAnim(false);},120);},[]);
   // Stable callbacks for ProfileTabMemo — inline arrows would break memoisation
   const handleViewChecker=useCallback(()=>setShowChecker(true),[]);
   const handleAdminOpen  =useCallback(()=>setShowAdmin(true),[]);
@@ -6903,7 +6904,7 @@ export default function YojanaSahay(){
   mountedTabsRef.current.add(activeTab);
 
   return(
-    <div className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",filter:langAnim?"blur(6px)":"blur(0px)",opacity:langAnim?0.55:1,transform:langAnim?"scale(0.982)":"scale(1)",transition:"filter 0.22s ease,opacity 0.22s ease,transform 0.22s ease,background 0.3s"}}>
+    <div className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0.7:1,transition:"opacity 0.12s,background 0.3s"}}>
       {/* ── SPLASH SCREEN — shown once per session ── */}
       {!splashDone&&(
         <SplashScreen onDone={()=>{
@@ -6976,7 +6977,7 @@ export default function YojanaSahay(){
                 <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:20,padding:"4px 10px",marginBottom:10,backdropFilter:"blur(6px)"}}>
                   <div style={{width:6,height:6,borderRadius:"50%",background:"#4ade80",boxShadow:"0 0 6px #4ade80"}}/>
                   <span style={{color:"rgba(255,255,255,0.9)",fontSize:10,fontWeight:700,letterSpacing:0.4}}>
-                    {isHindi?"सरकारी योजना सहायता • निःशुल्क":"Official Scheme Finder • Free Service"}
+                    {isHindi?"योजना खोज सेवा • निःशुल्क":"Scheme Discovery • Free & Independent"}
                   </span>
                 </div>
               )}
@@ -7071,7 +7072,7 @@ export default function YojanaSahay(){
                 <div style={{background:th.card,borderRadius:16,overflow:"hidden",border:`1.5px solid ${th.border}`,boxShadow:dark?"0 2px 12px rgba(0,0,0,0.2)":"0 2px 12px rgba(0,0,0,0.05)"}}>
                   {[
                     {num:"1",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,color:"#FF9933",bg:"rgba(255,153,51,0.10)",
-                      title:isHindi?"7 सवाल जवाब दें":"Answer 7 Quick Questions",
+                      title:isHindi?"कुछ सवाल जवाब दें":"Answer a Few Questions",
                       sub:isHindi?"अपनी जानकारी भरें":"Fill in your basic details"},
                     {num:"2",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,color:"#06038D",bg:"rgba(6,3,141,0.08)",
                       title:isHindi?"AI मिलान करता है":"AI Matches Your Profile",
