@@ -2743,9 +2743,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
   const [page,          setPage]          = useState(1);
   const [activeSection, setActiveSection] = useState("overview");
   const [selectedUser,  setSelectedUser]  = useState(null);
-  const [exportModal,   setExportModal]   = useState(false);
-  const [exportStep,    setExportStep]    = useState(-1);
-  const [exportDone,    setExportDone]    = useState(false);
+  const [exportModal,    setExportModal]   = useState(false);
+  const [exportStep,     setExportStep]   = useState(-1);
+  const [exportDone,     setExportDone]   = useState(false);
+  const [exportSections, setExportSections] = useState(
+    () => new Set(["overview","analytics","users","activity","schemes","reports"])
+  );
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
@@ -2965,7 +2968,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
   , [users]);
 
   // ── Full Dashboard PDF Export (all sections, all fields) ─────────────────
-  const exportAllPDF = useCallback(() => {
+  const exportAllPDF = useCallback((sectionsToInclude) => {
+    // Default to all sections if none specified
+    const s = sectionsToInclude instanceof Set && sectionsToInclude.size > 0
+      ? sectionsToInclude
+      : new Set(["overview","analytics","users","activity","schemes","reports"]);
     const now      = Date.now();
     const dateStr  = new Date().toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric" });
     const timeStr  = new Date().toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", hour12:true });
@@ -3482,11 +3489,21 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     // ══════════════════════════════════════════════════════════════════
     // ASSEMBLE
     // ══════════════════════════════════════════════════════════════════
+    // ── Build the section list label for the cover header ──────────────────
+    const includedLabels = [
+      s.has("overview")  && "Overview",
+      s.has("analytics") && "Demographics & Analytics",
+      s.has("users")     && "User Registry",
+      s.has("activity")  && "Activity",
+      s.has("schemes")   && "Schemes Coverage",
+      s.has("reports")   && "Reports",
+    ].filter(Boolean).join(" · ");
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Yojana Sahay — Admin Full Report ${isoDate}</title>
+  <title>Yojana Sahay — Admin Report ${isoDate}</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family: Arial, sans-serif; font-size: 8.5px; color: #111; padding: 14px; counter-reset: page; }
@@ -3548,9 +3565,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
   <div class="header">
     <div>
       <div class="brand">Yojana<span>Sahay</span></div>
-      <div style="font-size:8px;color:#666;margin-top:3px;font-weight:600;">Admin Full Dashboard Report — Confidential</div>
+      <div style="font-size:8px;color:#666;margin-top:3px;font-weight:600;">Admin Dashboard Report — Confidential</div>
       <div style="font-size:7.5px;color:#999;margin-top:2px;">
-        Sections: Overview · Demographics · Analytics · User Registry · Activity · Schemes · Reports
+        Sections: ${includedLabels || "—"}
       </div>
     </div>
     <div class="meta">
@@ -3561,12 +3578,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     </div>
   </div>
 
-  ${overviewHTML}
-  ${analyticsHTML}
-  ${usersHTML}
-  ${activityHTML}
-  ${schemesHTML}
-  ${reportsHTML}
+  ${s.has("overview")  ? overviewHTML  : ""}
+  ${s.has("analytics") ? analyticsHTML : ""}
+  ${s.has("users")     ? usersHTML     : ""}
+  ${s.has("activity")  ? activityHTML  : ""}
+  ${s.has("schemes")   ? schemesHTML   : ""}
+  ${s.has("reports")   ? reportsHTML   : ""}
 
   <div class="footer">
     Yojana Sahay Admin Dashboard &nbsp;·&nbsp; Generated: ${dateStr} ${timeStr} &nbsp;·&nbsp;
@@ -3590,21 +3607,31 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     setTimeout(() => URL.revokeObjectURL(url), 15000);
   }, [users, reports]);
 
-  // ── Export steps definition ────────────────────────────────────────────────
-  const EXPORT_STEPS = useMemo(() => [
-    { label: "Initializing export engine",                          dur: 300 },
-    { label: `Collecting ${users.length} full user profiles`,       dur: 480 },
-    { label: "Building overview & welfare metrics",                 dur: 420 },
-    { label: "Computing demographics & 8 breakdowns",              dur: 560 },
-    { label: "Generating farmer & student analytics",               dur: 400 },
-    { label: "Building cross-tab matrices",                         dur: 460 },
-    { label: "Rendering 24-column user registry table",             dur: 720 },
-    { label: "Compiling activity, dormancy & retention data",       dur: 440 },
-    { label: "Processing schemes coverage & user cross-reference",  dur: 500 },
-    { label: `Formatting ${reports.length} report${reports.length !== 1 ? "s" : ""} with reply history`, dur: 540 },
-    { label: "Assembling HTML layout & print styles",               dur: 780 },
-    { label: "Finalizing & packaging document",                     dur: 520 },
-  ], [users.length, reports.length]);
+  // ── Export steps definition — only steps relevant to selected sections ──────
+  const EXPORT_STEPS = useMemo(() => {
+    const steps = [
+      { label: "Initializing export engine", dur: 300 },
+    ];
+    if (exportSections.has("overview"))
+      steps.push({ label: "Building overview & welfare metrics", dur: 420 });
+    if (exportSections.has("analytics")) {
+      steps.push({ label: `Collecting ${users.length} full user profiles`, dur: 480 });
+      steps.push({ label: "Computing demographics & 8 breakdowns", dur: 560 });
+      steps.push({ label: "Generating farmer & student analytics", dur: 400 });
+      steps.push({ label: "Building cross-tab matrices", dur: 460 });
+    }
+    if (exportSections.has("users"))
+      steps.push({ label: "Rendering 24-column user registry table", dur: 720 });
+    if (exportSections.has("activity"))
+      steps.push({ label: "Compiling activity, dormancy & retention data", dur: 440 });
+    if (exportSections.has("schemes"))
+      steps.push({ label: "Processing schemes coverage & user cross-reference", dur: 500 });
+    if (exportSections.has("reports"))
+      steps.push({ label: `Formatting ${reports.length} report${reports.length !== 1 ? "s" : ""} with reply history`, dur: 540 });
+    steps.push({ label: "Assembling HTML layout & print styles", dur: 780 });
+    steps.push({ label: "Finalizing & packaging document", dur: 520 });
+    return steps;
+  }, [exportSections, users.length, reports.length]);
 
   // ── Animated export handler ────────────────────────────────────────────────
   const handleExportAll = useCallback(async () => {
@@ -3622,11 +3649,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     await new Promise(r => setTimeout(r, 1100));
     setExportModal(false);
     await new Promise(r => setTimeout(r, 80));
-    exportAllPDF();
+    exportAllPDF(exportSections);
 
     // Reset state after a short delay
     setTimeout(() => { setExportStep(-1); setExportDone(false); }, 600);
-  }, [EXPORT_STEPS, exportAllPDF]);
+  }, [EXPORT_STEPS, exportAllPDF, exportSections]);
 
   // ─────────────────────────────────────────────────────────────────────────
   const TABS = [
@@ -4072,7 +4099,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
             </div>
             {filtered.length < users.length && (
               <span style={{ fontSize:10, color:SAFFRON, fontWeight:600 }}>
-                Go to the 📄 Export tab to download the full PDF report.
+                Go to the 📄 Export tab to download a custom PDF report.
               </span>
             )}
           </div>
@@ -4356,117 +4383,226 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
         </>
       )}
 
-      {/* ══ EXPORT — Full dashboard PDF ══ */}
-      {activeSection === "export" && (
-        <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+      {/* ══ EXPORT — Selective PDF generator ══ */}
+      {activeSection === "export" && (() => {
+        // Section catalogue
+        const EXPORT_SECTION_CONFIG = [
+          { id:"overview",  icon:"📊", label:"Overview",          desc:"Platform summary, welfare snapshot & key metrics" },
+          { id:"analytics", icon:"🧮", label:"Demographics",      desc:"Occupation, income, age, gender, cross-tab matrices" },
+          { id:"users",     icon:"👥", label:"User Registry",     desc:"Full 24-column table of all registered users" },
+          { id:"activity",  icon:"🕐", label:"Activity",          desc:"Recent activity, new joiners & dormant users" },
+          { id:"schemes",   icon:"🗺️", label:"Schemes Coverage",  desc:"State-wise coverage table & tier summary" },
+          { id:"reports",   icon:"📬", label:"Reports",           desc:"All reports with full reply history" },
+        ];
+        const selectedCount = exportSections.size;
+        const allSelected   = selectedCount === EXPORT_SECTION_CONFIG.length;
+        const noneSelected  = selectedCount === 0;
 
-          {/* Title card */}
-          <div style={{
-            background:`linear-gradient(135deg,${NAVY},#1a56db)`,
-            borderRadius:16, padding:"18px 18px",
-            display:"flex", alignItems:"center", gap:14,
-          }}>
-            <div style={{ fontSize:36 }}>📄</div>
-            <div style={{ flex:1 }}>
-              <div style={{ color:"#fff", fontSize:15, fontWeight:800 }}>Full Dashboard Report</div>
-              <div style={{ color:"rgba(255,255,255,0.7)", fontSize:11, marginTop:3 }}>
-                Generates a print-ready HTML/PDF with all sections
-              </div>
-            </div>
-          </div>
+        function toggleSection(id) {
+          setExportSections(prev => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+          });
+        }
+        function selectAll()  { setExportSections(new Set(EXPORT_SECTION_CONFIG.map(s => s.id))); }
+        function clearAll()   { setExportSections(new Set()); }
 
-          {/* What's included */}
-          <div style={{
-            background:th.card, border:`1.5px solid ${th.border}`,
-            borderRadius:14, padding:"14px 16px",
-          }}>
-            <div style={{ fontSize:12, fontWeight:800, color:th.text, marginBottom:10 }}>
-              📋 What's included
-            </div>
-            {[
-              ["📊", "Overview",    "Platform summary, welfare snapshot, key metrics"],
-              ["🧮", "Demographics","Occupation, income, age, gender, area breakdowns"],
-              ["📈", "Analytics",   "Cross-tab matrices, farmer & student deep-dives"],
-              ["👥", "User Registry","Full 24-column table of all registered users"],
-              ["🕐", "Activity",    "Recent activity, new joiners, dormant users"],
-              ["🗺️", "Schemes",     "State-wise coverage table & tier summary"],
-              ["📬", "Reports",     "All reports with full reply history"],
-            ].map(([icon, title, desc]) => (
-              <div key={title} style={{
-                display:"flex", alignItems:"flex-start", gap:10,
-                padding:"8px 0",
-                borderBottom:`1px solid ${th.border}`,
-              }}>
-                <div style={{ fontSize:16, flexShrink:0, marginTop:1 }}>{icon}</div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:th.text }}>{title}</div>
-                  <div style={{ fontSize:10, color:th.textSub, marginTop:1 }}>{desc}</div>
+        return (
+          <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+
+            {/* Header card */}
+            <div style={{
+              background:`linear-gradient(135deg,${NAVY},#1a56db)`,
+              borderRadius:16, padding:"16px 18px",
+              display:"flex", alignItems:"center", gap:14,
+            }}>
+              <div style={{ fontSize:32 }}>📄</div>
+              <div style={{ flex:1 }}>
+                <div style={{ color:"#fff", fontSize:15, fontWeight:800 }}>Custom PDF Report</div>
+                <div style={{ color:"rgba(255,255,255,0.7)", fontSize:11, marginTop:3 }}>
+                  Pick the sections to include, then export
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Stats row */}
-          <div style={{ display:"flex", gap:10 }}>
-            <div style={{
-              flex:1, background:th.card, border:`1.5px solid ${NAVY}`,
-              borderRadius:12, padding:"12px 10px", textAlign:"center",
-            }}>
-              <div style={{ fontSize:22, fontWeight:800, color:NAVY }}>{users.length}</div>
-              <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Users in export</div>
+              <div style={{
+                background:"rgba(255,255,255,0.2)", borderRadius:10,
+                padding:"6px 12px", textAlign:"center",
+              }}>
+                <div style={{ color:"#fff", fontSize:18, fontWeight:800 }}>{selectedCount}</div>
+                <div style={{ color:"rgba(255,255,255,0.7)", fontSize:8, marginTop:1 }}>selected</div>
+              </div>
             </div>
-            <div style={{
-              flex:1, background:th.card, border:`1.5px solid ${SAFFRON}`,
-              borderRadius:12, padding:"12px 10px", textAlign:"center",
-            }}>
-              <div style={{ fontSize:22, fontWeight:800, color:SAFFRON }}>{reports.length}</div>
-              <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Reports in export</div>
-            </div>
-          </div>
 
-          {/* Export button */}
-          {!loading && (users.length > 0 || reports.length > 0) ? (
-            <div
-              onClick={exportModal ? undefined : handleExportAll}
-              style={{
-                background: exportModal
-                  ? th.border
-                  : `linear-gradient(135deg,${NAVY},#1a56db)`,
+            {/* Quick-select row */}
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <div style={{ fontSize:11, fontWeight:700, color:th.textMid, flex:1 }}>
+                Sections
+              </div>
+              <div onClick={selectAll} style={{
+                padding:"5px 12px", borderRadius:20, cursor:"pointer",
+                fontSize:10, fontWeight:700,
+                background: allSelected ? IND_GREEN : th.border,
+                color: allSelected ? "#fff" : th.textMid,
+                border:`1.5px solid ${allSelected ? IND_GREEN : th.border}`,
+                transition:"all 0.15s",
+              }}>
+                ✓ All
+              </div>
+              <div onClick={clearAll} style={{
+                padding:"5px 12px", borderRadius:20, cursor:"pointer",
+                fontSize:10, fontWeight:700,
+                background: noneSelected ? "#DC2626" : th.border,
+                color: noneSelected ? "#fff" : th.textMid,
+                border:`1.5px solid ${noneSelected ? "#DC2626" : th.border}`,
+                transition:"all 0.15s",
+              }}>
+                ✕ Clear
+              </div>
+            </div>
+
+            {/* Section toggle cards */}
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {EXPORT_SECTION_CONFIG.map(({ id, icon, label, desc }) => {
+                const on = exportSections.has(id);
+                return (
+                  <div key={id} onClick={() => toggleSection(id)} style={{
+                    display:"flex", alignItems:"center", gap:12,
+                    background: on ? (dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.06)") : th.card,
+                    border:`1.5px solid ${on ? NAVY : th.border}`,
+                    borderRadius:14, padding:"12px 14px",
+                    cursor:"pointer",
+                    transition:"all 0.18s cubic-bezier(0.22,1,0.36,1)",
+                  }}>
+                    {/* Icon */}
+                    <div style={{
+                      width:38, height:38, borderRadius:10, flexShrink:0,
+                      background: on
+                        ? `linear-gradient(135deg,${NAVY},#1a56db)`
+                        : (dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.05)"),
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:18,
+                      transition:"background 0.18s",
+                    }}>
+                      {icon}
+                    </div>
+                    {/* Text */}
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{
+                        fontSize:13, fontWeight:800,
+                        color: on ? (dark?"#8ab4f8":NAVY) : th.text,
+                        transition:"color 0.18s",
+                      }}>
+                        {label}
+                      </div>
+                      <div style={{ fontSize:10, color:th.textSub, marginTop:2, lineHeight:1.4 }}>
+                        {desc}
+                      </div>
+                    </div>
+                    {/* Toggle pill */}
+                    <div style={{
+                      width:36, height:20, borderRadius:10, flexShrink:0,
+                      background: on ? NAVY : (dark?"#333":"#ddd"),
+                      position:"relative",
+                      transition:"background 0.2s",
+                    }}>
+                      <div style={{
+                        position:"absolute", top:2,
+                        left: on ? 18 : 2,
+                        width:16, height:16, borderRadius:8,
+                        background:"#fff",
+                        transition:"left 0.2s cubic-bezier(0.22,1,0.36,1)",
+                        boxShadow:"0 1px 3px rgba(0,0,0,0.3)",
+                      }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Stats row */}
+            <div style={{ display:"flex", gap:10 }}>
+              <div style={{
+                flex:1, background:th.card, border:`1.5px solid ${NAVY}`,
+                borderRadius:12, padding:"10px 8px", textAlign:"center",
+              }}>
+                <div style={{ fontSize:20, fontWeight:800, color:NAVY }}>{users.length}</div>
+                <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Users</div>
+              </div>
+              <div style={{
+                flex:1, background:th.card, border:`1.5px solid ${SAFFRON}`,
+                borderRadius:12, padding:"10px 8px", textAlign:"center",
+              }}>
+                <div style={{ fontSize:20, fontWeight:800, color:SAFFRON }}>{reports.length}</div>
+                <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Reports</div>
+              </div>
+              <div style={{
+                flex:1, background:th.card, border:`1.5px solid ${IND_GREEN}`,
+                borderRadius:12, padding:"10px 8px", textAlign:"center",
+              }}>
+                <div style={{ fontSize:20, fontWeight:800, color:IND_GREEN }}>{selectedCount}</div>
+                <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Sections</div>
+              </div>
+            </div>
+
+            {/* Export button */}
+            {noneSelected ? (
+              <div style={{
+                background:th.card2, border:`1.5px dashed ${th.border}`,
                 borderRadius:14, padding:"16px",
-                display:"flex", alignItems:"center", justifyContent:"center", gap:10,
-                cursor: exportModal ? "default" : "pointer",
-                opacity: exportModal ? 0.6 : 1,
-                transition:"opacity 0.2s",
-                boxShadow: exportModal ? "none" : `0 4px 18px rgba(0,53,128,0.35)`,
-              }}
-            >
-              <span style={{ fontSize:20 }}>{exportModal ? "⏳" : "📄"}</span>
-              <span style={{ color:"#fff", fontSize:14, fontWeight:800, letterSpacing:0.2 }}>
-                {exportModal ? "Generating…" : "Export Full Report"}
-              </span>
-            </div>
-          ) : (
+                textAlign:"center", color:th.textSub, fontSize:12,
+              }}>
+                Select at least one section to export
+              </div>
+            ) : !loading && (users.length > 0 || reports.length > 0) ? (
+              <div
+                onClick={exportModal ? undefined : handleExportAll}
+                style={{
+                  background: exportModal
+                    ? th.border
+                    : `linear-gradient(135deg,${NAVY},#1a56db)`,
+                  borderRadius:14, padding:"16px",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+                  cursor: exportModal ? "default" : "pointer",
+                  opacity: exportModal ? 0.6 : 1,
+                  transition:"opacity 0.2s",
+                  boxShadow: exportModal ? "none" : `0 4px 18px rgba(0,53,128,0.35)`,
+                }}
+              >
+                <span style={{ fontSize:20 }}>{exportModal ? "⏳" : "📄"}</span>
+                <div style={{ textAlign:"center" }}>
+                  <div style={{ color:"#fff", fontSize:14, fontWeight:800 }}>
+                    {exportModal ? "Generating…" : "Export Report"}
+                  </div>
+                  {!exportModal && (
+                    <div style={{ color:"rgba(255,255,255,0.65)", fontSize:10, marginTop:2 }}>
+                      {selectedCount} section{selectedCount !== 1 ? "s" : ""} selected
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                background:th.card2, border:`1.5px dashed ${th.border}`,
+                borderRadius:14, padding:"16px",
+                textAlign:"center", color:th.textSub, fontSize:12,
+              }}>
+                {loading ? "Loading data…" : "No data available to export yet"}
+              </div>
+            )}
+
+            {/* Note */}
             <div style={{
               background:th.card2, border:`1.5px dashed ${th.border}`,
-              borderRadius:14, padding:"16px",
-              textAlign:"center", color:th.textSub, fontSize:12,
+              borderRadius:12, padding:"12px 14px",
+              fontSize:10, color:th.textSub, lineHeight:1.6,
             }}>
-              {loading ? "Loading data…" : "No data available to export yet"}
+              ℹ️ Opens in a new tab as styled HTML. Use <strong style={{ color:th.text }}>Print → Save as PDF</strong> (landscape A4). Marked <strong style={{ color:"#DC2626" }}>CONFIDENTIAL</strong> — do not share.
             </div>
-          )}
 
-          {/* Note */}
-          <div style={{
-            background:th.card2, border:`1.5px dashed ${th.border}`,
-            borderRadius:12, padding:"12px 14px",
-            fontSize:10, color:th.textSub, lineHeight:1.6,
-          }}>
-            ℹ️ The report opens in a new tab as a styled HTML file. Use your browser's <strong style={{ color:th.text }}>Print → Save as PDF</strong> (landscape, A4) to save it. Marked <strong style={{ color:"#DC2626" }}>CONFIDENTIAL</strong> — do not share.
+            <div style={{ height:20 }} />
           </div>
-
-          <div style={{ height: 20 }} />
-        </div>
-      )}
+        );
+      })()}
 
       </div>{/* end animated tab content */}
 
