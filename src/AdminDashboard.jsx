@@ -2285,45 +2285,7 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
 // ─── USAGE SECTION COMPONENT ──────────────────────────────────────────────────
 function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   const th = THEME[dark ? "dark" : "light"];
-  const [activeTab,    setActiveTab]    = React.useState("runs");
-  const [cleanConfirm, setCleanConfirm] = React.useState(false);
-  const [cleaning,     setCleaning]     = React.useState(false);
-  const [cleanDone,    setCleanDone]    = React.useState(null); // { runs, searches, selections }
-
-  async function handleCleanUsage() {
-    setCleaning(true);
-    try {
-      const snap = await getDoc(doc(db, "appStats", "usage"));
-      const data = snap.exists() ? snap.data() : {};
-      const cut  = Date.now() - 3 * 30 * 24 * 60 * 60 * 1000; // 3 months ago
-
-      const runs       = Array.isArray(data.checkerRuns)     ? data.checkerRuns     : [];
-      const searches   = Array.isArray(data.schemeSearches)  ? data.schemeSearches  : [];
-      const selections = Array.isArray(data.stateSelections) ? data.stateSelections : [];
-
-      const newRuns       = runs.filter(r       => !r.ts || new Date(r.ts).getTime() >= cut);
-      const newSearches   = searches.filter(r   => !r.ts || new Date(r.ts).getTime() >= cut);
-      const newSelections = selections.filter(r => !r.ts || new Date(r.ts).getTime() >= cut);
-
-      await updateDoc(doc(db, "appStats", "usage"), {
-        checkerRuns:     newRuns,
-        schemeSearches:  newSearches,
-        stateSelections: newSelections,
-      });
-
-      setCleanDone({
-        runs:       runs.length       - newRuns.length,
-        searches:   searches.length   - newSearches.length,
-        selections: selections.length - newSelections.length,
-      });
-      onRefresh();
-    } catch (err) {
-      console.error("Clean failed:", err);
-    } finally {
-      setCleaning(false);
-      setCleanConfirm(false);
-    }
-  }
+  const [activeTab, setActiveTab] = React.useState("runs");
 
   if (loading) {
     return (
@@ -2741,74 +2703,6 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
           )}
         </div>
       )}
-
-      {/* ── Usage Data Cleaner ── */}
-      <div style={{
-        margin: "0 14px 20px",
-        background: th.card,
-        border: `1.5px solid ${dark ? "#2c2c2e" : "#e8e8e8"}`,
-        borderRadius: 16,
-        padding: "14px 16px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          <span style={{ fontSize: 18 }}>🗑️</span>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: th.text }}>Clean Old Usage Data</div>
-            <div style={{ fontSize: 10, color: th.textSub, marginTop: 2 }}>
-              Remove checker runs &amp; searches older than 3 months
-            </div>
-          </div>
-        </div>
-
-        {cleanDone ? (
-          <div style={{
-            background: dark ? "rgba(19,136,8,0.12)" : "#f0fdf4",
-            border: "1px solid rgba(19,136,8,0.3)",
-            borderRadius: 10, padding: "10px 14px",
-          }}>
-            <div style={{ fontSize: 12, color: IND_GREEN, fontWeight: 700 }}>
-              ✅ Done! Removed {cleanDone.runs} runs · {cleanDone.searches} searches · {cleanDone.selections} selections
-            </div>
-            <div onClick={() => setCleanDone(null)}
-              style={{ fontSize: 10, color: th.textSub, marginTop: 4, cursor: "pointer" }}>
-              Dismiss
-            </div>
-          </div>
-        ) : cleanConfirm ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{
-              background: dark ? "rgba(220,38,38,0.1)" : "#fff5f5",
-              border: "1px solid rgba(220,38,38,0.3)",
-              borderRadius: 10, padding: "10px 14px",
-              fontSize: 11, color: "#DC2626", fontWeight: 600,
-            }}>
-              ⚠️ Permanently deletes entries older than 3 months. Cannot be undone.
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <div onClick={() => setCleanConfirm(false)} style={{
-                flex: 1, padding: "10px", borderRadius: 10, textAlign: "center",
-                background: dark ? "#252527" : "#f0f0f0",
-                color: th.textMid, fontSize: 12, fontWeight: 700, cursor: "pointer",
-              }}>Cancel</div>
-              <div onClick={handleCleanUsage} style={{
-                flex: 1, padding: "10px", borderRadius: 10, textAlign: "center",
-                background: "#DC2626", color: "#fff",
-                fontSize: 12, fontWeight: 800, cursor: "pointer",
-                opacity: cleaning ? 0.7 : 1,
-              }}>{cleaning ? "Cleaning…" : "Yes, Delete"}</div>
-            </div>
-          </div>
-        ) : (
-          <div onClick={() => setCleanConfirm(true)} style={{
-            padding: "11px", borderRadius: 10, textAlign: "center",
-            background: dark ? "rgba(220,38,38,0.12)" : "#fff5f5",
-            border: "1.5px solid rgba(220,38,38,0.3)",
-            color: "#DC2626", fontSize: 12, fontWeight: 800, cursor: "pointer",
-          }}>
-            🗑️ Clean Old Data (3+ months)
-          </div>
-        )}
-      </div>
 
     </div>
   );
@@ -4077,13 +3971,20 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
 
       {/* ══ USAGE INSIGHTS ══ */}
       {activeSection === "usage" && (
-        <UsageSection
-          usageData={usageData}
-          users={users}
-          loading={usageLoading}
-          onRefresh={fetchUsage}
-          dark={dark}
-        />
+        <>
+          <UsageSection
+            usageData={usageData}
+            users={users}
+            loading={usageLoading}
+            onRefresh={fetchUsage}
+            dark={dark}
+          />
+          <UsageDataCleaner
+            dark={dark}
+            onDeleteDone={fetchUsage}
+          />
+          <div style={{ height: 20 }} />
+        </>
       )}
 
       {/* ══ SCHEMES COVERAGE ══ */}
