@@ -1783,16 +1783,18 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                           backgroundSize: "14px 14px",
                         }} />
 
-                        {/* Real SHZ logo image — horizontal fill */}
+                        {/* Real SHZ logo image — cover fills box edge to edge */}
                         <img
                           src={shzLogo}
                           alt="SHZ"
                           style={{
-                            width: 100,
-                            height: "auto",
-                            objectFit: "contain",
+                            position: "absolute",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "center",
                             display: "block",
-                            position: "relative",
                             zIndex: 2,
                             filter: [
                               "drop-shadow(0 0 5px rgba(201,168,76,0.70))",
