@@ -2983,21 +2983,22 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
       return (str || "").replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "").trim();
     }
 
-    // ── Mini bar SVG (for inline breakdown visualisation) ─────────────
-    function miniBar(pct, color = "#003580") {
-      return `<span style="display:inline-block;width:${Math.max(pct,2)}px;height:7px;background:${color};border-radius:2px;vertical-align:middle;"></span>`;
+    // ── Mini bar (premium dark style) ────────────────────────────────
+    function miniBar(pct, color = "#4f8ef7") {
+      const safeW = Math.max(pct, 2);
+      return `<span class="bar-track"><span class="bar-fill" style="width:${safeW}px;background:${color};opacity:0.9;"></span></span>`;
     }
 
     // ── Summary key/value table ───────────────────────────────────────
-    function summaryTable(rows, accent = "#003580") {
-      return `<table class="sum-tbl"><tbody>
+    function summaryTable(rows, accent = "#4f8ef7") {
+      return `<div class="card"><table class="sum-tbl"><tbody>
         ${rows.map(([k, v, sub]) =>
           `<tr>
             <td class="sum-key">${k}</td>
             <td class="sum-val" style="color:${accent}">${v}${sub ? `<span class="sum-sub">${sub}</span>` : ""}</td>
           </tr>`
         ).join("")}
-      </tbody></table>`;
+      </tbody></table></div>`;
     }
 
     // ── Full data table ───────────────────────────────────────────────
@@ -3008,7 +3009,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
         ).join("")}</tr></thead>
         <tbody>
           ${rows.length === 0
-            ? `<tr><td colspan="${headers.length}" style="color:#999;padding:8px;text-align:center">No data</td></tr>`
+            ? `<tr><td colspan="${headers.length}" style="color:#4a4f6a;padding:10px;text-align:center;font-style:italic">No data available</td></tr>`
             : rows.map((r, i) =>
                 `<tr class="${i % 2 === 0 ? "even" : "odd"}">
                   ${r.map(v => `<td>${v ?? "—"}</td>`).join("")}
@@ -3020,14 +3021,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     }
 
     // ── Breakdown block with inline bars ─────────────────────────────
-    function breakdownBlock(title, entries, color = "#003580") {
+    function breakdownBlock(title, entries, color = "#4f8ef7") {
       const sorted = [...entries].sort((a, b) => b[1] - a[1]);
       const total  = sorted.reduce((s, [, v]) => s + v, 0);
       const max    = sorted[0]?.[1] || 1;
       return `<div class="breakdown">
         <div class="bd-title">${title} <span class="bd-total">(${total} total)</span></div>
         <table>
-          <thead><tr><th>Category</th><th style="width:80px">Bar</th><th style="width:36px">Count</th><th style="width:36px">%</th></tr></thead>
+          <thead><tr><th>Category</th><th style="width:80px">Trend</th><th style="width:36px">Count</th><th style="width:36px">%</th></tr></thead>
           <tbody>
             ${sorted.map(([k, v], i) => {
               const pct = total ? Math.round(v / total * 100) : 0;
@@ -3035,8 +3036,8 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
               return `<tr class="${i % 2 === 0 ? "even" : "odd"}">
                 <td>${k}</td>
                 <td>${miniBar(barW, color)}</td>
-                <td style="text-align:right;font-weight:700">${v}</td>
-                <td style="text-align:right;color:#666">${pct}%</td>
+                <td style="text-align:right;font-weight:700;color:${color}">${v}</td>
+                <td style="text-align:right;color:#4a4f6a">${pct}%</td>
               </tr>`;
             }).join("")}
           </tbody>
@@ -3070,9 +3071,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
                 ${cols.map(c => {
                   const v = matrix[r][c] || 0;
                   const pct = rowTotal ? Math.round(v / rowTotal * 100) : 0;
-                  return `<td style="text-align:center;${v > 0 ? "font-weight:700" : "color:#ccc"}">${v > 0 ? `${v}<br><span style="font-size:7px;color:#666">${pct}%</span>` : "·"}</td>`;
+                  return `<td style="text-align:center;${v > 0 ? "font-weight:700" : "color:#2a2d40"}">${v > 0 ? `${v}<br><span style="font-size:7px;color:#4a4f6a">${pct}%</span>` : "·"}</td>`;
                 }).join("")}
-                <td style="text-align:center;font-weight:800;color:#003580">${rowTotal}</td>
+                <td style="text-align:center;font-weight:800;color:#4f8ef7">${rowTotal}</td>
               </tr>`;
             }).join("")}
           </tbody>
@@ -3082,7 +3083,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
 
     // ── Section header ────────────────────────────────────────────────
     function sectionHeader(icon, title, count = null) {
-      return `<div class="section-title">${icon} ${title}${count !== null ? ` <span class="badge">${count}</span>` : ""}</div>`;
+      return `<div class="section-title"><span class="s-icon">${icon}</span>${title}${count !== null ? ` <span class="badge">${count}</span>` : ""}</div>`;
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -3126,7 +3127,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
             ["🆕 Joined Today",            newToday],
             ["🆕 Joined This Week",        newThisWeek],
             ["🆕 Joined This Month",       newThisMonth],
-          ], "#003580")}
+          ], "#4f8ef7")}
           ${summaryTable([
             ["📱 Phone Only",              withPhone - withBoth],
             ["✉️ Email Only",              withEmail - withBoth],
@@ -3135,7 +3136,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
             ["🔵 Google Account",          googleUsers],
             ["👤 Guest / Phone Account",   guestUsers],
             ["📍 States Represented",      uniqueStates],
-          ], "#138808")}
+          ], "#3dd68c")}
           ${summaryTable([
             ["📬 Total Reports",           reports.length],
             ["🔴 Open",                    openRep],
@@ -3144,7 +3145,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
             ["🔁 Reopened",                reopenedRep],
             ["💬 Admin Replied",           repliedRep],
             ["⚠️ Open & Unreplied",        unrepliedOpen],
-          ], "#DC2626")}
+          ], "#f87171")}
         </div>
         <div class="info-bar">
           Welfare Snapshot — BPL/AAY Users: <strong>${bplUsers}</strong> (${users.length ? Math.round(bplUsers/users.length*100) : 0}%) &nbsp;|&nbsp;
@@ -3179,39 +3180,39 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
       <div class="section page-break">
         ${sectionHeader("🧮", "Demographics & Analytics")}
         <div class="two-col">
-          ${breakdownBlock("💼 Occupation", Object.entries(byOcc).map(([k,v]) => [OCC_LABELS[k]||k, v]), "#003580")}
-          ${breakdownBlock("💰 Income Range", Object.entries(byInc).map(([k,v]) => [INC_LABELS[k]||k, v]), "#FF9933")}
+          ${breakdownBlock("💼 Occupation", Object.entries(byOcc).map(([k,v]) => [OCC_LABELS[k]||k, v]), "#4f8ef7")}
+          ${breakdownBlock("💰 Income Range", Object.entries(byInc).map(([k,v]) => [INC_LABELS[k]||k, v]), "#f7824f")}
         </div>
         <div class="two-col">
-          ${breakdownBlock("🎂 Age Group", Object.entries(byAge).map(([k,v]) => [AGE_LABELS[k]||k, v]), "#8B5CF6")}
-          ${breakdownBlock("🏘️ Area Type", Object.entries(byArea).map(([k,v]) => [AREA_LABELS[k]||k, v]), "#138808")}
+          ${breakdownBlock("🎂 Age Group", Object.entries(byAge).map(([k,v]) => [AGE_LABELS[k]||k, v]), "#a78bfa")}
+          ${breakdownBlock("🏘️ Area Type", Object.entries(byArea).map(([k,v]) => [AREA_LABELS[k]||k, v]), "#3dd68c")}
         </div>
         <div class="two-col">
-          ${breakdownBlock("⚧ Gender", Object.entries(byGender).map(([k,v]) => [strip(GENDER_LABELS[k]||k), v]), "#EC4899")}
-          ${breakdownBlock("💍 Marital Status", Object.entries(byMarital).map(([k,v]) => [strip(MARITAL_LABELS[k]||k), v]), "#003580")}
+          ${breakdownBlock("⚧ Gender", Object.entries(byGender).map(([k,v]) => [strip(GENDER_LABELS[k]||k), v]), "#f472b6")}
+          ${breakdownBlock("💍 Marital Status", Object.entries(byMarital).map(([k,v]) => [strip(MARITAL_LABELS[k]||k), v]), "#4f8ef7")}
         </div>
         <div class="two-col">
-          ${breakdownBlock("🪪 Ration Card", Object.entries(byRation).map(([k,v]) => [strip(RATION_LABELS[k]||k), v]), "#F59E0B")}
-          ${breakdownBlock("♿ Disability", Object.entries(byDisab).map(([k,v]) => [strip(DISAB_LABELS[k]||k||"None"), v]), "#10B981")}
+          ${breakdownBlock("🪪 Ration Card", Object.entries(byRation).map(([k,v]) => [strip(RATION_LABELS[k]||k), v]), "#fbbf24")}
+          ${breakdownBlock("♿ Disability", Object.entries(byDisab).map(([k,v]) => [strip(DISAB_LABELS[k]||k||"None"), v]), "#3dd68c")}
         </div>
         <div class="two-col">
-          ${breakdownBlock("🏠 Housing Status", Object.entries(byHouse).map(([k,v]) => [strip(HOUSE_LABELS[k]||k), v]), "#003580")}
-          ${breakdownBlock("👨‍👩‍👧 No. of Children", Object.entries(byKids).map(([k,v]) => [CHILDREN_LABELS[k]||k, v]), "#8B5CF6")}
+          ${breakdownBlock("🏠 Housing Status", Object.entries(byHouse).map(([k,v]) => [strip(HOUSE_LABELS[k]||k), v]), "#4f8ef7")}
+          ${breakdownBlock("👨‍👩‍👧 No. of Children", Object.entries(byKids).map(([k,v]) => [CHILDREN_LABELS[k]||k, v]), "#a78bfa")}
         </div>
       </div>
 
       <div class="section page-break">
         ${sectionHeader("🌾", "Farmer-Specific Analytics")} 
-        <div style="color:#666;font-size:8px;margin-bottom:6px">${farmersCount} farmer${farmersCount!==1?"s":""} registered</div>
+        <div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">${farmersCount} farmer${farmersCount!==1?"s":""} registered</div>
         <div class="two-col">
-          ${breakdownBlock("🌾 Land Holding (Farmers)", Object.entries(byLand).map(([k,v]) => [LAND_LABELS[k]||k, v]), "#138808")}
-          ${breakdownBlock("💳 Kisan Credit Card (Farmers)", Object.entries(byKisan).map(([k,v]) => [strip(KISAN_LABELS[k]||k), v]), "#FF9933")}
+          ${breakdownBlock("🌾 Land Holding (Farmers)", Object.entries(byLand).map(([k,v]) => [LAND_LABELS[k]||k, v]), "#3dd68c")}
+          ${breakdownBlock("💳 Kisan Credit Card (Farmers)", Object.entries(byKisan).map(([k,v]) => [strip(KISAN_LABELS[k]||k), v]), "#f7824f")}
         </div>
         ${sectionHeader("🎓", "Student-Specific Analytics")}
-        <div style="color:#666;font-size:8px;margin-bottom:6px">${studentsCount} student${studentsCount!==1?"s":""} registered</div>
+        <div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">${studentsCount} student${studentsCount!==1?"s":""} registered</div>
         <div class="two-col">
-          ${breakdownBlock("📚 Education Level (Students)", Object.entries(byEduc).map(([k,v]) => [EDUC_LABELS[k]||k, v]), "#8B5CF6")}
-          ${breakdownBlock("🏫 Institution Type (Students)", Object.entries(byInst).map(([k,v]) => [strip(INST_LABELS[k]||k), v]), "#003580")}
+          ${breakdownBlock("📚 Education Level (Students)", Object.entries(byEduc).map(([k,v]) => [EDUC_LABELS[k]||k, v]), "#a78bfa")}
+          ${breakdownBlock("🏫 Institution Type (Students)", Object.entries(byInst).map(([k,v]) => [strip(INST_LABELS[k]||k), v]), "#4f8ef7")}
         </div>
         ${sectionHeader("🔀", "Cross-Tab Analysis")}
         ${crossTabBlock("Income vs Ration Card", users, "income", "ration",
@@ -3278,7 +3279,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     const usersHTML = `
       <div class="section page-break">
         ${sectionHeader("👥", "Complete User Registry", users.length)}
-        <div style="color:#666;font-size:8px;margin-bottom:6px">All ${users.length} users · All profile fields · Sorted by registration order</div>
+        <div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">All ${users.length} users · All profile fields · Sorted by registration order</div>
         ${dataTable(uHeaders, uRows)}
       </div>`;
 
@@ -3301,17 +3302,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
             ["🟢 Active Today",         activeToday],
             ["📅 Active This Week",     activeWeek],
             ["📆 Active This Month",    activeMonth],
-          ], "#138808")}
+          ], "#3dd68c")}
           ${summaryTable([
             ["🆕 Joined Today",         newToday],
             ["🆕 Joined This Week",     newThisWeek],
             ["🆕 Joined This Month",    newThisMonth],
-          ], "#003580")}
+          ], "#4f8ef7")}
           ${summaryTable([
             ["😴 Dormant (30+ days)",   dormant.length],
             ["📊 Engagement Rate",      users.length ? Math.round(activeWeek/users.length*100)+"%" : "—"],
             ["📈 Monthly Retention",    users.length ? Math.round(activeMonth/users.length*100)+"%" : "—"],
-          ], "#8B5CF6")}
+          ], "#a78bfa")}
         </div>
 
         <div class="sub-title" style="margin-top:10px">Recent Activity — Top 30 Most Recently Active Users</div>
@@ -3333,7 +3334,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
 
         <div class="sub-title" style="margin-top:14px">🆕 Joined This Week <span class="badge">${newWeekUsers.length}</span></div>
         ${newWeekUsers.length === 0
-          ? `<div style="color:#999;padding:8px 0;font-size:8px">No new users this week.</div>`
+          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">No new users this week.</div>`
           : dataTable(
               ["#","Name","Phone","Email","State","Occupation","Area","Ration","Joined"],
               newWeekUsers.map((u, i) => [
@@ -3352,7 +3353,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
 
         <div class="sub-title" style="margin-top:14px">😴 Dormant Users (30+ days inactive) <span class="badge">${dormant.length}</span></div>
         ${dormant.length === 0
-          ? `<div style="color:#999;padding:8px 0;font-size:8px">No dormant users.</div>`
+          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">No dormant users.</div>`
           : dataTable(
               ["#","Name","State","Occupation","Last Seen","Days Inactive"],
               dormant.slice(0,30).map((u, i) => [
@@ -3411,13 +3412,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
             ["📋 Total Schemes in DB",           allSchemes.length],
             ["✅ States with Schemes",            stateList.filter(s => stSchCounts[s]).length],
             ["🔴 States with 0 Schemes",         stateList.filter(s => !stSchCounts[s]).length],
-          ], "#003580")}
+          ], "#4f8ef7")}
           ${summaryTable([
             ["⬜ None (0 schemes)",   tierSummary.None,   " states"],
             ["🟡 Low (1–100)",        tierSummary.Low,    " states"],
             ["🔵 Medium (101–200)",   tierSummary.Medium, " states"],
             ["🟢 Good (200+)",        tierSummary.Good,   " states"],
-          ], "#138808")}
+          ], "#3dd68c")}
         </div>
         <div class="sub-title" style="margin-top:8px">State-wise Scheme Coverage (with User Cross-reference)</div>
         ${dataTable(
@@ -3450,15 +3451,15 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
             ["🟡 In Progress",      inProgRep],
             ["✅ Resolved",          resolvedRep],
             ["🔁 Reopened",          reopenedRep],
-          ], "#DC2626")}
+          ], "#f87171")}
           ${summaryTable([
             ["💬 Admin Replied",    repliedRep],
             ["⚠️ Unreplied (open)", unrepliedOpen],
             ["⏱️ Avg Reply Time",   avgReplyTime],
-          ], "#F59E0B")}
+          ], "#fbbf24")}
           ${summaryTable(
             Object.entries(byRepType).map(([k, v]) => [strip((TYPE_META[k]?.icon||"")+" "+(TYPE_META[k]?.label||k)), v]),
-            "#8B5CF6"
+            "#a78bfa"
           )}
         </div>
         <div class="sub-title" style="margin-top:8px">All Reports — Full Message & Reply History</div>
@@ -3499,82 +3500,427 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
       s.has("reports")   && "Reports",
     ].filter(Boolean).join(" · ");
 
+    const exportId = `YS-${isoDate.replace(/-/g,"")}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Yojana Sahay — Admin Report ${isoDate}</title>
+  <title>YojanaSahay — Intelligence Report ${isoDate}</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg:       #08090d;
+      --surface:  #0e1016;
+      --card:     #13151f;
+      --card2:    #191c28;
+      --border:   #1f2235;
+      --border2:  #252840;
+      --text:     #eef0f8;
+      --textMid:  #8b90b0;
+      --textSub:  #4a4f6a;
+      --accent1:  #4f8ef7;   /* electric blue */
+      --accent2:  #f7824f;   /* saffron glow  */
+      --accent3:  #3dd68c;   /* green signal  */
+      --accent4:  #a78bfa;   /* violet        */
+      --accent5:  #f472b6;   /* pink          */
+      --red:      #f87171;
+      --amber:    #fbbf24;
+      --mono:     'JetBrains Mono', monospace;
+      --head:     'Syne', sans-serif;
+      --body:     'DM Sans', sans-serif;
+    }
+
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: Arial, sans-serif; font-size: 8.5px; color: #111; padding: 14px; counter-reset: page; }
 
-    /* ── Header ── */
-    .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; border-bottom:3px solid #003580; padding-bottom:10px; }
-    .brand { font-size:22px; font-weight:900; color:#003580; letter-spacing:-0.5px; }
-    .brand span { color:#FF9933; }
-    .meta { font-size:8px; color:#555; text-align:right; line-height:1.8; }
+    body {
+      font-family: var(--body);
+      font-size: 8.5px;
+      color: var(--text);
+      background: var(--bg);
+      padding: 18px 20px;
+    }
 
-    /* ── Sections ── */
-    .section { margin-bottom:20px; }
-    .section-title { font-size:11px; font-weight:900; color:#003580; margin-bottom:8px; border-left:4px solid #FF9933; padding-left:8px; padding-top:2px; padding-bottom:2px; background:rgba(0,53,128,0.04); border-radius:0 4px 4px 0; }
-    .sub-title { font-size:9px; font-weight:800; color:#444; margin:8px 0 5px; text-transform:uppercase; letter-spacing:0.4px; }
-    .badge { display:inline-block; background:#003580; color:#fff; font-size:7.5px; font-weight:800; padding:2px 7px; border-radius:10px; margin-left:6px; vertical-align:middle; }
+    /* ────────────────────────────────────────────────
+       COVER HEADER
+    ──────────────────────────────────────────────── */
+    .cover {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border2);
+      position: relative;
+    }
+    .cover::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0;
+      width: 120px; height: 2px;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    }
+    .brand {
+      font-family: var(--head);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--text);
+      line-height: 1;
+    }
+    .brand-accent { color: var(--accent2); }
+    .brand-sub {
+      font-family: var(--mono);
+      font-size: 7px;
+      color: var(--textSub);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+    .cover-meta {
+      text-align: right;
+      font-family: var(--mono);
+      font-size: 7.5px;
+      color: var(--textMid);
+      line-height: 2;
+    }
+    .cover-meta .export-id {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--accent1);
+      letter-spacing: 1px;
+    }
+    .cover-meta .confidential {
+      display: inline-block;
+      background: rgba(248,113,113,0.12);
+      border: 1px solid rgba(248,113,113,0.3);
+      color: var(--red);
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 3px;
+    }
+    .sections-pill {
+      display: inline-block;
+      background: rgba(79,142,247,0.1);
+      border: 1px solid rgba(79,142,247,0.2);
+      color: var(--accent1);
+      font-size: 7px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      letter-spacing: 0.5px;
+      margin-top: 3px;
+    }
 
-    /* ── Layout grids ── */
-    .two-col   { display:flex; gap:12px; margin-bottom:10px; }
+    /* ────────────────────────────────────────────────
+       SECTIONS
+    ──────────────────────────────────────────────── */
+    .section { margin-bottom: 22px; }
+
+    .section-title {
+      font-family: var(--head);
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: 0.2px;
+      margin-bottom: 10px;
+      padding: 7px 10px 7px 12px;
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-left: 3px solid var(--accent1);
+      border-radius: 0 5px 5px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title .s-icon {
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    .sub-title {
+      font-family: var(--mono);
+      font-size: 7.5px;
+      font-weight: 700;
+      color: var(--accent1);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin: 10px 0 6px;
+      padding-left: 1px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(79,142,247,0.15);
+      border: 1px solid rgba(79,142,247,0.3);
+      color: var(--accent1);
+      font-family: var(--mono);
+      font-size: 7px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+      margin-left: 6px;
+      vertical-align: middle;
+      letter-spacing: 0.5px;
+    }
+
+    /* ────────────────────────────────────────────────
+       GRID LAYOUTS
+    ──────────────────────────────────────────────── */
+    .two-col   { display:flex; gap:10px; margin-bottom:10px; }
     .two-col > * { flex:1; min-width:0; }
-    .three-col { display:flex; gap:10px; margin-bottom:10px; }
+    .three-col { display:flex; gap:8px; margin-bottom:10px; }
     .three-col > * { flex:1; min-width:0; }
 
-    /* ── Summary table ── */
-    .sum-tbl { width:100%; border-collapse:collapse; margin-bottom:4px; }
-    .sum-key { font-size:8px; color:#555; padding:3.5px 6px; border-bottom:1px solid #f0f0f0; }
-    .sum-val { font-size:9px; font-weight:800; padding:3.5px 6px; border-bottom:1px solid #f0f0f0; text-align:right; white-space:nowrap; }
-    .sum-sub { font-size:7px; font-weight:400; color:#888; margin-left:4px; }
+    /* ────────────────────────────────────────────────
+       STAT CARDS (inline summary blocks)
+    ──────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 8px 10px;
+      min-width: 0;
+    }
 
-    /* ── Data tables ── */
-    table { width:100%; border-collapse:collapse; margin-bottom:6px; }
-    th { background:#003580; color:#fff; padding:4.5px 4px; text-align:left; font-size:7.5px; font-weight:700; white-space:nowrap; }
-    td { padding:3.5px 4px; border-bottom:1px solid #f0f0f0; vertical-align:top; word-break:break-word; font-size:7.5px; line-height:1.4; }
-    tr.even { background:#fff; }
-    tr.odd  { background:#f7f9fc; }
-    tr:hover { background:#eef2ff; }
+    /* ────────────────────────────────────────────────
+       SUMMARY TABLE
+    ──────────────────────────────────────────────── */
+    .sum-tbl { width:100%; border-collapse:collapse; }
+    .sum-key {
+      font-size: 7.5px;
+      color: var(--textMid);
+      padding: 3.5px 6px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--body);
+    }
+    .sum-val {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3.5px 6px;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .sum-sub {
+      font-size: 6.5px;
+      font-weight: 400;
+      color: var(--textSub);
+      margin-left: 4px;
+    }
 
-    /* ── Breakdown ── */
-    .breakdown { margin-bottom:6px; }
-    .bd-title  { font-size:8.5px; font-weight:700; color:#333; margin-bottom:4px; }
-    .bd-total  { font-size:7.5px; font-weight:400; color:#888; }
+    /* ────────────────────────────────────────────────
+       DATA TABLES
+    ──────────────────────────────────────────────── */
+    table { width:100%; border-collapse:collapse; margin-bottom:8px; }
+    thead tr {
+      background: var(--card2);
+      border-bottom: 1px solid var(--accent1);
+    }
+    th {
+      font-family: var(--mono);
+      font-size: 7px;
+      font-weight: 700;
+      color: var(--accent1);
+      padding: 5px 5px;
+      text-align: left;
+      white-space: nowrap;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border2);
+    }
+    td {
+      padding: 4px 5px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      word-break: break-word;
+      font-size: 7.5px;
+      line-height: 1.5;
+      color: var(--textMid);
+    }
+    tr.even { background: var(--surface); }
+    tr.odd  { background: var(--card); }
+    td:first-child {
+      font-family: var(--mono);
+      font-size: 7px;
+      color: var(--textSub);
+    }
 
-    /* ── Info bar ── */
-    .info-bar { background:#f0f4ff; border:1px solid #d0d8f0; border-radius:6px; padding:7px 10px; font-size:8px; color:#444; margin-top:8px; line-height:1.8; }
+    /* ────────────────────────────────────────────────
+       BREAKDOWN BLOCK (bar charts)
+    ──────────────────────────────────────────────── */
+    .breakdown {
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 0;
+    }
+    .bd-title {
+      font-family: var(--mono);
+      font-size: 7.5px;
+      font-weight: 700;
+      color: var(--textMid);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .bd-total { font-size: 7px; font-weight: 400; color: var(--textSub); margin-left: 4px; }
+    .breakdown table { margin-bottom: 0; }
+    .breakdown th {
+      background: transparent;
+      border-bottom: 1px solid var(--border);
+      color: var(--textSub);
+      font-size: 6.5px;
+    }
+    .breakdown td { font-size: 7.5px; color: var(--textMid); }
+    .breakdown tr.even { background: transparent; }
+    .breakdown tr.odd  { background: rgba(255,255,255,0.015); }
 
-    /* ── Footer & page nums ── */
-    .footer { margin-top:14px; font-size:7.5px; color:#aaa; text-align:center; border-top:1px solid #eee; padding-top:7px; }
+    /* SVG bar */
+    .bar-track {
+      display: inline-block;
+      width: 72px;
+      height: 6px;
+      background: var(--border2);
+      border-radius: 3px;
+      vertical-align: middle;
+      position: relative;
+      overflow: hidden;
+    }
+    .bar-fill {
+      display: inline-block;
+      height: 6px;
+      border-radius: 3px;
+      vertical-align: middle;
+    }
+
+    /* ────────────────────────────────────────────────
+       INFO BAR
+    ──────────────────────────────────────────────── */
+    .info-bar {
+      background: rgba(79,142,247,0.06);
+      border: 1px solid rgba(79,142,247,0.15);
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-family: var(--mono);
+      font-size: 7.5px;
+      color: var(--textMid);
+      margin-top: 8px;
+      line-height: 2;
+    }
+    .info-bar strong { color: var(--accent3); font-weight: 700; }
+
+    /* ────────────────────────────────────────────────
+       FOOTER
+    ──────────────────────────────────────────────── */
+    .footer {
+      margin-top: 18px;
+      font-family: var(--mono);
+      font-size: 7px;
+      color: var(--textSub);
+      text-align: center;
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ────────────────────────────────────────────────
+       PAGE NUMBERS via CSS counters
+    ──────────────────────────────────────────────── */
+    @page {
+      size: A4 landscape;
+      margin: 12mm 10mm 14mm 10mm;
+
+      @bottom-right {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 7pt;
+        color: #4a4f6a;
+      }
+      @bottom-left {
+        content: "YojanaSahay · Confidential";
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 7pt;
+        color: #252840;
+      }
+      @bottom-center {
+        content: "${exportId}";
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 7pt;
+        color: #252840;
+      }
+    }
+
+    /* CSS-counter page numbers shown in the static footer bar */
+    body {
+      counter-reset: pagenum;
+    }
+    .page-break {
+      counter-increment: pagenum;
+    }
+
+    /* Printed page-number strip */
+    .pg-footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 20px;
+      border-top: 1px solid var(--border2);
+      background: var(--bg);
+      font-family: var(--mono);
+      font-size: 7px;
+      color: var(--textSub);
+      letter-spacing: 0.5px;
+    }
+    .pg-footer .pg-brand { color: var(--accent1); font-weight: 700; }
+    .pg-footer .pg-id    { color: var(--textSub); }
+    .pg-footer .pg-num   { color: var(--textMid); }
+
+    /* ────────────────────────────────────────────────
+       PRINT
+    ──────────────────────────────────────────────── */
     @media print {
-      body { padding:6px; font-size:8px; }
-      @page { size: A4 landscape; margin:8mm 10mm; }
+      body {
+        background: #08090d !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color-adjust: exact;
+        padding: 8px 10px 22px 10px;
+        font-size: 7.5px;
+      }
       .page-break { page-break-before: always; }
-      thead { display:table-header-group; }
-      tfoot { display:table-footer-group; }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+      .cover::after { -webkit-print-color-adjust: exact; }
+      .pg-footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
 <body>
 
-  <!-- COVER HEADER -->
-  <div class="header">
+  <!-- ═══════════════════════════════════════════
+       COVER HEADER
+  ═══════════════════════════════════════════ -->
+  <div class="cover">
     <div>
-      <div class="brand">Yojana<span>Sahay</span></div>
-      <div style="font-size:8px;color:#666;margin-top:3px;font-weight:600;">Admin Dashboard Report — Confidential</div>
-      <div style="font-size:7.5px;color:#999;margin-top:2px;">
-        Sections: ${includedLabels || "—"}
-      </div>
+      <div class="brand">Yojana<span class="brand-accent">Sahay</span></div>
+      <div class="brand-sub">Admin Intelligence Report &nbsp;/&nbsp; Confidential</div>
+      <div class="sections-pill">${includedLabels || "—"}</div>
     </div>
-    <div class="meta">
-      <div><strong>Generated:</strong> ${dateStr} at ${timeStr}</div>
-      <div><strong>Total Users:</strong> ${users.length} &nbsp;·&nbsp; <strong>Reports:</strong> ${reports.length}</div>
-      <div><strong>Export ID:</strong> YS-${isoDate.replace(/-/g,"")}-${Math.random().toString(36).slice(2,7).toUpperCase()}</div>
-      <div style="color:#DC2626;font-weight:700;margin-top:3px;">CONFIDENTIAL — DO NOT SHARE</div>
+    <div class="cover-meta">
+      <div class="export-id">${exportId}</div>
+      <div>Generated &nbsp;<strong style="color:var(--text)">${dateStr}</strong>&nbsp; at &nbsp;<strong style="color:var(--text)">${timeStr}</strong></div>
+      <div>
+        <strong style="color:var(--text)">${users.length}</strong> Users &nbsp;·&nbsp;
+        <strong style="color:var(--text)">${reports.length}</strong> Reports
+      </div>
+      <div class="confidential">Confidential — Do Not Share</div>
     </div>
   </div>
 
@@ -3585,13 +3931,35 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
   ${s.has("schemes")   ? schemesHTML   : ""}
   ${s.has("reports")   ? reportsHTML   : ""}
 
-  <div class="footer">
-    Yojana Sahay Admin Dashboard &nbsp;·&nbsp; Generated: ${dateStr} ${timeStr} &nbsp;·&nbsp;
-    ${users.length} users · ${reports.length} reports · ${allSchemes.length} schemes &nbsp;·&nbsp;
-    Confidential — For Admin Use Only
+  <!-- ═══════════════════════════════════════════
+       FIXED PAGE-NUMBER FOOTER
+  ═══════════════════════════════════════════ -->
+  <div class="pg-footer">
+    <span class="pg-brand">YojanaSahay</span>
+    <span class="pg-id">${exportId}</span>
+    <span class="pg-num" id="pg-label">Page 1</span>
   </div>
 
-  <script>window.onload = function() { window.print(); }<\/script>
+  <div class="footer">
+    YojanaSahay Admin Dashboard &nbsp;·&nbsp; ${exportId} &nbsp;·&nbsp;
+    ${dateStr} ${timeStr} &nbsp;·&nbsp;
+    ${users.length} users &nbsp;/&nbsp; ${reports.length} reports &nbsp;/&nbsp; ${allSchemes.length} schemes &nbsp;·&nbsp;
+    Confidential — For Authorised Admin Use Only
+  </div>
+
+  <script>
+    // Inject real page numbers via browser's beforeprint
+    var totalPages = document.querySelectorAll('.page-break').length + 1;
+
+    // Update footer label before print dialog opens
+    window.addEventListener('beforeprint', function() {
+      var lbl = document.getElementById('pg-label');
+      if (lbl) lbl.textContent = 'Page 1 of ' + totalPages;
+    });
+
+    // Auto-open print
+    window.onload = function() { window.print(); };
+  <\/script>
 </body>
 </html>`;
 
@@ -4408,199 +4776,339 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
         function selectAll()  { setExportSections(new Set(EXPORT_SECTION_CONFIG.map(s => s.id))); }
         function clearAll()   { setExportSections(new Set()); }
 
-        return (
-          <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+        // ── shared techy tokens ───────────────────────────────────────
+        const C = {
+          blue:   "#4f8ef7",
+          green:  "#3dd68c",
+          amber:  "#f7c948",
+          red:    "#f87171",
+          purple: "#a78bfa",
+          border: dark ? "#1a1d2e" : "#dde1f0",
+          surf:   dark ? "#0d0f1a" : "#f0f2fa",
+          card:   dark ? "#111320" : "#fff",
+          text:   dark ? "#c8cde8" : "#1a1d2e",
+          sub:    dark ? "#3a3f5c" : "#9094b0",
+          mono:   "'JetBrains Mono','Fira Code','Courier New',monospace",
+        };
 
-            {/* Header card */}
+        const SECTION_COLORS = [C.blue, C.green, C.amber, C.purple, C.red, "#f7824f"];
+
+        return (
+          <>
+            {/* ── Keyframes injected once ── */}
+            <style>{`
+              @keyframes exp-scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(100%)} }
+              @keyframes exp-pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
+              @keyframes exp-glow { 0%,100%{box-shadow:0 0 8px rgba(79,142,247,0)} 50%{box-shadow:0 0 18px rgba(79,142,247,0.45)} }
+              @keyframes exp-slide{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+              .exp-row { animation: exp-slide .22s ease forwards; }
+            `}</style>
+
+          <div style={{ padding:"14px 12px", display:"flex", flexDirection:"column", gap:12, fontFamily:C.mono }}>
+
+            {/* ── TOP HEADER: terminal banner ───────────────────────── */}
             <div style={{
-              background:`linear-gradient(135deg,${NAVY},#1a56db)`,
-              borderRadius:16, padding:"16px 18px",
-              display:"flex", alignItems:"center", gap:14,
+              background: dark
+                ? "linear-gradient(135deg,#090b14 0%,#0d1020 100%)"
+                : "linear-gradient(135deg,#0d1020 0%,#1a1f38 100%)",
+              border:`1px solid ${C.blue}30`,
+              borderRadius:14, padding:"14px 16px",
+              position:"relative", overflow:"hidden",
             }}>
-              <div style={{ fontSize:32 }}>📄</div>
-              <div style={{ flex:1 }}>
-                <div style={{ color:"#fff", fontSize:15, fontWeight:800 }}>Custom PDF Report</div>
-                <div style={{ color:"rgba(255,255,255,0.7)", fontSize:11, marginTop:3 }}>
-                  Pick the sections to include, then export
+              {/* scan line */}
+              <div style={{
+                position:"absolute", inset:"0 0 auto 0", height:1,
+                background:`linear-gradient(90deg,transparent,${C.blue}60,transparent)`,
+                animation:"exp-scan 3s linear infinite",
+              }} />
+              {/* top-left corner accent */}
+              <div style={{
+                position:"absolute", top:0, left:0,
+                width:28, height:28,
+                borderTop:`2px solid ${C.blue}`,
+                borderLeft:`2px solid ${C.blue}`,
+                borderRadius:"14px 0 0 0",
+              }} />
+              <div style={{
+                position:"absolute", bottom:0, right:0,
+                width:28, height:28,
+                borderBottom:`2px solid ${C.blue}40`,
+                borderRight:`2px solid ${C.blue}40`,
+                borderRadius:"0 0 14px 0",
+              }} />
+
+              <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  {/* prompt line */}
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
+                    <span style={{ color:C.green, fontSize:9, fontWeight:700 }}>ys@admin</span>
+                    <span style={{ color:C.sub, fontSize:9 }}>~</span>
+                    <span style={{ color:C.sub, fontSize:9 }}>$</span>
+                    <span style={{ color:"#e2e8ff", fontSize:9 }}>export --mode=pdf --format=A4-landscape</span>
+                    <span style={{ color:C.blue, fontSize:9, animation:"exp-pulse 1.1s ease infinite" }}>▋</span>
+                  </div>
+                  <div style={{ color:"#fff", fontSize:14, fontWeight:800, letterSpacing:-0.3 }}>
+                    Intelligence Report
+                  </div>
+                  <div style={{ color:C.sub, fontSize:9, marginTop:3 }}>
+                    Configure sections · Compile · Export PDF
+                  </div>
+                </div>
+                {/* selected counter */}
+                <div style={{
+                  background:"rgba(79,142,247,0.1)",
+                  border:`1px solid ${C.blue}40`,
+                  borderRadius:10, padding:"8px 12px", textAlign:"center", flexShrink:0,
+                  animation: selectedCount > 0 ? "exp-glow 2s ease infinite" : "none",
+                }}>
+                  <div style={{ fontFamily:C.mono, fontSize:22, fontWeight:800, color:C.blue, lineHeight:1 }}>
+                    {String(selectedCount).padStart(2,"0")}
+                  </div>
+                  <div style={{ fontSize:7, color:C.sub, marginTop:2, letterSpacing:1, textTransform:"uppercase" }}>
+                    modules
+                  </div>
                 </div>
               </div>
+
+              {/* data-line stats */}
               <div style={{
-                background:"rgba(255,255,255,0.2)", borderRadius:10,
-                padding:"6px 12px", textAlign:"center",
+                display:"flex", gap:0, marginTop:12,
+                borderTop:`1px solid ${C.blue}18`, paddingTop:10,
               }}>
-                <div style={{ color:"#fff", fontSize:18, fontWeight:800 }}>{selectedCount}</div>
-                <div style={{ color:"rgba(255,255,255,0.7)", fontSize:8, marginTop:1 }}>selected</div>
+                {[
+                  { label:"USERS",    value: String(users.length).padStart(4,"0"), color:C.blue   },
+                  { label:"REPORTS",  value: String(reports.length).padStart(4,"0"), color:C.amber  },
+                  { label:"SELECTED", value: `${selectedCount}/${EXPORT_SECTION_CONFIG.length}`, color:C.green  },
+                ].map(({ label, value, color }, i, arr) => (
+                  <div key={label} style={{
+                    flex:1, textAlign:"center",
+                    borderRight: i < arr.length - 1 ? `1px solid ${C.blue}18` : "none",
+                    paddingRight: i < arr.length - 1 ? 0 : 0,
+                  }}>
+                    <div style={{ fontFamily:C.mono, fontSize:13, fontWeight:800, color, letterSpacing:-0.5 }}>{value}</div>
+                    <div style={{ fontSize:7, color:C.sub, letterSpacing:1.2, textTransform:"uppercase", marginTop:2 }}>{label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Quick-select row */}
-            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-              <div style={{ fontSize:11, fontWeight:700, color:th.textMid, flex:1 }}>
-                Sections
+            {/* ── MODULE SELECTOR HEADER ──────────────────────────────── */}
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <div style={{ flex:1, display:"flex", alignItems:"center", gap:6 }}>
+                <div style={{ width:2, height:12, background:C.blue, borderRadius:1 }} />
+                <span style={{ fontSize:9, fontWeight:700, color:C.sub, letterSpacing:1.4, textTransform:"uppercase" }}>
+                  Report Modules
+                </span>
               </div>
               <div onClick={selectAll} style={{
-                padding:"5px 12px", borderRadius:20, cursor:"pointer",
-                fontSize:10, fontWeight:700,
-                background: allSelected ? IND_GREEN : th.border,
-                color: allSelected ? "#fff" : th.textMid,
-                border:`1.5px solid ${allSelected ? IND_GREEN : th.border}`,
+                padding:"4px 10px", borderRadius:6, cursor:"pointer",
+                fontSize:9, fontWeight:700, fontFamily:C.mono,
+                background: allSelected ? `${C.green}18` : "transparent",
+                color: allSelected ? C.green : C.sub,
+                border:`1px solid ${allSelected ? C.green+"50" : C.border}`,
                 transition:"all 0.15s",
+                letterSpacing:0.5,
               }}>
-                ✓ All
+                [ALL]
               </div>
               <div onClick={clearAll} style={{
-                padding:"5px 12px", borderRadius:20, cursor:"pointer",
-                fontSize:10, fontWeight:700,
-                background: noneSelected ? "#DC2626" : th.border,
-                color: noneSelected ? "#fff" : th.textMid,
-                border:`1.5px solid ${noneSelected ? "#DC2626" : th.border}`,
+                padding:"4px 10px", borderRadius:6, cursor:"pointer",
+                fontSize:9, fontWeight:700, fontFamily:C.mono,
+                background: noneSelected ? `${C.red}18` : "transparent",
+                color: noneSelected ? C.red : C.sub,
+                border:`1px solid ${noneSelected ? C.red+"50" : C.border}`,
                 transition:"all 0.15s",
+                letterSpacing:0.5,
               }}>
-                ✕ Clear
+                [CLR]
               </div>
             </div>
 
-            {/* Section toggle cards */}
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              {EXPORT_SECTION_CONFIG.map(({ id, icon, label, desc }) => {
-                const on = exportSections.has(id);
+            {/* ── SECTION TOGGLE ROWS ─────────────────────────────────── */}
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {EXPORT_SECTION_CONFIG.map(({ id, label, desc }, idx) => {
+                const on    = exportSections.has(id);
+                const color = SECTION_COLORS[idx % SECTION_COLORS.length];
                 return (
-                  <div key={id} onClick={() => toggleSection(id)} style={{
-                    display:"flex", alignItems:"center", gap:12,
-                    background: on ? (dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.06)") : th.card,
-                    border:`1.5px solid ${on ? NAVY : th.border}`,
-                    borderRadius:14, padding:"12px 14px",
-                    cursor:"pointer",
-                    transition:"all 0.18s cubic-bezier(0.22,1,0.36,1)",
-                  }}>
-                    {/* Icon */}
-                    <div style={{
-                      width:38, height:38, borderRadius:10, flexShrink:0,
+                  <div
+                    key={id}
+                    className="exp-row"
+                    onClick={() => toggleSection(id)}
+                    style={{
+                      display:"flex", alignItems:"center", gap:10,
                       background: on
-                        ? `linear-gradient(135deg,${NAVY},#1a56db)`
-                        : (dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.05)"),
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      fontSize:18,
+                        ? (dark ? `${color}12` : `${color}0d`)
+                        : C.card,
+                      border:`1px solid ${on ? color+"55" : C.border}`,
+                      borderRadius:10, padding:"10px 12px",
+                      cursor:"pointer",
+                      transition:"all 0.18s cubic-bezier(0.22,1,0.36,1)",
+                      animationDelay:`${idx * 40}ms`,
+                      position:"relative", overflow:"hidden",
+                    }}
+                  >
+                    {/* left accent bar */}
+                    <div style={{
+                      position:"absolute", top:0, left:0, bottom:0, width:3,
+                      background: on ? color : "transparent",
+                      borderRadius:"10px 0 0 10px",
                       transition:"background 0.18s",
+                    }} />
+
+                    {/* index number */}
+                    <div style={{
+                      fontFamily:C.mono, fontSize:9, fontWeight:700,
+                      color: on ? color : C.sub, flexShrink:0,
+                      width:18, textAlign:"right",
+                      transition:"color 0.18s",
                     }}>
-                      {icon}
+                      {String(idx + 1).padStart(2,"0")}
                     </div>
-                    {/* Text */}
-                    <div style={{ flex:1, minWidth:0 }}>
+
+                    {/* text */}
+                    <div style={{ flex:1, minWidth:0, paddingLeft:4 }}>
                       <div style={{
-                        fontSize:13, fontWeight:800,
-                        color: on ? (dark?"#8ab4f8":NAVY) : th.text,
+                        fontSize:12, fontWeight:800,
+                        color: on ? color : C.text,
                         transition:"color 0.18s",
+                        fontFamily:C.mono,
                       }}>
-                        {label}
+                        {label.toUpperCase()}
                       </div>
-                      <div style={{ fontSize:10, color:th.textSub, marginTop:2, lineHeight:1.4 }}>
+                      <div style={{
+                        fontSize:9, color:C.sub,
+                        marginTop:1, lineHeight:1.4,
+                        fontFamily:"inherit",
+                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                      }}>
                         {desc}
                       </div>
                     </div>
-                    {/* Toggle pill */}
+
+                    {/* checkbox */}
                     <div style={{
-                      width:36, height:20, borderRadius:10, flexShrink:0,
-                      background: on ? NAVY : (dark?"#333":"#ddd"),
-                      position:"relative",
-                      transition:"background 0.2s",
+                      width:18, height:18, borderRadius:5, flexShrink:0,
+                      border:`1.5px solid ${on ? color : C.sub}`,
+                      background: on ? color : "transparent",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      transition:"all 0.18s",
                     }}>
-                      <div style={{
-                        position:"absolute", top:2,
-                        left: on ? 18 : 2,
-                        width:16, height:16, borderRadius:8,
-                        background:"#fff",
-                        transition:"left 0.2s cubic-bezier(0.22,1,0.36,1)",
-                        boxShadow:"0 1px 3px rgba(0,0,0,0.3)",
-                      }} />
+                      {on && (
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                          <path d="M1 4L3.8 7L9 1" stroke={dark?"#000":"#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Stats row */}
-            <div style={{ display:"flex", gap:10 }}>
-              <div style={{
-                flex:1, background:th.card, border:`1.5px solid ${NAVY}`,
-                borderRadius:12, padding:"10px 8px", textAlign:"center",
-              }}>
-                <div style={{ fontSize:20, fontWeight:800, color:NAVY }}>{users.length}</div>
-                <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Users</div>
-              </div>
-              <div style={{
-                flex:1, background:th.card, border:`1.5px solid ${SAFFRON}`,
-                borderRadius:12, padding:"10px 8px", textAlign:"center",
-              }}>
-                <div style={{ fontSize:20, fontWeight:800, color:SAFFRON }}>{reports.length}</div>
-                <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Reports</div>
-              </div>
-              <div style={{
-                flex:1, background:th.card, border:`1.5px solid ${IND_GREEN}`,
-                borderRadius:12, padding:"10px 8px", textAlign:"center",
-              }}>
-                <div style={{ fontSize:20, fontWeight:800, color:IND_GREEN }}>{selectedCount}</div>
-                <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Sections</div>
-              </div>
-            </div>
-
-            {/* Export button */}
+            {/* ── EXPORT TRIGGER ──────────────────────────────────────── */}
             {noneSelected ? (
               <div style={{
-                background:th.card2, border:`1.5px dashed ${th.border}`,
-                borderRadius:14, padding:"16px",
-                textAlign:"center", color:th.textSub, fontSize:12,
+                background:"transparent",
+                border:`1px dashed ${C.border}`,
+                borderRadius:10, padding:"14px",
+                textAlign:"center",
+                fontFamily:C.mono, fontSize:10, color:C.sub,
+                letterSpacing:0.5,
               }}>
-                Select at least one section to export
+                // select at least one module to compile
               </div>
             ) : !loading && (users.length > 0 || reports.length > 0) ? (
               <div
                 onClick={exportModal ? undefined : handleExportAll}
                 style={{
                   background: exportModal
-                    ? th.border
-                    : `linear-gradient(135deg,${NAVY},#1a56db)`,
-                  borderRadius:14, padding:"16px",
-                  display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+                    ? C.surf
+                    : dark
+                      ? "linear-gradient(135deg,#0d1a3a 0%,#0a1528 100%)"
+                      : "linear-gradient(135deg,#0d1a3a 0%,#152040 100%)",
+                  border:`1px solid ${exportModal ? C.border : C.blue+"70"}`,
+                  borderRadius:12, padding:"14px 16px",
+                  display:"flex", alignItems:"center", gap:12,
                   cursor: exportModal ? "default" : "pointer",
                   opacity: exportModal ? 0.6 : 1,
-                  transition:"opacity 0.2s",
-                  boxShadow: exportModal ? "none" : `0 4px 18px rgba(0,53,128,0.35)`,
+                  transition:"all 0.2s",
+                  boxShadow: exportModal ? "none" : `0 4px 24px rgba(79,142,247,0.2)`,
+                  position:"relative", overflow:"hidden",
                 }}
               >
-                <span style={{ fontSize:20 }}>{exportModal ? "⏳" : "📄"}</span>
-                <div style={{ textAlign:"center" }}>
-                  <div style={{ color:"#fff", fontSize:14, fontWeight:800 }}>
-                    {exportModal ? "Generating…" : "Export Report"}
-                  </div>
-                  {!exportModal && (
-                    <div style={{ color:"rgba(255,255,255,0.65)", fontSize:10, marginTop:2 }}>
-                      {selectedCount} section{selectedCount !== 1 ? "s" : ""} selected
-                    </div>
-                  )}
+                {/* scan shimmer on hover via animation when not loading */}
+                {!exportModal && (
+                  <div style={{
+                    position:"absolute", inset:"0 auto 0 -60px", width:40,
+                    background:"linear-gradient(90deg,transparent,rgba(79,142,247,0.12),transparent)",
+                    animation:"exp-scan 2.5s linear infinite",
+                    pointerEvents:"none",
+                  }} />
+                )}
+
+                {/* icon */}
+                <div style={{
+                  width:40, height:40, borderRadius:10, flexShrink:0,
+                  border:`1px solid ${C.blue}40`,
+                  background:"rgba(79,142,247,0.08)",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {exportModal
+                      ? <><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></>
+                      : <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>
+                    }
+                  </svg>
                 </div>
+
+                <div style={{ flex:1 }}>
+                  <div style={{ fontFamily:C.mono, fontSize:12, fontWeight:800, color:"#e2e8ff", letterSpacing:0.3 }}>
+                    {exportModal ? "COMPILING REPORT…" : "COMPILE + EXPORT PDF"}
+                  </div>
+                  <div style={{ fontFamily:C.mono, fontSize:9, color:C.blue, marginTop:3, opacity:0.8 }}>
+                    {exportModal
+                      ? "building sections · rendering layout · finalising…"
+                      : `${selectedCount} module${selectedCount!==1?"s":""} · landscape A4 · dark theme`}
+                  </div>
+                </div>
+
+                {!exportModal && (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0, opacity:0.7 }}>
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                )}
               </div>
             ) : (
               <div style={{
-                background:th.card2, border:`1.5px dashed ${th.border}`,
-                borderRadius:14, padding:"16px",
-                textAlign:"center", color:th.textSub, fontSize:12,
+                background:"transparent", border:`1px dashed ${C.border}`,
+                borderRadius:10, padding:"14px", textAlign:"center",
+                fontFamily:C.mono, fontSize:10, color:C.sub,
               }}>
-                {loading ? "Loading data…" : "No data available to export yet"}
+                {loading ? "// loading data stream…" : "// no data available"}
               </div>
             )}
 
-            {/* Note */}
+            {/* ── SYSTEM NOTE ─────────────────────────────────────────── */}
             <div style={{
-              background:th.card2, border:`1.5px dashed ${th.border}`,
-              borderRadius:12, padding:"12px 14px",
-              fontSize:10, color:th.textSub, lineHeight:1.6,
+              background: dark ? "#0a0c14" : "#f4f5fb",
+              border:`1px solid ${C.border}`,
+              borderRadius:10, padding:"10px 12px",
+              fontFamily:C.mono,
             }}>
-              ℹ️ Opens in a new tab as styled HTML. Use <strong style={{ color:th.text }}>Print → Save as PDF</strong> (landscape A4). Marked <strong style={{ color:"#DC2626" }}>CONFIDENTIAL</strong> — do not share.
+              <div style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
+                <span style={{ color:C.blue, fontSize:10, flexShrink:0, marginTop:0.5 }}>ℹ</span>
+                <div style={{ fontSize:9, color:C.sub, lineHeight:1.7 }}>
+                  Opens as styled HTML in new tab.{" "}
+                  <span style={{ color:C.text }}>Print → Save as PDF</span>
+                  {" "}(landscape A4). Document is marked{" "}
+                  <span style={{ color:C.red, fontWeight:700 }}>CONFIDENTIAL</span>
+                  {" "}— authorised admin use only.
+                </div>
+              </div>
             </div>
 
-            <div style={{ height:20 }} />
+            <div style={{ height:16 }} />
           </div>
+          </>
         );
       })()}
 
