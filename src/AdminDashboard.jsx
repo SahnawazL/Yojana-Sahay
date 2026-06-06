@@ -3361,6 +3361,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
       display:"flex", flexDirection:"column",
       fontFamily:"'Noto Sans',sans-serif",
       overflowY:"auto",
+      overflowX:"hidden", // prevent cleaner glow box-shadow from bleeding past right edge
     }}>
 
       {/* ── HEADER ── */}
