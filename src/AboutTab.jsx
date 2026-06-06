@@ -1757,19 +1757,20 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                     borderRadius: 20,
                     background: "linear-gradient(135deg, rgba(255,228,130,0.80) 0%, rgba(201,168,76,0.40) 40%, rgba(255,244,192,0.70) 70%, rgba(201,168,76,0.30) 100%)",
                     boxShadow: "0 0 20px rgba(201,168,76,0.35), 0 0 40px rgba(201,168,76,0.15)",
+                    display: "inline-block",
                   }}>
                     {/* Inner container — clips logo area + HYPER ZENITH band */}
                     <div style={{
-                      width: 80,
+                      width: 120,
                       borderRadius: 18,
                       overflow: "hidden",
                       background: "#020810",
                       position: "relative",
                     }}>
 
-                      {/* ── Logo area ── */}
+                      {/* ── Logo area — wide & short for horizontal logo ── */}
                       <div style={{
-                        width: 80, height: 70,
+                        width: 120, height: 56,
                         position: "relative",
                         background: "radial-gradient(ellipse at 42% 32%, #17254E 0%, #0A1530 58%, #020810 100%)",
                         display: "flex", alignItems: "center", justifyContent: "center",
@@ -1782,12 +1783,12 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                           backgroundSize: "14px 14px",
                         }} />
 
-                        {/* Real SHZ logo image */}
+                        {/* Real SHZ logo image — horizontal fill */}
                         <img
                           src={shzLogo}
                           alt="SHZ"
                           style={{
-                            width: 64,
+                            width: 100,
                             height: "auto",
                             objectFit: "contain",
                             display: "block",
@@ -1856,13 +1857,11 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                           background: "linear-gradient(135deg, #FFE285 0%, #C9A84C 100%)",
                           boxShadow: "0 0 4px rgba(201,168,76,0.70)",
                         }} />
-                        {/* Gold gradient text */}
+                        {/* Gold gradient text — static, no animation on text itself */}
                         <span style={{
                           fontSize: 7.5, fontWeight: 800, letterSpacing: 2.2,
                           textTransform: "uppercase",
                           background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 35%, #FFF4C0 50%, #FFE285 65%, #C9A84C 100%)",
-                          backgroundSize: "200% 100%",
-                          animation: "shz-badge-sweep 3.5s ease-in-out infinite",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                           backgroundClip: "text",
