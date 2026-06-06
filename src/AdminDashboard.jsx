@@ -2711,8 +2711,21 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 const PAGE_SIZE = 20;
 
-export default function AdminDashboard({ onClose, dark = false }) {
+export default function AdminDashboard({ onClose, dark: darkProp = false }) {
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem("admin_dark_mode");
+    return saved !== null ? saved === "true" : darkProp;
+  });
+  const dark = darkMode;
   const th = THEME[dark ? "dark" : "light"];
+
+  function toggleDark() {
+    setDarkMode(prev => {
+      const next = !prev;
+      localStorage.setItem("admin_dark_mode", String(next));
+      return next;
+    });
+  }
 
   const [users,         setUsers]         = useState([]);
   const [reports,       setReports]       = useState([]);
@@ -3412,6 +3425,14 @@ export default function AdminDashboard({ onClose, dark = false }) {
                 })()}
               </div>
             </div>
+          </div>
+          {/* Dark/Light toggle */}
+          <div onClick={toggleDark} style={{
+            background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.25)",
+            borderRadius:10, padding:"7px 10px",
+            color:"#fff", fontSize:14, cursor:"pointer",
+          }}>
+            {dark ? "☀️" : "🌙"}
           </div>
           {/* Refresh */}
           <div onClick={() => fetchUsers(true)} style={{
