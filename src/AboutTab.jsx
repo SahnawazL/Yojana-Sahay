@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from "react";
 import appLogo from "./logo.webp";
+import shzLogo from "./shzLogo.png";
 
 // ─── SECURITY HELPER ──────────────────────────────────────────────────────────
 // Prevents reverse tabnapping: sets noopener+noreferrer and nullifies opener
@@ -609,6 +610,10 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
     @keyframes shz-badge-sweep {
       0%   { transform: translateX(-160%); }
       100% { transform: translateX(320%); }
+    }
+    @keyframes shz-border-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
     }
     .ys-coming-pill {
       position: relative;
@@ -1688,234 +1693,215 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
           <div style={{
             borderRadius: R.xl,
             overflow: "hidden",
-            border: `1.5px solid ${dark ? "rgba(0,53,128,0.45)" : "rgba(0,53,128,0.14)"}`,
-            boxShadow: dark ? "none" : "0 4px 24px rgba(0,53,128,0.08)",
+            border: "1.5px solid rgba(201,168,76,0.28)",
+            boxShadow: dark
+              ? "0 0 0 1px rgba(201,168,76,0.10), 0 8px 40px rgba(0,0,0,0.55)"
+              : "0 4px 32px rgba(0,53,128,0.10), 0 0 0 1px rgba(201,168,76,0.10)",
+            position: "relative",
           }}>
+
+            {/* ── Rotating gold border glow (conic gradient pseudo-element via div) ── */}
+            <div style={{
+              position: "absolute", inset: -1, borderRadius: R.xl + 1,
+              background: "conic-gradient(from 0deg, transparent 0deg, rgba(201,168,76,0.55) 60deg, rgba(255,228,130,0.80) 90deg, rgba(201,168,76,0.55) 120deg, transparent 180deg, transparent 360deg)",
+              animation: "shz-border-spin 6s linear infinite",
+              zIndex: 0,
+              WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              WebkitMaskComposite: "xor",
+              maskComposite: "exclude",
+              padding: 1,
+              pointerEvents: "none",
+            }} />
 
             {/* ── Header band ── */}
             <div style={{
-              background: `linear-gradient(135deg, #001F5B 0%, ${NAVY} 55%, #1A3A8A 100%)`,
-              padding: "20px 20px 16px",
+              background: "linear-gradient(135deg, #010B1F 0%, #021236 35%, #031850 65%, #010D28 100%)",
+              padding: "22px 20px 18px",
               position: "relative", overflow: "hidden",
+              zIndex: 1,
             }}>
+              {/* Gold ambient glow top-right */}
+              <div style={{
+                position: "absolute", right: -40, top: -40,
+                width: 160, height: 160, borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(201,168,76,0.13) 0%, transparent 70%)",
+                pointerEvents: "none",
+              }} />
+              {/* Gold ambient glow bottom-left */}
+              <div style={{
+                position: "absolute", left: -20, bottom: -20,
+                width: 100, height: 100, borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)",
+                pointerEvents: "none",
+              }} />
               {/* Subtle dot grid texture */}
               <div style={{
                 position: "absolute", inset: 0, pointerEvents: "none",
-                backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
+                backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
                 backgroundSize: "18px 18px",
               }} />
-              {/* Glow orb */}
+              {/* Glassy top sheen */}
               <div style={{
-                position: "absolute", right: -30, top: -30,
-                width: 110, height: 110, borderRadius: "50%",
-                background: "rgba(255,255,255,0.05)", pointerEvents: "none",
+                position: "absolute", top: 0, left: 0, right: 0, height: "45%",
+                background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)",
+                pointerEvents: "none",
               }} />
 
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 14, position: "relative" }}>
-                {/* SHZ Premium Logo Avatar */}
-                {/*
-                  Structure: outer column div (flex col, no gap) wraps a single bordered+shadowed
-                  container div (overflow:hidden, borderRadius:18) that clips both the SVG rectangle
-                  and the HYPER ZENITH footer band into one unified unit.
-                */}
-                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  {/* ── Unified bordered container ── */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 16, position: "relative" }}>
+
+                {/* ── SHZ Premium Avatar Card ── */}
+                <div style={{ flexShrink: 0 }}>
+                  {/* Outer glow ring */}
                   <div style={{
-                    width: 72,
-                    borderRadius: 18,
-                    overflow: "hidden",
-                    border: "1px solid rgba(201,168,76,0.35)",
-                    boxShadow: "0 0 18px rgba(201,168,76,0.18)",
-                    position: "relative",
-                    flexShrink: 0,
+                    padding: 2,
+                    borderRadius: 20,
+                    background: "linear-gradient(135deg, rgba(255,228,130,0.80) 0%, rgba(201,168,76,0.40) 40%, rgba(255,244,192,0.70) 70%, rgba(201,168,76,0.30) 100%)",
+                    boxShadow: "0 0 20px rgba(201,168,76,0.35), 0 0 40px rgba(201,168,76,0.15)",
                   }}>
-
-                    {/* ── Avatar rectangle SVG (72×64, rx=18) ── */}
-                    <svg
-                      width="72" height="64" viewBox="0 0 72 64"
-                      fill="none" xmlns="http://www.w3.org/2000/svg"
-                      style={{ display: "block" }}
-                    >
-                      <defs>
-                        {/* Deep navy radial background */}
-                        <radialGradient id="shz-bg" cx="42%" cy="32%" r="78%" gradientUnits="userSpaceOnUse">
-                          <stop offset="0%"   stopColor="#17254E"/>
-                          <stop offset="58%"  stopColor="#0A1530"/>
-                          <stop offset="100%" stopColor="#020810"/>
-                        </radialGradient>
-
-                        {/* Gold gradient for SHZ mark: #FFF4C0 → #F5D36A → #C9A84C */}
-                        <linearGradient id="shz-gold" x1="10" y1="14" x2="62" y2="50" gradientUnits="userSpaceOnUse">
-                          <stop offset="0%"   stopColor="#FFF4C0"/>
-                          <stop offset="35%"  stopColor="#F5D36A"/>
-                          <stop offset="70%"  stopColor="#C9A84C"/>
-                          <stop offset="100%" stopColor="#FFF4C0"/>
-                        </linearGradient>
-
-                        {/*
-                          Glow filter: feGaussianBlur merged UNDER SourceGraphic
-                          — creates the gold halo beneath the mark strokes
-                        */}
-                        <filter id="shz-glow" x="-35%" y="-35%" width="170%" height="170%">
-                          <feGaussianBlur in="SourceGraphic" stdDeviation="2.8" result="blur"/>
-                          <feMerge>
-                            <feMergeNode in="blur"/>
-                            <feMergeNode in="SourceGraphic"/>
-                          </feMerge>
-                        </filter>
-
-                        {/* Shimmer sweep clip — rounded rect */}
-                        <clipPath id="shz-clip">
-                          <rect x="0" y="0" width="72" height="64" rx="18" ry="18"/>
-                        </clipPath>
-                      </defs>
-
-                      {/* ── Background fill ── */}
-                      <rect x="0" y="0" width="72" height="64" fill="url(#shz-bg)"/>
-
-                      {/*
-                        ══ SHZ Interlocked Geometric Monogram ══
-                        Luxury brand–style: S, H, Z form ONE unified connected glyph.
-
-                        Mark bounds (72×64 SVG):
-                          Y: 14 → 50  (36 tall, centred on y=32)
-                          X: S curves  x≈10–24
-                             H          x=24–48   (left vertical shared with S endpoints)
-                             Z          x=48–62   (left of Z diagonal shared with H right vertical)
-
-                        Connection points:
-                          (24,14) = S top terminus  = H left vertical top
-                          (24,50) = S bottom terminus = H left vertical bottom
-                          (48,14) = Z top-left        = H right vertical top
-                          (48,50) = Z diagonal left end = H right vertical bottom
-
-                        S path: luxury two-arc cubic bezier
-                          — starts at (24,14), arcs leftward to midpoint (~11,32),
-                            then arcs back right to (24,50).
-                          — right extremes sit on x=24, sharing H's left vertical.
-
-                        H path: three sub-paths in one <path> element
-                          — left vertical M24,14 V50 (fused with S)
-                          — crossbar      M24,32 H48
-                          — right vertical M48,14 V50 (fused with Z)
-
-                        Z path: top bar → diagonal → bottom bar
-                          — M48,14 H62  (top bar, left end at H right vertical top)
-                          — L48,50      (diagonal, lands on H right vertical bottom)
-                          — H62         (bottom bar)
-                      */}
-                      <g filter="url(#shz-glow)">
-                        {/* S */}
-                        <path
-                          d="M 24,14 C 10,14 8,26 11,32 C 14,38 22,50 24,50"
-                          stroke="url(#shz-gold)"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          fill="none"
-                        />
-                        {/* H — left vertical / crossbar / right vertical */}
-                        <path
-                          d="M 24,14 V 50 M 24,32 H 48 M 48,14 V 50"
-                          stroke="url(#shz-gold)"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          fill="none"
-                        />
-                        {/* Z */}
-                        <path
-                          d="M 48,14 H 62 L 48,50 H 62"
-                          stroke="url(#shz-gold)"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          fill="none"
-                        />
-                      </g>
-
-                      {/* ── Tricolor pip — top-left corner (saffron / white / green) ── */}
-                      <rect x="7" y="9"  width="11" height="2" rx="1" fill="#FF9933" opacity="0.92"/>
-                      <rect x="7" y="12" width="11" height="2" rx="1" fill="rgba(255,255,255,0.82)"/>
-                      <rect x="7" y="15" width="11" height="2" rx="1" fill="#138808" opacity="0.92"/>
-
-                      {/* ── Diagonal shimmer sweep (clipped to rounded rect) ── */}
-                      {/*
-                        Pre-skewed polygon (tilted ~14°) sweeps left→right via CSS translateX.
-                        clipPath="shz-clip" masks it to the rounded rectangle.
-                      */}
-                      <g clipPath="url(#shz-clip)">
-                        <polygon
-                          points="-4,-4 16,-4 12,74 -8,74"
-                          fill="rgba(255,255,255,0.09)"
-                          style={{ animation: "shz-sweep 4s ease-in-out infinite" }}
-                        />
-                      </g>
-                    </svg>
-
-                    {/* ── Dot-grid texture overlay (absolutely positioned over SVG area) ── */}
+                    {/* Inner container — clips logo area + HYPER ZENITH band */}
                     <div style={{
-                      position: "absolute",
-                      top: 0, left: 0,
-                      width: "100%", height: 64,
-                      backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.065) 1px, transparent 1px)",
-                      backgroundSize: "15px 15px",
-                      pointerEvents: "none",
-                    }}/>
-
-                    {/* ── HYPER ZENITH footer band ── */}
-                    {/*
-                      Flush below the SVG rectangle with NO gap.
-                      borderTop only (no pill radius — parent overflow:hidden handles bottom rx=18).
-                      Background: rgba(201,168,76,0.08). Shimmer sweep identical to logo.
-                    */}
-                    <div style={{
-                      position: "relative",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 5,
-                      padding: "5px 0",
-                      background: "rgba(201,168,76,0.08)",
-                      borderTop: "1px solid rgba(201,168,76,0.25)",
+                      width: 80,
+                      borderRadius: 18,
                       overflow: "hidden",
+                      background: "#020810",
+                      position: "relative",
                     }}>
-                      {/* Badge shimmer sweep */}
+
+                      {/* ── Logo area ── */}
                       <div style={{
-                        position: "absolute", top: 0, bottom: 0, left: 0, width: "42%",
-                        background: "linear-gradient(90deg, transparent 0%, rgba(255,228,130,0.20) 50%, transparent 100%)",
-                        animation: "shz-badge-sweep 4s ease-in-out infinite",
-                        pointerEvents: "none",
-                      }}/>
-                      {/* Left 3px gold dot ornament */}
-                      <span style={{
-                        display: "block", width: 3, height: 3, borderRadius: "50%", flexShrink: 0,
-                        background: "linear-gradient(135deg, #FFE285 0%, #C9A84C 100%)",
-                      }}/>
-                      {/* Gold gradient text */}
-                      <span style={{
-                        fontSize: 7.5, fontWeight: 700, letterSpacing: 2,
-                        textTransform: "uppercase",
-                        background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 40%, #F5D36A 65%, #C9A84C 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        backgroundClip: "text",
-                        fontFamily: "'DM Sans', sans-serif",
+                        width: 80, height: 70,
                         position: "relative",
-                        lineHeight: 1,
-                        userSelect: "none",
+                        background: "radial-gradient(ellipse at 42% 32%, #17254E 0%, #0A1530 58%, #020810 100%)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        overflow: "hidden",
                       }}>
-                        HYPER ZENITH
-                      </span>
-                      {/* Right 3px gold dot ornament */}
-                      <span style={{
-                        display: "block", width: 3, height: 3, borderRadius: "50%", flexShrink: 0,
-                        background: "linear-gradient(135deg, #FFE285 0%, #C9A84C 100%)",
-                      }}/>
+                        {/* Dot-grid texture */}
+                        <div style={{
+                          position: "absolute", inset: 0, pointerEvents: "none",
+                          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px)",
+                          backgroundSize: "14px 14px",
+                        }} />
+
+                        {/* Real SHZ logo image */}
+                        <img
+                          src={shzLogo}
+                          alt="SHZ"
+                          style={{
+                            width: 64,
+                            height: "auto",
+                            objectFit: "contain",
+                            display: "block",
+                            position: "relative",
+                            zIndex: 2,
+                            filter: [
+                              "drop-shadow(0 0 5px rgba(201,168,76,0.70))",
+                              "drop-shadow(0 0 12px rgba(245,211,106,0.45))",
+                              "drop-shadow(0 0 22px rgba(201,168,76,0.25))",
+                            ].join(" "),
+                          }}
+                        />
+
+                        {/* Diagonal shimmer sweep */}
+                        <div style={{
+                          position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 3,
+                        }}>
+                          <div style={{
+                            position: "absolute",
+                            top: "-20%", width: 24, height: "140%",
+                            background: "linear-gradient(105deg, transparent 0%, rgba(255,244,192,0.15) 40%, rgba(255,255,255,0.32) 50%, rgba(255,244,192,0.15) 60%, transparent 100%)",
+                            animation: "shz-sweep 3.8s ease-in-out infinite",
+                          }} />
+                        </div>
+
+                        {/* Glassy top reflection */}
+                        <div style={{
+                          position: "absolute", top: 0, left: 0, right: 0, height: "42%",
+                          background: "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%)",
+                          pointerEvents: "none", zIndex: 4,
+                        }} />
+
+                        {/* Tricolor pip — top-left */}
+                        <div style={{
+                          position: "absolute", top: 7, left: 6, zIndex: 5,
+                          display: "flex", flexDirection: "column", gap: 2,
+                        }}>
+                          <div style={{ width: 11, height: 2, borderRadius: 1, background: "#FF9933", opacity: 0.95 }} />
+                          <div style={{ width: 11, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.85)" }} />
+                          <div style={{ width: 11, height: 2, borderRadius: 1, background: "#138808", opacity: 0.95 }} />
+                        </div>
+                      </div>
+
+                      {/* ── HYPER ZENITH footer band ── */}
+                      <div style={{
+                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 5,
+                        padding: "5px 0 6px",
+                        background: "linear-gradient(135deg, rgba(201,168,76,0.14) 0%, rgba(255,228,130,0.08) 50%, rgba(201,168,76,0.14) 100%)",
+                        borderTop: "1px solid rgba(201,168,76,0.35)",
+                        overflow: "hidden",
+                      }}>
+                        {/* Shimmer sweep */}
+                        <div style={{
+                          position: "absolute", top: 0, bottom: 0, left: 0, width: "50%",
+                          background: "linear-gradient(90deg, transparent 0%, rgba(255,228,130,0.28) 50%, transparent 100%)",
+                          animation: "shz-badge-sweep 4s ease-in-out infinite",
+                          pointerEvents: "none",
+                        }} />
+                        {/* Left gold dot */}
+                        <span style={{
+                          display: "block", width: 3, height: 3, borderRadius: "50%", flexShrink: 0,
+                          background: "linear-gradient(135deg, #FFE285 0%, #C9A84C 100%)",
+                          boxShadow: "0 0 4px rgba(201,168,76,0.70)",
+                        }} />
+                        {/* Gold gradient text */}
+                        <span style={{
+                          fontSize: 7.5, fontWeight: 800, letterSpacing: 2.2,
+                          textTransform: "uppercase",
+                          background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 35%, #FFF4C0 50%, #FFE285 65%, #C9A84C 100%)",
+                          backgroundSize: "200% 100%",
+                          animation: "shz-badge-sweep 3.5s ease-in-out infinite",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          backgroundClip: "text",
+                          fontFamily: "'DM Sans', sans-serif",
+                          lineHeight: 1,
+                          userSelect: "none",
+                          position: "relative",
+                        }}>
+                          HYPER ZENITH
+                        </span>
+                        {/* Right gold dot */}
+                        <span style={{
+                          display: "block", width: 3, height: 3, borderRadius: "50%", flexShrink: 0,
+                          background: "linear-gradient(135deg, #FFE285 0%, #C9A84C 100%)",
+                          boxShadow: "0 0 4px rgba(201,168,76,0.70)",
+                        }} />
+                      </div>
+
                     </div>
-
-                  </div>{/* end unified bordered container */}
+                  </div>
                 </div>
+                {/* ── end SHZ avatar ── */}
 
-                <div style={{ flex: 1, minWidth: 0, paddingTop: 5 }}>
+                {/* ── Name / role / location ── */}
+                <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
+                  {/* Gold "ABOUT DEV" eyebrow */}
+                  <div style={{
+                    fontSize: 8, fontWeight: 700, letterSpacing: 2,
+                    textTransform: "uppercase",
+                    background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 50%, #C9A84C 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    fontFamily: bf,
+                    marginBottom: 5,
+                    userSelect: "none",
+                  }}>
+                    DEVELOPER
+                  </div>
                   <div style={{
                     fontSize: 15, fontWeight: 800, color: "#fff",
                     letterSpacing: -0.3, fontFamily: bf, lineHeight: 1.2,
@@ -1923,17 +1909,18 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                     {s.devName}
                   </div>
                   <div style={{
-                    fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.65)",
-                    marginTop: 3, letterSpacing: 0.2, fontFamily: bf,
+                    fontSize: 10, fontWeight: 600,
+                    color: "rgba(255,255,255,0.60)",
+                    marginTop: 4, letterSpacing: 0.2, fontFamily: bf,
                   }}>
                     {s.devRole}
                   </div>
                   <div style={{
-                    display: "flex", alignItems: "center", gap: 4, marginTop: 5,
+                    display: "flex", alignItems: "center", gap: 4, marginTop: 6,
                   }}>
-                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.38)" }}>📍</span>
+                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)" }}>📍</span>
                     <span style={{
-                      fontSize: 9, color: "rgba(255,255,255,0.42)",
+                      fontSize: 9, color: "rgba(255,255,255,0.40)",
                       fontFamily: bf, letterSpacing: 0.3,
                     }}>
                       {s.devLocation}
@@ -1941,29 +1928,45 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                   </div>
                 </div>
 
-                {/* "INDIE" badge */}
+                {/* "INDIE DEV" badge */}
                 <div style={{
-                  background: "rgba(255,255,255,0.10)",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  borderRadius: 7, padding: "4px 8px", flexShrink: 0,
+                  background: "linear-gradient(135deg, rgba(201,168,76,0.18) 0%, rgba(255,228,130,0.10) 100%)",
+                  border: "1px solid rgba(201,168,76,0.35)",
+                  borderRadius: 7, padding: "4px 9px", flexShrink: 0,
+                  boxShadow: "0 2px 8px rgba(201,168,76,0.15)",
                 }}>
                   <span style={{
-                    fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.60)",
-                    letterSpacing: 1.2, textTransform: "uppercase", fontFamily: bf,
+                    fontSize: 7.5, fontWeight: 800,
+                    letterSpacing: 1.4, textTransform: "uppercase",
+                    background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 50%, #C9A84C 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    fontFamily: bf,
                   }}>INDIE DEV</span>
                 </div>
+
               </div>
             </div>
 
             {/* ── Body ── */}
             <div style={{
-              background: dark ? th.card : "#F8FAFF",
-              padding: "16px 20px 18px",
+              background: dark
+                ? "linear-gradient(180deg, #07111F 0%, #050D1A 100%)"
+                : "linear-gradient(180deg, #F5F8FF 0%, #EEF2FB 100%)",
+              padding: "18px 20px 20px",
+              position: "relative",
+              zIndex: 1,
             }}>
+              {/* Subtle gold top border */}
+              <div style={{
+                position: "absolute", top: 0, left: 20, right: 20, height: 1,
+                background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.20), transparent)",
+              }} />
 
               {/* Tagline */}
               <p style={{
-                fontSize: 12.5, color: th.textMid, lineHeight: 1.8,
+                fontSize: 12.5, color: th.textMid, lineHeight: 1.85,
                 margin: "0 0 16px", fontFamily: bf,
               }}>
                 {s.devTagline}
@@ -1995,7 +1998,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 })}
               </div>
 
-              {/* Website CTA */}
+              {/* Website CTA — premium gold-accented */}
               <div
                 className="ys-link-row"
                 onClick={() => safeOpen(DEV_WEBSITE)}
@@ -2005,23 +2008,35 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 onKeyDown={e => e.key === "Enter" && safeOpen(DEV_WEBSITE)}
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
-                  background: `linear-gradient(135deg, ${NAVY} 0%, #1A3A8A 100%)`,
-                  borderRadius: R.md, padding: "12px 15px",
+                  background: "linear-gradient(135deg, #010B1F 0%, #021236 50%, #010D28 100%)",
+                  border: "1px solid rgba(201,168,76,0.30)",
+                  borderRadius: R.md, padding: "13px 16px",
                   cursor: "pointer",
-                  boxShadow: "0 6px 20px rgba(0,53,128,0.28), inset 0 1px 0 rgba(255,255,255,0.10)",
+                  boxShadow: "0 6px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
+                  position: "relative", overflow: "hidden",
                 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {/* CTA shimmer */}
+                <div style={{
+                  position: "absolute", top: 0, bottom: 0, left: 0, width: "40%",
+                  background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.08) 50%, transparent 100%)",
+                  animation: "shz-badge-sweep 5s ease-in-out infinite",
+                  pointerEvents: "none",
+                }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
                   <div style={{
-                    width: 30, height: 30, borderRadius: 9,
-                    background: "rgba(255,255,255,0.12)",
-                    border: "1px solid rgba(255,255,255,0.20)",
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
+                    width: 32, height: 32, borderRadius: 9,
+                    background: "rgba(201,168,76,0.14)",
+                    border: "1px solid rgba(201,168,76,0.30)",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
                   }}>🌐</div>
                   <div style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", fontFamily: bf }}>
                     {s.devLink}
                   </div>
                 </div>
-                <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 18 }}>›</div>
+                <div style={{
+                  color: PRO_GOLD_LT, fontSize: 18, position: "relative",
+                  filter: "drop-shadow(0 0 4px rgba(201,168,76,0.50))",
+                }}>›</div>
               </div>
 
             </div>
