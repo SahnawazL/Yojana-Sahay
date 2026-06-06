@@ -6249,7 +6249,6 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
 
 // ─── APP STYLES (module-level — allocated once, never recreated on re-render) ──
 const APP_STYLES = `
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
         .fu{opacity:0;transform:translateY(20px);transition:all 0.5s cubic-bezier(0.22,1,0.36,1);}
         .fu.show{opacity:1;transform:translateY(0);}
@@ -6726,7 +6725,7 @@ export default function YojanaSahay(){
   const t=T[lang];
   const isHindi=lang==="hi";
   const bf=fontFamily(lang);
-  const toggleLang=useCallback(()=>{setLangAnim(true);setTimeout(()=>{setLang(l=>l==="en"?"hi":"en");setLangAnim(false);},120);},[]);
+  const toggleLang=useCallback(()=>{setLangAnim(true);setTimeout(()=>{setLang(l=>l==="en"?"hi":"en");requestAnimationFrame(()=>requestAnimationFrame(()=>setLangAnim(false)));},160);},[]);
   // Stable callbacks for ProfileTabMemo — inline arrows would break memoisation
   const handleViewChecker=useCallback(()=>setShowChecker(true),[]);
   const handleAdminOpen  =useCallback(()=>setShowAdmin(true),[]);
@@ -6904,7 +6903,7 @@ export default function YojanaSahay(){
   mountedTabsRef.current.add(activeTab);
 
   return(
-    <div className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0.7:1,transition:"opacity 0.12s,background 0.3s"}}>
+    <div className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0:1,transition:"opacity 0.15s ease,background 0.3s"}}>
       {/* ── SPLASH SCREEN — shown once per session ── */}
       {!splashDone&&(
         <SplashScreen onDone={()=>{
