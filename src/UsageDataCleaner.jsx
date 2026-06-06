@@ -477,7 +477,7 @@ export default function UsageDataCleaner({ dark = false, onDeleteDone }) {
                 <div
                   onClick={handleUnlock}
                   style={{
-                    width: "100%", padding: "13px", borderRadius: 12,
+                    width: "100%", boxSizing: "border-box", padding: "13px", borderRadius: 12,
                     textAlign: "center",
                     background: "linear-gradient(135deg, #06122b 0%, #0d2254 50%, #003580 100%)",
                     color: "#fff", fontSize: 13, fontWeight: 800,
@@ -605,7 +605,7 @@ export default function UsageDataCleaner({ dark = false, onDeleteDone }) {
               <div
                 onClick={handleScan}
                 style={{
-                  width: "100%", padding: "13px 16px", borderRadius: 12,
+                  width: "100%", boxSizing: "border-box", padding: "13px 16px", borderRadius: 12,
                   textAlign: "center", cursor: "pointer",
                   background: "linear-gradient(135deg, #1a0840 0%, #2d1060 45%, #3b1a7a 100%)",
                   color: "#fff", fontSize: 13, fontWeight: 800, letterSpacing: 0.8,
@@ -909,7 +909,7 @@ export default function UsageDataCleaner({ dark = false, onDeleteDone }) {
                   setLogLines([]); setProgress(0);
                 }}
                 style={{
-                  width: "100%", padding: "12px", borderRadius: 12, textAlign: "center",
+                  width: "100%", boxSizing: "border-box", padding: "12px", borderRadius: 12, textAlign: "center",
                   background: dark ? "#141416" : "#f8f9fa",
                   border: `1.5px solid ${dark ? "#272729" : "#e0e0e0"}`,
                   color: dark ? "#888" : "#666", fontSize: 12, fontWeight: 700,

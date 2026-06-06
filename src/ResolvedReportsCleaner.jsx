@@ -447,7 +447,7 @@ export default function ResolvedReportsCleaner({ dark = false, lang = "en", onDe
                 <div
                   onClick={checking ? undefined : handleUnlock}
                   style={{
-                    width: "100%", padding: "13px", borderRadius: 12,
+                    width: "100%", boxSizing: "border-box", padding: "13px", borderRadius: 12,
                     textAlign: "center",
                     background: checking
                       ? (dark ? "#222" : "#e8e8e8")
@@ -781,7 +781,7 @@ export default function ResolvedReportsCleaner({ dark = false, lang = "en", onDe
                       <div
                         onClick={() => setShowConfirm(true)}
                         style={{
-                          width: "100%", padding: "13px", borderRadius: 12,
+                          width: "100%", boxSizing: "border-box", padding: "13px", borderRadius: 12,
                           textAlign: "center",
                           background: "linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #DC2626 100%)",
                           color: "#fff", fontSize: 13, fontWeight: 800,
@@ -840,7 +840,7 @@ export default function ResolvedReportsCleaner({ dark = false, lang = "en", onDe
                   setSelected(null); setResult(null); setShowConfirm(false);
                 }}
                 style={{
-                  width: "100%", padding: "12px", borderRadius: 12, textAlign: "center",
+                  width: "100%", boxSizing: "border-box", padding: "12px", borderRadius: 12, textAlign: "center",
                   background: dark ? "#141416" : "#f8f9fa",
                   border: `1.5px solid ${dark ? "#272729" : "#e0e0e0"}`,
                   color: dark ? "#888" : "#666", fontSize: 12, fontWeight: 700,
