@@ -1749,7 +1749,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
 
               <div style={{ display: "flex", alignItems: "flex-start", gap: 16, position: "relative" }}>
 
-                {/* ── SHZ Premium Avatar Card ── */}
+                {/* ── SHZ Premium Avatar Card — DO NOT TOUCH ── */}
                 <div style={{ flexShrink: 0 }}>
                   {/* Outer glow ring */}
                   <div style={{
@@ -1888,64 +1888,82 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 </div>
                 {/* ── end SHZ avatar ── */}
 
-                {/* ── Name / role / location ── */}
-                <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
-                  {/* Gold "ABOUT DEV" eyebrow */}
+                {/* ── Right info panel ── */}
+                <div style={{
+                  flex: 1, minWidth: 0,
+                  display: "flex", flexDirection: "column",
+                  alignSelf: "stretch",
+                  justifyContent: "space-between",
+                }}>
+
+                  {/* Top row — DEVELOPER label + INDIE DEV corner badge */}
                   <div style={{
-                    fontSize: 8, fontWeight: 700, letterSpacing: 2,
-                    textTransform: "uppercase",
-                    background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 50%, #C9A84C 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    fontFamily: bf,
-                    marginBottom: 5,
-                    userSelect: "none",
+                    display: "flex", alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 8,
                   }}>
-                    DEVELOPER
+                    {/* DEVELOPER eyebrow with left line */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{
+                        width: 16, height: 1,
+                        background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.60))",
+                      }} />
+                      <span style={{
+                        fontSize: 7.5, fontWeight: 700, letterSpacing: 2.2,
+                        textTransform: "uppercase",
+                        background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 50%, #C9A84C 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        fontFamily: bf,
+                        userSelect: "none",
+                      }}>DEVELOPER</span>
+                      <div style={{
+                        width: 16, height: 1,
+                        background: "linear-gradient(90deg, rgba(201,168,76,0.60), transparent)",
+                      }} />
+                    </div>
+
+                    {/* INDIE DEV — tiny top-right corner */}
+                    <div style={{
+                      background: "rgba(201,168,76,0.08)",
+                      border: "1px solid rgba(201,168,76,0.25)",
+                      borderRadius: 5, padding: "2px 6px",
+                    }}>
+                      <span style={{
+                        fontSize: 6.5, fontWeight: 700,
+                        letterSpacing: 1.2, textTransform: "uppercase",
+                        color: "rgba(201,168,76,0.70)",
+                        fontFamily: bf,
+                      }}>INDIE DEV</span>
+                    </div>
                   </div>
+
+                  {/* Thin gold divider */}
                   <div style={{
-                    fontSize: 15, fontWeight: 800, color: "#fff",
-                    letterSpacing: -0.3, fontFamily: bf, lineHeight: 1.2,
+                    height: 1, marginBottom: 10,
+                    background: "linear-gradient(90deg, rgba(201,168,76,0.35), rgba(201,168,76,0.08), transparent)",
+                  }} />
+
+                  {/* Name */}
+                  <div style={{
+                    fontSize: 14, fontWeight: 800, color: "#fff",
+                    letterSpacing: -0.2, fontFamily: bf, lineHeight: 1.25,
+                    marginBottom: 6,
                   }}>
                     {s.devName}
                   </div>
+
+                  {/* Role */}
                   <div style={{
-                    fontSize: 10, fontWeight: 600,
-                    color: "rgba(255,255,255,0.60)",
-                    marginTop: 4, letterSpacing: 0.2, fontFamily: bf,
+                    fontSize: 9.5, fontWeight: 600,
+                    color: "rgba(255,255,255,0.50)",
+                    letterSpacing: 0.3, fontFamily: bf,
+                    lineHeight: 1.4,
                   }}>
                     {s.devRole}
                   </div>
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 4, marginTop: 6,
-                  }}>
-                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)" }}>📍</span>
-                    <span style={{
-                      fontSize: 9, color: "rgba(255,255,255,0.40)",
-                      fontFamily: bf, letterSpacing: 0.3,
-                    }}>
-                      {s.devLocation}
-                    </span>
-                  </div>
-                </div>
 
-                {/* "INDIE DEV" badge */}
-                <div style={{
-                  background: "linear-gradient(135deg, rgba(201,168,76,0.18) 0%, rgba(255,228,130,0.10) 100%)",
-                  border: "1px solid rgba(201,168,76,0.35)",
-                  borderRadius: 7, padding: "4px 9px", flexShrink: 0,
-                  boxShadow: "0 2px 8px rgba(201,168,76,0.15)",
-                }}>
-                  <span style={{
-                    fontSize: 7.5, fontWeight: 800,
-                    letterSpacing: 1.4, textTransform: "uppercase",
-                    background: "linear-gradient(90deg, #C9A84C 0%, #FFE285 50%, #C9A84C 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    fontFamily: bf,
-                  }}>INDIE DEV</span>
                 </div>
 
               </div>
