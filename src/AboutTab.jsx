@@ -1992,33 +1992,47 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 {s.devTagline}
               </p>
 
-              {/* Tech stack chips */}
+              {/* Tech stack chips — unified glassy */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 18 }}>
-                {s.devTags.map((tag, i) => {
-                  const chipColors = [
-                    { bg: "rgba(20,110,190,0.10)", border: "rgba(20,110,190,0.22)", text: "#1A6EB5" },
-                    { bg: "rgba(255,100,0,0.09)",  border: "rgba(255,100,0,0.20)",  text: "#D45A00" },
-                    { bg: "rgba(139,92,246,0.10)", border: "rgba(139,92,246,0.22)", text: "#7C3AED" },
-                    { bg: "rgba(0,150,80,0.09)",   border: "rgba(0,150,80,0.20)",   text: "#006B38" },
-                    { bg: "rgba(220,38,38,0.08)",  border: "rgba(220,38,38,0.18)",  text: "#B91C1C" },
-                  ];
-                  const c = chipColors[i % chipColors.length];
-                  return (
-                    <span key={i} style={{
-                      fontSize: 10, fontWeight: 700,
-                      color: dark ? c.text.replace(/[0-9A-F]{2}$/i, "CC") : c.text,
-                      background: dark ? c.bg.replace("0.10","0.14").replace("0.09","0.12").replace("0.08","0.10") : c.bg,
-                      border: `1px solid ${dark ? c.border.replace("0.22","0.28").replace("0.20","0.26").replace("0.18","0.22") : c.border}`,
-                      borderRadius: 7, padding: "4px 10px",
-                      fontFamily: "'DM Sans', monospace", letterSpacing: 0.2,
-                    }}>
-                      {tag}
-                    </span>
-                  );
-                })}
+                {s.devTags.map((tag, i) => (
+                  <span key={i} style={{
+                    position: "relative",
+                    display: "inline-flex", alignItems: "center",
+                    fontSize: 10.5, fontWeight: 650,
+                    letterSpacing: 0.25,
+                    fontFamily: "'DM Sans', sans-serif",
+                    color: dark ? "rgba(210,228,255,0.88)" : "rgba(20,45,110,0.82)",
+                    background: dark
+                      ? "linear-gradient(145deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.028) 100%)"
+                      : "linear-gradient(145deg, rgba(255,255,255,0.92) 0%, rgba(230,240,255,0.72) 100%)",
+                    border: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.88)"}`,
+                    borderRadius: 999,
+                    padding: "5px 13px",
+                    backdropFilter: "blur(10px) saturate(1.4)",
+                    WebkitBackdropFilter: "blur(10px) saturate(1.4)",
+                    boxShadow: dark
+                      ? "0 3px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 0 rgba(0,0,0,0.20)"
+                      : "0 2px 8px rgba(60,100,200,0.12), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(160,190,240,0.22)",
+                    textShadow: dark
+                      ? "0 1px 4px rgba(0,0,0,0.50)"
+                      : "0 1px 1px rgba(255,255,255,0.90)",
+                    overflow: "hidden",
+                  }}>
+                    {/* Top glass sheen */}
+                    <span style={{
+                      position: "absolute", top: 0, left: 0, right: 0,
+                      height: "50%", borderRadius: "999px 999px 50% 50%",
+                      background: dark
+                        ? "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)"
+                        : "linear-gradient(180deg, rgba(255,255,255,0.88) 0%, transparent 100%)",
+                      pointerEvents: "none",
+                    }} />
+                    <span style={{ position: "relative" }}>{tag}</span>
+                  </span>
+                ))}
               </div>
 
-              {/* Website CTA — premium gold-accented */}
+              {/* Website CTA — water glass premium 3D */}
               <div
                 className="ys-link-row"
                 onClick={() => safeOpen(DEV_WEBSITE)}
@@ -2028,34 +2042,83 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 onKeyDown={e => e.key === "Enter" && safeOpen(DEV_WEBSITE)}
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
-                  background: "linear-gradient(135deg, #010B1F 0%, #021236 50%, #010D28 100%)",
-                  border: "1px solid rgba(201,168,76,0.30)",
-                  borderRadius: R.md, padding: "13px 16px",
+                  background: dark
+                    ? "linear-gradient(145deg, rgba(12,25,60,0.78) 0%, rgba(7,16,42,0.88) 60%, rgba(5,13,36,0.82) 100%)"
+                    : "linear-gradient(145deg, rgba(255,255,255,0.84) 0%, rgba(238,246,255,0.74) 55%, rgba(222,238,255,0.68) 100%)",
+                  border: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.92)"}`,
+                  borderRadius: R.md,
+                  padding: "13px 16px",
                   cursor: "pointer",
-                  boxShadow: "0 6px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
+                  boxShadow: dark
+                    ? "0 8px 28px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.40), inset 0 1.5px 0 rgba(255,255,255,0.11), inset 0 -1px 0 rgba(0,0,0,0.28)"
+                    : "0 6px 24px rgba(60,100,200,0.16), 0 2px 6px rgba(60,100,200,0.09), inset 0 1.5px 0 rgba(255,255,255,0.96), inset 0 -1px 0 rgba(160,190,240,0.28)",
                   position: "relative", overflow: "hidden",
+                  backdropFilter: "blur(18px) saturate(1.5)",
+                  WebkitBackdropFilter: "blur(18px) saturate(1.5)",
                 }}>
-                {/* CTA shimmer */}
+
+                {/* 3D top-edge glass sheen */}
                 <div style={{
-                  position: "absolute", top: 0, bottom: 0, left: 0, width: "40%",
-                  background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.08) 50%, transparent 100%)",
+                  position: "absolute", top: 0, left: 0, right: 0, height: "50%",
+                  background: dark
+                    ? "linear-gradient(180deg, rgba(255,255,255,0.09) 0%, transparent 100%)"
+                    : "linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(255,255,255,0.18) 65%, transparent 100%)",
+                  borderRadius: `${R.md}px ${R.md}px 60% 60% / ${R.md}px ${R.md}px 10px 10px`,
+                  pointerEvents: "none",
+                }} />
+
+                {/* Water shimmer sweep */}
+                <div style={{
+                  position: "absolute", top: 0, bottom: 0, left: 0, width: "55%",
+                  background: dark
+                    ? "linear-gradient(90deg, transparent 0%, rgba(120,180,255,0.055) 45%, transparent 100%)"
+                    : "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.52) 45%, transparent 100%)",
                   animation: "shz-badge-sweep 5s ease-in-out infinite",
                   pointerEvents: "none",
                 }} />
-                <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
+
+                {/* Bottom depth shadow */}
+                <div style={{
+                  position: "absolute", bottom: 0, left: 0, right: 0, height: "28%",
+                  background: dark
+                    ? "linear-gradient(0deg, rgba(0,0,0,0.22) 0%, transparent 100%)"
+                    : "linear-gradient(0deg, rgba(140,175,235,0.18) 0%, transparent 100%)",
+                  pointerEvents: "none",
+                }} />
+
+                {/* Icon + URL */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 1 }}>
                   <div style={{
-                    width: 32, height: 32, borderRadius: 9,
-                    background: "rgba(201,168,76,0.14)",
-                    border: "1px solid rgba(201,168,76,0.30)",
+                    width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+                    background: dark
+                      ? "linear-gradient(145deg, rgba(80,140,240,0.22) 0%, rgba(50,90,190,0.16) 100%)"
+                      : "linear-gradient(145deg, rgba(255,255,255,0.96) 0%, rgba(210,230,255,0.76) 100%)",
+                    border: `1px solid ${dark ? "rgba(120,180,255,0.22)" : "rgba(180,215,255,0.65)"}`,
+                    boxShadow: dark
+                      ? "inset 0 1.5px 0 rgba(255,255,255,0.14), 0 4px 10px rgba(0,0,0,0.32)"
+                      : "inset 0 1.5px 0 rgba(255,255,255,1.0), 0 3px 8px rgba(80,130,220,0.18)",
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
                   }}>🌐</div>
-                  <div style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", fontFamily: bf }}>
+                  <div style={{
+                    fontSize: 11.5, fontWeight: 700,
+                    color: dark ? "rgba(215,232,255,0.92)" : "#1A3572",
+                    fontFamily: bf,
+                    textShadow: dark
+                      ? "0 1px 5px rgba(0,0,0,0.55)"
+                      : "0 1px 2px rgba(255,255,255,0.95)",
+                  }}>
                     {s.devLink}
                   </div>
                 </div>
+
+                {/* Chevron */}
                 <div style={{
-                  color: PRO_GOLD_LT, fontSize: 18, position: "relative",
-                  filter: "drop-shadow(0 0 4px rgba(201,168,76,0.50))",
+                  position: "relative", zIndex: 1,
+                  color: dark ? "rgba(170,215,255,0.82)" : "#2254B0",
+                  fontSize: 20,
+                  filter: dark
+                    ? "drop-shadow(0 0 5px rgba(100,170,255,0.38))"
+                    : "drop-shadow(0 1px 3px rgba(80,130,220,0.28))",
                 }}>›</div>
               </div>
 
