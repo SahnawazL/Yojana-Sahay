@@ -2084,7 +2084,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                     background: dark
                       ? "linear-gradient(145deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.028) 100%)"
                       : "linear-gradient(145deg, rgba(255,255,255,0.92) 0%, rgba(230,240,255,0.72) 100%)",
-                    border: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.88)"}`,
+                    border: `1px solid ${dark ? "rgba(201,168,76,0.38)" : "rgba(201,168,76,0.42)"}`,
                     borderRadius: 999,
                     padding: "5px 13px",
                     backdropFilter: "blur(10px) saturate(1.4)",
@@ -2124,7 +2124,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                   background: dark
                     ? "linear-gradient(145deg, rgba(12,25,60,0.78) 0%, rgba(7,16,42,0.88) 60%, rgba(5,13,36,0.82) 100%)"
                     : "linear-gradient(145deg, rgba(255,255,255,0.84) 0%, rgba(238,246,255,0.74) 55%, rgba(222,238,255,0.68) 100%)",
-                  border: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.92)"}`,
+                  border: `1px solid ${dark ? "rgba(201,168,76,0.38)" : "rgba(201,168,76,0.42)"}`,
                   borderRadius: R.md,
                   padding: "13px 16px",
                   cursor: "pointer",
@@ -2543,7 +2543,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
               </div>
               <div style={{
                 fontSize: 8, fontWeight: 500,
-                color: dark ? "rgba(255,255,255,0.13)" : "rgba(10,18,48,0.26)",
+                color: dark ? "rgba(255,255,255,0.42)" : "rgba(10,18,48,0.26)",
                 letterSpacing: 1.1, fontFamily: "monospace",
               }}>
                 {s.platformId}
