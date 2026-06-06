@@ -1,6 +1,6 @@
 /**
  * YojanaSahay — AboutTab.jsx
- * Premium Official About Screen · v2.0
+ * Premium Civic About Screen · v2.0
  *
  * Copyright (c) 2026 Sahnawaz Ahmed Laskar
  * SPDX-License-Identifier: MIT
@@ -80,7 +80,7 @@ const fontFamily = (lang) =>
 const STRINGS = {
   en: {
     appName:      "YojanaSahay",
-    tagline:      "Free Government Scheme Finder",
+    tagline:      "India's Free Scheme Discovery App",
     madeInIndia:  "Made in India 🇮🇳",
     version:      "Current Release · Beta",
 
@@ -110,7 +110,7 @@ const STRINGS = {
       {
         icon:"🎯", color:SAFFRON,
         title:"Eligibility Checker",
-        desc:"A six-step guided questionnaire that analyses your profile and instantly presents the schemes you qualify for — eliminating guesswork and saving time.",
+        desc:"An adaptive 7–11 question checker that analyses your profile and instantly presents the schemes you qualify for — with AI guidance on your eligibility results.",
       },
       {
         icon:"🤖", color:"#8B5CF6",
@@ -120,7 +120,7 @@ const STRINGS = {
       {
         icon:"📬", color:IND_GREEN,
         title:"Report & Resolution Centre",
-        desc:"An in-app support system for submitting bugs, scheme requests, general queries, and feedback. Every submission is reviewed by the YojanaSahay team with status tracking and official response.",
+        desc:"An in-app support system for submitting bugs, scheme requests, general queries, and feedback. Every submission is reviewed by the YojanaSahay team with status tracking and direct team response.",
       },
     ],
 
@@ -133,6 +133,7 @@ const STRINGS = {
       { icon:"📖", text:"Designed for reading-friendly pacing for all users" },
       { icon:"🔒", text:"Per-account conversation history — private and isolated" },
       { icon:"⚡", text:"Powered by Groq AI for high-speed, accurate responses" },
+      { icon:"📊", text:"Get AI-powered guidance on your eligibility checker results — understand why you qualify and what to do next" },
     ],
 
     proTitle:    "YojanaSahay Pro",
@@ -180,7 +181,7 @@ const STRINGS = {
       { icon:"💡", color:SAFFRON,   label:"Feedback & Suggestions",  desc:"Share suggestions to improve the platform for citizens across India." },
     ],
     reportFlow:
-      "All submissions are stored securely and reviewed by the YojanaSahay priority support team. Logged-in users receive automatic email confirmation upon submission and are notified when the team provides an official response. Status transitions — Open → In Progress → Resolved — are visible in real time within the app.",
+      "All submissions are stored securely and reviewed by the YojanaSahay priority support team. Logged-in users receive automatic email confirmation upon submission and are notified when the team provides a full response. Status transitions — Open → In Progress → Resolved — are visible in real time within the app.",
 
     legalTitle:  "Legal & Disclaimer",
     legalPoints: [
@@ -190,12 +191,12 @@ const STRINGS = {
     ],
 
     techTitle: "Technology & Infrastructure",
-    techBody:  "YojanaSahay is engineered on a production-grade, security-first technology stack — combining trusted cloud infrastructure, globally distributed deployment, and version-controlled development to ensure reliability, transparency, and performance for every citizen across India.",
+    techBody:  "YojanaSahay is engineered on a production-grade, security-first technology stack — combining proven cloud infrastructure, globally distributed deployment, and version-controlled development to ensure reliability, transparency, and performance for every citizen across India.",
     techStack: [
       { icon:"🔥", name:"Firebase",  role:"Authentication, Cloud Firestore Database & Real-time Sync",                                                     badge:null },
       { icon:"⚡", name:"Groq AI",   role:"AI Assistant — High-speed, Low-latency Inference Engine",                                                       badge:null },
       { icon:"📧", name:"EmailJS",   role:"Automated Email Confirmations & Support Alerts",                                                                 badge:null },
-      { icon:"▲",  name:"Vercel",    role:"Global Deployment & Hosting — Edge Network ensures fast, secure delivery across India",                          badge:"Trusted Hosting" },
+      { icon:"▲",  name:"Vercel",    role:"Global Deployment & Hosting — Edge Network ensures fast, secure delivery across India",                          badge:"Global Edge" },
       { icon:"🐙", name:"GitHub",    role:"Source Code & Version Control — Full development history, issue tracking, and secure build pipeline",            badge:"Open Dev" },
     ],
 
@@ -208,7 +209,7 @@ const STRINGS = {
       { icon:"🚫", text:"No Third-Party Sharing — We do not sell, rent, license, share, or disclose your personal information to any third-party individual, company, or organisation — under any circumstances, including commercial partnerships or advertising. YojanaSahay is, and will always remain, an entirely ad-free platform." },
       { icon:"☁️",  text:"Secure Cloud Storage — All user data is stored on Firebase, a Google Cloud platform that implements AES-256 encryption at rest and TLS 1.2+ encryption in transit. Firebase complies with major international security standards including ISO 27001, SOC 1, SOC 2, and SOC 3, and undergoes regular independent security audits." },
       { icon:"💬", text:"AI Conversation Privacy — Your conversations with the AI Assistant are stored securely in your private Firestore account, fully isolated from all other users. Your conversations are never shared with third parties, never disclosed publicly, and never used to train, fine-tune, or evaluate any external AI model or service." },
-      { icon:"📧", text:"Email Usage Policy — Your email address is used strictly for: (a) account authentication via Firebase Auth, (b) automatic submission confirmations when you file a report or query, and (c) official responses from the platform support team. We do not send newsletters, promotional campaigns, or any unsolicited marketing communications — ever." },
+      { icon:"📧", text:"Email Usage Policy — Your email address is used strictly for: (a) account authentication via Firebase Auth, (b) automatic submission confirmations when you file a report or query, and (c) direct replies from the support team. We do not send newsletters, promotional campaigns, or any unsolicited marketing communications — ever." },
       { icon:"🛡️", text:"Data Access Controls — Access to your personal data is restricted exclusively to authorised platform administrators, and only when required to investigate or resolve a support request you have submitted. All administrative access is logged. Your data is never accessed, analysed, or processed for commercial, advertising, or profiling purposes." },
       { icon:"🍪", text:"Cookies & Analytics — YojanaSahay does not use third-party advertising cookies, retargeting pixels, or behavioural tracking tools. Any anonymous usage analytics collected are used solely to measure platform performance and improve the citizen experience. No individual-level behavioural profiling is performed at any time." },
       { icon:"👤", text:"Minors & Sensitive Data — YojanaSahay does not knowingly collect personal data from individuals under the age of 13. The platform does not request, accept, or store highly sensitive personal details such as Aadhaar numbers, PAN card information, bank account or financial data, biometric identifiers, or government-issued ID numbers. Citizens are strongly advised never to share such information within the app." },
@@ -218,11 +219,15 @@ const STRINGS = {
       { icon:"⚖️", text:"Governing Law — This Privacy Policy is governed by the laws of India, including applicable provisions of the Information Technology Act, 2000, the IT (Amendment) Act, 2008, and the Digital Personal Data Protection Act, 2023 (DPDPA). Any disputes arising under or in connection with this policy shall be subject to the exclusive jurisdiction of competent courts in India." },
     ],
 
-    devTitle:   "About the Developer",
-    devBody:    "YojanaSahay is designed, developed, and maintained by Sahnawaz Ahmed Laskar — an independent developer with a vision to make government welfare more accessible to every citizen of India.",
-    devLink:    "Visit Official Website →",
+    devTitle:    "About the Developer",
+    devName:     "Sahnawaz Ahmed Laskar",
+    devRole:     "Full Stack Developer · UI/UX Designer",
+    devLocation: "Silchar, Assam · India",
+    devTagline:  "Sole architect of YojanaSahay — every component, API integration, database entry, and design decision built and maintained independently.",
+    devTags:     ["React PWA", "Firebase", "Groq AI", "Vercel Edge", "UI/UX"],
+    devLink:     "sahnawaz-portfolio.vercel.app →",
 
-    contactTitle: "Official Contact",
+    contactTitle: "Developer Contact",
     contactNote:  "For platform-related inquiries only. For scheme-specific support, please use the in-app Report & Query feature.",
 
     lastUpdated: "Last Updated · May 2026",
@@ -281,9 +286,9 @@ const STRINGS = {
     featuresTitle: "मुख्य क्षमताएं",
     features: [
       { icon:"🔍", color:NAVY,      title:"स्मार्ट योजना खोज",       desc:"केंद्र और राज्य सरकार की योजनाओं को श्रेणी, राज्य और लाभार्थी प्रकार के अनुसार खोजें। पात्रता, लाभ और आवेदन मार्गदर्शन सहित तत्काल परिणाम।" },
-      { icon:"🎯", color:SAFFRON,   title:"पात्रता जांचक",            desc:"छह सरल प्रश्नों के माध्यम से आपकी प्रोफाइल का विश्लेषण कर तुरंत पात्र योजनाओं की सूची प्रस्तुत करता है।" },
+      { icon:"🎯", color:SAFFRON,   title:"पात्रता जांचक",            desc:"आपके व्यवसाय के अनुसार 7–11 अनुकूलित प्रश्नों के माध्यम से पात्र योजनाओं की सूची तुरंत प्रस्तुत करता है — और AI से अपनी पात्रता पर मार्गदर्शन पाएं।" },
       { icon:"🤖", color:"#8B5CF6", title:"AI सहायक",                 desc:"हिंदी और अंग्रेजी में योजना संबंधी प्रश्नों के लिए वास्तविक समय AI सहायक। व्यक्तिगत मार्गदर्शन, योजना तुलना और अगले कदमों की जानकारी।" },
-      { icon:"📬", color:IND_GREEN, title:"रिपोर्ट और समाधान केंद्र", desc:"बग, योजना अनुरोध, सामान्य प्रश्न और सुझाव सबमिट करने की इन-ऐप सुविधा। टीम द्वारा हर सबमिशन की समीक्षा और आधिकारिक उत्तर।" },
+      { icon:"📬", color:IND_GREEN, title:"रिपोर्ट और समाधान केंद्र", desc:"बग, योजना अनुरोध, सामान्य प्रश्न और सुझाव सबमिट करने की इन-ऐप सुविधा। टीम द्वारा हर सबमिशन की समीक्षा और सीधा उत्तर।" },
     ],
 
     aiTitle:    "AI सहायक — Groq द्वारा संचालित",
@@ -295,6 +300,7 @@ const STRINGS = {
       { icon:"📖", text:"सभी उपयोगकर्ताओं के लिए पठन-अनुकूल गति से डिज़ाइन" },
       { icon:"🔒", text:"प्रति-खाता चैट इतिहास — निजी और सुरक्षित" },
       { icon:"⚡", text:"Groq AI द्वारा संचालित — तेज़ और सटीक उत्तर" },
+      { icon:"📊", text:"पात्रता जांच के परिणामों पर AI मार्गदर्शन पाएं — जानें आप क्यों पात्र हैं और आगे क्या करें" },
     ],
 
     proTitle:    "योजनासहाय Pro",
@@ -356,7 +362,7 @@ const STRINGS = {
       { icon:"🔥", name:"Firebase",  role:"प्रमाणीकरण, क्लाउड डेटाबेस और रियल-टाइम सिंक",                                                         badge:null },
       { icon:"⚡", name:"Groq AI",   role:"AI सहायक — हाई-स्पीड, लो-लेटेंसी इनफेरेंस इंजन",                                                        badge:null },
       { icon:"📧", name:"EmailJS",   role:"स्वचालित ईमेल पुष्टि और सपोर्ट अलर्ट",                                                                   badge:null },
-      { icon:"▲",  name:"Vercel",    role:"वैश्विक डिप्लॉयमेंट और होस्टिंग — एज नेटवर्क द्वारा भारत में तेज़ और सुरक्षित डिलीवरी",               badge:"Trusted Hosting" },
+      { icon:"▲",  name:"Vercel",    role:"वैश्विक डिप्लॉयमेंट और होस्टिंग — एज नेटवर्क द्वारा भारत में तेज़ और सुरक्षित डिलीवरी",               badge:"Global Edge" },
       { icon:"🐙", name:"GitHub",    role:"सोर्स कोड और संस्करण नियंत्रण — पूर्ण विकास इतिहास, इश्यू ट्रैकिंग और सुरक्षित बिल्ड पाइपलाइन",     badge:"Open Dev" },
     ],
 
@@ -379,11 +385,15 @@ const STRINGS = {
       { icon:"⚖️", text:"शासी कानून — यह गोपनीयता नीति भारत के कानूनों द्वारा शासित है, जिसमें सूचना प्रौद्योगिकी अधिनियम, 2000, IT (संशोधन) अधिनियम, 2008 और डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम, 2023 (DPDPA) के लागू प्रावधान शामिल हैं। इस नीति के अंतर्गत उत्पन्न कोई भी विवाद भारत के सक्षम न्यायालयों के अनन्य अधिकार क्षेत्र के अधीन होगा।" },
     ],
 
-    devTitle:   "डेवलपर के बारे में",
-    devBody:    "योजना सहाय को Sahnawaz Ahmed Laskar द्वारा — एक स्वतंत्र डेवलपर जो भारत के प्रत्येक नागरिक तक सरकारी कल्याण को सुलभ बनाने की दृष्टि रखते हैं — डिज़ाइन, विकसित और अनुरक्षित किया गया है।",
-    devLink:    "आधिकारिक वेबसाइट देखें →",
+    devTitle:    "डेवलपर के बारे में",
+    devName:     "Sahnawaz Ahmed Laskar",
+    devRole:     "Full Stack Developer · UI/UX Designer",
+    devLocation: "सिलचर, असम · भारत",
+    devTagline:  "YojanaSahay के एकल निर्माता — हर कम्पोनेंट, API, डेटाबेस और डिज़ाइन निर्णय स्वतंत्र रूप से विकसित।",
+    devTags:     ["React PWA", "Firebase", "Groq AI", "Vercel Edge", "UI/UX"],
+    devLink:     "sahnawaz-portfolio.vercel.app →",
 
-    contactTitle: "आधिकारिक संपर्क",
+    contactTitle: "डेवलपर संपर्क",
     contactNote:  "केवल प्लेटफ़ॉर्म संबंधी पूछताछ के लिए। योजना-विशिष्ट सहायता के लिए इन-ऐप Report & Query सुविधा का उपयोग करें।",
 
     lastUpdated: "अंतिम अपडेट · मई 2026",
@@ -1665,50 +1675,161 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
 
         {/* ── ABOUT THE DEVELOPER ──────────────────────────────────────── */}
         <div className="ys-card">
-          <Card dark={dark} accentColor={NAVY}>
-            <SectionHeader title={s.devTitle} accent={NAVY} dark={dark} bf={bf} />
-            <div style={{ fontSize: 13, color: th.textMid, lineHeight: 1.85, marginBottom: 18, fontFamily: bf }}>
-              {s.devBody}
-            </div>
-            {/* Website CTA */}
-            <div
-              className="ys-link-row"
-              onClick={() => safeOpen(DEV_WEBSITE)}
-              role="link"
-              tabIndex={0}
-              aria-label="Visit developer website"
-              onKeyDown={e => e.key === "Enter" && safeOpen(DEV_WEBSITE)}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                background: `linear-gradient(135deg, ${NAVY} 0%, #1A3A8A 100%)`,
-                borderRadius: R.lg, padding: "14px 16px",
-                cursor: "pointer",
-                boxShadow: "0 8px 24px rgba(0,53,128,0.32), inset 0 1px 0 rgba(255,255,255,0.10)",
-              }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            borderRadius: R.xl,
+            overflow: "hidden",
+            border: `1.5px solid ${dark ? "rgba(0,53,128,0.45)" : "rgba(0,53,128,0.14)"}`,
+            boxShadow: dark ? "none" : "0 4px 24px rgba(0,53,128,0.08)",
+          }}>
+
+            {/* ── Header band ── */}
+            <div style={{
+              background: `linear-gradient(135deg, #001F5B 0%, ${NAVY} 55%, #1A3A8A 100%)`,
+              padding: "20px 20px 16px",
+              position: "relative", overflow: "hidden",
+            }}>
+              {/* Subtle dot grid texture */}
+              <div style={{
+                position: "absolute", inset: 0, pointerEvents: "none",
+                backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
+                backgroundSize: "18px 18px",
+              }} />
+              {/* Glow orb */}
+              <div style={{
+                position: "absolute", right: -30, top: -30,
+                width: 110, height: 110, borderRadius: "50%",
+                background: "rgba(255,255,255,0.05)", pointerEvents: "none",
+              }} />
+
+              <div style={{ display: "flex", alignItems: "center", gap: 14, position: "relative" }}>
+                {/* Monogram avatar */}
                 <div style={{
-                  width: 34, height: 34, borderRadius: 10,
-                  background: "rgba(255,255,255,0.12)",
-                  border: "1px solid rgba(255,255,255,0.20)",
-                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15,
-                }}>🌐</div>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", fontFamily: bf }}>
-                    {s.devLink}
+                  width: 52, height: 52, borderRadius: 15, flexShrink: 0,
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.07))",
+                  border: "1.5px solid rgba(255,255,255,0.24)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
+                }}>
+                  <span style={{
+                    fontSize: 18, fontWeight: 800, color: "#fff",
+                    fontFamily: "'DM Sans', sans-serif", letterSpacing: -0.5,
+                  }}>SHL</span>
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 15, fontWeight: 800, color: "#fff",
+                    letterSpacing: -0.3, fontFamily: bf, lineHeight: 1.2,
+                  }}>
+                    {s.devName}
                   </div>
-                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.50)", marginTop: 2, fontFamily: bf }}>
-                    {DEV_WEBSITE.replace("https://", "")}
+                  <div style={{
+                    fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.65)",
+                    marginTop: 3, letterSpacing: 0.2, fontFamily: bf,
+                  }}>
+                    {s.devRole}
+                  </div>
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 4, marginTop: 5,
+                  }}>
+                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.38)" }}>📍</span>
+                    <span style={{
+                      fontSize: 9, color: "rgba(255,255,255,0.42)",
+                      fontFamily: bf, letterSpacing: 0.3,
+                    }}>
+                      {s.devLocation}
+                    </span>
                   </div>
                 </div>
+
+                {/* "INDIE" badge */}
+                <div style={{
+                  background: "rgba(255,255,255,0.10)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 7, padding: "4px 8px", flexShrink: 0,
+                }}>
+                  <span style={{
+                    fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.60)",
+                    letterSpacing: 1.2, textTransform: "uppercase", fontFamily: bf,
+                  }}>INDIE DEV</span>
+                </div>
               </div>
-              <div style={{
-                color: "rgba(255,255,255,0.55)", fontSize: 18, lineHeight: 1,
-              }}>›</div>
             </div>
-          </Card>
+
+            {/* ── Body ── */}
+            <div style={{
+              background: dark ? th.card : "#F8FAFF",
+              padding: "16px 20px 18px",
+            }}>
+
+              {/* Tagline */}
+              <p style={{
+                fontSize: 12.5, color: th.textMid, lineHeight: 1.8,
+                margin: "0 0 16px", fontFamily: bf,
+              }}>
+                {s.devTagline}
+              </p>
+
+              {/* Tech stack chips */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 18 }}>
+                {s.devTags.map((tag, i) => {
+                  const chipColors = [
+                    { bg: "rgba(20,110,190,0.10)", border: "rgba(20,110,190,0.22)", text: "#1A6EB5" },
+                    { bg: "rgba(255,100,0,0.09)",  border: "rgba(255,100,0,0.20)",  text: "#D45A00" },
+                    { bg: "rgba(139,92,246,0.10)", border: "rgba(139,92,246,0.22)", text: "#7C3AED" },
+                    { bg: "rgba(0,150,80,0.09)",   border: "rgba(0,150,80,0.20)",   text: "#006B38" },
+                    { bg: "rgba(220,38,38,0.08)",  border: "rgba(220,38,38,0.18)",  text: "#B91C1C" },
+                  ];
+                  const c = chipColors[i % chipColors.length];
+                  return (
+                    <span key={i} style={{
+                      fontSize: 10, fontWeight: 700,
+                      color: dark ? c.text.replace(/[0-9A-F]{2}$/i, "CC") : c.text,
+                      background: dark ? c.bg.replace("0.10","0.14").replace("0.09","0.12").replace("0.08","0.10") : c.bg,
+                      border: `1px solid ${dark ? c.border.replace("0.22","0.28").replace("0.20","0.26").replace("0.18","0.22") : c.border}`,
+                      borderRadius: 7, padding: "4px 10px",
+                      fontFamily: "'DM Sans', monospace", letterSpacing: 0.2,
+                    }}>
+                      {tag}
+                    </span>
+                  );
+                })}
+              </div>
+
+              {/* Website CTA */}
+              <div
+                className="ys-link-row"
+                onClick={() => safeOpen(DEV_WEBSITE)}
+                role="link"
+                tabIndex={0}
+                aria-label="Visit developer portfolio"
+                onKeyDown={e => e.key === "Enter" && safeOpen(DEV_WEBSITE)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  background: `linear-gradient(135deg, ${NAVY} 0%, #1A3A8A 100%)`,
+                  borderRadius: R.md, padding: "12px 15px",
+                  cursor: "pointer",
+                  boxShadow: "0 6px 20px rgba(0,53,128,0.28), inset 0 1px 0 rgba(255,255,255,0.10)",
+                }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{
+                    width: 30, height: 30, borderRadius: 9,
+                    background: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.20)",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
+                  }}>🌐</div>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", fontFamily: bf }}>
+                    {s.devLink}
+                  </div>
+                </div>
+                <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 18 }}>›</div>
+              </div>
+
+            </div>
+          </div>
         </div>
 
-        {/* ── OFFICIAL CONTACT ─────────────────────────────────────────── */}
+        {/* ── DEVELOPER CONTACT ─────────────────────────────────────────── */}
         <div className="ys-card">
           <Card dark={dark} accentColor={SAFFRON}>
             <SectionHeader title={s.contactTitle} accent={SAFFRON} dark={dark} bf={bf} />
@@ -1741,7 +1862,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                   {CONTACT_EMAIL}
                 </div>
                 <div style={{ fontSize: 10, color: th.textSub, marginTop: 2, fontFamily: bf }}>
-                  {isHindi ? "आधिकारिक ईमेल पता" : "Official Email Address"}
+                  {isHindi ? "डेवलपर ईमेल" : "Developer Email"}
                 </div>
               </div>
               <div style={{ color: th.textSub, fontSize: 16 }}>›</div>
@@ -1780,7 +1901,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
               onClick={() => {
                 if (typeof navigator !== "undefined" && navigator.share) {
                   navigator.share({
-                    title: "YojanaSahay — Free Government Scheme Finder",
+                    title: "YojanaSahay — India's Free Scheme Discovery",
                     text: "Find government schemes you qualify for. Free, bilingual, and made in India 🇮🇳",
                     url: "https://yojanasahay.vercel.app",
                   }).catch(() => {/* user cancelled or not supported — silent fail */});
