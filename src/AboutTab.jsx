@@ -1424,50 +1424,88 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
         {/* ── REPORT & RESOLUTION ──────────────────────────────────────── */}
         <div className="ys-card">
           <Card dark={dark}>
-            <SectionHeader title={s.reportTitle} accent={IND_GREEN} dark={dark} bf={bf} />
+            <SectionHeader title={s.reportTitle} accent={NAVY} dark={dark} bf={bf} />
+
+            {/* Subtitle — quiet eyebrow */}
             <div style={{
-              fontSize: 11, fontWeight: 600, color: IND_GREEN,
-              letterSpacing: 0.4, marginBottom: 10, fontFamily: bf,
+              fontSize: 10, fontWeight: 700, letterSpacing: 1.2,
+              textTransform: "uppercase",
+              color: dark ? "rgba(255,255,255,0.26)" : th.textSub,
+              marginBottom: 12, fontFamily: bf,
             }}>
               {s.reportSubtitle}
             </div>
-            <div style={{ fontSize: 13, color: th.textMid, lineHeight: 1.8, marginBottom: 18, fontFamily: bf }}>
+
+            {/* Body */}
+            <div style={{ fontSize: 13, color: th.textMid, lineHeight: 1.8, marginBottom: 20, fontFamily: bf }}>
               {s.reportBody}
             </div>
 
-            {/* 2×2 report type grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+            {/* Report type list — numbered, no emojis, unified */}
+            <div style={{
+              background: dark ? "rgba(255,255,255,0.025)" : th.card2,
+              border: `1px solid ${th.border}`,
+              borderRadius: R.lg,
+              overflow: "hidden",
+              marginBottom: 16,
+            }}>
               {s.reportTypes.map((rt, i) => (
                 <div key={i} style={{
-                  background: dark ? `${rt.color}12` : `${rt.color}07`,
-                  border: `1px solid ${rt.color}28`,
-                  borderRadius: R.lg, padding: "14px 12px",
+                  display: "flex", alignItems: "flex-start", gap: 14,
+                  padding: "15px 16px",
+                  borderBottom: i < s.reportTypes.length - 1
+                    ? `1px solid ${th.divider}`
+                    : "none",
                 }}>
-                  <div style={{ fontSize: 20, marginBottom: 8 }}>{rt.icon}</div>
+                  {/* Number pill */}
                   <div style={{
-                    fontSize: 11, fontWeight: 700, color: rt.color,
-                    marginBottom: 5, lineHeight: 1.35, fontFamily: bf,
+                    width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+                    background: dark
+                      ? "rgba(255,255,255,0.07)"
+                      : "linear-gradient(145deg, #fff 0%, #EEF2FC 100%)",
+                    border: `1px solid ${th.border2}`,
+                    boxShadow: dark ? "none" : "inset 0 1px 0 rgba(255,255,255,0.9)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 9, fontWeight: 800,
+                    color: dark ? "rgba(255,255,255,0.35)" : th.textSub,
+                    fontFamily: "monospace", letterSpacing: 0.4,
+                    marginTop: 1,
                   }}>
-                    {rt.label}
+                    {String(i + 1).padStart(2, "0")}
                   </div>
-                  <div style={{ fontSize: 10, color: th.textSub, lineHeight: 1.55, fontFamily: bf }}>
-                    {rt.desc}
+
+                  {/* Label + desc */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+                    <div style={{
+                      fontSize: 12.5, fontWeight: 700,
+                      color: th.text, fontFamily: bf, lineHeight: 1.3,
+                    }}>
+                      {rt.label}
+                    </div>
+                    <div style={{
+                      fontSize: 11, color: th.textMid, lineHeight: 1.65, fontFamily: bf,
+                    }}>
+                      {rt.desc}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Flow note */}
+            {/* Flow note — left-accent info block */}
             <div style={{
-              background: dark ? `${IND_GREEN}12` : `${IND_GREEN}07`,
-              border: `1px solid ${IND_GREEN}28`,
-              borderRadius: R.md, padding: "13px 15px",
+              display: "flex", gap: 14, alignItems: "flex-start",
+              background: dark ? "rgba(255,255,255,0.03)" : th.card2,
+              border: `1px solid ${th.border}`,
+              borderRadius: R.md, padding: "14px 16px",
             }}>
-              <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-                <div style={{ fontSize: 15, flexShrink: 0, paddingTop: 1 }}>📌</div>
-                <div style={{ fontSize: 11, color: th.textMid, lineHeight: 1.75, fontFamily: bf }}>
-                  {s.reportFlow}
-                </div>
+              <div style={{
+                width: 3, borderRadius: 99, flexShrink: 0, alignSelf: "stretch",
+                minHeight: 20,
+                background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY}44 100%)`,
+              }} />
+              <div style={{ fontSize: 11, color: th.textMid, lineHeight: 1.85, fontFamily: bf }}>
+                {s.reportFlow}
               </div>
             </div>
           </Card>
@@ -1501,35 +1539,86 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
         {/* ── USER SUPPORT & COMPLAINTS ────────────────────────────────── */}
         <div className="ys-card">
           <div style={{
-            background: dark ? "rgba(220,38,38,0.07)" : "rgba(220,38,38,0.03)",
+            background: dark ? `${NAVY}18` : `${NAVY}07`,
             borderRadius: R.xl, padding: "24px 20px",
-            border: "1px solid rgba(220,38,38,0.18)",
+            border: `1px solid ${NAVY}2A`,
           }}>
-            <SectionHeader title={s.grievanceTitle} accent="#DC2626" dark={dark} bf={bf} />
+            <SectionHeader title={s.grievanceTitle} accent={NAVY} dark={dark} bf={bf} />
             <div style={{ fontSize: 13, color: th.textMid, lineHeight: 1.85, marginBottom: 16, fontFamily: bf }}>
               {s.grievanceBody}
             </div>
+
+            {/* Admin identity badge */}
             <div style={{
-              background: dark ? "rgba(255,255,255,0.04)" : "#FFFFFF",
-              border: "1px solid rgba(220,38,38,0.18)",
+              background: dark
+                ? "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.03) 100%)"
+                : "linear-gradient(135deg, #FFFFFF 0%, #F4F7FF 100%)",
+              border: `1px solid ${dark ? `${NAVY}35` : `${NAVY}18`}`,
               borderRadius: R.md, padding: "14px 16px",
-              display: "flex", flexDirection: "column", gap: 7,
-              boxShadow: dark ? "none" : "0 1px 4px rgba(220,38,38,0.06)",
+              display: "flex", flexDirection: "column", gap: 10,
+              boxShadow: dark ? "none" : `0 2px 8px ${NAVY}0C`,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#DC2626", fontFamily: bf }}>
-                📋 {s.grievanceNote}
+
+              {/* Administrator row */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+                  background: dark ? `${NAVY}30` : `${NAVY}0E`,
+                  border: `1px solid ${dark ? `${NAVY}50` : `${NAVY}20`}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 15,
+                }}>🪪</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <div style={{
+                    fontSize: 9, fontWeight: 700, letterSpacing: 1.1,
+                    textTransform: "uppercase",
+                    color: dark ? `rgba(180,200,255,0.50)` : `${NAVY}88`,
+                    fontFamily: bf,
+                  }}>
+                    {isHindi ? "प्लेटफ़ॉर्म प्रशासक" : "Platform Administrator"}
+                  </div>
+                  <div style={{
+                    fontSize: 13, fontWeight: 700,
+                    color: dark ? "rgba(220,232,255,0.90)" : th.text,
+                    fontFamily: bf, letterSpacing: -0.1,
+                  }}>
+                    Sahnawaz Ahmed Laskar
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: th.textMid, fontFamily: bf }}>
-                📧 {CONTACT_EMAIL}
-              </div>
+
+              {/* Thin divider */}
               <div style={{
-                height: 1, background: `linear-gradient(to right, transparent, rgba(220,38,38,0.18), transparent)`,
+                height: 1,
+                background: dark
+                  ? `linear-gradient(90deg, transparent, ${NAVY}40, transparent)`
+                  : `linear-gradient(90deg, transparent, ${NAVY}18, transparent)`,
               }} />
-              <div style={{ fontSize: 10, color: th.textSub, fontFamily: bf, lineHeight: 1.5 }}>
-                {isHindi
-                  ? "⚡ तत्काल पुष्टि ईमेल  •  ✅ 72 घंटे में समाधान"
-                  : "⚡ Instant confirmation email  •  ✅ Resolution within 72 hours"}
+
+              {/* Email + SLA row */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  fontSize: 11.5, fontWeight: 600,
+                  color: dark ? "rgba(180,210,255,0.70)" : NAVY,
+                  fontFamily: bf,
+                }}>
+                  <span style={{ fontSize: 13 }}>📧</span>
+                  {CONTACT_EMAIL}
+                </div>
+                <div style={{
+                  fontSize: 10, color: th.textSub, fontFamily: bf, lineHeight: 1.6,
+                  display: "flex", alignItems: "center", gap: 6,
+                }}>
+                  <span>⚡</span>
+                  <span>
+                    {isHindi
+                      ? "तत्काल पुष्टि ईमेल  ·  72 घंटे में समाधान"
+                      : "Instant confirmation email  ·  Resolution within 72 hours"}
+                  </span>
+                </div>
               </div>
+
             </div>
           </div>
         </div>
