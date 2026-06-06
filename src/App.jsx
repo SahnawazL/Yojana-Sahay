@@ -6725,7 +6725,7 @@ export default function YojanaSahay(){
   const t=T[lang];
   const isHindi=lang==="hi";
   const bf=fontFamily(lang);
-  const toggleLang=useCallback(()=>{setLangAnim(true);setTimeout(()=>{setLang(l=>l==="en"?"hi":"en");requestAnimationFrame(()=>requestAnimationFrame(()=>setLangAnim(false)));},160);},[]);
+  const toggleLang=useCallback(()=>{setLangAnim(true);setTimeout(()=>{setLang(l=>l==="en"?"hi":"en");requestAnimationFrame(()=>requestAnimationFrame(()=>setLangAnim(false)));},220);},[]);
   // Stable callbacks for ProfileTabMemo — inline arrows would break memoisation
   const handleViewChecker=useCallback(()=>setShowChecker(true),[]);
   const handleAdminOpen  =useCallback(()=>setShowAdmin(true),[]);
@@ -6903,7 +6903,7 @@ export default function YojanaSahay(){
   mountedTabsRef.current.add(activeTab);
 
   return(
-    <div className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0:1,transition:"opacity 0.15s ease,background 0.3s"}}>
+    <div className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",filter:langAnim?"blur(6px)":"blur(0px)",opacity:langAnim?0.55:1,transform:langAnim?"scale(0.982)":"scale(1)",transition:"filter 0.22s ease,opacity 0.22s ease,transform 0.22s ease,background 0.3s"}}>
       {/* ── SPLASH SCREEN — shown once per session ── */}
       {!splashDone&&(
         <SplashScreen onDone={()=>{
