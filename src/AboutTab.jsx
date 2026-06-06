@@ -602,10 +602,10 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
       100% { transform: translateX(400%); }
     }
     @keyframes shz-sweep {
-      0%   { transform: translateX(-22px); opacity: 0; }
-      12%  { opacity: 0.85; }
-      88%  { opacity: 0.85; }
-      100% { transform: translateX(104px); opacity: 0; }
+      0%   { transform: translateX(-140px); opacity: 0; }
+      8%   { opacity: 1; }
+      28%  { transform: translateX(160px); opacity: 0; }
+      100% { transform: translateX(160px); opacity: 0; }
     }
     @keyframes shz-badge-sweep {
       0%   { transform: translateX(-160%); }
@@ -1804,22 +1804,31 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                           }}
                         />
 
-                        {/* Diagonal shimmer sweep */}
+                        {/* Premium gold light sweep — wide, soft, slow */}
                         <div style={{
                           position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 3,
                         }}>
                           <div style={{
                             position: "absolute",
-                            top: "-20%", width: 24, height: "140%",
-                            background: "linear-gradient(105deg, transparent 0%, rgba(255,244,192,0.15) 40%, rgba(255,255,255,0.32) 50%, rgba(255,244,192,0.15) 60%, transparent 100%)",
-                            animation: "shz-sweep 3.8s ease-in-out infinite",
+                            top: "-10%",
+                            left: 0,
+                            width: 90,
+                            height: "120%",
+                            background: "linear-gradient(105deg, transparent 0%, rgba(201,168,76,0.04) 20%, rgba(255,244,192,0.13) 40%, rgba(255,255,255,0.18) 50%, rgba(255,244,192,0.13) 60%, rgba(201,168,76,0.04) 80%, transparent 100%)",
+                            animation: "shz-sweep 5s ease-in-out infinite",
                           }} />
                         </div>
 
-                        {/* Glassy top reflection */}
+                        {/* Permanent glassy top sheen */}
                         <div style={{
-                          position: "absolute", top: 0, left: 0, right: 0, height: "42%",
-                          background: "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%)",
+                          position: "absolute", top: 0, left: 0, right: 0, height: "50%",
+                          background: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,244,192,0.04) 60%, transparent 100%)",
+                          pointerEvents: "none", zIndex: 4,
+                        }} />
+                        {/* Permanent soft bottom shadow */}
+                        <div style={{
+                          position: "absolute", bottom: 0, left: 0, right: 0, height: "35%",
+                          background: "linear-gradient(0deg, rgba(0,0,0,0.35) 0%, transparent 100%)",
                           pointerEvents: "none", zIndex: 4,
                         }} />
 
