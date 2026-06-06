@@ -4029,16 +4029,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
         />
       )}
 
-      {/* ══ CLEANUP — Delete old resolved reports + old usage data ══ */}
+      {/* ══ CLEANUP — Delete old resolved reports ══ */}
       {activeSection === "cleanup" && (
         <>
           <ResolvedReportsCleaner
             dark={dark}
             onDeleteDone={fetchReports}
-          />
-          <UsageDataCleaner
-            dark={dark}
-            onDeleteDone={fetchUsage}
           />
           <div style={{ height: 20 }} />
         </>
