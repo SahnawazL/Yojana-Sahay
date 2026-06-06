@@ -202,7 +202,7 @@ const STRINGS = {
     ],
 
     privacyTitle:   "Privacy Policy",
-    privacyEyebrow: "PRIVACY POLICY",
+    privacyEyebrow: "YOUR DATA & RIGHTS",
     privacyIntro:
       "YojanaSahay is committed to protecting your privacy. This policy explains how your data is collected, used, and safeguarded.",
     privacyPoints: [
@@ -212,12 +212,7 @@ const STRINGS = {
       { icon:"💬", text:"AI Conversation Privacy — Your conversations with the AI Assistant are stored securely in your private Firestore account, fully isolated from all other users. Your conversations are never shared with third parties, never disclosed publicly, and never used to train, fine-tune, or evaluate any external AI model or service." },
       { icon:"📧", text:"Email Usage Policy — Your email address is used strictly for: (a) account authentication via Firebase Auth, (b) automatic submission confirmations when you file a report or query, and (c) direct replies from the support team. We do not send newsletters, promotional campaigns, or any unsolicited marketing communications — ever." },
       { icon:"🛡️", text:"Data Access Controls — Access to your personal data is restricted exclusively to authorised platform administrators, and only when required to investigate or resolve a support request you have submitted. All administrative access is logged. Your data is never accessed, analysed, or processed for commercial, advertising, or profiling purposes." },
-      { icon:"🍪", text:"Cookies & Analytics — YojanaSahay does not use third-party advertising cookies, retargeting pixels, or behavioural tracking tools. Any anonymous usage analytics collected are used solely to measure platform performance and improve the citizen experience. No individual-level behavioural profiling is performed at any time." },
-      { icon:"👤", text:"Minors & Sensitive Data — YojanaSahay does not knowingly collect personal data from individuals under the age of 13. The platform does not request, accept, or store highly sensitive personal details such as Aadhaar numbers, PAN card information, bank account or financial data, biometric identifiers, or government-issued ID numbers. Citizens are strongly advised never to share such information within the app." },
-      { icon:"🌍", text:"Data Residency — Your data is stored and processed on Firebase infrastructure, which may utilise globally distributed Google Cloud data centres. Google Cloud maintains robust cross-border data protection agreements and complies with applicable international data protection frameworks to ensure your information is safeguarded regardless of the processing location." },
-      { icon:"🗑️", text:"Your Rights & Data Deletion — You have the right to access, correct, export, or permanently delete your account and all associated personal data at any time. To exercise any of these rights, contact us at yojanasahayofficial@gmail.com. Upon a verified deletion request, all personally identifiable information will be permanently and irreversibly removed from our systems within 30 calendar days." },
-      { icon:"🔄", text:"Policy Updates — This Privacy Policy may be updated periodically to reflect improvements in our data practices or changes in applicable law. Any material updates will be clearly communicated within the app prior to taking effect. Your continued use of YojanaSahay following such notification will constitute your acceptance of the revised policy." },
-      { icon:"⚖️", text:"Governing Law — This Privacy Policy is governed by the laws of India, including applicable provisions of the Information Technology Act, 2000, the IT (Amendment) Act, 2008, and the Digital Personal Data Protection Act, 2023 (DPDPA). Any disputes arising under or in connection with this policy shall be subject to the exclusive jurisdiction of competent courts in India." },
+      { icon:"⚖️", text:"Your Rights, Protections & Compliance — YojanaSahay never uses tracking cookies, retargeting pixels, or behavioural profiling tools. The platform never collects sensitive identifiers such as Aadhaar numbers, PAN cards, bank account details, or biometric data — citizens are strongly advised never to share such information within the app. You have the right to access, correct, export, or permanently delete your data at any time by contacting yojanasahayofficial@gmail.com; all verified deletion requests are fulfilled within 30 calendar days. Any updates to this policy will be communicated within the app before taking effect. This policy is governed by the laws of India, including the Digital Personal Data Protection Act, 2023 (DPDPA), and any disputes shall be subject to the exclusive jurisdiction of competent courts in India." },
     ],
 
     devTitle:    "About the Developer",
@@ -368,7 +363,7 @@ const STRINGS = {
     ],
 
     privacyTitle:   "गोपनीयता नीति",
-    privacyEyebrow: "गोपनीयता नीति",
+    privacyEyebrow: "आपका डेटा और अधिकार",
     privacyIntro:
       "योजना सहाय आपकी गोपनीयता की रक्षा के लिए प्रतिबद्ध है। यह नीति बताती है कि आपका डेटा कैसे एकत्र, उपयोग और सुरक्षित किया जाता है।",
     privacyPoints: [
@@ -378,12 +373,7 @@ const STRINGS = {
       { icon:"💬", text:"AI बातचीत की गोपनीयता — AI सहायक के साथ आपकी बातचीत आपके निजी Firestore खाते में सुरक्षित रूप से संग्रहीत होती है और अन्य सभी उपयोगकर्ताओं से पूरी तरह अलग रहती है। आपकी बातचीत कभी साझा नहीं की जाती, सार्वजनिक नहीं की जाती और किसी भी बाहरी AI मॉडल को प्रशिक्षित या बेहतर बनाने के लिए उपयोग नहीं की जाती।" },
       { icon:"📧", text:"ईमेल उपयोग नीति — आपका ईमेल पता केवल इन उद्देश्यों के लिए उपयोग किया जाता है: (क) Firebase Auth के माध्यम से खाता प्रमाणीकरण, (ख) रिपोर्ट या प्रश्न सबमिट करने पर स्वचालित पुष्टि ईमेल, और (ग) प्लेटफ़ॉर्म सपोर्ट टीम के आधिकारिक उत्तर। हम न्यूज़लेटर, प्रचार अभियान या कोई भी अवांछित मार्केटिंग संदेश कभी नहीं भेजते।" },
       { icon:"🛡️", text:"डेटा पहुंच नियंत्रण — आपके व्यक्तिगत डेटा तक पहुंच केवल अधिकृत प्लेटफ़ॉर्म प्रशासकों तक सीमित है, और केवल तभी जब आपके द्वारा सबमिट किए गए सपोर्ट अनुरोध की जांच या समाधान के लिए आवश्यक हो। सभी प्रशासनिक पहुंच लॉग की जाती है। आपका डेटा कभी भी व्यावसायिक, विज्ञापन या प्रोफाइलिंग उद्देश्यों के लिए उपयोग नहीं किया जाता।" },
-      { icon:"🍪", text:"कुकी और एनालिटिक्स — योजना सहाय तृतीय-पक्ष विज्ञापन कुकी, रिटार्गेटिंग पिक्सेल या व्यवहार ट्रैकिंग टूल का उपयोग नहीं करता। एकत्र किया गया कोई भी अनाम उपयोग एनालिटिक्स डेटा केवल प्लेटफ़ॉर्म प्रदर्शन मापने और नागरिक अनुभव सुधारने के लिए उपयोग किया जाता है। किसी भी स्तर पर व्यक्तिगत व्यवहार प्रोफाइलिंग नहीं की जाती।" },
-      { icon:"👤", text:"नाबालिग और संवेदनशील डेटा — योजना सहाय 13 वर्ष से कम आयु के व्यक्तियों से जानबूझकर व्यक्तिगत डेटा एकत्र नहीं करता। प्लेटफ़ॉर्म आधार नंबर, PAN कार्ड जानकारी, बैंक खाता या वित्तीय डेटा, बायोमेट्रिक पहचान या सरकारी ID नंबर जैसी अत्यंत संवेदनशील जानकारी का अनुरोध, स्वीकृति या संग्रहण नहीं करता। नागरिकों को दृढ़ता से सलाह दी जाती है कि वे ऐसी जानकारी ऐप में कभी साझा न करें।" },
-      { icon:"🌍", text:"डेटा स्थान — आपका डेटा Firebase अवसंरचना पर संग्रहीत और संसाधित है, जो वैश्विक वितरित Google Cloud डेटा केंद्रों का उपयोग कर सकता है। Google Cloud मजबूत सीमा-पार डेटा सुरक्षा समझौतों को बनाए रखता है और लागू अंतर्राष्ट्रीय डेटा सुरक्षा नियमों का अनुपालन करता है।" },
-      { icon:"🗑️", text:"आपके अधिकार और डेटा हटाना — आपको किसी भी समय अपने खाते और सभी संबंधित व्यक्तिगत डेटा तक पहुंचने, उसे सुधारने, निर्यात करने या स्थायी रूप से हटाने का अधिकार है। इन अधिकारों का उपयोग करने के लिए yojanasahayofficial@gmail.com पर संपर्क करें। सत्यापित हटाने के अनुरोध पर, 30 कैलेंडर दिनों के भीतर सभी व्यक्तिगत पहचान योग्य जानकारी हमारे सिस्टम से स्थायी और अपरिवर्तनीय रूप से हटा दी जाएगी।" },
-      { icon:"🔄", text:"नीति अपडेट — यह गोपनीयता नीति समय-समय पर हमारी डेटा प्रथाओं में सुधार या लागू कानून में बदलाव को दर्शाने के लिए अपडेट की जा सकती है। कोई भी महत्वपूर्ण अपडेट लागू होने से पहले ऐप के भीतर स्पष्ट रूप से सूचित किया जाएगा। ऐसी सूचना के बाद योजना सहाय का उपयोग जारी रखना संशोधित नीति की आपकी स्वीकृति माना जाएगा।" },
-      { icon:"⚖️", text:"शासी कानून — यह गोपनीयता नीति भारत के कानूनों द्वारा शासित है, जिसमें सूचना प्रौद्योगिकी अधिनियम, 2000, IT (संशोधन) अधिनियम, 2008 और डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम, 2023 (DPDPA) के लागू प्रावधान शामिल हैं। इस नीति के अंतर्गत उत्पन्न कोई भी विवाद भारत के सक्षम न्यायालयों के अनन्य अधिकार क्षेत्र के अधीन होगा।" },
+      { icon:"⚖️", text:"आपके अधिकार, सुरक्षाएं और अनुपालन — योजना सहाय कभी भी ट्रैकिंग कुकी, रिटार्गेटिंग पिक्सेल या व्यवहार प्रोफाइलिंग टूल का उपयोग नहीं करता। प्लेटफ़ॉर्म आधार नंबर, PAN कार्ड, बैंक खाता विवरण या बायोमेट्रिक डेटा जैसी संवेदनशील पहचान कभी एकत्र नहीं करता — नागरिकों को दृढ़ता से सलाह दी जाती है कि ऐसी जानकारी ऐप में कभी साझा न करें। आप किसी भी समय yojanasahayofficial@gmail.com पर संपर्क करके अपना डेटा देख सकते हैं, सुधार सकते हैं, निर्यात कर सकते हैं या स्थायी रूप से हटा सकते हैं; सभी सत्यापित अनुरोध 30 कैलेंडर दिनों में पूरे किए जाते हैं। इस नीति में कोई भी बदलाव लागू होने से पहले ऐप के भीतर सूचित किया जाएगा। यह नीति भारत के कानूनों, विशेष रूप से डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम, 2023 (DPDPA) द्वारा शासित है।" },
     ],
 
     devTitle:    "डेवलपर के बारे में",
