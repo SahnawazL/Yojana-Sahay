@@ -2964,83 +2964,194 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     [...new Set(users.map(u => u.state).filter(Boolean))].sort()
   , [users]);
 
-  // ── Full Dashboard PDF Export (all sections, single button) ───────────────
+  // ── Full Dashboard PDF Export (all sections, all fields) ─────────────────
   const exportAllPDF = useCallback(() => {
-    const date = new Date().toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric" });
-    const now  = Date.now();
+    const now      = Date.now();
+    const dateStr  = new Date().toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric" });
+    const timeStr  = new Date().toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", hour12:true });
+    const isoDate  = new Date().toISOString().slice(0, 10);
 
-    // ── Helpers ───────────────────────────────────────────────────────────
-    function summaryTable(rows) {
+    // ── Emoji-strip helper (safe for PDF) ────────────────────────────────
+    function strip(str) {
+      return (str || "").replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "").trim();
+    }
+
+    // ── Mini bar SVG (for inline breakdown visualisation) ─────────────
+    function miniBar(pct, color = "#003580") {
+      return `<span style="display:inline-block;width:${Math.max(pct,2)}px;height:7px;background:${color};border-radius:2px;vertical-align:middle;"></span>`;
+    }
+
+    // ── Summary key/value table ───────────────────────────────────────
+    function summaryTable(rows, accent = "#003580") {
       return `<table class="sum-tbl"><tbody>
-        ${rows.map(([k, v]) =>
-          `<tr><td class="sum-key">${k}</td><td class="sum-val">${v}</td></tr>`
+        ${rows.map(([k, v, sub]) =>
+          `<tr>
+            <td class="sum-key">${k}</td>
+            <td class="sum-val" style="color:${accent}">${v}${sub ? `<span class="sum-sub">${sub}</span>` : ""}</td>
+          </tr>`
         ).join("")}
       </tbody></table>`;
     }
 
-    function dataTable(headers, rows) {
+    // ── Full data table ───────────────────────────────────────────────
+    function dataTable(headers, rows, colWidths = []) {
       return `<table>
-        <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+        <thead><tr>${headers.map((h, i) =>
+          `<th${colWidths[i] ? ` style="width:${colWidths[i]}"` : ""}>${h}</th>`
+        ).join("")}</tr></thead>
         <tbody>
-          ${rows.map((r, i) =>
-            `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fa"}">
-              ${r.map(v => `<td>${v ?? "—"}</td>`).join("")}
-            </tr>`
-          ).join("")}
+          ${rows.length === 0
+            ? `<tr><td colspan="${headers.length}" style="color:#999;padding:8px;text-align:center">No data</td></tr>`
+            : rows.map((r, i) =>
+                `<tr class="${i % 2 === 0 ? "even" : "odd"}">
+                  ${r.map(v => `<td>${v ?? "—"}</td>`).join("")}
+                </tr>`
+              ).join("")
+          }
         </tbody>
       </table>`;
     }
 
-    function breakdownBlock(title, entries) {
-      const total = entries.reduce((s, [, v]) => s + v, 0);
+    // ── Breakdown block with inline bars ─────────────────────────────
+    function breakdownBlock(title, entries, color = "#003580") {
+      const sorted = [...entries].sort((a, b) => b[1] - a[1]);
+      const total  = sorted.reduce((s, [, v]) => s + v, 0);
+      const max    = sorted[0]?.[1] || 1;
       return `<div class="breakdown">
-        <div class="bd-title">${title}</div>
+        <div class="bd-title">${title} <span class="bd-total">(${total} total)</span></div>
         <table>
-          <thead><tr><th>Category</th><th>Count</th><th>%</th></tr></thead>
+          <thead><tr><th>Category</th><th style="width:80px">Bar</th><th style="width:36px">Count</th><th style="width:36px">%</th></tr></thead>
           <tbody>
-            ${entries.sort((a, b) => b[1] - a[1]).map(([k, v], i) =>
-              `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fa"}">
-                <td>${k}</td><td>${v}</td>
-                <td>${total ? Math.round(v / total * 100) + "%" : "—"}</td>
-              </tr>`
-            ).join("")}
+            ${sorted.map(([k, v], i) => {
+              const pct = total ? Math.round(v / total * 100) : 0;
+              const barW = Math.round((v / max) * 72);
+              return `<tr class="${i % 2 === 0 ? "even" : "odd"}">
+                <td>${k}</td>
+                <td>${miniBar(barW, color)}</td>
+                <td style="text-align:right;font-weight:700">${v}</td>
+                <td style="text-align:right;color:#666">${pct}%</td>
+              </tr>`;
+            }).join("")}
           </tbody>
         </table>
       </div>`;
     }
 
-    // ── SECTION 1: Overview ───────────────────────────────────────────────
-    const activeToday = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds * 1000) < 86400000).length;
-    const activeWeek  = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds * 1000) < 7 * 86400000).length;
-    const newThisWeek = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds * 1000) < 7 * 86400000).length;
-    const withPhone   = users.filter(u => u.phone).length;
-    const withEmail   = users.filter(u => u.email).length;
-    const openRep     = reports.filter(r => r.status === "open").length;
-    const inProgRep   = reports.filter(r => r.status === "in_progress").length;
-    const resolvedRep = reports.filter(r => r.status === "resolved").length;
+    // ── Cross-tab matrix ──────────────────────────────────────────────
+    function crossTabBlock(title, data, rowKey, colKey, rowLabels, colLabels) {
+      const rows = Object.keys(rowLabels);
+      const cols = Object.keys(colLabels);
+      const matrix = {};
+      rows.forEach(r => { matrix[r] = {}; cols.forEach(c => { matrix[r][c] = 0; }); });
+      data.forEach(u => {
+        const r = u[rowKey]; const c = u[colKey];
+        if (matrix[r] !== undefined && c !== undefined) matrix[r][c] = (matrix[r][c] || 0) + 1;
+      });
+      return `<div class="breakdown">
+        <div class="bd-title">${title}</div>
+        <table>
+          <thead><tr>
+            <th></th>
+            ${cols.map(c => `<th style="text-align:center">${strip(colLabels[c])}</th>`).join("")}
+            <th style="text-align:center">Total</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map((r, i) => {
+              const rowTotal = cols.reduce((s, c) => s + (matrix[r][c] || 0), 0);
+              return `<tr class="${i % 2 === 0 ? "even" : "odd"}">
+                <td style="font-weight:700">${strip(rowLabels[r])}</td>
+                ${cols.map(c => {
+                  const v = matrix[r][c] || 0;
+                  const pct = rowTotal ? Math.round(v / rowTotal * 100) : 0;
+                  return `<td style="text-align:center;${v > 0 ? "font-weight:700" : "color:#ccc"}">${v > 0 ? `${v}<br><span style="font-size:7px;color:#666">${pct}%</span>` : "·"}</td>`;
+                }).join("")}
+                <td style="text-align:center;font-weight:800;color:#003580">${rowTotal}</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>`;
+    }
+
+    // ── Section header ────────────────────────────────────────────────
+    function sectionHeader(icon, title, count = null) {
+      return `<div class="section-title">${icon} ${title}${count !== null ? ` <span class="badge">${count}</span>` : ""}</div>`;
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // SECTION 1 — OVERVIEW
+    // ══════════════════════════════════════════════════════════════════
+    const activeToday   = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds * 1000) < 86400000).length;
+    const activeWeek    = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds * 1000) < 7 * 86400000).length;
+    const activeMonth   = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds * 1000) < 30 * 86400000).length;
+    const newToday      = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds * 1000) < 86400000).length;
+    const newThisWeek   = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds * 1000) < 7 * 86400000).length;
+    const newThisMonth  = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds * 1000) < 30 * 86400000).length;
+    const withPhone     = users.filter(u => u.phone && u.phone.trim()).length;
+    const withEmail     = users.filter(u => u.email && u.email.trim()).length;
+    const withBoth      = users.filter(u => u.phone && u.email).length;
+    const withNeither   = users.filter(u => !u.phone && !u.email).length;
+    const googleUsers   = users.filter(u => u.photo).length;
+    const guestUsers    = users.length - googleUsers;
+    const openRep       = reports.filter(r => r.status === "open").length;
+    const inProgRep     = reports.filter(r => r.status === "in_progress").length;
+    const resolvedRep   = reports.filter(r => r.status === "resolved").length;
+    const reopenedRep   = reports.filter(r => r.replyHistory?.some(h => h.isReopen) && r.status !== "resolved").length;
+    const repliedRep    = reports.filter(r => r.adminReply || r.replyHistory?.length > 0).length;
+    const unrepliedOpen = reports.filter(r => r.status === "open" && !r.adminReply && !(r.replyHistory?.length > 0)).length;
+    const uniqueStates  = new Set(users.map(u => u.state).filter(Boolean)).size;
+    const farmersCount  = users.filter(u => u.occupation === "farmer").length;
+    const studentsCount = users.filter(u => u.occupation === "student").length;
+    const bplUsers      = users.filter(u => u.ration === "bpl" || u.ration === "aay").length;
+    const disabledUsers = users.filter(u => u.disability && u.disability !== "none").length;
+    const needHousing   = users.filter(u => u.house === "no" || u.house === "kutcha").length;
+    const withGirls     = users.filter(u => u.hasGirls === "yes").length;
 
     const overviewHTML = `
       <div class="section">
-        <div class="section-title">📊 Overview — Key Metrics</div>
-        <div class="two-col">
+        ${sectionHeader("📊", "Overview — Platform Summary")}
+        <div class="three-col">
           ${summaryTable([
-            ["👥 Total Users",        users.length],
-            ["🟢 Active Today",        activeToday],
-            ["📅 Active This Week",    activeWeek],
-            ["🆕 Joined This Week",    newThisWeek],
-            ["📱 Users with Phone",    withPhone],
-            ["✉️ Users with Email",    withEmail],
-          ])}
+            ["👥 Total Registered Users",  users.length],
+            ["🟢 Active Today",            activeToday],
+            ["📅 Active This Week",        activeWeek],
+            ["📆 Active This Month",       activeMonth],
+            ["🆕 Joined Today",            newToday],
+            ["🆕 Joined This Week",        newThisWeek],
+            ["🆕 Joined This Month",       newThisMonth],
+          ], "#003580")}
           ${summaryTable([
-            ["📬 Total Reports",       reports.length],
-            ["🔴 Open",                openRep],
-            ["🟡 In Progress",         inProgRep],
-            ["✅ Resolved",             resolvedRep],
-          ])}
+            ["📱 Phone Only",              withPhone - withBoth],
+            ["✉️ Email Only",              withEmail - withBoth],
+            ["📱✉️ Both Phone & Email",    withBoth],
+            ["🚫 No Contact Info",         withNeither],
+            ["🔵 Google Account",          googleUsers],
+            ["👤 Guest / Phone Account",   guestUsers],
+            ["📍 States Represented",      uniqueStates],
+          ], "#138808")}
+          ${summaryTable([
+            ["📬 Total Reports",           reports.length],
+            ["🔴 Open",                    openRep],
+            ["🟡 In Progress",             inProgRep],
+            ["✅ Resolved",                resolvedRep],
+            ["🔁 Reopened",                reopenedRep],
+            ["💬 Admin Replied",           repliedRep],
+            ["⚠️ Open & Unreplied",        unrepliedOpen],
+          ], "#DC2626")}
+        </div>
+        <div class="info-bar">
+          Welfare Snapshot — BPL/AAY Users: <strong>${bplUsers}</strong> (${users.length ? Math.round(bplUsers/users.length*100) : 0}%) &nbsp;|&nbsp;
+          Disabled Users: <strong>${disabledUsers}</strong> &nbsp;|&nbsp;
+          Need Housing: <strong>${needHousing}</strong> &nbsp;|&nbsp;
+          Farmers: <strong>${farmersCount}</strong> &nbsp;|&nbsp;
+          Students: <strong>${studentsCount}</strong> &nbsp;|&nbsp;
+          Families with Girl Child: <strong>${withGirls}</strong>
         </div>
       </div>`;
 
-    // ── SECTION 2: Analytics ──────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════
+    // SECTION 2 — DEMOGRAPHICS & ANALYTICS
+    // ══════════════════════════════════════════════════════════════════
     const byOcc     = groupBy(users, "occupation");
     const byInc     = groupBy(users, "income");
     const byAge     = groupBy(users, "age");
@@ -3048,192 +3159,405 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     const byGender  = groupBy(users, "gender");
     const byRation  = groupBy(users, "ration");
     const byMarital = groupBy(users, "marital");
-    const byDisab   = groupBy(users, "disability");
+    const byDisab   = groupBy(users.map(u => ({...u, disability: u.disability || "none"})), "disability");
+    const byHouse   = groupBy(users, "house");
     const byState   = groupBy(users, "state");
+    const byKids    = groupBy(users, "numChildren");
+    const byLand    = groupBy(users.filter(u => u.occupation === "farmer"), "landHolding");
+    const byKisan   = groupBy(users.filter(u => u.occupation === "farmer"), "kisanCard");
+    const byEduc    = groupBy(users.filter(u => u.occupation === "student"), "educationLevel");
+    const byInst    = groupBy(users.filter(u => u.occupation === "student"), "institutionType");
 
     const analyticsHTML = `
       <div class="section page-break">
-        <div class="section-title">🧮 Analytics Breakdown</div>
+        ${sectionHeader("🧮", "Demographics & Analytics")}
         <div class="two-col">
-          ${breakdownBlock("💼 Occupation",    Object.entries(byOcc).map(([k, v])    => [OCC_LABELS[k]    || k, v]))}
-          ${breakdownBlock("💰 Income Range",  Object.entries(byInc).map(([k, v])    => [INC_LABELS[k]    || k, v]))}
+          ${breakdownBlock("💼 Occupation", Object.entries(byOcc).map(([k,v]) => [OCC_LABELS[k]||k, v]), "#003580")}
+          ${breakdownBlock("💰 Income Range", Object.entries(byInc).map(([k,v]) => [INC_LABELS[k]||k, v]), "#FF9933")}
         </div>
         <div class="two-col">
-          ${breakdownBlock("🎂 Age Group",     Object.entries(byAge).map(([k, v])    => [AGE_LABELS[k]    || k, v]))}
-          ${breakdownBlock("🏘️ Area Type",     Object.entries(byArea).map(([k, v])   => [AREA_LABELS[k]   || k, v]))}
+          ${breakdownBlock("🎂 Age Group", Object.entries(byAge).map(([k,v]) => [AGE_LABELS[k]||k, v]), "#8B5CF6")}
+          ${breakdownBlock("🏘️ Area Type", Object.entries(byArea).map(([k,v]) => [AREA_LABELS[k]||k, v]), "#138808")}
         </div>
         <div class="two-col">
-          ${breakdownBlock("⚧ Gender",         Object.entries(byGender).map(([k, v]) => [GENDER_LABELS[k]?.replace(/[👨👩🧑]/gu,"").trim()   || k, v]))}
-          ${breakdownBlock("🪪 Ration Card",    Object.entries(byRation).map(([k, v]) => [RATION_LABELS[k]?.replace(/[🚫🟡🔴]/gu,"").trim()   || k, v]))}
+          ${breakdownBlock("⚧ Gender", Object.entries(byGender).map(([k,v]) => [strip(GENDER_LABELS[k]||k), v]), "#EC4899")}
+          ${breakdownBlock("💍 Marital Status", Object.entries(byMarital).map(([k,v]) => [strip(MARITAL_LABELS[k]||k), v]), "#003580")}
         </div>
         <div class="two-col">
-          ${breakdownBlock("💍 Marital Status", Object.entries(byMarital).map(([k, v])=> [MARITAL_LABELS[k]?.replace(/[💍🕊️]/gu,"").trim()    || k, v]))}
-          ${breakdownBlock("♿ Disability",      Object.entries(byDisab).map(([k, v])  => [DISAB_LABELS[k]?.replace(/[✅🦽👁🦻🧠]/gu,"").trim() || k, v]))}
+          ${breakdownBlock("🪪 Ration Card", Object.entries(byRation).map(([k,v]) => [strip(RATION_LABELS[k]||k), v]), "#F59E0B")}
+          ${breakdownBlock("♿ Disability", Object.entries(byDisab).map(([k,v]) => [strip(DISAB_LABELS[k]||k||"None"), v]), "#10B981")}
         </div>
-        <div class="sub-title" style="margin-top:10px">📍 All States Distribution</div>
+        <div class="two-col">
+          ${breakdownBlock("🏠 Housing Status", Object.entries(byHouse).map(([k,v]) => [strip(HOUSE_LABELS[k]||k), v]), "#003580")}
+          ${breakdownBlock("👨‍👩‍👧 No. of Children", Object.entries(byKids).map(([k,v]) => [CHILDREN_LABELS[k]||k, v]), "#8B5CF6")}
+        </div>
+      </div>
+
+      <div class="section page-break">
+        ${sectionHeader("🌾", "Farmer-Specific Analytics")} 
+        <div style="color:#666;font-size:8px;margin-bottom:6px">${farmersCount} farmer${farmersCount!==1?"s":""} registered</div>
+        <div class="two-col">
+          ${breakdownBlock("🌾 Land Holding (Farmers)", Object.entries(byLand).map(([k,v]) => [LAND_LABELS[k]||k, v]), "#138808")}
+          ${breakdownBlock("💳 Kisan Credit Card (Farmers)", Object.entries(byKisan).map(([k,v]) => [strip(KISAN_LABELS[k]||k), v]), "#FF9933")}
+        </div>
+        ${sectionHeader("🎓", "Student-Specific Analytics")}
+        <div style="color:#666;font-size:8px;margin-bottom:6px">${studentsCount} student${studentsCount!==1?"s":""} registered</div>
+        <div class="two-col">
+          ${breakdownBlock("📚 Education Level (Students)", Object.entries(byEduc).map(([k,v]) => [EDUC_LABELS[k]||k, v]), "#8B5CF6")}
+          ${breakdownBlock("🏫 Institution Type (Students)", Object.entries(byInst).map(([k,v]) => [strip(INST_LABELS[k]||k), v]), "#003580")}
+        </div>
+        ${sectionHeader("🔀", "Cross-Tab Analysis")}
+        ${crossTabBlock("Income vs Ration Card", users, "income", "ration",
+          { below1:"<1L", "1to3":"1-3L", "3to6":"3-6L", above6:">6L" },
+          { none:"None", apl:"APL", bpl:"BPL", aay:"AAY" }
+        )}
+        ${crossTabBlock("Occupation vs Area Type", users, "occupation", "area",
+          { farmer:"Farmer", student:"Student", women:"Homemaker", senior:"Senior", business:"Business", general:"General" },
+          { rural:"Rural", urban:"Urban", semi:"Semi-Urban" }
+        )}
+      </div>
+
+      <div class="section page-break">
+        ${sectionHeader("📍", "State-wise User Distribution")}
         ${dataTable(
-          ["State", "Users", "%"],
-          Object.entries(byState).sort((a, b) => b[1] - a[1]).map(([st, cnt]) =>
-            [st, cnt, users.length ? Math.round(cnt / users.length * 100) + "%" : "—"]
-          )
+          ["#", "State", "Users", "% of Total", "Active This Week"],
+          Object.entries(byState).sort((a,b) => b[1]-a[1]).map(([st, cnt], i) => {
+            const activeInState = users.filter(u => u.state === st && u.lastSeen?.seconds && (now - u.lastSeen.seconds*1000) < 7*86400000).length;
+            return [i+1, st, cnt, users.length ? Math.round(cnt/users.length*100)+"%" : "—", activeInState];
+          }),
+          ["20px","","40px","60px","80px"]
         )}
       </div>`;
 
-    // ── SECTION 3: All Users ──────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════
+    // SECTION 3 — ALL USERS (Full Profile)
+    // ══════════════════════════════════════════════════════════════════
     const uHeaders = [
-      "Name","Phone","Email","Gender","Age","Marital",
-      "State","Area","Occupation","Income","House","Ration","Disability","Children","Joined","Last Seen",
+      "#","Name","UID","Phone","Email","Account",
+      "Gender","Age","Marital","State","Area",
+      "Occupation","Income","Housing","Ration","Disability",
+      "Children","Girl Child","Land","KCC","Education","Institution",
+      "Joined","Last Seen",
     ];
-    const uRows = users.map(u => [
-      u.name    || "—",
-      u.phone   || "—",
-      u.email   || "—",
-      GENDER_LABELS[u.gender]?.replace(/[👨👩🧑]/gu,"").trim()         || u.gender      || "—",
-      AGE_LABELS[u.age]                                                  || u.age         || "—",
-      MARITAL_LABELS[u.marital]?.replace(/[💍🕊️]/gu,"").trim()        || u.marital     || "—",
-      u.state   || "—",
-      AREA_LABELS[u.area]                                                || u.area        || "—",
-      OCC_LABELS[u.occupation]                                           || u.occupation  || "—",
-      INC_LABELS[u.income]                                               || u.income      || "—",
-      HOUSE_LABELS[u.house]?.replace(/[✅❌]/gu,"").trim()              || u.house       || "—",
-      RATION_LABELS[u.ration]?.replace(/[🚫🟡🔴]/gu,"").trim()        || u.ration      || "—",
-      DISAB_LABELS[u.disability]?.replace(/[✅🦽👁🦻🧠]/gu,"").trim()  || u.disability  || "—",
-      CHILDREN_LABELS[u.numChildren]                                     || u.numChildren || "—",
+    const uRows = users.map((u, i) => [
+      i + 1,
+      u.name        || "—",
+      u.id          || "—",
+      u.phone       ? `+91 ${u.phone}` : "—",
+      u.email       || "—",
+      u.photo       ? "Google" : "Guest",
+      strip(GENDER_LABELS[u.gender]  || u.gender  || "—"),
+      AGE_LABELS[u.age]              || u.age      || "—",
+      strip(MARITAL_LABELS[u.marital]|| u.marital  || "—"),
+      u.state       || "—",
+      AREA_LABELS[u.area]            || u.area     || "—",
+      OCC_LABELS[u.occupation]       || u.occupation|| "—",
+      INC_LABELS[u.income]           || u.income   || "—",
+      strip(HOUSE_LABELS[u.house]    || u.house    || "—"),
+      strip(RATION_LABELS[u.ration]  || u.ration   || "—"),
+      strip(DISAB_LABELS[u.disability]||u.disability||"—"),
+      CHILDREN_LABELS[u.numChildren] || u.numChildren|| "—",
+      u.numChildren && u.numChildren !== "0"
+        ? (u.hasGirls === "yes" ? "Yes" : u.hasGirls === "no" ? "No" : "—")
+        : "N/A",
+      u.occupation === "farmer" ? (LAND_LABELS[u.landHolding] || u.landHolding || "—") : "N/A",
+      u.occupation === "farmer" ? (strip(KISAN_LABELS[u.kisanCard] || u.kisanCard || "—")) : "N/A",
+      u.occupation === "student" ? (EDUC_LABELS[u.educationLevel] || u.educationLevel || "—") : "N/A",
+      u.occupation === "student" ? (strip(INST_LABELS[u.institutionType] || u.institutionType || "—")) : "N/A",
       formatDate(u.createdAt),
       formatDate(u.lastSeen),
     ]);
 
     const usersHTML = `
       <div class="section page-break">
-        <div class="section-title">👥 All Users <span class="badge">${users.length}</span></div>
+        ${sectionHeader("👥", "Complete User Registry", users.length)}
+        <div style="color:#666;font-size:8px;margin-bottom:6px">All ${users.length} users · All profile fields · Sorted by registration order</div>
         ${dataTable(uHeaders, uRows)}
       </div>`;
 
-    // ── SECTION 4: Activity ───────────────────────────────────────────────
-    const recentActive = [...users]
+    // ══════════════════════════════════════════════════════════════════
+    // SECTION 4 — ACTIVITY
+    // ══════════════════════════════════════════════════════════════════
+    const recentActive  = [...users]
       .filter(u => u.lastSeen?.seconds)
-      .sort((a, b) => (b.lastSeen.seconds || 0) - (a.lastSeen.seconds || 0))
-      .slice(0, 20);
-    const newWeekUsers = users.filter(u => u.createdAt?.seconds &&
-      (now - u.createdAt.seconds * 1000) < 7 * 86400000);
+      .sort((a, b) => (b.lastSeen.seconds||0) - (a.lastSeen.seconds||0))
+      .slice(0, 30);
+    const newWeekUsers  = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds*1000) < 7*86400000);
+    const newMonthUsers = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds*1000) < 30*86400000);
+    const dormant       = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds*1000) > 30*86400000);
 
     const activityHTML = `
       <div class="section page-break">
-        <div class="section-title">🕐 Activity</div>
-        <div class="sub-title">Recent Activity — Last 20 Active Users</div>
+        ${sectionHeader("🕐", "Activity & Engagement")}
+        <div class="three-col">
+          ${summaryTable([
+            ["🟢 Active Today",         activeToday],
+            ["📅 Active This Week",     activeWeek],
+            ["📆 Active This Month",    activeMonth],
+          ], "#138808")}
+          ${summaryTable([
+            ["🆕 Joined Today",         newToday],
+            ["🆕 Joined This Week",     newThisWeek],
+            ["🆕 Joined This Month",    newThisMonth],
+          ], "#003580")}
+          ${summaryTable([
+            ["😴 Dormant (30+ days)",   dormant.length],
+            ["📊 Engagement Rate",      users.length ? Math.round(activeWeek/users.length*100)+"%" : "—"],
+            ["📈 Monthly Retention",    users.length ? Math.round(activeMonth/users.length*100)+"%" : "—"],
+          ], "#8B5CF6")}
+        </div>
+
+        <div class="sub-title" style="margin-top:10px">Recent Activity — Top 30 Most Recently Active Users</div>
         ${dataTable(
-          ["Name", "State", "Occupation", "Last Seen"],
-          recentActive.map(u => [
-            u.name || "—", u.state || "—",
+          ["#","Name","Phone","Email","State","Occupation","Income","Area","Joined","Last Seen"],
+          recentActive.map((u, i) => [
+            i+1,
+            u.name || "—",
+            u.phone ? `+91 ${u.phone}` : "—",
+            u.email || "—",
+            u.state || "—",
             OCC_LABELS[u.occupation] || u.occupation || "—",
+            INC_LABELS[u.income]     || u.income     || "—",
+            AREA_LABELS[u.area]      || u.area       || "—",
+            formatDate(u.createdAt),
             formatDate(u.lastSeen),
           ])
         )}
+
         <div class="sub-title" style="margin-top:14px">🆕 Joined This Week <span class="badge">${newWeekUsers.length}</span></div>
         ${newWeekUsers.length === 0
-          ? `<div style="color:#999;padding:8px 0">No new users this week.</div>`
+          ? `<div style="color:#999;padding:8px 0;font-size:8px">No new users this week.</div>`
           : dataTable(
-              ["Name", "State", "Occupation", "Joined"],
-              newWeekUsers.map(u => [
-                u.name || "—", u.state || "—",
+              ["#","Name","Phone","Email","State","Occupation","Area","Ration","Joined"],
+              newWeekUsers.map((u, i) => [
+                i+1,
+                u.name || "—",
+                u.phone ? `+91 ${u.phone}` : "—",
+                u.email || "—",
+                u.state || "—",
                 OCC_LABELS[u.occupation] || u.occupation || "—",
+                AREA_LABELS[u.area]      || u.area       || "—",
+                strip(RATION_LABELS[u.ration] || u.ration || "—"),
                 formatDate(u.createdAt),
+              ])
+            )
+        }
+
+        <div class="sub-title" style="margin-top:14px">😴 Dormant Users (30+ days inactive) <span class="badge">${dormant.length}</span></div>
+        ${dormant.length === 0
+          ? `<div style="color:#999;padding:8px 0;font-size:8px">No dormant users.</div>`
+          : dataTable(
+              ["#","Name","State","Occupation","Last Seen","Days Inactive"],
+              dormant.slice(0,30).map((u, i) => [
+                i+1,
+                u.name || "—",
+                u.state || "—",
+                OCC_LABELS[u.occupation] || u.occupation || "—",
+                formatDate(u.lastSeen),
+                Math.floor((now - u.lastSeen.seconds*1000) / 86400000) + " days",
               ])
             )
         }
       </div>`;
 
-    // ── SECTION 5: Schemes Coverage ───────────────────────────────────────
-    const allSchemes   = Array.isArray(SCHEME_DB) ? SCHEME_DB : Object.values(SCHEME_DB || {});
-    const centralCnt   = allSchemes.filter(s => s.scope === "national").length;
-    const stSchCounts  = {};
+    // ══════════════════════════════════════════════════════════════════
+    // SECTION 5 — SCHEMES COVERAGE
+    // ══════════════════════════════════════════════════════════════════
+    const allSchemes  = Array.isArray(SCHEME_DB) ? SCHEME_DB : Object.values(SCHEME_DB || {});
+    const centralCnt  = allSchemes.filter(s => s.scope === "national").length;
+    const stSchCounts = {};
     allSchemes.forEach(s => {
       if (s.scope === "state" && s.state) stSchCounts[s.state] = (stSchCounts[s.state] || 0) + 1;
     });
     const stateList = Array.isArray(INDIA_STATES) ? INDIA_STATES : Object.values(INDIA_STATES || {});
+
+    // Tier thresholds matching the UI (0 / ≤100 / ≤200 / >200)
+    function schemeTier(n) {
+      if (n === 0)    return "None";
+      if (n <= 100)   return "Low";
+      if (n <= 200)   return "Medium";
+      return "Good";
+    }
     const schemeRows = stateList
       .map(st => {
-        const cnt   = stSchCounts[st] || 0;
-        const level = cnt === 0 ? "None" : cnt <= 2 ? "Low" : cnt <= 5 ? "Medium" : "Good";
-        return [st, cnt, level];
+        const cnt  = stSchCounts[st] || 0;
+        const tier = schemeTier(cnt);
+        const userCnt = (byState[st] || 0);
+        return [st, cnt, tier, userCnt,
+          userCnt > 0 && cnt > 0 ? (cnt / userCnt).toFixed(1) : "—"];
       })
       .sort((a, b) => b[1] - a[1]);
 
+    const tierSummary = {
+      None:   stateList.filter(s => (stSchCounts[s]||0) === 0).length,
+      Low:    stateList.filter(s => { const n=stSchCounts[s]||0; return n>0 && n<=100; }).length,
+      Medium: stateList.filter(s => { const n=stSchCounts[s]||0; return n>100 && n<=200; }).length,
+      Good:   stateList.filter(s => (stSchCounts[s]||0) > 200).length,
+    };
+
     const schemesHTML = `
       <div class="section page-break">
-        <div class="section-title">🗺️ Schemes Coverage</div>
-        ${summaryTable([
-          ["🇮🇳 Central Schemes",       centralCnt],
-          ["📋 Total Schemes",           allSchemes.length],
-          ["✅ States with Schemes",     stateList.filter(s => stSchCounts[s]).length],
-          ["🔴 States with 0 Schemes",  stateList.filter(s => !stSchCounts[s]).length],
-        ])}
-        <div class="sub-title" style="margin-top:12px">State-wise Scheme Count</div>
-        ${dataTable(["State", "Schemes", "Coverage Level"], schemeRows)}
+        ${sectionHeader("🗺️", "Schemes Coverage")}
+        <div class="two-col">
+          ${summaryTable([
+            ["🇮🇳 Central / National Schemes",  centralCnt, ` (${allSchemes.length ? Math.round(centralCnt/allSchemes.length*100) : 0}% of total)`],
+            ["📋 Total Schemes in DB",           allSchemes.length],
+            ["✅ States with Schemes",            stateList.filter(s => stSchCounts[s]).length],
+            ["🔴 States with 0 Schemes",         stateList.filter(s => !stSchCounts[s]).length],
+          ], "#003580")}
+          ${summaryTable([
+            ["⬜ None (0 schemes)",   tierSummary.None,   " states"],
+            ["🟡 Low (1–100)",        tierSummary.Low,    " states"],
+            ["🔵 Medium (101–200)",   tierSummary.Medium, " states"],
+            ["🟢 Good (200+)",        tierSummary.Good,   " states"],
+          ], "#138808")}
+        </div>
+        <div class="sub-title" style="margin-top:8px">State-wise Scheme Coverage (with User Cross-reference)</div>
+        ${dataTable(
+          ["#","State / UT","Scheme Count","Coverage Tier","Users Registered","Schemes per User"],
+          schemeRows.map((r, i) => [i+1, ...r]),
+          ["20px","","60px","60px","80px","80px"]
+        )}
       </div>`;
 
-    // ── SECTION 6: Reports ────────────────────────────────────────────────
-    const rRows = reports.map(r => [
-      r.userName || r.userEmail || "—",
-      TYPE_META[r.type]?.label    || r.type   || "—",
-      STATUS_META[r.status]?.label || r.status || "—",
-      (r.message || "—").slice(0, 100) + ((r.message || "").length > 100 ? "…" : ""),
-      formatDate(r.createdAt),
-      formatDate(r.updatedAt || r.createdAt),
-    ]);
+    // ══════════════════════════════════════════════════════════════════
+    // SECTION 6 — REPORTS (Full Detail)
+    // ══════════════════════════════════════════════════════════════════
+    const byRepType   = groupBy(reports, "type");
+    const byRepStatus = groupBy(reports, "status");
+    const avgReplyTime = (() => {
+      const replied = reports.filter(r => r.repliedAt?.seconds && r.createdAt?.seconds);
+      if (!replied.length) return "—";
+      const avg = replied.reduce((s, r) => s + (r.repliedAt.seconds - r.createdAt.seconds), 0) / replied.length;
+      const hrs = avg / 3600;
+      return hrs < 24 ? `${Math.round(hrs)}h` : `${Math.round(hrs/24)}d`;
+    })();
 
     const reportsHTML = `
       <div class="section page-break">
-        <div class="section-title">📬 Reports / Queries <span class="badge">${reports.length}</span></div>
-        ${dataTable(["User","Type","Status","Message (preview)","Submitted","Updated"], rRows)}
+        ${sectionHeader("📬", "Reports / Queries — Full Detail", reports.length)}
+        <div class="three-col">
+          ${summaryTable([
+            ["📬 Total Reports",    reports.length],
+            ["🔴 Open",             openRep],
+            ["🟡 In Progress",      inProgRep],
+            ["✅ Resolved",          resolvedRep],
+            ["🔁 Reopened",          reopenedRep],
+          ], "#DC2626")}
+          ${summaryTable([
+            ["💬 Admin Replied",    repliedRep],
+            ["⚠️ Unreplied (open)", unrepliedOpen],
+            ["⏱️ Avg Reply Time",   avgReplyTime],
+          ], "#F59E0B")}
+          ${summaryTable(
+            Object.entries(byRepType).map(([k, v]) => [strip((TYPE_META[k]?.icon||"")+" "+(TYPE_META[k]?.label||k)), v]),
+            "#8B5CF6"
+          )}
+        </div>
+        <div class="sub-title" style="margin-top:8px">All Reports — Full Message & Reply History</div>
+        ${dataTable(
+          ["#","User","Contact","Type","Status","Submitted","Message","Admin Reply","Reply History"],
+          reports.map((r, i) => {
+            const replyCount = r.replyHistory?.length || 0;
+            const lastReply  = r.replyHistory?.[replyCount-1];
+            return [
+              i+1,
+              r.userName    || r.userEmail || "—",
+              r.userPhone   ? `+91 ${r.userPhone}` : r.userEmail || "—",
+              strip((TYPE_META[r.type]?.icon||"")+" "+(TYPE_META[r.type]?.label||r.type||"—")),
+              strip((STATUS_META[r.status]?.icon||"")+" "+(STATUS_META[r.status]?.label||r.status||"—")),
+              formatDate(r.createdAt),
+              (r.message || "—").slice(0, 200) + ((r.message||"").length > 200 ? "…" : ""),
+              r.adminReply
+                ? r.adminReply.slice(0, 150) + (r.adminReply.length > 150 ? "…" : "") + ` (${formatDate(r.repliedAt)})`
+                : "—",
+              replyCount > 0
+                ? `${replyCount} exchange${replyCount!==1?"s":""}; last: ${formatDate(lastReply?.sentAt)}`
+                : "—",
+            ];
+          })
+        )}
       </div>`;
 
-    // ── Assemble ──────────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════
+    // ASSEMBLE
+    // ══════════════════════════════════════════════════════════════════
     const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Yojana Sahay — Full Admin Report</title>
+  <title>Yojana Sahay — Admin Full Report ${isoDate}</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: Arial, sans-serif; font-size: 9px; color: #111; padding: 16px; }
-    .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; border-bottom:3px solid #003580; padding-bottom:10px; }
-    .brand { font-size:20px; font-weight:900; color:#003580; }
+    body { font-family: Arial, sans-serif; font-size: 8.5px; color: #111; padding: 14px; counter-reset: page; }
+
+    /* ── Header ── */
+    .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; border-bottom:3px solid #003580; padding-bottom:10px; }
+    .brand { font-size:22px; font-weight:900; color:#003580; letter-spacing:-0.5px; }
     .brand span { color:#FF9933; }
-    .meta { font-size:9px; color:#666; text-align:right; line-height:1.7; }
-    .section { margin-bottom:22px; }
-    .section-title { font-size:12px; font-weight:800; color:#003580; margin-bottom:8px; border-left:4px solid #FF9933; padding-left:8px; }
-    .sub-title { font-size:10px; font-weight:700; color:#444; margin-bottom:6px; }
-    .badge { display:inline-block; background:#003580; color:#fff; font-size:8px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:6px; vertical-align:middle; }
-    .two-col { display:flex; gap:14px; margin-bottom:10px; }
+    .meta { font-size:8px; color:#555; text-align:right; line-height:1.8; }
+
+    /* ── Sections ── */
+    .section { margin-bottom:20px; }
+    .section-title { font-size:11px; font-weight:900; color:#003580; margin-bottom:8px; border-left:4px solid #FF9933; padding-left:8px; padding-top:2px; padding-bottom:2px; background:rgba(0,53,128,0.04); border-radius:0 4px 4px 0; }
+    .sub-title { font-size:9px; font-weight:800; color:#444; margin:8px 0 5px; text-transform:uppercase; letter-spacing:0.4px; }
+    .badge { display:inline-block; background:#003580; color:#fff; font-size:7.5px; font-weight:800; padding:2px 7px; border-radius:10px; margin-left:6px; vertical-align:middle; }
+
+    /* ── Layout grids ── */
+    .two-col   { display:flex; gap:12px; margin-bottom:10px; }
     .two-col > * { flex:1; min-width:0; }
-    .breakdown { margin-bottom:4px; }
-    .bd-title { font-size:9px; font-weight:700; color:#444; margin-bottom:4px; }
+    .three-col { display:flex; gap:10px; margin-bottom:10px; }
+    .three-col > * { flex:1; min-width:0; }
+
+    /* ── Summary table ── */
     .sum-tbl { width:100%; border-collapse:collapse; margin-bottom:4px; }
-    .sum-key { font-size:9px; color:#666; padding:4px 6px; border-bottom:1px solid #eee; }
-    .sum-val { font-size:10px; font-weight:800; color:#003580; padding:4px 6px; border-bottom:1px solid #eee; text-align:right; }
+    .sum-key { font-size:8px; color:#555; padding:3.5px 6px; border-bottom:1px solid #f0f0f0; }
+    .sum-val { font-size:9px; font-weight:800; padding:3.5px 6px; border-bottom:1px solid #f0f0f0; text-align:right; white-space:nowrap; }
+    .sum-sub { font-size:7px; font-weight:400; color:#888; margin-left:4px; }
+
+    /* ── Data tables ── */
     table { width:100%; border-collapse:collapse; margin-bottom:6px; }
-    th { background:#003580; color:#fff; padding:5px 4px; text-align:left; font-size:8px; font-weight:700; white-space:nowrap; }
-    td { padding:4px 4px; border-bottom:1px solid #eee; vertical-align:top; word-break:break-word; font-size:8px; }
-    .footer { margin-top:16px; font-size:8px; color:#999; text-align:center; border-top:1px solid #eee; padding-top:8px; }
-    .page-break { page-break-before: always; }
+    th { background:#003580; color:#fff; padding:4.5px 4px; text-align:left; font-size:7.5px; font-weight:700; white-space:nowrap; }
+    td { padding:3.5px 4px; border-bottom:1px solid #f0f0f0; vertical-align:top; word-break:break-word; font-size:7.5px; line-height:1.4; }
+    tr.even { background:#fff; }
+    tr.odd  { background:#f7f9fc; }
+    tr:hover { background:#eef2ff; }
+
+    /* ── Breakdown ── */
+    .breakdown { margin-bottom:6px; }
+    .bd-title  { font-size:8.5px; font-weight:700; color:#333; margin-bottom:4px; }
+    .bd-total  { font-size:7.5px; font-weight:400; color:#888; }
+
+    /* ── Info bar ── */
+    .info-bar { background:#f0f4ff; border:1px solid #d0d8f0; border-radius:6px; padding:7px 10px; font-size:8px; color:#444; margin-top:8px; line-height:1.8; }
+
+    /* ── Footer & page nums ── */
+    .footer { margin-top:14px; font-size:7.5px; color:#aaa; text-align:center; border-top:1px solid #eee; padding-top:7px; }
     @media print {
-      body { padding:8px; }
-      @page { size: A4 landscape; margin:10mm; }
+      body { padding:6px; font-size:8px; }
+      @page { size: A4 landscape; margin:8mm 10mm; }
       .page-break { page-break-before: always; }
+      thead { display:table-header-group; }
+      tfoot { display:table-footer-group; }
     }
   </style>
 </head>
 <body>
+
+  <!-- COVER HEADER -->
   <div class="header">
     <div>
-      <div class="brand">Yojana<span>Setu</span></div>
-      <div style="font-size:9px;color:#666;margin-top:3px;">Admin Full Report — Confidential</div>
+      <div class="brand">Yojana<span>Sahay</span></div>
+      <div style="font-size:8px;color:#666;margin-top:3px;font-weight:600;">Admin Full Dashboard Report — Confidential</div>
+      <div style="font-size:7.5px;color:#999;margin-top:2px;">
+        Sections: Overview · Demographics · Analytics · User Registry · Activity · Schemes · Reports
+      </div>
     </div>
     <div class="meta">
-      <div><strong>Generated:</strong> ${date}</div>
-      <div><strong>Users:</strong> ${users.length} &nbsp;·&nbsp; <strong>Reports:</strong> ${reports.length}</div>
-      <div style="color:#DC2626;font-weight:700;margin-top:2px;">Confidential — Do not share</div>
+      <div><strong>Generated:</strong> ${dateStr} at ${timeStr}</div>
+      <div><strong>Total Users:</strong> ${users.length} &nbsp;·&nbsp; <strong>Reports:</strong> ${reports.length}</div>
+      <div><strong>Export ID:</strong> YS-${isoDate.replace(/-/g,"")}-${Math.random().toString(36).slice(2,7).toUpperCase()}</div>
+      <div style="color:#DC2626;font-weight:700;margin-top:3px;">CONFIDENTIAL — DO NOT SHARE</div>
     </div>
   </div>
 
@@ -3245,9 +3569,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
   ${reportsHTML}
 
   <div class="footer">
-    Yojana Sahay Admin Dashboard &nbsp;·&nbsp; ${date} &nbsp;·&nbsp;
-    Sections: Overview · Analytics · Users · Activity · Schemes · Reports
+    Yojana Sahay Admin Dashboard &nbsp;·&nbsp; Generated: ${dateStr} ${timeStr} &nbsp;·&nbsp;
+    ${users.length} users · ${reports.length} reports · ${allSchemes.length} schemes &nbsp;·&nbsp;
+    Confidential — For Admin Use Only
   </div>
+
   <script>window.onload = function() { window.print(); }<\/script>
 </body>
 </html>`;
@@ -3258,24 +3584,26 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     if (!win) {
       const a = document.createElement("a");
       a.href = url;
-      a.download = `yojanasetu_full_report_${new Date().toISOString().slice(0,10)}.html`;
+      a.download = `yojanasahay_admin_report_${isoDate}.html`;
       a.click();
     }
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
   }, [users, reports]);
 
   // ── Export steps definition ────────────────────────────────────────────────
   const EXPORT_STEPS = useMemo(() => [
-    { label: "Initializing export engine",               dur: 340 },
-    { label: `Collecting ${users.length} user profiles`, dur: 520 },
-    { label: "Building analytics breakdowns",            dur: 640 },
-    { label: "Processing occupation & income data",      dur: 520 },
-    { label: "Rendering full users table",               dur: 720 },
-    { label: "Compiling activity feed",                  dur: 440 },
-    { label: "Processing schemes coverage",              dur: 480 },
-    { label: `Formatting ${reports.length} report${reports.length !== 1 ? "s" : ""}`, dur: 500 },
-    { label: "Generating PDF structure & layout",        dur: 820 },
-    { label: "Finalizing & compressing document",        dur: 580 },
+    { label: "Initializing export engine",                          dur: 300 },
+    { label: `Collecting ${users.length} full user profiles`,       dur: 480 },
+    { label: "Building overview & welfare metrics",                 dur: 420 },
+    { label: "Computing demographics & 8 breakdowns",              dur: 560 },
+    { label: "Generating farmer & student analytics",               dur: 400 },
+    { label: "Building cross-tab matrices",                         dur: 460 },
+    { label: "Rendering 24-column user registry table",             dur: 720 },
+    { label: "Compiling activity, dormancy & retention data",       dur: 440 },
+    { label: "Processing schemes coverage & user cross-reference",  dur: 500 },
+    { label: `Formatting ${reports.length} report${reports.length !== 1 ? "s" : ""} with reply history`, dur: 540 },
+    { label: "Assembling HTML layout & print styles",               dur: 780 },
+    { label: "Finalizing & packaging document",                     dur: 520 },
   ], [users.length, reports.length]);
 
   // ── Animated export handler ────────────────────────────────────────────────
@@ -3310,6 +3638,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     ["schemes",   "🗺️ Schemes"],
     ["reports",   "📬 Reports"],
     ["cleanup",   "🗑️ Cleanup"],
+    ["export",    "📄 Export"],
   ];
 
   // ── navigateTab — direction-aware, animated tab change ───────────────────
@@ -3443,20 +3772,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
           }}>
             {refreshing ? "…" : "↻"}
           </div>
-          {/* Export All — single button for full dashboard PDF */}
-          {!loading && (users.length > 0 || reports.length > 0) && (
-            <div onClick={handleExportAll} style={{
-              background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.3)",
-              borderRadius:10, padding:"7px 12px",
-              color:"#fff", fontSize:11, fontWeight:700, cursor:"pointer",
-              display:"flex", alignItems:"center", gap:5,
-              opacity: exportModal ? 0.5 : 1,
-              pointerEvents: exportModal ? "none" : "auto",
-              transition:"opacity 0.2s",
-            }}>
-              📄 Export All
-            </div>
-          )}
+
         </div>
 
         {/* Tabs */}
@@ -3756,7 +4072,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
             </div>
             {filtered.length < users.length && (
               <span style={{ fontSize:10, color:SAFFRON, fontWeight:600 }}>
-                Use "📄 Export All" in the header to download the full PDF.
+                Go to the 📄 Export tab to download the full PDF report.
               </span>
             )}
           </div>
@@ -4038,6 +4354,118 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
           />
           <div style={{ height: 20 }} />
         </>
+      )}
+
+      {/* ══ EXPORT — Full dashboard PDF ══ */}
+      {activeSection === "export" && (
+        <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+
+          {/* Title card */}
+          <div style={{
+            background:`linear-gradient(135deg,${NAVY},#1a56db)`,
+            borderRadius:16, padding:"18px 18px",
+            display:"flex", alignItems:"center", gap:14,
+          }}>
+            <div style={{ fontSize:36 }}>📄</div>
+            <div style={{ flex:1 }}>
+              <div style={{ color:"#fff", fontSize:15, fontWeight:800 }}>Full Dashboard Report</div>
+              <div style={{ color:"rgba(255,255,255,0.7)", fontSize:11, marginTop:3 }}>
+                Generates a print-ready HTML/PDF with all sections
+              </div>
+            </div>
+          </div>
+
+          {/* What's included */}
+          <div style={{
+            background:th.card, border:`1.5px solid ${th.border}`,
+            borderRadius:14, padding:"14px 16px",
+          }}>
+            <div style={{ fontSize:12, fontWeight:800, color:th.text, marginBottom:10 }}>
+              📋 What's included
+            </div>
+            {[
+              ["📊", "Overview",    "Platform summary, welfare snapshot, key metrics"],
+              ["🧮", "Demographics","Occupation, income, age, gender, area breakdowns"],
+              ["📈", "Analytics",   "Cross-tab matrices, farmer & student deep-dives"],
+              ["👥", "User Registry","Full 24-column table of all registered users"],
+              ["🕐", "Activity",    "Recent activity, new joiners, dormant users"],
+              ["🗺️", "Schemes",     "State-wise coverage table & tier summary"],
+              ["📬", "Reports",     "All reports with full reply history"],
+            ].map(([icon, title, desc]) => (
+              <div key={title} style={{
+                display:"flex", alignItems:"flex-start", gap:10,
+                padding:"8px 0",
+                borderBottom:`1px solid ${th.border}`,
+              }}>
+                <div style={{ fontSize:16, flexShrink:0, marginTop:1 }}>{icon}</div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:th.text }}>{title}</div>
+                  <div style={{ fontSize:10, color:th.textSub, marginTop:1 }}>{desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Stats row */}
+          <div style={{ display:"flex", gap:10 }}>
+            <div style={{
+              flex:1, background:th.card, border:`1.5px solid ${NAVY}`,
+              borderRadius:12, padding:"12px 10px", textAlign:"center",
+            }}>
+              <div style={{ fontSize:22, fontWeight:800, color:NAVY }}>{users.length}</div>
+              <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Users in export</div>
+            </div>
+            <div style={{
+              flex:1, background:th.card, border:`1.5px solid ${SAFFRON}`,
+              borderRadius:12, padding:"12px 10px", textAlign:"center",
+            }}>
+              <div style={{ fontSize:22, fontWeight:800, color:SAFFRON }}>{reports.length}</div>
+              <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>Reports in export</div>
+            </div>
+          </div>
+
+          {/* Export button */}
+          {!loading && (users.length > 0 || reports.length > 0) ? (
+            <div
+              onClick={exportModal ? undefined : handleExportAll}
+              style={{
+                background: exportModal
+                  ? th.border
+                  : `linear-gradient(135deg,${NAVY},#1a56db)`,
+                borderRadius:14, padding:"16px",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+                cursor: exportModal ? "default" : "pointer",
+                opacity: exportModal ? 0.6 : 1,
+                transition:"opacity 0.2s",
+                boxShadow: exportModal ? "none" : `0 4px 18px rgba(0,53,128,0.35)`,
+              }}
+            >
+              <span style={{ fontSize:20 }}>{exportModal ? "⏳" : "📄"}</span>
+              <span style={{ color:"#fff", fontSize:14, fontWeight:800, letterSpacing:0.2 }}>
+                {exportModal ? "Generating…" : "Export Full Report"}
+              </span>
+            </div>
+          ) : (
+            <div style={{
+              background:th.card2, border:`1.5px dashed ${th.border}`,
+              borderRadius:14, padding:"16px",
+              textAlign:"center", color:th.textSub, fontSize:12,
+            }}>
+              {loading ? "Loading data…" : "No data available to export yet"}
+            </div>
+          )}
+
+          {/* Note */}
+          <div style={{
+            background:th.card2, border:`1.5px dashed ${th.border}`,
+            borderRadius:12, padding:"12px 14px",
+            fontSize:10, color:th.textSub, lineHeight:1.6,
+          }}>
+            ℹ️ The report opens in a new tab as a styled HTML file. Use your browser's <strong style={{ color:th.text }}>Print → Save as PDF</strong> (landscape, A4) to save it. Marked <strong style={{ color:"#DC2626" }}>CONFIDENTIAL</strong> — do not share.
+          </div>
+
+          <div style={{ height: 20 }} />
+        </div>
       )}
 
       </div>{/* end animated tab content */}
