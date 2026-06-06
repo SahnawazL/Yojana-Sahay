@@ -2306,23 +2306,25 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
               {/* Apple App Store pill */}
               <div style={{
                 display: "flex", alignItems: "center", gap: 8,
-                background: "rgba(255,255,255,0.07)",
-                border: "1px solid rgba(255,255,255,0.14)",
+                background: dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+                border: dark ? "1px solid rgba(255,255,255,0.14)" : `1px solid ${th.border2}`,
                 borderRadius: 10, padding: "7px 13px",
                 backdropFilter: "blur(8px)",
               }}>
-                <svg width="13" height="16" viewBox="0 0 814 1000" fill="rgba(255,255,255,0.75)">
+                <svg width="13" height="16" viewBox="0 0 814 1000" fill={dark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.65)"}>
                   <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.4 269-317.4 70.1 0 128.4 46.4 172.5 46.4 42.8 0 109.8-49.1 190.5-49.1zm-3.2-161.7c32.4-38.4 56.3-91.4 56.3-144.4 0-7.4-.6-14.9-1.9-21.7-53.5 2-117.4 35.5-155.5 79.9-31.1 35.5-59.9 88.5-59.9 142.1 0 8.3 1.3 16.6 1.9 19.2 3.2.6 8.4 1.3 13.6 1.3 48.4 0 109.1-32.4 145.5-76.4z"/>
                 </svg>
                 <div>
                   <div style={{
-                    fontSize: 7.5, fontWeight: 600, color: "rgba(255,255,255,0.42)",
+                    fontSize: 7.5, fontWeight: 600,
+                    color: dark ? "rgba(255,255,255,0.42)" : "rgba(0,0,0,0.38)",
                     letterSpacing: 1, textTransform: "uppercase", fontFamily: bf,
                   }}>
                     Coming Soon
                   </div>
                   <div style={{
-                    fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.80)",
+                    fontSize: 11, fontWeight: 700,
+                    color: dark ? "rgba(255,255,255,0.80)" : "rgba(0,0,0,0.75)",
                     fontFamily: bf, lineHeight: 1.2,
                   }}>
                     App Store
@@ -2333,23 +2335,25 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
               {/* Google Play pill */}
               <div style={{
                 display: "flex", alignItems: "center", gap: 8,
-                background: "rgba(255,255,255,0.07)",
-                border: "1px solid rgba(255,255,255,0.14)",
+                background: dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+                border: dark ? "1px solid rgba(255,255,255,0.14)" : `1px solid ${th.border2}`,
                 borderRadius: 10, padding: "7px 13px",
                 backdropFilter: "blur(8px)",
               }}>
-                <svg width="13" height="14" viewBox="0 0 512 512" fill="rgba(255,255,255,0.75)">
+                <svg width="13" height="14" viewBox="0 0 512 512" fill={dark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.65)"}>
                   <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l232.6-232.6L47 0zm442.1 221.9l-60.7-35.1-67.8 67.8 67.8 67.8 61.4-35.4c17.4-10 17.4-35.1-.7-45.1zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/>
                 </svg>
                 <div>
                   <div style={{
-                    fontSize: 7.5, fontWeight: 600, color: "rgba(255,255,255,0.42)",
+                    fontSize: 7.5, fontWeight: 600,
+                    color: dark ? "rgba(255,255,255,0.42)" : "rgba(0,0,0,0.38)",
                     letterSpacing: 1, textTransform: "uppercase", fontFamily: bf,
                   }}>
                     Coming Soon
                   </div>
                   <div style={{
-                    fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.80)",
+                    fontSize: 11, fontWeight: 700,
+                    color: dark ? "rgba(255,255,255,0.80)" : "rgba(0,0,0,0.75)",
                     fontFamily: bf, lineHeight: 1.2,
                   }}>
                     Google Play
@@ -2367,24 +2371,34 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
           <div style={{
             borderRadius: R.xl,
             padding: "28px 22px 26px",
-            background: "linear-gradient(160deg, #04091A 0%, #060D20 45%, #050B1C 100%)",
+            background: dark
+              ? "linear-gradient(160deg, #04091A 0%, #060D20 45%, #050B1C 100%)"
+              : "linear-gradient(160deg, #E8EDF8 0%, #EEF1FA 45%, #E4EAF6 100%)",
             display: "flex", flexDirection: "column", alignItems: "center",
             gap: 0, textAlign: "center",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)",
+            boxShadow: dark
+              ? "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)"
+              : "0 4px 20px rgba(10,18,48,0.08), inset 0 1px 0 rgba(255,255,255,0.80)",
             position: "relative", overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.07)",
+            border: dark
+              ? "1px solid rgba(255,255,255,0.07)"
+              : `1px solid ${th.border}`,
           }}>
 
             {/* Top glass sheen */}
             <div style={{
               position: "absolute", top: 0, left: 0, right: 0, height: "38%",
-              background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)",
+              background: dark
+                ? "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)"
+                : "linear-gradient(180deg, rgba(255,255,255,0.60) 0%, transparent 100%)",
               pointerEvents: "none",
             }} />
             {/* Dot grid texture */}
             <div style={{
               position: "absolute", inset: 0, pointerEvents: "none",
-              backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)",
+              backgroundImage: dark
+                ? "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)"
+                : "radial-gradient(circle, rgba(10,18,48,0.06) 1px, transparent 1px)",
               backgroundSize: "22px 22px",
             }} />
 
@@ -2395,19 +2409,23 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
             }}>
               <div style={{
                 height: 1, width: 36, borderRadius: 1,
-                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.16))",
+                background: dark
+                  ? "linear-gradient(90deg, transparent, rgba(255,255,255,0.16))"
+                  : "linear-gradient(90deg, transparent, rgba(10,18,48,0.18))",
               }} />
-              <AshokaChakra size={20} color="rgba(255,255,255,0.28)" spinning />
+              <AshokaChakra size={20} color={dark ? "rgba(255,255,255,0.28)" : "rgba(10,18,48,0.30)"} spinning />
               <div style={{
                 height: 1, width: 36, borderRadius: 1,
-                background: "linear-gradient(90deg, rgba(255,255,255,0.16), transparent)",
+                background: dark
+                  ? "linear-gradient(90deg, rgba(255,255,255,0.16), transparent)"
+                  : "linear-gradient(90deg, rgba(10,18,48,0.18), transparent)",
               }} />
             </div>
 
             {/* Copyright */}
             <div style={{
               fontSize: 11.5, fontWeight: 700,
-              color: "rgba(255,255,255,0.82)",
+              color: dark ? "rgba(255,255,255,0.82)" : th.text,
               letterSpacing: 0.2, fontFamily: bf,
               position: "relative", marginBottom: 7,
             }}>
@@ -2416,7 +2434,8 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
 
             {/* Footer note */}
             <div style={{
-              fontSize: 10, color: "rgba(255,255,255,0.32)",
+              fontSize: 10,
+              color: dark ? "rgba(255,255,255,0.32)" : th.textSub,
               letterSpacing: 0.3, fontFamily: bf,
               position: "relative", marginBottom: 20,
             }}>
@@ -2426,20 +2445,22 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
             {/* Thin divider */}
             <div style={{
               width: "100%", height: 1, marginBottom: 16,
-              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+              background: dark
+                ? "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)"
+                : "linear-gradient(90deg, transparent, rgba(10,18,48,0.10), transparent)",
               position: "relative",
             }} />
 
             {/* Platform ID badge */}
             <div style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.07)",
+              background: dark ? "rgba(255,255,255,0.04)" : "rgba(10,18,48,0.04)",
+              border: dark ? "1px solid rgba(255,255,255,0.07)" : `1px solid ${th.border}`,
               borderRadius: 8, padding: "6px 16px",
               position: "relative",
             }}>
               <span style={{
                 fontSize: 8.5, fontWeight: 500,
-                color: "rgba(255,255,255,0.24)",
+                color: dark ? "rgba(255,255,255,0.24)" : th.textSub,
                 letterSpacing: 1.1, fontFamily: "monospace",
               }}>
                 {s.platformId}
