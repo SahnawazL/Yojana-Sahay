@@ -17,6 +17,7 @@ import { db } from "./firebase.js";
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
 import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
+import UsageDataCleaner from "./UsageDataCleaner.jsx";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -4000,12 +4001,19 @@ export default function AdminDashboard({ onClose, dark = false }) {
         />
       )}
 
-      {/* ══ CLEANUP — Delete old resolved reports ══ */}
+      {/* ══ CLEANUP — Delete old resolved reports + old usage data ══ */}
       {activeSection === "cleanup" && (
-        <ResolvedReportsCleaner
-          dark={dark}
-          onDeleteDone={fetchReports}
-        />
+        <>
+          <ResolvedReportsCleaner
+            dark={dark}
+            onDeleteDone={fetchReports}
+          />
+          <UsageDataCleaner
+            dark={dark}
+            onDeleteDone={fetchUsage}
+          />
+          <div style={{ height: 20 }} />
+        </>
       )}
 
       </div>{/* end animated tab content */}
