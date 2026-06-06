@@ -238,7 +238,7 @@ const STRINGS = {
 
     shareTitle: "Share YojanaSahay",
     shareBody:  "Know someone who could benefit from government schemes? Share this platform with them.",
-    shareBtn:   "Share with Someone 🙏",
+    shareBtn:   "Share with Someone",
 
     ackTitle: "Acknowledgements",
     ackBody:  "YojanaSahay is built on open-source tools and publicly available resources. We gratefully acknowledge the following:",
@@ -399,7 +399,7 @@ const STRINGS = {
 
     shareTitle: "योजना सहाय साझा करें",
     shareBody:  "क्या आप किसी ऐसे व्यक्ति को जानते हैं जो सरकारी योजनाओं से लाभ उठा सकता है? यह प्लेटफ़ॉर्म उनके साथ साझा करें।",
-    shareBtn:   "किसी के साथ साझा करें 🙏",
+    shareBtn:   "किसी के साथ साझा करें",
 
     ackTitle: "आभार",
     ackBody:  "योजना सहाय ओपन-सोर्स टूल्स और सार्वजनिक रूप से उपलब्ध संसाधनों पर निर्मित है। हम निम्नलिखित का कृतज्ञतापूर्वक उल्लेख करते हैं:",
@@ -2259,13 +2259,35 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
         <div className="ys-card">
           <div style={{
             background: dark
-              ? "linear-gradient(135deg, rgba(19,136,8,0.12) 0%, rgba(0,53,128,0.16) 100%)"
-              : "linear-gradient(135deg, rgba(19,136,8,0.06) 0%, rgba(0,53,128,0.05) 100%)",
-            borderRadius: R.xl, padding: "26px 20px",
-            border: `1px solid ${IND_GREEN}28`,
+              ? "linear-gradient(135deg, rgba(19,136,8,0.10) 0%, rgba(0,53,128,0.14) 100%)"
+              : "linear-gradient(135deg, rgba(19,136,8,0.05) 0%, rgba(0,53,128,0.04) 100%)",
+            borderRadius: R.xl, padding: "28px 20px 24px",
+            border: dark
+              ? `1.5px solid rgba(19,136,8,0.32)`
+              : `1.5px solid rgba(19,136,8,0.22)`,
+            boxShadow: dark
+              ? "0 0 0 1px rgba(255,255,255,0.04) inset"
+              : "0 0 0 1px rgba(255,255,255,0.70) inset, 0 4px 16px rgba(19,136,8,0.08)",
             textAlign: "center",
           }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>🙏</div>
+
+            {/* Premium share icon — circular gradient badge */}
+            <div style={{
+              width: 54, height: 54, borderRadius: "50%", margin: "0 auto 14px",
+              background: `linear-gradient(135deg, ${IND_GREEN} 0%, #0D6A06 100%)`,
+              boxShadow: "0 8px 24px rgba(19,136,8,0.36), 0 2px 8px rgba(19,136,8,0.20)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {/* Share / broadcast SVG */}
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3"/>
+                <circle cx="6"  cy="12" r="3"/>
+                <circle cx="18" cy="19" r="3"/>
+                <line x1="8.59"  y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51"  x2="8.59"  y2="10.49"/>
+              </svg>
+            </div>
+
             <div style={{ fontSize: 14, fontWeight: 700, color: th.text, marginBottom: 8, fontFamily: bf }}>
               {s.shareTitle}
             </div>
@@ -2290,11 +2312,17 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
               style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 9,
                 background: `linear-gradient(135deg, ${IND_GREEN} 0%, #0D6A06 100%)`,
-                borderRadius: R.md, padding: "14px 28px",
+                borderRadius: R.md, padding: "13px 28px",
                 fontSize: 13, fontWeight: 700, color: "#fff",
                 cursor: "pointer", fontFamily: bf,
                 boxShadow: "0 8px 24px rgba(19,136,8,0.34)",
+                letterSpacing: 0.2,
               }}>
+              {/* Inline share arrow icon */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
               {s.shareBtn}
             </div>
 
@@ -2361,113 +2389,71 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 </div>
               </div>
             </div>
-            {/* ─────────────────────────────────────────────────────────── */}
 
           </div>
         </div>
 
         {/* ── FOOTER ───────────────────────────────────────────────────── */}
-        <div className="ys-card">
-          <div style={{
-            borderRadius: R.xl,
-            padding: "28px 22px 26px",
-            background: dark
-              ? "linear-gradient(160deg, #04091A 0%, #060D20 45%, #050B1C 100%)"
-              : "linear-gradient(160deg, #E8EDF8 0%, #EEF1FA 45%, #E4EAF6 100%)",
-            display: "flex", flexDirection: "column", alignItems: "center",
-            gap: 0, textAlign: "center",
-            boxShadow: dark
-              ? "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)"
-              : "0 4px 20px rgba(10,18,48,0.08), inset 0 1px 0 rgba(255,255,255,0.80)",
-            position: "relative", overflow: "hidden",
-            border: dark
-              ? "1px solid rgba(255,255,255,0.07)"
-              : `1px solid ${th.border}`,
-          }}>
+        <div style={{
+          marginTop: 8,
+          paddingTop: 24,
+          borderTop: dark
+            ? "1px solid rgba(255,255,255,0.08)"
+            : `1px solid ${th.border}`,
+          display: "flex", flexDirection: "column", alignItems: "center",
+          gap: 0, textAlign: "center",
+        }}>
 
-            {/* Top glass sheen */}
-            <div style={{
-              position: "absolute", top: 0, left: 0, right: 0, height: "38%",
-              background: dark
-                ? "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)"
-                : "linear-gradient(180deg, rgba(255,255,255,0.60) 0%, transparent 100%)",
-              pointerEvents: "none",
-            }} />
-            {/* Dot grid texture */}
-            <div style={{
-              position: "absolute", inset: 0, pointerEvents: "none",
-              backgroundImage: dark
-                ? "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)"
-                : "radial-gradient(circle, rgba(10,18,48,0.06) 1px, transparent 1px)",
-              backgroundSize: "22px 22px",
-            }} />
-
-            {/* Chakra with neutral flanks */}
-            <div style={{
-              display: "flex", gap: 10, alignItems: "center",
-              position: "relative", marginBottom: 18,
+          {/* Chakra + brand row */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <AshokaChakra size={16} color={dark ? "rgba(255,255,255,0.22)" : "rgba(10,18,48,0.22)"} spinning />
+            <span style={{
+              fontSize: 11, fontWeight: 800, letterSpacing: 1.2,
+              color: dark ? "rgba(255,255,255,0.40)" : "rgba(10,18,48,0.32)",
+              textTransform: "uppercase", fontFamily: bf,
             }}>
-              <div style={{
-                height: 1, width: 36, borderRadius: 1,
-                background: dark
-                  ? "linear-gradient(90deg, transparent, rgba(255,255,255,0.16))"
-                  : "linear-gradient(90deg, transparent, rgba(10,18,48,0.18))",
-              }} />
-              <AshokaChakra size={20} color={dark ? "rgba(255,255,255,0.28)" : "rgba(10,18,48,0.30)"} spinning />
-              <div style={{
-                height: 1, width: 36, borderRadius: 1,
-                background: dark
-                  ? "linear-gradient(90deg, rgba(255,255,255,0.16), transparent)"
-                  : "linear-gradient(90deg, rgba(10,18,48,0.18), transparent)",
-              }} />
-            </div>
-
-            {/* Copyright */}
-            <div style={{
-              fontSize: 11.5, fontWeight: 700,
-              color: dark ? "rgba(255,255,255,0.82)" : th.text,
-              letterSpacing: 0.2, fontFamily: bf,
-              position: "relative", marginBottom: 7,
-            }}>
-              {s.copyright}
-            </div>
-
-            {/* Footer note */}
-            <div style={{
-              fontSize: 10,
-              color: dark ? "rgba(255,255,255,0.32)" : th.textSub,
-              letterSpacing: 0.3, fontFamily: bf,
-              position: "relative", marginBottom: 20,
-            }}>
-              {s.footerNote}
-            </div>
-
-            {/* Thin divider */}
-            <div style={{
-              width: "100%", height: 1, marginBottom: 16,
-              background: dark
-                ? "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)"
-                : "linear-gradient(90deg, transparent, rgba(10,18,48,0.10), transparent)",
-              position: "relative",
-            }} />
-
-            {/* Platform ID badge */}
-            <div style={{
-              background: dark ? "rgba(255,255,255,0.04)" : "rgba(10,18,48,0.04)",
-              border: dark ? "1px solid rgba(255,255,255,0.07)" : `1px solid ${th.border}`,
-              borderRadius: 8, padding: "6px 16px",
-              position: "relative",
-            }}>
-              <span style={{
-                fontSize: 8.5, fontWeight: 500,
-                color: dark ? "rgba(255,255,255,0.24)" : th.textSub,
-                letterSpacing: 1.1, fontFamily: "monospace",
-              }}>
-                {s.platformId}
-              </span>
-            </div>
-
+              YojanaSahay
+            </span>
+            <AshokaChakra size={16} color={dark ? "rgba(255,255,255,0.22)" : "rgba(10,18,48,0.22)"} spinning />
           </div>
+
+          {/* Copyright */}
+          <div style={{
+            fontSize: 11, fontWeight: 600,
+            color: dark ? "rgba(255,255,255,0.55)" : th.textMid,
+            letterSpacing: 0.2, fontFamily: bf, marginBottom: 5,
+          }}>
+            {s.copyright}
+          </div>
+
+          {/* Footer note */}
+          <div style={{
+            fontSize: 10,
+            color: dark ? "rgba(255,255,255,0.24)" : th.textSub,
+            letterSpacing: 0.2, fontFamily: bf, marginBottom: 16,
+            lineHeight: 1.6,
+          }}>
+            {s.footerNote}
+          </div>
+
+          {/* Thin inner divider */}
+          <div style={{
+            width: 120, height: 1, marginBottom: 12,
+            background: dark
+              ? "linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent)"
+              : "linear-gradient(90deg, transparent, rgba(10,18,48,0.12), transparent)",
+          }} />
+
+          {/* Platform ID — plain monospace label, no box */}
+          <div style={{
+            fontSize: 8, fontWeight: 500,
+            color: dark ? "rgba(255,255,255,0.16)" : th.textLight,
+            letterSpacing: 1.2, fontFamily: "monospace",
+            marginBottom: 24,
+          }}>
+            {s.platformId}
+          </div>
+
         </div>
 
       </div>
