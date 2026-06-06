@@ -2277,66 +2277,86 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
         <div className="ys-card">
           <div style={{
             borderRadius: R.xl,
-            padding: "28px 20px",
-            background: `linear-gradient(155deg, #002060 0%, ${NAVY}F8 40%, #05256E 75%, #001538 100%)`,
+            padding: "28px 22px 26px",
+            background: "linear-gradient(160deg, #04091A 0%, #060D20 45%, #050B1C 100%)",
             display: "flex", flexDirection: "column", alignItems: "center",
-            gap: 14, textAlign: "center",
-            boxShadow: "0 10px 36px rgba(0,53,128,0.30)",
+            gap: 0, textAlign: "center",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)",
             position: "relative", overflow: "hidden",
+            border: "1px solid rgba(255,255,255,0.07)",
           }}>
-            {/* Background texture */}
+
+            {/* Top glass sheen */}
+            <div style={{
+              position: "absolute", top: 0, left: 0, right: 0, height: "38%",
+              background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)",
+              pointerEvents: "none",
+            }} />
+            {/* Dot grid texture */}
             <div style={{
               position: "absolute", inset: 0, pointerEvents: "none",
-              backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
+              backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)",
+              backgroundSize: "22px 22px",
             }} />
 
-            {/* Chakra + tricolour */}
-            <div style={{ display: "flex", gap: 6, alignItems: "center", position: "relative" }}>
-              <div style={{ height: 2, width: 28, borderRadius: 2, background: SAFFRON }} />
-              <AshokaChakra size={22} color="rgba(255,255,255,0.40)" spinning />
-              <div style={{ height: 2, width: 28, borderRadius: 2, background: IND_GREEN }} />
+            {/* Chakra with neutral flanks */}
+            <div style={{
+              display: "flex", gap: 10, alignItems: "center",
+              position: "relative", marginBottom: 18,
+            }}>
+              <div style={{
+                height: 1, width: 36, borderRadius: 1,
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.16))",
+              }} />
+              <AshokaChakra size={20} color="rgba(255,255,255,0.28)" spinning />
+              <div style={{
+                height: 1, width: 36, borderRadius: 1,
+                background: "linear-gradient(90deg, rgba(255,255,255,0.16), transparent)",
+              }} />
             </div>
 
+            {/* Copyright */}
             <div style={{
-              fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.88)",
-              letterSpacing: 0.5, fontFamily: bf, position: "relative",
+              fontSize: 11.5, fontWeight: 700,
+              color: "rgba(255,255,255,0.82)",
+              letterSpacing: 0.2, fontFamily: bf,
+              position: "relative", marginBottom: 7,
             }}>
               {s.copyright}
             </div>
+
+            {/* Footer note */}
             <div style={{
-              fontSize: 10, color: "rgba(255,255,255,0.40)",
-              letterSpacing: 0.4, fontFamily: bf, position: "relative",
+              fontSize: 10, color: "rgba(255,255,255,0.32)",
+              letterSpacing: 0.3, fontFamily: bf,
+              position: "relative", marginBottom: 20,
             }}>
               {s.footerNote}
             </div>
 
+            {/* Thin divider */}
+            <div style={{
+              width: "100%", height: 1, marginBottom: 16,
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+              position: "relative",
+            }} />
+
             {/* Platform ID badge */}
             <div style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 8, padding: "5px 14px",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: 8, padding: "6px 16px",
               position: "relative",
             }}>
               <span style={{
-                fontSize: 9, fontWeight: 600,
-                color: "rgba(255,255,255,0.36)",
-                letterSpacing: 0.9, fontFamily: "monospace",
+                fontSize: 8.5, fontWeight: 500,
+                color: "rgba(255,255,255,0.24)",
+                letterSpacing: 1.1, fontFamily: "monospace",
               }}>
                 {s.platformId}
               </span>
             </div>
 
-            {/* Bottom tricolour bar */}
-            <div style={{
-              display: "flex", width: "100%", height: 3,
-              borderRadius: 3, overflow: "hidden", marginTop: 2,
-              position: "relative",
-            }}>
-              <div style={{ flex: 1, background: SAFFRON }} />
-              <div style={{ flex: 1, background: "rgba(255,255,255,0.90)" }} />
-              <div style={{ flex: 1, background: IND_GREEN }} />
-            </div>
           </div>
         </div>
 
