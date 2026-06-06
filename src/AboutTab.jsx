@@ -2395,65 +2395,162 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
 
         {/* ── FOOTER ───────────────────────────────────────────────────── */}
         <div style={{
-          marginTop: 8,
-          paddingTop: 24,
-          borderTop: dark
-            ? "1px solid rgba(255,255,255,0.08)"
-            : `1px solid ${th.border}`,
-          display: "flex", flexDirection: "column", alignItems: "center",
-          gap: 0, textAlign: "center",
+          marginTop: 14,
+          marginLeft: -16, marginRight: -16, marginBottom: -48,
+          overflow: "hidden",
         }}>
 
-          {/* Chakra + brand row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-            <AshokaChakra size={16} color={dark ? "rgba(255,255,255,0.22)" : "rgba(10,18,48,0.22)"} spinning />
-            <span style={{
-              fontSize: 11, fontWeight: 800, letterSpacing: 1.2,
-              color: dark ? "rgba(255,255,255,0.40)" : "rgba(10,18,48,0.32)",
-              textTransform: "uppercase", fontFamily: bf,
-            }}>
-              YojanaSahay
-            </span>
-            <AshokaChakra size={16} color={dark ? "rgba(255,255,255,0.22)" : "rgba(10,18,48,0.22)"} spinning />
+          {/* ── Premium divider — double-line with center glow ── */}
+          <div style={{ position: "relative", height: 5, marginBottom: 0 }}>
+            {/* Outer faint rule */}
+            <div style={{
+              position: "absolute", top: 0, left: 0, right: 0, height: 1,
+              background: dark
+                ? "rgba(255,255,255,0.07)"
+                : "rgba(10,18,48,0.09)",
+            }} />
+            {/* Inner glowing rule */}
+            <div style={{
+              position: "absolute", top: 3, left: 0, right: 0, height: 1,
+              background: dark
+                ? "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 30%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.18) 70%, transparent 100%)"
+                : "linear-gradient(90deg, transparent 0%, rgba(10,18,48,0.14) 30%, rgba(10,18,48,0.22) 50%, rgba(10,18,48,0.14) 70%, transparent 100%)",
+            }} />
+            {/* Centre diamond dot */}
+            <div style={{
+              position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
+              width: 5, height: 5,
+              background: dark ? "rgba(255,255,255,0.32)" : "rgba(10,18,48,0.28)",
+              clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+            }} />
           </div>
 
-          {/* Copyright */}
+          {/* ── Main footer body ── */}
           <div style={{
-            fontSize: 11, fontWeight: 600,
-            color: dark ? "rgba(255,255,255,0.55)" : th.textMid,
-            letterSpacing: 0.2, fontFamily: bf, marginBottom: 5,
-          }}>
-            {s.copyright}
-          </div>
-
-          {/* Footer note */}
-          <div style={{
-            fontSize: 10,
-            color: dark ? "rgba(255,255,255,0.24)" : th.textSub,
-            letterSpacing: 0.2, fontFamily: bf, marginBottom: 16,
-            lineHeight: 1.6,
-          }}>
-            {s.footerNote}
-          </div>
-
-          {/* Thin inner divider */}
-          <div style={{
-            width: 120, height: 1, marginBottom: 12,
             background: dark
-              ? "linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent)"
-              : "linear-gradient(90deg, transparent, rgba(10,18,48,0.12), transparent)",
-          }} />
-
-          {/* Platform ID — plain monospace label, no box */}
-          <div style={{
-            fontSize: 8, fontWeight: 500,
-            color: dark ? "rgba(255,255,255,0.16)" : th.textLight,
-            letterSpacing: 1.2, fontFamily: "monospace",
-            marginBottom: 24,
+              ? "linear-gradient(180deg, #05091C 0%, #040818 100%)"
+              : "linear-gradient(180deg, #D6DFEF 0%, #CDD7EB 100%)",
+            padding: "28px 20px 0",
+            textAlign: "center",
           }}>
-            {s.platformId}
-          </div>
 
+            {/* Brand mark — Chakra + wordmark */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, marginBottom: 6 }}>
+              <AshokaChakra size={20} color={ASHOKA_BLUE} spinning />
+              <span style={{
+                fontSize: 13, fontWeight: 800, letterSpacing: 1.8,
+                textTransform: "uppercase", fontFamily: bf,
+                color: dark ? "rgba(255,255,255,0.88)" : "#0A1230",
+              }}>
+                YojanaSahay
+              </span>
+            </div>
+
+            {/* Tagline */}
+            <div style={{
+              fontSize: 10.5, fontWeight: 500, letterSpacing: 0.3,
+              color: dark ? "rgba(255,255,255,0.38)" : "#4A5E82",
+              fontFamily: bf, marginBottom: 20, lineHeight: 1.5,
+            }}>
+              {s.footerNote}
+            </div>
+
+            {/* Badge row — MIT · Made in India · Beta */}
+            <div style={{
+              display: "flex", justifyContent: "center",
+              gap: 7, flexWrap: "wrap", marginBottom: 24,
+            }}>
+
+              {/* MIT Licensed */}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                padding: "4px 11px", borderRadius: 20,
+                background: dark ? "rgba(255,255,255,0.05)" : "rgba(10,18,48,0.06)",
+                border: dark ? "1px solid rgba(255,255,255,0.09)" : "1px solid rgba(10,18,48,0.11)",
+              }}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none"
+                  stroke={dark ? "rgba(255,255,255,0.50)" : "#334170"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                </svg>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, letterSpacing: 0.6,
+                  color: dark ? "rgba(255,255,255,0.50)" : "#334170", fontFamily: bf,
+                }}>MIT Licensed</span>
+              </div>
+
+              {/* Made in India */}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                padding: "4px 11px", borderRadius: 20,
+                background: dark ? "rgba(255,255,255,0.05)" : "rgba(10,18,48,0.06)",
+                border: dark ? "1px solid rgba(255,255,255,0.09)" : "1px solid rgba(10,18,48,0.11)",
+              }}>
+                {/* Map pin / location SVG */}
+                <svg width="8" height="10" viewBox="0 0 24 30" fill="none"
+                  stroke={dark ? "rgba(255,255,255,0.50)" : "#334170"} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2C7.58 2 4 5.58 4 10c0 6 8 18 8 18s8-12 8-18c0-4.42-3.58-8-8-8z"/>
+                  <circle cx="12" cy="10" r="2.5" fill={dark ? "rgba(255,255,255,0.50)" : "#334170"} stroke="none"/>
+                </svg>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, letterSpacing: 0.6,
+                  color: dark ? "rgba(255,255,255,0.50)" : "#334170", fontFamily: bf,
+                }}>Made in India</span>
+              </div>
+
+              {/* v1.3 Beta */}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                padding: "4px 11px", borderRadius: 20,
+                background: dark ? "rgba(6,3,141,0.18)" : "rgba(6,3,141,0.06)",
+                border: dark ? "1px solid rgba(100,120,255,0.28)" : "1px solid rgba(6,3,141,0.13)",
+              }}>
+                {/* Code / terminal icon */}
+                <svg width="10" height="9" viewBox="0 0 24 24" fill="none"
+                  stroke={dark ? "#7B9EFF" : ASHOKA_BLUE} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="16 18 22 12 16 6"/>
+                  <polyline points="8 6 2 12 8 18"/>
+                </svg>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, letterSpacing: 0.6,
+                  color: dark ? "#7B9EFF" : ASHOKA_BLUE, fontFamily: bf,
+                }}>v1.3 Beta</span>
+              </div>
+
+            </div>
+
+            {/* Full-width section divider */}
+            <div style={{
+              height: 1, marginLeft: -20, marginRight: -20,
+              background: dark
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(10,18,48,0.09)",
+            }} />
+
+            {/* Copyright strip */}
+            <div style={{
+              background: dark ? "#030610" : "#C2CEDF",
+              margin: "0 -20px",
+              padding: "13px 20px 22px",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+            }}>
+              <div style={{
+                fontSize: 10, fontWeight: 600,
+                color: dark ? "rgba(255,255,255,0.40)" : "#3A4C6A",
+                letterSpacing: 0.2, fontFamily: bf,
+              }}>
+                {s.copyright}
+              </div>
+              <div style={{
+                fontSize: 8, fontWeight: 500,
+                color: dark ? "rgba(255,255,255,0.13)" : "rgba(10,18,48,0.26)",
+                letterSpacing: 1.1, fontFamily: "monospace",
+              }}>
+                {s.platformId}
+              </div>
+            </div>
+
+          </div>
         </div>
 
       </div>
