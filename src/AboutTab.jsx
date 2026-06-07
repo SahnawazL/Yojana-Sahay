@@ -555,6 +555,11 @@ export default function AboutTab() {
     setTimeout(() => { setSettingsOpen(false); setSettingsClosing(false); }, 240);
   };
 
+  const scrollToDev = () => {
+    const el = document.getElementById("ys-dev-card");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   // Prevent body scroll when settings open
   useEffect(() => {
     if (settingsOpen) {
@@ -708,6 +713,11 @@ export default function AboutTab() {
                   box-shadow 0.22s ease, transform 0.15s ease;
     }
     .ys-settings-fab:active { transform: scale(0.93); }
+    .ys-dev-fab {
+      transition: background 0.22s ease, border-color 0.22s ease,
+                  box-shadow 0.22s ease, transform 0.15s ease;
+    }
+    .ys-dev-fab:active { transform: scale(0.93); }
     .ys-settings-close {
       transition: background 0.18s ease, transform 0.15s ease;
     }
@@ -740,42 +750,85 @@ export default function AboutTab() {
         overflow: "hidden",
       }}>
 
-        {/* ── Settings FAB — fixed top-right, never scrolls ── */}
-        <div
-          className="ys-settings-fab"
-          onClick={settingsOpen ? closeSettings : openSettings}
-          style={{
-            position: "fixed", top: 14, right: 14, zIndex: 120,
-            display: "flex", alignItems: "center", gap: 5,
-            padding: "7px 13px 7px 10px",
-            background: settingsOpen
-              ? "rgba(201,168,76,0.22)"
-              : "rgba(20,32,80,0.72)",
-            border: `1px solid ${settingsOpen ? "rgba(201,168,76,0.65)" : "rgba(255,255,255,0.18)"}`,
-            borderRadius: 22,
-            cursor: "pointer",
-            backdropFilter: "blur(14px)",
-            WebkitBackdropFilter: "blur(14px)",
-            boxShadow: settingsOpen
-              ? "0 0 18px rgba(201,168,76,0.30), 0 4px 16px rgba(0,0,0,0.30)"
-              : "0 4px 16px rgba(0,0,0,0.35)",
-          }}>
-          {/* Sliders icon */}
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-            stroke={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"}
-            strokeWidth="2.2" strokeLinecap="round">
-            <line x1="4" y1="6"  x2="20" y2="6"/>
-            <line x1="4" y1="12" x2="20" y2="12"/>
-            <line x1="4" y1="18" x2="20" y2="18"/>
-            <circle cx="9"  cy="6"  r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
-            <circle cx="15" cy="12" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
-            <circle cx="9"  cy="18" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
-          </svg>
-          <span style={{
-            fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6,
-            color: settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)",
-            fontFamily: "'DM Sans', sans-serif",
-          }}>Settings</span>
+        {/* ── Fixed pill row — top-right, never scrolls ── */}
+        <div style={{
+          position: "fixed", top: 14, right: 14, zIndex: 120,
+          display: "flex", alignItems: "center", gap: 7,
+        }}>
+
+          {/* < Dev /> button */}
+          <div
+            className="ys-dev-fab"
+            onClick={scrollToDev}
+            style={{
+              display: "flex", alignItems: "center", gap: 5,
+              padding: "7px 12px",
+              background: "rgba(20,32,80,0.72)",
+              border: "1px solid rgba(201,168,76,0.38)",
+              borderRadius: 22,
+              cursor: "pointer",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
+            }}>
+            {/* Code brackets */}
+            <span style={{
+              fontSize: 9.5, fontWeight: 800, letterSpacing: 0,
+              background: "linear-gradient(90deg, #C9A84C, #F0D87A)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              fontFamily: "'DM Sans', sans-serif",
+            }}>&lt;</span>
+            <span style={{
+              fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4,
+              color: "rgba(255,255,255,0.82)",
+              fontFamily: "'DM Sans', sans-serif",
+            }}>Dev</span>
+            <span style={{
+              fontSize: 9.5, fontWeight: 800, letterSpacing: 0,
+              background: "linear-gradient(90deg, #C9A84C, #F0D87A)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              fontFamily: "'DM Sans', sans-serif",
+            }}>/&gt;</span>
+          </div>
+
+          {/* Settings button */}
+          <div
+            className="ys-settings-fab"
+            onClick={settingsOpen ? closeSettings : openSettings}
+            style={{
+              display: "flex", alignItems: "center", gap: 5,
+              padding: "7px 13px 7px 10px",
+              background: settingsOpen
+                ? "rgba(201,168,76,0.22)"
+                : "rgba(20,32,80,0.72)",
+              border: `1px solid ${settingsOpen ? "rgba(201,168,76,0.65)" : "rgba(255,255,255,0.18)"}`,
+              borderRadius: 22,
+              cursor: "pointer",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+              boxShadow: settingsOpen
+                ? "0 0 18px rgba(201,168,76,0.30), 0 4px 16px rgba(0,0,0,0.30)"
+                : "0 4px 16px rgba(0,0,0,0.35)",
+            }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"}
+              strokeWidth="2.2" strokeLinecap="round">
+              <line x1="4" y1="6"  x2="20" y2="6"/>
+              <line x1="4" y1="12" x2="20" y2="12"/>
+              <line x1="4" y1="18" x2="20" y2="18"/>
+              <circle cx="9"  cy="6"  r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
+              <circle cx="15" cy="12" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
+              <circle cx="9"  cy="18" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
+            </svg>
+            <span style={{
+              fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6,
+              color: settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)",
+              fontFamily: "'DM Sans', sans-serif",
+            }}>Settings</span>
+          </div>
+
         </div>
 
         {/* Atmospheric glow blobs */}
@@ -2067,7 +2120,7 @@ export default function AboutTab() {
         </div>
 
         {/* ── ABOUT THE DEVELOPER ──────────────────────────────────────── */}
-        <div className="ys-card">
+        <div className="ys-card" id="ys-dev-card">
           <div style={{
             borderRadius: R.xl,
             overflow: "hidden",
