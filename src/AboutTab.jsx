@@ -766,9 +766,9 @@ export default function AboutTab({ onClose }) {
     }
     .ys-about-title {
       font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      color: rgba(255, 255, 255, 0.92);
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      color: rgba(255, 255, 255, 0.95);
       font-family: 'DM Sans', sans-serif;
       line-height: 1;
     }
@@ -800,8 +800,8 @@ export default function AboutTab({ onClose }) {
         {/* ── Fixed header bar — back · title · pills — all in one row ── */}
         <div className="ys-header-bar">
 
-          {/* Left group — Back pill + separator + About title */}
-          <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+          {/* Left group — Back pill + About title with icon */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button
               className="ys-back-btn"
               onClick={() => { if (onClose) onClose(); else window.history.back(); }}
@@ -818,15 +818,29 @@ export default function AboutTab({ onClose }) {
               }}>Back</span>
             </button>
 
-            {/* Vertical divider */}
-            <div style={{
-              width: 1, height: 18, margin: "0 10px",
-              background: "rgba(255,255,255,0.18)",
-              flexShrink: 0,
-            }} />
+            {/* ── Premium About title — icon badge + label ── */}
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
 
-            {/* Page title */}
-            <span className="ys-about-title">About</span>
+              {/* Saffron-gold gradient info badge */}
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: `linear-gradient(135deg, ${SAFFRON} 0%, ${PRO_GOLD} 100%)`,
+                boxShadow: `0 2px 10px rgba(255,153,51,0.40), 0 0 0 1.5px rgba(255,255,255,0.14)`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                  stroke="rgba(255,255,255,0.95)" strokeWidth="2.8"
+                  strokeLinecap="round" strokeLinejoin="round">
+                  {/* i — dot */}
+                  <line x1="12" y1="8" x2="12" y2="8" strokeWidth="3.5" />
+                  {/* i — stem */}
+                  <line x1="12" y1="12" x2="12" y2="17" />
+                </svg>
+              </div>
+
+              {/* Label */}
+              <span className="ys-about-title">About</span>
+            </div>
           </div>
 
           {/* Right — Dev + Settings pills */}
