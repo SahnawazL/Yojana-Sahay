@@ -2231,6 +2231,60 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 }}>›</div>
               </div>
 
+              {/* ── Platform ID Footer Strip ── */}
+              <div style={{ marginTop: 18, marginLeft: -20, marginRight: -20 }}>
+                {/* Gold divider */}
+                <div style={{ position: "relative", height: 1, marginBottom: 11 }}>
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.45) 25%, rgba(240,216,122,0.70) 50%, rgba(201,168,76,0.45) 75%, transparent 100%)",
+                  }} />
+                  {/* Centre diamond */}
+                  <div style={{
+                    position: "absolute", top: "50%", left: "50%",
+                    transform: "translate(-50%,-50%) rotate(45deg)",
+                    width: 5, height: 5,
+                    background: "linear-gradient(135deg, #F0D87A, #C9A84C)",
+                    boxShadow: "0 0 6px rgba(201,168,76,0.70)",
+                  }} />
+                </div>
+                {/* ID row */}
+                <div style={{
+                  display: "flex", alignItems: "center",
+                  justifyContent: "center", gap: 7,
+                  paddingBottom: 4,
+                }}>
+                  {/* Lock icon */}
+                  <svg width="8" height="9" viewBox="0 0 24 24" fill="none"
+                    stroke="rgba(201,168,76,0.60)" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                  </svg>
+                  <span style={{
+                    fontSize: 8.5,
+                    fontFamily: "'Courier New', monospace",
+                    fontWeight: 600,
+                    letterSpacing: 1.4,
+                    textTransform: "uppercase",
+                    background: "linear-gradient(90deg, #C9A84C 0%, #F0D87A 50%, #C9A84C 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    userSelect: "none",
+                  }}>
+                    {PLATFORM_ID}
+                  </span>
+                  {/* Lock icon right */}
+                  <svg width="8" height="9" viewBox="0 0 24 24" fill="none"
+                    stroke="rgba(201,168,76,0.60)" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                  </svg>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
