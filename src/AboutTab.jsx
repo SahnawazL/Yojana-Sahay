@@ -930,13 +930,21 @@ export default function AboutTab() {
             }}
           />
 
-          {/* Sheet */}
+          {/* Sheet — outer flex wrapper for true centering in all container types */}
           <div style={{
             position: "fixed",
-            top: "50%", left: "50%",
-            transform: "translate(-50%, -50%)",
+            top: 0, left: 0, right: 0, bottom: 0,
             zIndex: 201,
-            width: "min(92vw, 360px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 20px",
+            pointerEvents: "none",
+          }}>
+          <div style={{
+            width: "100%",
+            maxWidth: 340,
+            pointerEvents: "auto",
             animation: settingsClosing
               ? "ys-sheet-out 0.24s cubic-bezier(0.4,0,0.2,1) forwards"
               : "ys-sheet-in 0.28s cubic-bezier(0.16,1,0.3,1) both",
@@ -1160,6 +1168,7 @@ export default function AboutTab() {
               </div>
 
             </div>
+          </div>
           </div>
         </>
       )}
