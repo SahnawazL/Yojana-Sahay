@@ -4153,7 +4153,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
-            <Helpline lang={lang}/>
+            <Helpline lang={lang} dark={dark}/>
           </div>
         </div>
       )}
@@ -5595,7 +5595,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
-            <Helpline lang={lang}/>
+            <Helpline lang={lang} dark={dark}/>
           </div>
         </div>
       )}

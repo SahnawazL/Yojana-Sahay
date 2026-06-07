@@ -1,41 +1,41 @@
 import { useState, useMemo, useRef } from "react";
 
-// ─── Design Tokens ───────────────────────────────────────────────────────────
-const C = {
-  bg:           "#060c18",
-  surface:      "#0c1526",
-  surfaceAlt:   "#101c30",
-  border:       "rgba(255,255,255,0.06)",
-  borderHover:  "rgba(255,255,255,0.13)",
-  saffron:      "#FF9933",
-  saffronDim:   "rgba(255,153,51,0.15)",
-  green:        "#22c55e",
-  white:        "#eef2ff",
-  muted:        "#7d8fa8",
-  mutedLight:   "#a8b8cc",
-  glass:        "rgba(255,255,255,0.04)",
-  glassHover:   "rgba(255,255,255,0.07)",
-  red:          "#f87171",
-  redBg:        "rgba(248,113,113,0.1)",
-  shadow:       "0 4px 24px rgba(0,0,0,0.45)",
-};
+// ─── Design Tokens (dark / light — aligned with App.jsx THEME) ───────────────
+const getC = (dark) => ({
+  bg:          dark ? "#111111"                    : "#f5f5f0",
+  surface:     dark ? "#1c1c1e"                    : "#ffffff",
+  surfaceAlt:  dark ? "#252527"                    : "#f8f9fa",
+  border:      dark ? "#2c2c2e"                    : "#e8e8e8",
+  borderHover: dark ? "rgba(255,255,255,0.13)"     : "rgba(0,0,0,0.14)",
+  saffron:     "#FF9933",
+  saffronDim:  dark ? "rgba(255,153,51,0.15)"      : "rgba(255,153,51,0.10)",
+  green:       dark ? "#22c55e"                    : "#138808",
+  white:       dark ? "#eef2ff"                    : "#1a1a1a",
+  muted:       dark ? "#7d8fa8"                    : "#888888",
+  mutedLight:  dark ? "#a8b8cc"                    : "#555555",
+  glass:       dark ? "rgba(255,255,255,0.04)"     : "rgba(0,0,0,0.03)",
+  glassHover:  dark ? "rgba(255,255,255,0.07)"     : "rgba(0,0,0,0.05)",
+  red:         dark ? "#f87171"                    : "#dc2626",
+  redBg:       dark ? "rgba(248,113,113,0.10)"     : "rgba(220,38,38,0.07)",
+  shadow:      dark ? "0 4px 24px rgba(0,0,0,0.45)" : "0 2px 10px rgba(0,0,0,0.08)",
+});
 
 // ─── Category Config ─────────────────────────────────────────────────────────
 const CATS = {
-  all:        { label: "All",            labelHi: "सभी",                icon: "☰",   color: "#818cf8", bg: "rgba(129,140,248,0.12)" },
-  emergency:  { label: "Emergency",      labelHi: "आपातकाल",            icon: "🚨",  color: "#f87171", bg: "rgba(248,113,113,0.12)" },
-  health:     { label: "Health",         labelHi: "स्वास्थ्य",           icon: "🏥",  color: "#34d399", bg: "rgba(52,211,153,0.12)"  },
-  agriculture:{ label: "Agriculture",    labelHi: "कृषि",                icon: "🌾",  color: "#a3e635", bg: "rgba(163,230,53,0.12)"  },
-  senior:     { label: "Senior Citizens",labelHi: "वरिष्ठ नागरिक",       icon: "🤝",  color: "#fbbf24", bg: "rgba(251,191,36,0.12)"  },
-  identity:   { label: "Identity",       labelHi: "पहचान",              icon: "🆔",  color: "#60a5fa", bg: "rgba(96,165,250,0.12)"  },
-  women:      { label: "Women & Child",  labelHi: "महिला व बाल",         icon: "👩‍👧", color: "#f472b6", bg: "rgba(244,114,182,0.12)" },
-  consumer:   { label: "Consumer",       labelHi: "उपभोक्ता",            icon: "🛡️",  color: "#c084fc", bg: "rgba(192,132,252,0.12)" },
-  labour:     { label: "Labour",         labelHi: "श्रम",                icon: "⚒️",  color: "#22d3ee", bg: "rgba(34,211,238,0.12)"  },
-  energy:     { label: "LPG / Energy",   labelHi: "ऊर्जा",               icon: "🔥",  color: "#fb923c", bg: "rgba(251,146,60,0.12)"  },
-  transport:  { label: "Transport",      labelHi: "परिवहन",              icon: "🚂",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
-  mental:     { label: "Mental Health",  labelHi: "मानसिक स्वास्थ्य",    icon: "🧠",  color: "#a78bfa", bg: "rgba(167,139,250,0.12)" },
-  education:  { label: "Education",      labelHi: "शिक्षा",              icon: "🎓",  color: "#2dd4bf", bg: "rgba(45,212,191,0.12)"  },
-  schemes:    { label: "Gov Schemes",    labelHi: "सरकारी योजनाएं",      icon: "📋",  color: "#38bdf8", bg: "rgba(56,189,248,0.12)"  },
+  all:        { label: "All",            labelHi: "सभी",                color: "#818cf8", bg: "rgba(129,140,248,0.12)" },
+  emergency:  { label: "Emergency",      labelHi: "आपातकाल",            color: "#f87171", bg: "rgba(248,113,113,0.12)" },
+  health:     { label: "Health",         labelHi: "स्वास्थ्य",           color: "#34d399", bg: "rgba(52,211,153,0.12)"  },
+  agriculture:{ label: "Agriculture",    labelHi: "कृषि",                color: "#a3e635", bg: "rgba(163,230,53,0.12)"  },
+  senior:     { label: "Senior Citizens",labelHi: "वरिष्ठ नागरिक",       color: "#fbbf24", bg: "rgba(251,191,36,0.12)"  },
+  identity:   { label: "Identity",       labelHi: "पहचान",              color: "#60a5fa", bg: "rgba(96,165,250,0.12)"  },
+  women:      { label: "Women & Child",  labelHi: "महिला व बाल",         color: "#f472b6", bg: "rgba(244,114,182,0.12)" },
+  consumer:   { label: "Consumer",       labelHi: "उपभोक्ता",            color: "#c084fc", bg: "rgba(192,132,252,0.12)" },
+  labour:     { label: "Labour",         labelHi: "श्रम",                color: "#22d3ee", bg: "rgba(34,211,238,0.12)"  },
+  energy:     { label: "LPG / Energy",   labelHi: "ऊर्जा",               color: "#fb923c", bg: "rgba(251,146,60,0.12)"  },
+  transport:  { label: "Transport",      labelHi: "परिवहन",              color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
+  mental:     { label: "Mental Health",  labelHi: "मानसिक स्वास्थ्य",    color: "#a78bfa", bg: "rgba(167,139,250,0.12)" },
+  education:  { label: "Education",      labelHi: "शिक्षा",              color: "#2dd4bf", bg: "rgba(45,212,191,0.12)"  },
+  schemes:    { label: "Gov Schemes",    labelHi: "सरकारी योजनाएं",      color: "#38bdf8", bg: "rgba(56,189,248,0.12)"  },
 };
 
 // ─── Helpline Data ────────────────────────────────────────────────────────────
@@ -823,9 +823,9 @@ const UI = {
     noResultsDesc: "Try a different keyword or category",
     emergencyBandTitle: "Emergency? Call 112 First",
     emergencyBandDesc: "For any life-threatening situation — police, fire, or ambulance. 112 is the single national emergency number, available everywhere.",
-    whenToCall: "✅ When to Call",
-    dontCall: "🚫 Don't Call For:",
-    note: "ℹ️ Note:",
+    whenToCall: "When to Call",
+    dontCall: "Do Not Call For",
+    note: "Note",
     disclaimerTitle: "Disclaimer:",
     disclaimerText: "All numbers are sourced from official government portals and verified at time of publishing. Numbers may change — always confirm at the official ministry website before calling. Helplines serve real needs; misuse may cause delays for those who genuinely need help.",
     tollFreeBadge: "TOLL FREE",
@@ -851,9 +851,9 @@ const UI = {
     noResultsDesc: "कोई अलग कीवर्ड या श्रेणी आज़माएं",
     emergencyBandTitle: "आपातकाल? पहले 112 कॉल करें",
     emergencyBandDesc: "किसी भी जानलेवा स्थिति में — पुलिस, दमकल, या एम्बुलेंस। 112 एकमात्र राष्ट्रीय आपातकालीन नंबर है, हर जगह उपलब्ध।",
-    whenToCall: "✅ कब कॉल करें",
-    dontCall: "🚫 इसके लिए कॉल न करें:",
-    note: "ℹ️ नोट:",
+    whenToCall: "कब कॉल करें",
+    dontCall: "इसके लिए कॉल न करें",
+    note: "नोट",
     disclaimerTitle: "अस्वीकरण:",
     disclaimerText: "सभी नंबर आधिकारिक सरकारी पोर्टलों से लिए गए हैं और प्रकाशन के समय सत्यापित हैं। नंबर बदल सकते हैं — कॉल करने से पहले हमेशा आधिकारिक मंत्रालय की वेबसाइट पर पुष्टि करें।",
     tollFreeBadge: "टोल फ्री",
@@ -862,16 +862,21 @@ const UI = {
 };
 
 // ─── HelplineCard Component ───────────────────────────────────────────────────
-function HelplineCard({ h, isEmergency, lang = "en", ui }) {
+function HelplineCard({ h, isEmergency, lang = "en", ui, dark = true }) {
   const [expanded, setExpanded] = useState(false);
+  const C = getC(dark);
   const cat = CATS[h.category];
   const isHindi = lang === "hi";
 
   const cardStyle = {
     background: isEmergency
-      ? `linear-gradient(135deg, rgba(248,113,113,0.07) 0%, ${C.surface} 60%)`
+      ? dark
+        ? `linear-gradient(135deg, rgba(248,113,113,0.07) 0%, ${C.surface} 60%)`
+        : `linear-gradient(135deg, rgba(220,38,38,0.04) 0%, ${C.surface} 60%)`
       : C.surface,
-    border: `1px solid ${isEmergency ? "rgba(248,113,113,0.2)" : C.border}`,
+    border: `1px solid ${isEmergency
+      ? dark ? "rgba(248,113,113,0.20)" : "rgba(220,38,38,0.18)"
+      : C.border}`,
     borderRadius: 16,
     padding: "18px 18px 0 18px",
     cursor: "pointer",
@@ -885,24 +890,43 @@ function HelplineCard({ h, isEmergency, lang = "en", ui }) {
     <div
       style={cardStyle}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = isEmergency ? "rgba(248,113,113,0.45)" : "rgba(255,153,51,0.35)";
+        e.currentTarget.style.borderColor = isEmergency
+          ? dark ? "rgba(248,113,113,0.45)" : "rgba(220,38,38,0.35)"
+          : dark ? "rgba(255,153,51,0.35)"  : "rgba(255,153,51,0.45)";
         e.currentTarget.style.transform = "translateY(-2px)";
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = isEmergency ? "rgba(248,113,113,0.2)" : C.border;
+        e.currentTarget.style.borderColor = isEmergency
+          ? dark ? "rgba(248,113,113,0.20)" : "rgba(220,38,38,0.18)"
+          : C.border;
         e.currentTarget.style.transform = "translateY(0)";
       }}
       onClick={() => setExpanded(p => !p)}
     >
       {/* ── Top Row ── */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 14 }}>
-        {/* Category Icon Pill */}
+        {/* Category Abbrev */}
         <div style={{
-          width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+          width: 42, height: 42, borderRadius: 10, flexShrink: 0,
           background: cat.bg, display: "flex", alignItems: "center",
-          justifyContent: "center", fontSize: 20, marginTop: 2,
-          border: `1px solid ${cat.color}30`,
-        }}>{cat.icon}</div>
+          justifyContent: "center", fontSize: 11, fontWeight: 800,
+          letterSpacing: 0.8, color: cat.color, textTransform: "uppercase",
+          border: `1px solid ${cat.color}28`, marginTop: 2, fontFamily: "'Segoe UI', system-ui, sans-serif",
+        }}>
+          {h.category === "emergency" ? "ER"
+            : h.category === "health" ? "HE"
+            : h.category === "agriculture" ? "AG"
+            : h.category === "senior" ? "SR"
+            : h.category === "identity" ? "ID"
+            : h.category === "women" ? "WC"
+            : h.category === "consumer" ? "CS"
+            : h.category === "labour" ? "LB"
+            : h.category === "energy" ? "LG"
+            : h.category === "transport" ? "TR"
+            : h.category === "mental" ? "MH"
+            : h.category === "education" ? "ED"
+            : "GS"}
+        </div>
 
         {/* Name + Ministry */}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -916,9 +940,12 @@ function HelplineCard({ h, isEmergency, lang = "en", ui }) {
         </div>
 
         {/* Chevron */}
-        <div style={{ color: C.muted, fontSize: 14, paddingTop: 4, flexShrink: 0,
-          transition: "transform 0.25s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
-          ▾
+        <div style={{ color: C.muted, paddingTop: 4, flexShrink: 0,
+          transition: "transform 0.25s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+          display: "flex" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
         </div>
       </div>
 
@@ -929,21 +956,32 @@ function HelplineCard({ h, isEmergency, lang = "en", ui }) {
         style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           background: isEmergency
-            ? "linear-gradient(90deg, rgba(248,113,113,0.18), rgba(248,113,113,0.08))"
+            ? dark
+              ? "linear-gradient(90deg, rgba(248,113,113,0.18), rgba(248,113,113,0.08))"
+              : "rgba(220,38,38,0.07)"
             : C.saffronDim,
-          border: `1px solid ${isEmergency ? "rgba(248,113,113,0.3)" : "rgba(255,153,51,0.3)"}`,
+          border: `1px solid ${isEmergency
+            ? dark ? "rgba(248,113,113,0.3)" : "rgba(220,38,38,0.22)"
+            : "rgba(255,153,51,0.3)"}`,
           borderRadius: 10, padding: "10px 14px", textDecoration: "none",
           transition: "background 0.2s",
           marginBottom: 14,
         }}
         onMouseEnter={e => e.currentTarget.style.background = isEmergency
-          ? "rgba(248,113,113,0.25)" : "rgba(255,153,51,0.22)"}
+          ? dark ? "rgba(248,113,113,0.25)" : "rgba(220,38,38,0.12)"
+          : dark ? "rgba(255,153,51,0.22)"  : "rgba(255,153,51,0.15)"}
         onMouseLeave={e => e.currentTarget.style.background = isEmergency
-          ? "linear-gradient(90deg, rgba(248,113,113,0.18), rgba(248,113,113,0.08))"
+          ? dark
+            ? "linear-gradient(90deg, rgba(248,113,113,0.18), rgba(248,113,113,0.08))"
+            : "rgba(220,38,38,0.07)"
           : C.saffronDim}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 18 }}>📞</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke={isEmergency ? C.red : C.saffron} strokeWidth="2.2"
+            strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+          </svg>
           <span style={{
             fontFamily: "'Courier New', monospace", fontWeight: 800,
             fontSize: 22, color: isEmergency ? C.red : C.saffron, letterSpacing: 1,
@@ -973,7 +1011,7 @@ function HelplineCard({ h, isEmergency, lang = "en", ui }) {
           {isHindi && h.purposeHi ? h.purposeHi : h.purpose}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 13 }}>🕐</span>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: cat.color, display: "inline-block", flexShrink: 0 }}/>
           <span style={{ fontSize: 11.5, color: cat.color, fontWeight: 600 }}>
             {isHindi && h.availabilityHi ? h.availabilityHi : h.availability}
           </span>
@@ -989,8 +1027,10 @@ function HelplineCard({ h, isEmergency, lang = "en", ui }) {
 
           {/* When to call */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: C.green,
-              textTransform: "uppercase", letterSpacing: 1, marginBottom: 7 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: C.green,
+              textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 7,
+              display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 3, height: 12, borderRadius: 2, background: C.green, display: "inline-block" }}/>
               {ui.whenToCall}
             </div>
             <ul style={{ margin: 0, padding: "0 0 0 16px" }}>
@@ -1005,12 +1045,13 @@ function HelplineCard({ h, isEmergency, lang = "en", ui }) {
 
           {/* Do not call */}
           <div style={{
-            background: C.redBg, border: "1px solid rgba(248,113,113,0.18)",
+            background: C.redBg,
+            border: `1px solid ${dark ? "rgba(248,113,113,0.18)" : "rgba(220,38,38,0.14)"}`,
             borderRadius: 8, padding: "9px 12px", marginBottom: h.note ? 10 : 0,
           }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: C.red,
-              textTransform: "uppercase", letterSpacing: 0.8 }}>{ui.dontCall} </span>
-            <span style={{ fontSize: 12, color: "#fca5a5" }}>
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: C.red,
+              textTransform: "uppercase", letterSpacing: 1.2 }}>{ui.dontCall} — </span>
+            <span style={{ fontSize: 12, color: dark ? "#fca5a5" : "#991b1b" }}>
               {isHindi && h.doNotCallHi ? h.doNotCallHi : h.doNotCall}
             </span>
           </div>
@@ -1018,12 +1059,14 @@ function HelplineCard({ h, isEmergency, lang = "en", ui }) {
           {/* Note */}
           {h.note && (
             <div style={{
-              background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.18)",
+              background: dark ? "rgba(251,191,36,0.07)" : "rgba(217,119,6,0.06)",
+              border: `1px solid ${dark ? "rgba(251,191,36,0.18)" : "rgba(217,119,6,0.18)"}`,
               borderRadius: 8, padding: "9px 12px",
             }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24",
-                textTransform: "uppercase", letterSpacing: 0.8 }}>{ui.note} </span>
-              <span style={{ fontSize: 12, color: "#fde68a" }}>
+              <span style={{ fontSize: 10.5, fontWeight: 700,
+                color: dark ? "#fbbf24" : "#92400e",
+                textTransform: "uppercase", letterSpacing: 1.2 }}>{ui.note} — </span>
+              <span style={{ fontSize: 12, color: dark ? "#fde68a" : "#78350f" }}>
                 {isHindi && h.noteHi ? h.noteHi : h.note}
               </span>
             </div>
@@ -1035,10 +1078,13 @@ function HelplineCard({ h, isEmergency, lang = "en", ui }) {
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
-export default function Helpline({ lang = "en" }) {
+export default function Helpline({ lang = "en", dark = true }) {
+  const C = getC(dark);
   const [activeType, setActiveType] = useState("public");
   const [activeCat, setActiveCat]   = useState("all");
   const [query, setQuery]           = useState("");
+  const [hoveredBtn, setHoveredBtn] = useState(null);
+  const [pressedBtn, setPressedBtn] = useState(null);
   const catScrollRef                = useRef(null);
   const isHindi                     = lang === "hi";
   const ui                          = UI[isHindi ? "hi" : "en"];
@@ -1094,14 +1140,17 @@ export default function Helpline({ lang = "en" }) {
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: ${dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.14)"}; border-radius: 4px; }
         input::placeholder { color: #4a5568; }
         input:focus { outline: none; }
+        .type-btn { transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease, background 0.22s ease, border-color 0.22s ease !important; }
       `}</style>
 
       {/* ── Header ── */}
       <div style={{
-        background: `linear-gradient(180deg, #0c1a2e 0%, ${C.bg} 100%)`,
+        background: dark
+          ? `linear-gradient(180deg, #0c1a2e 0%, ${C.bg} 100%)`
+          : `linear-gradient(180deg, #fff8f0 0%, ${C.bg} 100%)`,
         borderBottom: `1px solid ${C.border}`,
         padding: "24px 20px 0 20px",
       }}>
@@ -1111,8 +1160,12 @@ export default function Helpline({ lang = "en" }) {
             width: 44, height: 44, borderRadius: 14,
             background: "linear-gradient(135deg, #FF9933, #FF6600)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22, boxShadow: "0 4px 16px rgba(255,153,51,0.35)",
-          }}>📞</div>
+            boxShadow: "0 4px 16px rgba(255,153,51,0.35)",
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+          </div>
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: C.white, lineHeight: 1.2,
               letterSpacing: -0.5 }}>
@@ -1126,13 +1179,18 @@ export default function Helpline({ lang = "en" }) {
 
         {/* Responsible Use Banner */}
         <div style={{
-          background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.2)",
-          borderRadius: 12, padding: "10px 14px", margin: "14px 0",
-          display: "flex", gap: 10, alignItems: "flex-start",
+          background: "rgba(148,163,184,0.06)", border: "1px solid rgba(148,163,184,0.14)",
+          borderRadius: 10, padding: "7px 12px", margin: "10px 0",
+          display: "flex", gap: 8, alignItems: "center",
         }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
-          <div style={{ fontSize: 12, color: "#fde68a", lineHeight: 1.5 }}>
-            <strong>{ui.responsibleUse}</strong> {ui.responsibleDesc}
+          <span style={{ flexShrink: 0, opacity: 0.5, display: "flex" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.mutedLight} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </span>
+          <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
+            <strong style={{ color: C.mutedLight, fontWeight: 600 }}>{ui.responsibleUse}</strong>
+            {" "}{ui.responsibleDesc}
           </div>
         </div>
 
@@ -1144,9 +1202,9 @@ export default function Helpline({ lang = "en" }) {
             label: ui.publicLabel,
             labelHi: isHindi ? "आपातकाल / सार्वजनिक" : "Emergency / Public",
             desc: ui.publicDesc,
-            color: "#f87171",
-            bg: "rgba(248,113,113,0.10)",
-            border: "rgba(248,113,113,0.30)",
+            color: "#FF9933",
+            bg: "rgba(255,153,51,0.10)",
+            border: "rgba(255,153,51,0.30)",
             icon: (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="currentColor" opacity="0.85"/>
@@ -1178,13 +1236,28 @@ export default function Helpline({ lang = "en" }) {
             <button
               key={t.key}
               onClick={() => handleTypeChange(t.key)}
+              className="type-btn"
+              onMouseEnter={() => setHoveredBtn(t.key)}
+              onMouseLeave={() => { setHoveredBtn(null); setPressedBtn(null); }}
+              onMouseDown={() => setPressedBtn(t.key)}
+              onMouseUp={() => setPressedBtn(null)}
               style={{
                 flex: 1, padding: "12px 10px", borderRadius: 13,
                 border: `1.5px solid ${isActive ? t.border : C.border}`,
                 cursor: "pointer", fontFamily: "inherit",
-                transition: "all 0.22s",
+                transition: "transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease, background 0.22s ease, border-color 0.22s ease",
                 background: isActive ? t.bg : "transparent",
                 textAlign: "left",
+                transform: pressedBtn === t.key
+                  ? "scale(0.96)"
+                  : hoveredBtn === t.key
+                  ? "translateY(-2px)"
+                  : "none",
+                boxShadow: pressedBtn === t.key
+                  ? "0 2px 8px rgba(0,0,0,0.3)"
+                  : hoveredBtn === t.key
+                  ? `0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px ${t.border}`
+                  : "none",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
@@ -1195,7 +1268,7 @@ export default function Helpline({ lang = "en" }) {
                 }}>{t.label}</span>
                 <span style={{
                   marginLeft: "auto",
-                  background: isActive ? t.border : "rgba(255,255,255,0.07)",
+                  background: isActive ? t.border : dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
                   color: isActive ? t.color : C.muted,
                   fontSize: 11, fontWeight: 700, padding: "2px 7px",
                   borderRadius: 20,
@@ -1237,7 +1310,11 @@ export default function Helpline({ lang = "en" }) {
           onFocus={e => e.currentTarget.style.borderColor = "rgba(255,153,51,0.4)"}
           onBlur={e => e.currentTarget.style.borderColor = C.border}
         >
-          <span style={{ fontSize: 16, color: C.muted }}>🔍</span>
+          <span style={{ display: "flex", flexShrink: 0 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -1287,10 +1364,9 @@ export default function Helpline({ lang = "en" }) {
                   color: isActive ? cat.color : C.muted,
                 }}
               >
-                <span>{cat.icon}</span>
                 <span>{isHindi ? cat.labelHi : cat.label}</span>
                 <span style={{
-                  background: isActive ? cat.color : "rgba(255,255,255,0.1)",
+                  background: isActive ? cat.color : dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
                   color: isActive ? "#000" : C.muted,
                   borderRadius: 20, padding: "1px 6px", fontSize: 10, fontWeight: 700,
                 }}>{count}</span>
@@ -1306,17 +1382,25 @@ export default function Helpline({ lang = "en" }) {
         {/* Emergency highlight band (only visible when "all" or "emergency" selected) */}
         {activeType === "public" && (activeCat === "all" || activeCat === "emergency") && !query && (
           <div style={{
-            background: "linear-gradient(90deg, rgba(248,113,113,0.12), rgba(248,113,113,0.04))",
-            border: "1px solid rgba(248,113,113,0.2)", borderRadius: 14,
-            padding: "12px 16px", marginBottom: 16,
-            display: "flex", alignItems: "center", gap: 12,
+            background: dark ? "rgba(248,113,113,0.05)" : "rgba(220,38,38,0.04)",
+            border: `1px solid ${dark ? "rgba(248,113,113,0.18)" : "rgba(220,38,38,0.15)"}`,
+            borderLeft: `3px solid ${C.red}`,
+            borderRadius: 10, padding: "10px 14px", marginBottom: 16,
+            display: "flex", alignItems: "center", gap: 14,
           }}>
-            <div style={{ fontSize: 28 }}>🚨</div>
-            <div>
-              <div style={{ fontWeight: 800, color: C.red, fontSize: 15, marginBottom: 2 }}>
+            <div style={{
+              background: dark ? "rgba(248,113,113,0.12)" : "rgba(220,38,38,0.07)",
+              border: `1px solid ${dark ? "rgba(248,113,113,0.25)" : "rgba(220,38,38,0.18)"}`,
+              borderRadius: 8, padding: "5px 10px", flexShrink: 0, textAlign: "center",
+            }}>
+              <div style={{ fontFamily: "'Courier New', monospace", fontWeight: 900, fontSize: 18, color: C.red, letterSpacing: 1, lineHeight: 1 }}>112</div>
+              <div style={{ fontSize: 8.5, color: C.red, opacity: 0.7, fontWeight: 600, letterSpacing: 0.5, marginTop: 2, textTransform: "uppercase" }}>Emergency</div>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, color: C.red, fontSize: 12.5, marginBottom: 2, letterSpacing: 0.1 }}>
                 {ui.emergencyBandTitle}
               </div>
-              <div style={{ fontSize: 12, color: "#fca5a5" }}>
+              <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.45 }}>
                 {ui.emergencyBandDesc}
               </div>
             </div>
@@ -1333,7 +1417,11 @@ export default function Helpline({ lang = "en" }) {
         {/* Cards */}
         {filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "48px 20px", color: C.muted }}>
-            <div style={{ fontSize: 42, marginBottom: 12 }}>🔍</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 12, opacity: 0.3 }}>
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
             <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>{ui.noResultsTitle}</div>
             <div style={{ fontSize: 13 }}>{ui.noResultsDesc}</div>
           </div>
@@ -1341,7 +1429,7 @@ export default function Helpline({ lang = "en" }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {emergencyFirst.map(h => (
               <div key={h.id} style={{ animation: "fadeIn 0.3s ease" }}>
-                <HelplineCard h={h} isEmergency={h.category === "emergency"} lang={lang} ui={ui} />
+                <HelplineCard h={h} isEmergency={h.category === "emergency"} lang={lang} ui={ui} dark={dark} />
               </div>
             ))}
           </div>
