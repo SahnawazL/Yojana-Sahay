@@ -1772,10 +1772,10 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
           <div style={{
             borderRadius: R.xl,
             overflow: "hidden",
-            border: "1.5px solid rgba(201,168,76,0.28)",
+            border: "1.5px solid rgba(201,168,76,0.62)",
             boxShadow: dark
-              ? "0 0 0 1px rgba(201,168,76,0.10), 0 8px 40px rgba(0,0,0,0.55)"
-              : "0 4px 32px rgba(0,53,128,0.10), 0 0 0 1px rgba(201,168,76,0.10)",
+              ? "0 0 0 1px rgba(201,168,76,0.14), 0 0 20px rgba(201,168,76,0.14), 0 8px 40px rgba(0,0,0,0.55)"
+              : "0 4px 32px rgba(0,53,128,0.10), 0 0 0 1px rgba(201,168,76,0.14), 0 0 16px rgba(201,168,76,0.12)",
             position: "relative",
           }}>
 
