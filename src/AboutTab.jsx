@@ -2146,13 +2146,13 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                   pointerEvents: "none",
                 }} />
 
-                {/* Water shimmer sweep */}
+                {/* Premium shimmer sweep */}
                 <div style={{
-                  position: "absolute", top: 0, bottom: 0, left: 0, width: "55%",
+                  position: "absolute", top: "-10%", bottom: "-10%", left: 0, width: "32%",
                   background: dark
-                    ? "linear-gradient(90deg, transparent 0%, rgba(120,180,255,0.055) 45%, transparent 100%)"
-                    : "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.52) 45%, transparent 100%)",
-                  animation: "shz-badge-sweep 5s ease-in-out infinite",
+                    ? "linear-gradient(105deg, transparent 15%, rgba(255,228,130,0.06) 35%, rgba(255,244,192,0.34) 50%, rgba(255,228,130,0.06) 65%, transparent 85%)"
+                    : "linear-gradient(105deg, transparent 15%, rgba(255,255,255,0.10) 35%, rgba(255,255,255,0.72) 50%, rgba(255,255,255,0.10) 65%, transparent 85%)",
+                  animation: "shz-badge-sweep 4s ease-in-out infinite",
                   pointerEvents: "none",
                 }} />
 
