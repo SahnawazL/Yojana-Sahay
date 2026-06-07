@@ -81,7 +81,7 @@ const fontFamily = (lang) =>
 const STRINGS = {
   en: {
     appName:      "YojanaSahay",
-    tagline:      "India's Free Scheme Discovery App",
+    tagline:      "Know India's Free Scheme Discovery App",
     madeInIndia:  "Made in India 🇮🇳",
     version:      "Current Release · Beta",
 
@@ -933,38 +933,12 @@ export default function AboutTab({ onClose }) {
           opacity: 0.5,
         }} />
 
-        {/* Top rows — breadcrumb pill + Made in India badge */}
+        {/* Top row — Made in India badge */}
         <div style={{
           marginBottom: 28,
           animation: "ys-fade-in 0.5s ease both",
           position: "relative",
         }}>
-
-          {/* ── YojanaSahay › About — breadcrumb pill ── */}
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 5,
-            background: "rgba(255,255,255,0.07)",
-            border: "1px solid rgba(255,255,255,0.13)",
-            borderRadius: 20, padding: "4px 12px",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            marginBottom: 10,
-          }}>
-            <span style={{
-              fontSize: 9.5, fontWeight: 500, letterSpacing: 0.1,
-              color: "rgba(255,255,255,0.40)", fontFamily: bf,
-            }}>YojanaSahay</span>
-            {/* chevron separator */}
-            <svg width="7" height="7" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(255,255,255,0.22)" strokeWidth="3"
-              strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-            <span style={{
-              fontSize: 9.5, fontWeight: 700, letterSpacing: 0.3,
-              color: "rgba(255,255,255,0.90)", fontFamily: bf,
-            }}>About</span>
-          </div>
 
           {/* Made in India */}
           <div style={{ display: "flex", alignItems: "center" }}>
