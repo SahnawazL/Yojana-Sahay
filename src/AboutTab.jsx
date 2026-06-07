@@ -765,16 +765,12 @@ export default function AboutTab({ onClose }) {
       border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
     .ys-about-title {
-      position: absolute;
-      left: 0;
-      right: 0;
-      text-align: center;
       font-size: 15px;
       font-weight: 700;
-      letter-spacing: 0.4px;
-      color: rgba(255, 255, 255, 0.90);
-      pointer-events: none;
+      letter-spacing: 0.3px;
+      color: rgba(255, 255, 255, 0.92);
       font-family: 'DM Sans', sans-serif;
+      line-height: 1;
     }
   `;
 
@@ -804,25 +800,34 @@ export default function AboutTab({ onClose }) {
         {/* ── Fixed header bar — back · title · pills — all in one row ── */}
         <div className="ys-header-bar">
 
-          {/* Left — Back button */}
-          <button
-            className="ys-back-btn"
-            onClick={() => { if (onClose) onClose(); else window.history.back(); }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(255,255,255,0.82)" strokeWidth="2.6"
-              strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            <span style={{
-              fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4,
-              color: "rgba(255,255,255,0.82)",
-              fontFamily: "'DM Sans', sans-serif",
-            }}>Back</span>
-          </button>
+          {/* Left group — Back pill + separator + About title */}
+          <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+            <button
+              className="ys-back-btn"
+              onClick={() => { if (onClose) onClose(); else window.history.back(); }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                stroke="rgba(255,255,255,0.82)" strokeWidth="2.6"
+                strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span style={{
+                fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4,
+                color: "rgba(255,255,255,0.82)",
+                fontFamily: "'DM Sans', sans-serif",
+              }}>Back</span>
+            </button>
 
-          {/* Center — page title (absolute so it's truly centred in the bar) */}
-          <span className="ys-about-title">About</span>
+            {/* Vertical divider */}
+            <div style={{
+              width: 1, height: 18, margin: "0 10px",
+              background: "rgba(255,255,255,0.18)",
+              flexShrink: 0,
+            }} />
+
+            {/* Page title */}
+            <span className="ys-about-title">About</span>
+          </div>
 
           {/* Right — Dev + Settings pills */}
           <div style={{ display: "flex", alignItems: "center", gap: 7, position: "relative", zIndex: 1 }}>
