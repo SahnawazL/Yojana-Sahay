@@ -536,21 +536,29 @@ function InfoRow({ icon, iconBg, title, desc, dark, bf, last }) {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-export default function AboutTab({ lang: propLang = "en", dark = false, toggleLang: externalToggle }) {
-  // Mirrors the global lang — stays in sync when parent changes it
-  // (e.g. user toggles from the home screen header while About is mounted).
-  const [lang, setLang]     = useState(propLang);
-  const [fading, setFading] = useState(false);
+export default function AboutTab() {
+  // ── Fully internal dark/light — always opens dark, independent from app ──
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem("about_dark");
+    return saved !== null ? saved === "true" : true;
+  });
 
-  // Keep local state in sync whenever the parent prop changes
-  useEffect(() => { setLang(propLang); }, [propLang]);
+  // ── Fully internal language — independent from app ──
+  const [lang, setLang]         = useState(() => localStorage.getItem("about_lang") || "en");
+  const [fading, setFading]     = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Persist both preferences
+  useEffect(() => { localStorage.setItem("about_dark", String(dark)); }, [dark]);
+  useEffect(() => { localStorage.setItem("about_lang", lang); },        [lang]);
+
+  const toggleDark = () => setDark(d => !d);
 
   const toggleLang = () => {
-    setFading(true);                           // 1 — fade out
+    setFading(true);
     setTimeout(() => {
-      if (externalToggle) externalToggle();    // 2a — call global toggle (syncs whole app)
-      else setLang(l => l === "en" ? "hi" : "en"); // 2b — fallback if no prop
-      setFading(false);                        // 3 — fade back in
+      setLang(l => l === "en" ? "hi" : "en");
+      setFading(false);
     }, 160);
   };
 
@@ -694,6 +702,45 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
         position: "relative",
         overflow: "hidden",
       }}>
+
+        {/* ── Settings FAB — top right corner ── */}
+        <div
+          onClick={() => setSettingsOpen(o => !o)}
+          style={{
+            position: "absolute", top: 14, right: 14, zIndex: 10,
+            display: "flex", alignItems: "center", gap: 5,
+            padding: "6px 11px 6px 9px",
+            background: settingsOpen
+              ? "rgba(201,168,76,0.18)"
+              : "rgba(255,255,255,0.08)",
+            border: `1px solid ${settingsOpen ? "rgba(201,168,76,0.55)" : "rgba(255,255,255,0.16)"}`,
+            borderRadius: 20,
+            cursor: "pointer",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            transition: "all 0.22s ease",
+            boxShadow: settingsOpen
+              ? "0 0 12px rgba(201,168,76,0.25)"
+              : "0 2px 8px rgba(0,0,0,0.25)",
+          }}>
+          {/* Sliders icon */}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+            stroke={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.75)"}
+            strokeWidth="2.2" strokeLinecap="round">
+            <line x1="4" y1="6"  x2="20" y2="6"/>
+            <line x1="4" y1="12" x2="20" y2="12"/>
+            <line x1="4" y1="18" x2="20" y2="18"/>
+            <circle cx="9"  cy="6"  r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.75)"} stroke="none"/>
+            <circle cx="15" cy="12" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.75)"} stroke="none"/>
+            <circle cx="9"  cy="18" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.75)"} stroke="none"/>
+          </svg>
+          <span style={{
+            fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6,
+            color: settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.75)",
+            fontFamily: "'DM Sans', sans-serif",
+            transition: "color 0.22s ease",
+          }}>Settings</span>
+        </div>
 
         {/* Atmospheric glow blobs */}
         <div style={{
@@ -873,6 +920,161 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
           </div>
         </div>
       </div>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SETTINGS PANEL — slides in below hero when open
+      ════════════════════════════════════════════════════════════════ */}
+      {settingsOpen && (
+        <div style={{
+          margin: "0 16px",
+          marginTop: -10,
+          marginBottom: 6,
+          background: dark
+            ? "linear-gradient(145deg, #0C1830 0%, #08111F 100%)"
+            : "linear-gradient(145deg, #FFFFFF 0%, #F0F5FF 100%)",
+          border: "1px solid rgba(201,168,76,0.35)",
+          borderRadius: 16,
+          padding: "14px 16px",
+          boxShadow: dark
+            ? "0 8px 28px rgba(0,0,0,0.45), 0 0 0 1px rgba(201,168,76,0.10)"
+            : "0 8px 28px rgba(10,18,48,0.12), 0 0 0 1px rgba(201,168,76,0.10)",
+          position: "relative",
+          zIndex: 5,
+          animation: "ys-fade-up 0.22s ease both",
+        }}>
+
+          {/* Panel header */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 7, marginBottom: 14,
+          }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(201,168,76,0.80)" strokeWidth="2.2" strokeLinecap="round">
+              <line x1="4" y1="6"  x2="20" y2="6"/>
+              <line x1="4" y1="12" x2="20" y2="12"/>
+              <line x1="4" y1="18" x2="20" y2="18"/>
+              <circle cx="9"  cy="6"  r="2" fill="rgba(201,168,76,0.80)" stroke="none"/>
+              <circle cx="15" cy="12" r="2" fill="rgba(201,168,76,0.80)" stroke="none"/>
+              <circle cx="9"  cy="18" r="2" fill="rgba(201,168,76,0.80)" stroke="none"/>
+            </svg>
+            <span style={{
+              fontSize: 9, fontWeight: 700, letterSpacing: 2,
+              textTransform: "uppercase",
+              background: "linear-gradient(90deg, #C9A84C, #F0D87A)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              fontFamily: "'DM Sans', sans-serif",
+            }}>About Settings</span>
+          </div>
+
+          {/* Divider */}
+          <div style={{
+            height: 1, marginBottom: 14,
+            background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.25), transparent)",
+          }}/>
+
+          {/* ── Row 1: Language ── */}
+          <div style={{
+            display: "flex", alignItems: "center",
+            justifyContent: "space-between", marginBottom: 12,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 15 }}>🌐</span>
+              <div>
+                <div style={{
+                  fontSize: 11, fontWeight: 700,
+                  color: dark ? "rgba(255,255,255,0.88)" : "#0A1230",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}>Language</div>
+                <div style={{
+                  fontSize: 9.5, color: dark ? "rgba(255,255,255,0.35)" : "#7A88A8",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}>English · हिन्दी</div>
+              </div>
+            </div>
+            {/* Language pill toggle */}
+            <div style={{
+              display: "flex", borderRadius: 20,
+              border: "1px solid rgba(201,168,76,0.30)",
+              overflow: "hidden",
+              background: dark ? "rgba(255,255,255,0.05)" : "rgba(10,18,48,0.05)",
+            }}>
+              {["en","hi"].map(l => (
+                <div
+                  key={l}
+                  onClick={() => { if (lang !== l) toggleLang(); }}
+                  style={{
+                    padding: "5px 14px",
+                    fontSize: 10.5, fontWeight: 700,
+                    fontFamily: "'DM Sans', sans-serif",
+                    cursor: "pointer",
+                    transition: "all 0.18s ease",
+                    background: lang === l
+                      ? "linear-gradient(90deg, #C9A84C, #F0D87A)"
+                      : "transparent",
+                    color: lang === l
+                      ? "#020810"
+                      : dark ? "rgba(255,255,255,0.45)" : "rgba(10,18,48,0.45)",
+                    letterSpacing: l === "hi" ? 0.3 : 0.5,
+                  }}>
+                  {l === "en" ? "EN" : "हि"}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Row 2: Theme ── */}
+          <div style={{
+            display: "flex", alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 15 }}>{dark ? "🌙" : "☀️"}</span>
+              <div>
+                <div style={{
+                  fontSize: 11, fontWeight: 700,
+                  color: dark ? "rgba(255,255,255,0.88)" : "#0A1230",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}>Theme</div>
+                <div style={{
+                  fontSize: 9.5, color: dark ? "rgba(255,255,255,0.35)" : "#7A88A8",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}>Dark · Light</div>
+              </div>
+            </div>
+            {/* Theme pill toggle */}
+            <div style={{
+              display: "flex", borderRadius: 20,
+              border: "1px solid rgba(201,168,76,0.30)",
+              overflow: "hidden",
+              background: dark ? "rgba(255,255,255,0.05)" : "rgba(10,18,48,0.05)",
+            }}>
+              {[true, false].map(isDark => (
+                <div
+                  key={String(isDark)}
+                  onClick={() => { if (dark !== isDark) toggleDark(); }}
+                  style={{
+                    padding: "5px 12px",
+                    fontSize: 10.5, fontWeight: 700,
+                    fontFamily: "'DM Sans', sans-serif",
+                    cursor: "pointer",
+                    transition: "all 0.18s ease",
+                    display: "flex", alignItems: "center", gap: 4,
+                    background: dark === isDark
+                      ? "linear-gradient(90deg, #C9A84C, #F0D87A)"
+                      : "transparent",
+                    color: dark === isDark
+                      ? "#020810"
+                      : dark ? "rgba(255,255,255,0.45)" : "rgba(10,18,48,0.45)",
+                  }}>
+                  <span style={{ fontSize: 10 }}>{isDark ? "🌙" : "☀️"}</span>
+                  <span style={{ letterSpacing: 0.4 }}>{isDark ? "Dark" : "Light"}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      )}
 
       {/* ════════════════════════════════════════════════════════════════
           CONTENT BODY

@@ -4256,7 +4256,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
             <Suspense fallback={<PremiumLoader/>}>
-            <AboutTab lang={lang} dark={dark} toggleLang={toggleLang}/>
+            <AboutTab/>
             </Suspense>
           </div>
         </div>
@@ -5702,7 +5702,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           {/* Scrollable content */}
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
             <Suspense fallback={<PremiumLoader/>}>
-            <AboutTab lang={lang} dark={dark} toggleLang={toggleLang}/>
+            <AboutTab/>
             </Suspense>
           </div>
         </div>
