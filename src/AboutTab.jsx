@@ -2063,14 +2063,43 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.20), transparent)",
               }} />
 
-              {/* Tagline */}
-              <p style={{
-                fontSize: 12.5, fontStyle: "italic", fontWeight: 400,
-                color: th.textMid, lineHeight: 1.9,
-                margin: "0 0 16px", fontFamily: bf,
+              {/* Tagline — Premium 3D bordered box */}
+              <div style={{
+                position: "relative",
+                background: dark
+                  ? "linear-gradient(135deg, rgba(201,168,76,0.07) 0%, rgba(5,10,22,0.70) 100%)"
+                  : "linear-gradient(135deg, rgba(201,168,76,0.06) 0%, rgba(230,236,252,0.80) 100%)",
+                border: "1px solid rgba(201,168,76,0.30)",
+                borderRadius: 10,
+                padding: "11px 13px 11px 16px",
+                marginBottom: 16,
+                boxShadow: dark
+                  ? "0 4px 16px rgba(0,0,0,0.40), 0 1px 0 rgba(201,168,76,0.18) inset, 0 -1px 0 rgba(0,0,0,0.30) inset"
+                  : "0 3px 10px rgba(10,18,48,0.09), 0 1px 0 rgba(201,168,76,0.20) inset",
               }}>
-                {s.devTagline}
-              </p>
+                {/* Left gold accent bar */}
+                <div style={{
+                  position: "absolute",
+                  left: 0, top: 8, bottom: 8, width: 2.5,
+                  borderRadius: "0 2px 2px 0",
+                  background: "linear-gradient(180deg, transparent 0%, #F0D87A 35%, #C9A84C 65%, transparent 100%)",
+                  boxShadow: "0 0 6px rgba(201,168,76,0.50)",
+                }} />
+                {/* Top-right corner shimmer dot */}
+                <div style={{
+                  position: "absolute", top: 6, right: 8,
+                  width: 3, height: 3, borderRadius: "50%",
+                  background: "rgba(201,168,76,0.40)",
+                  boxShadow: "0 0 4px rgba(201,168,76,0.50)",
+                }} />
+                <p style={{
+                  fontSize: 11, fontStyle: "italic", fontWeight: 400,
+                  color: th.textMid, lineHeight: 1.9,
+                  margin: 0, fontFamily: bf,
+                }}>
+                  {s.devTagline}
+                </p>
+              </div>
 
               {/* Tech stack chips — unified glassy */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 18 }}>
