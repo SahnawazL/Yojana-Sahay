@@ -2112,20 +2112,13 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
               </div>
 
               {/* Website CTA — water glass premium 3D */}
-              {/* Wrapper: rotating pure gold border — mirrors main developer card */}
-              <div style={{ position: "relative", borderRadius: R.md + 1 }}>
-                {/* Rotating gold border glow */}
-                <div style={{
-                  position: "absolute", inset: -1, borderRadius: R.md + 1,
-                  background: "conic-gradient(from 0deg, transparent 0deg, rgba(201,168,76,0.55) 60deg, rgba(255,228,130,0.80) 90deg, rgba(201,168,76,0.55) 120deg, transparent 180deg, transparent 360deg)",
-                  animation: "shz-border-spin 6s linear infinite",
-                  zIndex: 0,
-                  WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                  WebkitMaskComposite: "xor",
-                  maskComposite: "exclude",
-                  padding: 1,
-                  pointerEvents: "none",
-                }} />
+              {/* Wrapper: padding-as-border — conic gradient shows through 1.5px gap as pure gold ring */}
+              <div style={{
+                padding: 1.5,
+                borderRadius: R.md + 2,
+                background: "conic-gradient(from 0deg, transparent 0deg, rgba(201,168,76,0.55) 60deg, rgba(255,228,130,0.90) 90deg, rgba(201,168,76,0.55) 120deg, transparent 180deg, transparent 360deg)",
+                animation: "shz-border-spin 6s linear infinite",
+              }}>
               <div
                 className="ys-link-row"
                 onClick={() => safeOpen(DEV_WEBSITE)}
@@ -2138,14 +2131,14 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                   background: dark
                     ? "linear-gradient(145deg, rgba(12,25,60,0.78) 0%, rgba(7,16,42,0.88) 60%, rgba(5,13,36,0.82) 100%)"
                     : "linear-gradient(145deg, rgba(255,255,255,0.84) 0%, rgba(238,246,255,0.74) 55%, rgba(222,238,255,0.68) 100%)",
-                  border: "1.5px solid rgba(201,168,76,0.28)",
+                  border: "none",
                   borderRadius: R.md,
                   padding: "13px 16px",
                   cursor: "pointer",
                   boxShadow: dark
                     ? "0 8px 28px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.40), inset 0 1.5px 0 rgba(255,255,255,0.11), inset 0 -1px 0 rgba(0,0,0,0.28)"
                     : "0 6px 24px rgba(60,100,200,0.16), 0 2px 6px rgba(60,100,200,0.09), inset 0 1.5px 0 rgba(255,255,255,0.96), inset 0 -1px 0 rgba(160,190,240,0.28)",
-                  position: "relative", overflow: "hidden", zIndex: 1,
+                  position: "relative", overflow: "hidden",
                   backdropFilter: "blur(18px) saturate(1.5)",
                   WebkitBackdropFilter: "blur(18px) saturate(1.5)",
                 }}>
