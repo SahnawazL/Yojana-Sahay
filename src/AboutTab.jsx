@@ -821,20 +821,22 @@ export default function AboutTab({ onClose }) {
             {/* ── Premium About title — icon badge + label ── */}
             <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
 
-              {/* Saffron-gold gradient info badge */}
+              {/* "i" badge — dark glass circle, gold border, matches Dev pill palette */}
               <div style={{
-                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: `linear-gradient(135deg, ${SAFFRON} 0%, ${PRO_GOLD} 100%)`,
-                boxShadow: `0 2px 10px rgba(255,153,51,0.40), 0 0 0 1.5px rgba(255,255,255,0.14)`,
+                width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                background: "rgba(20,32,80,0.72)",
+                border: "1px solid rgba(201,168,76,0.50)",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.30), 0 0 0 0px rgba(201,168,76,0.15)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                  stroke="rgba(255,255,255,0.95)" strokeWidth="2.8"
-                  strokeLinecap="round" strokeLinejoin="round">
-                  {/* i — dot */}
-                  <line x1="12" y1="8" x2="12" y2="8" strokeWidth="3.5" />
-                  {/* i — stem */}
-                  <line x1="12" y1="12" x2="12" y2="17" />
+                <svg width="13" height="13" viewBox="0 0 12 18" fill="none">
+                  {/* dot */}
+                  <circle cx="6" cy="2.2" r="1.9" fill="#F0D87A" />
+                  {/* stem */}
+                  <line x1="6" y1="6.5" x2="6" y2="16.5"
+                    stroke="#F0D87A" strokeWidth="2.6" strokeLinecap="round" />
                 </svg>
               </div>
 
