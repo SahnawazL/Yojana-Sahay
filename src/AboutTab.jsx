@@ -219,7 +219,7 @@ const STRINGS = {
     devName:     "Sahnawaz Ahmed Laskar",
     devRole:     "Full Stack Developer · UI/UX Designer",
     devLocation: "Silchar, Assam · India",
-    devTagline:  "Sole architect of YojanaSahay — every component, API integration, database entry, and design decision built and maintained independently.",
+    devTagline:  "Conceived, architected, and deployed end-to-end — from cloud schema to the last animation frame. Every system design, every UI decision, every production release: owned by a single developer. Built to production standards. Built with the conviction that civic technology deserves nothing less than craft.",
     devTags:     ["React PWA", "Firebase", "Groq AI", "Vercel Edge", "UI/UX"],
     devLink:     "sahnawaz-portfolio.vercel.app →",
 
@@ -2065,7 +2065,8 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
 
               {/* Tagline */}
               <p style={{
-                fontSize: 12.5, color: th.textMid, lineHeight: 1.85,
+                fontSize: 12.5, fontStyle: "italic", fontWeight: 400,
+                color: th.textMid, lineHeight: 1.9,
                 margin: "0 0 16px", fontFamily: bf,
               }}>
                 {s.devTagline}
