@@ -2111,18 +2111,7 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 ))}
               </div>
 
-              {/* Website CTA — 3D premium */}
-              {/* Gradient border wrapper: bright top rim → dark bottom rim = natural 3D bevel */}
-              <div style={{
-                padding: 1.5,
-                borderRadius: R.md + 2,
-                background: dark
-                  ? "linear-gradient(175deg, rgba(255,248,210,0.72) 0%, rgba(201,168,76,0.55) 40%, rgba(100,68,10,0.60) 100%)"
-                  : "linear-gradient(175deg, rgba(255,252,225,0.98) 0%, rgba(201,168,76,0.72) 45%, rgba(110,74,10,0.65) 100%)",
-                boxShadow: dark
-                  ? "0 10px 32px rgba(0,0,0,0.60), 0 4px 12px rgba(0,0,0,0.40), 0 0 18px rgba(201,168,76,0.13)"
-                  : "0 10px 28px rgba(60,100,200,0.20), 0 4px 10px rgba(60,100,200,0.12), 0 0 16px rgba(201,168,76,0.12)",
-              }}>
+              {/* Website CTA — water glass premium 3D */}
               <div
                 className="ys-link-row"
                 onClick={() => safeOpen(DEV_WEBSITE)}
@@ -2133,15 +2122,15 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   background: dark
-                    ? "linear-gradient(160deg, rgba(14,28,68,0.92) 0%, rgba(8,18,48,0.96) 55%, rgba(5,13,36,0.98) 100%)"
-                    : "linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(242,248,255,0.88) 55%, rgba(228,240,255,0.82) 100%)",
-                  border: "none",
+                    ? "linear-gradient(145deg, rgba(12,25,60,0.78) 0%, rgba(7,16,42,0.88) 60%, rgba(5,13,36,0.82) 100%)"
+                    : "linear-gradient(145deg, rgba(255,255,255,0.84) 0%, rgba(238,246,255,0.74) 55%, rgba(222,238,255,0.68) 100%)",
+                  border: "1.5px solid rgba(201,168,76,0.62)",
                   borderRadius: R.md,
                   padding: "13px 16px",
                   cursor: "pointer",
                   boxShadow: dark
-                    ? "inset 0 2px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.45), inset 1px 0 0 rgba(255,255,255,0.06), inset -1px 0 0 rgba(0,0,0,0.20)"
-                    : "inset 0 2px 0 rgba(255,255,255,1.0), inset 0 -2px 0 rgba(140,170,220,0.40), inset 1px 0 0 rgba(255,255,255,0.90), inset -1px 0 0 rgba(160,190,240,0.30)",
+                    ? "0 8px 28px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.40), 0 0 0 1px rgba(201,168,76,0.14), 0 0 14px rgba(201,168,76,0.14), inset 0 1.5px 0 rgba(255,255,255,0.11), inset 0 -1px 0 rgba(0,0,0,0.28)"
+                    : "0 6px 24px rgba(60,100,200,0.16), 0 2px 6px rgba(60,100,200,0.09), 0 0 0 1px rgba(201,168,76,0.10), 0 0 12px rgba(201,168,76,0.10), inset 0 1.5px 0 rgba(255,255,255,0.96), inset 0 -1px 0 rgba(160,190,240,0.28)",
                   position: "relative", overflow: "hidden",
                   backdropFilter: "blur(18px) saturate(1.5)",
                   WebkitBackdropFilter: "blur(18px) saturate(1.5)",
@@ -2149,10 +2138,10 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
 
                 {/* 3D top-edge glass sheen */}
                 <div style={{
-                  position: "absolute", top: 0, left: 0, right: 0, height: "52%",
+                  position: "absolute", top: 0, left: 0, right: 0, height: "50%",
                   background: dark
-                    ? "linear-gradient(180deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.05) 50%, transparent 100%)"
-                    : "linear-gradient(180deg, rgba(255,255,255,1.0) 0%, rgba(255,255,255,0.55) 45%, transparent 100%)",
+                    ? "linear-gradient(180deg, rgba(255,255,255,0.09) 0%, transparent 100%)"
+                    : "linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(255,255,255,0.18) 65%, transparent 100%)",
                   borderRadius: `${R.md}px ${R.md}px 60% 60% / ${R.md}px ${R.md}px 10px 10px`,
                   pointerEvents: "none",
                 }} />
@@ -2211,7 +2200,6 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                     : "drop-shadow(0 1px 3px rgba(80,130,220,0.28))",
                 }}>›</div>
               </div>
-              </div>{/* end gradient border wrapper */}
 
             </div>
           </div>
