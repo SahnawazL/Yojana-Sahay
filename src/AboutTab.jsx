@@ -669,15 +669,6 @@ export default function AboutTab() {
                   box-shadow 0.18s cubic-bezier(0.4,0,0.2,1);
     }
     .ys-share-btn:active { opacity: 0.85; transform: scale(0.97); }
-
-    .ys-lang-toggle {
-      transition: transform 0.2s cubic-bezier(0.4,0,0.2,1),
-                  opacity   0.2s cubic-bezier(0.4,0,0.2,1);
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .ys-lang-toggle:active { transform: scale(0.93); opacity: 0.78; }
-    .ys-lang-seg { transition: color 0.26s cubic-bezier(0.4,0,0.2,1); }
   `;
 
   const statColors = [SAFFRON, "#4ADE80", "#60A5FA", "#F9FAFB"];
@@ -780,14 +771,14 @@ export default function AboutTab() {
           opacity: 0.5,
         }} />
 
-        {/* Top row — Made in India badge  ↔  Language toggle */}
+        {/* Top row — Made in India badge */}
         <div style={{
           display: "flex", alignItems: "center",
-          justifyContent: "space-between", marginBottom: 28,
+          marginBottom: 28,
           animation: "ys-fade-in 0.5s ease both",
           position: "relative",
         }}>
-          {/* Left — Made in India */}
+          {/* Made in India */}
           <div style={{
             display: "flex", alignItems: "center", gap: 6,
             background: "rgba(255,255,255,0.09)",
@@ -801,52 +792,6 @@ export default function AboutTab() {
             }}>
               {s.madeInIndia}
             </span>
-          </div>
-
-          {/* Right — Language segmented pill */}
-          <div
-            className="ys-lang-toggle"
-            onClick={toggleLang}
-            role="button" tabIndex={0}
-            aria-label={isHindi ? "Switch to English" : "हिंदी में बदलें"}
-            onKeyDown={e => e.key === "Enter" && toggleLang()}
-            style={{
-              position: "relative",
-              display: "flex", alignItems: "center",
-              background: "rgba(255,255,255,0.10)",
-              border: "1px solid rgba(255,255,255,0.22)",
-              borderRadius: 22, padding: "3px",
-              cursor: "pointer", height: 32, width: 86,
-              backdropFilter: "blur(10px)",
-              flexShrink: 0,
-            }}>
-            {/* Sliding white pill — glides left↔right */}
-            <div style={{
-              position: "absolute",
-              top: 3, bottom: 3,
-              left: isHindi ? "calc(50% + 1px)" : 3,
-              width: "calc(50% - 4px)",
-              background: "#ffffff",
-              borderRadius: 16,
-              transition: "left 0.28s cubic-bezier(0.22,1,0.36,1)",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-              zIndex: 0,
-            }} />
-            {/* EN segment */}
-            <span className="ys-lang-seg" style={{
-              flex: 1, textAlign: "center",
-              fontSize: 11, fontWeight: 700, letterSpacing: 0.3,
-              color: !isHindi ? NAVY : "rgba(255,255,255,0.60)",
-              position: "relative", zIndex: 1,
-            }}>EN</span>
-            {/* हिं segment */}
-            <span className="ys-lang-seg" style={{
-              flex: 1, textAlign: "center",
-              fontSize: 11, fontWeight: 700,
-              color: isHindi ? NAVY : "rgba(255,255,255,0.60)",
-              position: "relative", zIndex: 1,
-              fontFamily: "'Noto Sans Devanagari', sans-serif",
-            }}>हिं</span>
           </div>
         </div>
 
