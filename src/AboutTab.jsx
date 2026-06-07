@@ -2148,11 +2148,11 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
 
                 {/* Premium shimmer sweep */}
                 <div style={{
-                  position: "absolute", top: "-10%", bottom: "-10%", left: 0, width: "32%",
+                  position: "absolute", top: 0, bottom: 0, left: 0, width: "55%",
                   background: dark
-                    ? "linear-gradient(105deg, transparent 15%, rgba(255,228,130,0.06) 35%, rgba(255,244,192,0.34) 50%, rgba(255,228,130,0.06) 65%, transparent 85%)"
-                    : "linear-gradient(105deg, transparent 15%, rgba(255,255,255,0.10) 35%, rgba(255,255,255,0.72) 50%, rgba(255,255,255,0.10) 65%, transparent 85%)",
-                  animation: "shz-badge-sweep 4s ease-in-out infinite",
+                    ? "linear-gradient(90deg, transparent 0%, rgba(255,244,192,0.01) 15%, rgba(255,244,192,0.07) 35%, rgba(255,248,215,0.15) 50%, rgba(255,244,192,0.07) 65%, rgba(255,244,192,0.01) 85%, transparent 100%)"
+                    : "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.01) 15%, rgba(255,228,130,0.11) 35%, rgba(255,236,150,0.20) 50%, rgba(255,228,130,0.11) 65%, rgba(201,168,76,0.01) 85%, transparent 100%)",
+                  animation: "shz-badge-sweep 5s ease-in-out infinite",
                   pointerEvents: "none",
                 }} />
 
