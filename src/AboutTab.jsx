@@ -800,50 +800,22 @@ export default function AboutTab({ onClose }) {
         {/* ── Fixed header bar — back · title · pills — all in one row ── */}
         <div className="ys-header-bar">
 
-          {/* Left group — Back pill + About title with icon */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button
-              className="ys-back-btn"
-              onClick={() => { if (onClose) onClose(); else window.history.back(); }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                stroke="rgba(255,255,255,0.82)" strokeWidth="2.6"
-                strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-              <span style={{
-                fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4,
-                color: "rgba(255,255,255,0.82)",
-                fontFamily: "'DM Sans', sans-serif",
-              }}>Back</span>
-            </button>
-
-            {/* ── Premium About title — icon badge + label ── */}
-            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-
-              {/* "i" badge — dark glass circle, gold border, matches Dev pill palette */}
-              <div style={{
-                width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                background: "rgba(20,32,80,0.72)",
-                border: "1px solid rgba(201,168,76,0.50)",
-                backdropFilter: "blur(14px)",
-                WebkitBackdropFilter: "blur(14px)",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.30), 0 0 0 0px rgba(201,168,76,0.15)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <svg width="13" height="13" viewBox="0 0 12 18" fill="none">
-                  {/* dot */}
-                  <circle cx="6" cy="2.2" r="1.9" fill="#F0D87A" />
-                  {/* stem */}
-                  <line x1="6" y1="6.5" x2="6" y2="16.5"
-                    stroke="#F0D87A" strokeWidth="2.6" strokeLinecap="round" />
-                </svg>
-              </div>
-
-              {/* Label */}
-              <span className="ys-about-title">About</span>
-            </div>
-          </div>
+          {/* Left — Back button only (page title lives in the hero) */}
+          <button
+            className="ys-back-btn"
+            onClick={() => { if (onClose) onClose(); else window.history.back(); }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(255,255,255,0.82)" strokeWidth="2.6"
+              strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            <span style={{
+              fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4,
+              color: "rgba(255,255,255,0.82)",
+              fontFamily: "'DM Sans', sans-serif",
+            }}>Back</span>
+          </button>
 
           {/* Right — Dev + Settings pills */}
           <div style={{ display: "flex", alignItems: "center", gap: 7, position: "relative", zIndex: 1 }}>
@@ -961,27 +933,55 @@ export default function AboutTab({ onClose }) {
           opacity: 0.5,
         }} />
 
-        {/* Top row — Made in India badge */}
+        {/* Top rows — breadcrumb pill + Made in India badge */}
         <div style={{
-          display: "flex", alignItems: "center",
           marginBottom: 28,
           animation: "ys-fade-in 0.5s ease both",
           position: "relative",
         }}>
-          {/* Made in India */}
+
+          {/* ── YojanaSahay › About — breadcrumb pill ── */}
           <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: "rgba(255,255,255,0.09)",
-            border: "1px solid rgba(255,255,255,0.18)",
-            borderRadius: 20, padding: "5px 14px",
-            backdropFilter: "blur(8px)",
+            display: "inline-flex", alignItems: "center", gap: 5,
+            background: "rgba(255,255,255,0.07)",
+            border: "1px solid rgba(255,255,255,0.13)",
+            borderRadius: 20, padding: "4px 12px",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            marginBottom: 10,
           }}>
             <span style={{
-              fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.88)",
-              letterSpacing: 0.5, fontFamily: bf,
+              fontSize: 9.5, fontWeight: 500, letterSpacing: 0.1,
+              color: "rgba(255,255,255,0.40)", fontFamily: bf,
+            }}>YojanaSahay</span>
+            {/* chevron separator */}
+            <svg width="7" height="7" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(255,255,255,0.22)" strokeWidth="3"
+              strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+            <span style={{
+              fontSize: 9.5, fontWeight: 700, letterSpacing: 0.3,
+              color: "rgba(255,255,255,0.90)", fontFamily: bf,
+            }}>About</span>
+          </div>
+
+          {/* Made in India */}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: "rgba(255,255,255,0.09)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              borderRadius: 20, padding: "5px 14px",
+              backdropFilter: "blur(8px)",
             }}>
-              {s.madeInIndia}
-            </span>
+              <span style={{
+                fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.88)",
+                letterSpacing: 0.5, fontFamily: bf,
+              }}>
+                {s.madeInIndia}
+              </span>
+            </div>
           </div>
         </div>
 
