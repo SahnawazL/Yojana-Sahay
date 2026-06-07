@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 const C = {
@@ -953,31 +953,19 @@ export default function Helpline({ lang = "en" }) {
         </div>
 
         {/* Category Chips — Horizontal Scroll
-            Native touch listeners (capture phase, non-passive) are used instead
-            of React synthetic events because the parent app-root swipe handler
-            also uses React events and locks the axis within the first 6px.
-            By attaching at the DOM level we intercept before app-root sees it.  */}
+            onTouchStart/Move: detect horizontal intent and stop propagation
+            so the parent swipe-to-change-tab handler never fires.             */}
         <div
-          ref={el => {
-            catScrollRef.current = el;
-            if (!el) return;
-            // Attach native listeners only once
-            if (el._swipeGuardAttached) return;
-            el._swipeGuardAttached = true;
-            let startX = 0, startY = 0, locked = false;
-            el.addEventListener("touchstart", e => {
-              startX = e.touches[0].clientX;
-              startY = e.touches[0].clientY;
-              locked = false;
-            }, { passive: true });
-            el.addEventListener("touchmove", e => {
-              const dx = Math.abs(e.touches[0].clientX - startX);
-              const dy = Math.abs(e.touches[0].clientY - startY);
-              if (!locked && (dx > 3 || dy > 3)) locked = true;
-              if (locked && dx > dy) {
-                e.stopPropagation();
-              }
-            }, { passive: false, capture: true });
+          ref={catScrollRef}
+          onTouchStart={e => {
+            const t = e.touches[0];
+            catScrollRef.current._touchStartX = t.clientX;
+            catScrollRef.current._touchStartY = t.clientY;
+          }}
+          onTouchMove={e => {
+            const dx = Math.abs(e.touches[0].clientX - (catScrollRef.current._touchStartX || 0));
+            const dy = Math.abs(e.touches[0].clientY - (catScrollRef.current._touchStartY || 0));
+            if (dx > dy) e.stopPropagation();
           }}
           style={{
             display: "flex", gap: 8, overflowX: "auto", paddingBottom: 14,
