@@ -11,7 +11,7 @@
  * See the LICENSE file in the project root for full license terms.
  */
 
-import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import {
   INDIA_STATES,
   SCHEME_DB,
@@ -27,8 +27,8 @@ import AILockedScreen from "./AILockedScreen.jsx";
 const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 import ReportIssueSheet from "./ReportIssueSheet.jsx";
 import UserReportsTab from "./UserReportsTab.jsx";
-import AboutTab from "./AboutTab.jsx";
-import Helpline from "./Helpline.jsx";
+const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
+const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
 import SplashScreen from "./SplashScreen.jsx";
 
@@ -4115,7 +4115,9 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
+            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:48}}><AshokaChakra size={28} color={SAFFRON} spinning={true}/></div>}>
             <AboutTab lang={lang} dark={dark} toggleLang={toggleLang}/>
+            </Suspense>
           </div>
         </div>
       )}
@@ -4153,7 +4155,9 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
+            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:48}}><AshokaChakra size={28} color={SAFFRON} spinning={true}/></div>}>
             <Helpline lang={lang} dark={dark}/>
+            </Suspense>
           </div>
         </div>
       )}
@@ -5557,7 +5561,9 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           </div>
           {/* Scrollable content */}
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
+            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:48}}><AshokaChakra size={28} color={SAFFRON} spinning={true}/></div>}>
             <AboutTab lang={lang} dark={dark} toggleLang={toggleLang}/>
+            </Suspense>
           </div>
         </div>
       )}
@@ -5595,7 +5601,9 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
+            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:48}}><AshokaChakra size={28} color={SAFFRON} spinning={true}/></div>}>
             <Helpline lang={lang} dark={dark}/>
+            </Suspense>
           </div>
         </div>
       )}
