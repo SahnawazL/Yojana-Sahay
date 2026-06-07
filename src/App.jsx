@@ -6706,7 +6706,7 @@ export default function YojanaSahay(){
   const mountedTabsRef = useRef(new Set(["home"]));
 
   const handleTouchStart = useCallback((e) => {
-    if (showAdmin || showChecker || selectedScheme || selectedCategory) return;
+    if (showAdmin || showChecker || selectedScheme || selectedCategory || showHelpline) return;
     const t = e.touches[0];
     swipeRef.current = { x: t.clientX, y: t.clientY, lockedAxis: null };
     dragXRef.current = 0;
@@ -6715,7 +6715,7 @@ export default function YojanaSahay(){
       dragTargetRef.current.style.transform = "";
       dragTargetRef.current.style.transition = "";
     }
-  }, [showAdmin, showChecker, selectedScheme, selectedCategory]);
+  }, [showAdmin, showChecker, selectedScheme, selectedCategory, showHelpline]);
 
   const handleTouchMove = useCallback((e) => {
     if (!swipeRef.current) return;
@@ -6746,7 +6746,7 @@ export default function YojanaSahay(){
       dragTargetRef.current.style.transform = `translateX(${dragXRef.current}px)`;
       dragTargetRef.current.style.transition = "none";
     }
-  }, [activeTab, showAdmin, showChecker, selectedScheme, selectedCategory]);
+  }, [activeTab, showAdmin, showChecker, selectedScheme, selectedCategory, showHelpline]);
 
   const handleTouchEnd = useCallback((e) => {
     if (!swipeRef.current) return;
@@ -6774,7 +6774,7 @@ export default function YojanaSahay(){
       setSwipeDir("right");
       setActiveTab(TABS[idx - 1]);
     }
-  }, [activeTab, showAdmin, showChecker, selectedScheme, selectedCategory]);
+  }, [activeTab, showAdmin, showChecker, selectedScheme, selectedCategory, showHelpline]);
 
   // Clear swipeDir after animation completes
   useEffect(() => {
@@ -6843,9 +6843,9 @@ export default function YojanaSahay(){
   // Push a history entry for each top-level overlay so pressing back closes it
   // instead of closing the whole app.
   useEffect(()=>{
-    const hasOverlay=showAdmin||showChecker||!!selectedScheme||!!selectedCategory;
+    const hasOverlay=showAdmin||showChecker||!!selectedScheme||!!selectedCategory||showHelpline;
     if(hasOverlay) window.history.pushState({ysOverlay:true},"");
-  },[showAdmin,showChecker,selectedScheme,selectedCategory]);
+  },[showAdmin,showChecker,selectedScheme,selectedCategory,showHelpline]);
 
   useEffect(()=>{
     const handlePop=()=>{
@@ -6854,10 +6854,11 @@ export default function YojanaSahay(){
       if(showChecker)      {setShowChecker(false);return;}
       if(selectedScheme)   {setSelectedScheme(null);return;}
       if(selectedCategory) {setSelectedCategory(null);return;}
+      if(showHelpline)     {setShowHelpline(false);return;}
     };
     window.addEventListener("popstate",handlePop);
     return()=>window.removeEventListener("popstate",handlePop);
-  },[showAdmin,showChecker,selectedScheme,selectedCategory]);
+  },[showAdmin,showChecker,selectedScheme,selectedCategory,showHelpline]);
 
   // Animated stat counters — raw targets: 3000, 28, 50 (formatted below)
   const [c0,c1,c2]=useCountUp(STAT_TARGETS,loaded,1400);
