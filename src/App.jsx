@@ -4122,7 +4122,11 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
       {/* ── Helpline Screen Overlay (phone/logged-out stage) ── */}
       {showHelpline&&(
-        <div style={{
+        <div
+          onTouchStart={e=>e.stopPropagation()}
+          onTouchMove={e=>e.stopPropagation()}
+          onTouchEnd={e=>e.stopPropagation()}
+          style={{
           position:"fixed",inset:0,zIndex:900,
           background:THEME[dark?"dark":"light"].appBg,
           display:"flex",flexDirection:"column",
@@ -5560,7 +5564,11 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
       {/* ── Helpline Screen Overlay (logged-in dashboard stage) ── */}
       {showHelpline&&(
-        <div style={{
+        <div
+          onTouchStart={e=>e.stopPropagation()}
+          onTouchMove={e=>e.stopPropagation()}
+          onTouchEnd={e=>e.stopPropagation()}
+          style={{
           position:"fixed",inset:0,zIndex:900,
           background:THEME[dark?"dark":"light"].appBg,
           display:"flex",flexDirection:"column",
@@ -6706,7 +6714,7 @@ export default function YojanaSahay(){
   const mountedTabsRef = useRef(new Set(["home"]));
 
   const handleTouchStart = useCallback((e) => {
-    if (showAdmin || showChecker || selectedScheme || selectedCategory || showHelpline) return;
+    if (showAdmin || showChecker || selectedScheme || selectedCategory) return;
     const t = e.touches[0];
     swipeRef.current = { x: t.clientX, y: t.clientY, lockedAxis: null };
     dragXRef.current = 0;
@@ -6715,7 +6723,7 @@ export default function YojanaSahay(){
       dragTargetRef.current.style.transform = "";
       dragTargetRef.current.style.transition = "";
     }
-  }, [showAdmin, showChecker, selectedScheme, selectedCategory, showHelpline]);
+  }, [showAdmin, showChecker, selectedScheme, selectedCategory]);
 
   const handleTouchMove = useCallback((e) => {
     if (!swipeRef.current) return;
@@ -6746,7 +6754,7 @@ export default function YojanaSahay(){
       dragTargetRef.current.style.transform = `translateX(${dragXRef.current}px)`;
       dragTargetRef.current.style.transition = "none";
     }
-  }, [activeTab, showAdmin, showChecker, selectedScheme, selectedCategory, showHelpline]);
+  }, [activeTab, showAdmin, showChecker, selectedScheme, selectedCategory]);
 
   const handleTouchEnd = useCallback((e) => {
     if (!swipeRef.current) return;
@@ -6774,7 +6782,7 @@ export default function YojanaSahay(){
       setSwipeDir("right");
       setActiveTab(TABS[idx - 1]);
     }
-  }, [activeTab, showAdmin, showChecker, selectedScheme, selectedCategory, showHelpline]);
+  }, [activeTab, showAdmin, showChecker, selectedScheme, selectedCategory]);
 
   // Clear swipeDir after animation completes
   useEffect(() => {
@@ -6843,9 +6851,9 @@ export default function YojanaSahay(){
   // Push a history entry for each top-level overlay so pressing back closes it
   // instead of closing the whole app.
   useEffect(()=>{
-    const hasOverlay=showAdmin||showChecker||!!selectedScheme||!!selectedCategory||showHelpline;
+    const hasOverlay=showAdmin||showChecker||!!selectedScheme||!!selectedCategory;
     if(hasOverlay) window.history.pushState({ysOverlay:true},"");
-  },[showAdmin,showChecker,selectedScheme,selectedCategory,showHelpline]);
+  },[showAdmin,showChecker,selectedScheme,selectedCategory]);
 
   useEffect(()=>{
     const handlePop=()=>{
@@ -6854,11 +6862,10 @@ export default function YojanaSahay(){
       if(showChecker)      {setShowChecker(false);return;}
       if(selectedScheme)   {setSelectedScheme(null);return;}
       if(selectedCategory) {setSelectedCategory(null);return;}
-      if(showHelpline)     {setShowHelpline(false);return;}
     };
     window.addEventListener("popstate",handlePop);
     return()=>window.removeEventListener("popstate",handlePop);
-  },[showAdmin,showChecker,selectedScheme,selectedCategory,showHelpline]);
+  },[showAdmin,showChecker,selectedScheme,selectedCategory]);
 
   // Animated stat counters — raw targets: 3000, 28, 50 (formatted below)
   const [c0,c1,c2]=useCountUp(STAT_TARGETS,loaded,1400);
