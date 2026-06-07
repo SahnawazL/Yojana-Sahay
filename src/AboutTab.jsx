@@ -536,7 +536,7 @@ function InfoRow({ icon, iconBg, title, desc, dark, bf, last }) {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-export default function AboutTab() {
+export default function AboutTab({ onClose }) {
   // ── Fully internal dark/light — always opens dark, independent from app ──
   const [dark, setDark] = useState(() => {
     const saved = localStorage.getItem("about_dark");
@@ -802,7 +802,7 @@ export default function AboutTab() {
           <button
             className="ys-back-btn"
             style={{ pointerEvents: "auto" }}
-            onClick={() => window.history.back()}
+            onClick={() => { if (onClose) onClose(); else window.history.back(); }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
               stroke="rgba(255,255,255,0.82)" strokeWidth="2.6"
