@@ -952,11 +952,27 @@ export default function Helpline({ lang = "en" }) {
           )}
         </div>
 
-        {/* Category Chips — Horizontal Scroll */}
-        <div ref={catScrollRef} style={{
-          display: "flex", gap: 8, overflowX: "auto", paddingBottom: 14,
-          scrollbarWidth: "none", msOverflowStyle: "none",
-        }}>
+        {/* Category Chips — Horizontal Scroll
+            onTouchStart/Move: detect horizontal intent and stop propagation
+            so the parent swipe-to-change-tab handler never fires.             */}
+        <div
+          ref={catScrollRef}
+          onTouchStart={e => {
+            const t = e.touches[0];
+            catScrollRef.current._touchStartX = t.clientX;
+            catScrollRef.current._touchStartY = t.clientY;
+          }}
+          onTouchMove={e => {
+            const dx = Math.abs(e.touches[0].clientX - (catScrollRef.current._touchStartX || 0));
+            const dy = Math.abs(e.touches[0].clientY - (catScrollRef.current._touchStartY || 0));
+            if (dx > dy) e.stopPropagation();
+          }}
+          style={{
+            display: "flex", gap: 8, overflowX: "auto", paddingBottom: 14,
+            scrollbarWidth: "none", msOverflowStyle: "none",
+            touchAction: "pan-x",
+          }}
+        >
           {activeCatEntries.map(([key, cat]) => {
             const isActive = activeCat === key;
             const count = key === "all"
