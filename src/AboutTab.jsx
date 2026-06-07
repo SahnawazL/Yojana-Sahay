@@ -2112,13 +2112,6 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
               </div>
 
               {/* Website CTA — water glass premium 3D */}
-              {/* Wrapper: padding-as-border — conic gradient shows through 1.5px gap as pure gold ring */}
-              <div style={{
-                padding: 1.5,
-                borderRadius: R.md + 2,
-                background: "conic-gradient(from 0deg, transparent 0deg, rgba(201,168,76,0.55) 60deg, rgba(255,228,130,0.90) 90deg, rgba(201,168,76,0.55) 120deg, transparent 180deg, transparent 360deg)",
-                animation: "shz-border-spin 6s linear infinite",
-              }}>
               <div
                 className="ys-link-row"
                 onClick={() => safeOpen(DEV_WEBSITE)}
@@ -2131,13 +2124,13 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                   background: dark
                     ? "linear-gradient(145deg, rgba(12,25,60,0.78) 0%, rgba(7,16,42,0.88) 60%, rgba(5,13,36,0.82) 100%)"
                     : "linear-gradient(145deg, rgba(255,255,255,0.84) 0%, rgba(238,246,255,0.74) 55%, rgba(222,238,255,0.68) 100%)",
-                  border: "none",
+                  border: "1.5px solid rgba(201,168,76,0.62)",
                   borderRadius: R.md,
                   padding: "13px 16px",
                   cursor: "pointer",
                   boxShadow: dark
-                    ? "0 8px 28px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.40), inset 0 1.5px 0 rgba(255,255,255,0.11), inset 0 -1px 0 rgba(0,0,0,0.28)"
-                    : "0 6px 24px rgba(60,100,200,0.16), 0 2px 6px rgba(60,100,200,0.09), inset 0 1.5px 0 rgba(255,255,255,0.96), inset 0 -1px 0 rgba(160,190,240,0.28)",
+                    ? "0 8px 28px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.40), 0 0 0 1px rgba(201,168,76,0.14), 0 0 14px rgba(201,168,76,0.14), inset 0 1.5px 0 rgba(255,255,255,0.11), inset 0 -1px 0 rgba(0,0,0,0.28)"
+                    : "0 6px 24px rgba(60,100,200,0.16), 0 2px 6px rgba(60,100,200,0.09), 0 0 0 1px rgba(201,168,76,0.10), 0 0 12px rgba(201,168,76,0.10), inset 0 1.5px 0 rgba(255,255,255,0.96), inset 0 -1px 0 rgba(160,190,240,0.28)",
                   position: "relative", overflow: "hidden",
                   backdropFilter: "blur(18px) saturate(1.5)",
                   WebkitBackdropFilter: "blur(18px) saturate(1.5)",
@@ -2207,7 +2200,6 @@ export default function AboutTab({ lang: propLang = "en", dark = false, toggleLa
                     : "drop-shadow(0 1px 3px rgba(80,130,220,0.28))",
                 }}>›</div>
               </div>
-              </div>{/* end rotating gold border wrapper */}
 
             </div>
           </div>
