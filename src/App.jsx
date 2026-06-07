@@ -30,7 +30,7 @@ import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
-import SplashScreen from "./SplashScreen.jsx";
+
 
 // ─── ADMIN UID ─────────────────────────────────────────────────────────────────
 // Replace with your Firebase UID. Find it: Firebase Console → Auth → Users → copy UID
@@ -6846,18 +6846,18 @@ export default function YojanaSahay(){
   const [profile,setProfile]=useState(()=>{
     try{return JSON.parse(localStorage.getItem("yojana_profile")||"null")||null;}catch{return null;}
   });
-  // Shows once per browser session — won't replay on tab switch
-  const [splashDone,setSplashDone]=useState(()=>sessionStorage.getItem("ys_splashed")==="1");
-
   // ── Dismiss HTML splash when React mounts ─────────────────────────────────
   // #html-splash shows instantly before JS loads (pure CSS in index.html).
-  // Once React is ready, fade it out so SplashScreen.jsx takes over.
+  // Once React is ready, fade it out and mark session so it won't show again.
   useEffect(()=>{
     const el=document.getElementById('html-splash');
     if(!el)return;
     el.style.transition='opacity 0.35s ease';
     el.style.opacity='0';
-    const t=setTimeout(()=>el.remove(),380);
+    const t=setTimeout(()=>{
+      el.remove();
+      sessionStorage.setItem('ys_splashed','1');
+    },380);
     return()=>clearTimeout(t);
   },[]);
 
@@ -7182,13 +7182,6 @@ export default function YojanaSahay(){
 
   return(
     <div className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0.7:1,transition:"opacity 0.12s,background 0.3s"}}>
-      {/* ── SPLASH SCREEN — shown once per session ── */}
-      {!splashDone&&(
-        <SplashScreen onDone={()=>{
-          sessionStorage.setItem("ys_splashed","1");
-          setSplashDone(true);
-        }}/>
-      )}
       <style>{APP_STYLES}</style>
 
       {/* ── TAB CONTENT — all tabs always mounted, zero DOM remount, zero blink ──
