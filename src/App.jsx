@@ -6848,6 +6848,19 @@ export default function YojanaSahay(){
   });
   // Shows once per browser session — won't replay on tab switch
   const [splashDone,setSplashDone]=useState(()=>sessionStorage.getItem("ys_splashed")==="1");
+
+  // ── Dismiss HTML splash when React mounts ─────────────────────────────────
+  // #html-splash shows instantly before JS loads (pure CSS in index.html).
+  // Once React is ready, fade it out so SplashScreen.jsx takes over.
+  useEffect(()=>{
+    const el=document.getElementById('html-splash');
+    if(!el)return;
+    el.style.transition='opacity 0.35s ease';
+    el.style.opacity='0';
+    const t=setTimeout(()=>el.remove(),380);
+    return()=>clearTimeout(t);
+  },[]);
+
   const toggleDark=useCallback(()=>setDark(d=>!d),[]);
 
   // ── SMOOTH SWIPE — direction-aware slide transition ────────────────────────
