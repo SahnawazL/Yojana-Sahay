@@ -756,14 +756,19 @@ export default function AboutTab({ onClose }) {
       z-index: 119;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       height: 52px;
       padding: 0 14px;
-      pointer-events: none;
+      background: rgba(0, 21, 56, 0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
     .ys-about-title {
       position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
+      right: 0;
+      text-align: center;
       font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.4px;
@@ -791,17 +796,17 @@ export default function AboutTab({ onClose }) {
       ════════════════════════════════════════════════════════════════ */}
       <div style={{
         background: `linear-gradient(155deg, #002060 0%, ${NAVY} 35%, #04206A 65%, #001538 100%)`,
-        padding: "40px 22px 36px",
+        padding: "60px 22px 36px",
         position: "relative",
         overflow: "hidden",
       }}>
 
-        {/* ── Fixed header bar — back button left + About title centred ── */}
+        {/* ── Fixed header bar — back · title · pills — all in one row ── */}
         <div className="ys-header-bar">
-          {/* Back button */}
+
+          {/* Left — Back button */}
           <button
             className="ys-back-btn"
-            style={{ pointerEvents: "auto" }}
             onClick={() => { if (onClose) onClose(); else window.history.back(); }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -816,89 +821,85 @@ export default function AboutTab({ onClose }) {
             }}>Back</span>
           </button>
 
-          {/* Centred page title */}
+          {/* Center — page title (absolute so it's truly centred in the bar) */}
           <span className="ys-about-title">About</span>
-        </div>
 
-        {/* ── Fixed pill row — top-right, never scrolls ── */}
-        <div style={{
-          position: "fixed", top: 14, right: 14, zIndex: 120,
-          display: "flex", alignItems: "center", gap: 7,
-        }}>
+          {/* Right — Dev + Settings pills */}
+          <div style={{ display: "flex", alignItems: "center", gap: 7, position: "relative", zIndex: 1 }}>
 
-          {/* < Dev /> button */}
-          <div
-            className="ys-dev-fab"
-            onClick={scrollToDev}
-            style={{
-              display: "flex", alignItems: "center", gap: 5,
-              padding: "7px 12px",
-              background: "rgba(20,32,80,0.72)",
-              border: "1px solid rgba(201,168,76,0.38)",
-              borderRadius: 22,
-              cursor: "pointer",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
-            }}>
-            {/* Code brackets */}
-            <span style={{
-              fontSize: 9.5, fontWeight: 800, letterSpacing: 0,
-              background: "linear-gradient(90deg, #C9A84C, #F0D87A)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              fontFamily: "'DM Sans', sans-serif",
-            }}>&lt;</span>
-            <span style={{
-              fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4,
-              color: "rgba(255,255,255,0.82)",
-              fontFamily: "'DM Sans', sans-serif",
-            }}>Dev</span>
-            <span style={{
-              fontSize: 9.5, fontWeight: 800, letterSpacing: 0,
-              background: "linear-gradient(90deg, #C9A84C, #F0D87A)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              fontFamily: "'DM Sans', sans-serif",
-            }}>/&gt;</span>
+            {/* < Dev /> */}
+            <div
+              className="ys-dev-fab"
+              onClick={scrollToDev}
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "7px 12px",
+                background: "rgba(20,32,80,0.72)",
+                border: "1px solid rgba(201,168,76,0.38)",
+                borderRadius: 22,
+                cursor: "pointer",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
+              }}>
+              <span style={{
+                fontSize: 9.5, fontWeight: 800, letterSpacing: 0,
+                background: "linear-gradient(90deg, #C9A84C, #F0D87A)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                fontFamily: "'DM Sans', sans-serif",
+              }}>&lt;</span>
+              <span style={{
+                fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4,
+                color: "rgba(255,255,255,0.82)",
+                fontFamily: "'DM Sans', sans-serif",
+              }}>Dev</span>
+              <span style={{
+                fontSize: 9.5, fontWeight: 800, letterSpacing: 0,
+                background: "linear-gradient(90deg, #C9A84C, #F0D87A)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                fontFamily: "'DM Sans', sans-serif",
+              }}>/&gt;</span>
+            </div>
+
+            {/* Settings */}
+            <div
+              className="ys-settings-fab"
+              onClick={settingsOpen ? closeSettings : openSettings}
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "7px 13px 7px 10px",
+                background: settingsOpen
+                  ? "rgba(201,168,76,0.22)"
+                  : "rgba(20,32,80,0.72)",
+                border: `1px solid ${settingsOpen ? "rgba(201,168,76,0.65)" : "rgba(255,255,255,0.18)"}`,
+                borderRadius: 22,
+                cursor: "pointer",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                boxShadow: settingsOpen
+                  ? "0 0 18px rgba(201,168,76,0.30), 0 4px 16px rgba(0,0,0,0.30)"
+                  : "0 4px 16px rgba(0,0,0,0.35)",
+              }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                stroke={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"}
+                strokeWidth="2.2" strokeLinecap="round">
+                <line x1="4" y1="6"  x2="20" y2="6"/>
+                <line x1="4" y1="12" x2="20" y2="12"/>
+                <line x1="4" y1="18" x2="20" y2="18"/>
+                <circle cx="9"  cy="6"  r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
+                <circle cx="15" cy="12" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
+                <circle cx="9"  cy="18" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
+              </svg>
+              <span style={{
+                fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6,
+                color: settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)",
+                fontFamily: "'DM Sans', sans-serif",
+              }}>Settings</span>
+            </div>
+
           </div>
-
-          {/* Settings button */}
-          <div
-            className="ys-settings-fab"
-            onClick={settingsOpen ? closeSettings : openSettings}
-            style={{
-              display: "flex", alignItems: "center", gap: 5,
-              padding: "7px 13px 7px 10px",
-              background: settingsOpen
-                ? "rgba(201,168,76,0.22)"
-                : "rgba(20,32,80,0.72)",
-              border: `1px solid ${settingsOpen ? "rgba(201,168,76,0.65)" : "rgba(255,255,255,0.18)"}`,
-              borderRadius: 22,
-              cursor: "pointer",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              boxShadow: settingsOpen
-                ? "0 0 18px rgba(201,168,76,0.30), 0 4px 16px rgba(0,0,0,0.30)"
-                : "0 4px 16px rgba(0,0,0,0.35)",
-            }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-              stroke={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"}
-              strokeWidth="2.2" strokeLinecap="round">
-              <line x1="4" y1="6"  x2="20" y2="6"/>
-              <line x1="4" y1="12" x2="20" y2="12"/>
-              <line x1="4" y1="18" x2="20" y2="18"/>
-              <circle cx="9"  cy="6"  r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
-              <circle cx="15" cy="12" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
-              <circle cx="9"  cy="18" r="2" fill={settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)"} stroke="none"/>
-            </svg>
-            <span style={{
-              fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6,
-              color: settingsOpen ? "#F0D87A" : "rgba(255,255,255,0.80)",
-              fontFamily: "'DM Sans', sans-serif",
-            }}>Settings</span>
-          </div>
-
         </div>
 
         {/* Atmospheric glow blobs */}
