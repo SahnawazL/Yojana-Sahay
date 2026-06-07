@@ -725,6 +725,52 @@ export default function AboutTab() {
     .ys-toggle-seg {
       transition: background 0.18s ease, color 0.18s ease;
     }
+
+    .ys-back-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 13px 7px 9px;
+      background: rgba(20, 32, 80, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 22px;
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .ys-back-btn:active {
+      transform: scale(0.93);
+      background: rgba(201, 168, 76, 0.22);
+      border-color: rgba(201, 168, 76, 0.65);
+    }
+    .ys-header-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 119;
+      display: flex;
+      align-items: center;
+      height: 52px;
+      padding: 0 14px;
+      pointer-events: none;
+    }
+    .ys-about-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      color: rgba(255, 255, 255, 0.90);
+      pointer-events: none;
+      font-family: 'DM Sans', sans-serif;
+    }
   `;
 
   const statColors = [SAFFRON, "#4ADE80", "#60A5FA", "#F9FAFB"];
@@ -749,6 +795,30 @@ export default function AboutTab() {
         position: "relative",
         overflow: "hidden",
       }}>
+
+        {/* ── Fixed header bar — back button left + About title centred ── */}
+        <div className="ys-header-bar">
+          {/* Back button */}
+          <button
+            className="ys-back-btn"
+            style={{ pointerEvents: "auto" }}
+            onClick={() => window.history.back()}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(255,255,255,0.82)" strokeWidth="2.6"
+              strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            <span style={{
+              fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4,
+              color: "rgba(255,255,255,0.82)",
+              fontFamily: "'DM Sans', sans-serif",
+            }}>Back</span>
+          </button>
+
+          {/* Centred page title */}
+          <span className="ys-about-title">About</span>
+        </div>
 
         {/* ── Fixed pill row — top-right, never scrolls ── */}
         <div style={{
