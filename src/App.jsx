@@ -36,6 +36,146 @@ import SplashScreen from "./SplashScreen.jsx";
 // Replace with your Firebase UID. Find it: Firebase Console → Auth → Users → copy UID
 const ADMIN_UID = "A3V8OsHYFAZPv8WNfh5a2ueOl632";
 
+// ─── PREMIUM LOADER ────────────────────────────────────────────────────────────
+// Shown as Suspense fallback while lazy chunks (AboutTab, Helpline) download.
+// Full-screen dark overlay with crystal gem + 3-dot animations.
+function PremiumLoader() {
+  const particles = Array.from({ length: 18 }, (_, i) => ({
+    id: i,
+    left: `${Math.random() * 100}%`,
+    duration: `${4 + Math.random() * 6}s`,
+    delay: `${Math.random() * 8}s`,
+    drift: `${Math.random() * 60 - 30}px`,
+  }));
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      background: "#0d0d14",
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      overflow: "hidden",
+    }}>
+      <style>{`
+        @keyframes pl-bg-breathe { 0%,100%{opacity:1} 50%{opacity:0.7} }
+        @keyframes pl-orb1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,20px) scale(1.1)} 66%{transform:translate(-10px,40px) scale(0.95)} }
+        @keyframes pl-orb2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20px,-30px) scale(1.15)} }
+        @keyframes pl-orb3 { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-40px) scale(1.1)} }
+        @keyframes pl-ring { to{transform:rotate(360deg)} }
+        @keyframes pl-core-pulse {
+          0%,100%{transform:scale(1);box-shadow:0 0 24px rgba(139,92,246,0.7),0 0 50px rgba(139,92,246,0.35),0 0 100px rgba(139,92,246,0.18),inset 0 1px 0 rgba(255,255,255,0.45)}
+          50%{transform:scale(1.06);box-shadow:0 0 36px rgba(139,92,246,1),0 0 72px rgba(139,92,246,0.55),0 0 140px rgba(139,92,246,0.28),inset 0 1px 0 rgba(255,255,255,0.55)}
+        }
+        @keyframes pl-spark { 0%,100%{opacity:0.2;transform:scale(0.6) translateX(-50%)} 50%{opacity:1;transform:scale(1.6) translateX(-50%)} }
+        @keyframes pl-spark-y { 0%,100%{opacity:0.2;transform:scale(0.6) translateY(-50%)} 50%{opacity:1;transform:scale(1.6) translateY(-50%)} }
+        @keyframes pl-label-dot { 0%,80%,100%{opacity:0.2;transform:scale(0.7)} 40%{opacity:1;transform:scale(1.5);box-shadow:0 0 5px rgba(167,139,250,0.8)} }
+        @keyframes pl-fade-up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pl-fade-cycle { 0%,100%{opacity:0.5} 50%{opacity:1} }
+        @keyframes pl-dot-bounce { 0%,80%,100%{transform:scale(0.75) translateY(0);opacity:0.4} 40%{transform:scale(1.25) translateY(-8px);opacity:1} }
+        @keyframes pl-progress { 0%{left:-50%;width:40%} 100%{left:110%;width:40%} }
+        @keyframes pl-particle { 0%{transform:translateY(0) translateX(0);opacity:0} 10%{opacity:1} 90%{opacity:0.5} 100%{transform:translateY(-640px) translateX(var(--pl-drift));opacity:0} }
+      `}</style>
+
+      {/* Ambient background */}
+      <div style={{
+        position:"absolute",inset:0,
+        backgroundImage:"radial-gradient(ellipse 80% 50% at 50% -10%,rgba(120,80,255,0.18) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(60,180,255,0.10) 0%,transparent 55%),radial-gradient(ellipse 50% 60% at -10% 60%,rgba(180,100,255,0.08) 0%,transparent 50%)",
+        animation:"pl-bg-breathe 6s ease-in-out infinite",
+      }}/>
+
+      {/* Floating orbs */}
+      <div style={{position:"absolute",width:200,height:200,borderRadius:"50%",filter:"blur(40px)",background:"radial-gradient(circle,rgba(139,92,246,0.35) 0%,transparent 70%)",top:-60,left:-40,animation:"pl-orb1 8s ease-in-out infinite",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",width:160,height:160,borderRadius:"50%",filter:"blur(40px)",background:"radial-gradient(circle,rgba(59,130,246,0.25) 0%,transparent 70%)",bottom:-40,right:-30,animation:"pl-orb2 10s ease-in-out infinite",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",width:120,height:120,borderRadius:"50%",filter:"blur(40px)",background:"radial-gradient(circle,rgba(168,85,247,0.20) 0%,transparent 70%)",top:"50%",right:-20,animation:"pl-orb3 7s ease-in-out infinite",pointerEvents:"none"}}/>
+
+      {/* Corner accents */}
+      {[["top","left","borderTop","borderLeft"],["top","right","borderTop","borderRight"],["bottom","left","borderBottom","borderLeft"],["bottom","right","borderBottom","borderRight"]].map(([v,h,b1,b2],i)=>(
+        <div key={i} style={{position:"absolute",width:24,height:24,opacity:0.25,[v]:24,[h]:24,[b1]:"1px solid #a78bfa",[b2]:"1px solid #a78bfa"}}/>
+      ))}
+
+      {/* Floating particles */}
+      {particles.map(p=>(
+        <div key={p.id} style={{
+          position:"absolute",width:2,height:2,borderRadius:"50%",
+          background:"rgba(167,139,250,0.6)",
+          left:p.left,bottom:-4,opacity:0,
+          "--pl-drift":p.drift,
+          animation:`pl-particle ${p.duration} linear ${p.delay} infinite`,
+        }}/>
+      ))}
+
+      {/* ── Central content ── */}
+      <div style={{position:"relative",zIndex:10,display:"flex",flexDirection:"column",alignItems:"center"}}>
+
+        {/* Loading • • • */}
+        <div style={{
+          display:"flex",alignItems:"center",gap:4,
+          fontSize:9,fontWeight:600,letterSpacing:4,textTransform:"uppercase",
+          color:"rgba(167,139,250,0.6)",marginBottom:14,fontFamily:"Georgia,serif",
+        }}>
+          <span>Loading</span>
+          <div style={{display:"flex",alignItems:"center",gap:3,marginLeft:2}}>
+            {[0,1,2].map(i=>(
+              <span key={i} style={{
+                display:"inline-block",width:3,height:3,borderRadius:"50%",
+                background:"rgba(167,139,250,0.9)",
+                animation:`pl-label-dot 1.4s ease-in-out ${i*0.22}s infinite`,
+              }}/>
+            ))}
+          </div>
+        </div>
+
+        {/* Crystal gem — 148px */}
+        <div style={{position:"relative",width:148,height:148,marginBottom:40}}>
+          {/* Outer ring */}
+          <div style={{position:"absolute",inset:0,borderRadius:"50%",border:"2px solid transparent",background:"linear-gradient(#0d0d14,#0d0d14) padding-box,conic-gradient(from 0deg,transparent 0%,#8b5cf6 30%,#3b82f6 50%,transparent 55%,transparent 100%) border-box",animation:"pl-ring 3s linear infinite"}}/>
+          {/* Mid ring */}
+          <div style={{position:"absolute",inset:14,borderRadius:"50%",border:"1.5px solid transparent",background:"linear-gradient(#0d0d14,#0d0d14) padding-box,conic-gradient(from 180deg,transparent 0%,#a78bfa 25%,#60a5fa 40%,transparent 45%,transparent 100%) border-box",animation:"pl-ring 2s linear infinite reverse"}}/>
+          {/* Inner ring */}
+          <div style={{position:"absolute",inset:28,borderRadius:"50%",border:"1px solid transparent",background:"linear-gradient(#0d0d14,#0d0d14) padding-box,conic-gradient(from 90deg,transparent 0%,#c4b5fd 20%,transparent 25%,transparent 100%) border-box",animation:"pl-ring 1.2s linear infinite"}}/>
+          {/* Core */}
+          <div style={{position:"absolute",inset:42,borderRadius:"50%",background:"radial-gradient(circle at 35% 35%,rgba(196,181,253,0.9) 0%,rgba(139,92,246,0.7) 35%,rgba(88,28,220,0.9) 70%,rgba(30,10,80,1) 100%)",animation:"pl-core-pulse 2.4s ease-in-out infinite"}}/>
+          {/* Sparkles */}
+          <div style={{position:"absolute",width:4,height:4,borderRadius:"50%",background:"#e9d5ff",boxShadow:"0 0 8px #a78bfa",top:3,left:"50%",animation:"pl-spark 2s ease-in-out 0s infinite"}}/>
+          <div style={{position:"absolute",width:4,height:4,borderRadius:"50%",background:"#e9d5ff",boxShadow:"0 0 8px #a78bfa",top:"50%",right:3,animation:"pl-spark-y 2s ease-in-out 0.5s infinite"}}/>
+          <div style={{position:"absolute",width:4,height:4,borderRadius:"50%",background:"#e9d5ff",boxShadow:"0 0 8px #a78bfa",bottom:3,left:"50%",animation:"pl-spark 2s ease-in-out 1s infinite"}}/>
+          <div style={{position:"absolute",width:4,height:4,borderRadius:"50%",background:"#e9d5ff",boxShadow:"0 0 8px #a78bfa",top:"50%",left:3,animation:"pl-spark-y 2s ease-in-out 1.5s infinite"}}/>
+        </div>
+
+        {/* App name */}
+        <div style={{fontSize:22,fontWeight:300,color:"rgba(255,255,255,0.92)",letterSpacing:1,marginBottom:6,fontFamily:"Georgia,serif",animation:"pl-fade-up 0.8s ease both"}}>
+          Yojana Sahay
+        </div>
+        {/* Subtitle */}
+        <div style={{fontSize:11,color:"rgba(167,139,250,0.55)",letterSpacing:0.5,fontFamily:"Georgia,serif",marginBottom:36,animation:"pl-fade-cycle 4s ease-in-out 1s infinite"}}>
+          Preparing your experience
+        </div>
+
+        {/* 3 bouncing dots */}
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:28}}>
+          {[
+            {color:"#a78bfa",shadow:"rgba(167,139,250,0.7)",delay:"0s"},
+            {color:"#8b5cf6",shadow:"rgba(139,92,246,0.6)", delay:"0.18s"},
+            {color:"#6d28d9",shadow:"rgba(109,40,217,0.5)", delay:"0.36s"},
+          ].map((d,i)=>(
+            <div key={i} style={{
+              width:7,height:7,borderRadius:"50%",
+              background:d.color,
+              boxShadow:`0 0 10px ${d.shadow}`,
+              animation:`pl-dot-bounce 1.4s ease-in-out ${d.delay} infinite`,
+            }}/>
+          ))}
+        </div>
+
+        {/* Shimmer progress bar */}
+        <div style={{width:160,height:1.5,background:"rgba(255,255,255,0.06)",borderRadius:99,overflow:"hidden",position:"relative"}}>
+          <div style={{position:"absolute",top:0,left:0,bottom:0,width:"40%",background:"linear-gradient(90deg,transparent,#8b5cf6,#a78bfa,transparent)",borderRadius:99,animation:"pl-progress 1.8s ease-in-out infinite"}}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── COUNT-UP HOOK ─────────────────────────────────────────────────────────────
 function useCountUp(targets, trigger, duration=1400){
   const [counts,setCounts]=useState(targets.map(()=>0));
@@ -4115,7 +4255,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
-            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:48}}><AshokaChakra size={28} color={SAFFRON} spinning={true}/></div>}>
+            <Suspense fallback={<PremiumLoader/>}>
             <AboutTab lang={lang} dark={dark} toggleLang={toggleLang}/>
             </Suspense>
           </div>
@@ -4155,7 +4295,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
-            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:48}}><AshokaChakra size={28} color={SAFFRON} spinning={true}/></div>}>
+            <Suspense fallback={<PremiumLoader/>}>
             <Helpline lang={lang} dark={dark}/>
             </Suspense>
           </div>
@@ -5561,7 +5701,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           </div>
           {/* Scrollable content */}
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
-            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:48}}><AshokaChakra size={28} color={SAFFRON} spinning={true}/></div>}>
+            <Suspense fallback={<PremiumLoader/>}>
             <AboutTab lang={lang} dark={dark} toggleLang={toggleLang}/>
             </Suspense>
           </div>
@@ -5601,7 +5741,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
-            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:48}}><AshokaChakra size={28} color={SAFFRON} spinning={true}/></div>}>
+            <Suspense fallback={<PremiumLoader/>}>
             <Helpline lang={lang} dark={dark}/>
             </Suspense>
           </div>
