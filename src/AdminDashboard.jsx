@@ -11,7 +11,7 @@
 // sorting, pagination, filtered CSV export, refresh, more metrics,
 // and Cleanup tab for purging old resolved reports.
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDoc } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
@@ -239,6 +239,7 @@ function StatCard({ icon, label, value, sub, color, dark, trend, sparkline }) {
       border:`1.5px solid ${th.border}`,
       borderRadius:14, padding:"13px 14px",
       flex:1, minWidth:0,
+      borderTop:`3px solid ${color}`,
     }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
         <div style={{ fontSize:18 }}>{icon}</div>
@@ -742,7 +743,7 @@ function SchemeCoverageTab({ dark }) {
           <div key={label} style={{
             flex:1, background:th.card, border:`1.5px solid ${th.border}`,
             borderRadius:12, padding:"10px 8px", textAlign:"center",
-            minWidth:0,
+            borderTop:`3px solid ${color}`, minWidth:0,
           }}>
             <div style={{ fontSize:18, fontWeight:800, color:th.text }}>{value}</div>
             <div style={{ fontSize:9, color:th.textSub, marginTop:2, lineHeight:1.3 }}>{label}</div>
@@ -1391,6 +1392,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
             <div key={label} style={{
               flex:1, background:th.card, border:`1.5px solid ${th.border}`,
               borderRadius:12, padding:"10px 10px 8px",
+              borderTop:`3px solid ${color}`,
             }}>
               <div style={{ fontSize:20, fontWeight:800, color:th.text }}>{value}</div>
               <div style={{ fontSize:9, color:th.textSub, marginTop:2, fontWeight:500 }}>{label}</div>
@@ -1401,6 +1403,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
         <div style={{
           background:th.card, border:`1.5px solid ${"#A855F7"}33`,
           borderRadius:12, padding:"10px 14px",
+          borderTop:`3px solid #A855F7`,
           display:"flex", alignItems:"center", justifyContent:"space-between",
         }}>
           <div>
@@ -2800,6 +2803,12 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
           : "0 4px 24px rgba(0,53,128,0.08)",
       }}>
 
+        {/* India tricolor strip */}
+        <div style={{
+          position:"absolute", top:0, left:0, right:0, height:3,
+          background:`linear-gradient(90deg,${SAFFRON} 0% 33.3%,#fff 33.3% 66.6%,${IND_GREEN} 66.6% 100%)`,
+        }} />
+
         {/* Dot-grid texture */}
         <div style={{
           position:"absolute", inset:0, pointerEvents:"none",
@@ -2965,6 +2974,14 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
                 WebkitTapHighlightColor:"transparent",
               }}
             >
+              {/* Top accent bar */}
+              <div style={{
+                position:"absolute", top:0, left:0, right:0,
+                height: isHov ? 3 : 2,
+                background: meta.accentColor || NAVY,
+                transition:"height 0.18s ease",
+              }} />
+
               {/* Corner glow on hover */}
               {isHov && (
                 <div style={{
@@ -3093,14 +3110,19 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
-  // ── Layout — always mobile-first ─────────────────────────────────────────
-  // This is a mobile PWA (Play Store / phone-first). isDesktop is intentionally
-  // forced to false so the admin panel never switches to a wide desktop layout,
-  // regardless of whether it is opened on a desktop browser during development.
-  // On a real Android phone window.innerWidth is always phone-width anyway.
-  const isDesktop = false;
+  // ── Responsive: track window width ───────────────────────────────────────
+  const [windowWidth, setWindowWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 375
+  );
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  const isDesktop = windowWidth >= 900;
 
   // ── Smart tab navigation ──────────────────────────────────────────────────
+  const tabsBarRef      = useRef(null);
   const [tabTransition, setTabTransition] = useState(null); // "left" | "right" | null
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
@@ -4429,6 +4451,18 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     return () => window.removeEventListener("keydown", handler);
   }, [activeSection, navigateTab]);
 
+  // Auto-scroll tab bar to keep active tab centred
+  useEffect(() => {
+    if (!tabsBarRef.current) return;
+    const bar    = tabsBarRef.current;
+    const active = bar.querySelector("[data-active='true']");
+    if (!active) return;
+    const barRect    = bar.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    const offset     = activeRect.left - barRect.left - (barRect.width / 2) + (activeRect.width / 2);
+    bar.scrollBy({ left: offset, behavior: "smooth" });
+  }, [activeSection]);
+
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:9999,
@@ -4440,78 +4474,196 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
       {/* ── HEADER ── */}
       <div style={{
-        background:`linear-gradient(135deg,${NAVY} 0%,rgba(0,53,128,0.95) 70%,rgba(0,40,100,0.98) 100%)`,
-        padding: isDesktop ? "16px 40px" : "12px 16px",
-        flexShrink:0,
-        boxShadow:"0 2px 16px rgba(0,53,128,0.25)",
+        background:`linear-gradient(135deg,${NAVY} 0%,rgba(0,53,128,0.92) 60%,rgba(255,153,51,0.85) 100%)`,
+        padding: isDesktop ? "20px 40px 0" : "18px 18px 0", flexShrink:0,
+        boxShadow:"0 4px 20px rgba(0,53,128,0.3)",
         position:"sticky", top:0, zIndex:10,
       }}>
-        <div style={{
-          display:"flex", alignItems:"center", gap:10,
-          maxWidth: isDesktop ? 1400 : "100%",
-          margin: isDesktop ? "0 auto" : undefined,
-        }}>
-          {/* Back / Home button */}
-          <div
-            onClick={() => activeSection === "home" ? onClose() : navigateTab("home")}
-            style={{
-              width:36, height:36, borderRadius:10,
-              background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.2)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              cursor:"pointer", fontSize:15, flexShrink:0, color:"#fff",
-              transition:"background 0.15s",
-            }}
-          >
-            {activeSection === "home" ? "✕" : "←"}
-          </div>
-
-          {/* Title + breadcrumb */}
+        <div style={{ display:"flex", alignItems:"center", gap:12, maxWidth: isDesktop ? 1400 : "100%", margin: isDesktop ? "0 auto" : undefined }}>
+          <div onClick={onClose} style={{
+            width:36, height:36, borderRadius:10,
+            background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.25)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            cursor:"pointer", fontSize:16, flexShrink:0,
+          }}>←</div>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{
-              color:"#fff", fontSize: isDesktop ? 16 : 15,
-              fontWeight:800, display:"flex", alignItems:"center", gap:6,
-            }}>
-              <span style={{ opacity:0.7, fontSize:14 }}>🛡️</span>
-              Admin Dashboard
+            <div style={{ color:"#fff", fontSize:17, fontWeight:800 }}>
+              🛡️ Admin Dashboard
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:2 }}>
-              <span style={{ color:"rgba(255,255,255,0.5)", fontSize:10 }}>
+            {/* Active-tab smart pill */}
+            <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:3 }}>
+              <div style={{ color:"rgba(255,255,255,0.6)", fontSize:10 }}>
                 {loading ? "Loading…" : `${users.length} users`}
-              </span>
-              {activeSection !== "home" && (
-                <>
-                  <span style={{ color:"rgba(255,255,255,0.25)", fontSize:10 }}>·</span>
-                  <span style={{
-                    fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.8)",
-                    background:"rgba(255,255,255,0.1)",
-                    border:"1px solid rgba(255,255,255,0.18)",
-                    borderRadius:10, padding:"1px 8px",
-                  }}>
-                    {TABS.find(([id]) => id === activeSection)?.[1] || activeSection}
-                  </span>
-                </>
-              )}
+              </div>
+              <div style={{
+                display:"flex", alignItems:"center", gap:4,
+                background:"rgba(255,255,255,0.18)",
+                border:"1px solid rgba(255,255,255,0.28)",
+                borderRadius:20, padding:"2px 9px 2px 5px",
+                backdropFilter:"blur(8px)",
+              }}>
+                {/* Prev arrow */}
+                {(() => {
+                  const tabIds = TABS.map(([id]) => id);
+                  const curr   = tabIds.indexOf(activeSection);
+                  return curr > 0 ? (
+                    <span
+                      onClick={(e) => { e.stopPropagation(); navigateTab(tabIds[curr - 1]); }}
+                      style={{ fontSize:11, color:"rgba(255,255,255,0.7)", cursor:"pointer", lineHeight:1, padding:"0 2px" }}
+                    >‹</span>
+                  ) : (
+                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.2)", lineHeight:1, padding:"0 2px" }}>‹</span>
+                  );
+                })()}
+                {/* Current tab label */}
+                <span style={{ fontSize:10, fontWeight:800, color:"#fff", letterSpacing:0.2 }}>
+                  {activeSection === "home"
+                    ? "🏠 Home"
+                    : (TABS.find(([id]) => id === activeSection)?.[1] || "")}
+                </span>
+                {/* Next arrow */}
+                {(() => {
+                  const tabIds = TABS.map(([id]) => id);
+                  const curr   = tabIds.indexOf(activeSection);
+                  // curr === -1 when on "home" — must be excluded explicitly
+                  return activeSection !== "home" && curr < tabIds.length - 1 ? (
+                    <span
+                      onClick={(e) => { e.stopPropagation(); navigateTab(tabIds[curr + 1]); }}
+                      style={{ fontSize:11, color:"rgba(255,255,255,0.7)", cursor:"pointer", lineHeight:1, padding:"0 2px" }}
+                    >›</span>
+                  ) : (
+                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.2)", lineHeight:1, padding:"0 2px" }}>›</span>
+                  );
+                })()}
+              </div>
             </div>
           </div>
-
           {/* Dark/Light toggle */}
           <div onClick={toggleDark} style={{
-            background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)",
+            background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.25)",
             borderRadius:10, padding:"7px 10px",
             color:"#fff", fontSize:14, cursor:"pointer",
           }}>
             {dark ? "☀️" : "🌙"}
           </div>
-
           {/* Refresh */}
           <div onClick={() => fetchUsers(true)} style={{
-            background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)",
+            background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.25)",
             borderRadius:10, padding:"7px 10px",
             color:"#fff", fontSize:12, cursor:"pointer",
             opacity: refreshing ? 0.5 : 1,
           }}>
             {refreshing ? "…" : "↻"}
           </div>
+
+        </div>
+
+        {/* Tabs */}
+        <div ref={tabsBarRef} style={{
+          display:"flex", gap: isDesktop ? 4 : 6,
+          overflowX:"auto", paddingBottom:1,
+          maxWidth: isDesktop ? 1400 : "100%",
+          margin: isDesktop ? "14px auto 0" : "14px 0 0",
+        }}>
+          {/* ─ HOME tab ─ */}
+          <div
+            onClick={() => navigateTab("home")}
+            data-active={activeSection === "home" ? "true" : "false"}
+            style={{
+              padding:"7px 13px",
+              borderRadius:"20px 20px 0 0",
+              fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0,
+              background: activeSection === "home"
+                ? "rgba(255,255,255,0.22)"
+                : "rgba(255,255,255,0.08)",
+              borderTop:   activeSection === "home" ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+              borderLeft:  activeSection === "home" ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+              borderRight: activeSection === "home" ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+              color: activeSection === "home" ? "#fff" : "rgba(255,255,255,0.6)",
+              transition:"all 0.2s",
+              marginBottom: activeSection === "home" ? -1 : 0,
+            }}
+          >
+            🏠 Home
+          </div>
+
+          {TABS.map(([id, label]) => {
+            const STATUS_HINTS = id === "reports" ? [
+              {
+                key: "open",
+                // Open but NOT reopened (reopened gets its own pill below)
+                count: reports.filter(r =>
+                  r.status === "open" &&
+                  !r.replyHistory?.some(h => h.isReopen)
+                ).length,
+                color: "#DC2626",
+                bg: "rgba(220,38,38,0.18)",
+                dot: "🔴",
+              },
+              {
+                key: "in_progress",
+                count: reports.filter(r => r.status === "in_progress").length,
+                color: "#F59E0B",
+                bg: "rgba(245,158,11,0.18)",
+                dot: "🟡",
+              },
+              {
+                key: "reopened",
+                // Reopened = has isReopen entry in replyHistory AND not yet resolved
+                count: reports.filter(r =>
+                  r.replyHistory?.some(h => h.isReopen) &&
+                  r.status !== "resolved"
+                ).length,
+                color: "#A855F7",
+                bg: "rgba(168,85,247,0.18)",
+                dot: "🔁",
+              },
+            ].filter(s => s.count > 0) : [];
+
+            return (
+              <div key={id} onClick={() => navigateTab(id)}
+                data-active={activeSection === id ? "true" : "false"}
+                style={{
+                padding: STATUS_HINTS.length > 0 ? "7px 13px 20px" : "7px 13px",
+                borderRadius:"20px 20px 0 0",
+                fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0,
+                background: activeSection === id
+                  ? "rgba(255,255,255,0.22)"
+                  : "rgba(255,255,255,0.08)",
+                borderTop: activeSection === id ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+                borderLeft: activeSection === id ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+                borderRight: activeSection === id ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+                color: activeSection === id ? "#fff" : "rgba(255,255,255,0.6)",
+                transition:"all 0.2s",
+                marginBottom: activeSection === id ? -1 : 0,
+                position:"relative",
+              }}>
+                {label}
+                {STATUS_HINTS.length > 0 && (
+                  <div style={{
+                    position:"absolute", bottom:3, left:"50%",
+                    transform:"translateX(-50%)",
+                    display:"flex", gap:3, alignItems:"center",
+                  }}>
+                    {STATUS_HINTS.map(s => (
+                      <div key={s.key} style={{
+                        display:"flex", alignItems:"center", gap:2,
+                        background: s.bg,
+                        border:`1px solid ${s.color}`,
+                        borderRadius:6,
+                        padding:"1px 4px",
+                      }}>
+                        <span style={{ fontSize:7 }}>{s.dot}</span>
+                        <span style={{ fontSize:8, fontWeight:800, color: s.color }}>
+                          {s.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -4940,6 +5092,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               <div key={label} style={{
                 background:th.card, border:`1.5px solid ${th.border}`,
                 borderRadius:12, padding:"10px 14px", flex:1, minWidth:90,
+                borderLeft:`3px solid ${color}`,
               }}>
                 <div style={{ fontSize:18, fontWeight:800, color:th.text }}>{value}</div>
                 <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>{label}</div>
