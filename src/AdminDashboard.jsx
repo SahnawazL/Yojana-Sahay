@@ -3094,15 +3094,15 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [usageLoading,  setUsageLoading]  = useState(false);
 
   // ── Responsive: track window width ───────────────────────────────────────
-  const [windowWidth, setWindowWidth] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth : 375
-  );
+  const [windowWidth, setWindowWidth] = useState(375); // default mobile-first
+
   useEffect(() => {
+    setWindowWidth(window.innerWidth);
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-  const isDesktop = windowWidth >= 900;
+  const isDesktop = windowWidth >= 1024;
 
   // ── Smart tab navigation ──────────────────────────────────────────────────
   const [tabTransition, setTabTransition] = useState(null); // "left" | "right" | null
