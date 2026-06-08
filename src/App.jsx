@@ -5290,7 +5290,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
           {/* Admin Panel — only visible to admin */}
           {isAdmin&&(
-            <div onClick={()=>{haptic();window.open("/admin","_blank");}}
+            <div onClick={()=>{haptic();onAdminOpen();}}
               style={{padding:"14px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",borderBottom:`1px solid ${th.border}`}}>
               <div style={{display:"flex",alignItems:"center",gap:12}}>
                 <div style={{width:38,height:38,borderRadius:11,

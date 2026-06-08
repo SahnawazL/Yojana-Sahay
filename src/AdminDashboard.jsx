@@ -3093,16 +3093,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
-  // ── Responsive: track window width ───────────────────────────────────────
-  const [windowWidth, setWindowWidth] = useState(375); // default mobile-first
-
-  useEffect(() => {
-    setWindowWidth(window.innerWidth);
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-  const isDesktop = windowWidth >= 1024;
+  // ── Layout — always mobile-first ─────────────────────────────────────────
+  // This is a mobile PWA (Play Store / phone-first). isDesktop is intentionally
+  // forced to false so the admin panel never switches to a wide desktop layout,
+  // regardless of whether it is opened on a desktop browser during development.
+  // On a real Android phone window.innerWidth is always phone-width anyway.
+  const isDesktop = false;
 
   // ── Smart tab navigation ──────────────────────────────────────────────────
   const [tabTransition, setTabTransition] = useState(null); // "left" | "right" | null
