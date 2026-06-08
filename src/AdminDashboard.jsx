@@ -281,7 +281,7 @@ function Badge({ label, color, bg }) {
 }
 
 // ─── USER DETAIL DRAWER ───────────────────────────────────────────────────────
-function UserDrawer({ user, dark, onClose }) {
+function UserDrawer({ user, dark, onClose, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   if (!user) return null;
   const initial = (user.name || "?").charAt(0).toUpperCase();
@@ -334,16 +334,32 @@ function UserDrawer({ user, dark, onClose }) {
         position:"fixed", inset:0, zIndex:10000,
         background:th.overlay,
       }} />
-      {/* Drawer */}
-      <div style={{
-        position:"fixed", bottom:0, left:0, right:0, zIndex:10001,
-        background:th.drawerBg,
-        borderRadius:"20px 20px 0 0",
-        padding:"0 0 40px 0",
-        boxShadow:"0 -8px 40px rgba(0,0,0,0.2)",
-        maxHeight:"80vh",
-        overflowY:"auto",
-      }}>
+      {/* Drawer — bottom sheet on mobile, centered dialog on desktop */}
+      <div style={
+        isDesktop
+          ? {
+              position:"fixed",
+              top:"50%", left:"50%",
+              transform:"translate(-50%, -50%)",
+              zIndex:10001,
+              background:th.drawerBg,
+              borderRadius:20,
+              padding:"0 0 32px 0",
+              boxShadow:"0 24px 80px rgba(0,0,0,0.35)",
+              width:520, maxWidth:"90vw",
+              maxHeight:"85vh",
+              overflowY:"auto",
+            }
+          : {
+              position:"fixed", bottom:0, left:0, right:0, zIndex:10001,
+              background:th.drawerBg,
+              borderRadius:"20px 20px 0 0",
+              padding:"0 0 40px 0",
+              boxShadow:"0 -8px 40px rgba(0,0,0,0.2)",
+              maxHeight:"80vh",
+              overflowY:"auto",
+            }
+      }>
         {/* Handle */}
         <div style={{
           width:36, height:4, borderRadius:2,
@@ -2752,6 +2768,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
+  // ── Responsive: track window width ───────────────────────────────────────
+  const [windowWidth, setWindowWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 375
+  );
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  const isDesktop = windowWidth >= 900;
+
   // ── Smart tab navigation ──────────────────────────────────────────────────
   const tabsBarRef      = useRef(null);
   const [tabTransition, setTabTransition] = useState(null); // "left" | "right" | null
@@ -4094,11 +4121,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       {/* ── HEADER ── */}
       <div style={{
         background:`linear-gradient(135deg,${NAVY} 0%,rgba(0,53,128,0.92) 60%,rgba(255,153,51,0.85) 100%)`,
-        padding:"18px 18px 0", flexShrink:0,
+        padding: isDesktop ? "20px 40px 0" : "18px 18px 0", flexShrink:0,
         boxShadow:"0 4px 20px rgba(0,53,128,0.3)",
         position:"sticky", top:0, zIndex:10,
       }}>
-        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, maxWidth: isDesktop ? 1400 : "100%", margin: isDesktop ? "0 auto" : undefined }}>
           <div onClick={onClose} style={{
             width:36, height:36, borderRadius:10,
             background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.25)",
@@ -4175,7 +4202,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         </div>
 
         {/* Tabs */}
-        <div ref={tabsBarRef} style={{ display:"flex", gap:6, marginTop:14, overflowX:"auto", paddingBottom:1 }}>
+        <div ref={tabsBarRef} style={{
+          display:"flex", gap: isDesktop ? 4 : 6,
+          overflowX:"auto", paddingBottom:1,
+          maxWidth: isDesktop ? 1400 : "100%",
+          margin: isDesktop ? "14px auto 0" : "14px 0 0",
+        }}>
           {TABS.map(([id, label]) => {
             const STATUS_HINTS = id === "reports" ? [
               {
@@ -4261,6 +4293,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         <div style={{
           flex:1, display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center", gap:12,
+          maxWidth: isDesktop ? 1400 : "100%",
+          margin: isDesktop ? "0 auto" : undefined,
+          width:"100%", boxSizing:"border-box",
         }}>
           <div style={{ fontSize:32, animation:"spin 1s linear infinite" }}>⏳</div>
           <div style={{ color:th.textMid, fontSize:13 }}>Fetching user data…</div>
@@ -4293,113 +4328,244 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
       {/* ══ OVERVIEW ══ */}
       {!loading && !error && activeSection === "overview" && (
-        <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+        isDesktop ? (
 
-          {/* Row 1 */}
-          <div style={{ display:"flex", gap:10 }}>
-            <StatCard icon="👥" label="Total Users" value={users.length}
-              color={NAVY} dark={dark} sparkline={stats.spark} />
-            <StatCard icon="🆕" label="New This Week" value={stats.newThisWeek}
-              color={IND_GREEN} dark={dark} trend={stats.weekGrowth} />
-          </div>
-
-          {/* Row 2 */}
-          <div style={{ display:"flex", gap:10 }}>
-            <StatCard icon="🟢" label="Active Today" value={stats.activeToday}
-              sub={`${users.length ? Math.round(stats.activeToday/users.length*100) : 0}% of users`}
-              color={SAFFRON} dark={dark} />
-            <StatCard icon="📅" label="Active This Week" value={stats.activeWeek}
-              sub={`${users.length ? Math.round(stats.activeWeek/users.length*100) : 0}% of users`}
-              color={VIOLET} dark={dark} />
-          </div>
-
-          {/* Row 3 */}
-          <div style={{ display:"flex", gap:10 }}>
-            <StatCard icon="🗺️" label="States Covered" value={stats.statesCount}
-              color={PINK} dark={dark} />
-            <StatCard icon="🏠" label="Needs Housing" value={stats.needHousing}
-              sub={`${users.length ? Math.round(stats.needHousing/users.length*100) : 0}% of users`}
-              color={GOOGLE_B} dark={dark} />
-          </div>
-
-          {/* By State */}
+          /* ─────────────────────────────────────────────────────────────────
+             DESKTOP OVERVIEW LAYOUT
+             ───────────────────────────────────────────────────────────────── */
           <div style={{
-            background:th.card, border:`1.5px solid ${th.border}`,
-            borderRadius:16, padding:"14px 16px",
+            padding:"28px 40px 40px",
+            display:"flex", flexDirection:"column", gap:20,
+            maxWidth:1400, margin:"0 auto", width:"100%", boxSizing:"border-box",
           }}>
-            <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
-              📍 Users by State <span style={{ color:th.textSub, fontWeight:500, fontSize:11 }}>(top 8)</span>
-            </div>
-            {stats.topStates.length > 0
-              ? <BarChart data={stats.topStates} color={NAVY} dark={dark} />
-              : <div style={{ fontSize:12, color:th.textSub }}>No data yet</div>}
-          </div>
 
-          {/* Occupation donut */}
-          <div style={{
-            background:th.card, border:`1.5px solid ${th.border}`,
-            borderRadius:16, padding:"14px 16px",
-          }}>
-            <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
-              💼 Occupation Breakdown
+            {/* ── Stat Cards: 6 cards, 3-per-row ── */}
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
+              {[
+                { icon:"👥", label:"Total Users",       value:users.length,        color:NAVY,      sparkline:stats.spark },
+                { icon:"🆕", label:"New This Week",     value:stats.newThisWeek,   color:IND_GREEN, trend:stats.weekGrowth },
+                { icon:"🟢", label:"Active Today",      value:stats.activeToday,   color:SAFFRON,
+                  sub:`${users.length ? Math.round(stats.activeToday/users.length*100) : 0}% of users` },
+                { icon:"📅", label:"Active This Week",  value:stats.activeWeek,    color:VIOLET,
+                  sub:`${users.length ? Math.round(stats.activeWeek/users.length*100) : 0}% of users` },
+                { icon:"🗺️", label:"States Covered",    value:stats.statesCount,   color:PINK },
+                { icon:"🏠", label:"Needs Housing",     value:stats.needHousing,   color:GOOGLE_B,
+                  sub:`${users.length ? Math.round(stats.needHousing/users.length*100) : 0}% of users` },
+              ].map(({ icon, label, value, color, sub, trend, sparkline }) => (
+                <div key={label} style={{ flex:"1 1 calc(33.3% - 10px)", minWidth:180 }}>
+                  <StatCard icon={icon} label={label} value={value} color={color}
+                    sub={sub} trend={trend} sparkline={sparkline} dark={dark} />
+                </div>
+              ))}
             </div>
-            <DonutChart data={stats.occDonut} dark={dark} />
-          </div>
 
-          {/* 2-col: Income + Area */}
-          <div style={{ display:"flex", gap:12 }}>
-            <div style={{
-              flex:1, background:th.card, border:`1.5px solid ${th.border}`,
-              borderRadius:16, padding:"14px 14px",
-            }}>
-              <div style={{ fontSize:12, fontWeight:800, color:th.text, marginBottom:10 }}>
-                💰 Income
+            {/* ── Main 2-column body ── */}
+            <div style={{ display:"flex", gap:20, alignItems:"flex-start" }}>
+
+              {/* Left column (wider): By State + Income/Area + Age */}
+              <div style={{ flex:"1.5 1 0", display:"flex", flexDirection:"column", gap:16, minWidth:0 }}>
+
+                {/* By State */}
+                <div style={{
+                  background:th.card, border:`1.5px solid ${th.border}`,
+                  borderRadius:16, padding:"16px 20px",
+                }}>
+                  <div style={{ fontSize:14, fontWeight:800, color:th.text, marginBottom:14 }}>
+                    📍 Users by State
+                    <span style={{ color:th.textSub, fontWeight:500, fontSize:12, marginLeft:6 }}>(top 8)</span>
+                  </div>
+                  {stats.topStates.length > 0
+                    ? <BarChart data={stats.topStates} color={NAVY} dark={dark} />
+                    : <div style={{ fontSize:12, color:th.textSub }}>No data yet</div>}
+                </div>
+
+                {/* Income + Area side-by-side */}
+                <div style={{ display:"flex", gap:16 }}>
+                  <div style={{
+                    flex:1, background:th.card, border:`1.5px solid ${th.border}`,
+                    borderRadius:16, padding:"16px 18px", minWidth:0,
+                  }}>
+                    <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
+                      💰 Income Breakdown
+                    </div>
+                    <BarChart data={stats.incData} color={IND_GREEN} dark={dark} />
+                  </div>
+                  <div style={{
+                    flex:1, background:th.card, border:`1.5px solid ${th.border}`,
+                    borderRadius:16, padding:"16px 18px", minWidth:0,
+                  }}>
+                    <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
+                      🏘️ Area Distribution
+                    </div>
+                    <DonutChart data={stats.areaDonut} size={110} dark={dark} />
+                  </div>
+                </div>
+
+                {/* Age groups */}
+                <div style={{
+                  background:th.card, border:`1.5px solid ${th.border}`,
+                  borderRadius:16, padding:"16px 20px",
+                }}>
+                  <div style={{ fontSize:14, fontWeight:800, color:th.text, marginBottom:14 }}>
+                    🎂 Age Groups
+                  </div>
+                  <BarChart data={stats.ageData} color={PINK} dark={dark} />
+                </div>
               </div>
-              <BarChart data={stats.incData} color={IND_GREEN} dark={dark} />
-            </div>
-            <div style={{
-              flex:1, background:th.card, border:`1.5px solid ${th.border}`,
-              borderRadius:16, padding:"14px 14px",
-            }}>
-              <div style={{ fontSize:12, fontWeight:800, color:th.text, marginBottom:10 }}>
-                🏘️ Area
+
+              {/* Right column (narrower): Occupation donut + Recent sign-ups */}
+              <div style={{ flex:"1 1 0", display:"flex", flexDirection:"column", gap:16, minWidth:0 }}>
+
+                {/* Occupation donut */}
+                <div style={{
+                  background:th.card, border:`1.5px solid ${th.border}`,
+                  borderRadius:16, padding:"16px 18px",
+                }}>
+                  <div style={{ fontSize:14, fontWeight:800, color:th.text, marginBottom:14 }}>
+                    💼 Occupation Breakdown
+                  </div>
+                  <DonutChart data={stats.occDonut} size={130} dark={dark} />
+                </div>
+
+                {/* Recent sign-ups */}
+                <div style={{
+                  background:th.card, border:`1.5px solid ${th.border}`,
+                  borderRadius:16, padding:"16px 18px",
+                  flex:1,
+                }}>
+                  <div style={{
+                    display:"flex", alignItems:"center", justifyContent:"space-between",
+                    marginBottom:8,
+                  }}>
+                    <div style={{ fontSize:14, fontWeight:800, color:th.text }}>🕐 Recent Sign-ups</div>
+                    <div onClick={() => navigateTab("users")} style={{
+                      fontSize:11, color:SAFFRON, fontWeight:700, cursor:"pointer",
+                    }}>
+                      See all →
+                    </div>
+                  </div>
+                  {users.slice(0, 8).map(u => (
+                    <UserRow key={u.id} user={u} dark={dark} onTap={setSelectedUser} />
+                  ))}
+                </div>
               </div>
-              <DonutChart data={stats.areaDonut} size={90} dark={dark} />
             </div>
           </div>
 
-          {/* Age */}
-          <div style={{
-            background:th.card, border:`1.5px solid ${th.border}`,
-            borderRadius:16, padding:"14px 16px",
-          }}>
-            <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
-              🎂 Age Groups
-            </div>
-            <BarChart data={stats.ageData} color={PINK} dark={dark} />
-          </div>
+        ) : (
 
-          {/* Recent users preview */}
-          <div style={{
-            background:th.card, border:`1.5px solid ${th.border}`,
-            borderRadius:16, padding:"14px 16px",
-          }}>
+          /* ─────────────────────────────────────────────────────────────────
+             MOBILE OVERVIEW LAYOUT (original)
+             ───────────────────────────────────────────────────────────────── */
+          <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+
+            {/* Row 1 */}
+            <div style={{ display:"flex", gap:10 }}>
+              <StatCard icon="👥" label="Total Users" value={users.length}
+                color={NAVY} dark={dark} sparkline={stats.spark} />
+              <StatCard icon="🆕" label="New This Week" value={stats.newThisWeek}
+                color={IND_GREEN} dark={dark} trend={stats.weekGrowth} />
+            </div>
+
+            {/* Row 2 */}
+            <div style={{ display:"flex", gap:10 }}>
+              <StatCard icon="🟢" label="Active Today" value={stats.activeToday}
+                sub={`${users.length ? Math.round(stats.activeToday/users.length*100) : 0}% of users`}
+                color={SAFFRON} dark={dark} />
+              <StatCard icon="📅" label="Active This Week" value={stats.activeWeek}
+                sub={`${users.length ? Math.round(stats.activeWeek/users.length*100) : 0}% of users`}
+                color={VIOLET} dark={dark} />
+            </div>
+
+            {/* Row 3 */}
+            <div style={{ display:"flex", gap:10 }}>
+              <StatCard icon="🗺️" label="States Covered" value={stats.statesCount}
+                color={PINK} dark={dark} />
+              <StatCard icon="🏠" label="Needs Housing" value={stats.needHousing}
+                sub={`${users.length ? Math.round(stats.needHousing/users.length*100) : 0}% of users`}
+                color={GOOGLE_B} dark={dark} />
+            </div>
+
+            {/* By State */}
             <div style={{
-              display:"flex", alignItems:"center", justifyContent:"space-between",
-              marginBottom:4,
+              background:th.card, border:`1.5px solid ${th.border}`,
+              borderRadius:16, padding:"14px 16px",
             }}>
-              <div style={{ fontSize:13, fontWeight:800, color:th.text }}>🕐 Recent Sign-ups</div>
-              <div onClick={() => navigateTab("users")} style={{
-                fontSize:11, color:SAFFRON, fontWeight:700, cursor:"pointer",
+              <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
+                📍 Users by State <span style={{ color:th.textSub, fontWeight:500, fontSize:11 }}>(top 8)</span>
+              </div>
+              {stats.topStates.length > 0
+                ? <BarChart data={stats.topStates} color={NAVY} dark={dark} />
+                : <div style={{ fontSize:12, color:th.textSub }}>No data yet</div>}
+            </div>
+
+            {/* Occupation donut */}
+            <div style={{
+              background:th.card, border:`1.5px solid ${th.border}`,
+              borderRadius:16, padding:"14px 16px",
+            }}>
+              <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
+                💼 Occupation Breakdown
+              </div>
+              <DonutChart data={stats.occDonut} dark={dark} />
+            </div>
+
+            {/* 2-col: Income + Area */}
+            <div style={{ display:"flex", gap:12 }}>
+              <div style={{
+                flex:1, background:th.card, border:`1.5px solid ${th.border}`,
+                borderRadius:16, padding:"14px 14px",
               }}>
-                See all →
+                <div style={{ fontSize:12, fontWeight:800, color:th.text, marginBottom:10 }}>
+                  💰 Income
+                </div>
+                <BarChart data={stats.incData} color={IND_GREEN} dark={dark} />
+              </div>
+              <div style={{
+                flex:1, background:th.card, border:`1.5px solid ${th.border}`,
+                borderRadius:16, padding:"14px 14px",
+              }}>
+                <div style={{ fontSize:12, fontWeight:800, color:th.text, marginBottom:10 }}>
+                  🏘️ Area
+                </div>
+                <DonutChart data={stats.areaDonut} size={90} dark={dark} />
               </div>
             </div>
-            {users.slice(0, 5).map(u => (
-              <UserRow key={u.id} user={u} dark={dark} onTap={setSelectedUser} />
-            ))}
+
+            {/* Age */}
+            <div style={{
+              background:th.card, border:`1.5px solid ${th.border}`,
+              borderRadius:16, padding:"14px 16px",
+            }}>
+              <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
+                🎂 Age Groups
+              </div>
+              <BarChart data={stats.ageData} color={PINK} dark={dark} />
+            </div>
+
+            {/* Recent users preview */}
+            <div style={{
+              background:th.card, border:`1.5px solid ${th.border}`,
+              borderRadius:16, padding:"14px 16px",
+            }}>
+              <div style={{
+                display:"flex", alignItems:"center", justifyContent:"space-between",
+                marginBottom:4,
+              }}>
+                <div style={{ fontSize:13, fontWeight:800, color:th.text }}>🕐 Recent Sign-ups</div>
+                <div onClick={() => navigateTab("users")} style={{
+                  fontSize:11, color:SAFFRON, fontWeight:700, cursor:"pointer",
+                }}>
+                  See all →
+                </div>
+              </div>
+              {users.slice(0, 5).map(u => (
+                <UserRow key={u.id} user={u} dark={dark} onTap={setSelectedUser} />
+              ))}
+            </div>
           </div>
-        </div>
+
+        )
       )}
 
       {/* ══ USERS ══ */}
@@ -5177,7 +5343,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
       {/* User Detail Drawer */}
       {selectedUser && (
-        <UserDrawer user={selectedUser} dark={dark} onClose={() => setSelectedUser(null)} />
+        <UserDrawer user={selectedUser} dark={dark} isDesktop={isDesktop} onClose={() => setSelectedUser(null)} />
       )}
 
       {/* Export Progress Modal */}
