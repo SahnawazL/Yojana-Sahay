@@ -15,14 +15,23 @@ import { auth, db } from "./firebase.js";
 const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 
 export default function AdminPage() {
-  const [status, setStatus] = useState("checking"); // "checking" | "allowed" | "denied"
+  const [status,      setStatus]      = useState("checking"); // "checking" | "allowed" | "denied"
+  const [allowedTabs, setAllowedTabs] = useState(null); // null = full access, array = restricted
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { setStatus("denied"); return; }
       try {
         const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists() && snap.data().isAdmin === true) {
+        if (!snap.exists()) { setStatus("denied"); return; }
+        const data = snap.data();
+        if (data.isAdmin === true) {
+          // Full admin — all tabs
+          setAllowedTabs(null);
+          setStatus("allowed");
+        } else if (Array.isArray(data.adminTabs) && data.adminTabs.length > 0) {
+          // Restricted admin — only their assigned tabs
+          setAllowedTabs(data.adminTabs);
           setStatus("allowed");
         } else {
           setStatus("denied");
@@ -90,6 +99,7 @@ export default function AdminPage() {
       <AdminDashboard
         onClose={() => window.location.href = "/"}
         dark={true}
+        allowedTabs={allowedTabs}
       />
     </React.Suspense>
   );

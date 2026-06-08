@@ -2711,7 +2711,7 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 const PAGE_SIZE = 20;
 
-export default function AdminDashboard({ onClose, dark: darkProp = false }) {
+export default function AdminDashboard({ onClose, dark: darkProp = false, allowedTabs = null }) {
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("admin_dark_mode");
     return saved !== null ? saved === "true" : darkProp;
@@ -2741,7 +2741,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
   const [sortField,     setSortField]     = useState("lastSeen");
   const [sortDir,       setSortDir]       = useState("desc");
   const [page,          setPage]          = useState(1);
-  const [activeSection, setActiveSection] = useState("overview");
+  const [activeSection, setActiveSection] = useState(() => allowedTabs === null ? "overview" : (allowedTabs[0] || "overview"));
   const [selectedUser,  setSelectedUser]  = useState(null);
   const [exportModal,    setExportModal]   = useState(false);
   const [exportStep,     setExportStep]   = useState(-1);
@@ -4024,7 +4024,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
   }, [EXPORT_STEPS, exportAllPDF, exportSections]);
 
   // ─────────────────────────────────────────────────────────────────────────
-  const TABS = [
+  const ALL_TABS = [
     ["overview",  "📊 Overview"],
     ["users",     "👥 Users"],
     ["analytics", "🧮 Analytics"],
@@ -4035,6 +4035,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false }) {
     ["cleanup",   "🗑️ Cleanup"],
     ["export",    "📄 Export"],
   ];
+  // allowedTabs=null means full admin (show all). Array means restricted — filter to those tabs only.
+  const TABS = allowedTabs === null
+    ? ALL_TABS
+    : ALL_TABS.filter(([id]) => allowedTabs.includes(id));
 
   // ── navigateTab — direction-aware, animated tab change ───────────────────
   const navigateTab = useCallback((targetId) => {
