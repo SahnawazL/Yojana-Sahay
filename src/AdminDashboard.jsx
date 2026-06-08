@@ -2724,6 +2724,348 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   );
 }
 
+// ─── HOME SCREEN ──────────────────────────────────────────────────────────────
+const MONO_FONT = "'SF Mono','Fira Code','Courier New',monospace";
+
+function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [hovered, setHovered] = React.useState(null);
+
+  const nowMs  = Date.now();
+  const openR  = reports.filter(r => r.status === "open").length;
+  const inProg = reports.filter(r => r.status === "in_progress").length;
+  const actDay = users.filter(u => u.lastSeen?.seconds && (nowMs - u.lastSeen.seconds * 1000) < 86400000).length;
+  const newWk  = users.filter(u => u.createdAt?.seconds && (nowMs - u.createdAt.seconds * 1000) < 7 * 86400000).length;
+
+  const [tick, setTick] = React.useState(new Date());
+  React.useEffect(() => {
+    const id = setInterval(() => setTick(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const TIME_STR = tick.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false });
+  const DATE_STR = tick.toLocaleDateString("en-IN",  { weekday:"short", day:"numeric", month:"short", year:"numeric" });
+
+  const TAB_META = {
+    overview:  { desc:"Platform KPIs, welfare metrics & live insights",          badge: loading ? "loading…" : `${actDay} active today`,                  badgeColor:IND_GREEN,   accentColor:NAVY,      glow:"rgba(0,53,128,0.35)"     },
+    users:     { desc:"Browse, filter, search & inspect all user profiles",      badge: loading ? "…" : `${newWk} new this week`,                         badgeColor:GOOGLE_B,    accentColor:GOOGLE_B,  glow:"rgba(66,133,244,0.35)"   },
+    analytics: { desc:"Demographics, donuts, charts & cross-tab matrices",       badge:"8 dimensions",                                                     badgeColor:VIOLET,      accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)"   },
+    activity:  { desc:"Eligibility runs, logins & real-time usage feed",         badge: loading ? "…" : `${actDay} active today`,                          badgeColor:SAFFRON,     accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)"   },
+    usage:     { desc:"Feature telemetry — AI chat, searches & checker runs",    badge:"live metrics",                                                     badgeColor:PINK,        accentColor:PINK,      glow:"rgba(236,72,153,0.35)"   },
+    schemes:   { desc:"State-wise scheme coverage, gaps & distribution map",     badge:"all India states",                                                 badgeColor:IND_GREEN,   accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)"     },
+    reports:   { desc:"User-reported issues, admin replies & status workflow",   badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badgeColor: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)" },
+    cleanup:   { desc:"Purge resolved reports & flush stale usage data",         badge:"database hygiene",                                                 badgeColor:"#F59E0B",   accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)"   },
+    export:    { desc:"Compile & download full-dashboard PDF intelligence report",badge:"landscape A4 · PDF",                                              badgeColor:"#10B981",   accentColor:"#10B981", glow:"rgba(16,185,129,0.35)"   },
+  };
+
+  const HERO_METRICS = [
+    { label:"TOTAL USERS",   value: loading ? "…" : users.length,   color:NAVY                                      },
+    { label:"ACTIVE TODAY",  value: loading ? "…" : actDay,          color:IND_GREEN                                 },
+    { label:"OPEN REPORTS",  value: loading ? "…" : openR,           color: openR > 0 ? "#E53E3E" : IND_GREEN        },
+    { label:"TOTAL REPORTS", value: loading ? "…" : reports.length,  color:SAFFRON                                   },
+  ];
+
+  const cols     = isDesktop ? 3 : 2;
+  const tabCards = TABS.filter(([id]) => TAB_META[id]);
+
+  return (
+    <div style={{
+      flex:1,
+      padding: isDesktop ? "28px 40px 48px" : "16px 14px 36px",
+      maxWidth: isDesktop ? 1400 : "100%",
+      margin: isDesktop ? "0 auto" : undefined,
+      width:"100%", boxSizing:"border-box",
+    }}>
+
+      {/* ── Keyframes ── */}
+      <style>{`
+        @keyframes hs-pulse  { 0%,100%{opacity:0.55} 50%{opacity:1} }
+        @keyframes hs-fadein { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        .hs-module { transition:all 0.22s cubic-bezier(0.22,1,0.36,1); cursor:pointer; }
+        .hs-module:hover { transform:translateY(-3px) scale(1.01); }
+        .hs-module:active { transform:translateY(0); }
+        @media (hover: none) { .hs-module:hover { transform:none; } }
+      `}</style>
+
+      {/* ══ HERO PANEL ══ */}
+      <div style={{
+        background: dark
+          ? "linear-gradient(140deg,#091428 0%,#0d1830 55%,#130820 100%)"
+          : "linear-gradient(140deg,#f0f5ff 0%,#fef8f2 100%)",
+        border:`1px solid ${dark ? "rgba(0,53,128,0.45)" : "rgba(0,53,128,0.13)"}`,
+        borderRadius: isDesktop ? 20 : 16,
+        padding: isDesktop ? "26px 30px 24px" : "18px 16px 16px",
+        marginBottom: isDesktop ? 22 : 14,
+        position:"relative", overflow:"hidden",
+        animation:"hs-fadein 0.4s ease both",
+        boxShadow: dark
+          ? "0 8px 40px rgba(0,0,0,0.45)"
+          : "0 4px 24px rgba(0,53,128,0.08)",
+      }}>
+
+        {/* India tricolor strip */}
+        <div style={{
+          position:"absolute", top:0, left:0, right:0, height:3,
+          background:`linear-gradient(90deg,${SAFFRON} 0% 33.3%,#fff 33.3% 66.6%,${IND_GREEN} 66.6% 100%)`,
+        }} />
+
+        {/* Dot-grid texture */}
+        <div style={{
+          position:"absolute", inset:0, pointerEvents:"none",
+          backgroundImage:`radial-gradient(circle,${dark ? "rgba(255,255,255,0.04)" : "rgba(0,53,128,0.055)"} 1px,transparent 1px)`,
+          backgroundSize:"22px 22px", backgroundPosition:"3px 3px",
+        }} />
+
+        {/* Ambient glow (dark mode) */}
+        {dark && (
+          <div style={{
+            position:"absolute", top:-80, right:-60, width:260, height:260,
+            borderRadius:"50%",
+            background:"radial-gradient(circle,rgba(0,53,128,0.22) 0%,transparent 70%)",
+            pointerEvents:"none",
+          }} />
+        )}
+
+        <div style={{ position:"relative" }}>
+          {/* ── Title row + clock ── */}
+          <div style={{
+            display:"flex",
+            flexDirection: isDesktop ? "row" : "column",
+            alignItems: isDesktop ? "flex-start" : "stretch",
+            gap: isDesktop ? 24 : 12,
+            marginBottom: isDesktop ? 20 : 14,
+          }}>
+            {/* Title */}
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{
+                fontSize:8, fontFamily:MONO_FONT, fontWeight:700,
+                letterSpacing:2.5, color:SAFFRON, textTransform:"uppercase",
+                marginBottom:7, display:"flex", alignItems:"center", gap:6,
+              }}>
+                <span style={{ animation:"hs-pulse 2s ease-in-out infinite", display:"inline-block" }}>●</span>
+                SYSTEM ONLINE · AUTHORISED ACCESS ONLY
+              </div>
+              <div style={{
+                fontSize: isDesktop ? 28 : 22,
+                fontWeight:900, color:th.text, letterSpacing:-0.5, lineHeight:1.1,
+              }}>
+                Yojana<span style={{ color:SAFFRON }}>Sahay</span>
+                <span style={{ color:th.textSub, fontWeight:400, fontSize: isDesktop ? 16 : 13, letterSpacing:0 }}>
+                  {" "}· Admin Intelligence
+                </span>
+              </div>
+              <div style={{
+                fontSize:10, color:th.textMid, marginTop:5,
+                fontFamily:MONO_FONT, letterSpacing:0.3,
+              }}>
+                Welfare scheme discovery platform · India · v2.0
+              </div>
+            </div>
+
+            {/* Live clock */}
+            <div style={{
+              flexShrink:0,
+              background: dark ? "rgba(0,0,0,0.32)" : "rgba(255,255,255,0.72)",
+              border:`1px solid ${dark ? "rgba(255,255,255,0.09)" : "rgba(0,53,128,0.12)"}`,
+              borderRadius:12,
+              padding: isDesktop ? "12px 18px" : "10px 14px",
+              display:"flex",
+              alignItems: isDesktop ? "flex-end" : "center",
+              flexDirection: isDesktop ? "column" : "row",
+              gap: isDesktop ? 4 : 10,
+              backdropFilter:"blur(8px)",
+              WebkitBackdropFilter:"blur(8px)",
+            }}>
+              <div style={{
+                fontFamily:MONO_FONT, fontSize: isDesktop ? 24 : 20,
+                fontWeight:900, color:SAFFRON, letterSpacing:1, lineHeight:1,
+              }}>
+                {TIME_STR}
+              </div>
+              <div style={{
+                fontFamily:MONO_FONT, fontSize:10, color:th.textSub,
+              }}>
+                {DATE_STR}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Hero metric pills ── */}
+          <div style={{ display:"flex", gap: isDesktop ? 12 : 8, flexWrap:"wrap" }}>
+            {HERO_METRICS.map(({ label, value, color }) => (
+              <div key={label} style={{
+                flex:"1 1 auto",
+                minWidth: isDesktop ? 82 : 60,
+                background: dark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.82)",
+                border:`1px solid ${dark ? "rgba(255,255,255,0.075)" : "rgba(0,0,0,0.07)"}`,
+                borderTop:`2.5px solid ${color}`,
+                borderRadius:10,
+                padding: isDesktop ? "11px 14px" : "9px 10px",
+              }}>
+                <div style={{
+                  fontSize: isDesktop ? 24 : 20,
+                  fontWeight:900, color,
+                  fontFamily:MONO_FONT, lineHeight:1, letterSpacing:-0.5,
+                }}>
+                  {value}
+                </div>
+                <div style={{
+                  fontSize:8, color:th.textSub, marginTop:4,
+                  fontFamily:MONO_FONT, fontWeight:700,
+                  letterSpacing:1, textTransform:"uppercase",
+                }}>
+                  {label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section divider ── */}
+      <div style={{
+        display:"flex", alignItems:"center", gap:9,
+        marginBottom: isDesktop ? 14 : 10,
+      }}>
+        <div style={{ flex:1, height:1, background:th.border }} />
+        <div style={{
+          fontSize:8, fontFamily:MONO_FONT, fontWeight:800,
+          letterSpacing:2.5, color:th.textSub, textTransform:"uppercase",
+        }}>
+          SELECT MODULE // {tabCards.length} AVAILABLE
+        </div>
+        <div style={{ flex:1, height:1, background:th.border }} />
+      </div>
+
+      {/* ══ MODULE GRID ══ */}
+      <div style={{
+        display:"grid",
+        gridTemplateColumns:`repeat(${cols},1fr)`,
+        gap: isDesktop ? 14 : 10,
+      }}>
+        {tabCards.map(([id, label]) => {
+          const meta  = TAB_META[id] || {};
+          const isHov = hovered === id;
+
+          // Split "📊 Overview" → emoji + name
+          const spaceIdx = label.indexOf(" ");
+          const emoji = spaceIdx > -1 ? label.slice(0, spaceIdx) : "•";
+          const name  = spaceIdx > -1 ? label.slice(spaceIdx + 1) : label;
+
+          return (
+            <div
+              key={id}
+              className="hs-module"
+              onClick={() => navigateTab(id)}
+              onMouseEnter={() => setHovered(id)}
+              onMouseLeave={() => setHovered(null)}
+              style={{
+                background: dark
+                  ? (isHov ? "rgba(16,16,22,0.98)" : "#1c1c1e")
+                  : (isHov ? "#fff"                 : "#f9f9fb"),
+                border:`1.5px solid ${isHov ? meta.accentColor : th.border}`,
+                borderRadius: isDesktop ? 16 : 13,
+                padding: isDesktop ? "20px 20px 18px" : "14px 13px 13px",
+                boxShadow: isHov
+                  ? `0 12px 40px ${meta.glow},0 0 0 1px ${meta.accentColor}28`
+                  : dark ? "0 2px 10px rgba(0,0,0,0.38)" : "0 2px 10px rgba(0,0,0,0.05)",
+                position:"relative", overflow:"hidden",
+                userSelect:"none",
+                WebkitTapHighlightColor:"transparent",
+              }}
+            >
+              {/* Top accent bar */}
+              <div style={{
+                position:"absolute", top:0, left:0, right:0,
+                height: isHov ? 3 : 2,
+                background: meta.accentColor || NAVY,
+                transition:"height 0.18s ease",
+              }} />
+
+              {/* Corner glow on hover */}
+              {isHov && (
+                <div style={{
+                  position:"absolute", top:-40, right:-40,
+                  width:120, height:120, borderRadius:"50%",
+                  background:`radial-gradient(circle,${meta.glow} 0%,transparent 70%)`,
+                  pointerEvents:"none",
+                }} />
+              )}
+
+              {/* Emoji */}
+              <div style={{
+                fontSize: isDesktop ? 30 : 24,
+                lineHeight:1, marginBottom: isDesktop ? 10 : 8,
+              }}>
+                {emoji}
+              </div>
+
+              {/* Name */}
+              <div style={{
+                fontSize: isDesktop ? 15 : 12,
+                fontWeight:800, letterSpacing:-0.2,
+                color: isHov ? meta.accentColor : th.text,
+                marginBottom:4, transition:"color 0.18s",
+              }}>
+                {name}
+              </div>
+
+              {/* Desc */}
+              <div style={{
+                fontSize: isDesktop ? 11 : 10,
+                color:th.textSub, lineHeight:1.5,
+                marginBottom: isDesktop ? 12 : 9,
+              }}>
+                {meta.desc}
+              </div>
+
+              {/* Badge */}
+              {meta.badge && (
+                <div style={{
+                  display:"inline-flex", alignItems:"center",
+                  padding:"2px 8px",
+                  background:`${meta.badgeColor}18`,
+                  border:`1px solid ${meta.badgeColor}30`,
+                  borderRadius:20,
+                  fontSize:9, fontWeight:700, color:meta.badgeColor,
+                  fontFamily:MONO_FONT,
+                  maxWidth:"100%", overflow:"hidden",
+                  textOverflow:"ellipsis", whiteSpace:"nowrap",
+                }}>
+                  {meta.badge}
+                </div>
+              )}
+
+              {/* Chevron arrow */}
+              <div style={{
+                position:"absolute",
+                bottom: isDesktop ? 16 : 12,
+                right:  isDesktop ? 16 : 12,
+                fontSize:16,
+                color: isHov ? meta.accentColor : (dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"),
+                transition:"all 0.18s",
+                transform: isHov ? "translateX(3px)" : "translateX(0)",
+              }}>›</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Footer ── */}
+      <div style={{ marginTop: isDesktop ? 28 : 18, display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ flex:1, height:1, background:th.border }} />
+        <div style={{
+          fontSize:8, fontFamily:MONO_FONT, color:th.textSub,
+          letterSpacing:1, textTransform:"uppercase",
+        }}>
+          YojanaSahay © 2026 · Admin Panel · For Authorised Use Only
+        </div>
+        <div style={{ flex:1, height:1, background:th.border }} />
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 const PAGE_SIZE = 20;
 
@@ -2757,7 +3099,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [sortField,     setSortField]     = useState("lastSeen");
   const [sortDir,       setSortDir]       = useState("desc");
   const [page,          setPage]          = useState(1);
-  const [activeSection, setActiveSection] = useState(() => allowedTabs === null ? "overview" : (allowedTabs[0] || "overview"));
+  const [activeSection, setActiveSection] = useState("home");
   const [selectedUser,  setSelectedUser]  = useState(null);
   const [exportModal,    setExportModal]   = useState(false);
   const [exportStep,     setExportStep]   = useState(-1);
@@ -4069,6 +4411,15 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
   // ── navigateTab — direction-aware, animated tab change ───────────────────
   const navigateTab = useCallback((targetId) => {
+    // "home" is not in TABS — handle separately with right-slide animation
+    if (targetId === "home") {
+      setTabTransition("right");
+      setTimeout(() => {
+        setActiveSection("home");
+        setTabTransition(null);
+      }, 160);
+      return;
+    }
     const tabIds = TABS.map(([id]) => id);
     const curr   = tabIds.indexOf(activeSection);
     const next   = tabIds.indexOf(targetId);
@@ -4086,10 +4437,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     const handler = (e) => {
       if (["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
       if (e.key === "ArrowRight") {
+        if (activeSection === "home") { navigateTab(tabIds[0]); return; }
         const curr = tabIds.indexOf(activeSection);
         if (curr < tabIds.length - 1) navigateTab(tabIds[curr + 1]);
       } else if (e.key === "ArrowLeft") {
+        if (activeSection === "home") return;
         const curr = tabIds.indexOf(activeSection);
+        if (curr === 0) { navigateTab("home"); return; }
         if (curr > 0) navigateTab(tabIds[curr - 1]);
       }
     };
@@ -4163,13 +4517,16 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 })()}
                 {/* Current tab label */}
                 <span style={{ fontSize:10, fontWeight:800, color:"#fff", letterSpacing:0.2 }}>
-                  {TABS.find(([id]) => id === activeSection)?.[1] || ""}
+                  {activeSection === "home"
+                    ? "🏠 Home"
+                    : (TABS.find(([id]) => id === activeSection)?.[1] || "")}
                 </span>
                 {/* Next arrow */}
                 {(() => {
                   const tabIds = TABS.map(([id]) => id);
                   const curr   = tabIds.indexOf(activeSection);
-                  return curr < tabIds.length - 1 ? (
+                  // curr === -1 when on "home" — must be excluded explicitly
+                  return activeSection !== "home" && curr < tabIds.length - 1 ? (
                     <span
                       onClick={(e) => { e.stopPropagation(); navigateTab(tabIds[curr + 1]); }}
                       style={{ fontSize:11, color:"rgba(255,255,255,0.7)", cursor:"pointer", lineHeight:1, padding:"0 2px" }}
@@ -4208,6 +4565,28 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           maxWidth: isDesktop ? 1400 : "100%",
           margin: isDesktop ? "14px auto 0" : "14px 0 0",
         }}>
+          {/* ─ HOME tab ─ */}
+          <div
+            onClick={() => navigateTab("home")}
+            data-active={activeSection === "home" ? "true" : "false"}
+            style={{
+              padding:"7px 13px",
+              borderRadius:"20px 20px 0 0",
+              fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0,
+              background: activeSection === "home"
+                ? "rgba(255,255,255,0.22)"
+                : "rgba(255,255,255,0.08)",
+              borderTop:   activeSection === "home" ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+              borderLeft:  activeSection === "home" ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+              borderRight: activeSection === "home" ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+              color: activeSection === "home" ? "#fff" : "rgba(255,255,255,0.6)",
+              transition:"all 0.2s",
+              marginBottom: activeSection === "home" ? -1 : 0,
+            }}
+          >
+            🏠 Home
+          </div>
+
           {TABS.map(([id, label]) => {
             const STATUS_HINTS = id === "reports" ? [
               {
@@ -4325,6 +4704,19 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           ? "opacity 0.16s ease, transform 0.16s ease"
           : "opacity 0.2s ease, transform 0.2s cubic-bezier(0.22,1,0.36,1)",
       }}>
+
+      {/* ══ HOME SCREEN ══ */}
+      {!loading && !error && activeSection === "home" && (
+        <HomeScreen
+          users={users}
+          reports={reports}
+          loading={loading}
+          dark={dark}
+          isDesktop={isDesktop}
+          TABS={TABS}
+          navigateTab={navigateTab}
+        />
+      )}
 
       {/* ══ OVERVIEW ══ */}
       {!loading && !error && activeSection === "overview" && (
@@ -5285,7 +5677,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       </div>{/* end animated tab content */}
 
       {/* ── Bottom Prev/Next nav + position dots ── */}
-      {!loading && !error && (() => {
+      {!loading && !error && activeSection !== "home" && (() => {
         const tabIds  = TABS.map(([id]) => id);
         const curr    = tabIds.indexOf(activeSection);
         const hasPrev = curr > 0;
