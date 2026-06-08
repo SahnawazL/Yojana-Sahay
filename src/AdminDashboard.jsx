@@ -1165,7 +1165,7 @@ function ConversationThread({ report, dark }) {
   );
 }
 
-function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
+function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isDesktop = false }) {
   const th = THEME[dark ? "dark" : "light"];
   const [filter, setFilter] = useState("all");      // "all" | "open" | "in_progress" | "resolved"
   const [typeFilter, setTypeFilter] = useState("all");
@@ -1376,8 +1376,14 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
     );
   }
 
+  // ── Resolved report for desktop right-panel ─────────────────────────────
+  const expandedReport = expanded != null ? (filtered.find(r => r.id === expanded) ?? null) : null;
+
   return (
-    <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+    <div style={{ padding: isDesktop ? "0" : "16px 14px", display:"flex", flexDirection:"column", gap: isDesktop ? 0 : 14 }}>
+
+      {/* ── TOP CONTROLS — always full width ── */}
+      <div style={{ padding: isDesktop ? "16px 20px 0" : "0", display:"flex", flexDirection:"column", gap: isDesktop ? 12 : 14 }}>
 
       {/* Summary stats */}
       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -1479,6 +1485,451 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
           </div>
         ))}
       </div>
+
+      </div>{/* end top controls */}
+
+      {/* ═══════════════════════════════════════════════════════════
+           DESKTOP: 2-column split layout
+           LEFT  = compact scrollable card list
+           RIGHT = sticky detail panel for selected report
+          ═══════════════════════════════════════════════════════════ */}
+      {isDesktop && (
+        <div style={{ display:"flex", minHeight:0, borderTop:`1px solid ${th.border}` }}>
+
+          {/* ── LEFT PANEL: Card list ── */}
+          <div style={{
+            width:"38%", flexShrink:0,
+            borderRight:`1px solid ${th.border}`,
+            overflowY:"auto",
+            maxHeight:"calc(100vh - 260px)",
+            padding:"14px 12px",
+            display:"flex", flexDirection:"column", gap:10,
+          }}>
+            {/* Empty state */}
+            {filtered.length === 0 && (
+              <div style={{
+                background:th.card, border:`1.5px solid ${th.border}`,
+                borderRadius:16, padding:"28px 16px",
+                textAlign:"center",
+              }}>
+                <div style={{ fontSize:32, marginBottom:8 }}>📭</div>
+                <div style={{ fontSize:14, fontWeight:700, color:th.text }}>No reports found</div>
+                <div style={{ fontSize:11, color:th.textSub, marginTop:4 }}>
+                  {filter === "all" ? "No reports yet." : `No ${filter} reports.`}
+                </div>
+              </div>
+            )}
+
+            {/* Desktop compact cards */}
+            {filtered.map((report, idx) => {
+              const typeMeta   = TYPE_META[report.type]   || { icon:"📝", label:report.type, color:NAVY };
+              const statusMeta = STATUS_META[report.status] || STATUS_META.open;
+              const isSelected = expanded === report.id;
+              const isReopened = report.replyHistory?.some(r => r.isReopen);
+              const group = report.status === "resolved"    ? "resolved"
+                          : report.status === "in_progress" ? "in_progress"
+                          : isReopened                       ? "reopened"
+                          : "open";
+              const GROUP_META = {
+                open:        { label:"🔴 Open",        color:"#DC2626", bg:"rgba(220,38,38,0.08)"  },
+                in_progress: { label:"🟡 In Progress", color:"#D97706", bg:"rgba(245,158,11,0.08)" },
+                reopened:    { label:"🔁 Reopened",    color:"#A855F7", bg:"rgba(168,85,247,0.08)" },
+                resolved:    { label:"✅ Resolved",    color:IND_GREEN, bg:"rgba(19,136,8,0.06)"   },
+              };
+              const gMeta = GROUP_META[group];
+              const prevReport   = filtered[idx - 1];
+              const prevReopened = prevReport?.replyHistory?.some(r => r.isReopen);
+              const prevGroup    = !prevReport ? null
+                                 : prevReport.status === "resolved"    ? "resolved"
+                                 : prevReport.status === "in_progress" ? "in_progress"
+                                 : prevReopened                         ? "reopened"
+                                 : "open";
+              const showGroupHeader = group !== prevGroup;
+              const groupCount = filtered.filter(r => {
+                const rReopened = r.replyHistory?.some(h => h.isReopen);
+                const rGroup = r.status === "resolved"    ? "resolved"
+                             : r.status === "in_progress" ? "in_progress"
+                             : rReopened                   ? "reopened"
+                             : "open";
+                return rGroup === group;
+              }).length;
+              const statusColor = group === "reopened" ? "#A855F7" : statusMeta.color;
+
+              return (
+                <React.Fragment key={report.id}>
+                  {/* Group header */}
+                  {showGroupHeader && (
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginTop: idx > 0 ? 4 : 0 }}>
+                      <div style={{ height:1.5, flex:1, background: gMeta.color + "33", borderRadius:1 }} />
+                      <div style={{
+                        display:"flex", alignItems:"center", gap:5,
+                        background: gMeta.bg, border:`1.5px solid ${gMeta.color}44`,
+                        borderRadius:20, padding:"3px 10px",
+                      }}>
+                        <span style={{ fontSize:10, fontWeight:800, color: gMeta.color }}>{gMeta.label}</span>
+                        <span style={{ fontSize:9, fontWeight:800, color:"#fff", background: gMeta.color, borderRadius:8, padding:"1px 6px", minWidth:14, textAlign:"center" }}>{groupCount}</span>
+                      </div>
+                      <div style={{ height:1.5, flex:1, background: gMeta.color + "33", borderRadius:1 }} />
+                    </div>
+                  )}
+
+                  {/* Compact card — click to select, no inline expansion */}
+                  <div
+                    onClick={() => setExpanded(isSelected ? null : report.id)}
+                    style={{
+                      background: isSelected
+                        ? (dark ? `${typeMeta.color}18` : `${typeMeta.color}08`)
+                        : th.card,
+                      borderTop:    `1.5px solid ${isSelected ? typeMeta.color : th.border}`,
+                      borderRight:  `1.5px solid ${isSelected ? typeMeta.color : th.border}`,
+                      borderBottom: `1.5px solid ${isSelected ? typeMeta.color : th.border}`,
+                      borderLeft:   `4px solid ${isSelected ? typeMeta.color : statusColor}`,
+                      borderRadius:14, padding:"12px 14px",
+                      cursor:"pointer",
+                      transition:"all 0.18s",
+                      boxShadow: isSelected ? `0 4px 16px ${typeMeta.color}22` : `inset 3px 0 0 ${statusColor}18`,
+                    }}
+                  >
+                    <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
+                      {/* Type icon */}
+                      <div style={{
+                        width:34, height:34, borderRadius:10, flexShrink:0,
+                        background: dark ? `${typeMeta.color}22` : `${typeMeta.color}12`,
+                        border:`1.5px solid ${typeMeta.color}44`,
+                        display:"flex", alignItems:"center", justifyContent:"center", fontSize:15,
+                      }}>
+                        {typeMeta.icon}
+                      </div>
+
+                      <div style={{ flex:1, minWidth:0 }}>
+                        {/* Badges row */}
+                        <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:4, flexWrap:"wrap" }}>
+                          <span style={{ fontSize:9, fontWeight:700, color:typeMeta.color, background: dark ? `${typeMeta.color}22` : `${typeMeta.color}12`, border:`1px solid ${typeMeta.color}33`, borderRadius:5, padding:"1px 6px" }}>
+                            {typeMeta.label}
+                          </span>
+                          <span style={{ fontSize:9, fontWeight:700, color:statusMeta.color, background: dark ? `${statusMeta.color}22` : statusMeta.bg, border:`1px solid ${statusMeta.color}44`, borderRadius:5, padding:"1px 6px" }}>
+                            {statusMeta.emoji} {statusMeta.label}
+                          </span>
+                          {isReopened && (
+                            <span style={{ fontSize:9, fontWeight:700, color:"#D97706", background: dark ? "rgba(217,119,6,0.18)" : "#FFFBEB", border:"1px solid rgba(217,119,6,0.4)", borderRadius:5, padding:"1px 6px" }}>
+                              🔄
+                            </span>
+                          )}
+                        </div>
+                        {/* Subject */}
+                        <div style={{ fontSize:12, fontWeight:700, color: isSelected ? typeMeta.color : th.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:2 }}>
+                          {report.subject || report.message?.slice(0,50) || "No subject"}
+                        </div>
+                        {/* User + time */}
+                        <div style={{ fontSize:10, color:th.textSub, display:"flex", gap:6 }}>
+                          <span>👤 {report.userName || "Anonymous"}</span>
+                          <span>🕐 {timeAgo(report.createdAt)}</span>
+                        </div>
+                      </div>
+
+                      {/* Selection indicator */}
+                      <div style={{ fontSize:14, color: isSelected ? typeMeta.color : th.border, flexShrink:0 }}>
+                        {isSelected ? "▶" : "›"}
+                      </div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* ── RIGHT PANEL: Detail ── */}
+          <div style={{
+            flex:1, overflowY:"auto",
+            maxHeight:"calc(100vh - 260px)",
+            padding:"0",
+          }}>
+            {expandedReport ? (
+              <div style={{ padding:"20px 24px", display:"flex", flexDirection:"column", gap:14 }}>
+
+                {/* Report header banner */}
+                <div style={{
+                  display:"flex", alignItems:"center", gap:12,
+                  padding:"14px 16px",
+                  background: dark ? `${(TYPE_META[expandedReport.type]?.color || NAVY)}18` : `${(TYPE_META[expandedReport.type]?.color || NAVY)}08`,
+                  border:`1.5px solid ${(TYPE_META[expandedReport.type]?.color || NAVY)}33`,
+                  borderRadius:14,
+                }}>
+                  <div style={{
+                    width:42, height:42, borderRadius:12, flexShrink:0,
+                    background: dark ? `${(TYPE_META[expandedReport.type]?.color || NAVY)}30` : `${(TYPE_META[expandedReport.type]?.color || NAVY)}15`,
+                    border:`1.5px solid ${(TYPE_META[expandedReport.type]?.color || NAVY)}44`,
+                    display:"flex", alignItems:"center", justifyContent:"center", fontSize:20,
+                  }}>
+                    {TYPE_META[expandedReport.type]?.icon || "📝"}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:15, fontWeight:800, color:th.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {expandedReport.subject || expandedReport.message?.slice(0,70) || "No subject"}
+                    </div>
+                    <div style={{ fontSize:11, color:th.textSub, marginTop:3, display:"flex", gap:10 }}>
+                      <span>👤 {expandedReport.userName || "Anonymous"}</span>
+                      <span>🕐 {timeAgo(expandedReport.createdAt)}</span>
+                      {expandedReport.lang && <span>🌐 {expandedReport.lang === "hi" ? "Hindi" : "English"}</span>}
+                    </div>
+                  </div>
+                  <div
+                    onClick={() => setExpanded(null)}
+                    style={{
+                      width:28, height:28, borderRadius:8, flexShrink:0,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:13, cursor:"pointer", color:th.textMid,
+                      background: dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+                      border:`1px solid ${th.border}`,
+                    }}
+                  >✕</div>
+                </div>
+
+                {/* ── reuse the same detail content block ── */}
+                {(() => {
+                  const report = expandedReport;
+                  const typeMeta   = TYPE_META[report.type]   || { icon:"📝", label:report.type, color:NAVY };
+                  const statusMeta = STATUS_META[report.status] || STATUS_META.open;
+                  return (
+                    <>
+                      {/* Full message */}
+                      <div style={{
+                        background: dark ? "rgba(255,255,255,0.04)" : "#f8f9fa",
+                        border:`1px solid ${th.border}`, borderRadius:12, padding:"12px 14px",
+                      }}>
+                        <div style={{ fontSize:10, fontWeight:700, color:th.textSub, marginBottom:6, letterSpacing:0.4 }}>MESSAGE</div>
+                        <div style={{ fontSize:13, color:th.text, lineHeight:1.65, whiteSpace:"pre-wrap" }}>{report.message || "—"}</div>
+                      </div>
+
+                      {/* User contact info */}
+                      <div style={{
+                        background: dark ? "rgba(255,255,255,0.04)" : "#f8f9fa",
+                        border:`1px solid ${th.border}`, borderRadius:12, padding:"12px 14px",
+                        display:"flex", flexDirection:"column", gap:6,
+                      }}>
+                        <div style={{ fontSize:10, fontWeight:700, color:th.textSub, marginBottom:2, letterSpacing:0.4 }}>SUBMITTED BY</div>
+                        {[
+                          { icon:"👤", label:report.userName || "Anonymous" },
+                          report.userPhone && { icon:"📱", label:`+91 ${report.userPhone}` },
+                          report.userEmail && { icon:"✉️", label:report.userEmail },
+                          { icon:"🆔", label:report.uid || "—", mono:true },
+                          { icon:"🗓", label:report.createdAt?.seconds
+                              ? new Date(report.createdAt.seconds * 1000).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })
+                              : "—"
+                          },
+                        ].filter(Boolean).map(({ icon, label, mono }, i) => (
+                          <div key={i} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <span style={{ fontSize:13, flexShrink:0 }}>{icon}</span>
+                            <span style={{ fontSize:12, color:th.text, fontWeight:600, fontFamily: mono ? "monospace" : "inherit", wordBreak:"break-all" }}>{label}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Report details */}
+                      <div style={{
+                        background: dark ? "rgba(255,153,51,0.07)" : "#FFFBEB",
+                        border:`1px solid ${SAFFRON}44`, borderRadius:12, padding:"12px 14px",
+                        display:"flex", flexDirection:"column", gap:7,
+                      }}>
+                        <div style={{ fontSize:10, fontWeight:700, color:SAFFRON, marginBottom:2, letterSpacing:0.4 }}>📋 REPORT DETAILS</div>
+                        {[
+                          { icon:"🪪", label:"Report ID", value:report.id, mono:true },
+                          { icon:"📅", label:"Submitted",  value: report.createdAt?.seconds
+                              ? new Date(report.createdAt.seconds * 1000).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })
+                              : "—"
+                          },
+                          { icon:"💬", label:"Last Reply", value: report.repliedAt?.seconds
+                              ? new Date(report.repliedAt.seconds * 1000).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })
+                              : "No reply yet"
+                          },
+                          { icon:"🌐", label:"Language", value: report.lang === "hi" ? "Hindi" : "English" },
+                        ].map(({ icon, label, value, mono }) => (
+                          <div key={label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
+                            <span style={{ fontSize:11, color:th.textSub, display:"flex", alignItems:"center", gap:5, flexShrink:0 }}><span>{icon}</span> {label}</span>
+                            <span style={{ fontSize:11, fontWeight:700, color:th.text, fontFamily: mono ? "monospace" : "inherit", textAlign:"right", wordBreak:"break-all" }}>{value}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Status changer */}
+                      <div>
+                        <div style={{ fontSize:10, fontWeight:700, color:th.textSub, marginBottom:8, letterSpacing:0.4 }}>UPDATE STATUS</div>
+                        <div style={{ display:"flex", gap:7 }}>
+                          {Object.entries(STATUS_META).map(([v, meta]) => {
+                            const isActive  = report.status === v;
+                            const isTarget  = (targetStatus || report.status) === v;
+                            return (
+                              <div
+                                key={v}
+                                onClick={() => {
+                                  onStatusChange(report.id, v);
+                                  setTargetStatus(v);
+                                  setReplyDone(false);
+                                }}
+                                style={{
+                                  flex:1, padding:"9px 6px", borderRadius:10, textAlign:"center",
+                                  fontSize:10, fontWeight:700, cursor:"pointer",
+                                  background: isTarget ? (dark ? `${meta.color}30` : meta.bg) : th.border,
+                                  color: isTarget ? meta.color : th.textMid,
+                                  border:`1.5px solid ${isTarget ? meta.color : "transparent"}`,
+                                  transition:"all 0.18s",
+                                  boxShadow: isTarget ? `0 2px 10px ${meta.color}33` : "none",
+                                }}
+                              >
+                                {meta.emoji} {meta.label}
+                                {isActive && !isTarget && <div style={{ fontSize:8, color:th.textSub, marginTop:1 }}>current</div>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {targetStatus && (
+                          <div style={{
+                            marginTop:8,
+                            background: dark ? `${STATUS_META[targetStatus].color}18` : STATUS_META[targetStatus].bg,
+                            border:`1px dashed ${STATUS_META[targetStatus].color}66`,
+                            borderRadius:8, padding:"6px 10px",
+                            fontSize:10, color:STATUS_META[targetStatus].color, fontWeight:600,
+                          }}>
+                            {STATUS_META[targetStatus].emoji} AI Suggest & Send Reply will use <strong>{STATUS_META[targetStatus].label}</strong> intent
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Conversation thread */}
+                      <ConversationThread report={report} dark={dark} />
+
+                      {/* Admin reply section */}
+                      <div style={{
+                        background: dark ? "rgba(0,53,128,0.12)" : "#EFF6FF",
+                        border:`1.5px solid ${NAVY}33`, borderRadius:14, padding:"14px 14px",
+                        display:"flex", flexDirection:"column", gap:10,
+                      }}>
+                        <div style={{ fontSize:10, fontWeight:800, color:NAVY, letterSpacing:0.5 }}>
+                          ✉️ {report.status === "resolved" ? "CASE CLOSED — ADD A NOTE" : "REPLY TO USER"}
+                        </div>
+
+                        {/* Success flash */}
+                        {replyDone && (() => {
+                          const s = targetStatus || report.status;
+                          const flashMap = {
+                            open:        { bg: dark?"rgba(220,38,38,0.15)":"#FEF2F2", border:"#DC262655", color:"#DC2626", text:"✓ Acknowledged — report kept Open" },
+                            in_progress: { bg: dark?"rgba(217,119,6,0.15)":"#FFFBEB",  border:"#D9770655", color:"#D97706", text:"✓ Reply sent — marked In Progress" },
+                            resolved:    { bg: dark?"rgba(19,136,8,0.2)":"#F0FDF4",    border:`${IND_GREEN}`,  color:IND_GREEN, text:"✅ Reply sent & case Resolved!" },
+                          };
+                          const f = flashMap[s] || flashMap.resolved;
+                          return (
+                            <div style={{ background:f.bg, border:`1.5px solid ${f.border}`, borderRadius:10, padding:"10px 12px", fontSize:13, fontWeight:700, color:f.color, textAlign:"center" }}>
+                              {f.text}
+                            </div>
+                          );
+                        })()}
+
+                        {!(report.status === "resolved" && replyDone) && (
+                          <>
+                            <div style={{ position:"relative" }}>
+                              <textarea
+                                value={replyText}
+                                onChange={e => { setReplyText(e.target.value.slice(0, 800)); setReplyError(""); }}
+                                placeholder={
+                                  !targetStatus
+                                    ? "Select a status above first, then write your reply… or use ✨ AI Suggest"
+                                    : `Write your reply (${STATUS_META[targetStatus]?.label} intent)… or use ✨ AI Suggest`
+                                }
+                                rows={4}
+                                style={{
+                                  width:"100%", boxSizing:"border-box",
+                                  padding:"11px 12px", borderRadius:10,
+                                  border:`1.5px solid ${replyError ? "#DC2626" : th.border}`,
+                                  background:th.inputBg, color:th.text,
+                                  fontSize:13, outline:"none", resize:"none",
+                                  lineHeight:1.6, fontFamily:"inherit",
+                                  transition:"border-color 0.18s",
+                                }}
+                                onFocus={e => (e.target.style.borderColor = NAVY)}
+                                onBlur={e  => (e.target.style.borderColor = replyError ? "#DC2626" : th.border)}
+                              />
+                              <div style={{ position:"absolute", bottom:8, right:10, fontSize:9, color:replyText.length >= 700 ? "#DC2626" : th.textSub, fontWeight:600, pointerEvents:"none" }}>
+                                {replyText.length} / 800
+                              </div>
+                            </div>
+
+                            {replyError && <div style={{ fontSize:11, color:"#DC2626", fontWeight:600 }}>⚠️ {replyError}</div>}
+
+                            <div style={{ display:"flex", gap:8 }}>
+                              <div
+                                onClick={() => !aiLoading && handleAiSuggest(report)}
+                                style={{
+                                  flex:1, padding:"10px 8px", borderRadius:10, textAlign:"center",
+                                  fontSize:11, fontWeight:700, cursor: aiLoading ? "default" : "pointer",
+                                  background: dark ? "rgba(139,92,246,0.15)" : "#F5F3FF",
+                                  border:`1.5px solid ${VIOLET}55`, color: aiLoading ? th.textSub : VIOLET,
+                                  transition:"all 0.18s", opacity: aiLoading ? 0.7 : 1,
+                                }}
+                              >
+                                {aiLoading ? "⏳ Thinking…" : targetStatus ? `✨ AI for ${STATUS_META[targetStatus]?.label}` : "✨ AI Suggest"}
+                              </div>
+                              <div
+                                onClick={() => !replySending && handleSendReply(report)}
+                                style={{
+                                  flex:2, padding:"10px 8px", borderRadius:10, textAlign:"center",
+                                  fontSize:12, fontWeight:800, cursor: replySending ? "default" : "pointer",
+                                  background: replySending ? th.border
+                                    : targetStatus === "resolved" ? `linear-gradient(135deg,${IND_GREEN},#16a34a)`
+                                    : targetStatus === "in_progress" ? `linear-gradient(135deg,#D97706,#F59E0B)`
+                                    : `linear-gradient(135deg,${NAVY},rgba(0,53,128,0.85))`,
+                                  color: replySending ? th.textSub : "#fff",
+                                  boxShadow: replySending ? "none" : `0 4px 16px ${NAVY}44`,
+                                  transition:"all 0.2s", opacity: replySending ? 0.7 : 1,
+                                }}
+                              >
+                                {replySending ? "Sending…" : report.userEmail
+                                  ? `📨 Send & ${targetStatus ? STATUS_META[targetStatus]?.label : "Save"}`
+                                  : `💾 Save & ${targetStatus ? STATUS_META[targetStatus]?.label : "Update"}`}
+                              </div>
+                            </div>
+
+                            {!report.userEmail && (
+                              <div style={{ fontSize:10, color:SAFFRON, fontWeight:600, background: dark ? "rgba(255,153,51,0.1)" : "#FFFBEB", border:`1px solid ${SAFFRON}55`, borderRadius:8, padding:"6px 10px" }}>
+                                ⚠️ No email on file — reply will be saved to Firestore but not emailed.
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {report.status === "resolved" && replyDone && (
+                          <div style={{ textAlign:"center", padding:"8px 0", fontSize:11, color:th.textSub }}>
+                            This report is closed. Reopen it by clicking <strong style={{ color:"#DC2626" }}>Open</strong> or <strong style={{ color:"#D97706" }}>In Progress</strong> above.
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
+
+              </div>
+            ) : (
+              /* No report selected — placeholder */
+              <div style={{
+                flex:1, display:"flex", flexDirection:"column",
+                alignItems:"center", justifyContent:"center",
+                padding:"60px 28px", textAlign:"center", gap:12,
+              }}>
+                <div style={{ fontSize:52, opacity:0.35 }}>📬</div>
+                <div style={{ fontSize:15, fontWeight:700, color:th.textMid }}>Select a Report</div>
+                <div style={{ fontSize:12, color:th.textSub, lineHeight:1.6, maxWidth:260 }}>
+                  Click any report on the left to view its full details, conversation thread, and reply tools.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════
+           MOBILE: original single-column layout
+          ══════════════════════════════════════════════ */}
+      {!isDesktop && (
+        <div style={{ display:"flex", flexDirection:"column", gap:14, paddingBottom:8 }}>
 
       {/* Empty state */}
       {filtered.length === 0 && (
@@ -1954,7 +2405,9 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
         );
       })}
 
-      <div style={{ height:8 }} />
+        </div>{/* end mobile layout */}
+      )}{/* end !isDesktop */}
+
     </div>
   );
 }
@@ -5271,6 +5724,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           reports={reports}
           loading={reportsLoading}
           dark={dark}
+          isDesktop={isDesktop}
           onRefresh={fetchReports}
           onStatusChange={async (reportId, newStatus, replyData) => {
             if (replyData) {
