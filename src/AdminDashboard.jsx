@@ -1165,7 +1165,7 @@ function ConversationThread({ report, dark }) {
   );
 }
 
-function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
+function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isDesktop = false }) {
   const th = THEME[dark ? "dark" : "light"];
   const [filter, setFilter] = useState("all");      // "all" | "open" | "in_progress" | "resolved"
   const [typeFilter, setTypeFilter] = useState("all");
@@ -1377,108 +1377,200 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
   }
 
   return (
-    <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+    <div style={{
+      padding: isDesktop ? "24px 40px 40px" : "16px 14px",
+      display:"flex", flexDirection:"column", gap:14,
+      maxWidth: isDesktop ? 1400 : "100%",
+      margin: isDesktop ? "0 auto" : undefined,
+      width:"100%", boxSizing:"border-box",
+    }}>
 
       {/* Summary stats */}
-      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-        {/* Row 1: Total, Open, In Progress, Resolved */}
-        <div style={{ display:"flex", gap:8 }}>
+      {isDesktop ? (
+        /* Desktop: all 5 stat pills in one row */
+        <div style={{ display:"flex", gap:12 }}>
           {[
-            { label:"Total",       value:reports.length,  color:NAVY      },
-            { label:"Open",        value:openCount,       color:"#DC2626" },
-            { label:"In Progress", value:progressCount,   color:"#D97706" },
-            { label:"Resolved",    value:resolvedCount,   color:IND_GREEN },
+            { label:"Total",       value:reports.length, color:NAVY      },
+            { label:"Open",        value:openCount,      color:"#DC2626" },
+            { label:"In Progress", value:progressCount,  color:"#D97706" },
+            { label:"Resolved",    value:resolvedCount,  color:IND_GREEN },
+            { label:"🔄 Reopened", value:reopenedCount,  color:"#A855F7" },
           ].map(({ label, value, color }) => (
             <div key={label} style={{
               flex:1, background:th.card, border:`1.5px solid ${th.border}`,
-              borderRadius:12, padding:"10px 10px 8px",
+              borderRadius:14, padding:"16px 18px",
               borderTop:`3px solid ${color}`,
             }}>
-              <div style={{ fontSize:20, fontWeight:800, color:th.text }}>{value}</div>
-              <div style={{ fontSize:9, color:th.textSub, marginTop:2, fontWeight:500 }}>{label}</div>
+              <div style={{ fontSize:26, fontWeight:800, color:th.text }}>{value}</div>
+              <div style={{ fontSize:11, color:th.textSub, marginTop:3, fontWeight:500 }}>{label}</div>
             </div>
           ))}
         </div>
-        {/* Row 2: Reopened full-width card */}
-        <div style={{
-          background:th.card, border:`1.5px solid ${"#A855F7"}33`,
-          borderRadius:12, padding:"10px 14px",
-          borderTop:`3px solid #A855F7`,
-          display:"flex", alignItems:"center", justifyContent:"space-between",
-        }}>
-          <div>
-            <div style={{ fontSize:20, fontWeight:800, color:th.text }}>{reopenedCount}</div>
-            <div style={{ fontSize:9, color:th.textSub, marginTop:2, fontWeight:500 }}>🔄 Reopened</div>
+      ) : (
+        /* Mobile: original two-row layout */
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {/* Row 1: Total, Open, In Progress, Resolved */}
+          <div style={{ display:"flex", gap:8 }}>
+            {[
+              { label:"Total",       value:reports.length,  color:NAVY      },
+              { label:"Open",        value:openCount,       color:"#DC2626" },
+              { label:"In Progress", value:progressCount,   color:"#D97706" },
+              { label:"Resolved",    value:resolvedCount,   color:IND_GREEN },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{
+                flex:1, background:th.card, border:`1.5px solid ${th.border}`,
+                borderRadius:12, padding:"10px 10px 8px",
+                borderTop:`3px solid ${color}`,
+              }}>
+                <div style={{ fontSize:20, fontWeight:800, color:th.text }}>{value}</div>
+                <div style={{ fontSize:9, color:th.textSub, marginTop:2, fontWeight:500 }}>{label}</div>
+              </div>
+            ))}
           </div>
+          {/* Row 2: Reopened full-width card */}
           <div style={{
-            fontSize:10, fontWeight:700, color:"#A855F7",
-            background: dark ? "rgba(168,85,247,0.15)" : "#F5F3FF",
-            border:"1px solid rgba(168,85,247,0.35)",
-            borderRadius:8, padding:"4px 10px",
+            background:th.card, border:`1.5px solid ${"#A855F7"}33`,
+            borderRadius:12, padding:"10px 14px",
+            borderTop:`3px solid #A855F7`,
+            display:"flex", alignItems:"center", justifyContent:"space-between",
           }}>
-            {reopenedCount === 0
-              ? "None yet"
-              : reopenedCount === 1
-                ? "1 report reopened by user"
-                : `${reopenedCount} reports reopened by users`}
+            <div>
+              <div style={{ fontSize:20, fontWeight:800, color:th.text }}>{reopenedCount}</div>
+              <div style={{ fontSize:9, color:th.textSub, marginTop:2, fontWeight:500 }}>🔄 Reopened</div>
+            </div>
+            <div style={{
+              fontSize:10, fontWeight:700, color:"#A855F7",
+              background: dark ? "rgba(168,85,247,0.15)" : "#F5F3FF",
+              border:"1px solid rgba(168,85,247,0.35)",
+              borderRadius:8, padding:"4px 10px",
+            }}>
+              {reopenedCount === 0
+                ? "None yet"
+                : reopenedCount === 1
+                  ? "1 report reopened by user"
+                  : `${reopenedCount} reports reopened by users`}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Refresh button */}
-      <div style={{ display:"flex", justifyContent:"flex-end" }}>
-        <div onClick={onRefresh} style={{
-          padding:"7px 14px", borderRadius:10, fontSize:11,
-          fontWeight:700, cursor:"pointer",
-          background:th.card, border:`1.5px solid ${th.border}`, color:th.textMid,
-          display:"flex", alignItems:"center", gap:5,
-        }}>
-          ↻ Refresh
-        </div>
-      </div>
+      {/* Filters + Refresh */}
+      {isDesktop ? (
+        /* Desktop: all filters + refresh in one compact row */
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+          {/* Status pills */}
+          {[
+            { v:"all",         l:"All"              },
+            { v:"open",        l:"🔴 Open"          },
+            { v:"in_progress", l:"🟡 In Progress"   },
+            { v:"resolved",    l:"✅ Resolved"       },
+          ].map(({ v, l }) => (
+            <div key={v} onClick={() => setFilter(v)} style={{
+              padding:"6px 13px", borderRadius:20, fontSize:11, fontWeight:700,
+              cursor:"pointer", flexShrink:0,
+              background: filter === v ? NAVY : th.border,
+              color:      filter === v ? "#fff" : th.textMid,
+              border:     filter === v ? `1.5px solid ${NAVY}` : `1.5px solid transparent`,
+              transition:"all 0.18s",
+            }}>
+              {l}
+            </div>
+          ))}
 
-      {/* Status filter pills */}
-      <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
-        {[
-          { v:"all",         l:"All"        },
-          { v:"open",        l:"🔴 Open"    },
-          { v:"in_progress", l:"🟡 In Progress" },
-          { v:"resolved",    l:"✅ Resolved" },
-        ].map(({ v, l }) => (
-          <div key={v} onClick={() => setFilter(v)} style={{
-            padding:"6px 13px", borderRadius:20, fontSize:11, fontWeight:700,
-            cursor:"pointer", flexShrink:0,
-            background: filter === v ? NAVY : th.border,
-            color:      filter === v ? "#fff" : th.textMid,
-            border:     filter === v ? `1.5px solid ${NAVY}` : `1.5px solid transparent`,
-            transition:"all 0.18s",
-          }}>
-            {l}
-          </div>
-        ))}
-      </div>
+          {/* Vertical divider */}
+          <div style={{ width:1, height:22, background:th.border, flexShrink:0 }} />
 
-      {/* Type filter pills */}
-      <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
-        <div onClick={() => setTypeFilter("all")} style={{
-          padding:"5px 11px", borderRadius:20, fontSize:10, fontWeight:700,
-          cursor:"pointer",
-          background: typeFilter === "all" ? SAFFRON : th.border,
-          color:      typeFilter === "all" ? "#fff"   : th.textMid,
-          transition:"all 0.18s",
-        }}>All Types</div>
-        {Object.entries(TYPE_META).map(([v, meta]) => (
-          <div key={v} onClick={() => setTypeFilter(v)} style={{
+          {/* Type pills */}
+          <div onClick={() => setTypeFilter("all")} style={{
             padding:"5px 11px", borderRadius:20, fontSize:10, fontWeight:700,
-            cursor:"pointer",
-            background: typeFilter === v ? meta.color : th.border,
-            color:      typeFilter === v ? "#fff"     : th.textMid,
+            cursor:"pointer", flexShrink:0,
+            background: typeFilter === "all" ? SAFFRON : th.border,
+            color:      typeFilter === "all" ? "#fff"   : th.textMid,
             transition:"all 0.18s",
-          }}>
-            {meta.icon} {meta.label}
+          }}>All Types</div>
+          {Object.entries(TYPE_META).map(([v, meta]) => (
+            <div key={v} onClick={() => setTypeFilter(v)} style={{
+              padding:"5px 11px", borderRadius:20, fontSize:10, fontWeight:700,
+              cursor:"pointer", flexShrink:0,
+              background: typeFilter === v ? meta.color : th.border,
+              color:      typeFilter === v ? "#fff"     : th.textMid,
+              transition:"all 0.18s",
+            }}>
+              {meta.icon} {meta.label}
+            </div>
+          ))}
+
+          {/* Refresh pushed to right */}
+          <div style={{ marginLeft:"auto" }}>
+            <div onClick={onRefresh} style={{
+              padding:"7px 14px", borderRadius:10, fontSize:11,
+              fontWeight:700, cursor:"pointer",
+              background:th.card, border:`1.5px solid ${th.border}`, color:th.textMid,
+              display:"flex", alignItems:"center", gap:5,
+            }}>
+              ↻ Refresh
+            </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        /* Mobile: original separate rows */
+        <>
+          {/* Refresh button */}
+          <div style={{ display:"flex", justifyContent:"flex-end" }}>
+            <div onClick={onRefresh} style={{
+              padding:"7px 14px", borderRadius:10, fontSize:11,
+              fontWeight:700, cursor:"pointer",
+              background:th.card, border:`1.5px solid ${th.border}`, color:th.textMid,
+              display:"flex", alignItems:"center", gap:5,
+            }}>
+              ↻ Refresh
+            </div>
+          </div>
+
+          {/* Status filter pills */}
+          <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
+            {[
+              { v:"all",         l:"All"        },
+              { v:"open",        l:"🔴 Open"    },
+              { v:"in_progress", l:"🟡 In Progress" },
+              { v:"resolved",    l:"✅ Resolved" },
+            ].map(({ v, l }) => (
+              <div key={v} onClick={() => setFilter(v)} style={{
+                padding:"6px 13px", borderRadius:20, fontSize:11, fontWeight:700,
+                cursor:"pointer", flexShrink:0,
+                background: filter === v ? NAVY : th.border,
+                color:      filter === v ? "#fff" : th.textMid,
+                border:     filter === v ? `1.5px solid ${NAVY}` : `1.5px solid transparent`,
+                transition:"all 0.18s",
+              }}>
+                {l}
+              </div>
+            ))}
+          </div>
+
+          {/* Type filter pills */}
+          <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
+            <div onClick={() => setTypeFilter("all")} style={{
+              padding:"5px 11px", borderRadius:20, fontSize:10, fontWeight:700,
+              cursor:"pointer",
+              background: typeFilter === "all" ? SAFFRON : th.border,
+              color:      typeFilter === "all" ? "#fff"   : th.textMid,
+              transition:"all 0.18s",
+            }}>All Types</div>
+            {Object.entries(TYPE_META).map(([v, meta]) => (
+              <div key={v} onClick={() => setTypeFilter(v)} style={{
+                padding:"5px 11px", borderRadius:20, fontSize:10, fontWeight:700,
+                cursor:"pointer",
+                background: typeFilter === v ? meta.color : th.border,
+                color:      typeFilter === v ? "#fff"     : th.textMid,
+                transition:"all 0.18s",
+              }}>
+                {meta.icon} {meta.label}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Empty state */}
       {filtered.length === 0 && (
@@ -1651,7 +1743,10 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
 
             {/* Expanded detail */}
             {isExpanded && (
-              <div style={{ borderTop:`1px solid ${th.border}`, padding:"14px 16px", display:"flex", flexDirection:"column", gap:12 }}>
+              <div style={{ borderTop:`1px solid ${th.border}`, padding: isDesktop ? "20px 28px" : "14px 16px", display:"flex", flexDirection: isDesktop ? "row" : "column", gap: isDesktop ? 20 : 12, alignItems:"flex-start" }}>
+
+                {/* ── Left col: message + submitted-by ── */}
+                <div style={isDesktop ? { flex:"1 1 0", minWidth:0, display:"flex", flexDirection:"column", gap:12 } : { display:"contents" }}>
 
                 {/* Full message */}
                 <div style={{
@@ -1697,6 +1792,11 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
                     </div>
                   ))}
                 </div>
+
+                </div>{/* end left col */}
+
+                {/* ── Right col: report details + status + thread + reply ── */}
+                <div style={isDesktop ? { flex:"1.3 1 0", minWidth:0, display:"flex", flexDirection:"column", gap:12 } : { display:"contents" }}>
 
                 {/* ── REPORT DETAILS ── */}
                 <div style={{
@@ -1947,6 +2047,8 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange }) {
                     </div>
                   )}
                 </div>
+
+                </div>{/* end right col */}
               </div>
             )}
           </div>
@@ -5271,6 +5373,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           reports={reports}
           loading={reportsLoading}
           dark={dark}
+          isDesktop={isDesktop}
           onRefresh={fetchReports}
           onStatusChange={async (reportId, newStatus, replyData) => {
             if (replyData) {
