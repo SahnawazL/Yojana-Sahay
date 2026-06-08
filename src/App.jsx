@@ -6804,6 +6804,7 @@ export default function YojanaSahay(){
     try{return JSON.parse(localStorage.getItem("yojana_profile")||"null")||null;}catch{return null;}
   });
   const [isAdmin,setIsAdmin]=useState(false);
+  const [adminTabs,setAdminTabs]=useState(null); // null=full access, array=restricted tabs
   // ── Dismiss HTML splash when React mounts ─────────────────────────────────
   // #html-splash shows instantly before JS loads (pure CSS in index.html).
   // Once React is ready, fade it out and mark session so it won't show again.
@@ -6923,13 +6924,17 @@ export default function YojanaSahay(){
   // On every auth state change: clear on sign-out; restore Firestore profile on session restore
   useEffect(()=>{
     const unsub=onAuthStateChanged(auth,async(user)=>{
-      if(!user){ setProfile(null); setIsAdmin(false); return; }
+      if(!user){ setProfile(null); setIsAdmin(false); setAdminTabs(null); return; }
       // Restore profile from Firestore (handles page refresh, tab restore & Google redirect)
       try{
         const snap=await getDoc(doc(db,"users",user.uid));
         if(snap.exists()){
-          setProfile(snap.data());
-          setIsAdmin(snap.data().isAdmin===true);
+          const d=snap.data();
+          setProfile(d);
+          const fullAdmin=d.isAdmin===true;
+          const restrictedAdmin=Array.isArray(d.adminTabs)&&d.adminTabs.length>0;
+          setIsAdmin(fullAdmin||restrictedAdmin);
+          setAdminTabs(fullAdmin?null:(restrictedAdmin?d.adminTabs:null));
         } else {
           // New Google user — no Firestore profile yet.
           // Navigate to profile tab so ProfileTab mounts and runs setup flow.
@@ -7818,7 +7823,7 @@ export default function YojanaSahay(){
       )}
       {showAdmin&&(
         <React.Suspense fallback={null}>
-          <AdminDashboard onClose={()=>setShowAdmin(false)} dark={dark}/>
+          <AdminDashboard onClose={()=>setShowAdmin(false)} dark={dark} allowedTabs={adminTabs}/>
         </React.Suspense>
       )}
       {/* ── "Just Checking / Update Profile?" Smart Sheet ─────────────────────────
