@@ -1167,9 +1167,12 @@ function ConversationThread({ report, dark }) {
 
 function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isDesktop = false }) {
   const th = THEME[dark ? "dark" : "light"];
-  const [filter, setFilter] = useState("all");      // "all" | "open" | "in_progress" | "resolved"
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [expanded, setExpanded] = useState(null);   // expanded report id
+  const [filter,      setFilter]      = useState("all"); // "all" | "open" | "in_progress" | "resolved"
+  const [typeFilter,  setTypeFilter]  = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [reportPage,  setReportPage]  = useState(1);
+  const REPORTS_PER_PAGE = 10;
+  const [expanded,    setExpanded]    = useState(null);  // expanded report id
 
   // ── Reply state ────────────────────────────────────────────────────────────
   const [replyText,    setReplyText]    = useState("");
@@ -1343,10 +1346,15 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
   }
 
   const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     const list = reports.filter(r => {
       const matchStatus = filter === "all" || r.status === filter;
       const matchType   = typeFilter === "all" || r.type === typeFilter;
-      return matchStatus && matchType;
+      const matchSearch = !q
+        || r.id?.toLowerCase().includes(q)
+        || r.message?.toLowerCase().includes(q)
+        || r.userName?.toLowerCase().includes(q);
+      return matchStatus && matchType && matchSearch;
     });
 
     // Sort: Open (fresh) → In Progress → Reopened → Resolved
@@ -1358,7 +1366,13 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
     };
     list.sort((a, b) => getPriority(a) - getPriority(b));
     return list;
-  }, [reports, filter, typeFilter]);
+  }, [reports, filter, typeFilter, searchQuery]);
+
+  // Reset to page 1 whenever filters or search changes
+  useEffect(() => { setReportPage(1); }, [filter, typeFilter, searchQuery]);
+
+  const totalPages    = Math.max(1, Math.ceil(filtered.length / REPORTS_PER_PAGE));
+  const pagedReports  = filtered.slice((reportPage - 1) * REPORTS_PER_PAGE, reportPage * REPORTS_PER_PAGE);
 
   const openCount     = reports.filter(r => r.status === "open").length;
   const progressCount = reports.filter(r => r.status === "in_progress").length;
@@ -1572,6 +1586,43 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
         </>
       )}
 
+      {/* Search box */}
+      <div style={{ position:"relative" }}>
+        <span style={{
+          position:"absolute", left:12, top:"50%", transform:"translateY(-50%)",
+          fontSize:13, color:th.textSub, pointerEvents:"none",
+        }}>🔍</span>
+        <input
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Search by Report ID, message, or user name…"
+          style={{
+            width:"100%", boxSizing:"border-box",
+            padding:"9px 34px 9px 34px",
+            background:th.inputBg, border:`1.5px solid ${th.border}`,
+            borderRadius:12, fontSize:12, color:th.text,
+            outline:"none",
+          }}
+        />
+        {searchQuery && (
+          <span
+            onClick={() => setSearchQuery("")}
+            style={{
+              position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+              fontSize:14, color:th.textSub, cursor:"pointer", lineHeight:1,
+            }}
+          >✕</span>
+        )}
+      </div>
+
+      {/* Results count */}
+      {(searchQuery || filter !== "all" || typeFilter !== "all") && filtered.length > 0 && (
+        <div style={{ fontSize:11, color:th.textSub, fontWeight:600, marginTop:-4 }}>
+          {filtered.length} report{filtered.length !== 1 ? "s" : ""} found
+          {totalPages > 1 && ` — page ${reportPage} of ${totalPages}`}
+        </div>
+      )}
+
       {/* Empty state */}
       {filtered.length === 0 && (
         <div style={{
@@ -1582,13 +1633,15 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
           <div style={{ fontSize:36, marginBottom:10 }}>📭</div>
           <div style={{ fontSize:14, fontWeight:700, color:th.text }}>No reports found</div>
           <div style={{ fontSize:11, color:th.textSub, marginTop:5 }}>
-            {filter === "all" ? "Users haven't submitted any reports yet." : `No ${filter} reports.`}
+            {searchQuery
+              ? `No results for "${searchQuery}".`
+              : filter === "all" ? "Users haven't submitted any reports yet." : `No ${filter} reports.`}
           </div>
         </div>
       )}
 
       {/* Report cards — grouped by status */}
-      {filtered.map((report, idx) => {
+      {pagedReports.map((report, idx) => {
         const typeMeta   = TYPE_META[report.type]   || { icon:"📝", label:report.type, color:NAVY };
         const statusMeta = STATUS_META[report.status] || STATUS_META.open;
         const isExpanded = expanded === report.id;
@@ -1609,7 +1662,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
         const gMeta = GROUP_META[group];
 
         // Show a section divider when group changes
-        const prevReport   = filtered[idx - 1];
+        const prevReport   = pagedReports[idx - 1];
         const prevReopened = prevReport?.replyHistory?.some(r => r.isReopen);
         const prevGroup    = !prevReport ? null
                            : prevReport.status === "resolved"    ? "resolved"
@@ -2057,6 +2110,63 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
       })}
 
       <div style={{ height:8 }} />
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{
+          display:"flex", alignItems:"center", justifyContent:"center",
+          gap:6, paddingBottom:8,
+        }}>
+          {/* Prev */}
+          <div
+            onClick={() => reportPage > 1 && setReportPage(p => p - 1)}
+            style={{
+              padding:"6px 13px", borderRadius:20, fontSize:11, fontWeight:700,
+              cursor: reportPage > 1 ? "pointer" : "default",
+              opacity: reportPage > 1 ? 1 : 0.35,
+              background: th.card, border:`1.5px solid ${th.border}`,
+              color: th.textMid, userSelect:"none",
+            }}
+          >‹ Prev</div>
+
+          {/* Page pills */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
+            const isActive = p === reportPage;
+            const nearby = Math.abs(p - reportPage) <= 1 || p === 1 || p === totalPages;
+            if (!nearby) {
+              if (p === reportPage - 2 || p === reportPage + 2)
+                return <span key={p} style={{ color:th.textSub, fontSize:11 }}>…</span>;
+              return null;
+            }
+            return (
+              <div
+                key={p}
+                onClick={() => setReportPage(p)}
+                style={{
+                  minWidth:30, height:30, display:"flex", alignItems:"center", justifyContent:"center",
+                  borderRadius:10, fontSize:11, fontWeight:700, cursor:"pointer",
+                  background: isActive ? NAVY : th.card,
+                  color:      isActive ? "#fff" : th.textMid,
+                  border:`1.5px solid ${isActive ? NAVY : th.border}`,
+                  transition:"all 0.15s", userSelect:"none",
+                }}
+              >{p}</div>
+            );
+          })}
+
+          {/* Next */}
+          <div
+            onClick={() => reportPage < totalPages && setReportPage(p => p + 1)}
+            style={{
+              padding:"6px 13px", borderRadius:20, fontSize:11, fontWeight:700,
+              cursor: reportPage < totalPages ? "pointer" : "default",
+              opacity: reportPage < totalPages ? 1 : 0.35,
+              background: th.card, border:`1.5px solid ${th.border}`,
+              color: th.textMid, userSelect:"none",
+            }}
+          >Next ›</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -3225,6 +3335,8 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
   // ── Smart tab navigation ──────────────────────────────────────────────────
   const tabsBarRef      = useRef(null);
+  const swipeTouchStartX = useRef(null);
+  const swipeTouchStartY = useRef(null);
   const [tabTransition, setTabTransition] = useState(null); // "left" | "right" | null
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
@@ -4797,15 +4909,42 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       )}
 
       {/* ── TAB CONTENT — animated tab navigation ── */}
-      <div style={{
-        flex:1, display:"flex", flexDirection:"column",
-        opacity:   tabTransition ? 0 : 1,
-        transform: tabTransition === "left"  ? "translateX(-18px)" :
-                   tabTransition === "right" ? "translateX(18px)"  : "translateX(0)",
-        transition: tabTransition
-          ? "opacity 0.16s ease, transform 0.16s ease"
-          : "opacity 0.2s ease, transform 0.2s cubic-bezier(0.22,1,0.36,1)",
-      }}>
+      <div
+        onTouchStart={e => {
+          swipeTouchStartX.current = e.touches[0].clientX;
+          swipeTouchStartY.current = e.touches[0].clientY;
+        }}
+        onTouchEnd={e => {
+          if (swipeTouchStartX.current === null) return;
+          const dx = e.changedTouches[0].clientX - swipeTouchStartX.current;
+          const dy = e.changedTouches[0].clientY - swipeTouchStartY.current;
+          swipeTouchStartX.current = null;
+          swipeTouchStartY.current = null;
+          // Only fire if horizontal swipe > 52px and more horizontal than vertical
+          if (Math.abs(dx) < 52 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+          const tabIds = TABS.map(([id]) => id);
+          if (dx < 0) {
+            // Swipe left → go to next tab
+            if (activeSection === "home") { navigateTab(tabIds[0]); return; }
+            const curr = tabIds.indexOf(activeSection);
+            if (curr < tabIds.length - 1) navigateTab(tabIds[curr + 1]);
+          } else {
+            // Swipe right → go to previous tab
+            if (activeSection === "home") return;
+            const curr = tabIds.indexOf(activeSection);
+            if (curr === 0) { navigateTab("home"); return; }
+            if (curr > 0) navigateTab(tabIds[curr - 1]);
+          }
+        }}
+        style={{
+          flex:1, display:"flex", flexDirection:"column",
+          opacity:   tabTransition ? 0 : 1,
+          transform: tabTransition === "left"  ? "translateX(-18px)" :
+                     tabTransition === "right" ? "translateX(18px)"  : "translateX(0)",
+          transition: tabTransition
+            ? "opacity 0.16s ease, transform 0.16s ease"
+            : "opacity 0.2s ease, transform 0.2s cubic-bezier(0.22,1,0.36,1)",
+        }}>
 
       {/* ══ HOME SCREEN ══ */}
       {!loading && !error && activeSection === "home" && (
