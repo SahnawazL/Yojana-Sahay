@@ -5,25 +5,29 @@
  *
  * Standalone admin page — renders at /admin
  * Protected: only renders AdminDashboard if the logged-in
- * Firebase user matches ADMIN_UID. Otherwise shows a lock screen.
+ * * Firebase user has isAdmin: true in Firestore. Otherwise shows a lock screen.
  */
 
 import React, { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase.js";
+import { getDoc, doc } from "firebase/firestore";
+import { auth, db } from "./firebase.js";
 const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
-
-// ── Must match the ADMIN_UID in App.jsx ──────────────────────────────────────
-const ADMIN_UID = "A3V8OsHYFAZPv8WNfh5a2ueOl632";
 
 export default function AdminPage() {
   const [status, setStatus] = useState("checking"); // "checking" | "allowed" | "denied"
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user && user.uid === ADMIN_UID) {
-        setStatus("allowed");
-      } else {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) { setStatus("denied"); return; }
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists() && snap.data().isAdmin === true) {
+          setStatus("allowed");
+        } else {
+          setStatus("denied");
+        }
+      } catch {
         setStatus("denied");
       }
     });

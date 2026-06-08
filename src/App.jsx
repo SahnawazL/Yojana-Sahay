@@ -32,9 +32,7 @@ const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
 
 
-// ─── ADMIN UID ─────────────────────────────────────────────────────────────────
-// Replace with your Firebase UID. Find it: Firebase Console → Auth → Users → copy UID
-const ADMIN_UID = "A3V8OsHYFAZPv8WNfh5a2ueOl632";
+
 
 // ─── PREMIUM LOADER ────────────────────────────────────────────────────────────
 // Shown as Suspense fallback while lazy chunks (AboutTab, Helpline) download.
@@ -6805,6 +6803,7 @@ export default function YojanaSahay(){
   const [profile,setProfile]=useState(()=>{
     try{return JSON.parse(localStorage.getItem("yojana_profile")||"null")||null;}catch{return null;}
   });
+  const [isAdmin,setIsAdmin]=useState(false);
   // ── Dismiss HTML splash when React mounts ─────────────────────────────────
   // #html-splash shows instantly before JS loads (pure CSS in index.html).
   // Once React is ready, fade it out and mark session so it won't show again.
@@ -6924,12 +6923,13 @@ export default function YojanaSahay(){
   // On every auth state change: clear on sign-out; restore Firestore profile on session restore
   useEffect(()=>{
     const unsub=onAuthStateChanged(auth,async(user)=>{
-      if(!user){ setProfile(null); return; }
+      if(!user){ setProfile(null); setIsAdmin(false); return; }
       // Restore profile from Firestore (handles page refresh, tab restore & Google redirect)
       try{
         const snap=await getDoc(doc(db,"users",user.uid));
         if(snap.exists()){
           setProfile(snap.data());
+          setIsAdmin(snap.data().isAdmin===true);
         } else {
           // New Google user — no Firestore profile yet.
           // Navigate to profile tab so ProfileTab mounts and runs setup flow.
@@ -7583,7 +7583,7 @@ export default function YojanaSahay(){
           onViewChecker={handleViewChecker}
           dark={dark}
           toggleDark={toggleDark}
-          isAdmin={auth.currentUser?.uid===ADMIN_UID}
+          isAdmin={isAdmin}
           onAdminOpen={handleAdminOpen}
         />}
       </div>
