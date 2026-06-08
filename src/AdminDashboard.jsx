@@ -2514,6 +2514,11 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
 function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   const th = THEME[dark ? "dark" : "light"];
   const [activeTab, setActiveTab] = React.useState("runs");
+  const [usagePage,  setUsagePage]  = React.useState(1);
+  const USAGE_PER_PAGE = 10;
+
+  // Reset to page 1 when switching between Runs / Searches tabs
+  React.useEffect(() => { setUsagePage(1); }, [activeTab]);
 
   if (loading) {
     return (
@@ -2605,6 +2610,69 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
     background: th.card, border: `1.5px solid ${th.border}`,
     borderRadius: 16, padding: "13px 14px",
   };
+
+  // ── Pagination slices ──────────────────────────────────────────────────────
+  const reversedRuns     = [...checkerRuns].reverse();
+  const reversedSearches = [...schemeSearches].reverse();
+  const runsTotalPages    = Math.max(1, Math.ceil(reversedRuns.length     / USAGE_PER_PAGE));
+  const searchesTotalPages= Math.max(1, Math.ceil(reversedSearches.length / USAGE_PER_PAGE));
+  const pagedRuns         = reversedRuns.slice(    (usagePage - 1) * USAGE_PER_PAGE, usagePage * USAGE_PER_PAGE);
+  const pagedSearches     = reversedSearches.slice((usagePage - 1) * USAGE_PER_PAGE, usagePage * USAGE_PER_PAGE);
+  const activeTotalPages  = activeTab === "runs" ? runsTotalPages : searchesTotalPages;
+
+  // Shared mini-paginator renderer
+  function UsagePager() {
+    if (activeTotalPages <= 1) return null;
+    return (
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:5, marginTop:8 }}>
+        <div
+          onClick={() => usagePage > 1 && setUsagePage(p => p - 1)}
+          style={{
+            padding:"5px 11px", borderRadius:16, fontSize:10, fontWeight:700,
+            cursor: usagePage > 1 ? "pointer" : "default",
+            opacity: usagePage > 1 ? 1 : 0.35,
+            background: th.card2, border:`1.5px solid ${th.border}`,
+            color: th.textMid, userSelect:"none",
+          }}
+        >‹</div>
+
+        {Array.from({ length: activeTotalPages }, (_, i) => i + 1).map(p => {
+          const isActive = p === usagePage;
+          const nearby = Math.abs(p - usagePage) <= 1 || p === 1 || p === activeTotalPages;
+          if (!nearby) {
+            if (p === usagePage - 2 || p === usagePage + 2)
+              return <span key={p} style={{ color:th.textSub, fontSize:10 }}>…</span>;
+            return null;
+          }
+          return (
+            <div
+              key={p}
+              onClick={() => setUsagePage(p)}
+              style={{
+                minWidth:26, height:26, display:"flex", alignItems:"center", justifyContent:"center",
+                borderRadius:8, fontSize:10, fontWeight:700, cursor:"pointer",
+                background: isActive ? NAVY : th.card2,
+                color:      isActive ? "#fff" : th.textMid,
+                border:`1.5px solid ${isActive ? NAVY : th.border}`,
+                transition:"all 0.15s", userSelect:"none",
+              }}
+            >{p}</div>
+          );
+        })}
+
+        <div
+          onClick={() => usagePage < activeTotalPages && setUsagePage(p => p + 1)}
+          style={{
+            padding:"5px 11px", borderRadius:16, fontSize:10, fontWeight:700,
+            cursor: usagePage < activeTotalPages ? "pointer" : "default",
+            opacity: usagePage < activeTotalPages ? 1 : 0.35,
+            background: th.card2, border:`1.5px solid ${th.border}`,
+            color: th.textMid, userSelect:"none",
+          }}
+        >›</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: "14px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
@@ -2813,7 +2881,7 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
           {/* Checker Runs list */}
           {activeTab === "runs" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-              {[...checkerRuns].reverse().slice(0, 15).map((r, i) => {
+              {pagedRuns.map((r, i) => {
                 const user = users.find(u => u.id === r.uid);
                 const userName  = user?.name  || "—";
                 const userEmail = user?.email || user?.phone || "—";
@@ -2877,13 +2945,14 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
                   </div>
                 );
               })}
+              <UsagePager />
             </div>
           )}
 
           {/* Scheme Searches list */}
           {activeTab === "searches" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {[...schemeSearches].reverse().slice(0, 15).map((s, i) => {
+              {pagedSearches.map((s, i) => {
                 const user = users.find(u => u.id === s.uid);
                 return (
                   <div key={i} style={{
@@ -2927,6 +2996,7 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
                   </div>
                 );
               })}
+              <UsagePager />
             </div>
           )}
         </div>
