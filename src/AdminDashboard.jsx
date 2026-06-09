@@ -680,6 +680,11 @@ function JoinedThisWeek({ users, dark, onTap }) {
   const [joinedPage, setJoinedPage] = React.useState(1);
   const JOINED_PER_PAGE = 10;
 
+  // Scroll to top of dashboard whenever page changes
+  React.useEffect(() => {
+    document.querySelector("[data-admin-scroll]")?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [joinedPage]);
+
   const allJoined = users
     .filter(u =>
       u.createdAt?.seconds &&
@@ -757,6 +762,11 @@ function DormantUsers({ users, dark, onTap }) {
   const th = THEME[dark ? "dark" : "light"];
   const [dormantPage, setDormantPage] = React.useState(1);
   const DORMANT_PER_PAGE = 10;
+
+  // Scroll to top of dashboard whenever page changes
+  React.useEffect(() => {
+    document.querySelector("[data-admin-scroll]")?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [dormantPage]);
 
   // Sort longest-inactive first so worst offenders appear on page 1
   const allDormant = users
@@ -2765,6 +2775,12 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   const [usageSort,  setUsageSort]  = React.useState("newest"); // "newest" | "oldest"
   const USAGE_PER_PAGE = 10;
 
+  // O(1) user lookup — avoids O(n²) users.find() inside .map() on paged results
+  const usersById = React.useMemo(
+    () => Object.fromEntries((users || []).map(u => [u.id, u])),
+    [users]
+  );
+
   // Reset to page 1 when switching between Runs / Searches tabs
   React.useEffect(() => { setUsagePage(1); }, [activeTab]);
 
@@ -3148,7 +3164,7 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
           {activeTab === "runs" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {pagedRuns.map((r, i) => {
-                const user = users.find(u => u.id === r.uid);
+                const user = usersById[r.uid];
                 const userName  = user?.name  || "—";
                 const userEmail = user?.email || user?.phone || "—";
                 const matched   = r.matchedCount ?? null;
@@ -3219,7 +3235,7 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
           {activeTab === "searches" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {pagedSearches.map((s, i) => {
-                const user = users.find(u => u.id === s.uid);
+                const user = usersById[s.uid];
                 return (
                   <div key={i} style={{
                     display: "flex", alignItems: "center", gap: 8,
@@ -5781,11 +5797,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       {!loading && !error && activeSection === "activity" && (
         <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
 
-          {/* Quick metrics */}
-          <div style={{ display:"flex", gap:10 }}>
-            <StatCard icon="🟢" label="Active Today"    value={stats.activeToday}   color={IND_GREEN}  dark={dark} />
-            <StatCard icon="📅" label="Active This Week" value={stats.activeWeek}    color={VIOLET}     dark={dark} />
-            <StatCard icon="😴" label="Dormant 30d+"    value={stats.dormantCount}  color="#F59E0B"    dark={dark} />
+          {/* Quick metrics — flexWrap so 3rd card drops to its own row on narrow phones */}
+          <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+            {[
+              { icon:"🟢", label:"Active Today",     value:stats.activeToday,  color:IND_GREEN },
+              { icon:"📅", label:"Active This Week",  value:stats.activeWeek,   color:VIOLET    },
+              { icon:"😴", label:"Dormant 30d+",     value:stats.dormantCount, color:"#F59E0B"  },
+            ].map(c => (
+              <div key={c.label} style={{ flex:1, minWidth:120 }}>
+                <StatCard icon={c.icon} label={c.label} value={c.value} color={c.color} dark={dark} />
+              </div>
+            ))}
           </div>
 
           <div style={{
