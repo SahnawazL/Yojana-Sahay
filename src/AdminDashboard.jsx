@@ -894,34 +894,34 @@ function SchemeCoverageTab({ dark }) {
   // Summary buckets
   const withSchemes  = rows.filter(r => r.count > 0).length;
   const noSchemes    = rows.filter(r => r.count === 0).length;
-  const highCoverage = rows.filter(r => r.count > 200).length;
-  const lowCount     = rows.filter(r => r.count > 0   && r.count <= 100).length;
-  const medCount     = rows.filter(r => r.count > 100 && r.count <= 200).length;
+  const highCoverage = rows.filter(r => r.count > 100).length;
+  const lowCount     = rows.filter(r => r.count > 0   && r.count <= 30).length;
+  const medCount     = rows.filter(r => r.count > 30  && r.count <= 100).length;
 
   function coverageTier(count) {
     if (count === 0)   return "none";
-    if (count <= 100)  return "low";
-    if (count <= 200)  return "medium";
+    if (count <= 30)   return "low";
+    if (count <= 100)  return "medium";
     return "good";
   }
   function coverageColor(count) {
     if (count === 0)   return "#E53E3E";
-    if (count <= 100)  return SAFFRON;
-    if (count <= 200)  return "#3B82F6";
+    if (count <= 30)   return SAFFRON;
+    if (count <= 100)  return "#3B82F6";
     return IND_GREEN;
   }
   function coverageLabel(count) {
     if (count === 0)   return "None";
-    if (count <= 100)  return "Low";
-    if (count <= 200)  return "Medium";
+    if (count <= 30)   return "Low";
+    if (count <= 100)  return "Medium";
     return "Good";
   }
 
   // Gap to next tier
   function gapToNext(count) {
-    if (count === 0)         return { gap: 1,       label: "+1 to Low" };
-    if (count <= 100)        return { gap: 101 - count, label: `+${101 - count} to Medium` };
-    if (count <= 200)        return { gap: 201 - count, label: `+${201 - count} to Good` };
+    if (count === 0)        return { gap: 1,            label: "+1 to Low" };
+    if (count <= 30)        return { gap: 31 - count,   label: `+${31 - count} to Medium` };
+    if (count <= 100)       return { gap: 101 - count,  label: `+${101 - count} to Good` };
     return null; // already Good
   }
 
@@ -1065,10 +1065,10 @@ function SchemeCoverageTab({ dark }) {
       }}>
         <div style={{ fontSize:11, color:th.textSub, fontWeight:600, flexShrink:0 }}>Coverage:</div>
         {[
-          { label:"None (0)",         color:"#E53E3E" },
-          { label:"Low (1–100)",      color:SAFFRON   },
-          { label:"Medium (101–200)", color:"#3B82F6" },
-          { label:"Good (200+)",      color:IND_GREEN },
+          { label:"None (0)",        color:"#E53E3E" },
+          { label:"Low (1–30)",      color:SAFFRON   },
+          { label:"Medium (31–100)", color:"#3B82F6" },
+          { label:"Good (100+)",     color:IND_GREEN },
         ].map(({ label, color }) => (
           <div key={label} style={{ display:"flex", alignItems:"center", gap:5 }}>
             <div style={{ width:10, height:10, borderRadius:3, background:color, flexShrink:0 }} />
@@ -4311,11 +4311,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     });
     const stateList = Array.isArray(INDIA_STATES) ? INDIA_STATES : Object.values(INDIA_STATES || {});
 
-    // Tier thresholds matching the UI (0 / ≤100 / ≤200 / >200)
+    // Tier thresholds matching the UI (0 / ≤30 / ≤100 / >100)
     function schemeTier(n) {
       if (n === 0)    return "None";
-      if (n <= 100)   return "Low";
-      if (n <= 200)   return "Medium";
+      if (n <= 30)    return "Low";
+      if (n <= 100)   return "Medium";
       return "Good";
     }
     const schemeRows = stateList
@@ -4330,9 +4330,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
     const tierSummary = {
       None:   stateList.filter(s => (stSchCounts[s]||0) === 0).length,
-      Low:    stateList.filter(s => { const n=stSchCounts[s]||0; return n>0 && n<=100; }).length,
-      Medium: stateList.filter(s => { const n=stSchCounts[s]||0; return n>100 && n<=200; }).length,
-      Good:   stateList.filter(s => (stSchCounts[s]||0) > 200).length,
+      Low:    stateList.filter(s => { const n=stSchCounts[s]||0; return n>0  && n<=30;  }).length,
+      Medium: stateList.filter(s => { const n=stSchCounts[s]||0; return n>30 && n<=100; }).length,
+      Good:   stateList.filter(s => (stSchCounts[s]||0) > 100).length,
     };
 
     const schemesHTML = `
@@ -4347,9 +4347,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           ], "#4f8ef7")}
           ${summaryTable([
             ["⬜ None (0 schemes)",   tierSummary.None,   " states"],
-            ["🟡 Low (1–100)",        tierSummary.Low,    " states"],
-            ["🔵 Medium (101–200)",   tierSummary.Medium, " states"],
-            ["🟢 Good (200+)",        tierSummary.Good,   " states"],
+            ["🟡 Low (1–30)",         tierSummary.Low,    " states"],
+            ["🔵 Medium (31–100)",    tierSummary.Medium, " states"],
+            ["🟢 Good (100+)",        tierSummary.Good,   " states"],
           ], "#3dd68c")}
         </div>
         <div class="sub-title" style="margin-top:8px">State-wise Scheme Coverage (with User Cross-reference)</div>
