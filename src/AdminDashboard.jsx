@@ -3303,6 +3303,33 @@ function hsRgba(color, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+// ── MiniSparkline for vitals ──
+function MiniSpark({ points, color, width = 52, height = 22 }) {
+  if (!points || points.length < 2) return null;
+  const max = Math.max(...points, 1);
+  const min = Math.min(...points);
+  const range = max - min || 1;
+  const xs = points.map((_, i) => (i / (points.length - 1)) * width);
+  const ys = points.map(v => height - ((v - min) / range) * (height - 4) - 2);
+  const d  = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
+  // filled area
+  const area = `${d} L${width},${height} L0,${height} Z`;
+  return (
+    <svg width={width} height={height} style={{ overflow:"visible", flexShrink:0 }}>
+      <defs>
+        <linearGradient id={`sg-${color.replace("#","")}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#sg-${color.replace("#","")})`} />
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5"
+        strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={xs[xs.length-1]} cy={ys[ys.length-1]} r="2.5" fill={color} />
+    </svg>
+  );
+}
+
 function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab }) {
   const th = THEME[dark ? "dark" : "light"];
   const [hovered, setHovered] = React.useState(null);
@@ -3312,12 +3339,27 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   const inProg      = reports.filter(r => r.status === "in_progress").length;
   const resolvedR   = reports.filter(r => r.status === "resolved").length;
   const actDay      = users.filter(u => u.lastSeen?.seconds && (nowMs - u.lastSeen.seconds * 1000) < 86400000).length;
+  const actWeek     = users.filter(u => u.lastSeen?.seconds && (nowMs - u.lastSeen.seconds * 1000) < 7 * 86400000).length;
   const newWk       = users.filter(u => u.createdAt?.seconds && (nowMs - u.createdAt.seconds * 1000) < 7 * 86400000).length;
+  const newToday    = users.filter(u => u.createdAt?.seconds && (nowMs - u.createdAt.seconds * 1000) < 86400000).length;
   const googleUsers = users.filter(u => u.photo).length;
   const withPhone   = users.filter(u => u.phone && u.phone.length > 0).length;
   const statesCount = Object.keys(users.reduce((acc, u) => { if (u.state) acc[u.state] = 1; return acc; }, {})).length;
   const dormantCnt  = users.filter(u => u.lastSeen?.seconds && (nowMs - u.lastSeen.seconds * 1000) > 30 * 86400000).length;
   const engPct      = users.length > 0 ? Math.round((actDay / users.length) * 100) : 0;
+  const weekEngPct  = users.length > 0 ? Math.round((actWeek / users.length) * 100) : 0;
+  const unreplied   = reports.filter(r => r.status === "open" && !r.adminReply && !(r.replyHistory?.length > 0)).length;
+  const bplCount    = users.filter(u => u.ration === "bpl" || u.ration === "aay").length;
+
+  // 7-day new-user sparkline
+  const ONE_DAY = 86400000;
+  const spark7 = Array.from({ length: 7 }, (_, i) => {
+    const dayStart = nowMs - (6 - i) * ONE_DAY;
+    const dayEnd   = dayStart + ONE_DAY;
+    return users.filter(u => u.createdAt?.seconds &&
+      u.createdAt.seconds * 1000 >= dayStart &&
+      u.createdAt.seconds * 1000 < dayEnd).length;
+  });
 
   const [tick, setTick] = React.useState(new Date());
   React.useEffect(() => {
@@ -3329,40 +3371,49 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   const DATE_STR = tick.toLocaleDateString("en-IN",  { weekday:"short", day:"numeric", month:"short", year:"numeric" });
 
   const TAB_META = {
-    overview:  { desc:"Platform KPIs, welfare metrics & live insights",           badge: loading ? "loading…" : `${actDay} active today`,                                badge2Color:IND_GREEN,   accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"📊" },
-    users:     { desc:"Browse, filter, search & inspect all user profiles",       badge: loading ? "…" : `${newWk} new this week`,                                      badge2Color:GOOGLE_B,    accentColor:GOOGLE_B,  glow:"rgba(66,133,244,0.35)",   icon:"👥" },
-    analytics: { desc:"Demographics, donuts, charts & cross-tab matrices",        badge:"8 dimensions",                                                                  badge2Color:VIOLET,      accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"🧮" },
-    activity:  { desc:"Eligibility runs, logins & real-time usage feed",          badge: loading ? "…" : `${actDay} active today`,                                      badge2Color:SAFFRON,     accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"🕐" },
-    usage:     { desc:"Feature telemetry — AI chat, searches & checker runs",     badge:"live metrics",                                                                  badge2Color:PINK,        accentColor:PINK,      glow:"rgba(236,72,153,0.35)",   icon:"📈" },
-    schemes:   { desc:"State-wise scheme coverage, gaps & distribution map",      badge:"all India states",                                                              badge2Color:IND_GREEN,   accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"🗺️" },
-    reports:   { desc:"User-reported issues, admin replies & status workflow",    badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badge2Color: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)", icon:"📬" },
-    cleanup:   { desc:"Purge resolved reports & flush stale usage data",          badge:"database hygiene",                                                              badge2Color:"#F59E0B",   accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"🗑️" },
-    export:    { desc:"Compile & download full-dashboard PDF intelligence report", badge:"landscape A4 · PDF",                                                           badge2Color:"#10B981",   accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"📄" },
+    overview:  { desc:"Platform KPIs, welfare metrics & live insights",            badge: loading ? "loading…" : `${actDay} active today`,                                  badge2Color:IND_GREEN, accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"📊" },
+    users:     { desc:"Browse, filter, search & inspect all user profiles",        badge: loading ? "…" : `${newWk} new this week`,                                        badge2Color:GOOGLE_B,  accentColor:GOOGLE_B,  glow:"rgba(66,133,244,0.35)",   icon:"👥" },
+    analytics: { desc:"Demographics, donuts, charts & cross-tab matrices",         badge:"8 dimensions",                                                                    badge2Color:VIOLET,    accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"🧮" },
+    activity:  { desc:"Eligibility runs, logins & real-time usage feed",           badge: loading ? "…" : `${actDay} active today`,                                        badge2Color:SAFFRON,   accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"🕐" },
+    usage:     { desc:"Feature telemetry — AI chat, searches & checker runs",      badge:"live metrics",                                                                    badge2Color:PINK,      accentColor:PINK,      glow:"rgba(236,72,153,0.35)",   icon:"📈" },
+    schemes:   { desc:"State-wise scheme coverage, gaps & distribution map",       badge:"all India states",                                                                badge2Color:IND_GREEN, accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"🗺️" },
+    reports:   { desc:"User-reported issues, admin replies & status workflow",     badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badge2Color: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)", icon:"📬" },
+    cleanup:   { desc:"Purge resolved reports & flush stale usage data",           badge:"database hygiene",                                                                badge2Color:"#F59E0B", accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"🗑️" },
+    export:    { desc:"Compile & download full-dashboard PDF intelligence report",  badge:"landscape A4 · PDF",                                                             badge2Color:"#10B981", accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"📄" },
   };
-
-  const HERO_METRICS = [
-    { id:"users",   label:"TOTAL USERS",   value: loading ? "—" : users.length,   color:NAVY,                                          subLabel: loading ? "" : `${statesCount} states covered` },
-    { id:"active",  label:"ACTIVE TODAY",  value: loading ? "—" : actDay,          color:IND_GREEN,                                    subLabel: loading ? "" : `${engPct}% engagement`          },
-    { id:"reports", label:"OPEN REPORTS",  value: loading ? "—" : openR,           color: openR > 0 ? "#E53E3E" : IND_GREEN,           subLabel: loading ? "" : `${resolvedR} resolved`          },
-    { id:"new",     label:"NEW THIS WEEK", value: loading ? "—" : newWk,           color:SAFFRON,                                      subLabel: loading ? "" : `${reports.length} total reports` },
-  ];
-
-  const VITALS = [
-    { label:"GOOGLE AUTH",   value: loading ? "—" : googleUsers, color:GOOGLE_B, icon:"🔵" },
-    { label:"PHONE USERS",   value: loading ? "—" : withPhone,   color:SAFFRON,  icon:"📱" },
-    { label:"DORMANT 30D",   value: loading ? "—" : dormantCnt,  color: dormantCnt > 0 ? "#F59E0B" : IND_GREEN, icon:"😴" },
-    { label:"IN PROGRESS",   value: loading ? "—" : inProg,      color: inProg   > 0 ? "#D97706" : IND_GREEN, icon:"⚙️" },
-  ];
 
   const cols     = isDesktop ? 3 : 2;
   const tabCards = TABS.filter(([id]) => TAB_META[id]);
-
   const engColor = engPct >= 20 ? IND_GREEN : engPct >= 5 ? SAFFRON : "#E53E3E";
+
+  // ── Attention items for the priority feed ──
+  const ALERTS = [
+    unreplied > 0 && {
+      id:"unreplied", icon:"⚠️",
+      text: `${unreplied} open report${unreplied>1?"s":""} need a reply`,
+      color:"#E53E3E", action:"reports",
+    },
+    inProg > 0 && {
+      id:"inprog", icon:"⚙️",
+      text: `${inProg} report${inProg>1?"s":""} in progress`,
+      color:"#D97706", action:"reports",
+    },
+    dormantCnt > 0 && {
+      id:"dormant", icon:"😴",
+      text: `${dormantCnt} user${dormantCnt>1?"s":""} dormant 30+ days`,
+      color:SAFFRON, action:"activity",
+    },
+    newToday > 0 && {
+      id:"new", icon:"🆕",
+      text: `${newToday} new sign-up${newToday>1?"s":""} today`,
+      color:IND_GREEN, action:"users",
+    },
+  ].filter(Boolean);
 
   return (
     <div style={{
       flex:1,
-      padding: isDesktop ? "28px 40px 48px" : "16px 14px 36px",
+      padding: isDesktop ? "28px 40px 48px" : "14px 13px 36px",
       maxWidth: isDesktop ? 1400 : "100%",
       margin: isDesktop ? "0 auto" : undefined,
       width:"100%", boxSizing:"border-box",
@@ -3370,358 +3421,272 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
 
       {/* ── Keyframes ── */}
       <style>{`
-        @keyframes hs-pulse  { 0%,100%{opacity:0.45} 50%{opacity:1} }
-        @keyframes hs-fadein { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes hs-scan   { 0%{top:-2px} 100%{top:102%} }
-        @keyframes hs-glow-pulse { 0%,100%{box-shadow:0 0 5px currentColor} 50%{box-shadow:0 0 14px currentColor} }
+        @keyframes hs-pulse   { 0%,100%{opacity:0.4} 50%{opacity:1} }
+        @keyframes hs-fadein  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes hs-scan    { 0%{top:-2px} 100%{top:102%} }
+        @keyframes hs-shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
         .hs-module { transition:all 0.22s cubic-bezier(0.22,1,0.36,1); cursor:pointer; }
-        .hs-module:hover { transform:translateY(-4px) scale(1.015); }
+        .hs-module:hover { transform:translateY(-3px) scale(1.012); }
         .hs-module:active { transform:translateY(0) scale(0.98); }
         @media (hover: none) { .hs-module:hover { transform:none; } }
+        .hs-alert-row { transition:background 0.15s; cursor:pointer; }
+        .hs-alert-row:hover { background: rgba(255,255,255,0.04) !important; }
       `}</style>
 
-      {/* ══ HERO COMMAND PANEL ══ */}
+      {/* ══════════════════════════════════════
+          COMMAND HEADER — split layout
+      ══════════════════════════════════════ */}
       <div style={{
-        background: dark
-          ? "linear-gradient(155deg,#060d1e 0%,#0b1530 55%,#0f0c22 100%)"
-          : "linear-gradient(155deg,#f0f5ff 0%,#fef9f3 100%)",
-        border:`1px solid ${dark ? "rgba(0,53,128,0.5)" : "rgba(0,53,128,0.14)"}`,
-        borderRadius: isDesktop ? 20 : 18,
-        padding: isDesktop ? "28px 30px 22px" : "18px 16px 16px",
-        marginBottom: isDesktop ? 18 : 12,
-        position:"relative", overflow:"hidden",
-        animation:"hs-fadein 0.4s ease both",
-        boxShadow: dark
-          ? "0 12px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04)"
-          : "0 4px 32px rgba(0,53,128,0.1)",
+        display: isDesktop ? "flex" : "block",
+        gap:14, marginBottom:14,
+        animation:"hs-fadein 0.35s ease both",
       }}>
 
-        {/* India tricolor top bar */}
+        {/* ── LEFT: identity + live KPIs ── */}
         <div style={{
-          position:"absolute", top:0, left:0, right:0, height:3,
-          background:`linear-gradient(90deg,${SAFFRON} 0% 33.3%,#ffffff 33.3% 66.6%,${IND_GREEN} 66.6% 100%)`,
-        }} />
-
-        {/* Fine engineering grid */}
-        <div style={{
-          position:"absolute", inset:0, pointerEvents:"none",
-          backgroundImage:`
-            linear-gradient(${dark ? "rgba(255,255,255,0.025)" : "rgba(0,53,128,0.038)"} 1px, transparent 1px),
-            linear-gradient(90deg, ${dark ? "rgba(255,255,255,0.025)" : "rgba(0,53,128,0.038)"} 1px, transparent 1px)
-          `,
-          backgroundSize:"30px 30px",
-        }} />
-
-        {/* Dark mode ambient glows */}
-        {dark && <>
+          flex: isDesktop ? "1 1 0" : undefined,
+          background: dark
+            ? "linear-gradient(150deg,#07101f 0%,#0b1830 60%,#0d1128 100%)"
+            : "linear-gradient(150deg,#f2f6ff 0%,#fff9f3 100%)",
+          border:`1px solid ${dark ? "rgba(0,53,128,0.45)" : "rgba(0,53,128,0.12)"}`,
+          borderRadius:18, padding: isDesktop ? "22px 24px 18px" : "16px 15px 14px",
+          position:"relative", overflow:"hidden",
+          boxShadow: dark
+            ? "0 12px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)"
+            : "0 4px 24px rgba(0,53,128,0.09)",
+          marginBottom: isDesktop ? 0 : 10,
+        }}>
+          {/* India tricolor bar */}
           <div style={{
-            position:"absolute", top:-100, right:-80, width:340, height:340, borderRadius:"50%",
-            background:"radial-gradient(circle,rgba(0,53,128,0.28) 0%,transparent 70%)",
-            pointerEvents:"none",
+            position:"absolute", top:0, left:0, right:0, height:3,
+            background:`linear-gradient(90deg,${SAFFRON} 0% 33.3%,#ffffff 33.3% 66.6%,${IND_GREEN} 66.6% 100%)`,
           }} />
+          {/* Grid texture */}
           <div style={{
-            position:"absolute", bottom:-70, left:-50, width:220, height:220, borderRadius:"50%",
-            background:`radial-gradient(circle,rgba(255,153,51,0.12) 0%,transparent 70%)`,
-            pointerEvents:"none",
+            position:"absolute", inset:0, pointerEvents:"none",
+            backgroundImage:`linear-gradient(${dark?"rgba(255,255,255,0.022)":"rgba(0,53,128,0.035)"} 1px,transparent 1px),linear-gradient(90deg,${dark?"rgba(255,255,255,0.022)":"rgba(0,53,128,0.035)"} 1px,transparent 1px)`,
+            backgroundSize:"28px 28px",
           }} />
-        </>}
+          {dark && <>
+            <div style={{ position:"absolute", top:-90, right:-60, width:280, height:280, borderRadius:"50%", background:"radial-gradient(circle,rgba(0,53,128,0.25) 0%,transparent 70%)", pointerEvents:"none" }} />
+            <div style={{ position:"absolute", bottom:-60, left:-40, width:200, height:200, borderRadius:"50%", background:"radial-gradient(circle,rgba(255,153,51,0.1) 0%,transparent 70%)", pointerEvents:"none" }} />
+            <div style={{ position:"absolute", left:0, right:0, height:1, pointerEvents:"none", background:`linear-gradient(90deg,transparent,${hsRgba(SAFFRON,0.18)} 40%,${hsRgba(IND_GREEN,0.13)} 60%,transparent)`, animation:"hs-scan 8s linear infinite" }} />
+          </>}
 
-        {/* Sweeping scan line (dark only) */}
-        {dark && (
-          <div style={{
-            position:"absolute", left:0, right:0, height:1, pointerEvents:"none",
-            background:`linear-gradient(90deg,transparent 0%,${hsRgba(SAFFRON,0.2)} 40%,${hsRgba(IND_GREEN,0.15)} 60%,transparent 100%)`,
-            animation:"hs-scan 7s linear infinite",
-          }} />
-        )}
-
-        <div style={{ position:"relative" }}>
-
-          {/* ── Title row + clock ── */}
-          <div style={{
-            display:"flex",
-            flexDirection: isDesktop ? "row" : "column",
-            alignItems: isDesktop ? "flex-start" : "stretch",
-            gap: isDesktop ? 24 : 12,
-            marginBottom: isDesktop ? 20 : 16,
-          }}>
-
-            {/* Left: title block */}
-            <div style={{ flex:1, minWidth:0 }}>
-              {/* Status pill */}
-              <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8 }}>
-                <span style={{
-                  display:"inline-block", width:7, height:7, borderRadius:"50%",
-                  background: loading ? SAFFRON : "#00E87A",
-                  boxShadow: loading ? `0 0 8px ${SAFFRON}88` : "0 0 8px #00E87A88",
-                  animation:"hs-pulse 1.8s ease-in-out infinite",
-                  flexShrink:0,
-                }} />
-                <span style={{
-                  fontFamily:MONO_FONT, fontSize:9, fontWeight:700,
-                  letterSpacing:2, color: loading ? SAFFRON : "#00E87A",
-                  textTransform:"uppercase",
-                }}>
-                  {loading ? "CONNECTING…" : "SYSTEM ONLINE · AUTHORISED ACCESS ONLY"}
-                </span>
-              </div>
-
-              {/* Main title */}
-              <div style={{
-                fontSize: isDesktop ? 30 : 24,
-                fontWeight:900, letterSpacing:-0.8, lineHeight:1.1,
-                color: dark ? "#eef3ff" : "#0a1628",
-              }}>
-                Yojana<span style={{ color:SAFFRON }}>Sahay</span>
-                <span style={{
-                  fontWeight:400, fontSize: isDesktop ? 16 : 13,
-                  letterSpacing:0, color:th.textSub,
-                }}>
-                  {" "}· Admin Intelligence
-                </span>
-              </div>
-
-              {/* Sub-line */}
-              <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-                <span style={{
-                  fontFamily:MONO_FONT, fontSize:9, color:th.textSub, letterSpacing:0.3,
-                }}>
-                  Welfare scheme discovery · India · v2.0
-                </span>
-                <span style={{
-                  fontFamily:MONO_FONT, fontSize:8, fontWeight:700,
-                  color: dark ? "#00E87A" : IND_GREEN,
-                  background: dark ? "rgba(0,232,122,0.09)" : "rgba(19,136,8,0.07)",
-                  border:`1px solid ${dark ? "rgba(0,232,122,0.22)" : "rgba(19,136,8,0.18)"}`,
-                  borderRadius:5, padding:"2px 7px", letterSpacing:0.5,
-                }}>
-                  ✓ AUTHENTICATED
-                </span>
-              </div>
+          <div style={{ position:"relative" }}>
+            {/* Status row */}
+            <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:9 }}>
+              <span style={{
+                display:"inline-block", width:6, height:6, borderRadius:"50%",
+                background: loading ? SAFFRON : "#00E87A",
+                boxShadow: loading ? `0 0 7px ${SAFFRON}99` : "0 0 7px #00E87A99",
+                animation:"hs-pulse 1.8s ease-in-out infinite",
+              }} />
+              <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, letterSpacing:1.8, color: loading ? SAFFRON : "#00E87A", textTransform:"uppercase" }}>
+                {loading ? "CONNECTING…" : "SYSTEM ONLINE · AUTHORISED ACCESS ONLY"}
+              </span>
             </div>
 
-            {/* Right: premium live clock */}
+            {/* Title */}
+            <div style={{ fontSize: isDesktop ? 28 : 22, fontWeight:900, letterSpacing:-0.7, lineHeight:1.1, color: dark?"#eef3ff":"#091526" }}>
+              Yojana<span style={{ color:SAFFRON }}>Sahay</span>
+              <span style={{ fontWeight:400, fontSize: isDesktop ? 15 : 12, letterSpacing:0, color:th.textSub }}>{" "}· Admin Intelligence</span>
+            </div>
+
+            <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:7, flexWrap:"wrap" }}>
+              <span style={{ fontFamily:MONO_FONT, fontSize:8.5, color:th.textSub, letterSpacing:0.3 }}>Welfare scheme discovery · India · v2.0</span>
+              <span style={{ fontFamily:MONO_FONT, fontSize:8, fontWeight:700, color: dark?"#00E87A":IND_GREEN, background: dark?"rgba(0,232,122,0.09)":"rgba(19,136,8,0.07)", border:`1px solid ${dark?"rgba(0,232,122,0.2)":"rgba(19,136,8,0.16)"}`, borderRadius:5, padding:"2px 7px", letterSpacing:0.4 }}>✓ AUTHENTICATED</span>
+            </div>
+
+            {/* 4-KPI row */}
             <div style={{
-              flexShrink:0,
-              background: dark ? "rgba(0,0,0,0.42)" : "rgba(255,255,255,0.9)",
-              border:`1px solid ${dark ? "rgba(255,255,255,0.09)" : "rgba(0,53,128,0.14)"}`,
-              borderRadius:14,
-              padding: isDesktop ? "14px 20px" : "10px 14px",
-              display:"flex",
-              flexDirection: isDesktop ? "column" : "row",
-              alignItems: isDesktop ? "flex-end" : "center",
-              justifyContent: isDesktop ? "center" : "space-between",
-              gap: isDesktop ? 5 : 10,
-              backdropFilter:"blur(14px)",
-              WebkitBackdropFilter:"blur(14px)",
-              boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,0.05)" : "0 2px 12px rgba(0,53,128,0.06)",
+              display:"grid",
+              gridTemplateColumns:"repeat(4,1fr)",
+              gap: isDesktop ? 10 : 7,
+              marginTop:14,
             }}>
-              <div style={{
-                fontFamily:MONO_FONT, fontSize: isDesktop ? 26 : 22,
-                fontWeight:900, color:SAFFRON, letterSpacing:2.5, lineHeight:1,
-              }}>
-                {TIME_STR}
+              {[
+                { label:"TOTAL USERS",   value: loading?"—":users.length,       color:NAVY,     sub: loading?"":statesCount+" states",   spark: null },
+                { label:"ACTIVE TODAY",  value: loading?"—":actDay,             color:IND_GREEN, sub: loading?"":engPct+"% engagement",  spark: null },
+                { label:"OPEN REPORTS",  value: loading?"—":openR,              color: openR>0?"#E53E3E":IND_GREEN, sub: loading?"":resolvedR+" resolved", spark: null },
+                { label:"NEW THIS WEEK", value: loading?"—":newWk,              color:SAFFRON,  sub: loading?"":reports.length+" total rpts", spark: spark7 },
+              ].map(({ label, value, color, sub, spark }) => (
+                <div key={label} style={{
+                  background: dark ? "rgba(0,0,0,0.36)" : "rgba(255,255,255,0.86)",
+                  border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(0,53,128,0.09)"}`,
+                  borderRadius:10, padding: isDesktop ? "12px 14px" : "9px 10px",
+                  position:"relative", overflow:"hidden",
+                  backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)",
+                }}>
+                  {/* Left color bar */}
+                  <div style={{ position:"absolute", top:0, left:0, bottom:0, width:3, background:color, borderRadius:"0 2px 2px 0", boxShadow: dark?`0 0 8px ${color}66`:"none" }} />
+                  <div style={{ paddingLeft:8 }}>
+                    <div style={{ fontFamily:MONO_FONT, fontSize:7.5, fontWeight:700, color:th.textSub, letterSpacing:1.4, textTransform:"uppercase", marginBottom:4 }}>{label}</div>
+                    <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:4 }}>
+                      <div style={{ fontFamily:MONO_FONT, fontSize: isDesktop?28:22, fontWeight:900, lineHeight:1, letterSpacing:-1, color: dark?"#eef3ff":"#091526" }}>{value}</div>
+                      {spark && <MiniSpark points={spark} color={color} width={isDesktop?52:40} height={isDesktop?22:18} />}
+                    </div>
+                    {sub && <div style={{ fontFamily:MONO_FONT, fontSize:7.5, marginTop:4, color, opacity:0.8, letterSpacing:0.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{sub}</div>}
+                  </div>
+                  <div style={{ position:"absolute", right:-12, top:-12, width:48, height:48, borderRadius:"50%", background:hsRgba(color, dark?0.06:0.05), pointerEvents:"none" }} />
+                </div>
+              ))}
+            </div>
+
+            {/* Engagement bar */}
+            <div style={{ marginTop:10, background: dark?"rgba(0,0,0,0.22)":"rgba(255,255,255,0.6)", border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,53,128,0.07)"}`, borderRadius:8, padding:"8px 12px" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+                <span style={{ fontFamily:MONO_FONT, fontSize:7.5, fontWeight:700, letterSpacing:1.4, color:th.textSub, textTransform:"uppercase" }}>DAY ENGAGEMENT</span>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ fontFamily:MONO_FONT, fontSize:8, color:th.textSub }}>{loading?"—":`7d: ${weekEngPct}%`}</span>
+                  <span style={{ fontFamily:MONO_FONT, fontSize:11, fontWeight:900, color:engColor }}>{loading?"—":`${engPct}%`}</span>
+                </div>
               </div>
-              <div style={{
-                fontFamily:MONO_FONT, fontSize:9, color:th.textSub,
-                letterSpacing:0.4, textAlign: isDesktop ? "right" : "left",
-              }}>
-                {DATE_STR}
+              <div style={{ height:4, borderRadius:2, background: dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.07)", overflow:"hidden" }}>
+                <div style={{ height:"100%", borderRadius:2, width: loading?"0%":`${Math.min(engPct,100)}%`, background: engPct>=20?`linear-gradient(90deg,${IND_GREEN},#00E87A)`:engPct>=5?`linear-gradient(90deg,${SAFFRON},#FFB84D)`:`linear-gradient(90deg,#DC2626,#F87171)`, transition:"width 1s cubic-bezier(0.22,1,0.36,1)", boxShadow: dark&&!loading?`0 0 5px ${engColor}80`:"none" }} />
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", marginTop:3, fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub }}>
+                <span>{loading?"—":`${actDay} active today`}</span>
+                <span>{loading?"—":`of ${users.length} total`}</span>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* ── Hero metric HUDs ── */}
+        {/* ── RIGHT: clock + priority alerts ── */}
+        <div style={{ flex: isDesktop ? "0 0 230px" : undefined, display:"flex", flexDirection:"column", gap:10 }}>
+
+          {/* Clock card */}
           <div style={{
-            display:"grid",
-            gridTemplateColumns: isDesktop ? "repeat(4,1fr)" : "repeat(2,1fr)",
-            gap: isDesktop ? 12 : 8,
-            marginBottom: isDesktop ? 16 : 12,
+            background: dark ? "rgba(6,12,24,0.95)" : "rgba(255,255,255,0.96)",
+            border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(0,53,128,0.12)"}`,
+            borderRadius:16, padding:"16px 18px",
+            backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
+            boxShadow: dark ? "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04)" : "0 4px 20px rgba(0,53,128,0.08)",
+            textAlign:"center", position:"relative", overflow:"hidden",
           }}>
-            {HERO_METRICS.map(({ id, label, value, color, subLabel }) => (
-              <div key={id} style={{
-                background: dark ? "rgba(0,0,0,0.38)" : "rgba(255,255,255,0.88)",
-                border:`1px solid ${dark ? "rgba(255,255,255,0.09)" : "rgba(0,53,128,0.1)"}`,
-                borderRadius:12, padding: isDesktop ? "14px 16px" : "11px 12px",
-                position:"relative", overflow:"hidden",
-                backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
-              }}>
-                {/* Left accent glow bar */}
-                <div style={{
-                  position:"absolute", top:0, bottom:0, left:0, width:3,
-                  background:color,
-                  boxShadow: dark ? `0 0 10px ${color}80` : "none",
-                  borderRadius:"0 2px 2px 0",
-                }} />
-                <div style={{ paddingLeft:9 }}>
-                  <div style={{
-                    fontFamily:MONO_FONT, fontSize:8, fontWeight:700,
-                    color:th.textSub, letterSpacing:1.5, textTransform:"uppercase",
-                    marginBottom:5,
-                  }}>
-                    {label}
-                  </div>
-                  <div style={{
-                    fontFamily:MONO_FONT,
-                    fontSize: isDesktop ? 30 : 26,
-                    fontWeight:900, lineHeight:1, letterSpacing:-1,
-                    color: dark ? "#eef3ff" : "#0a1628",
-                  }}>
-                    {value}
-                  </div>
-                  {subLabel && (
-                    <div style={{
-                      fontFamily:MONO_FONT, fontSize:8, marginTop:5,
-                      color, opacity:0.82, letterSpacing:0.3,
-                    }}>
-                      {subLabel}
-                    </div>
-                  )}
+            <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg,${NAVY},${SAFFRON},${IND_GREEN})` }} />
+            <div style={{ fontFamily:MONO_FONT, fontSize: isDesktop?30:26, fontWeight:900, color:SAFFRON, letterSpacing:3, lineHeight:1 }}>{TIME_STR}</div>
+            <div style={{ fontFamily:MONO_FONT, fontSize:9, color:th.textSub, letterSpacing:0.5, marginTop:5 }}>{DATE_STR}</div>
+            <div style={{ marginTop:10, display:"flex", gap:5, justifyContent:"center" }}>
+              {[
+                { label:"USERS",   value: loading?"…":users.length,    color:NAVY     },
+                { label:"REPORTS", value: loading?"…":reports.length,  color:SAFFRON  },
+                { label:"OPEN",    value: loading?"…":openR,            color: openR>0?"#E53E3E":IND_GREEN },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ flex:1, background:hsRgba(color,0.08), border:`1px solid ${hsRgba(color,0.2)}`, borderRadius:7, padding:"5px 4px", textAlign:"center" }}>
+                  <div style={{ fontFamily:MONO_FONT, fontSize:13, fontWeight:900, color, lineHeight:1 }}>{value}</div>
+                  <div style={{ fontFamily:MONO_FONT, fontSize:6.5, color:th.textSub, letterSpacing:0.8, marginTop:2 }}>{label}</div>
                 </div>
-                {/* Faint tonal blob — bg decoration */}
-                <div style={{
-                  position:"absolute", right:-14, top:-14, width:56, height:56,
-                  borderRadius:"50%", background:hsRgba(color, dark ? 0.06 : 0.05),
-                  pointerEvents:"none",
-                }} />
+              ))}
+            </div>
+          </div>
+
+          {/* Priority Feed */}
+          <div style={{
+            flex:1,
+            background: dark?"rgba(10,10,18,0.9)":"rgba(255,255,255,0.96)",
+            border:`1px solid ${dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.08)"}`,
+            borderRadius:16, overflow:"hidden",
+            boxShadow: dark?"0 4px 20px rgba(0,0,0,0.35)":"0 2px 14px rgba(0,0,0,0.05)",
+          }}>
+            <div style={{ padding:"10px 14px 8px", borderBottom:`1px solid ${th.border}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                <span style={{ display:"inline-block", width:5, height:5, borderRadius:"50%", background:SAFFRON, animation:"hs-pulse 1.4s ease-in-out infinite" }} />
+                <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, letterSpacing:1.6, color:th.textSub, textTransform:"uppercase" }}>PRIORITY FEED</span>
+              </div>
+              <span style={{ fontFamily:MONO_FONT, fontSize:8, color:th.textSub }}>{ALERTS.length} ITEM{ALERTS.length!==1?"S":""}</span>
+            </div>
+            {loading ? (
+              <div style={{ padding:"20px 14px", fontFamily:MONO_FONT, fontSize:9, color:th.textSub, textAlign:"center" }}>// fetching…</div>
+            ) : ALERTS.length === 0 ? (
+              <div style={{ padding:"20px 14px", textAlign:"center" }}>
+                <div style={{ fontSize:22, marginBottom:6 }}>✅</div>
+                <div style={{ fontFamily:MONO_FONT, fontSize:9, color:IND_GREEN, fontWeight:700, letterSpacing:0.5 }}>ALL CLEAR</div>
+                <div style={{ fontFamily:MONO_FONT, fontSize:8, color:th.textSub, marginTop:3 }}>No pending actions</div>
+              </div>
+            ) : ALERTS.map((a, i) => (
+              <div
+                key={a.id}
+                className="hs-alert-row"
+                onClick={() => navigateTab(a.action)}
+                style={{
+                  display:"flex", alignItems:"center", gap:10,
+                  padding:"9px 14px",
+                  borderBottom: i < ALERTS.length - 1 ? `1px solid ${th.border}` : "none",
+                  background:"transparent",
+                  cursor:"pointer",
+                }}
+              >
+                <div style={{ width:28, height:28, borderRadius:8, flexShrink:0, background:hsRgba(a.color,0.1), border:`1px solid ${hsRgba(a.color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13 }}>{a.icon}</div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:th.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.text}</div>
+                </div>
+                <div style={{ fontSize:12, color:a.color, flexShrink:0, fontWeight:700 }}>›</div>
               </div>
             ))}
           </div>
 
-          {/* ── Engagement health bar ── */}
-          <div style={{
-            background: dark ? "rgba(0,0,0,0.26)" : "rgba(255,255,255,0.65)",
-            border:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(0,53,128,0.08)"}`,
-            borderRadius:10, padding:"10px 14px",
-          }}>
-            <div style={{
-              display:"flex", alignItems:"center", justifyContent:"space-between",
-              marginBottom:6,
-            }}>
-              <span style={{
-                fontFamily:MONO_FONT, fontSize:8, fontWeight:700,
-                letterSpacing:1.4, color:th.textSub, textTransform:"uppercase",
-              }}>
-                PLATFORM ENGAGEMENT
-              </span>
-              <span style={{
-                fontFamily:MONO_FONT, fontSize:11, fontWeight:900,
-                color: engColor,
-              }}>
-                {loading ? "—" : `${engPct}%`}
-              </span>
-            </div>
-            <div style={{
-              height:5, borderRadius:3,
-              background: dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
-              overflow:"hidden",
-            }}>
-              <div style={{
-                height:"100%", borderRadius:3,
-                width: loading ? "0%" : `${Math.min(engPct,100)}%`,
-                background: engPct >= 20
-                  ? `linear-gradient(90deg,${IND_GREEN},#00E87A)`
-                  : engPct >= 5
-                    ? `linear-gradient(90deg,${SAFFRON},#FFB84D)`
-                    : `linear-gradient(90deg,#DC2626,#F87171)`,
-                transition:"width 1s cubic-bezier(0.22,1,0.36,1)",
-                boxShadow: dark && !loading ? `0 0 6px ${engColor}80` : "none",
-              }} />
-            </div>
-            <div style={{
-              display:"flex", justifyContent:"space-between", marginTop:4,
-              fontFamily:MONO_FONT, fontSize:8, color:th.textSub,
-            }}>
-              <span>{loading ? "—" : `${actDay} active`}</span>
-              <span>{loading ? "—" : `of ${users.length} users`}</span>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* ══ SYSTEM VITALS ROW ══ */}
+      {/* ══════════════════════════════════════
+          SYSTEM VITALS STRIP
+      ══════════════════════════════════════ */}
       <div style={{
         display:"grid",
-        gridTemplateColumns: isDesktop ? "repeat(4,1fr)" : "repeat(2,1fr)",
-        gap: isDesktop ? 10 : 8,
-        marginBottom: isDesktop ? 20 : 14,
-        animation:"hs-fadein 0.5s ease both",
+        gridTemplateColumns: isDesktop ? "repeat(5,1fr)" : "repeat(3,1fr)",
+        gap: isDesktop ? 9 : 7,
+        marginBottom: isDesktop ? 16 : 12,
+        animation:"hs-fadein 0.45s ease both",
       }}>
-        {VITALS.map(({ label, value, color, icon }) => (
+        {[
+          { label:"GOOGLE AUTH",  value: loading?"—":googleUsers,                 color:GOOGLE_B, icon:"🔵" },
+          { label:"PHONE USERS",  value: loading?"—":withPhone,                   color:SAFFRON,  icon:"📱" },
+          { label:"WELFARE (BPL)",value: loading?"—":bplCount,                    color:VIOLET,   icon:"🪪" },
+          { label:"DORMANT 30D",  value: loading?"—":dormantCnt,                  color: dormantCnt>0?"#F59E0B":IND_GREEN, icon:"😴" },
+          { label:"IN PROGRESS",  value: loading?"—":inProg,                      color: inProg>0?"#D97706":IND_GREEN, icon:"⚙️" },
+        ].map(({ label, value, color, icon }) => (
           <div key={label} style={{
-            background: th.card,
-            border:`1.5px solid ${th.border}`,
-            borderRadius:12, padding: isDesktop ? "12px 14px" : "10px 12px",
-            display:"flex", alignItems:"center", gap:10,
+            background:th.card, border:`1.5px solid ${th.border}`,
+            borderRadius:11, padding: isDesktop ? "10px 12px" : "8px 10px",
+            display:"flex", alignItems:"center", gap:8,
           }}>
-            <div style={{
-              width:34, height:34, borderRadius:9, flexShrink:0,
-              background:hsRgba(color, 0.1),
-              border:`1px solid ${hsRgba(color, 0.2)}`,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:16,
-            }}>
-              {icon}
-            </div>
+            <div style={{ width:30, height:30, borderRadius:8, flexShrink:0, background:hsRgba(color,0.1), border:`1px solid ${hsRgba(color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>{icon}</div>
             <div style={{ minWidth:0, flex:1 }}>
-              <div style={{
-                fontFamily:MONO_FONT,
-                fontSize: isDesktop ? 20 : 18,
-                fontWeight:900, color:th.text, lineHeight:1, letterSpacing:-0.5,
-              }}>
-                {value}
-              </div>
-              <div style={{
-                fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub,
-                marginTop:2, letterSpacing:0.8,
-                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-              }}>
-                {label}
-              </div>
+              <div style={{ fontFamily:MONO_FONT, fontSize: isDesktop?18:16, fontWeight:900, color:th.text, lineHeight:1, letterSpacing:-0.5 }}>{value}</div>
+              <div style={{ fontFamily:MONO_FONT, fontSize:7, color:th.textSub, marginTop:2, letterSpacing:0.7, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{label}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* ══ INTELLIGENCE MODULES ══ */}
-
-      {/* Section header bar */}
+      {/* ══════════════════════════════════════
+          INTELLIGENCE MODULE GRID
+      ══════════════════════════════════════ */}
       <div style={{
         display:"flex", alignItems:"center", gap:10,
-        marginBottom: isDesktop ? 12 : 10,
-        animation:"hs-fadein 0.55s ease both",
+        marginBottom: isDesktop ? 11 : 9,
+        animation:"hs-fadein 0.5s ease both",
       }}>
         <div style={{ flex:1, height:1, background:th.border }} />
-        <div style={{
-          fontFamily:MONO_FONT, fontSize:8, fontWeight:700,
-          letterSpacing:2.5, color:th.textSub, textTransform:"uppercase",
-          padding:"0 2px",
-        }}>
-          INTELLIGENCE MODULES
-        </div>
+        <div style={{ fontFamily:MONO_FONT, fontSize:8, fontWeight:700, letterSpacing:2.2, color:th.textSub, textTransform:"uppercase" }}>INTELLIGENCE MODULES</div>
         <div style={{ flex:1, height:1, background:th.border }} />
-        <div style={{
-          fontFamily:MONO_FONT, fontSize:8, color:th.textSub,
-          letterSpacing:0.5, flexShrink:0,
-        }}>
-          {tabCards.length} ACTIVE
-        </div>
+        <div style={{ fontFamily:MONO_FONT, fontSize:8, color:th.textSub, letterSpacing:0.5, flexShrink:0 }}>{tabCards.length} ACTIVE</div>
       </div>
 
-      {/* Module grid */}
       <div style={{
         display:"grid",
         gridTemplateColumns:`repeat(${cols},1fr)`,
-        gap: isDesktop ? 14 : 10,
-        animation:"hs-fadein 0.6s ease both",
+        gap: isDesktop ? 12 : 9,
+        animation:"hs-fadein 0.55s ease both",
       }}>
         {tabCards.map(([id, fullLabel]) => {
           const meta  = TAB_META[id] || {};
           const isHov = hovered === id;
-          // Strip leading emoji from label for the name display
           const nameParts = fullLabel.trim().split(/\s+/);
           const emoji = meta.icon || (nameParts[0].match(/\p{Emoji}/u) ? nameParts[0] : "•");
-          const name  = nameParts.filter((p,i) => i > 0 || !p.match(/\p{Emoji}/u)).join(" ") || id;
+          const name  = nameParts.filter((p,i) => i>0||!p.match(/\p{Emoji}/u)).join(" ") || id;
 
           return (
             <div
@@ -3733,113 +3698,53 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
               style={{
                 background: isHov
                   ? (dark
-                    ? `linear-gradient(155deg,${hsRgba(meta.accentColor,0.13)} 0%,${hsRgba(meta.accentColor,0.04)} 100%)`
-                    : `linear-gradient(155deg,${hsRgba(meta.accentColor,0.07)} 0%,rgba(255,255,255,0.98) 100%)`)
+                      ? `linear-gradient(150deg,${hsRgba(meta.accentColor,0.14)} 0%,${hsRgba(meta.accentColor,0.04)} 100%)`
+                      : `linear-gradient(150deg,${hsRgba(meta.accentColor,0.07)} 0%,rgba(255,255,255,0.98) 100%)`)
                   : th.card,
-                border:`1.5px solid ${isHov ? hsRgba(meta.accentColor,0.45) : th.border}`,
-                borderRadius: isDesktop ? 16 : 14,
-                padding: isDesktop ? "18px 16px 14px" : "14px 13px 12px",
+                border:`1.5px solid ${isHov ? hsRgba(meta.accentColor,0.48) : th.border}`,
+                borderRadius: isDesktop ? 16 : 13,
+                padding: isDesktop ? "17px 15px 13px" : "13px 12px 11px",
                 position:"relative", overflow:"hidden",
                 userSelect:"none", WebkitTapHighlightColor:"transparent",
                 boxShadow: isHov
-                  ? `0 10px 36px ${meta.glow}, 0 0 0 1px ${hsRgba(meta.accentColor,0.18)}`
-                  : dark ? "0 2px 10px rgba(0,0,0,0.28)" : "0 1px 6px rgba(0,0,0,0.04)",
+                  ? `0 8px 30px ${meta.glow}, 0 0 0 1px ${hsRgba(meta.accentColor,0.16)}`
+                  : dark ? "0 2px 10px rgba(0,0,0,0.28)" : "0 1px 5px rgba(0,0,0,0.04)",
               }}
             >
-              {/* Vertical accent strip — the signature element */}
+              {/* Vertical accent strip */}
               <div style={{
                 position:"absolute", top:0, left:0, bottom:0,
                 width: isHov ? 4 : 3,
                 background: meta.accentColor,
-                boxShadow: dark && isHov ? `0 0 12px ${meta.accentColor}` : "none",
+                boxShadow: dark&&isHov ? `0 0 10px ${meta.accentColor}` : "none",
                 transition:"all 0.2s ease",
                 borderRadius:"0 2px 2px 0",
               }} />
 
-              {/* Corner radial glow on hover */}
-              {isHov && (
-                <div style={{
-                  position:"absolute", top:-32, right:-32, width:110, height:110,
-                  borderRadius:"50%",
-                  background:`radial-gradient(circle,${hsRgba(meta.accentColor, dark?0.14:0.08)} 0%,transparent 70%)`,
-                  pointerEvents:"none",
-                }} />
-              )}
+              {/* Corner glow on hover */}
+              {isHov && <div style={{ position:"absolute", top:-28, right:-28, width:100, height:100, borderRadius:"50%", background:`radial-gradient(circle,${hsRgba(meta.accentColor,dark?0.14:0.08)} 0%,transparent 70%)`, pointerEvents:"none" }} />}
 
-              <div style={{ paddingLeft: isDesktop ? 11 : 9 }}>
-                {/* Icon */}
-                <div style={{
-                  fontSize: isDesktop ? 26 : 22, lineHeight:1,
-                  marginBottom: isDesktop ? 9 : 7,
-                  filter: dark && isHov ? `drop-shadow(0 0 6px ${hsRgba(meta.accentColor,0.7)})` : "none",
-                  transition:"filter 0.2s",
-                }}>
-                  {emoji}
-                </div>
-
-                {/* Module name */}
-                <div style={{
-                  fontSize: isDesktop ? 14 : 12, fontWeight:800,
-                  letterSpacing:-0.2, lineHeight:1.2,
-                  color: isHov ? meta.accentColor : th.text,
-                  marginBottom:4, transition:"color 0.18s",
-                }}>
-                  {name}
-                </div>
-
-                {/* Description */}
-                <div style={{
-                  fontSize: isDesktop ? 10 : 9,
-                  color:th.textSub, lineHeight:1.55,
-                  marginBottom: isDesktop ? 11 : 8,
-                }}>
-                  {meta.desc}
-                </div>
-
-                {/* Live status badge */}
+              <div style={{ paddingLeft: isDesktop?11:9 }}>
+                <div style={{ fontSize: isDesktop?24:20, lineHeight:1, marginBottom: isDesktop?8:6, filter: dark&&isHov?`drop-shadow(0 0 6px ${hsRgba(meta.accentColor,0.7)})`:"none", transition:"filter 0.2s" }}>{emoji}</div>
+                <div style={{ fontSize: isDesktop?13:11, fontWeight:800, letterSpacing:-0.2, lineHeight:1.2, color: isHov?meta.accentColor:th.text, marginBottom:4, transition:"color 0.18s" }}>{name}</div>
+                <div style={{ fontSize: isDesktop?10:9, color:th.textSub, lineHeight:1.5, marginBottom: isDesktop?10:8 }}>{meta.desc}</div>
                 {meta.badge && (
-                  <div style={{
-                    display:"inline-flex", alignItems:"center", gap:5,
-                    padding:"3px 8px",
-                    background:hsRgba(meta.badge2Color, 0.12),
-                    border:`1px solid ${hsRgba(meta.badge2Color, 0.28)}`,
-                    borderRadius:20,
-                    fontSize:9, fontWeight:700, color:meta.badge2Color,
-                    fontFamily:MONO_FONT,
-                    maxWidth:"100%", overflow:"hidden",
-                    textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  }}>
-                    <span style={{
-                      display:"inline-block", width:4, height:4, borderRadius:"50%",
-                      background:meta.badge2Color, flexShrink:0,
-                    }} />
+                  <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"2px 7px", background:hsRgba(meta.badge2Color,0.12), border:`1px solid ${hsRgba(meta.badge2Color,0.28)}`, borderRadius:20, fontSize:8.5, fontWeight:700, color:meta.badge2Color, fontFamily:MONO_FONT, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    <span style={{ display:"inline-block", width:4, height:4, borderRadius:"50%", background:meta.badge2Color, flexShrink:0 }} />
                     {meta.badge}
                   </div>
                 )}
               </div>
-
-              {/* Animated chevron */}
-              <div style={{
-                position:"absolute",
-                bottom: isDesktop ? 14 : 10,
-                right:  isDesktop ? 14 : 10,
-                fontSize:16, fontWeight:700,
-                color: isHov ? meta.accentColor : (dark ? "rgba(255,255,255,0.13)" : "rgba(0,0,0,0.13)"),
-                transform: isHov ? "translateX(3px)" : "translateX(0)",
-                transition:"all 0.18s cubic-bezier(0.22,1,0.36,1)",
-              }}>›</div>
+              <div style={{ position:"absolute", bottom: isDesktop?13:9, right: isDesktop?13:9, fontSize:15, fontWeight:700, color: isHov?meta.accentColor:(dark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.12)"), transform: isHov?"translateX(3px)":"translateX(0)", transition:"all 0.18s cubic-bezier(0.22,1,0.36,1)" }}>›</div>
             </div>
           );
         })}
       </div>
 
       {/* ── Footer ── */}
-      <div style={{ marginTop: isDesktop ? 28 : 20, display:"flex", alignItems:"center", gap:10 }}>
+      <div style={{ marginTop: isDesktop ? 26 : 18, display:"flex", alignItems:"center", gap:10, animation:"hs-fadein 0.6s ease both" }}>
         <div style={{ flex:1, height:1, background:th.border }} />
-        <div style={{
-          fontFamily:MONO_FONT, fontSize:8, color:th.textSub,
-          letterSpacing:1, textTransform:"uppercase",
-        }}>
+        <div style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:1, textTransform:"uppercase" }}>
           YojanaSahay © 2026 · Admin Panel · Authorised Use Only
         </div>
         <div style={{ flex:1, height:1, background:th.border }} />
