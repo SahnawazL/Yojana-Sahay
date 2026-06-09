@@ -6935,7 +6935,6 @@ export default function YojanaSahay(){
           const restrictedAdmin=Array.isArray(d.adminTabs)&&d.adminTabs.length>0;
           setIsAdmin(fullAdmin||restrictedAdmin);
           setAdminTabs(fullAdmin?null:(restrictedAdmin?d.adminTabs:null));
-          if((fullAdmin||restrictedAdmin)&&window.location.pathname==='/admin'){setShowAdmin(true);}
         } else {
           // New Google user — no Firestore profile yet.
           // Navigate to profile tab so ProfileTab mounts and runs setup flow.
