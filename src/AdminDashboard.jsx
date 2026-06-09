@@ -680,10 +680,12 @@ function JoinedThisWeek({ users, dark, onTap }) {
   const [joinedPage, setJoinedPage] = React.useState(1);
   const JOINED_PER_PAGE = 10;
 
-  const allJoined = users.filter(u =>
-    u.createdAt?.seconds &&
-    (Date.now() - u.createdAt.seconds * 1000) < 7 * 86400000
-  );
+  const allJoined = users
+    .filter(u =>
+      u.createdAt?.seconds &&
+      (Date.now() - u.createdAt.seconds * 1000) < 7 * 86400000
+    )
+    .sort((a, b) => (b.createdAt.seconds || 0) - (a.createdAt.seconds || 0));
 
   const totalPages = Math.max(1, Math.ceil(allJoined.length / JOINED_PER_PAGE));
   const paged      = allJoined.slice((joinedPage - 1) * JOINED_PER_PAGE, joinedPage * JOINED_PER_PAGE);
@@ -740,6 +742,85 @@ function JoinedThisWeek({ users, dark, onTap }) {
               padding:"5px 11px", borderRadius:16, fontSize:10, fontWeight:700,
               cursor: joinedPage < totalPages ? "pointer" : "default",
               opacity: joinedPage < totalPages ? 1 : 0.35,
+              background: th.card2, border:`1.5px solid ${th.border}`,
+              color: th.textMid, userSelect:"none",
+            }}
+          >›</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── DORMANT USERS ───────────────────────────────────────────────────────────
+function DormantUsers({ users, dark, onTap }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [dormantPage, setDormantPage] = React.useState(1);
+  const DORMANT_PER_PAGE = 10;
+
+  // Sort longest-inactive first so worst offenders appear on page 1
+  const allDormant = users
+    .filter(u =>
+      u.lastSeen?.seconds &&
+      (Date.now() - u.lastSeen.seconds * 1000) > 30 * 86400000
+    )
+    .sort((a, b) => (a.lastSeen.seconds || 0) - (b.lastSeen.seconds || 0));
+
+  const totalPages = Math.max(1, Math.ceil(allDormant.length / DORMANT_PER_PAGE));
+  const paged      = allDormant.slice((dormantPage - 1) * DORMANT_PER_PAGE, dormantPage * DORMANT_PER_PAGE);
+
+  if (allDormant.length === 0) {
+    return (
+      <div style={{ fontSize:12, color:th.textSub, padding:"12px 0", textAlign:"center" }}>
+        🎉 No dormant users — great retention!
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+      {paged.map(u => (
+        <UserRow key={u.id} user={u} dark={dark} onTap={onTap} />
+      ))}
+
+      {/* Paginator — same style as ActivityFeed / JoinedThisWeek */}
+      {totalPages > 1 && (
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:5, marginTop:10 }}>
+          <div
+            onClick={() => dormantPage > 1 && setDormantPage(p => p - 1)}
+            style={{
+              padding:"5px 11px", borderRadius:16, fontSize:10, fontWeight:700,
+              cursor: dormantPage > 1 ? "pointer" : "default",
+              opacity: dormantPage > 1 ? 1 : 0.35,
+              background: th.card2, border:`1.5px solid ${th.border}`,
+              color: th.textMid, userSelect:"none",
+            }}
+          >‹</div>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
+            const isActive = p === dormantPage;
+            const nearby   = Math.abs(p - dormantPage) <= 1 || p === 1 || p === totalPages;
+            if (!nearby) {
+              if (p === dormantPage - 2 || p === dormantPage + 2)
+                return <span key={p} style={{ color:th.textSub, fontSize:10 }}>…</span>;
+              return null;
+            }
+            return (
+              <div key={p} onClick={() => setDormantPage(p)} style={{
+                minWidth:26, height:26, display:"flex", alignItems:"center", justifyContent:"center",
+                borderRadius:8, fontSize:10, fontWeight:700, cursor:"pointer",
+                background: isActive ? "#F59E0B" : th.card2,
+                color:      isActive ? "#fff"    : th.textMid,
+                border:`1.5px solid ${isActive ? "#F59E0B" : th.border}`,
+                transition:"all 0.15s", userSelect:"none",
+              }}>{p}</div>
+            );
+          })}
+          <div
+            onClick={() => dormantPage < totalPages && setDormantPage(p => p + 1)}
+            style={{
+              padding:"5px 11px", borderRadius:16, fontSize:10, fontWeight:700,
+              cursor: dormantPage < totalPages ? "pointer" : "default",
+              opacity: dormantPage < totalPages ? 1 : 0.35,
               background: th.card2, border:`1.5px solid ${th.border}`,
               color: th.textMid, userSelect:"none",
             }}
@@ -3651,7 +3732,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   }, []);
 
   useEffect(() => {
-    if (activeSection === "usage") fetchUsage();
+    if (activeSection === "usage" && !usageData) fetchUsage();
   }, [activeSection]);
 
   // ── Computed stats ────────────────────────────────────────────────────────
@@ -3671,16 +3752,8 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       .sort((a, b) => b[1] - a[1]).slice(0, 8)
       .map(([label, value]) => ({ label, value }));
 
-    const occData = Object.entries(byOcc).sort((a, b) => b[1] - a[1])
-      .map(([key, value]) => ({
-        label: `${OCC_EMOJI[key] || ""} ${OCC_LABELS[key] || key}`, value,
-      }));
-
     const incData = Object.entries(byInc)
       .map(([key, value]) => ({ label: INC_LABELS[key] || key, value }));
-
-    const areaData = Object.entries(byArea)
-      .map(([key, value]) => ({ label: AREA_LABELS[key] || key, value }));
 
     const ageData = Object.entries(byAge)
       .map(([key, value]) => ({ label: AGE_LABELS[key] || key, value }));
@@ -3746,12 +3819,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       }).length;
     });
 
+    const dormantCount = users.filter(u =>
+      u.lastSeen?.seconds && (now - u.lastSeen.seconds * 1000) > 30 * ONE_DAY
+    ).length;
+
     return {
-      topStates, occData, incData, areaData, ageData,
+      topStates, incData, ageData,
       occDonut, areaDonut,
       activeToday, activeWeek, newThisWeek, weekGrowth,
       googleUsers, withPhone, statesCount, housedUsers, needHousing, spark,
       genderData, rationData, maritalData, disabData,
+      dormantCount,
     };
   }, [users]);
 
@@ -5705,8 +5783,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
           {/* Quick metrics */}
           <div style={{ display:"flex", gap:10 }}>
-            <StatCard icon="🟢" label="Active Today" value={stats.activeToday} color={IND_GREEN} dark={dark} />
-            <StatCard icon="📅" label="Active This Week" value={stats.activeWeek} color={VIOLET} dark={dark} />
+            <StatCard icon="🟢" label="Active Today"    value={stats.activeToday}   color={IND_GREEN}  dark={dark} />
+            <StatCard icon="📅" label="Active This Week" value={stats.activeWeek}    color={VIOLET}     dark={dark} />
+            <StatCard icon="😴" label="Dormant 30d+"    value={stats.dormantCount}  color="#F59E0B"    dark={dark} />
           </div>
 
           <div style={{
@@ -5728,6 +5807,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               🆕 Joined This Week ({stats.newThisWeek})
             </div>
             <JoinedThisWeek users={users} dark={dark} onTap={setSelectedUser} />
+          </div>
+
+          {/* Dormant users list */}
+          <div style={{
+            background:th.card, border:`1.5px solid ${th.border}`,
+            borderRadius:16, padding:"14px 16px",
+          }}>
+            <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:8 }}>
+              😴 Dormant Users — 30+ Days Inactive ({stats.dormantCount})
+            </div>
+            <DormantUsers users={users} dark={dark} onTap={setSelectedUser} />
           </div>
         </div>
       )}
