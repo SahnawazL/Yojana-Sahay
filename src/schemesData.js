@@ -1086,6 +1086,488 @@ export const SCHEME_DB = [
     match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
+  {
+    id: "csss",
+    icon: "🏆", color: "#1E40AF", scope: "national",
+    ministry: { en: "Ministry of Education (Dept. of Higher Education)", hi: "शिक्षा मंत्रालय (उच्च शिक्षा विभाग)" },
+    name:    { en: "Central Sector Scholarship Scheme (CSSS)",          hi: "केंद्रीय क्षेत्र छात्रवृत्ति योजना (CSSS)" },
+    benefit: { en: "₹12,000/year (UG 1st–3rd year) · ₹20,000/year (PG) for Class 12 toppers", hi: "कक्षा 12 टॉपर्स को ₹12,000/वर्ष (UG 1–3 वर्ष) · ₹20,000/वर्ष (PG)" },
+    tag:     { en: "Student / Merit", hi: "छात्र / मेधा" },
+    annual: 12000,
+    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Class 12 Mark Sheet (above 80th percentile in Board exam)","Income Certificate (≤₹4.5L/year)","College Admission Letter","Bank Account (Aadhaar-linked)","Passport Photo"],
+               hi: ["आधार कार्ड","कक्षा 12 मार्कशीट (बोर्ड परीक्षा में 80वीं प्रतिशत से ऊपर)","आय प्रमाण (≤₹4.5 लाख/वर्ष)","कॉलेज प्रवेश पत्र","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
+    // Eligibility: students above 80th percentile in Class 12 Board, family income ≤ ₹4.5L, in regular UG/PG (not distance/open)
+    match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "nlm",
+    icon: "🐄", color: "#92400E", scope: "national",
+    ministry: { en: "Ministry of Fisheries, Animal Husbandry & Dairying", hi: "मत्स्य पालन, पशुपालन एवं डेयरी मंत्रालय" },
+    name:    { en: "National Livestock Mission (NLM)",                   hi: "राष्ट्रीय पशुधन मिशन (NLM)" },
+    benefit: { en: "50% subsidy (max ₹50 Lakh; 60% for SC/ST/Women) on poultry, goat, sheep, cattle & fodder enterprises", hi: "मुर्गी पालन, बकरी, भेड़, मवेशी व चारा इकाइयों पर 50% सब्सिडी (अधिकतम ₹50 लाख; SC/ST/महिलाओं को 60%)" },
+    tag:     { en: "Farmer / Animal Husbandry", hi: "किसान / पशुपालन" },
+    annual: 0,
+    apply:   { en: "nlm.udyamimitra.in / State Animal Husbandry Dept.", hi: "nlm.udyamimitra.in / राज्य पशुपालन विभाग" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Land Records / Shed Lease Deed","Project Report","Bank Statement (6 months)","Caste Certificate (SC/ST if applicable)","Bank Account"],
+               hi: ["आधार कार्ड","जमीन के कागज़ / शेड पट्टा","प्रोजेक्ट रिपोर्ट","6 महीने बैंक स्टेटमेंट","जाति प्रमाण (SC/ST हो तो)","बैंक खाता"] },
+    // Eligibility: farmers, SHGs, cooperatives, FPOs engaged in livestock/poultry rearing
+    match: (a) => a.who === "farmer" || (a.area === "rural" && ["below1","1to3"].includes(a.income)),
+  },
+
+  {
+    id: "pm_aasha",
+    icon: "⚖️", color: "#15803D", scope: "national",
+    ministry: { en: "Ministry of Agriculture & Farmers Welfare", hi: "कृषि एवं किसान कल्याण मंत्रालय" },
+    name:    { en: "PM AASHA (Price Support Scheme for Farmers)",        hi: "पीएम आशा (किसानों के लिए मूल्य समर्थन योजना)" },
+    benefit: { en: "Govt. procures oilseeds, pulses & copra at MSP when market price falls below MSP · Direct payment to bank", hi: "बाज़ार भाव MSP से नीचे जाने पर सरकार तिलहन, दलहन व खोपरा MSP पर खरीदती है · सीधे बैंक में भुगतान" },
+    tag:     { en: "Farmer", hi: "किसान" },
+    annual: 0,
+    apply:   { en: "agmarknet.gov.in / State Agri Marketing Board / Nearest PACS", hi: "agmarknet.gov.in / राज्य कृषि विपणन बोर्ड / नजदीकी PACS" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Land Records (Khasra / Khatauni)","Bank Account","Farmer Registration on State Agri Portal or e-NAM"],
+               hi: ["आधार कार्ड","जमीन के कागज़ (खसरा/खतौनी)","बैंक खाता","राज्य कृषि पोर्टल/e-NAM पर किसान पंजीकरण"] },
+    // Eligibility: farmers growing notified oilseeds (mustard, soybean, groundnut etc.), pulses & copra
+    match: (a) => a.who === "farmer",
+  },
+
+  {
+    id: "mcm_minority",
+    icon: "📘", color: "#6D28D9", scope: "national",
+    ministry: { en: "Ministry of Minority Affairs", hi: "अल्पसंख्यक कार्य मंत्रालय" },
+    name:    { en: "Merit-cum-Means Scholarship for Minorities (MCM)",  hi: "अल्पसंख्यकों के लिए मेरिट-कम-मीन्स छात्रवृत्ति (MCM)" },
+    benefit: { en: "₹25,000/year (technical/professional) · ₹10,000/year (general degree) + course fee reimbursement up to ₹20,000", hi: "तकनीकी/व्यावसायिक: ₹25,000/वर्ष · सामान्य डिग्री: ₹10,000/वर्ष + ₹20,000 तक कोर्स फीस प्रतिपूर्ति" },
+    tag:     { en: "Student / Minority", hi: "छात्र / अल्पसंख्यक" },
+    annual: 25000,
+    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Minority Community Certificate (Muslim/Christian/Sikh/Buddhist/Jain/Parsi)","Income Certificate (≤₹2.5L/year)","Previous Year Mark Sheet (min 50%)","Admission Letter","Bank Account (Aadhaar-linked)"],
+               hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","पिछले वर्ष मार्कशीट (न्यूनतम 50%)","प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
+    // Eligibility: minority student in Class 11 to PG technical/professional/general degree, income ≤ ₹2.5L
+    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "free_coaching_sc",
+    icon: "📝", color: "#7C3AED", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Empowerment", hi: "सामाजिक न्याय एवं अधिकारिता मंत्रालय" },
+    name:    { en: "Free Coaching Scheme for SC & OBC Students",        hi: "SC और OBC छात्रों के लिए नि:शुल्क कोचिंग योजना" },
+    benefit: { en: "Free coaching for UPSC, SSC, Banking, Railways, NEET, JEE & PSU exams · ₹3,000/month living allowance during coaching", hi: "UPSC, SSC, बैंकिंग, रेलवे, NEET, JEE और PSU परीक्षाओं की मुफ्त कोचिंग · कोचिंग के दौरान ₹3,000/माह भत्ता" },
+    tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
+    annual: 36000,
+    apply:   { en: "coaching.dosje.gov.in", hi: "coaching.dosje.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","SC / OBC Caste Certificate","Income Certificate (≤₹8L/year)","Educational Certificate (Class 12 / Graduation)","Bank Account","Passport Photo"],
+               hi: ["आधार कार्ड","SC/OBC जाति प्रमाण पत्र","आय प्रमाण (≤₹8 लाख/वर्ष)","शैक्षणिक प्रमाण (कक्षा 12/स्नातक)","बैंक खाता","पासपोर्ट फोटो"] },
+    // Eligibility: SC/OBC student, family income ≤ ₹8L, targeting national competitive exams
+    match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "pmfme",
+    icon: "🥘", color: "#0F766E", scope: "national",
+    ministry: { en: "Ministry of Food Processing Industries", hi: "खाद्य प्रसंस्करण उद्योग मंत्रालय" },
+    name:    { en: "PM Formalisation of Micro Food Processing Enterprises (PM-FME)", hi: "पीएम सूक्ष्म खाद्य प्रसंस्करण उद्यम औपचारिकीकरण (PM-FME)" },
+    benefit: { en: "35% credit-linked capital subsidy (max ₹10 Lakh) for micro food processing units · Free FSSAI registration & branding support + skill training", hi: "सूक्ष्म खाद्य प्रसंस्करण इकाइयों को 35% सब्सिडी (अधिकतम ₹10 लाख) · मुफ्त FSSAI पंजीकरण, ब्रांडिंग और कौशल प्रशिक्षण" },
+    tag:     { en: "Business", hi: "व्यापार" },
+    annual: 0,
+    apply:   { en: "pmfme.mofpi.gov.in", hi: "pmfme.mofpi.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar & PAN Card","Business Registration / FSSAI Licence (or applied for)","Project Report","Bank Statement (6 months)","Land / Shed Ownership or Lease Proof","Caste Certificate (SC/ST/OBC if applicable)"],
+               hi: ["आधार और पैन कार्ड","व्यापार पंजीकरण / FSSAI लाइसेंस","प्रोजेक्ट रिपोर्ट","6 महीने बैंक स्टेटमेंट","जमीन/शेड स्वामित्व या पट्टा","जाति प्रमाण (SC/ST/OBC हो तो)"] },
+    // Eligibility: individual micro food entrepreneurs, SHGs, FPOs in food processing; monthly turnover < ₹1 Crore
+    match: (a) => (a.who === "business" || a.who === "women") && ["18to35","35to60"].includes(a.age),
+  },
+
+  {
+    id: "ab_hwc",
+    icon: "🩺", color: "#059669", scope: "national",
+    ministry: { en: "Ministry of Health & Family Welfare (NHM)", hi: "स्वास्थ्य एवं परिवार कल्याण मंत्रालय (NHM)" },
+    name:    { en: "Ayushman Arogya Mandir – Health & Wellness Centres (AB-HWC)", hi: "आयुष्मान आरोग्य मंदिर – स्वास्थ्य एवं आरोग्य केंद्र (AB-HWC)" },
+    benefit: { en: "FREE walk-in OPD + 12 health services (mental health, oral, vision, ENT, physiotherapy) + free medicines & diagnostics at nearest HWC", hi: "नजदीकी HWC पर मुफ्त OPD + 12 स्वास्थ्य सेवाएं (मानसिक स्वास्थ्य, दांत, नेत्र, ENT, फिजियोथेरेपी) + मुफ्त दवाएं व जांच" },
+    tag:     { en: "Health", hi: "स्वास्थ्य" },
+    annual: 12000,
+    apply:   { en: "Nearest Ayushman Arogya Mandir / HWC — no prior registration needed", hi: "नजदीकी आयुष्मान आरोग्य मंदिर / HWC — पूर्व पंजीकरण जरूरी नहीं" }, applyType: "offline",
+    docs:    { en: ["No documents required for walk-in","Aadhaar Card (preferred)","Ayushman Card (if PMJAY beneficiary)"],
+               hi: ["वॉक-इन के लिए कोई दस्तावेज़ नहीं","आधार कार्ड (बेहतर)","आयुष्मान कार्ड (PMJAY लाभार्थी हो तो)"] },
+    // Eligibility: all citizens, no income or age restriction
+    match: (a) => true,
+  },
+
+  {
+    id: "pm_cares_children",
+    icon: "👧", color: "#BE185D", scope: "national",
+    ministry: { en: "Ministry of Women & Child Development", hi: "महिला एवं बाल विकास मंत्रालय" },
+    name:    { en: "PM CARES for Children (COVID Orphan Scheme)",        hi: "पीएम केयर्स फॉर चिल्ड्रन (कोविड अनाथ योजना)" },
+    benefit: { en: "₹10 Lakh corpus at age 18 · Monthly stipend up to age 23 · Free school education · Ayushman Bharat ₹5L health cover", hi: "18 वर्ष पर ₹10 लाख कोष · 23 वर्ष तक मासिक स्टाइपेंड · मुफ्त स्कूल शिक्षा · आयुष्मान भारत ₹5 लाख स्वास्थ्य बीमा" },
+    tag:     { en: "Health / Child", hi: "स्वास्थ्य / बच्चे" },
+    annual: 60000,
+    apply:   { en: "pmcaresforchildren.in / District Magistrate / District Collector", hi: "pmcaresforchildren.in / जिला मजिस्ट्रेट / जिला कलेक्टर" }, applyType: "offline",
+    docs:    { en: ["Child's Aadhaar & Birth Certificate","Both Parents' Death Certificates (COVID-19 mentioned)","COVID-19 Test / Death Summary Report","Guardian's Aadhaar","Bank Account (child/guardian)","District Welfare Officer Referral"],
+               hi: ["बच्चे का आधार और जन्म प्रमाण पत्र","दोनों माता-पिता के मृत्यु प्रमाण (COVID-19 उल्लेख सहित)","कोविड टेस्ट/मृत्यु सारांश रिपोर्ट","अभिभावक का आधार","बैंक खाता (बच्चे/अभिभावक)","जिला कल्याण अधिकारी का संदर्भ"] },
+    // Eligibility: children under 18 who lost both parents (or sole surviving parent) to COVID-19
+    match: (a) => a.age === "below18" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "premat_sc",
+    icon: "📙", color: "#B45309", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Empowerment", hi: "सामाजिक न्याय एवं अधिकारिता मंत्रालय" },
+    name:    { en: "Pre-Matric Scholarship for SC Students (Class 9–10)", hi: "SC छात्रों के लिए प्री-मैट्रिक छात्रवृत्ति (कक्षा 9–10)" },
+    benefit: { en: "₹150–₹350/month maintenance allowance + full tuition & school fee reimbursement for SC students in Class 9–10", hi: "कक्षा 9–10 के SC छात्रों को ₹150–₹350/माह रखरखाव भत्ता + पूरी ट्यूशन और स्कूल फीस प्रतिपूर्ति" },
+    tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
+    annual: 4200,
+    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","SC Caste Certificate","Income Certificate (≤₹2.5L/year)","Class 8 Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
+               hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","कक्षा 8 मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
+    // Eligibility: SC student in Class 9–10 in govt/govt-aided school, family income ≤ ₹2.5L
+    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "ujala",
+    icon: "💡", color: "#D97706", scope: "national",
+    ministry: { en: "Ministry of Power (EESL – Energy Efficiency Services Ltd.)", hi: "विद्युत मंत्रालय (EESL – ऊर्जा दक्षता सेवाएं लि.)" },
+    name:    { en: "UJALA Scheme (Subsidised LED Bulbs & Appliances)",   hi: "उजाला योजना (सब्सिडीयुक्त LED बल्ब और उपकरण)" },
+    benefit: { en: "LED bulbs at ₹70 (market ₹600) · LED tube lights, fans & pumps also subsidised · Up to 80% electricity bill savings", hi: "LED बल्ब ₹70 में (बाज़ार में ₹600) · LED ट्यूब लाइट, पंखे और पंप भी सब्सिडी पर · बिजली बिल में 80% तक बचत" },
+    tag:     { en: "Solar / Electricity", hi: "सौर / बिजली" },
+    annual: 3600,
+    apply:   { en: "ujala.gov.in / Nearest DISCOM Office or EESL outlet", hi: "ujala.gov.in / नजदीकी DISCOM कार्यालय या EESL आउटलेट" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Electricity Bill / Consumer Number","Ration Card (for BPL priority)"],
+               hi: ["आधार कार्ड","बिजली बिल / उपभोक्ता नंबर","राशन कार्ड (BPL प्राथमिकता के लिए)"] },
+    // Eligibility: all electricity consumers; BPL/low-income households get priority
+    match: (a) => true,
+  },
+
+  {
+    id: "rgnf",
+    icon: "🔬", color: "#1D4ED8", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Empowerment (UGC)", hi: "सामाजिक न्याय एवं अधिकारिता मंत्रालय (UGC)" },
+    name:    { en: "Rajiv Gandhi National Fellowship for SC Students (RGNF)", hi: "राजीव गांधी राष्ट्रीय अध्येतावृत्ति – SC छात्र (RGNF)" },
+    benefit: { en: "₹31,000/month (JRF, first 2 yrs) · ₹35,000/month (SRF, yrs 3–5) + HRA + contingency grant for M.Phil/PhD", hi: "M.Phil/PhD के लिए ₹31,000/माह (JRF, पहले 2 वर्ष) · ₹35,000/माह (SRF, वर्ष 3–5) + HRA + आकस्मिक अनुदान" },
+    tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
+    annual: 420000,
+    apply:   { en: "ugc.ac.in / scholarships.gov.in", hi: "ugc.ac.in / scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","SC Caste Certificate","Admission Letter for M.Phil / PhD","NET / JRF Score Card (or UGC-exempted category proof)","Bank Account (Aadhaar-linked)","Passport Photo"],
+               hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड (या UGC-छूट श्रेणी)","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
+    // Eligibility: SC student admitted to M.Phil/PhD in UGC-recognised university; no income restriction
+    match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age),
+  },
+
+  {
+    id: "nfobc",
+    icon: "🔭", color: "#7C3AED", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Empowerment (UGC)", hi: "सामाजिक न्याय एवं अधिकारिता मंत्रालय (UGC)" },
+    name:    { en: "National Fellowship for OBC Students (NFOBC)",       hi: "OBC छात्रों के लिए राष्ट्रीय अध्येतावृत्ति (NFOBC)" },
+    benefit: { en: "₹31,000/month (JRF) · ₹35,000/month (SRF) + HRA + contingency for OBC M.Phil/PhD students", hi: "OBC M.Phil/PhD छात्रों को ₹31,000/माह (JRF) · ₹35,000/माह (SRF) + HRA + आकस्मिक अनुदान" },
+    tag:     { en: "Student / OBC", hi: "छात्र / OBC" },
+    annual: 420000,
+    apply:   { en: "ugc.ac.in / scholarships.gov.in", hi: "ugc.ac.in / scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","OBC (Non-Creamy Layer) Certificate","Admission Letter for M.Phil / PhD","NET / JRF Score Card","Income Certificate (family income ≤₹8L/year)","Bank Account (Aadhaar-linked)"],
+               hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड","आय प्रमाण (परिवार आय ≤₹8 लाख/वर्ष)","बैंक खाता (आधार लिंक)"] },
+    // Eligibility: OBC (non-creamy layer) student admitted to M.Phil/PhD, income ≤ ₹8L
+    match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "pms_obc",
+    icon: "📒", color: "#D97706", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Empowerment", hi: "सामाजिक न्याय एवं अधिकारिता मंत्रालय" },
+    name:    { en: "Post-Matric Scholarship for OBC Students",           hi: "OBC छात्रों के लिए पोस्ट मैट्रिक छात्रवृत्ति" },
+    benefit: { en: "Maintenance allowance ₹700–₹1,200/month + full tuition & fee reimbursement · All post-Class 10 courses", hi: "₹700–₹1,200/माह रखरखाव भत्ता + पूरी ट्यूशन और शुल्क प्रतिपूर्ति · कक्षा 10 के बाद सभी कोर्स" },
+    tag:     { en: "Student / OBC", hi: "छात्र / OBC" },
+    annual: 14400,
+    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","OBC (Non-Creamy Layer) Caste Certificate","Income Certificate (≤₹1.5L/year)","Previous Year Mark Sheet","Institution Admission Letter","Bank Account (Aadhaar-linked)"],
+               hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) जाति प्रमाण पत्र","आय प्रमाण (≤₹1.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
+    // Eligibility: OBC (non-creamy layer) student post Class 10, family income ≤ ₹1.5L
+    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "working_women_hostel",
+    icon: "🏠", color: "#9D174D", scope: "national",
+    ministry: { en: "Ministry of Women & Child Development (Mission SAMARTHYA)", hi: "महिला एवं बाल विकास मंत्रालय (मिशन सामर्थ्य)" },
+    name:    { en: "Working Women's Hostel Scheme",                      hi: "कामकाजी महिला छात्रावास योजना" },
+    benefit: { en: "Subsidised hostel accommodation at ₹1,000–₹1,500/month for working women & students in cities · Children (0–18 yrs) of residents also accommodated", hi: "शहरों में कामकाजी महिलाओं और छात्राओं को ₹1,000–₹1,500/माह सब्सिडी पर छात्रावास · निवासियों के बच्चे (0–18 वर्ष) भी रह सकते हैं" },
+    tag:     { en: "Women / SHG", hi: "महिला / SHG" },
+    annual: 18000,
+    apply:   { en: "wcd.gov.in / State WCD Department / Nearest working women's hostel", hi: "wcd.gov.in / राज्य WCD विभाग / नजदीकी कामकाजी महिला छात्रावास" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Work / Employment Certificate or College Admission Letter","Income Certificate (≤₹50,000/month metros; ≤₹35,000/month other cities)","Address Proof (home town)","Passport Photo"],
+               hi: ["आधार कार्ड","कार्य/रोजगार प्रमाण पत्र या कॉलेज प्रवेश पत्र","आय प्रमाण (मेट्रो: ≤₹50,000/माह; अन्य शहर: ≤₹35,000/माह)","गृहनगर का पता प्रमाण","पासपोर्ट फोटो"] },
+    // Eligibility: women working/studying away from home in urban/semi-urban areas
+    match: (a) => a.who === "women" && ["urban","semi"].includes(a.area),
+  },
+
+  {
+    id: "swadhar_greh",
+    icon: "🆘", color: "#DC2626", scope: "national",
+    ministry: { en: "Ministry of Women & Child Development (Mission SAMBAL)", hi: "महिला एवं बाल विकास मंत्रालय (मिशन संबल)" },
+    name:    { en: "Swadhar Greh (Shelter for Women in Distress)",       hi: "स्वाधार गृह (कठिन परिस्थितियों में महिलाओं के लिए आश्रय)" },
+    benefit: { en: "Free shelter, food, clothing, medical care, legal aid, counselling & skill training for women in difficult circumstances (up to 1 year, extendable)", hi: "कठिन परिस्थितियों में महिलाओं को मुफ्त आश्रय, भोजन, वस्त्र, चिकित्सा, कानूनी सहायता, परामर्श और कौशल प्रशिक्षण (1 वर्ष तक, विस्तारयोग्य)" },
+    tag:     { en: "Women / Legal Aid", hi: "महिला / कानूनी सहायता" },
+    annual: 0,
+    apply:   { en: "181 Helpline / Nearest WCD Office / District Collector", hi: "181 हेल्पलाइन / नजदीकी WCD कार्यालय / जिला कलेक्टर" }, applyType: "offline",
+    docs:    { en: ["No documents required in emergency","Aadhaar Card (preferred if available)","Police FIR / Medical Report (if applicable)"],
+               hi: ["आपातकाल में कोई दस्तावेज़ जरूरी नहीं","आधार कार्ड (उपलब्ध हो तो)","पुलिस FIR / चिकित्सा रिपोर्ट (लागू हो तो)"] },
+    // Eligibility: women victims of trafficking, domestic violence, disaster, released prisoners, destitute — any income/age
+    match: (a) => a.who === "women",
+  },
+
+  {
+    id: "ndp",
+    icon: "💉", color: "#0369A1", scope: "national",
+    ministry: { en: "Ministry of Health & Family Welfare (NHM)", hi: "स्वास्थ्य एवं परिवार कल्याण मंत्रालय (NHM)" },
+    name:    { en: "National Dialysis Programme (NDP) – Free Kidney Dialysis", hi: "राष्ट्रीय डायलिसिस कार्यक्रम (NDP) – मुफ्त किडनी डायलिसिस" },
+    benefit: { en: "Free dialysis sessions at empanelled district hospitals + ₹500/session transport allowance for BPL patients (saves ₹15,000–₹20,000/month)", hi: "पंजीकृत जिला अस्पतालों में मुफ्त डायलिसिस + BPL मरीजों को ₹500/सत्र यातायात भत्ता (₹15,000–₹20,000/माह की बचत)" },
+    tag:     { en: "Health", hi: "स्वास्थ्य" },
+    annual: 180000,
+    apply:   { en: "nhm.gov.in / Nearest District Hospital with NDP facility", hi: "nhm.gov.in / NDP सुविधा वाले नजदीकी जिला अस्पताल" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","BPL / EWS Certificate","Medical Certificate (CKD / kidney failure requiring dialysis)","Doctor's Referral","Bank Account"],
+               hi: ["आधार कार्ड","BPL/EWS प्रमाण","चिकित्सा प्रमाण पत्र (CKD/डायलिसिस की आवश्यकता)","डॉक्टर का रेफरल","बैंक खाता"] },
+    // Eligibility: all patients requiring dialysis; transport allowance for BPL patients
+    match: (a) => ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "ran",
+    icon: "🏥", color: "#B91C1C", scope: "national",
+    ministry: { en: "Ministry of Health & Family Welfare", hi: "स्वास्थ्य एवं परिवार कल्याण मंत्रालय" },
+    name:    { en: "Rashtriya Arogya Nidhi (RAN) – Life-Threatening Disease Fund", hi: "राष्ट्रीय आरोग्य निधि (RAN) – जानलेवा बीमारी सहायता कोष" },
+    benefit: { en: "Financial assistance up to ₹15 Lakh (₹20 Lakh for rare diseases) for BPL patients with life-threatening illness treated at central govt hospitals / AIIMS", hi: "AIIMS/केंद्रीय सरकारी अस्पतालों में जानलेवा बीमारी के BPL मरीजों को ₹15 लाख तक (दुर्लभ बीमारी में ₹20 लाख) वित्तीय सहायता" },
+    tag:     { en: "Health", hi: "स्वास्थ्य" },
+    annual: 1500000,
+    apply:   { en: "Through hospital Medical Superintendent / Social Worker at AIIMS / Central Govt. Hospital", hi: "AIIMS/केंद्रीय सरकारी अस्पताल के मेडिकल सुपरिटेंडेंट / सामाजिक कार्यकर्ता के माध्यम से" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","BPL Certificate","Medical Certificate (life-threatening diagnosis)","Treating Doctor's Referral Letter","Estimated Treatment Cost Certificate","Bank Account"],
+               hi: ["आधार कार्ड","BPL प्रमाण पत्र","चिकित्सा प्रमाण पत्र (जानलेवा बीमारी)","इलाज करने वाले डॉक्टर का रेफरल पत्र","अनुमानित उपचार लागत प्रमाण पत्र","बैंक खाता"] },
+    // Eligibility: BPL patient with life-threatening disease requiring treatment at central govt hospital
+    match: (a) => ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "aif",
+    icon: "🏗️", color: "#065F46", scope: "national",
+    ministry: { en: "Ministry of Agriculture & Farmers Welfare", hi: "कृषि एवं किसान कल्याण मंत्रालय" },
+    name:    { en: "Agriculture Infrastructure Fund (AIF)",               hi: "कृषि अवसंरचना कोष (AIF)" },
+    benefit: { en: "3% interest subvention for 7 years on loans up to ₹2 Crore for post-harvest infra: cold storage, warehouse, sorting/grading, primary processing, assaying labs", hi: "शीत भंडारण, गोदाम, छंटाई/श्रेणीकरण, प्राथमिक प्रसंस्करण केंद्र हेतु ₹2 करोड़ तक के ऋण पर 7 वर्ष के लिए 3% ब्याज सब्सिडी" },
+    tag:     { en: "Farmer / Organic", hi: "किसान / जैविक" },
+    annual: 0,
+    apply:   { en: "agriinfra.dac.gov.in / Nearest NABARD or Scheduled Commercial Bank", hi: "agriinfra.dac.gov.in / नजदीकी NABARD या अनुसूचित वाणिज्यिक बैंक" }, applyType: "online",
+    docs:    { en: ["Aadhaar & PAN Card","Land Records / Lease Deed","Detailed Project Report (DPR)","Bank Statement (6 months)","Farmer / FPO / SHG Registration Proof","Environmental Clearance (if applicable)"],
+               hi: ["आधार और पैन कार्ड","जमीन के कागज़ / पट्टा","विस्तृत परियोजना रिपोर्ट (DPR)","6 महीने बैंक स्टेटमेंट","किसान/FPO/SHG पंजीकरण प्रमाण","पर्यावरण अनुमति (यदि लागू)"] },
+    // Eligibility: individual farmers, FPOs, SHGs, cooperatives, agri-entrepreneurs building post-harvest infra
+    match: (a) => a.who === "farmer" || (a.who === "business" && ["35to60","18to35"].includes(a.age)),
+  },
+
+  {
+    id: "khelo_india",
+    icon: "🏅", color: "#EA580C", scope: "national",
+    ministry: { en: "Ministry of Youth Affairs & Sports (SAI)", hi: "युवा कार्यक्रम एवं खेल मंत्रालय (SAI)" },
+    name:    { en: "Khelo India Scholarship (Young Athlete Scheme)",     hi: "खेलो इंडिया छात्रवृत्ति (युवा एथलीट योजना)" },
+    benefit: { en: "₹5 Lakh/year for 5 years · Free training at SAI centres + coaching, nutrition, equipment, travel & insurance support", hi: "5 वर्षों के लिए ₹5 लाख/वर्ष · SAI केंद्रों पर मुफ्त प्रशिक्षण + कोचिंग, पोषण, उपकरण, यात्रा और बीमा सहायता" },
+    tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
+    annual: 500000,
+    apply:   { en: "kheloindia.gov.in / State Sports Authority / District Sports Officer", hi: "kheloindia.gov.in / राज्य खेल प्राधिकरण / जिला खेल अधिकारी" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Age Proof","State / National Level Sports Performance Certificate","School or College Enrollment Certificate","Bank Account (Aadhaar-linked)","Passport Photo","Coach Recommendation Letter"],
+               hi: ["आधार कार्ड","आयु प्रमाण","राज्य/राष्ट्रीय स्तर का खेल प्रदर्शन प्रमाण पत्र","स्कूल/कॉलेज नामांकन प्रमाण","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो","कोच अनुशंसा पत्र"] },
+    // Eligibility: young athletes under 18 (school) or under 21 (college) with state/national sports achievement
+    match: (a) => a.age === "18to35" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "nai_manzil",
+    icon: "🌅", color: "#0F766E", scope: "national",
+    ministry: { en: "Ministry of Minority Affairs", hi: "अल्पसंख्यक कार्य मंत्रालय" },
+    name:    { en: "Nai Manzil Scheme (Education & Livelihood for Minority Dropouts)", hi: "नई मंजिल योजना (अल्पसंख्यक स्कूल छोड़ने वालों के लिए शिक्षा व रोजगार)" },
+    benefit: { en: "Bridge education (Class 10 / 12 equivalent via NIOS) + skill training (9–12 months) · ₹2,500–₹3,000/month stipend + placement support", hi: "ब्रिज शिक्षा (NIOS से कक्षा 10/12 समकक्ष) + कौशल प्रशिक्षण (9–12 माह) · ₹2,500–₹3,000/माह वजीफा + नौकरी सहायता" },
+    tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
+    annual: 36000,
+    apply:   { en: "naimanzil.gov.in / Nearest empanelled NGO or Training Centre", hi: "naimanzil.gov.in / नजदीकी पंजीकृत NGO या प्रशिक्षण केंद्र" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Minority Community Certificate (Muslim/Christian/Sikh/Buddhist/Jain/Parsi)","Age Proof (17–35 years)","Last School Certificate (Class 5/8/9 dropout proof)","Bank Account"],
+               hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","आयु प्रमाण (17–35 वर्ष)","अंतिम स्कूल प्रमाण पत्र (कक्षा 5/8/9 ड्रॉपआउट प्रमाण)","बैंक खाता"] },
+    // Eligibility: minority youth aged 17–35 who dropped out before Class 10, seeking education + livelihood
+    match: (a) => ["18to35"].includes(a.age) && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "pm_smile",
+    icon: "🌈", color: "#7C3AED", scope: "national",
+    ministry: { en: "Ministry of Social Justice & Empowerment", hi: "सामाजिक न्याय एवं अधिकारिता मंत्रालय" },
+    name:    { en: "PM SMILE – Support for Marginalised Individuals for Livelihood & Enterprise", hi: "पीएम SMILE – आजीविका और उद्यम के लिए हाशिए के व्यक्तियों का समर्थन" },
+    benefit: { en: "Comprehensive welfare for transgender persons: ABHA / Aadhaar support, free education, PMKVY skill training, PM SVANidhi loan, Ayushman Bharat ₹5L health cover, shelter & livelihood rehabilitation", hi: "ट्रांसजेंडर व्यक्तियों के लिए व्यापक कल्याण: ABHA/आधार सहायता, मुफ्त शिक्षा, PMKVY प्रशिक्षण, PM स्वनिधि लोन, आयुष्मान ₹5 लाख स्वास्थ्य बीमा, आश्रय और आजीविका पुनर्वास" },
+    tag:     { en: "General", hi: "सामान्य" },
+    annual: 0,
+    apply:   { en: "smilecdo.dosje.gov.in / District Social Welfare Office / State Transgender Welfare Board", hi: "smilecdo.dosje.gov.in / जिला समाज कल्याण कार्यालय / राज्य ट्रांसजेंडर कल्याण बोर्ड" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Self-identification as Transgender (or District Screening Committee Certificate)","Bank Account","Passport Photo"],
+               hi: ["आधार कार्ड","ट्रांसजेंडर स्व-पहचान (या जिला स्क्रीनिंग समिति प्रमाण पत्र)","बैंक खाता","पासपोर्ट फोटो"] },
+    // Eligibility: transgender persons and persons engaged in begging seeking rehabilitation
+    match: (a) => a.who === "general" || ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "nfsm",
+    icon: "🌱", color: "#15803D", scope: "national",
+    ministry: { en: "Ministry of Agriculture & Farmers Welfare", hi: "कृषि एवं किसान कल्याण मंत्रालय" },
+    name:    { en: "National Food Security Mission (NFSM)",              hi: "राष्ट्रीय खाद्य सुरक्षा मिशन (NFSM)" },
+    benefit: { en: "Free certified seeds (50% subsidy) + subsidised micronutrients, farm machinery (50%) & irrigation tools for rice, wheat, pulses, oilseeds & commercial crop farmers", hi: "धान, गेहूं, दलहन, तिलहन और व्यावसायिक फसल किसानों को मुफ्त प्रमाणित बीज (50% सब्सिडी) + सब्सिडी पर सूक्ष्म पोषक तत्व, कृषि मशीनरी (50%) और सिंचाई उपकरण" },
+    tag:     { en: "Farmer", hi: "किसान" },
+    annual: 5000,
+    apply:   { en: "nfsm.gov.in / State Agriculture Department / Local Krishi Vigyan Kendra (KVK)", hi: "nfsm.gov.in / राज्य कृषि विभाग / स्थानीय कृषि विज्ञान केंद्र (KVK)" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Land Records (Khasra / Khatauni)","Bank Account","Farmer Registration (on State Agri Portal)","Caste Certificate (SC/ST for priority)"],
+               hi: ["आधार कार्ड","जमीन के कागज़ (खसरा/खतौनी)","बैंक खाता","किसान पंजीकरण (राज्य कृषि पोर्टल पर)","जाति प्रमाण (SC/ST प्राथमिकता के लिए)"] },
+    // Eligibility: farmers growing rice, wheat, pulses, oilseeds, or commercial crops; small/marginal farmers prioritised
+    match: (a) => a.who === "farmer",
+  },
+
+  // ── NEW NATIONAL SCHEMES (added June 2026) ────────────────────────────────
+
+  {
+    id: "pmgkay",
+    icon: "🆓", color: "#16A34A", scope: "national",
+    ministry: { en: "Ministry of Consumer Affairs, Food & Public Distribution", hi: "उपभोक्ता मामले, खाद्य एवं सार्वजनिक वितरण मंत्रालय" },
+    name:    { en: "PM Garib Kalyan Anna Yojana (PMGKAY)",               hi: "पीएम गरीब कल्याण अन्न योजना (PMGKAY)" },
+    benefit: { en: "5 kg FREE grain per person per month for all NFSA ration card holders · Extended through December 2028", hi: "सभी NFSA राशन कार्ड धारकों को 5 किलो मुफ्त अनाज/व्यक्ति/माह · दिसंबर 2028 तक विस्तारित" },
+    tag:     { en: "Food Security", hi: "खाद्य सुरक्षा" },
+    annual: 6000,
+    apply:   { en: "Nearest Fair Price Shop (Ration Shop) — automatic for NFSA card holders", hi: "नजदीकी उचित मूल्य की दुकान — NFSA कार्ड धारकों के लिए स्वचालित" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card (eKYC seeded)","Ration Card (NFSA / AAY / PHH)"],
+               hi: ["आधार कार्ड (eKYC लिंक)","राशन कार्ड (NFSA / AAY / PHH)"] },
+    // Eligibility: all NFSA ration card holders (priority households & Antyodaya)
+    match: (a) => ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "pm_janman",
+    icon: "🏕️", color: "#065F46", scope: "national",
+    ministry: { en: "Ministry of Tribal Affairs", hi: "जनजातीय कार्य मंत्रालय" },
+    name:    { en: "PM JANMAN – Janjati Adivasi Nyaya Maha Abhiyan",     hi: "पीएम JANMAN – जनजाति आदिवासी न्याय महा अभियान" },
+    benefit: { en: "11 critical interventions for 75 PVTG communities: ₹2.39 Lakh housing, road, piped water, electricity, mobile medical units, Anganwadi centres, livelihood & telecom support", hi: "75 PVTG जनजातीय समुदायों के लिए 11 हस्तक्षेप: ₹2.39 लाख आवास, सड़क, पाइप जल, बिजली, मोबाइल चिकित्सा, आंगनवाड़ी, आजीविका और दूरसंचार सहायता" },
+    tag:     { en: "Rural / Housing", hi: "ग्रामीण / आवास" },
+    annual: 239000,
+    apply:   { en: "tribal.gov.in / State Tribal Welfare Department / District Tribal Officer", hi: "tribal.gov.in / राज्य जनजातीय कल्याण विभाग / जिला जनजातीय अधिकारी" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Tribal Caste Certificate (PVTG community)","Ration Card","Land / Residence Proof"],
+               hi: ["आधार कार्ड","जनजाति जाति प्रमाण पत्र (PVTG समुदाय)","राशन कार्ड","भूमि / निवास प्रमाण"] },
+    // Eligibility: residents of 75 Particularly Vulnerable Tribal Groups in notified tribal sub-plan areas
+    match: (a) => a.area === "rural" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "nat_bamboo",
+    icon: "🎋", color: "#15803D", scope: "national",
+    ministry: { en: "Ministry of Agriculture & Farmers Welfare", hi: "कृषि एवं किसान कल्याण मंत्रालय" },
+    name:    { en: "National Bamboo Mission (NBM)",                       hi: "राष्ट्रीय बांस मिशन (NBM)" },
+    benefit: { en: "50% subsidy on bamboo plantation, nurseries & value-addition units · Free planting material + skill training for farmers", hi: "बांस रोपण, नर्सरी और मूल्य वर्धन इकाइयों पर 50% सब्सिडी · मुफ्त पौध सामग्री + किसानों के लिए प्रशिक्षण" },
+    tag:     { en: "Farmer / Organic", hi: "किसान / जैविक" },
+    annual: 0,
+    apply:   { en: "nbm.nic.in / State Nodal Agency / Local Krishi Vigyan Kendra (KVK)", hi: "nbm.nic.in / राज्य नोडल एजेंसी / स्थानीय कृषि विज्ञान केंद्र (KVK)" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Land Records (min 0.2 ha)","Bank Account","Farmer Registration (State Agri Portal)","Caste Certificate (SC/ST for priority)"],
+               hi: ["आधार कार्ड","जमीन के कागज़ (न्यूनतम 0.2 हेक्टेयर)","बैंक खाता","किसान पंजीकरण (राज्य कृषि पोर्टल)","जाति प्रमाण (SC/ST प्राथमिकता के लिए)"] },
+    // Eligibility: farmers with suitable land; SHGs, FPOs and entrepreneurs for processing units
+    match: (a) => a.who === "farmer" && a.area === "rural",
+  },
+
+  {
+    id: "aicte_pragati",
+    icon: "👩‍💻", color: "#0369A1", scope: "national",
+    ministry: { en: "Ministry of Education (AICTE)", hi: "शिक्षा मंत्रालय (AICTE)" },
+    name:    { en: "AICTE Pragati Scholarship – Girl Students in Technical Education", hi: "AICTE प्रगति छात्रवृत्ति – तकनीकी शिक्षा में छात्राएं" },
+    benefit: { en: "₹50,000/year + ₹2,000 contingency for girl students in AICTE-approved diploma/degree programmes", hi: "AICTE-अनुमोदित डिप्लोमा/डिग्री में छात्राओं को ₹50,000/वर्ष + ₹2,000 आकस्मिक अनुदान" },
+    tag:     { en: "Student / Women", hi: "छात्र / महिला" },
+    annual: 50000,
+    apply:   { en: "aicte-india.org / scholarships.gov.in", hi: "aicte-india.org / scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Income Certificate (family income ≤₹8L/year)","AICTE-institution Admission Letter","Class 10 & 12 Mark Sheets","Bank Account (Aadhaar-linked)","Passport Photo"],
+               hi: ["आधार कार्ड","आय प्रमाण (पारिवारिक आय ≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","कक्षा 10 और 12 की मार्कशीट","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
+    // Eligibility: girl student in AICTE-approved technical diploma/degree, family income ≤ ₹8L
+    match: (a) => (a.who === "women" || a.who === "student") && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "aicte_saksham",
+    icon: "🦾", color: "#6366F1", scope: "national",
+    ministry: { en: "Ministry of Education (AICTE)", hi: "शिक्षा मंत्रालय (AICTE)" },
+    name:    { en: "AICTE Saksham Scholarship – Differently-Abled Students in Technical Education", hi: "AICTE सक्षम छात्रवृत्ति – तकनीकी शिक्षा में दिव्यांग छात्र" },
+    benefit: { en: "₹50,000/year + ₹2,000 contingency for differently-abled students (≥40% disability) in AICTE-approved technical diploma/degree programmes", hi: "AICTE-अनुमोदित तकनीकी पाठ्यक्रमों में दिव्यांग छात्रों (≥40% विकलांगता) को ₹50,000/वर्ष + ₹2,000 आकस्मिक अनुदान" },
+    tag:     { en: "Student / Disability", hi: "छात्र / दिव्यांगता" },
+    annual: 50000,
+    apply:   { en: "aicte-india.org / scholarships.gov.in", hi: "aicte-india.org / scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Disability Certificate (≥40% disability)","Income Certificate (family income ≤₹8L/year)","AICTE-institution Admission Letter","Mark Sheets","Bank Account (Aadhaar-linked)"],
+               hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (≥40%)","आय प्रमाण (≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","मार्कशीट","बैंक खाता (आधार लिंक)"] },
+    // Eligibility: student with ≥40% disability in AICTE-approved technical programme, income ≤ ₹8L
+    match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "agniveer",
+    icon: "🎖️", color: "#374151", scope: "national",
+    ministry: { en: "Ministry of Defence", hi: "रक्षा मंत्रालय" },
+    name:    { en: "Agnipath – Agniveer Recruitment Scheme",              hi: "अग्निपथ – अग्निवीर भर्ती योजना" },
+    benefit: { en: "4-year defence service: ₹30,000–₹40,000/month · ₹11.71 Lakh Seva Nidhi corpus on exit · 25% retained permanently · Priority in central govt. jobs & entrepreneur support on exit", hi: "4 वर्ष की रक्षा सेवा: ₹30,000–₹40,000/माह · बाहर निकलने पर ₹11.71 लाख सेवा निधि · 25% स्थायी · केंद्र सरकार की नौकरियों में प्राथमिकता" },
+    tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
+    annual: 360000,
+    apply:   { en: "joinindianarmy.nic.in / joinindiannavy.gov.in / agnipathvayu.cdac.in", hi: "joinindianarmy.nic.in / joinindiannavy.gov.in / agnipathvayu.cdac.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Class 10 & 12 Mark Sheet + Certificate","Medical Fitness Certificate","Age Proof (17.5–21 years)","Physical Fitness Certificate","Character Certificate","Bank Account"],
+               hi: ["आधार कार्ड","कक्षा 10/12 मार्कशीट और प्रमाण पत्र","चिकित्सा स्वास्थ्य प्रमाण पत्र","आयु प्रमाण (17.5–21 वर्ष)","शारीरिक फिटनेस प्रमाण पत्र","चरित्र प्रमाण पत्र","बैंक खाता"] },
+    // Eligibility: Indian youth aged 17.5–21 years, physically & medically fit, Class 10/12 pass
+    match: (a) => a.age === "18to35" && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "sbm_urban2",
+    icon: "🧹", color: "#0284C7", scope: "national",
+    ministry: { en: "Ministry of Housing & Urban Affairs", hi: "आवासन और शहरी कार्य मंत्रालय" },
+    name:    { en: "Swachh Bharat Mission – Urban 2.0 (Individual Toilet Grant)", hi: "स्वच्छ भारत मिशन – शहरी 2.0 (व्यक्तिगत शौचालय अनुदान)" },
+    benefit: { en: "₹12,000–₹25,000 grant for toilet construction / renovation at urban households · ODF++ & Garbage-Free City certification for qualifying cities", hi: "शहरी घरों में शौचालय निर्माण/नवीनीकरण के लिए ₹12,000–₹25,000 अनुदान · ODF++ और कचरा-मुक्त शहर प्रमाणन" },
+    tag:     { en: "Sanitation", hi: "स्वच्छता" },
+    annual: 12000,
+    apply:   { en: "sbmurban.gov.in / Nearest Urban Local Body (ULB / Municipal Corporation / Nagar Palika)", hi: "sbmurban.gov.in / नजदीकी शहरी स्थानीय निकाय (ULB / नगर निगम / नगर पालिका)" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Ration Card","Property Documents / Rent Agreement","No-Toilet Declaration","Bank Account"],
+               hi: ["आधार कार्ड","राशन कार्ड","संपत्ति दस्तावेज़ / किराया समझौता","शौचालय न होने की स्व-घोषणा","बैंक खाता"] },
+    // Eligibility: urban households without functional toilet, BPL/EWS priority
+    match: (a) => ["urban","semi"].includes(a.area) && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "ntmhp",
+    icon: "🧠", color: "#7C3AED", scope: "national",
+    ministry: { en: "Ministry of Health & Family Welfare (NIMHANS)", hi: "स्वास्थ्य एवं परिवार कल्याण मंत्रालय (NIMHANS)" },
+    name:    { en: "Tele-MANAS – National Tele Mental Health Programme",  hi: "Tele-MANAS – राष्ट्रीय टेली मानसिक स्वास्थ्य कार्यक्रम" },
+    benefit: { en: "FREE 24×7 mental health support · Call 14416 or 1800-599-0019 · Tele-counselling by psychiatrists & psychologists via 53 national centres", hi: "मुफ्त 24×7 मानसिक स्वास्थ्य सहायता · 14416 या 1800-599-0019 पर कॉल करें · 53 राष्ट्रीय केंद्रों द्वारा मनोचिकित्सकों/मनोवैज्ञानिकों से परामर्श" },
+    tag:     { en: "Health", hi: "स्वास्थ्य" },
+    annual: 0,
+    apply:   { en: "Call 14416 or 1800-599-0019 (free, 24×7) · nimhans.ac.in", hi: "14416 या 1800-599-0019 पर कॉल करें (मुफ्त, 24×7) · nimhans.ac.in" }, applyType: "offline",
+    docs:    { en: ["No registration required — just call the helpline","Aadhaar (optional, only for referral follow-up)"],
+               hi: ["पंजीकरण की आवश्यकता नहीं — बस हेल्पलाइन पर कॉल करें","आधार (वैकल्पिक, रेफरल फॉलो-अप के लिए)"] },
+    // Eligibility: any person in need of mental health support — no income or age restriction
+    match: (a) => true,
+  },
+
+  {
+    id: "usttad",
+    icon: "🧵", color: "#B45309", scope: "national",
+    ministry: { en: "Ministry of Minority Affairs", hi: "अल्पसंख्यक कार्य मंत्रालय" },
+    name:    { en: "USTTAD – Upgrading Skills & Training in Traditional Arts/Crafts (Minority Artisans)", hi: "उस्ताद – पारंपरिक कलाओं/शिल्पों में कौशल उन्नयन (अल्पसंख्यक कारीगर)" },
+    benefit: { en: "Free 3–6 month skill upgrade training in traditional crafts for minority artisans · ₹1,000–₹1,500/month stipend + free tool kit + certification + market linkage support", hi: "अल्पसंख्यक कारीगरों के लिए मुफ्त 3–6 माह का पारंपरिक शिल्प कौशल उन्नयन · ₹1,000–₹1,500/माह वजीफा + मुफ्त टूल किट + प्रमाण पत्र + बाज़ार लिंकेज" },
+    tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
+    annual: 18000,
+    apply:   { en: "usttad.amitsha.gov.in / State Minorities Commission / Nearest empanelled NGO or Training Centre", hi: "usttad.amitsha.gov.in / राज्य अल्पसंख्यक आयोग / नजदीकी पंजीकृत NGO या प्रशिक्षण केंद्र" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Minority Community Certificate (Muslim/Christian/Sikh/Buddhist/Jain/Parsi)","Age Proof (14–45 years)","Educational Certificate (Class 5 minimum)","Bank Account","Proof of Craft/Trade Involvement"],
+               hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","आयु प्रमाण (14–45 वर्ष)","शैक्षणिक प्रमाण (न्यूनतम कक्षा 5)","बैंक खाता","पारंपरिक शिल्प/व्यापार में संलग्नता का प्रमाण"] },
+    // Eligibility: minority community artisan aged 14–45, engaged in traditional craft/trade
+    match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
+  },
+
+  {
+    id: "emrs",
+    icon: "🏫", color: "#065F46", scope: "national",
+    ministry: { en: "Ministry of Tribal Affairs", hi: "जनजातीय कार्य मंत्रालय" },
+    name:    { en: "Eklavya Model Residential Schools (EMRS)",             hi: "एकलव्य मॉडल आवासीय विद्यालय (EMRS)" },
+    benefit: { en: "FREE quality residential education (Class 6–12) for tribal students · Free food, accommodation, uniforms, books, sports facilities & digital access", hi: "जनजातीय छात्रों के लिए मुफ्त गुणवत्ता आवासीय शिक्षा (कक्षा 6–12) · मुफ्त भोजन, आवास, वर्दी, किताबें, खेल सुविधाएं और डिजिटल पहुंच" },
+    tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
+    annual: 120000,
+    apply:   { en: "emrs.tribal.gov.in / Nearest EMRS / District Tribal Welfare Officer", hi: "emrs.tribal.gov.in / नजदीकी EMRS / जिला जनजातीय कल्याण अधिकारी" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","ST Caste Certificate","Class 5 Mark Sheet (for Class 6 admission)","Domicile Certificate (Tribal Sub-Plan area)","BPL / Income Certificate","Passport Photo"],
+               hi: ["आधार कार्ड","ST जाति प्रमाण पत्र","कक्षा 5 की मार्कशीट (कक्षा 6 प्रवेश के लिए)","अधिवास प्रमाण पत्र (जनजातीय उप-योजना क्षेत्र)","BPL/आय प्रमाण पत्र","पासपोर्ट फोटो"] },
+    // Eligibility: ST student in Class 5 (for Class 6 entry), resident of tribal sub-plan area
+    match: (a) => a.who === "student" && a.area === "rural" && ["below1","1to3"].includes(a.income),
+  },
+
   // ══════════════════════ STATE SCHEMES ════════════════════════════════════════
   // All state schemes live in stateSchemes.js — edit that file to add/change them.
   ...STATE_SCHEMES,
