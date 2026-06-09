@@ -569,11 +569,15 @@ function CrossTab({ data, rowKey, colKey, rowLabels, colLabels, dark }) {
 // ─── ACTIVITY FEED ────────────────────────────────────────────────────────────
 function ActivityFeed({ users, dark }) {
   const th = THEME[dark ? "dark" : "light"];
-  // Sort by lastSeen, take top 15
-  const recent = [...users]
+  const [actPage, setActPage] = React.useState(1);
+  const ACT_PER_PAGE = 10;
+
+  const allRecent = [...users]
     .filter(u => u.lastSeen)
-    .sort((a, b) => (b.lastSeen?.seconds || 0) - (a.lastSeen?.seconds || 0))
-    .slice(0, 15);
+    .sort((a, b) => (b.lastSeen?.seconds || 0) - (a.lastSeen?.seconds || 0));
+
+  const totalPages = Math.max(1, Math.ceil(allRecent.length / ACT_PER_PAGE));
+  const recent     = allRecent.slice((actPage - 1) * ACT_PER_PAGE, actPage * ACT_PER_PAGE);
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
@@ -621,6 +625,127 @@ function ActivityFeed({ users, dark }) {
           </div>
         );
       })}
+
+      {/* Paginator */}
+      {totalPages > 1 && (
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:5, marginTop:10 }}>
+          <div
+            onClick={() => actPage > 1 && setActPage(p => p - 1)}
+            style={{
+              padding:"5px 11px", borderRadius:16, fontSize:10, fontWeight:700,
+              cursor: actPage > 1 ? "pointer" : "default",
+              opacity: actPage > 1 ? 1 : 0.35,
+              background: th.card2, border:`1.5px solid ${th.border}`,
+              color: th.textMid, userSelect:"none",
+            }}
+          >‹</div>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
+            const isActive = p === actPage;
+            const nearby = Math.abs(p - actPage) <= 1 || p === 1 || p === totalPages;
+            if (!nearby) {
+              if (p === actPage - 2 || p === actPage + 2)
+                return <span key={p} style={{ color:th.textSub, fontSize:10 }}>…</span>;
+              return null;
+            }
+            return (
+              <div key={p} onClick={() => setActPage(p)} style={{
+                minWidth:26, height:26, display:"flex", alignItems:"center", justifyContent:"center",
+                borderRadius:8, fontSize:10, fontWeight:700, cursor:"pointer",
+                background: isActive ? NAVY : th.card2,
+                color:      isActive ? "#fff" : th.textMid,
+                border:`1.5px solid ${isActive ? NAVY : th.border}`,
+                transition:"all 0.15s", userSelect:"none",
+              }}>{p}</div>
+            );
+          })}
+          <div
+            onClick={() => actPage < totalPages && setActPage(p => p + 1)}
+            style={{
+              padding:"5px 11px", borderRadius:16, fontSize:10, fontWeight:700,
+              cursor: actPage < totalPages ? "pointer" : "default",
+              opacity: actPage < totalPages ? 1 : 0.35,
+              background: th.card2, border:`1.5px solid ${th.border}`,
+              color: th.textMid, userSelect:"none",
+            }}
+          >›</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── JOINED THIS WEEK ────────────────────────────────────────────────────────
+function JoinedThisWeek({ users, dark, onTap }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [joinedPage, setJoinedPage] = React.useState(1);
+  const JOINED_PER_PAGE = 10;
+
+  const allJoined = users.filter(u =>
+    u.createdAt?.seconds &&
+    (Date.now() - u.createdAt.seconds * 1000) < 7 * 86400000
+  );
+
+  const totalPages = Math.max(1, Math.ceil(allJoined.length / JOINED_PER_PAGE));
+  const paged      = allJoined.slice((joinedPage - 1) * JOINED_PER_PAGE, joinedPage * JOINED_PER_PAGE);
+
+  if (allJoined.length === 0) {
+    return (
+      <div style={{ fontSize:12, color:th.textSub, padding:"12px 0" }}>
+        No new users this week yet
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+      {paged.map(u => (
+        <UserRow key={u.id} user={u} dark={dark} onTap={onTap} />
+      ))}
+
+      {/* Paginator — same style as ActivityFeed */}
+      {totalPages > 1 && (
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:5, marginTop:10 }}>
+          <div
+            onClick={() => joinedPage > 1 && setJoinedPage(p => p - 1)}
+            style={{
+              padding:"5px 11px", borderRadius:16, fontSize:10, fontWeight:700,
+              cursor: joinedPage > 1 ? "pointer" : "default",
+              opacity: joinedPage > 1 ? 1 : 0.35,
+              background: th.card2, border:`1.5px solid ${th.border}`,
+              color: th.textMid, userSelect:"none",
+            }}
+          >‹</div>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
+            const isActive = p === joinedPage;
+            const nearby   = Math.abs(p - joinedPage) <= 1 || p === 1 || p === totalPages;
+            if (!nearby) {
+              if (p === joinedPage - 2 || p === joinedPage + 2)
+                return <span key={p} style={{ color:th.textSub, fontSize:10 }}>…</span>;
+              return null;
+            }
+            return (
+              <div key={p} onClick={() => setJoinedPage(p)} style={{
+                minWidth:26, height:26, display:"flex", alignItems:"center", justifyContent:"center",
+                borderRadius:8, fontSize:10, fontWeight:700, cursor:"pointer",
+                background: isActive ? NAVY : th.card2,
+                color:      isActive ? "#fff" : th.textMid,
+                border:`1.5px solid ${isActive ? NAVY : th.border}`,
+                transition:"all 0.15s", userSelect:"none",
+              }}>{p}</div>
+            );
+          })}
+          <div
+            onClick={() => joinedPage < totalPages && setJoinedPage(p => p + 1)}
+            style={{
+              padding:"5px 11px", borderRadius:16, fontSize:10, fontWeight:700,
+              cursor: joinedPage < totalPages ? "pointer" : "default",
+              opacity: joinedPage < totalPages ? 1 : 0.35,
+              background: th.card2, border:`1.5px solid ${th.border}`,
+              color: th.textMid, userSelect:"none",
+            }}
+          >›</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1169,6 +1294,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
   const th = THEME[dark ? "dark" : "light"];
   const [filter,      setFilter]      = useState("all"); // "all" | "open" | "in_progress" | "resolved"
   const [typeFilter,  setTypeFilter]  = useState("all");
+  const [dateFilter,  setDateFilter]  = useState("all"); // "all" | "today" | "7d" | "30d"
   const [searchQuery, setSearchQuery] = useState("");
   const [reportPage,  setReportPage]  = useState(1);
   const REPORTS_PER_PAGE = 10;
@@ -1346,7 +1472,11 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
   }
 
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q    = searchQuery.trim().toLowerCase();
+    const now  = Date.now();
+    const cutoffs = { today: 86400000, "7d": 7 * 86400000, "30d": 30 * 86400000 };
+    const cutoff  = cutoffs[dateFilter] || null;
+
     const list = reports.filter(r => {
       const matchStatus = filter === "all" || r.status === filter;
       const matchType   = typeFilter === "all" || r.type === typeFilter;
@@ -1354,7 +1484,13 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
         || r.id?.toLowerCase().includes(q)
         || r.message?.toLowerCase().includes(q)
         || r.userName?.toLowerCase().includes(q);
-      return matchStatus && matchType && matchSearch;
+      const matchDate   = !cutoff || (() => {
+        const ts = r.createdAt?.seconds
+          ? r.createdAt.seconds * 1000
+          : r.createdAt?.toDate?.()?.getTime?.() || 0;
+        return now - ts <= cutoff;
+      })();
+      return matchStatus && matchType && matchSearch && matchDate;
     });
 
     // Sort: Open (fresh) → In Progress → Reopened → Resolved
@@ -1366,10 +1502,15 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
     };
     list.sort((a, b) => getPriority(a) - getPriority(b));
     return list;
-  }, [reports, filter, typeFilter, searchQuery]);
+  }, [reports, filter, typeFilter, searchQuery, dateFilter]);
 
   // Reset to page 1 whenever filters or search changes
-  useEffect(() => { setReportPage(1); }, [filter, typeFilter, searchQuery]);
+  useEffect(() => { setReportPage(1); }, [filter, typeFilter, searchQuery, dateFilter]);
+
+  // Scroll to top of dashboard whenever page changes
+  useEffect(() => {
+    document.querySelector("[data-admin-scroll]")?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [reportPage]);
 
   const totalPages    = Math.max(1, Math.ceil(filtered.length / REPORTS_PER_PAGE));
   const pagedReports  = filtered.slice((reportPage - 1) * REPORTS_PER_PAGE, reportPage * REPORTS_PER_PAGE);
@@ -1516,13 +1657,15 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
 
           {/* Refresh pushed to right */}
           <div style={{ marginLeft:"auto" }}>
-            <div onClick={onRefresh} style={{
+            <div onClick={loading ? undefined : onRefresh} style={{
               padding:"7px 14px", borderRadius:10, fontSize:11,
-              fontWeight:700, cursor:"pointer",
+              fontWeight:700, cursor: loading ? "default" : "pointer",
               background:th.card, border:`1.5px solid ${th.border}`, color:th.textMid,
               display:"flex", alignItems:"center", gap:5,
+              opacity: loading ? 0.6 : 1,
             }}>
-              ↻ Refresh
+              <span style={loading ? { display:"inline-block", animation:"ys-spin 0.8s linear infinite" } : {}}>↻</span>
+              {loading ? "Refreshing…" : "Refresh"}
             </div>
           </div>
         </div>
@@ -1531,13 +1674,15 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
         <>
           {/* Refresh button */}
           <div style={{ display:"flex", justifyContent:"flex-end" }}>
-            <div onClick={onRefresh} style={{
+            <div onClick={loading ? undefined : onRefresh} style={{
               padding:"7px 14px", borderRadius:10, fontSize:11,
-              fontWeight:700, cursor:"pointer",
+              fontWeight:700, cursor: loading ? "default" : "pointer",
               background:th.card, border:`1.5px solid ${th.border}`, color:th.textMid,
               display:"flex", alignItems:"center", gap:5,
+              opacity: loading ? 0.6 : 1,
             }}>
-              ↻ Refresh
+              <span style={loading ? { display:"inline-block", animation:"ys-spin 0.8s linear infinite" } : {}}>↻</span>
+              {loading ? "Refreshing…" : "Refresh"}
             </div>
           </div>
 
@@ -1586,6 +1731,26 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
         </>
       )}
 
+      {/* Date filter pills */}
+      <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+        {[
+          { v:"all",  l:"🗓 All time"   },
+          { v:"today",l:"📅 Today"      },
+          { v:"7d",   l:"📆 Last 7 days"},
+          { v:"30d",  l:"🗃 Last 30 days"},
+        ].map(({ v, l }) => (
+          <div key={v} onClick={() => setDateFilter(v)} style={{
+            padding:"5px 11px", borderRadius:20, fontSize:10, fontWeight:700,
+            cursor:"pointer", flexShrink:0,
+            background: dateFilter === v ? SAFFRON : th.border,
+            color:      dateFilter === v ? "#fff"   : th.textMid,
+            transition:"all 0.18s",
+          }}>
+            {l}
+          </div>
+        ))}
+      </div>
+
       {/* Search box */}
       <div style={{ position:"relative" }}>
         <span style={{
@@ -1593,6 +1758,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
           fontSize:13, color:th.textSub, pointerEvents:"none",
         }}>🔍</span>
         <input
+          className="ys-input"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder="Search by Report ID, message, or user name…"
@@ -2515,10 +2681,16 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   const th = THEME[dark ? "dark" : "light"];
   const [activeTab, setActiveTab] = React.useState("runs");
   const [usagePage,  setUsagePage]  = React.useState(1);
+  const [usageSort,  setUsageSort]  = React.useState("newest"); // "newest" | "oldest"
   const USAGE_PER_PAGE = 10;
 
   // Reset to page 1 when switching between Runs / Searches tabs
   React.useEffect(() => { setUsagePage(1); }, [activeTab]);
+
+  // Scroll to top of dashboard whenever page changes
+  React.useEffect(() => {
+    document.querySelector("[data-admin-scroll]")?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [usagePage]);
 
   if (loading) {
     return (
@@ -2612,8 +2784,8 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   };
 
   // ── Pagination slices ──────────────────────────────────────────────────────
-  const reversedRuns     = [...checkerRuns].reverse();
-  const reversedSearches = [...schemeSearches].reverse();
+  const reversedRuns     = usageSort === "newest" ? [...checkerRuns].reverse()    : [...checkerRuns];
+  const reversedSearches = usageSort === "newest" ? [...schemeSearches].reverse() : [...schemeSearches];
   const runsTotalPages    = Math.max(1, Math.ceil(reversedRuns.length     / USAGE_PER_PAGE));
   const searchesTotalPages= Math.max(1, Math.ceil(reversedSearches.length / USAGE_PER_PAGE));
   const pagedRuns         = reversedRuns.slice(    (usagePage - 1) * USAGE_PER_PAGE, usagePage * USAGE_PER_PAGE);
@@ -2854,8 +3026,8 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
       {/* ── SECTION 4: Tabbed recent activity (Runs / Searches) ── */}
       {(checkerRuns.length > 0 || schemeSearches.length > 0) && (
         <div style={cardStyle}>
-          {/* Tab switcher */}
-          <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+          {/* Tab switcher + sort toggle */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 10, alignItems:"center" }}>
             {[
               { id: "runs",     label: `🕐 Checker Runs (${checkerRuns.length})` },
               { id: "searches", label: `🔍 Searches (${schemeSearches.length})` },
@@ -2876,6 +3048,19 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
                 {label}
               </div>
             ))}
+            {/* Sort toggle */}
+            <div
+              onClick={() => { setUsageSort(s => s === "newest" ? "oldest" : "newest"); setUsagePage(1); }}
+              style={{
+                padding:"6px 10px", borderRadius:10, fontSize:10, fontWeight:700,
+                cursor:"pointer", flexShrink:0,
+                background: th.card2, border:`1.5px solid ${th.border}`,
+                color: th.textMid, transition:"all 0.18s",
+              }}
+              title={usageSort === "newest" ? "Showing newest first" : "Showing oldest first"}
+            >
+              {usageSort === "newest" ? "↓ New" : "↑ Old"}
+            </div>
           </div>
 
           {/* Checker Runs list */}
@@ -4748,7 +4933,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   }, [activeSection]);
 
   return (
-    <div style={{
+    <div data-admin-scroll="true" style={{
       position:"fixed", inset:0, zIndex:9999,
       background:th.bg,
       display:"flex", flexDirection:"column",
@@ -4757,6 +4942,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     }}>
 
       {/* ── HEADER ── */}
+      <style>{`
+        .ys-input::placeholder{color:#888;opacity:1}
+        @keyframes ys-spin{to{transform:rotate(360deg)}}
+      `}</style>
       <div style={{
         background:`linear-gradient(135deg,${NAVY} 0%,rgba(0,53,128,0.92) 60%,rgba(255,153,51,0.85) 100%)`,
         padding: isDesktop ? "20px 40px 0" : "18px 18px 0", flexShrink:0,
@@ -5525,7 +5714,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             borderRadius:16, padding:"14px 16px",
           }}>
             <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
-              🕐 Recent Activity (last 15 active users)
+              🕐 Recent Activity ({users.filter(u => u.lastSeen).length} users)
             </div>
             <ActivityFeed users={users} dark={dark} />
           </div>
@@ -5538,17 +5727,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:8 }}>
               🆕 Joined This Week ({stats.newThisWeek})
             </div>
-            {users
-              .filter(u => u.createdAt?.seconds &&
-                (Date.now() - u.createdAt.seconds * 1000) < 7 * 86400000)
-              .slice(0, 20)
-              .map(u => <UserRow key={u.id} user={u} dark={dark} onTap={setSelectedUser} />)
-            }
-            {stats.newThisWeek === 0 && (
-              <div style={{ fontSize:12, color:th.textSub, padding:"12px 0" }}>
-                No new users this week yet
-              </div>
-            )}
+            <JoinedThisWeek users={users} dark={dark} onTap={setSelectedUser} />
           </div>
         </div>
       )}
