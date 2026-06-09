@@ -3291,15 +3291,33 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 const MONO_FONT = "'SF Mono','Fira Code','Courier New',monospace";
 
+// ── tiny helper: hex or existing rgba → rgba with new alpha ──
+function hsRgba(color, alpha) {
+  if (!color) return `rgba(0,0,0,${alpha})`;
+  if (color.startsWith("rgba")) return color.replace(/[\d.]+\)$/, `${alpha})`);
+  if (color.startsWith("rgb(")) return color.replace("rgb(", "rgba(").replace(")", `,${alpha})`);
+  const c = color.replace("#","");
+  const r = parseInt(c.substring(0,2),16);
+  const g = parseInt(c.substring(2,4),16);
+  const b = parseInt(c.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab }) {
   const th = THEME[dark ? "dark" : "light"];
   const [hovered, setHovered] = React.useState(null);
 
-  const nowMs  = Date.now();
-  const openR  = reports.filter(r => r.status === "open").length;
-  const inProg = reports.filter(r => r.status === "in_progress").length;
-  const actDay = users.filter(u => u.lastSeen?.seconds && (nowMs - u.lastSeen.seconds * 1000) < 86400000).length;
-  const newWk  = users.filter(u => u.createdAt?.seconds && (nowMs - u.createdAt.seconds * 1000) < 7 * 86400000).length;
+  const nowMs       = Date.now();
+  const openR       = reports.filter(r => r.status === "open").length;
+  const inProg      = reports.filter(r => r.status === "in_progress").length;
+  const resolvedR   = reports.filter(r => r.status === "resolved").length;
+  const actDay      = users.filter(u => u.lastSeen?.seconds && (nowMs - u.lastSeen.seconds * 1000) < 86400000).length;
+  const newWk       = users.filter(u => u.createdAt?.seconds && (nowMs - u.createdAt.seconds * 1000) < 7 * 86400000).length;
+  const googleUsers = users.filter(u => u.photo).length;
+  const withPhone   = users.filter(u => u.phone && u.phone.length > 0).length;
+  const statesCount = Object.keys(users.reduce((acc, u) => { if (u.state) acc[u.state] = 1; return acc; }, {})).length;
+  const dormantCnt  = users.filter(u => u.lastSeen?.seconds && (nowMs - u.lastSeen.seconds * 1000) > 30 * 86400000).length;
+  const engPct      = users.length > 0 ? Math.round((actDay / users.length) * 100) : 0;
 
   const [tick, setTick] = React.useState(new Date());
   React.useEffect(() => {
@@ -3311,26 +3329,35 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   const DATE_STR = tick.toLocaleDateString("en-IN",  { weekday:"short", day:"numeric", month:"short", year:"numeric" });
 
   const TAB_META = {
-    overview:  { desc:"Platform KPIs, welfare metrics & live insights",          badge: loading ? "loading…" : `${actDay} active today`,                  badgeColor:IND_GREEN,   accentColor:NAVY,      glow:"rgba(0,53,128,0.35)"     },
-    users:     { desc:"Browse, filter, search & inspect all user profiles",      badge: loading ? "…" : `${newWk} new this week`,                         badgeColor:GOOGLE_B,    accentColor:GOOGLE_B,  glow:"rgba(66,133,244,0.35)"   },
-    analytics: { desc:"Demographics, donuts, charts & cross-tab matrices",       badge:"8 dimensions",                                                     badgeColor:VIOLET,      accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)"   },
-    activity:  { desc:"Eligibility runs, logins & real-time usage feed",         badge: loading ? "…" : `${actDay} active today`,                          badgeColor:SAFFRON,     accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)"   },
-    usage:     { desc:"Feature telemetry — AI chat, searches & checker runs",    badge:"live metrics",                                                     badgeColor:PINK,        accentColor:PINK,      glow:"rgba(236,72,153,0.35)"   },
-    schemes:   { desc:"State-wise scheme coverage, gaps & distribution map",     badge:"all India states",                                                 badgeColor:IND_GREEN,   accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)"     },
-    reports:   { desc:"User-reported issues, admin replies & status workflow",   badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badgeColor: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)" },
-    cleanup:   { desc:"Purge resolved reports & flush stale usage data",         badge:"database hygiene",                                                 badgeColor:"#F59E0B",   accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)"   },
-    export:    { desc:"Compile & download full-dashboard PDF intelligence report",badge:"landscape A4 · PDF",                                              badgeColor:"#10B981",   accentColor:"#10B981", glow:"rgba(16,185,129,0.35)"   },
+    overview:  { desc:"Platform KPIs, welfare metrics & live insights",           badge: loading ? "loading…" : `${actDay} active today`,                                badge2Color:IND_GREEN,   accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"📊" },
+    users:     { desc:"Browse, filter, search & inspect all user profiles",       badge: loading ? "…" : `${newWk} new this week`,                                      badge2Color:GOOGLE_B,    accentColor:GOOGLE_B,  glow:"rgba(66,133,244,0.35)",   icon:"👥" },
+    analytics: { desc:"Demographics, donuts, charts & cross-tab matrices",        badge:"8 dimensions",                                                                  badge2Color:VIOLET,      accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"🧮" },
+    activity:  { desc:"Eligibility runs, logins & real-time usage feed",          badge: loading ? "…" : `${actDay} active today`,                                      badge2Color:SAFFRON,     accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"🕐" },
+    usage:     { desc:"Feature telemetry — AI chat, searches & checker runs",     badge:"live metrics",                                                                  badge2Color:PINK,        accentColor:PINK,      glow:"rgba(236,72,153,0.35)",   icon:"📈" },
+    schemes:   { desc:"State-wise scheme coverage, gaps & distribution map",      badge:"all India states",                                                              badge2Color:IND_GREEN,   accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"🗺️" },
+    reports:   { desc:"User-reported issues, admin replies & status workflow",    badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badge2Color: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)", icon:"📬" },
+    cleanup:   { desc:"Purge resolved reports & flush stale usage data",          badge:"database hygiene",                                                              badge2Color:"#F59E0B",   accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"🗑️" },
+    export:    { desc:"Compile & download full-dashboard PDF intelligence report", badge:"landscape A4 · PDF",                                                           badge2Color:"#10B981",   accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"📄" },
   };
 
   const HERO_METRICS = [
-    { label:"TOTAL USERS",   value: loading ? "…" : users.length,   color:NAVY                                      },
-    { label:"ACTIVE TODAY",  value: loading ? "…" : actDay,          color:IND_GREEN                                 },
-    { label:"OPEN REPORTS",  value: loading ? "…" : openR,           color: openR > 0 ? "#E53E3E" : IND_GREEN        },
-    { label:"TOTAL REPORTS", value: loading ? "…" : reports.length,  color:SAFFRON                                   },
+    { id:"users",   label:"TOTAL USERS",   value: loading ? "—" : users.length,   color:NAVY,                                          subLabel: loading ? "" : `${statesCount} states covered` },
+    { id:"active",  label:"ACTIVE TODAY",  value: loading ? "—" : actDay,          color:IND_GREEN,                                    subLabel: loading ? "" : `${engPct}% engagement`          },
+    { id:"reports", label:"OPEN REPORTS",  value: loading ? "—" : openR,           color: openR > 0 ? "#E53E3E" : IND_GREEN,           subLabel: loading ? "" : `${resolvedR} resolved`          },
+    { id:"new",     label:"NEW THIS WEEK", value: loading ? "—" : newWk,           color:SAFFRON,                                      subLabel: loading ? "" : `${reports.length} total reports` },
+  ];
+
+  const VITALS = [
+    { label:"GOOGLE AUTH",   value: loading ? "—" : googleUsers, color:GOOGLE_B, icon:"🔵" },
+    { label:"PHONE USERS",   value: loading ? "—" : withPhone,   color:SAFFRON,  icon:"📱" },
+    { label:"DORMANT 30D",   value: loading ? "—" : dormantCnt,  color: dormantCnt > 0 ? "#F59E0B" : IND_GREEN, icon:"😴" },
+    { label:"IN PROGRESS",   value: loading ? "—" : inProg,      color: inProg   > 0 ? "#D97706" : IND_GREEN, icon:"⚙️" },
   ];
 
   const cols     = isDesktop ? 3 : 2;
   const tabCards = TABS.filter(([id]) => TAB_META[id]);
+
+  const engColor = engPct >= 20 ? IND_GREEN : engPct >= 5 ? SAFFRON : "#E53E3E";
 
   return (
     <div style={{
@@ -3343,178 +3370,358 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
 
       {/* ── Keyframes ── */}
       <style>{`
-        @keyframes hs-pulse  { 0%,100%{opacity:0.55} 50%{opacity:1} }
-        @keyframes hs-fadein { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes hs-pulse  { 0%,100%{opacity:0.45} 50%{opacity:1} }
+        @keyframes hs-fadein { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes hs-scan   { 0%{top:-2px} 100%{top:102%} }
+        @keyframes hs-glow-pulse { 0%,100%{box-shadow:0 0 5px currentColor} 50%{box-shadow:0 0 14px currentColor} }
         .hs-module { transition:all 0.22s cubic-bezier(0.22,1,0.36,1); cursor:pointer; }
-        .hs-module:hover { transform:translateY(-3px) scale(1.01); }
-        .hs-module:active { transform:translateY(0); }
+        .hs-module:hover { transform:translateY(-4px) scale(1.015); }
+        .hs-module:active { transform:translateY(0) scale(0.98); }
         @media (hover: none) { .hs-module:hover { transform:none; } }
       `}</style>
 
-      {/* ══ HERO PANEL ══ */}
+      {/* ══ HERO COMMAND PANEL ══ */}
       <div style={{
         background: dark
-          ? "linear-gradient(140deg,#091428 0%,#0d1830 55%,#130820 100%)"
-          : "linear-gradient(140deg,#f0f5ff 0%,#fef8f2 100%)",
-        border:`1px solid ${dark ? "rgba(0,53,128,0.45)" : "rgba(0,53,128,0.13)"}`,
-        borderRadius: isDesktop ? 20 : 16,
-        padding: isDesktop ? "26px 30px 24px" : "18px 16px 16px",
-        marginBottom: isDesktop ? 22 : 14,
+          ? "linear-gradient(155deg,#060d1e 0%,#0b1530 55%,#0f0c22 100%)"
+          : "linear-gradient(155deg,#f0f5ff 0%,#fef9f3 100%)",
+        border:`1px solid ${dark ? "rgba(0,53,128,0.5)" : "rgba(0,53,128,0.14)"}`,
+        borderRadius: isDesktop ? 20 : 18,
+        padding: isDesktop ? "28px 30px 22px" : "18px 16px 16px",
+        marginBottom: isDesktop ? 18 : 12,
         position:"relative", overflow:"hidden",
         animation:"hs-fadein 0.4s ease both",
         boxShadow: dark
-          ? "0 8px 40px rgba(0,0,0,0.45)"
-          : "0 4px 24px rgba(0,53,128,0.08)",
+          ? "0 12px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04)"
+          : "0 4px 32px rgba(0,53,128,0.1)",
       }}>
 
-        {/* India tricolor strip */}
+        {/* India tricolor top bar */}
         <div style={{
           position:"absolute", top:0, left:0, right:0, height:3,
-          background:`linear-gradient(90deg,${SAFFRON} 0% 33.3%,#fff 33.3% 66.6%,${IND_GREEN} 66.6% 100%)`,
+          background:`linear-gradient(90deg,${SAFFRON} 0% 33.3%,#ffffff 33.3% 66.6%,${IND_GREEN} 66.6% 100%)`,
         }} />
 
-        {/* Dot-grid texture */}
+        {/* Fine engineering grid */}
         <div style={{
           position:"absolute", inset:0, pointerEvents:"none",
-          backgroundImage:`radial-gradient(circle,${dark ? "rgba(255,255,255,0.04)" : "rgba(0,53,128,0.055)"} 1px,transparent 1px)`,
-          backgroundSize:"22px 22px", backgroundPosition:"3px 3px",
+          backgroundImage:`
+            linear-gradient(${dark ? "rgba(255,255,255,0.025)" : "rgba(0,53,128,0.038)"} 1px, transparent 1px),
+            linear-gradient(90deg, ${dark ? "rgba(255,255,255,0.025)" : "rgba(0,53,128,0.038)"} 1px, transparent 1px)
+          `,
+          backgroundSize:"30px 30px",
         }} />
 
-        {/* Ambient glow (dark mode) */}
+        {/* Dark mode ambient glows */}
+        {dark && <>
+          <div style={{
+            position:"absolute", top:-100, right:-80, width:340, height:340, borderRadius:"50%",
+            background:"radial-gradient(circle,rgba(0,53,128,0.28) 0%,transparent 70%)",
+            pointerEvents:"none",
+          }} />
+          <div style={{
+            position:"absolute", bottom:-70, left:-50, width:220, height:220, borderRadius:"50%",
+            background:`radial-gradient(circle,rgba(255,153,51,0.12) 0%,transparent 70%)`,
+            pointerEvents:"none",
+          }} />
+        </>}
+
+        {/* Sweeping scan line (dark only) */}
         {dark && (
           <div style={{
-            position:"absolute", top:-80, right:-60, width:260, height:260,
-            borderRadius:"50%",
-            background:"radial-gradient(circle,rgba(0,53,128,0.22) 0%,transparent 70%)",
-            pointerEvents:"none",
+            position:"absolute", left:0, right:0, height:1, pointerEvents:"none",
+            background:`linear-gradient(90deg,transparent 0%,${hsRgba(SAFFRON,0.2)} 40%,${hsRgba(IND_GREEN,0.15)} 60%,transparent 100%)`,
+            animation:"hs-scan 7s linear infinite",
           }} />
         )}
 
         <div style={{ position:"relative" }}>
+
           {/* ── Title row + clock ── */}
           <div style={{
             display:"flex",
             flexDirection: isDesktop ? "row" : "column",
             alignItems: isDesktop ? "flex-start" : "stretch",
             gap: isDesktop ? 24 : 12,
-            marginBottom: isDesktop ? 20 : 14,
+            marginBottom: isDesktop ? 20 : 16,
           }}>
-            {/* Title */}
+
+            {/* Left: title block */}
             <div style={{ flex:1, minWidth:0 }}>
-              <div style={{
-                fontSize:8, fontFamily:MONO_FONT, fontWeight:700,
-                letterSpacing:2.5, color:SAFFRON, textTransform:"uppercase",
-                marginBottom:7, display:"flex", alignItems:"center", gap:6,
-              }}>
-                <span style={{ animation:"hs-pulse 2s ease-in-out infinite", display:"inline-block" }}>●</span>
-                SYSTEM ONLINE · AUTHORISED ACCESS ONLY
+              {/* Status pill */}
+              <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8 }}>
+                <span style={{
+                  display:"inline-block", width:7, height:7, borderRadius:"50%",
+                  background: loading ? SAFFRON : "#00E87A",
+                  boxShadow: loading ? `0 0 8px ${SAFFRON}88` : "0 0 8px #00E87A88",
+                  animation:"hs-pulse 1.8s ease-in-out infinite",
+                  flexShrink:0,
+                }} />
+                <span style={{
+                  fontFamily:MONO_FONT, fontSize:9, fontWeight:700,
+                  letterSpacing:2, color: loading ? SAFFRON : "#00E87A",
+                  textTransform:"uppercase",
+                }}>
+                  {loading ? "CONNECTING…" : "SYSTEM ONLINE · AUTHORISED ACCESS ONLY"}
+                </span>
               </div>
+
+              {/* Main title */}
               <div style={{
-                fontSize: isDesktop ? 28 : 22,
-                fontWeight:900, color:th.text, letterSpacing:-0.5, lineHeight:1.1,
+                fontSize: isDesktop ? 30 : 24,
+                fontWeight:900, letterSpacing:-0.8, lineHeight:1.1,
+                color: dark ? "#eef3ff" : "#0a1628",
               }}>
                 Yojana<span style={{ color:SAFFRON }}>Sahay</span>
-                <span style={{ color:th.textSub, fontWeight:400, fontSize: isDesktop ? 16 : 13, letterSpacing:0 }}>
+                <span style={{
+                  fontWeight:400, fontSize: isDesktop ? 16 : 13,
+                  letterSpacing:0, color:th.textSub,
+                }}>
                   {" "}· Admin Intelligence
                 </span>
               </div>
-              <div style={{
-                fontSize:10, color:th.textMid, marginTop:5,
-                fontFamily:MONO_FONT, letterSpacing:0.3,
-              }}>
-                Welfare scheme discovery platform · India · v2.0
+
+              {/* Sub-line */}
+              <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                <span style={{
+                  fontFamily:MONO_FONT, fontSize:9, color:th.textSub, letterSpacing:0.3,
+                }}>
+                  Welfare scheme discovery · India · v2.0
+                </span>
+                <span style={{
+                  fontFamily:MONO_FONT, fontSize:8, fontWeight:700,
+                  color: dark ? "#00E87A" : IND_GREEN,
+                  background: dark ? "rgba(0,232,122,0.09)" : "rgba(19,136,8,0.07)",
+                  border:`1px solid ${dark ? "rgba(0,232,122,0.22)" : "rgba(19,136,8,0.18)"}`,
+                  borderRadius:5, padding:"2px 7px", letterSpacing:0.5,
+                }}>
+                  ✓ AUTHENTICATED
+                </span>
               </div>
             </div>
 
-            {/* Live clock */}
+            {/* Right: premium live clock */}
             <div style={{
               flexShrink:0,
-              background: dark ? "rgba(0,0,0,0.32)" : "rgba(255,255,255,0.72)",
-              border:`1px solid ${dark ? "rgba(255,255,255,0.09)" : "rgba(0,53,128,0.12)"}`,
-              borderRadius:12,
-              padding: isDesktop ? "12px 18px" : "10px 14px",
+              background: dark ? "rgba(0,0,0,0.42)" : "rgba(255,255,255,0.9)",
+              border:`1px solid ${dark ? "rgba(255,255,255,0.09)" : "rgba(0,53,128,0.14)"}`,
+              borderRadius:14,
+              padding: isDesktop ? "14px 20px" : "10px 14px",
               display:"flex",
-              alignItems: isDesktop ? "flex-end" : "center",
               flexDirection: isDesktop ? "column" : "row",
-              gap: isDesktop ? 4 : 10,
-              backdropFilter:"blur(8px)",
-              WebkitBackdropFilter:"blur(8px)",
+              alignItems: isDesktop ? "flex-end" : "center",
+              justifyContent: isDesktop ? "center" : "space-between",
+              gap: isDesktop ? 5 : 10,
+              backdropFilter:"blur(14px)",
+              WebkitBackdropFilter:"blur(14px)",
+              boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,0.05)" : "0 2px 12px rgba(0,53,128,0.06)",
             }}>
               <div style={{
-                fontFamily:MONO_FONT, fontSize: isDesktop ? 24 : 20,
-                fontWeight:900, color:SAFFRON, letterSpacing:1, lineHeight:1,
+                fontFamily:MONO_FONT, fontSize: isDesktop ? 26 : 22,
+                fontWeight:900, color:SAFFRON, letterSpacing:2.5, lineHeight:1,
               }}>
                 {TIME_STR}
               </div>
               <div style={{
-                fontFamily:MONO_FONT, fontSize:10, color:th.textSub,
+                fontFamily:MONO_FONT, fontSize:9, color:th.textSub,
+                letterSpacing:0.4, textAlign: isDesktop ? "right" : "left",
               }}>
                 {DATE_STR}
               </div>
             </div>
           </div>
 
-          {/* ── Hero metric pills ── */}
-          <div style={{ display:"flex", gap: isDesktop ? 12 : 8, flexWrap:"wrap" }}>
-            {HERO_METRICS.map(({ label, value, color }) => (
-              <div key={label} style={{
-                flex:"1 1 auto",
-                minWidth: isDesktop ? 82 : 60,
-                background: dark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.82)",
-                border:`1px solid ${dark ? "rgba(255,255,255,0.075)" : "rgba(0,0,0,0.07)"}`,
-                borderTop:`2.5px solid ${color}`,
-                borderRadius:10,
-                padding: isDesktop ? "11px 14px" : "9px 10px",
+          {/* ── Hero metric HUDs ── */}
+          <div style={{
+            display:"grid",
+            gridTemplateColumns: isDesktop ? "repeat(4,1fr)" : "repeat(2,1fr)",
+            gap: isDesktop ? 12 : 8,
+            marginBottom: isDesktop ? 16 : 12,
+          }}>
+            {HERO_METRICS.map(({ id, label, value, color, subLabel }) => (
+              <div key={id} style={{
+                background: dark ? "rgba(0,0,0,0.38)" : "rgba(255,255,255,0.88)",
+                border:`1px solid ${dark ? "rgba(255,255,255,0.09)" : "rgba(0,53,128,0.1)"}`,
+                borderRadius:12, padding: isDesktop ? "14px 16px" : "11px 12px",
+                position:"relative", overflow:"hidden",
+                backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
               }}>
+                {/* Left accent glow bar */}
                 <div style={{
-                  fontSize: isDesktop ? 24 : 20,
-                  fontWeight:900, color,
-                  fontFamily:MONO_FONT, lineHeight:1, letterSpacing:-0.5,
-                }}>
-                  {value}
+                  position:"absolute", top:0, bottom:0, left:0, width:3,
+                  background:color,
+                  boxShadow: dark ? `0 0 10px ${color}80` : "none",
+                  borderRadius:"0 2px 2px 0",
+                }} />
+                <div style={{ paddingLeft:9 }}>
+                  <div style={{
+                    fontFamily:MONO_FONT, fontSize:8, fontWeight:700,
+                    color:th.textSub, letterSpacing:1.5, textTransform:"uppercase",
+                    marginBottom:5,
+                  }}>
+                    {label}
+                  </div>
+                  <div style={{
+                    fontFamily:MONO_FONT,
+                    fontSize: isDesktop ? 30 : 26,
+                    fontWeight:900, lineHeight:1, letterSpacing:-1,
+                    color: dark ? "#eef3ff" : "#0a1628",
+                  }}>
+                    {value}
+                  </div>
+                  {subLabel && (
+                    <div style={{
+                      fontFamily:MONO_FONT, fontSize:8, marginTop:5,
+                      color, opacity:0.82, letterSpacing:0.3,
+                    }}>
+                      {subLabel}
+                    </div>
+                  )}
                 </div>
+                {/* Faint tonal blob — bg decoration */}
                 <div style={{
-                  fontSize:8, color:th.textSub, marginTop:4,
-                  fontFamily:MONO_FONT, fontWeight:700,
-                  letterSpacing:1, textTransform:"uppercase",
-                }}>
-                  {label}
-                </div>
+                  position:"absolute", right:-14, top:-14, width:56, height:56,
+                  borderRadius:"50%", background:hsRgba(color, dark ? 0.06 : 0.05),
+                  pointerEvents:"none",
+                }} />
               </div>
             ))}
+          </div>
+
+          {/* ── Engagement health bar ── */}
+          <div style={{
+            background: dark ? "rgba(0,0,0,0.26)" : "rgba(255,255,255,0.65)",
+            border:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(0,53,128,0.08)"}`,
+            borderRadius:10, padding:"10px 14px",
+          }}>
+            <div style={{
+              display:"flex", alignItems:"center", justifyContent:"space-between",
+              marginBottom:6,
+            }}>
+              <span style={{
+                fontFamily:MONO_FONT, fontSize:8, fontWeight:700,
+                letterSpacing:1.4, color:th.textSub, textTransform:"uppercase",
+              }}>
+                PLATFORM ENGAGEMENT
+              </span>
+              <span style={{
+                fontFamily:MONO_FONT, fontSize:11, fontWeight:900,
+                color: engColor,
+              }}>
+                {loading ? "—" : `${engPct}%`}
+              </span>
+            </div>
+            <div style={{
+              height:5, borderRadius:3,
+              background: dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
+              overflow:"hidden",
+            }}>
+              <div style={{
+                height:"100%", borderRadius:3,
+                width: loading ? "0%" : `${Math.min(engPct,100)}%`,
+                background: engPct >= 20
+                  ? `linear-gradient(90deg,${IND_GREEN},#00E87A)`
+                  : engPct >= 5
+                    ? `linear-gradient(90deg,${SAFFRON},#FFB84D)`
+                    : `linear-gradient(90deg,#DC2626,#F87171)`,
+                transition:"width 1s cubic-bezier(0.22,1,0.36,1)",
+                boxShadow: dark && !loading ? `0 0 6px ${engColor}80` : "none",
+              }} />
+            </div>
+            <div style={{
+              display:"flex", justifyContent:"space-between", marginTop:4,
+              fontFamily:MONO_FONT, fontSize:8, color:th.textSub,
+            }}>
+              <span>{loading ? "—" : `${actDay} active`}</span>
+              <span>{loading ? "—" : `of ${users.length} users`}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Section divider ── */}
+      {/* ══ SYSTEM VITALS ROW ══ */}
       <div style={{
-        display:"flex", alignItems:"center", gap:9,
-        marginBottom: isDesktop ? 14 : 10,
+        display:"grid",
+        gridTemplateColumns: isDesktop ? "repeat(4,1fr)" : "repeat(2,1fr)",
+        gap: isDesktop ? 10 : 8,
+        marginBottom: isDesktop ? 20 : 14,
+        animation:"hs-fadein 0.5s ease both",
+      }}>
+        {VITALS.map(({ label, value, color, icon }) => (
+          <div key={label} style={{
+            background: th.card,
+            border:`1.5px solid ${th.border}`,
+            borderRadius:12, padding: isDesktop ? "12px 14px" : "10px 12px",
+            display:"flex", alignItems:"center", gap:10,
+          }}>
+            <div style={{
+              width:34, height:34, borderRadius:9, flexShrink:0,
+              background:hsRgba(color, 0.1),
+              border:`1px solid ${hsRgba(color, 0.2)}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:16,
+            }}>
+              {icon}
+            </div>
+            <div style={{ minWidth:0, flex:1 }}>
+              <div style={{
+                fontFamily:MONO_FONT,
+                fontSize: isDesktop ? 20 : 18,
+                fontWeight:900, color:th.text, lineHeight:1, letterSpacing:-0.5,
+              }}>
+                {value}
+              </div>
+              <div style={{
+                fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub,
+                marginTop:2, letterSpacing:0.8,
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+              }}>
+                {label}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ══ INTELLIGENCE MODULES ══ */}
+
+      {/* Section header bar */}
+      <div style={{
+        display:"flex", alignItems:"center", gap:10,
+        marginBottom: isDesktop ? 12 : 10,
+        animation:"hs-fadein 0.55s ease both",
       }}>
         <div style={{ flex:1, height:1, background:th.border }} />
         <div style={{
-          fontSize:8, fontFamily:MONO_FONT, fontWeight:800,
+          fontFamily:MONO_FONT, fontSize:8, fontWeight:700,
           letterSpacing:2.5, color:th.textSub, textTransform:"uppercase",
+          padding:"0 2px",
         }}>
-          SELECT MODULE // {tabCards.length} AVAILABLE
+          INTELLIGENCE MODULES
         </div>
         <div style={{ flex:1, height:1, background:th.border }} />
+        <div style={{
+          fontFamily:MONO_FONT, fontSize:8, color:th.textSub,
+          letterSpacing:0.5, flexShrink:0,
+        }}>
+          {tabCards.length} ACTIVE
+        </div>
       </div>
 
-      {/* ══ MODULE GRID ══ */}
+      {/* Module grid */}
       <div style={{
         display:"grid",
         gridTemplateColumns:`repeat(${cols},1fr)`,
         gap: isDesktop ? 14 : 10,
+        animation:"hs-fadein 0.6s ease both",
       }}>
-        {tabCards.map(([id, label]) => {
+        {tabCards.map(([id, fullLabel]) => {
           const meta  = TAB_META[id] || {};
           const isHov = hovered === id;
-
-          // Split "📊 Overview" → emoji + name
-          const spaceIdx = label.indexOf(" ");
-          const emoji = spaceIdx > -1 ? label.slice(0, spaceIdx) : "•";
-          const name  = spaceIdx > -1 ? label.slice(spaceIdx + 1) : label;
+          // Strip leading emoji from label for the name display
+          const nameParts = fullLabel.trim().split(/\s+/);
+          const emoji = meta.icon || (nameParts[0].match(/\p{Emoji}/u) ? nameParts[0] : "•");
+          const name  = nameParts.filter((p,i) => i > 0 || !p.match(/\p{Emoji}/u)).join(" ") || id;
 
           return (
             <div
@@ -3524,91 +3731,102 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
               onMouseEnter={() => setHovered(id)}
               onMouseLeave={() => setHovered(null)}
               style={{
-                background: dark
-                  ? (isHov ? "rgba(16,16,22,0.98)" : "#1c1c1e")
-                  : (isHov ? "#fff"                 : "#f9f9fb"),
-                border:`1.5px solid ${isHov ? meta.accentColor : th.border}`,
-                borderRadius: isDesktop ? 16 : 13,
-                padding: isDesktop ? "20px 20px 18px" : "14px 13px 13px",
-                boxShadow: isHov
-                  ? `0 12px 40px ${meta.glow},0 0 0 1px ${meta.accentColor}28`
-                  : dark ? "0 2px 10px rgba(0,0,0,0.38)" : "0 2px 10px rgba(0,0,0,0.05)",
+                background: isHov
+                  ? (dark
+                    ? `linear-gradient(155deg,${hsRgba(meta.accentColor,0.13)} 0%,${hsRgba(meta.accentColor,0.04)} 100%)`
+                    : `linear-gradient(155deg,${hsRgba(meta.accentColor,0.07)} 0%,rgba(255,255,255,0.98) 100%)`)
+                  : th.card,
+                border:`1.5px solid ${isHov ? hsRgba(meta.accentColor,0.45) : th.border}`,
+                borderRadius: isDesktop ? 16 : 14,
+                padding: isDesktop ? "18px 16px 14px" : "14px 13px 12px",
                 position:"relative", overflow:"hidden",
-                userSelect:"none",
-                WebkitTapHighlightColor:"transparent",
+                userSelect:"none", WebkitTapHighlightColor:"transparent",
+                boxShadow: isHov
+                  ? `0 10px 36px ${meta.glow}, 0 0 0 1px ${hsRgba(meta.accentColor,0.18)}`
+                  : dark ? "0 2px 10px rgba(0,0,0,0.28)" : "0 1px 6px rgba(0,0,0,0.04)",
               }}
             >
-              {/* Top accent bar */}
+              {/* Vertical accent strip — the signature element */}
               <div style={{
-                position:"absolute", top:0, left:0, right:0,
-                height: isHov ? 3 : 2,
-                background: meta.accentColor || NAVY,
-                transition:"height 0.18s ease",
+                position:"absolute", top:0, left:0, bottom:0,
+                width: isHov ? 4 : 3,
+                background: meta.accentColor,
+                boxShadow: dark && isHov ? `0 0 12px ${meta.accentColor}` : "none",
+                transition:"all 0.2s ease",
+                borderRadius:"0 2px 2px 0",
               }} />
 
-              {/* Corner glow on hover */}
+              {/* Corner radial glow on hover */}
               {isHov && (
                 <div style={{
-                  position:"absolute", top:-40, right:-40,
-                  width:120, height:120, borderRadius:"50%",
-                  background:`radial-gradient(circle,${meta.glow} 0%,transparent 70%)`,
+                  position:"absolute", top:-32, right:-32, width:110, height:110,
+                  borderRadius:"50%",
+                  background:`radial-gradient(circle,${hsRgba(meta.accentColor, dark?0.14:0.08)} 0%,transparent 70%)`,
                   pointerEvents:"none",
                 }} />
               )}
 
-              {/* Emoji */}
-              <div style={{
-                fontSize: isDesktop ? 30 : 24,
-                lineHeight:1, marginBottom: isDesktop ? 10 : 8,
-              }}>
-                {emoji}
-              </div>
-
-              {/* Name */}
-              <div style={{
-                fontSize: isDesktop ? 15 : 12,
-                fontWeight:800, letterSpacing:-0.2,
-                color: isHov ? meta.accentColor : th.text,
-                marginBottom:4, transition:"color 0.18s",
-              }}>
-                {name}
-              </div>
-
-              {/* Desc */}
-              <div style={{
-                fontSize: isDesktop ? 11 : 10,
-                color:th.textSub, lineHeight:1.5,
-                marginBottom: isDesktop ? 12 : 9,
-              }}>
-                {meta.desc}
-              </div>
-
-              {/* Badge */}
-              {meta.badge && (
+              <div style={{ paddingLeft: isDesktop ? 11 : 9 }}>
+                {/* Icon */}
                 <div style={{
-                  display:"inline-flex", alignItems:"center",
-                  padding:"2px 8px",
-                  background:`${meta.badgeColor}18`,
-                  border:`1px solid ${meta.badgeColor}30`,
-                  borderRadius:20,
-                  fontSize:9, fontWeight:700, color:meta.badgeColor,
-                  fontFamily:MONO_FONT,
-                  maxWidth:"100%", overflow:"hidden",
-                  textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  fontSize: isDesktop ? 26 : 22, lineHeight:1,
+                  marginBottom: isDesktop ? 9 : 7,
+                  filter: dark && isHov ? `drop-shadow(0 0 6px ${hsRgba(meta.accentColor,0.7)})` : "none",
+                  transition:"filter 0.2s",
                 }}>
-                  {meta.badge}
+                  {emoji}
                 </div>
-              )}
 
-              {/* Chevron arrow */}
+                {/* Module name */}
+                <div style={{
+                  fontSize: isDesktop ? 14 : 12, fontWeight:800,
+                  letterSpacing:-0.2, lineHeight:1.2,
+                  color: isHov ? meta.accentColor : th.text,
+                  marginBottom:4, transition:"color 0.18s",
+                }}>
+                  {name}
+                </div>
+
+                {/* Description */}
+                <div style={{
+                  fontSize: isDesktop ? 10 : 9,
+                  color:th.textSub, lineHeight:1.55,
+                  marginBottom: isDesktop ? 11 : 8,
+                }}>
+                  {meta.desc}
+                </div>
+
+                {/* Live status badge */}
+                {meta.badge && (
+                  <div style={{
+                    display:"inline-flex", alignItems:"center", gap:5,
+                    padding:"3px 8px",
+                    background:hsRgba(meta.badge2Color, 0.12),
+                    border:`1px solid ${hsRgba(meta.badge2Color, 0.28)}`,
+                    borderRadius:20,
+                    fontSize:9, fontWeight:700, color:meta.badge2Color,
+                    fontFamily:MONO_FONT,
+                    maxWidth:"100%", overflow:"hidden",
+                    textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>
+                    <span style={{
+                      display:"inline-block", width:4, height:4, borderRadius:"50%",
+                      background:meta.badge2Color, flexShrink:0,
+                    }} />
+                    {meta.badge}
+                  </div>
+                )}
+              </div>
+
+              {/* Animated chevron */}
               <div style={{
                 position:"absolute",
-                bottom: isDesktop ? 16 : 12,
-                right:  isDesktop ? 16 : 12,
-                fontSize:16,
-                color: isHov ? meta.accentColor : (dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"),
-                transition:"all 0.18s",
+                bottom: isDesktop ? 14 : 10,
+                right:  isDesktop ? 14 : 10,
+                fontSize:16, fontWeight:700,
+                color: isHov ? meta.accentColor : (dark ? "rgba(255,255,255,0.13)" : "rgba(0,0,0,0.13)"),
                 transform: isHov ? "translateX(3px)" : "translateX(0)",
+                transition:"all 0.18s cubic-bezier(0.22,1,0.36,1)",
               }}>›</div>
             </div>
           );
@@ -3616,13 +3834,13 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
       </div>
 
       {/* ── Footer ── */}
-      <div style={{ marginTop: isDesktop ? 28 : 18, display:"flex", alignItems:"center", gap:10 }}>
+      <div style={{ marginTop: isDesktop ? 28 : 20, display:"flex", alignItems:"center", gap:10 }}>
         <div style={{ flex:1, height:1, background:th.border }} />
         <div style={{
-          fontSize:8, fontFamily:MONO_FONT, color:th.textSub,
+          fontFamily:MONO_FONT, fontSize:8, color:th.textSub,
           letterSpacing:1, textTransform:"uppercase",
         }}>
-          YojanaSahay © 2026 · Admin Panel · For Authorised Use Only
+          YojanaSahay © 2026 · Admin Panel · Authorised Use Only
         </div>
         <div style={{ flex:1, height:1, background:th.border }} />
       </div>
