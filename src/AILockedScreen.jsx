@@ -525,14 +525,19 @@ function CheckedCard({ lang, dark, isHindi, bf, th, answers, brief, onGoToProfil
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-export default function AILockedScreen({ lang = "en", dark = false, onGoToProfile, onGoToChecker }) {
+export default function AILockedScreen({ lang = "en", dark = false, onGoToProfile, onGoToChecker, activeTab }) {
   const th = THEME[dark ? "dark" : "light"];
   const bf = fontFamily(lang);
   const isHindi = lang === "hi";
   const benefits = BENEFITS[lang] || BENEFITS.en;
 
-  // Read eligibility data from localStorage once on mount
-  const [eligData] = useState(() => readEligibilityData());
+  // Re-read localStorage every time the AI tab becomes active.
+  // Component stays mounted with visibility:hidden so useState lazy init
+  // only fires once — we must re-read on each tab switch.
+  const [eligData, setEligData] = useState(() => readEligibilityData());
+  useEffect(() => {
+    if (activeTab === "ai") setEligData(readEligibilityData());
+  }, [activeTab]);
 
   // Staggered reveal for benefit cards
   const [visible, setVisible] = useState(false);
