@@ -7541,7 +7541,6 @@ export default function YojanaSahay(){
 
           </div>
         </div>
-      )
       </div>
 
       {/* SEARCH — lazy mount: nothing rendered until first visit */}
