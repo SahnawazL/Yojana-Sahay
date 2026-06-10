@@ -7624,6 +7624,7 @@ export default function YojanaSahay(){
             lang={lang}
             dark={dark}
             onGoToProfile={() => setActiveTab("profile")}
+            onGoToChecker={() => setShowChecker(true)}
           />
         )}
       </div>
