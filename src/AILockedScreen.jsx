@@ -1,5 +1,5 @@
 /**
- * Yojana Sahay — AILockedScreen.jsx  (v2 · Premium Compact)
+ * Yojana Sahay — AILockedScreen.jsx  (v3 · Ultra-Premium)
  * Copyright (c) 2026 Sahnawaz Ahmed Laskar
  * SPDX-License-Identifier: MIT
  *
@@ -14,15 +14,15 @@ import { useState, useEffect } from "react";
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
   light: {
-    appBg: "#f4f4f7", card: "#fff",
-    text: "#0d0d12", textMid: "#444", textSub: "#888",
-    border: "#ebebf0", border2: "#e0e0e8",
-    glass: "rgba(255,255,255,0.70)", glassBorder: "rgba(0,0,0,0.07)",
+    appBg: "#f2f2f7", card: "#fff",
+    text: "#0d0d12", textMid: "#44444f", textSub: "#88889a",
+    border: "#eaeaf2", border2: "#e0e0ec",
+    glass: "rgba(255,255,255,0.75)", glassBorder: "rgba(0,0,0,0.07)",
   },
   dark: {
-    appBg: "#09090f", card: "#0f0e1a",
-    text: "#eeeef4", textMid: "#999", textSub: "#4a4a5a",
-    border: "#1a1a28", border2: "#22223a",
+    appBg: "#07070d", card: "#0f0e1a",
+    text: "#eeeef4", textMid: "#8888a0", textSub: "#3a3a52",
+    border: "#18182a", border2: "#20203a",
     glass: "rgba(255,255,255,0.03)", glassBorder: "rgba(255,255,255,0.08)",
   },
 };
@@ -70,22 +70,25 @@ const AREA_LABELS = {
 // ─── FEATURES ─────────────────────────────────────────────────────────────────
 const FEATURES = {
   en: [
-    { icon:"⚡", label:"Personalised answers based on your exact profile" },
-    { icon:"🔍", label:"Live web search for latest scheme updates & deadlines" },
-    { icon:"🌐", label:"Chat in Hindi or English — replies in your language" },
-    { icon:"💬", label:"Smart follow-up chips auto-generated after every reply" },
-    { icon:"📚", label:"3,000+ Central & State scheme database" },
-    { icon:"💾", label:"Conversation history saved across sessions" },
+    { iconKey:"bolt",     label:"Personalised answers based on your exact profile"        },
+    { iconKey:"search",   label:"Live web search for latest scheme updates & deadlines"   },
+    { iconKey:"globe",    label:"Chat in Hindi or English — replies in your language"     },
+    { iconKey:"chat",     label:"Smart follow-up chips auto-generated after every reply"  },
+    { iconKey:"database", label:"3,000+ Central & State scheme database"                  },
+    { iconKey:"save",     label:"Conversation history saved across sessions"              },
   ],
   hi: [
-    { icon:"⚡", label:"आपकी प्रोफाइल के अनुसार पर्सनल AI जवाब" },
-    { icon:"🔍", label:"नई योजनाओं और डेडलाइन के लिए Live वेब सर्च" },
-    { icon:"🌐", label:"हिंदी या English — जिस भाषा में पूछें, उसी में जवाब" },
-    { icon:"💬", label:"हर जवाब के बाद Smart Follow-up Chips अपने आप" },
-    { icon:"📚", label:"3,000+ केंद्रीय और राज्य योजनाओं का डेटाबेस" },
-    { icon:"💾", label:"अकाउंट में चैट हिस्ट्री सेव रहती है" },
+    { iconKey:"bolt",     label:"आपकी प्रोफाइल के अनुसार पर्सनल AI जवाब"              },
+    { iconKey:"search",   label:"नई योजनाओं और डेडलाइन के लिए Live वेब सर्च"          },
+    { iconKey:"globe",    label:"हिंदी या English — जिस भाषा में पूछें, उसी में जवाब" },
+    { iconKey:"chat",     label:"हर जवाब के बाद Smart Follow-up Chips अपने आप"         },
+    { iconKey:"database", label:"3,000+ केंद्रीय और राज्य योजनाओं का डेटाबेस"         },
+    { iconKey:"save",     label:"अकाउंट में चैट हिस्ट्री सेव रहती है"                 },
   ],
 };
+
+// Per-feature accent palette — each row gets its own color identity
+const ACCENT_COLORS = ["#A78BFA", "#60A5FA", "#34D399", "#F472B6", "#FBBF24", "#38BDF8"];
 
 // ─── SVG ICONS ────────────────────────────────────────────────────────────────
 
@@ -94,7 +97,7 @@ function AshokaChakra({ size = 20, color = "#06038D", spinning = false }) {
   const cx = size / 2, cy = size / 2, r = size / 2 - 1, innerR = r * 0.28;
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
-      style={{ flexShrink: 0, animation: spinning ? "chakra-spin 5s linear infinite" : "none" }}>
+      style={{ flexShrink: 0, animation: spinning ? "chakra-spin 9s linear infinite" : "none" }}>
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={size * 0.055} />
       <circle cx={cx} cy={cy} r={innerR} fill={color} />
       {spokes.map(i => {
@@ -150,12 +153,94 @@ function ScanIcon({ size = 13, color = "#888" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
       stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 7V5a2 2 0 012-2h2" />
-      <path d="M17 3h2a2 2 0 012 2v2" />
-      <path d="M21 17v2a2 2 0 01-2 2h-2" />
-      <path d="M7 21H5a2 2 0 01-2-2v-2" />
+      <path d="M3 7V5a2 2 0 012-2h2" /><path d="M17 3h2a2 2 0 012 2v2" />
+      <path d="M21 17v2a2 2 0 01-2 2h-2" /><path d="M7 21H5a2 2 0 01-2-2v-2" />
       <line x1="7" y1="12" x2="17" y2="12" />
     </svg>
+  );
+}
+
+// ─── FEATURE SVG ICONS ────────────────────────────────────────────────────────
+
+function BoltFeatureIcon({ size = 14, color }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill={color} />
+    </svg>
+  );
+}
+
+function SearchFeatureIcon({ size = 14, color }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <path d="M21 21l-4.35-4.35" />
+    </svg>
+  );
+}
+
+function GlobeFeatureIcon({ size = 14, color }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+    </svg>
+  );
+}
+
+function ChatFeatureIcon({ size = 14, color }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </svg>
+  );
+}
+
+function DatabaseFeatureIcon({ size = 14, color }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+    </svg>
+  );
+}
+
+function SaveFeatureIcon({ size = 14, color }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+      <path d="M17 21v-8H7v8M7 3v5h8" />
+    </svg>
+  );
+}
+
+const FEATURE_ICON_MAP = {
+  bolt: BoltFeatureIcon,
+  search: SearchFeatureIcon,
+  globe: GlobeFeatureIcon,
+  chat: ChatFeatureIcon,
+  database: DatabaseFeatureIcon,
+  save: SaveFeatureIcon,
+};
+
+// ─── STREAMING DOTS ───────────────────────────────────────────────────────────
+function StreamingDots({ color = "#A78BFA" }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 3.5, flexShrink: 0 }}>
+      {[0, 1, 2].map(i => (
+        <div key={i} style={{
+          width: 3.5, height: 3.5, borderRadius: "50%",
+          background: color,
+          animation: `ai-stream-dot 1.4s ease-in-out ${i * 0.22}s infinite`,
+        }} />
+      ))}
+    </div>
   );
 }
 
@@ -165,7 +250,7 @@ function ProfilePill({ label, color }) {
     <div style={{
       display: "inline-flex", alignItems: "center",
       padding: "2px 8px", borderRadius: 99,
-      background: `${color}14`, border: `1px solid ${color}2e`,
+      background: `${color}12`, border: `1px solid ${color}28`,
       fontSize: 10.5, fontWeight: 700, color,
       whiteSpace: "nowrap", letterSpacing: 0.1, flexShrink: 0,
     }}>
@@ -174,7 +259,7 @@ function ProfilePill({ label, color }) {
   );
 }
 
-// ─── ELIGIBILITY STATUS ROW (SINGLE LINE) ─────────────────────────────────────
+// ─── ELIGIBILITY STATUS ROW ───────────────────────────────────────────────────
 function EligibilityRow({ lang, dark, isHindi, bf, th, eligData, onGoToChecker }) {
   const [pressed, setPressed] = useState(false);
 
@@ -188,25 +273,20 @@ function EligibilityRow({ lang, dark, isHindi, bf, th, eligData, onGoToChecker }
         onPointerLeave={() => setPressed(false)}
         style={{
           display: "flex", alignItems: "center", gap: 10,
-          padding: "9px 13px", borderRadius: 11,
-          background: dark ? `${skyC}0c` : `${skyC}08`,
-          border: `1px solid ${skyC}26`,
+          padding: "10px 14px", borderRadius: 12,
+          background: dark ? `${skyC}0a` : `${skyC}07`,
+          border: `1px solid ${skyC}24`,
           cursor: "pointer", userSelect: "none",
           WebkitTapHighlightColor: "transparent",
           transform: pressed ? "scale(0.985)" : "scale(1)",
-          transition: "transform 0.1s",
+          transition: "transform 0.12s",
           marginBottom: 12,
         }}>
         <ScanIcon size={13} color={skyC} />
-        <span style={{
-          flex: 1, fontSize: 12, fontWeight: 600,
-          color: th.text, fontFamily: bf,
-        }}>
+        <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: th.text, fontFamily: bf }}>
           {isHindi ? "60 सेकंड में पात्रता जांच करें" : "Run 60-second eligibility check"}
         </span>
-        <span style={{
-          fontSize: 10, color: th.textSub, fontFamily: bf, marginRight: 2,
-        }}>
+        <span style={{ fontSize: 10, color: th.textSub, fontFamily: bf, marginRight: 2 }}>
           {isHindi ? "लॉगिन नहीं चाहिए" : "No login needed"}
         </span>
         <ChevronRightIcon size={12} color={skyC} />
@@ -214,7 +294,7 @@ function EligibilityRow({ lang, dark, isHindi, bf, th, eligData, onGoToChecker }
     );
   }
 
-  // status === "ready" — single-line row of profile pills
+  // status === "ready"
   const { answers } = eligData;
   const whoLabel    = WHO_LABELS[lang]?.[answers.who]       || answers.who;
   const ageLabel    = AGE_LABELS[lang]?.[answers.age]       || answers.age;
@@ -234,27 +314,26 @@ function EligibilityRow({ lang, dark, isHindi, bf, th, eligData, onGoToChecker }
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 7,
-      padding: "7px 12px", borderRadius: 11,
-      background: dark ? `${purpleC}09` : `${purpleC}06`,
+      padding: "8px 12px", borderRadius: 12,
+      background: dark ? `${purpleC}09` : `${purpleC}05`,
       border: `1px solid ${purpleC}1e`,
       flexWrap: "wrap", marginBottom: 12,
     }}>
       {/* AI READY badge */}
       <div style={{
         display: "inline-flex", alignItems: "center", gap: 5,
-        padding: "2px 8px", borderRadius: 99,
+        padding: "2px 8px 2px 6px", borderRadius: 99,
         background: `${purpleC}18`, border: `1px solid ${purpleC}30`,
         flexShrink: 0,
       }}>
         <div style={{
           width: 5, height: 5, borderRadius: "50%",
-          background: dark ? "#34D399" : "#059669",
-          boxShadow: `0 0 5px ${dark ? "#34D399" : "#059669"}`,
+          background: "#34D399", boxShadow: "0 0 6px #34D399aa",
           animation: "ai-pulse 2.2s ease-in-out infinite",
         }} />
         <span style={{
           fontSize: 9, fontWeight: 800, color: purpleC,
-          letterSpacing: 0.7, textTransform: "uppercase",
+          letterSpacing: 0.8, textTransform: "uppercase",
         }}>
           AI Ready
         </span>
@@ -283,59 +362,75 @@ function AIBriefCard({ dark, isHindi, bf, th, brief }) {
       borderRadius: 16, padding: "14px 14px 0",
       border: `1px solid ${purpleC}1e`,
       boxShadow: dark
-        ? `0 4px 28px rgba(124,58,237,0.18), 0 0 0 1px ${purpleC}0d`
+        ? `0 4px 28px rgba(124,58,237,0.20), 0 0 0 1px ${purpleC}0e`
         : `0 4px 22px rgba(124,58,237,0.09)`,
       marginBottom: 12, position: "relative", overflow: "hidden",
     }}>
-      {/* Ambient glow orb */}
+      {/* Dot-grid texture */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: dark
+          ? `radial-gradient(${purpleC}10 1px, transparent 1px)`
+          : `radial-gradient(${purpleC}08 1px, transparent 1px)`,
+        backgroundSize: "18px 18px",
+        pointerEvents: "none", opacity: 0.6,
+      }} />
+
+      {/* Ambient glow orbs */}
       <div style={{
         position: "absolute", top: -24, right: -16,
-        width: 90, height: 90, borderRadius: "50%",
+        width: 100, height: 100, borderRadius: "50%",
         background: `radial-gradient(circle,${purpleC}1c 0%,transparent 70%)`,
         pointerEvents: "none",
       }} />
 
       {/* Header row */}
       <div style={{
-        display: "flex", alignItems: "center", gap: 8,
-        marginBottom: 11,
+        display: "flex", alignItems: "center", gap: 8, marginBottom: 11, position: "relative",
       }}>
         {/* Avatar */}
         <div style={{
-          width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
           background: `linear-gradient(135deg,${purpleC} 0%,${blueC} 100%)`,
           display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: `0 2px 10px ${purpleC}50`,
         }}>
-          <ZapIcon size={12} color="#fff" />
+          <ZapIcon size={13} color="#fff" />
         </div>
-        {/* Label */}
+
+        {/* Label + version */}
         <div style={{ flex: 1 }}>
-          <span style={{
-            fontSize: 11, fontWeight: 800, color: purpleC,
-            letterSpacing: 0.3, fontFamily: bf,
-          }}>
-            Yojana AI
-          </span>
-          <span style={{
-            fontSize: 10, color: th.textSub,
-            fontFamily: bf, marginLeft: 5,
-          }}>
-            {isHindi ? "· पूर्वावलोकन" : "· Preview"}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{
+              fontSize: 11.5, fontWeight: 800, color: purpleC,
+              letterSpacing: 0.2, fontFamily: bf,
+            }}>
+              Yojana AI
+            </span>
+            {/* Model version chip */}
+            <div style={{
+              padding: "1px 5px", borderRadius: 4,
+              background: `${purpleC}15`, border: `1px solid ${purpleC}28`,
+            }}>
+              <span style={{
+                fontSize: 8, fontWeight: 800, color: purpleC,
+                letterSpacing: 0.5, fontFamily: "monospace",
+              }}>v2</span>
+            </div>
+            <span style={{ fontSize: 9.5, color: th.textSub, fontFamily: bf }}>
+              {isHindi ? "· पूर्वावलोकन" : "· Preview"}
+            </span>
+          </div>
         </div>
-        {/* Live dot */}
-        <div style={{
-          width: 6, height: 6, borderRadius: "50%",
-          background: "#34D399", boxShadow: "0 0 7px #34D399",
-          animation: "ai-pulse 2.2s ease-in-out infinite",
-          flexShrink: 0,
-        }} />
+
+        {/* Streaming "thinking" dots */}
+        <StreamingDots color={purpleC} />
       </div>
 
       {/* Brief text */}
       <div style={{
         fontSize: 12.5, color: th.text, fontFamily: bf,
-        lineHeight: 1.85, paddingBottom: 46, letterSpacing: 0.1,
+        lineHeight: 1.85, paddingBottom: 46, letterSpacing: 0.1, position: "relative",
       }}>
         {brief}
       </div>
@@ -345,21 +440,21 @@ function AIBriefCard({ dark, isHindi, bf, th, brief }) {
         position: "absolute", bottom: 0, left: 0, right: 0, height: 60,
         background: fadeBg,
         display: "flex", alignItems: "flex-end", justifyContent: "center",
-        paddingBottom: 11,
-        pointerEvents: "none",
+        paddingBottom: 11, pointerEvents: "none",
       }}>
         <div style={{
           display: "inline-flex", alignItems: "center", gap: 5,
-          padding: "3px 11px", borderRadius: 99,
+          padding: "4px 12px", borderRadius: 99,
           background: dark ? "rgba(12,11,28,0.96)" : "rgba(254,252,255,0.96)",
-          border: `1px solid ${purpleC}25`,
-          backdropFilter: "blur(10px)",
+          border: `1px solid ${purpleC}28`,
+          backdropFilter: "blur(12px)",
+          boxShadow: `0 2px 12px ${purpleC}22`,
           pointerEvents: "auto",
         }}>
           <LockIcon size={9} color={purpleC} />
           <span style={{
             fontSize: 9, fontWeight: 700, color: purpleC,
-            fontFamily: bf, letterSpacing: 0.5, textTransform: "uppercase",
+            fontFamily: bf, letterSpacing: 0.6, textTransform: "uppercase",
           }}>
             {isHindi ? "पूरी चैट के लिए साइन इन करें" : "Sign in to unlock full AI chat"}
           </span>
@@ -376,57 +471,82 @@ function AIBriefSkeleton({ dark, isHindi, bf, th }) {
 
   return (
     <div style={{
-      borderRadius: 14, padding: "12px 14px",
-      background: dark ? `${purpleC}09` : `${purpleC}06`,
+      borderRadius: 14, padding: "13px 14px",
+      background: dark ? `${purpleC}08` : `${purpleC}05`,
       border: `1px solid ${purpleC}18`,
-      marginBottom: 12,
+      marginBottom: 12, position: "relative", overflow: "hidden",
     }}>
+      {/* Scan-line sweep */}
+      <div style={{
+        position: "absolute", left: 0, right: 0, height: 1,
+        background: `linear-gradient(to right,transparent,${purpleC}55,transparent)`,
+        animation: "ai-scan-line 2.4s ease-in-out infinite",
+        pointerEvents: "none",
+      }} />
+
       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 11 }}>
         <div style={{
-          width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+          width: 26, height: 26, borderRadius: 7, flexShrink: 0,
           background: `linear-gradient(135deg,${purpleC} 0%,${blueC} 100%)`,
           display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: `0 2px 10px ${purpleC}40`,
         }}>
           <ZapIcon size={11} color="#fff" />
         </div>
         <span style={{
-          fontSize: 10.5, fontWeight: 700, color: purpleC,
+          flex: 1, fontSize: 11, fontWeight: 700, color: purpleC,
           fontFamily: bf, letterSpacing: 0.3,
         }}>
-          Yojana AI · {isHindi ? "पूर्वावलोकन" : "Preview"}
+          Yojana AI · {isHindi ? "विश्लेषण हो रहा है" : "Analysing"}
         </span>
+        <StreamingDots color={purpleC} />
       </div>
+
       {[92, 100, 82, 58].map((w, i) => (
         <div key={i} style={{
-          height: 9, borderRadius: 5, marginBottom: 7,
-          width: `${w}%`,
+          height: 9, borderRadius: 5, marginBottom: 7, width: `${w}%`,
           background: dark ? "rgba(255,255,255,0.07)" : "rgba(124,58,237,0.08)",
           animation: `ai-shimmer 1.7s ease-in-out ${i * 0.15}s infinite`,
         }} />
       ))}
+
       <div style={{
-        fontSize: 10.5, color: th.textSub, fontFamily: bf, marginTop: 3,
+        fontSize: 10, color: th.textSub, fontFamily: bf, marginTop: 4,
+        display: "flex", alignItems: "center", gap: 5,
       }}>
+        <div style={{
+          width: 4, height: 4, borderRadius: "50%", background: "#FBBF24",
+          animation: "ai-pulse 2s ease-in-out infinite", flexShrink: 0,
+        }} />
         {isHindi
           ? "साइन इन के बाद AI विश्लेषण उपलब्ध होगा।"
-          : "AI analysis available after you sign in."}
+          : "AI analysis unlocks after sign-in."}
       </div>
     </div>
   );
 }
 
-// ─── FEATURE ROW (compact) ────────────────────────────────────────────────────
-function FeatureRow({ icon, label, dark, th, bf, delay, visible }) {
+// ─── FEATURE ROW ──────────────────────────────────────────────────────────────
+function FeatureRow({ iconKey, label, dark, th, bf, delay, visible, accentColor }) {
+  const IconComp = FEATURE_ICON_MAP[iconKey] || BoltFeatureIcon;
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 10,
-      padding: "7px 12px", borderRadius: 9,
-      background: dark ? "rgba(255,255,255,0.022)" : "rgba(0,0,0,0.018)",
-      border: `1px solid ${dark ? "rgba(255,255,255,0.045)" : "rgba(0,0,0,0.038)"}`,
+      padding: "8px 12px", borderRadius: 10,
+      background: dark ? "rgba(255,255,255,0.020)" : "rgba(0,0,0,0.015)",
+      border: `1px solid ${dark ? "rgba(255,255,255,0.040)" : "rgba(0,0,0,0.035)"}`,
+      borderLeft: `2px solid ${accentColor}60`,
       opacity: visible ? 1 : 0,
       animation: visible ? `ai-fade-in 0.30s ease ${delay}s both` : "none",
     }}>
-      <span style={{ fontSize: 13, flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+      {/* Icon badge */}
+      <div style={{
+        width: 28, height: 28, borderRadius: 7, flexShrink: 0,
+        background: `${accentColor}12`, border: `1px solid ${accentColor}22`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <IconComp size={13} color={accentColor} />
+      </div>
       <span style={{
         fontSize: 11.5, color: th.textMid, fontFamily: bf,
         fontWeight: 500, lineHeight: 1.35, flex: 1,
@@ -437,21 +557,15 @@ function FeatureRow({ icon, label, dark, th, bf, delay, visible }) {
   );
 }
 
-// ─── AI BRIEF TEASER (State A — hint to complete check) ──────────────────────
-/**
- * Shown when eligibility check hasn't been done yet.
- * Renders a blurred ghost of the AI brief card so the user can see
- * exactly what they'll unlock — with a hint overlay showing the 3-step flow.
- */
+// ─── AI BRIEF TEASER (State A — no check done yet) ────────────────────────────
 function AIBriefTeaser({ dark, isHindi, bf, th, onGoToChecker }) {
   const [pressed, setPressed] = useState(false);
   const purpleC = dark ? "#A78BFA" : "#7C3AED";
   const blueC   = dark ? "#60A5FA" : "#2563EB";
 
-  // Overlay gradient — fades from transparent (top) to card bg (bottom)
   const overlayBg = dark
-    ? "linear-gradient(to bottom,rgba(9,9,15,0.08) 0%,rgba(9,9,15,0.78) 38%,rgba(9,9,15,0.98) 100%)"
-    : "linear-gradient(to bottom,rgba(244,244,247,0.08) 0%,rgba(244,244,247,0.78) 38%,rgba(244,244,247,0.98) 100%)";
+    ? "linear-gradient(to bottom,rgba(7,7,13,0.06) 0%,rgba(7,7,13,0.80) 38%,rgba(7,7,13,0.99) 100%)"
+    : "linear-gradient(to bottom,rgba(242,242,247,0.06) 0%,rgba(242,242,247,0.80) 38%,rgba(242,242,247,0.99) 100%)";
 
   const cardBg = dark
     ? "linear-gradient(155deg,#0c0b1c 0%,#0d0b20 55%,#0a0d22 100%)"
@@ -459,41 +573,31 @@ function AIBriefTeaser({ dark, isHindi, bf, th, onGoToChecker }) {
 
   return (
     <div style={{
-      borderRadius: 16,
-      border: `1px solid ${purpleC}18`,
-      overflow: "hidden",
-      marginBottom: 12,
-      position: "relative",
-      background: cardBg,
+      borderRadius: 16, border: `1px solid ${purpleC}18`,
+      overflow: "hidden", marginBottom: 12,
+      position: "relative", background: cardBg,
     }}>
-
       {/* ── GHOST CONTENT (blurred behind overlay) ── */}
       <div style={{
         padding: "14px 14px 16px",
-        filter: "blur(2.5px)",
-        opacity: 0.38,
-        userSelect: "none",
-        pointerEvents: "none",
+        filter: "blur(2.5px)", opacity: 0.35,
+        userSelect: "none", pointerEvents: "none",
       }}>
-        {/* Ghost AI header row */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 11 }}>
           <div style={{
-            width: 26, height: 26, borderRadius: 7,
+            width: 28, height: 28, borderRadius: 8,
             background: `linear-gradient(135deg,${purpleC}80 0%,${blueC}60 100%)`,
           }} />
-          <div style={{ width: 72, height: 10, borderRadius: 5, background: `${purpleC}60` }} />
+          <div style={{ width: 70, height: 10, borderRadius: 5, background: `${purpleC}60` }} />
           <div style={{ flex: 1 }} />
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34D399" }} />
         </div>
-        {/* Ghost text lines */}
         {[96, 100, 88, 76, 82, 64].map((w, i) => (
           <div key={i} style={{
-            height: 9, borderRadius: 5, marginBottom: 7,
-            width: `${w}%`,
+            height: 9, borderRadius: 5, marginBottom: 7, width: `${w}%`,
             background: dark ? "rgba(255,255,255,0.16)" : "rgba(124,58,237,0.14)",
           }} />
         ))}
-        {/* Ghost profile pills row */}
         <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
           {[52, 44, 58, 40].map((w, i) => (
             <div key={i} style={{
@@ -504,45 +608,39 @@ function AIBriefTeaser({ dark, isHindi, bf, th, onGoToChecker }) {
         </div>
       </div>
 
-      {/* ── OVERLAY with hint ── */}
+      {/* ── OVERLAY WITH HINT ── */}
       <div style={{
-        position: "absolute", inset: 0,
-        background: overlayBg,
+        position: "absolute", inset: 0, background: overlayBg,
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "flex-end",
         padding: "0 16px 16px",
       }}>
         {/* Lock + label */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: 6,
-          marginBottom: 7,
-        }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
           <LockIcon size={11} color={purpleC} />
           <span style={{
-            fontSize: 11.5, fontWeight: 800,
-            color: dark ? "rgba(255,255,255,0.80)" : th.text,
-            fontFamily: bf, letterSpacing: 0.2,
+            fontSize: 12, fontWeight: 800,
+            color: dark ? "rgba(255,255,255,0.84)" : th.text,
+            fontFamily: bf, letterSpacing: 0.1,
           }}>
             {isHindi ? "आपकी AI रिपोर्ट यहाँ दिखेगी" : "Your AI report will appear here"}
           </span>
         </div>
 
         {/* 3-step flow hint */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: 0,
-          marginBottom: 13,
-        }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 14 }}>
           {[
             { label: isHindi ? "जांच करें" : "Check",      active: false },
             null,
-            { label: isHindi ? "वापस आएं" : "Come back",   active: false },
+            { label: isHindi ? "वापस आएं" : "Return",      active: false },
             null,
             { label: isHindi ? "AI रिपोर्ट" : "AI Report", active: true  },
           ].map((s, i) =>
             s === null ? (
               <svg key={i} width={14} height={10} viewBox="0 0 14 10" fill="none"
                 style={{ flexShrink: 0, margin: "0 1px" }}>
-                <path d="M1 5h10M8 2l3 3-3 3" stroke={dark ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.18)"}
+                <path d="M1 5h10M8 2l3 3-3 3"
+                  stroke={dark ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.18)"}
                   strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             ) : (
@@ -557,8 +655,7 @@ function AIBriefTeaser({ dark, isHindi, bf, th, onGoToChecker }) {
                 <span style={{
                   fontSize: 9.5, fontWeight: 700,
                   color: s.active ? purpleC : th.textSub,
-                  letterSpacing: 0.2, whiteSpace: "nowrap",
-                  fontFamily: bf,
+                  letterSpacing: 0.2, whiteSpace: "nowrap", fontFamily: bf,
                 }}>
                   {s.label}
                 </span>
@@ -567,7 +664,7 @@ function AIBriefTeaser({ dark, isHindi, bf, th, onGoToChecker }) {
           )}
         </div>
 
-        {/* CTA tappable */}
+        {/* CTA pill */}
         <div
           onClick={() => { setPressed(false); onGoToChecker?.(); }}
           onPointerDown={() => setPressed(true)}
@@ -575,22 +672,21 @@ function AIBriefTeaser({ dark, isHindi, bf, th, onGoToChecker }) {
           onPointerLeave={() => setPressed(false)}
           style={{
             display: "flex", alignItems: "center", gap: 8,
-            padding: "9px 18px", borderRadius: 99,
+            padding: "10px 20px", borderRadius: 99,
             background: pressed
               ? `linear-gradient(135deg,${purpleC}d0 0%,${blueC}c0 100%)`
               : `linear-gradient(135deg,${purpleC} 0%,${blueC} 100%)`,
             boxShadow: pressed
               ? `0 2px 8px ${purpleC}40`
-              : `0 4px 16px ${purpleC}50`,
+              : `0 4px 18px ${purpleC}55`,
             cursor: "pointer", userSelect: "none",
             WebkitTapHighlightColor: "transparent",
             transform: pressed ? "scale(0.96)" : "scale(1)",
             transition: "transform 0.11s, box-shadow 0.11s",
           }}>
-          <ScanIcon size={12} color="rgba(255,255,255,0.90)" />
+          <ScanIcon size={12} color="rgba(255,255,255,0.92)" />
           <span style={{
-            fontSize: 12, fontWeight: 800,
-            color: "#fff", fontFamily: bf, letterSpacing: 0.2,
+            fontSize: 12, fontWeight: 800, color: "#fff", fontFamily: bf, letterSpacing: 0.2,
           }}>
             {isHindi ? "पात्रता जांच करें" : "Start eligibility check"}
           </span>
@@ -600,7 +696,7 @@ function AIBriefTeaser({ dark, isHindi, bf, th, onGoToChecker }) {
         <div style={{
           marginTop: 8, fontSize: 9.5,
           color: dark ? "rgba(255,255,255,0.24)" : "rgba(0,0,0,0.28)",
-          fontFamily: bf, letterSpacing: 0.3,
+          fontFamily: bf, letterSpacing: 0.4,
         }}>
           {isHindi ? "60 सेकंड · लॉगिन जरूरी नहीं" : "60 seconds · no login required"}
         </div>
@@ -652,7 +748,7 @@ export default function AILockedScreen({
         }
         @keyframes ai-shimmer {
           0%, 100% { opacity:0.35; }
-          50%       { opacity:0.9; }
+          50%       { opacity:0.90; }
         }
         @keyframes ai-fade-in {
           from { opacity:0; transform:translateY(8px); }
@@ -663,23 +759,59 @@ export default function AILockedScreen({
           100% { transform:translateX(400%); }
         }
         @keyframes ai-hdr-breathe {
-          0%, 100% { opacity:0.35; }
-          50%       { opacity:0.60; }
+          0%, 100% { opacity:0.30; }
+          50%       { opacity:0.55; }
+        }
+        @keyframes ai-stream-dot {
+          0%, 80%, 100% { opacity:0.25; transform:scale(0.80); }
+          40%            { opacity:1;    transform:scale(1.15); }
+        }
+        @keyframes ai-scan-line {
+          0%   { top:0%;   opacity:0; }
+          8%   { opacity:1; }
+          92%  { opacity:1; }
+          100% { top:100%; opacity:0; }
+        }
+        @keyframes ai-hdr-scan {
+          0%   { transform:translateY(-100%); opacity:0; }
+          8%   { opacity:0.55; }
+          92%  { opacity:0.55; }
+          100% { transform:translateY(200%); opacity:0; }
+        }
+        @keyframes ai-glow-pulse {
+          0%, 100% { box-shadow: 0 4px 22px rgba(124,58,237,0.38), 0 1px 0 rgba(255,255,255,0.14); }
+          50%       { box-shadow: 0 6px 28px rgba(124,58,237,0.58), 0 1px 0 rgba(255,255,255,0.18); }
         }
       `}</style>
 
       {/* ── SLIM HEADER ─────────────────────────────────────────────────────── */}
       <div style={{
         background: dark
-          ? "linear-gradient(135deg,#0b081e 0%,#0d0a22 50%,#080d22 100%)"
-          : "linear-gradient(135deg,#140930 0%,#0f0838 50%,#06038D 100%)",
-        padding: "13px 18px",
+          ? "linear-gradient(135deg,#08061a 0%,#0b0920 50%,#060a20 100%)"
+          : "linear-gradient(135deg,#120828 0%,#0e0738 50%,#06038D 100%)",
+        padding: "14px 18px",
         flexShrink: 0,
-        boxShadow: `0 2px 18px ${dark ? "rgba(124,58,237,0.22)" : "rgba(6,3,141,0.30)"}`,
+        boxShadow: `0 2px 20px ${dark ? "rgba(124,58,237,0.28)" : "rgba(6,3,141,0.38)"}`,
         borderBottom: "1px solid rgba(255,255,255,0.06)",
         position: "relative", overflow: "hidden",
       }}>
-        {/* Ambient pulse behind title */}
+        {/* Dot-grid texture */}
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+          pointerEvents: "none",
+        }} />
+
+        {/* Horizontal scan line */}
+        <div style={{
+          position: "absolute", left: 0, right: 0, height: "1px",
+          background: "linear-gradient(to right,transparent,rgba(167,139,250,0.55),transparent)",
+          animation: "ai-hdr-scan 4.5s ease-in-out 0.8s infinite",
+          pointerEvents: "none",
+        }} />
+
+        {/* Ambient glow behind title */}
         <div style={{
           position: "absolute", top: -18, left: "28%",
           width: 140, height: 64, borderRadius: "50%",
@@ -688,28 +820,41 @@ export default function AILockedScreen({
           pointerEvents: "none",
         }} />
 
-        <div style={{
-          display: "flex", alignItems: "center", gap: 10,
-          position: "relative",
-        }}>
-          {/* AI · Assistant badge */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
+
+          {/* AI model badge */}
           <div style={{
-            display: "inline-flex", alignItems: "center", gap: 7,
-            padding: "5px 11px 5px 9px", borderRadius: 99,
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "5px 12px 5px 9px", borderRadius: 99,
             background: "rgba(255,255,255,0.07)",
-            border: "1px solid rgba(255,255,255,0.12)",
+            border: "1px solid rgba(255,255,255,0.13)",
+            backdropFilter: "blur(8px)",
           }}>
+            {/* Animated status dot */}
             <div style={{
               width: 7, height: 7, borderRadius: "50%",
-              background: "rgba(255,255,255,0.38)", flexShrink: 0,
+              background: "rgba(255,255,255,0.36)", flexShrink: 0,
+              animation: "ai-pulse 3s ease-in-out infinite",
             }} />
             <span style={{
               fontSize: 13, fontWeight: 800,
-              color: "rgba(255,255,255,0.90)",
-              letterSpacing: 0.2, fontFamily: bf,
+              color: "rgba(255,255,255,0.92)",
+              letterSpacing: 0.3, fontFamily: bf,
             }}>
               {isHindi ? "AI सहायक" : "AI Assistant"}
             </span>
+            {/* Version tag */}
+            <div style={{
+              padding: "1px 5px", borderRadius: 4,
+              background: "rgba(255,255,255,0.10)",
+              border: "1px solid rgba(255,255,255,0.14)",
+            }}>
+              <span style={{
+                fontSize: 8, fontWeight: 700,
+                color: "rgba(255,255,255,0.50)",
+                fontFamily: "monospace", letterSpacing: 0.5,
+              }}>v2.0</span>
+            </div>
           </div>
 
           {/* Locked pill */}
@@ -723,74 +868,82 @@ export default function AILockedScreen({
             <span style={{
               fontSize: 9.5, fontWeight: 700,
               color: "rgba(255,255,255,0.45)",
-              letterSpacing: 0.7, textTransform: "uppercase",
+              letterSpacing: 0.7, textTransform: "uppercase", fontFamily: bf,
             }}>
               {isHindi ? "लॉक" : "Locked"}
             </span>
           </div>
 
           <div style={{ flex: 1 }} />
-          <AshokaChakra size={26} color="rgba(255,255,255,0.20)" spinning />
+          <AshokaChakra size={26} color="rgba(255,255,255,0.18)" spinning />
         </div>
       </div>
 
       {/* ── SCROLLABLE CONTENT ──────────────────────────────────────────────── */}
       <div style={{
         flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
-        padding: "16px 16px 44px",
+        padding: "16px 16px 48px",
       }}>
 
-        {/* ── SIGN-IN CARD (compact dark glass) ── */}
+        {/* ── SIGN-IN CARD ── */}
         <div style={{
           background: dark
-            ? "linear-gradient(155deg,#0d0b1e 0%,#0c0a1c 55%,#080c20 100%)"
+            ? "linear-gradient(155deg,#0c0a1e 0%,#0b0a1c 55%,#080b1e 100%)"
             : "linear-gradient(155deg,#0f0830 0%,#0c0838 55%,#06038D 100%)",
-          borderRadius: 18, padding: "17px 16px",
+          borderRadius: 18, padding: "18px 16px",
           marginBottom: 12,
           border: `1px solid ${purpleC}22`,
           boxShadow: dark
-            ? `0 8px 32px rgba(124,58,237,0.22), 0 0 0 1px ${purpleC}0e`
-            : `0 8px 36px rgba(6,3,141,0.30)`,
+            ? `0 8px 36px rgba(124,58,237,0.24), 0 0 0 1px ${purpleC}0e`
+            : `0 8px 40px rgba(6,3,141,0.32)`,
           position: "relative", overflow: "hidden",
         }}>
-          {/* Orbs */}
+          {/* Dot-grid texture on card */}
           <div style={{
-            position: "absolute", right: -18, top: -18,
-            width: 80, height: 80, borderRadius: "50%",
-            background: `radial-gradient(circle,${purpleC}22 0%,transparent 70%)`,
+            position: "absolute", inset: 0,
+            backgroundImage: "radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)",
+            backgroundSize: "18px 18px",
+            pointerEvents: "none",
+          }} />
+
+          {/* Corner orbs */}
+          <div style={{
+            position: "absolute", right: -20, top: -20,
+            width: 90, height: 90, borderRadius: "50%",
+            background: `radial-gradient(circle,${purpleC}26 0%,transparent 70%)`,
             pointerEvents: "none",
           }} />
           <div style={{
-            position: "absolute", left: -10, bottom: -10,
-            width: 60, height: 60, borderRadius: "50%",
-            background: "radial-gradient(circle,rgba(56,189,248,0.16) 0%,transparent 70%)",
+            position: "absolute", left: -12, bottom: -12,
+            width: 70, height: 70, borderRadius: "50%",
+            background: "radial-gradient(circle,rgba(56,189,248,0.18) 0%,transparent 70%)",
             pointerEvents: "none",
           }} />
 
           {/* Title + sub */}
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
-            marginBottom: 12, position: "relative",
+            marginBottom: 14, position: "relative",
           }}>
             <div style={{
-              width: 34, height: 34, borderRadius: 9, flexShrink: 0,
-              background: `linear-gradient(135deg,${purpleC}70 0%,${blueC}50 100%)`,
-              border: `1px solid ${purpleC}40`,
+              width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+              background: `linear-gradient(135deg,${purpleC}80 0%,${blueC}60 100%)`,
+              border: `1px solid ${purpleC}55`,
               display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: `0 4px 18px ${purpleC}45`,
             }}>
-              <ZapIcon size={15} color="#fff" />
+              <ZapIcon size={16} color="#fff" />
             </div>
             <div>
               <div style={{
-                color: "rgba(255,255,255,0.95)", fontSize: 15.5,
-                fontWeight: 900, lineHeight: 1.2, letterSpacing: -0.4,
-                fontFamily: bf,
+                color: "rgba(255,255,255,0.96)", fontSize: 16,
+                fontWeight: 900, lineHeight: 1.2, letterSpacing: -0.5, fontFamily: bf,
               }}>
                 {isHindi ? "AI सुविधा अनलॉक करें" : "Unlock AI Assistant"}
               </div>
               <div style={{
-                color: "rgba(255,255,255,0.40)", fontSize: 10.5,
-                marginTop: 2, fontFamily: bf,
+                color: "rgba(255,255,255,0.38)", fontSize: 10.5,
+                marginTop: 2, fontFamily: bf, letterSpacing: 0.1,
               }}>
                 {isHindi
                   ? "3,000+ सरकारी योजनाएं · पर्सनल जवाब"
@@ -799,31 +952,28 @@ export default function AILockedScreen({
             </div>
           </div>
 
-          {/* 3 stat pills */}
-          <div style={{
-            display: "flex", gap: 7, marginBottom: 14, position: "relative",
-          }}>
+          {/* Stat pills — per-color redesign */}
+          <div style={{ display: "flex", gap: 7, marginBottom: 16, position: "relative" }}>
             {[
-              { v: "3K+",  l: isHindi ? "योजनाएं"  : "Schemes"   },
-              { v: "24/7", l: isHindi ? "उपलब्ध"   : "Available" },
-              { v: "Free", l: isHindi ? "मुफ़्त"    : "Forever"   },
+              { v: "3K+",  l: isHindi ? "योजनाएं" : "Schemes",   accent: "#A78BFA" },
+              { v: "24/7", l: isHindi ? "उपलब्ध"  : "Available", accent: "#38BDF8" },
+              { v: "Free", l: isHindi ? "मुफ़्त"   : "Forever",   accent: "#34D399" },
             ].map((s, i) => (
               <div key={i} style={{
                 flex: 1, textAlign: "center",
-                padding: "7px 4px", borderRadius: 9,
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                padding: "9px 4px", borderRadius: 10,
+                background: `${s.accent}10`,
+                border: `1px solid ${s.accent}22`,
               }}>
                 <div style={{
-                  fontSize: 13.5, fontWeight: 900,
-                  color: "rgba(255,255,255,0.88)",
+                  fontSize: 14, fontWeight: 900, color: s.accent,
                   letterSpacing: -0.3, fontFamily: bf,
                 }}>
                   {s.v}
                 </div>
                 <div style={{
                   fontSize: 9, color: "rgba(255,255,255,0.35)",
-                  letterSpacing: 0.3, marginTop: 1, fontFamily: bf,
+                  letterSpacing: 0.3, marginTop: 2, fontFamily: bf,
                 }}>
                   {s.l}
                 </div>
@@ -831,7 +981,7 @@ export default function AILockedScreen({
             ))}
           </div>
 
-          {/* CTA button */}
+          {/* CTA — Google Sign In */}
           <div
             onClick={() => { setBtnPressed(false); onGoToProfile?.(); }}
             onPointerDown={() => setBtnPressed(true)}
@@ -839,52 +989,53 @@ export default function AILockedScreen({
             onPointerLeave={() => setBtnPressed(false)}
             style={{
               position: "relative", overflow: "hidden",
-              background: btnPressed ? "rgba(245,244,255,0.93)" : "#f5f4ff",
-              borderRadius: 12, padding: "12px 16px",
+              background: btnPressed ? "rgba(241,240,255,0.95)" : "#f1f0ff",
+              borderRadius: 13, padding: "13px 16px",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
               cursor: "pointer",
               boxShadow: btnPressed
-                ? "0 2px 8px rgba(0,0,0,0.18)"
-                : `0 4px 18px rgba(124,58,237,0.32), 0 1px 0 rgba(255,255,255,0.12)`,
+                ? "0 2px 10px rgba(0,0,0,0.20)"
+                : undefined,
+              animation: btnPressed ? "none" : "ai-glow-pulse 3s ease-in-out 2s infinite",
               transform: btnPressed ? "scale(0.97)" : "scale(1)",
-              transition: "transform 0.12s, box-shadow 0.12s",
+              transition: "transform 0.12s",
               WebkitTapHighlightColor: "transparent",
               userSelect: "none",
             }}>
-            {/* Shine */}
+            {/* Shine sweep */}
             <div style={{
               position: "absolute", top: 0, bottom: 0, width: "50%",
-              background: "linear-gradient(105deg,transparent 0%,rgba(255,255,255,0.48) 50%,transparent 100%)",
-              animation: "ai-btn-shine 2.6s ease-in-out 1.3s infinite",
+              background: "linear-gradient(105deg,transparent 0%,rgba(255,255,255,0.52) 50%,transparent 100%)",
+              animation: "ai-btn-shine 2.8s ease-in-out 1.5s infinite",
               pointerEvents: "none",
             }} />
             <GoogleIcon size={18} />
             <span style={{
-              fontSize: 13.5, fontWeight: 800, color: "#1a1a1a",
+              fontSize: 13.5, fontWeight: 800, color: "#1a1a28",
               letterSpacing: 0.1, position: "relative", fontFamily: bf,
             }}>
               {isHindi ? "Google से जारी रखें" : "Continue with Google"}
             </span>
-            <ChevronRightIcon size={13} color="#444" />
+            <ChevronRightIcon size={13} color="#3a3a50" />
           </div>
 
           <div style={{
-            textAlign: "center", marginTop: 9, position: "relative",
-            color: "rgba(255,255,255,0.26)", fontSize: 10,
-            letterSpacing: 0.4, fontFamily: bf,
+            textAlign: "center", marginTop: 10, position: "relative",
+            color: "rgba(255,255,255,0.24)", fontSize: 10,
+            letterSpacing: 0.5, fontFamily: bf,
           }}>
-            {isHindi ? "बिल्कुल मुफ़्त · 10 सेकंड में" : "Completely free · Takes 10 seconds"}
+            {isHindi ? "बिल्कुल मुफ़्त · 10 सेकंड में" : "Completely free · Ready in 10 seconds"}
           </div>
         </div>
 
-        {/* ── ELIGIBILITY STATUS (single-line) ── */}
+        {/* ── ELIGIBILITY STATUS ROW ── */}
         <EligibilityRow
           lang={lang} dark={dark} isHindi={isHindi} bf={bf} th={th}
           eligData={eligData}
           onGoToChecker={onGoToChecker}
         />
 
-        {/* ── AI BRIEF TEASER (State A — no check done yet) ── */}
+        {/* ── STATE A: no check — show teaser ── */}
         {eligData.status === "none" && (
           <AIBriefTeaser
             dark={dark} isHindi={isHindi} bf={bf} th={th}
@@ -892,7 +1043,7 @@ export default function AILockedScreen({
           />
         )}
 
-        {/* ── AI BRIEF (premium, only if brief exists) ── */}
+        {/* ── STATE B: ready + brief ── */}
         {eligData.status === "ready" && eligData.brief && (
           <AIBriefCard
             dark={dark} isHindi={isHindi} bf={bf} th={th}
@@ -900,7 +1051,7 @@ export default function AILockedScreen({
           />
         )}
 
-        {/* ── AI BRIEF SKELETON (ready, no brief yet) ── */}
+        {/* ── STATE C: ready, no brief yet — skeleton ── */}
         {eligData.status === "ready" && !eligData.brief && (
           <AIBriefSkeleton dark={dark} isHindi={isHindi} bf={bf} th={th} />
         )}
@@ -908,24 +1059,27 @@ export default function AILockedScreen({
         {/* ── FEATURES HEADER ── */}
         <div style={{
           display: "flex", alignItems: "center", gap: 7,
-          marginBottom: 8, paddingLeft: 2,
+          marginBottom: 9, paddingLeft: 2,
         }}>
           <AshokaChakra size={13} color={dark ? "#A78BFA" : "#7C3AED"} />
           <span style={{
             fontSize: 9.5, fontWeight: 700, color: th.textSub,
-            letterSpacing: 0.9, textTransform: "uppercase", fontFamily: bf,
+            letterSpacing: 1.0, textTransform: "uppercase", fontFamily: bf,
           }}>
             {isHindi ? "AI सुविधाएं जो मिलेंगी" : "What you unlock"}
           </span>
         </div>
 
-        {/* ── FEATURE ROWS (ultra-compact) ── */}
+        {/* ── FEATURE ROWS ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 18 }}>
           {features.map((f, i) => (
             <FeatureRow
-              key={i} icon={f.icon} label={f.label}
+              key={i}
+              iconKey={f.iconKey}
+              label={f.label}
               dark={dark} th={th} bf={bf}
               delay={i * 0.05} visible={visible}
+              accentColor={ACCENT_COLORS[i % ACCENT_COLORS.length]}
             />
           ))}
         </div>
@@ -933,25 +1087,30 @@ export default function AILockedScreen({
         {/* ── COMING SOON STRIP ── */}
         <div style={{
           display: "flex", alignItems: "center", gap: 10,
-          padding: "9px 13px", borderRadius: 11,
-          background: dark ? `${purpleC}09` : `${purpleC}06`,
+          padding: "10px 14px", borderRadius: 12,
+          background: dark ? `${purpleC}08` : `${purpleC}05`,
           border: `1px dashed ${purpleC}22`,
         }}>
           <div style={{
-            display: "inline-flex", alignItems: "center",
-            padding: "1px 8px", borderRadius: 99,
-            background: `${purpleC}18`, border: `1px solid ${purpleC}28`,
+            display: "inline-flex", alignItems: "center", gap: 5,
+            padding: "2px 8px", borderRadius: 99,
+            background: `${purpleC}18`, border: `1px solid ${purpleC}30`,
             flexShrink: 0,
           }}>
+            <div style={{
+              width: 4, height: 4, borderRadius: "50%",
+              background: purpleC,
+              animation: "ai-pulse 1.8s ease-in-out infinite",
+            }} />
             <span style={{
               fontSize: 9, fontWeight: 800, color: purpleC,
-              letterSpacing: 0.6, textTransform: "uppercase",
+              letterSpacing: 0.7, textTransform: "uppercase",
             }}>
               {isHindi ? "जल्द" : "Soon"}
             </span>
           </div>
           <span style={{
-            fontSize: 11.5, color: th.textMid, fontFamily: bf, flex: 1,
+            fontSize: 11.5, color: th.textMid, fontFamily: bf, flex: 1, fontWeight: 500,
           }}>
             {isHindi
               ? "YojanaSahay Pro — जल्द आ रहा है"
