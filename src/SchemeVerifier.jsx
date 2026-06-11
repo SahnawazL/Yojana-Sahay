@@ -524,6 +524,247 @@ function DBCoverageCard({ dark }) {
 }
 
 
+// ─── TECH STAT CARD ───────────────────────────────────────────────────────────
+// Single terminal-style cell used inside RunSummaryCard.
+
+function TechStatCard({ icon, label, value, color, dark }) {
+  const th  = THEME[dark ? "dark" : "light"];
+  const hot = (value ?? 0) > 0;
+  return (
+    <div style={{
+      flex: "1 1 0", minWidth: 0,
+      background: dark
+        ? hot ? `${color}14` : "#1c2128"
+        : hot ? `${color}08` : th.card2,
+      border:       `1px solid ${hot ? color + "38" : (dark ? "#30363d" : th.border)}`,
+      borderBottom: `2px solid ${hot ? color        : (dark ? "#2d333b" : th.border)}`,
+      borderRadius: 8,
+      padding: "8px 6px 6px",
+      textAlign: "center",
+    }}>
+      <div style={{ fontSize: 13 }}>{icon}</div>
+      <div style={{
+        fontSize: 18, fontWeight: 900, lineHeight: 1, marginTop: 3,
+        color: hot ? color : th.textSub,
+        fontFamily: "monospace",
+      }}>
+        {value ?? 0}
+      </div>
+      <div style={{
+        fontSize: 7, fontWeight: 800, letterSpacing: 0.8, marginTop: 3,
+        color: th.textSub, fontFamily: "monospace",
+        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+      }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
+
+// ─── RUN SUMMARY CARD ─────────────────────────────────────────────────────────
+// Terminal-style post-run report.
+// Shows run metadata (scope / priority / tier) + health bar + 2-section stat grid.
+
+function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted, dark }) {
+  const th = THEME[dark ? "dark" : "light"];
+
+  const scopeLabel =
+    scopeFilter === "all"       ? "All Schemes"
+    : scopeFilter === "national" ? "National"
+    : scopeFilter.replace("state:", "");
+
+  const priorityLabel =
+    priorityFilter === "all"             ? "All Priority"
+    : priorityFilter === "hasDate"       ? "Has Deadline"
+    : priorityFilter === "neverVerified" ? "Never Verified"
+    : "Stale 30d+";
+
+  const tierLabel =
+    tier === 1   ? "T1 · Ping"
+    : tier === 2 ? "T2 · AI Extract"
+    :              "T1+2 · Full";
+
+  const healthPct = summary.total > 0
+    ? Math.round((summary.active / summary.total) * 100)
+    : 0;
+  const healthColor =
+    healthPct >= 70 ? IND_GREEN : healthPct >= 40 ? AMBER : RED;
+
+  const segments = [
+    { value: summary.active,     color: IND_GREEN, label: "Active"  },
+    { value: summary.dead,       color: RED,        label: "Dead"    },
+    { value: summary.noResponse, color: AMBER,      label: "No Resp" },
+    { value: summary.errors,     color: VIOLET,     label: "Errors"  },
+  ];
+
+  const cfgItems = [
+    ["SCOPE",    scopeLabel],
+    ["PRIORITY", priorityLabel],
+    ["MODE",     tierLabel],
+    ["TOTAL",    `${summary.total} schemes`],
+  ];
+
+  return (
+    <div style={{
+      background: dark
+        ? "linear-gradient(145deg, #0d1117 0%, #161b22 100%)"
+        : th.card,
+      border:       `1.5px solid ${dark ? "#30363d" : th.border}`,
+      borderRadius: 16,
+      overflow:     "hidden",
+      animation:    "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
+    }}>
+
+      {/* ── Terminal title bar ── */}
+      <div style={{
+        background:   dark ? "#161b22" : `${NAVY}09`,
+        borderBottom: `1px solid ${dark ? "#30363d" : th.border}`,
+        padding: "9px 14px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* macOS-style traffic dots */}
+          <div style={{ display: "flex", gap: 4 }}>
+            {["#ff5f57", "#febc2e", "#28c840"].map(c => (
+              <div key={c} style={{ width: 8, height: 8, borderRadius: "50%", background: c }} />
+            ))}
+          </div>
+          <span style={{
+            fontSize: 8, fontWeight: 800, letterSpacing: 2.5,
+            color: dark ? "#6e7681" : th.textSub, fontFamily: "monospace",
+          }}>
+            RUN_REPORT.LOG
+          </span>
+        </div>
+        <span style={{
+          fontSize: 8, fontWeight: 800, letterSpacing: 1.5,
+          padding: "2px 8px", borderRadius: 4,
+          background: wasAborted ? `${RED}22`      : `${IND_GREEN}22`,
+          color:      wasAborted ? RED             : IND_GREEN,
+          border:     `1px solid ${wasAborted ? RED : IND_GREEN}45`,
+          fontFamily: "monospace",
+        }}>
+          {wasAborted ? "● STOPPED" : "● COMPLETE"}
+        </span>
+      </div>
+
+      {/* ── Run config key-value strip ── */}
+      <div style={{ padding: "10px 14px 0", display: "flex", gap: 5, flexWrap: "wrap" }}>
+        {cfgItems.map(([key, val]) => (
+          <div key={key} style={{
+            display: "inline-flex", alignItems: "stretch",
+            border: `1px solid ${dark ? "#30363d" : th.border}`,
+            borderRadius: 5, overflow: "hidden", fontSize: 8,
+          }}>
+            <span style={{
+              padding: "2px 5px",
+              background: dark ? "#2d333b" : `${NAVY}14`,
+              color: dark ? "#6e7681" : th.textSub,
+              fontFamily: "monospace", fontWeight: 800, letterSpacing: 0.5,
+            }}>
+              {key}
+            </span>
+            <span style={{
+              padding: "2px 7px",
+              background: dark ? "#21262d" : `${NAVY}05`,
+              color: dark ? "#cdd9e5" : th.text, fontWeight: 700,
+            }}>
+              {val}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Link health bar ── */}
+      <div style={{ padding: "12px 14px 10px" }}>
+        <div style={{
+          display: "flex", justifyContent: "space-between",
+          alignItems: "center", marginBottom: 6,
+        }}>
+          <span style={{
+            fontSize: 8, fontWeight: 800, letterSpacing: 2,
+            color: dark ? "#6e7681" : th.textSub, fontFamily: "monospace",
+          }}>
+            LINK_HEALTH
+          </span>
+          <span style={{
+            fontSize: 13, fontWeight: 900,
+            color: healthColor, fontFamily: "monospace",
+          }}>
+            {healthPct}%
+          </span>
+        </div>
+
+        {/* Segmented bar */}
+        <div style={{
+          height: 10, borderRadius: 6, overflow: "hidden",
+          background: dark ? "#21262d" : th.border,
+          display: "flex",
+        }}>
+          {segments.map(({ value, color }) => {
+            const w = summary.total > 0 ? (value / summary.total) * 100 : 0;
+            return w > 0 ? (
+              <div key={color} style={{
+                width: `${w}%`, background: color,
+                transition: "width 0.5s cubic-bezier(0.22,1,0.36,1)",
+              }} />
+            ) : null;
+          })}
+        </div>
+
+        {/* Legend */}
+        <div style={{ display: "flex", gap: 10, marginTop: 7, flexWrap: "wrap" }}>
+          {segments.map(({ value, color, label }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: th.textMid }}>
+              <div style={{ width: 7, height: 7, borderRadius: 2, background: color, flexShrink: 0 }} />
+              <span style={{ fontFamily: "monospace", fontWeight: 800, color }}>{value}</span>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Divider ── */}
+      <div style={{ height: 1, background: dark ? "#21262d" : th.border, margin: "0 14px" }} />
+
+      {/* ── Stat section: LINK_HEALTH ── */}
+      <div style={{ padding: "10px 14px 4px" }}>
+        <div style={{
+          fontSize: 7, fontWeight: 800, letterSpacing: 2.5, marginBottom: 7,
+          color: dark ? "#6e7681" : th.textSub, fontFamily: "monospace",
+        }}>
+          ▸ LINK_HEALTH
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          <TechStatCard icon="🔍" label="TOTAL"   value={summary.total}      color={NAVY}      dark={dark} />
+          <TechStatCard icon="✅" label="ACTIVE"  value={summary.active}     color={IND_GREEN} dark={dark} />
+          <TechStatCard icon="❌" label="DEAD"    value={summary.dead}       color={RED}       dark={dark} />
+          <TechStatCard icon="🟡" label="NO_RESP" value={summary.noResponse} color={AMBER}     dark={dark} />
+        </div>
+      </div>
+
+      {/* ── Stat section: DEADLINE_INTEL ── */}
+      <div style={{ padding: "8px 14px 14px" }}>
+        <div style={{
+          fontSize: 7, fontWeight: 800, letterSpacing: 2.5, marginBottom: 7,
+          color: dark ? "#6e7681" : th.textSub, fontFamily: "monospace",
+        }}>
+          ▸ DEADLINE_INTEL
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          <TechStatCard icon="⏰" label="EXPIRED"  value={summary.expired}      color={RED}     dark={dark} />
+          <TechStatCard icon="⚠️" label="EXP_SOON" value={summary.expiringSoon} color={SAFFRON} dark={dark} />
+          <TechStatCard icon="🆕" label="NO_HIST"  value={summary.neverChecked} color={VIOLET}  dark={dark} />
+          <TechStatCard icon="🐛" label="ERRORS"   value={summary.errors}       color={PINK}    dark={dark} />
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+
 // ─── LIVE SCANNER CARD ────────────────────────────────────────────────────────
 // Premium scanning UI shown during an active verification run.
 // The scheme name/URL re-animates via `key` every time the scheme changes.
@@ -650,7 +891,7 @@ function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityF
           {schemeName || "Initializing…"}
         </div>
 
-        {/* Progress bar */}
+        {/* Progress bar with shimmer */}
         <div style={{ marginBottom: 8 }}>
           <div style={{
             height: 4, borderRadius: 4,
@@ -660,10 +901,17 @@ function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityF
             <div style={{
               height: "100%",
               width: `${pct}%`,
-              background: `linear-gradient(90deg, ${NAVY}, #1a5fd4)`,
               borderRadius: 4,
               transition: "width 0.4s cubic-bezier(0.22,1,0.36,1)",
               minWidth: index > 0 ? 6 : 0,
+              background: `linear-gradient(
+                105deg,
+                ${NAVY} 0%, ${NAVY} 30%,
+                #5b9bd5 50%,
+                ${NAVY} 70%, ${NAVY} 100%
+              )`,
+              backgroundSize: "200% 100%",
+              animation: "sv-progress-shimmer 1.6s ease-in-out infinite",
             }} />
           </div>
         </div>
@@ -1167,35 +1415,16 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         </div>
       )}
 
-      {/* ══ FULL SUMMARY CARDS — post-run only ═══════════════════════════════ */}
+      {/* ══ RUN REPORT — post-run only ═════════════════════════════════════ */}
       {summary && !running && (
-        <div style={{
-          background: th.card,
-          border: `1.5px solid ${th.border}`,
-          borderRadius: 16,
-          padding: "14px 16px",
-          display: "flex", flexDirection: "column", gap: 10,
-        }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
-            📊 Summary
-          </div>
-
-          {/* Row 1 — link health */}
-          <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-            <MiniCard icon="🔍" label="Checked"     value={summary.total}      color={NAVY}      dark={dark} />
-            <MiniCard icon="✅" label="Active"       value={summary.active}     color={IND_GREEN} dark={dark} />
-            <MiniCard icon="❌" label="Dead"         value={summary.dead}       color={RED}       dark={dark} />
-            <MiniCard icon="🟡" label="No Response"  value={summary.noResponse} color={AMBER}     dark={dark} />
-          </div>
-
-          {/* Row 2 — deadline / quality */}
-          <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-            <MiniCard icon="⏰" label="Expired"       value={summary.expired}      color={RED}     dark={dark} />
-            <MiniCard icon="⚠️" label="Expiring Soon" value={summary.expiringSoon} color={SAFFRON} dark={dark} />
-            <MiniCard icon="🆕" label="Never Checked" value={summary.neverChecked} color={VIOLET}  dark={dark} />
-            <MiniCard icon="🐛" label="Errors"        value={summary.errors}       color={PINK}    dark={dark} />
-          </div>
-        </div>
+        <RunSummaryCard
+          summary={summary}
+          scopeFilter={scopeFilter}
+          priorityFilter={priorityFilter}
+          tier={tier}
+          wasAborted={wasAborted}
+          dark={dark}
+        />
       )}
 
       {/* ══ RESULTS LIST ═════════════════════════════════════════════════════ */}
@@ -1329,6 +1558,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           0%   { opacity: 0; transform: scale(0.93) translateY(-6px); }
           60%  { transform: scale(1.025) translateY(0); }
           100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes sv-progress-shimmer {
+          0%   { background-position: -200% center; }
+          100% { background-position:  200% center; }
         }
       `}</style>
 
