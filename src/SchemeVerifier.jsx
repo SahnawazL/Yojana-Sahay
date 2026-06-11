@@ -623,7 +623,25 @@ function LiveSchemeCard({ schemeName, index, total, dark }) {
           {schemeName || "Initializing…"}
         </div>
 
-        {/* Index + mini progress dots */}
+        {/* Progress bar */}
+        <div style={{ marginBottom: 8 }}>
+          <div style={{
+            height: 4, borderRadius: 4,
+            background: `${NAVY}25`,
+            overflow: "hidden",
+          }}>
+            <div style={{
+              height: "100%",
+              width: `${pct}%`,
+              background: `linear-gradient(90deg, ${NAVY}, #1a5fd4)`,
+              borderRadius: 4,
+              transition: "width 0.4s cubic-bezier(0.22,1,0.36,1)",
+              minWidth: index > 0 ? 6 : 0,
+            }} />
+          </div>
+        </div>
+
+        {/* Index + mini segment dots */}
         <div style={{
           display: "flex", alignItems: "center",
           justifyContent: "space-between",
@@ -771,8 +789,15 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   }, [running, scopeFilter, priorityFilter, tier]);
 
   // ── STOP ──────────────────────────────────────────────────────────────────
-  const handleStop = useCallback(() => {
+  // ── PAUSE — abort but keep checkpoint so Resume banner appears ───────────
+  const handlePause = useCallback(() => {
     abortRef.current?.abort();
+  }, []);
+
+  // ── STOP & DISCARD — abort + wipe checkpoint (no resume banner) ───────────
+  const handleStop = useCallback(async () => {
+    abortRef.current?.abort();
+    await clearCheckpoint();
   }, []);
 
   // ── RESET to config screen ────────────────────────────────────────────────
@@ -1027,7 +1052,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       {running && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 
-          {/* Live scanner card */}
+          {/* Live scanner card — includes progress bar */}
           <LiveSchemeCard
             schemeName={currentScheme}
             index={progress?.index || 0}
@@ -1035,46 +1060,36 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             dark={dark}
           />
 
-          {/* Progress bar + Stop */}
-          <div style={{
-            background: th.card,
-            border: `1.5px solid ${NAVY}30`,
-            borderRadius: 14,
-            padding: "12px 14px",
-            display: "flex", flexDirection: "column", gap: 8,
-          }}>
-            <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-            }}>
-              <span style={{
-                fontSize: 11, fontWeight: 800, color: th.text,
-                fontFamily: "monospace",
-              }}>
-                {progress?.index || 0}
-                <span style={{ color: th.textSub, fontWeight: 400 }}>
-                  {" "}/ {progress?.total || previewCount} schemes
-                </span>
-              </span>
-              <div
-                onClick={handleStop}
-                style={{
-                  padding: "5px 13px", borderRadius: 8,
-                  fontSize: 11, fontWeight: 700,
-                  background: "rgba(220,38,38,0.1)",
-                  border: "1px solid rgba(220,38,38,0.28)",
-                  color: RED, cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 5,
-                }}
-              >
-                ⏹ Stop
-              </div>
+          {/* Pause + Stop buttons */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <div
+              onClick={handlePause}
+              style={{
+                flex: 1, padding: "10px", borderRadius: 10,
+                textAlign: "center",
+                fontSize: 12, fontWeight: 700,
+                background: dark ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.08)",
+                border: `1.5px solid ${AMBER}50`,
+                color: AMBER, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              }}
+            >
+              ⏸ Pause
             </div>
-            <ProgressBar
-              value={progress?.index || 0}
-              total={progress?.total || previewCount}
-              color={NAVY}
-              dark={dark}
-            />
+            <div
+              onClick={handleStop}
+              style={{
+                flex: 1, padding: "10px", borderRadius: 10,
+                textAlign: "center",
+                fontSize: 12, fontWeight: 700,
+                background: "rgba(220,38,38,0.08)",
+                border: `1.5px solid ${RED}40`,
+                color: RED, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              }}
+            >
+              ⏹ Stop
+            </div>
           </div>
 
           {/* Live mini stat cards */}
