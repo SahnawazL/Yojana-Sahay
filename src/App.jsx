@@ -4190,88 +4190,92 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         ))}
       </div>
 
-      {/* About & Helplines — single grouped card */}
-      <div style={{
-        margin:"0 20px 36px",
-        borderRadius:16,
-        background:th.card,
-        border:`1.5px solid ${th.border2}`,
-        overflow:"hidden",
-      }}>
-
-        {/* Row 1 — About Yojana Sahay */}
-        <div
-          onClick={()=>{haptic();setShowAbout(true);}}
-          style={{
-            display:"flex",alignItems:"center",gap:12,
-            padding:"13px 14px",cursor:"pointer",
-            WebkitTapHighlightColor:"transparent",
-          }}
-          onTouchStart={e=>e.currentTarget.style.background=th.card2}
-          onTouchEnd={e=>e.currentTarget.style.background="transparent"}
-          onTouchCancel={e=>e.currentTarget.style.background="transparent"}
-        >
-          <div style={{
-            width:36,height:36,borderRadius:10,flexShrink:0,
-            background:th.card2,
-            border:`1.5px solid ${th.border2}`,
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
-          }}>ℹ️</div>
-          <div style={{flex:1}}>
-            <div style={{fontSize:13.5,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.2}}>
-              {isHindi?"ऐप के बारे में जानें":"About Yojana Sahay"}
+      {/* About & Helplines — unified premium card */}
+      <div style={{padding:"0 20px 36px"}}>
+        <div style={{
+          borderRadius:16,overflow:"hidden",
+          background:dark?"rgba(0,43,110,0.10)":"rgba(0,53,128,0.04)",
+          border:`1.5px solid ${dark?"rgba(0,53,128,0.28)":"rgba(0,53,128,0.14)"}`,
+          boxShadow:dark?"none":"0 1px 6px rgba(0,53,128,0.07)",
+        }}>
+          {/* About Yojana Sahay */}
+          <div
+            onClick={()=>{haptic();setShowAbout(true);}}
+            style={{
+              display:"flex",alignItems:"center",gap:12,
+              padding:"13px 14px",cursor:"pointer",
+              borderBottom:`1px solid ${dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.10)"}`,
+              WebkitTapHighlightColor:"transparent",
+              transition:"transform 0.12s",
+            }}
+            onTouchStart={e=>e.currentTarget.style.transform="scale(0.985)"}
+            onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+            onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}
+          >
+            {/* Icon badge */}
+            <div style={{
+              width:38,height:38,borderRadius:11,flexShrink:0,
+              background:dark?"rgba(0,53,128,0.24)":"rgba(0,53,128,0.09)",
+              border:`1.5px solid ${dark?"rgba(0,53,128,0.40)":"rgba(0,53,128,0.18)"}`,
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
+            }}>ℹ️</div>
+            {/* Text */}
+            <div style={{flex:1}}>
+              <div style={{fontSize:13.5,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.2}}>
+                {isHindi?"ऐप के बारे में जानें":"About Yojana Sahay"}
+              </div>
+              <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>
+                {isHindi?"मिशन, AI, टीम और अधिक":"Mission, AI, team & more"}
+              </div>
             </div>
-            <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>
-              {isHindi?"मिशन, AI, टीम और अधिक":"Mission, AI, team & more"}
-            </div>
+            {/* Chevron */}
+            <div style={{
+              width:28,height:28,borderRadius:8,flexShrink:0,
+              background:dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.07)",
+              border:`1.5px solid ${dark?"rgba(0,53,128,0.30)":"rgba(0,53,128,0.14)"}`,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              color:dark?"rgba(100,150,255,0.90)":"rgba(0,53,128,0.65)",fontSize:15,fontWeight:700,
+            }}>›</div>
           </div>
-          <div style={{
-            width:26,height:26,borderRadius:7,flexShrink:0,
-            background:th.card2,
-            border:`1.5px solid ${th.border2}`,
-            display:"flex",alignItems:"center",justifyContent:"center",
-            color:th.textMid,fontSize:14,fontWeight:700,
-          }}>›</div>
-        </div>
-
-        {/* Divider */}
-        <div style={{height:1,background:th.divider,marginLeft:62}}/>
-
-        {/* Row 2 — Government Helplines */}
-        <div
-          onClick={()=>{haptic();setShowHelpline(true);}}
-          style={{
-            display:"flex",alignItems:"center",gap:12,
-            padding:"13px 14px",cursor:"pointer",
-            WebkitTapHighlightColor:"transparent",
-          }}
-          onTouchStart={e=>e.currentTarget.style.background=th.card2}
-          onTouchEnd={e=>e.currentTarget.style.background="transparent"}
-          onTouchCancel={e=>e.currentTarget.style.background="transparent"}
-        >
-          <div style={{
-            width:36,height:36,borderRadius:10,flexShrink:0,
-            background:th.card2,
-            border:`1.5px solid ${th.border2}`,
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
-          }}>📞</div>
-          <div style={{flex:1}}>
-            <div style={{fontSize:13.5,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.2}}>
-              {isHindi?"सरकारी हेल्पलाइन":"Government Helplines"}
+          {/* Government Helplines */}
+          <div
+            onClick={()=>{haptic();setShowHelpline(true);}}
+            style={{
+              display:"flex",alignItems:"center",gap:12,
+              padding:"13px 14px",cursor:"pointer",
+              WebkitTapHighlightColor:"transparent",
+              transition:"transform 0.12s",
+            }}
+            onTouchStart={e=>e.currentTarget.style.transform="scale(0.985)"}
+            onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+            onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}
+          >
+            {/* Icon badge */}
+            <div style={{
+              width:38,height:38,borderRadius:11,flexShrink:0,
+              background:dark?"rgba(0,53,128,0.24)":"rgba(0,53,128,0.09)",
+              border:`1.5px solid ${dark?"rgba(0,53,128,0.40)":"rgba(0,53,128,0.18)"}`,
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
+            }}>📞</div>
+            {/* Text */}
+            <div style={{flex:1}}>
+              <div style={{fontSize:13.5,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.2}}>
+                {isHindi?"सरकारी हेल्पलाइन":"Government Helplines"}
+              </div>
+              <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>
+                {isHindi?"112, PM-KISAN, स्वास्थ्य, महिला और अधिक":"112, PM-KISAN, Health, Women & more"}
+              </div>
             </div>
-            <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>
-              {isHindi?"112, PM-KISAN, स्वास्थ्य, महिला और अधिक":"112, PM-KISAN, Health, Women & more"}
-            </div>
+            {/* Chevron */}
+            <div style={{
+              width:28,height:28,borderRadius:8,flexShrink:0,
+              background:dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.07)",
+              border:`1.5px solid ${dark?"rgba(0,53,128,0.30)":"rgba(0,53,128,0.14)"}`,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              color:dark?"rgba(100,150,255,0.90)":"rgba(0,53,128,0.65)",fontSize:15,fontWeight:700,
+            }}>›</div>
           </div>
-          <div style={{
-            width:26,height:26,borderRadius:7,flexShrink:0,
-            background:th.card2,
-            border:`1.5px solid ${th.border2}`,
-            display:"flex",alignItems:"center",justifyContent:"center",
-            color:th.textMid,fontSize:14,fontWeight:700,
-          }}>›</div>
         </div>
-
       </div>
 
       {/* ── About Screen Overlay (phone/logged-out stage) ── */}
@@ -5358,11 +5362,14 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
           {/* About Yojana Sahay */}
           <div onClick={()=>{haptic();setShowAbout(true);}}
-            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
+            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}
+            onTouchStart={e=>e.currentTarget.style.opacity="0.75"}
+            onTouchEnd={e=>e.currentTarget.style.opacity="1"}
+            onTouchCancel={e=>e.currentTarget.style.opacity="1"}>
             <div style={{display:"flex",alignItems:"center",gap:12}}>
               <div style={{width:38,height:38,borderRadius:11,
-                background:dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.06)",
-                border:`1.5px solid ${dark?"rgba(0,53,128,0.32)":"rgba(0,53,128,0.16)"}`,
+                background:dark?"rgba(0,53,128,0.22)":"rgba(0,53,128,0.09)",
+                border:`1.5px solid ${dark?"rgba(0,53,128,0.38)":"rgba(0,53,128,0.18)"}`,
                 display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>ℹ️</div>
               <div>
                 <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>
@@ -5373,16 +5380,23 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                 </div>
               </div>
             </div>
-            <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
+            <div style={{width:28,height:28,borderRadius:8,
+              background:dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.07)",
+              border:`1.5px solid ${dark?"rgba(0,53,128,0.30)":"rgba(0,53,128,0.14)"}`,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              color:dark?"rgba(100,150,255,0.90)":"rgba(0,53,128,0.65)",fontSize:15,fontWeight:700}}>›</div>
           </div>
 
           {/* Government Helplines */}
           <div onClick={()=>{haptic();setShowHelpline(true);}}
-            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
+            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}
+            onTouchStart={e=>e.currentTarget.style.opacity="0.75"}
+            onTouchEnd={e=>e.currentTarget.style.opacity="1"}
+            onTouchCancel={e=>e.currentTarget.style.opacity="1"}>
             <div style={{display:"flex",alignItems:"center",gap:12}}>
               <div style={{width:38,height:38,borderRadius:11,
-                background:dark?"rgba(255,153,51,0.12)":"rgba(255,153,51,0.08)",
-                border:`1.5px solid ${dark?"rgba(255,153,51,0.28)":"rgba(255,153,51,0.22)"}`,
+                background:dark?"rgba(0,53,128,0.22)":"rgba(0,53,128,0.09)",
+                border:`1.5px solid ${dark?"rgba(0,53,128,0.38)":"rgba(0,53,128,0.18)"}`,
                 display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>📞</div>
               <div>
                 <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>
@@ -5393,7 +5407,11 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                 </div>
               </div>
             </div>
-            <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
+            <div style={{width:28,height:28,borderRadius:8,
+              background:dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.07)",
+              border:`1.5px solid ${dark?"rgba(0,53,128,0.30)":"rgba(0,53,128,0.14)"}`,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              color:dark?"rgba(100,150,255,0.90)":"rgba(0,53,128,0.65)",fontSize:15,fontWeight:700}}>›</div>
           </div>
 
           {/* Sign Out */}
