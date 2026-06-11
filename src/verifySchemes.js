@@ -61,6 +61,21 @@ const CHECKPOINT_PATH  = ["adminMeta", "verifyCheckpoint"];  // Firestore path
 const THIRTY_DAYS_MS   = 30 * 24 * 60 * 60 * 1000;
 
 
+// ─── URL NORMALISER ───────────────────────────────────────────────────────────
+// schemesData.js stores bare domains (e.g. "pmkisan.gov.in").
+// Prepend https:// so fetch() and allorigins can handle them correctly.
+// Returns null for non-URL values like "Nearest bank branch".
+
+function normalizeUrl(raw) {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  // Reject plain-text descriptions (contain spaces or no dot)
+  if (trimmed.includes(" ") || !trimmed.includes(".")) return null;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  return `https://${trimmed}`;
+}
+
+
 // ─── PRIORITY SCORE ───────────────────────────────────────────────────────────
 // Lower = more urgent.  Used to sort the queue before running.
 
@@ -88,8 +103,10 @@ export function buildVerificationQueue(
   const now = Date.now();
 
   // 1. Only schemes with a real online URL to ping
+  // Note: schemesData.js stores bare domains (e.g. "pmkisan.gov.in") — no https:// prefix.
+  // normalizeUrl() handles this; returns null for plain-text values like "Nearest bank branch".
   let schemes = SCHEME_DB.filter(
-    s => s.applyType === "online" && s.apply?.en && s.apply.en.startsWith("http")
+    s => s.applyType === "online" && !!normalizeUrl(s.apply?.en)
   );
 
   // 2. Scope filter
@@ -131,11 +148,15 @@ export function buildVerificationQueue(
 // This gives us the ACTUAL HTTP status of the target URL, bypassing CORS.
 
 async function pingUrl(url) {
+  const normalized = normalizeUrl(url);
+  if (!normalized) {
+    return { httpStatus: 0, alive: false, error: "invalid URL" };
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
 
   try {
-    const proxyUrl = `${ALLORIGINS_GET}${encodeURIComponent(url)}`;
+    const proxyUrl = `${ALLORIGINS_GET}${encodeURIComponent(normalized)}`;
     const res      = await fetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timer);
 
@@ -174,12 +195,14 @@ async function pingUrl(url) {
 
 async function extractDateViaAI(scheme) {
   try {
+    const url = normalizeUrl(scheme.apply?.en);
+    if (!url) return { lastDate: null, isActive: null, confidence: 0, error: "invalid URL" };
     const res = await fetch("/api/verify-scheme", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id:    scheme.id,
-        url:   scheme.apply.en,
+        url,
         name:  scheme.name.en,
         state: scheme.state  ?? "national",
         scope: scheme.scope,
@@ -367,7 +390,7 @@ export async function runVerification({
 
     // ── Tier 1: Dead link ping ─────────────────────────────────────────────────
     if (tier !== 2) {
-      const ping      = await pingUrl(scheme.apply.en);
+      const ping      = await pingUrl(scheme.apply?.en);
       result.alive      = ping.alive;
       result.httpStatus = ping.httpStatus;
       result.error      = ping.error;
