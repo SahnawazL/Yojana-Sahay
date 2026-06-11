@@ -4190,30 +4190,33 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         ))}
       </div>
 
-      {/* About Yojana Sahay — accessible without login */}
-      <div style={{padding:"0 20px 10px"}}>
+      {/* About & Helplines — single grouped card */}
+      <div style={{
+        margin:"0 20px 36px",
+        borderRadius:16,
+        border:`1.5px solid ${dark?"rgba(255,255,255,0.09)":"rgba(0,0,0,0.09)"}`,
+        background:dark?"rgba(255,255,255,0.03)":"#fff",
+        overflow:"hidden",
+      }}>
+
+        {/* Row 1 — About Yojana Sahay */}
         <div
           onClick={()=>{haptic();setShowAbout(true);}}
           style={{
             display:"flex",alignItems:"center",gap:12,
-            padding:"13px 14px",borderRadius:14,cursor:"pointer",
-            background:dark?"rgba(0,53,128,0.12)":"rgba(0,53,128,0.05)",
-            border:`1.5px solid ${dark?"rgba(0,53,128,0.28)":"rgba(0,53,128,0.14)"}`,
+            padding:"13px 14px",cursor:"pointer",
             WebkitTapHighlightColor:"transparent",
-            transition:"transform 0.12s",
           }}
-          onTouchStart={e=>e.currentTarget.style.transform="scale(0.985)"}
-          onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
-          onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}
+          onTouchStart={e=>e.currentTarget.style.background=dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.03)"}
+          onTouchEnd={e=>e.currentTarget.style.background="transparent"}
+          onTouchCancel={e=>e.currentTarget.style.background="transparent"}
         >
-          {/* Icon badge */}
           <div style={{
-            width:38,height:38,borderRadius:11,flexShrink:0,
-            background:dark?"rgba(0,53,128,0.22)":"rgba(0,53,128,0.09)",
-            border:`1.5px solid ${dark?"rgba(0,53,128,0.38)":"rgba(0,53,128,0.18)"}`,
+            width:36,height:36,borderRadius:10,flexShrink:0,
+            background:dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.05)",
+            border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"}`,
             display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
           }}>ℹ️</div>
-          {/* Text */}
           <div style={{flex:1}}>
             <div style={{fontSize:13.5,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.2}}>
               {isHindi?"ऐप के बारे में जानें":"About Yojana Sahay"}
@@ -4222,58 +4225,57 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
               {isHindi?"मिशन, AI, टीम और अधिक":"Mission, AI, team & more"}
             </div>
           </div>
-          {/* Chevron */}
           <div style={{
-            width:28,height:28,borderRadius:8,flexShrink:0,
+            width:26,height:26,borderRadius:7,flexShrink:0,
             background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",
             border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"}`,
             display:"flex",alignItems:"center",justifyContent:"center",
-            color:dark?"#555":"#bbb",fontSize:15,fontWeight:700,
+            color:dark?"#555":"#bbb",fontSize:14,fontWeight:700,
           }}>›</div>
         </div>
-      </div>
 
-      {/* Government Helplines — accessible without login */}
-      <div style={{padding:"0 20px 36px"}}>
+        {/* Divider */}
+        <div style={{
+          height:1,
+          background:dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.07)",
+          marginLeft:62,
+        }}/>
+
+        {/* Row 2 — Government Helplines */}
         <div
           onClick={()=>{haptic();setShowHelpline(true);}}
           style={{
             display:"flex",alignItems:"center",gap:12,
-            padding:"13px 14px",borderRadius:14,cursor:"pointer",
-            background:dark?"rgba(255,153,51,0.10)":"rgba(255,153,51,0.07)",
-            border:`1.5px solid ${dark?"rgba(255,153,51,0.26)":"rgba(255,153,51,0.22)"}`,
+            padding:"13px 14px",cursor:"pointer",
             WebkitTapHighlightColor:"transparent",
-            transition:"transform 0.12s",
           }}
-          onTouchStart={e=>e.currentTarget.style.transform="scale(0.985)"}
-          onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
-          onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}
+          onTouchStart={e=>e.currentTarget.style.background=dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.03)"}
+          onTouchEnd={e=>e.currentTarget.style.background="transparent"}
+          onTouchCancel={e=>e.currentTarget.style.background="transparent"}
         >
-          {/* Icon badge */}
           <div style={{
-            width:38,height:38,borderRadius:11,flexShrink:0,
-            background:dark?"rgba(255,153,51,0.16)":"rgba(255,153,51,0.10)",
-            border:`1.5px solid ${dark?"rgba(255,153,51,0.32)":"rgba(255,153,51,0.25)"}`,
+            width:36,height:36,borderRadius:10,flexShrink:0,
+            background:dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.05)",
+            border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"}`,
             display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
           }}>📞</div>
-          {/* Text */}
           <div style={{flex:1}}>
-            <div style={{fontSize:13.5,fontWeight:700,color:dark?"#FF9933":"#cc7a00",fontFamily:bf,lineHeight:1.2}}>
+            <div style={{fontSize:13.5,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.2}}>
               {isHindi?"सरकारी हेल्पलाइन":"Government Helplines"}
             </div>
             <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>
               {isHindi?"112, PM-KISAN, स्वास्थ्य, महिला और अधिक":"112, PM-KISAN, Health, Women & more"}
             </div>
           </div>
-          {/* Chevron — accent-tinted */}
           <div style={{
-            width:28,height:28,borderRadius:8,flexShrink:0,
-            background:dark?"rgba(255,153,51,0.12)":"rgba(255,153,51,0.08)",
-            border:`1.5px solid ${dark?"rgba(255,153,51,0.24)":"rgba(255,153,51,0.20)"}`,
+            width:26,height:26,borderRadius:7,flexShrink:0,
+            background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",
+            border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"}`,
             display:"flex",alignItems:"center",justifyContent:"center",
-            color:dark?"#FF9933":"#cc7a00",fontSize:15,fontWeight:700,
+            color:dark?"#555":"#bbb",fontSize:14,fontWeight:700,
           }}>›</div>
         </div>
+
       </div>
 
       {/* ── About Screen Overlay (phone/logged-out stage) ── */}
