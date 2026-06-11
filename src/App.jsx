@@ -4191,36 +4191,88 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       </div>
 
       {/* About Yojana Sahay — accessible without login */}
-      <div onClick={()=>{haptic();setShowAbout(true);}}
-        style={{
-          display:"flex",alignItems:"center",justifyContent:"center",gap:8,
-          padding:"0 20px 12px",cursor:"pointer",
-        }}>
-        <div style={{display:"flex",alignItems:"center",gap:7,padding:"9px 16px",
-          background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.03)",
-          borderRadius:12,border:`1px solid ${dark?"#2c2c2e":"#eee"}`}}>
-          <span style={{fontSize:14}}>ℹ️</span>
-          <span style={{fontSize:12.5,fontWeight:600,color:dark?"#666":"#888",fontFamily:bf}}>
-            {isHindi?"ऐप के बारे में जानें":"About Yojana Sahay"}
-          </span>
-          <span style={{color:dark?"#444":"#ccc",fontSize:15,fontWeight:300}}>›</span>
+      <div style={{padding:"0 20px 10px"}}>
+        <div
+          onClick={()=>{haptic();setShowAbout(true);}}
+          style={{
+            display:"flex",alignItems:"center",gap:12,
+            padding:"13px 14px",borderRadius:14,cursor:"pointer",
+            background:dark?"rgba(0,53,128,0.12)":"rgba(0,53,128,0.05)",
+            border:`1.5px solid ${dark?"rgba(0,53,128,0.28)":"rgba(0,53,128,0.14)"}`,
+            WebkitTapHighlightColor:"transparent",
+            transition:"transform 0.12s",
+          }}
+          onTouchStart={e=>e.currentTarget.style.transform="scale(0.985)"}
+          onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+          onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}
+        >
+          {/* Icon badge */}
+          <div style={{
+            width:38,height:38,borderRadius:11,flexShrink:0,
+            background:dark?"rgba(0,53,128,0.22)":"rgba(0,53,128,0.09)",
+            border:`1.5px solid ${dark?"rgba(0,53,128,0.38)":"rgba(0,53,128,0.18)"}`,
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
+          }}>ℹ️</div>
+          {/* Text */}
+          <div style={{flex:1}}>
+            <div style={{fontSize:13.5,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.2}}>
+              {isHindi?"ऐप के बारे में जानें":"About Yojana Sahay"}
+            </div>
+            <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>
+              {isHindi?"मिशन, AI, टीम और अधिक":"Mission, AI, team & more"}
+            </div>
+          </div>
+          {/* Chevron */}
+          <div style={{
+            width:28,height:28,borderRadius:8,flexShrink:0,
+            background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",
+            border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"}`,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            color:dark?"#555":"#bbb",fontSize:15,fontWeight:700,
+          }}>›</div>
         </div>
       </div>
 
       {/* Government Helplines — accessible without login */}
-      <div onClick={()=>{haptic();setShowHelpline(true);}}
-        style={{
-          display:"flex",alignItems:"center",justifyContent:"center",gap:8,
-          padding:"0 20px 36px",cursor:"pointer",
-        }}>
-        <div style={{display:"flex",alignItems:"center",gap:7,padding:"9px 16px",
-          background:dark?"rgba(255,153,51,0.06)":"rgba(255,153,51,0.04)",
-          borderRadius:12,border:`1px solid ${dark?"rgba(255,153,51,0.18)":"rgba(255,153,51,0.2)"}`}}>
-          <span style={{fontSize:14}}>📞</span>
-          <span style={{fontSize:12.5,fontWeight:600,color:dark?"#FF9933":"#cc7a00",fontFamily:bf}}>
-            {isHindi?"सरकारी हेल्पलाइन":"Government Helplines"}
-          </span>
-          <span style={{color:dark?"#FF9933":"#cc7a00",fontSize:15,fontWeight:300}}>›</span>
+      <div style={{padding:"0 20px 36px"}}>
+        <div
+          onClick={()=>{haptic();setShowHelpline(true);}}
+          style={{
+            display:"flex",alignItems:"center",gap:12,
+            padding:"13px 14px",borderRadius:14,cursor:"pointer",
+            background:dark?"rgba(255,153,51,0.10)":"rgba(255,153,51,0.07)",
+            border:`1.5px solid ${dark?"rgba(255,153,51,0.26)":"rgba(255,153,51,0.22)"}`,
+            WebkitTapHighlightColor:"transparent",
+            transition:"transform 0.12s",
+          }}
+          onTouchStart={e=>e.currentTarget.style.transform="scale(0.985)"}
+          onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+          onTouchCancel={e=>e.currentTarget.style.transform="scale(1)"}
+        >
+          {/* Icon badge */}
+          <div style={{
+            width:38,height:38,borderRadius:11,flexShrink:0,
+            background:dark?"rgba(255,153,51,0.16)":"rgba(255,153,51,0.10)",
+            border:`1.5px solid ${dark?"rgba(255,153,51,0.32)":"rgba(255,153,51,0.25)"}`,
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
+          }}>📞</div>
+          {/* Text */}
+          <div style={{flex:1}}>
+            <div style={{fontSize:13.5,fontWeight:700,color:dark?"#FF9933":"#cc7a00",fontFamily:bf,lineHeight:1.2}}>
+              {isHindi?"सरकारी हेल्पलाइन":"Government Helplines"}
+            </div>
+            <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>
+              {isHindi?"112, PM-KISAN, स्वास्थ्य, महिला और अधिक":"112, PM-KISAN, Health, Women & more"}
+            </div>
+          </div>
+          {/* Chevron — accent-tinted */}
+          <div style={{
+            width:28,height:28,borderRadius:8,flexShrink:0,
+            background:dark?"rgba(255,153,51,0.12)":"rgba(255,153,51,0.08)",
+            border:`1.5px solid ${dark?"rgba(255,153,51,0.24)":"rgba(255,153,51,0.20)"}`,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            color:dark?"#FF9933":"#cc7a00",fontSize:15,fontWeight:700,
+          }}>›</div>
         </div>
       </div>
 
