@@ -5362,14 +5362,11 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
           {/* About Yojana Sahay */}
           <div onClick={()=>{haptic();setShowAbout(true);}}
-            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}
-            onTouchStart={e=>e.currentTarget.style.opacity="0.75"}
-            onTouchEnd={e=>e.currentTarget.style.opacity="1"}
-            onTouchCancel={e=>e.currentTarget.style.opacity="1"}>
+            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",gap:12}}>
               <div style={{width:38,height:38,borderRadius:11,
-                background:dark?"rgba(0,53,128,0.22)":"rgba(0,53,128,0.09)",
-                border:`1.5px solid ${dark?"rgba(0,53,128,0.38)":"rgba(0,53,128,0.18)"}`,
+                background:dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.06)",
+                border:`1.5px solid ${dark?"rgba(0,53,128,0.32)":"rgba(0,53,128,0.16)"}`,
                 display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>ℹ️</div>
               <div>
                 <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>
@@ -5380,23 +5377,16 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                 </div>
               </div>
             </div>
-            <div style={{width:28,height:28,borderRadius:8,
-              background:dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.07)",
-              border:`1.5px solid ${dark?"rgba(0,53,128,0.30)":"rgba(0,53,128,0.14)"}`,
-              display:"flex",alignItems:"center",justifyContent:"center",
-              color:dark?"rgba(100,150,255,0.90)":"rgba(0,53,128,0.65)",fontSize:15,fontWeight:700}}>›</div>
+            <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
           </div>
 
           {/* Government Helplines */}
           <div onClick={()=>{haptic();setShowHelpline(true);}}
-            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}
-            onTouchStart={e=>e.currentTarget.style.opacity="0.75"}
-            onTouchEnd={e=>e.currentTarget.style.opacity="1"}
-            onTouchCancel={e=>e.currentTarget.style.opacity="1"}>
+            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",gap:12}}>
               <div style={{width:38,height:38,borderRadius:11,
-                background:dark?"rgba(0,53,128,0.22)":"rgba(0,53,128,0.09)",
-                border:`1.5px solid ${dark?"rgba(0,53,128,0.38)":"rgba(0,53,128,0.18)"}`,
+                background:dark?"rgba(255,153,51,0.12)":"rgba(255,153,51,0.08)",
+                border:`1.5px solid ${dark?"rgba(255,153,51,0.28)":"rgba(255,153,51,0.22)"}`,
                 display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>📞</div>
               <div>
                 <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>
@@ -5407,11 +5397,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                 </div>
               </div>
             </div>
-            <div style={{width:28,height:28,borderRadius:8,
-              background:dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.07)",
-              border:`1.5px solid ${dark?"rgba(0,53,128,0.30)":"rgba(0,53,128,0.14)"}`,
-              display:"flex",alignItems:"center",justifyContent:"center",
-              color:dark?"rgba(100,150,255,0.90)":"rgba(0,53,128,0.65)",fontSize:15,fontWeight:700}}>›</div>
+            <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
           </div>
 
           {/* Sign Out */}
