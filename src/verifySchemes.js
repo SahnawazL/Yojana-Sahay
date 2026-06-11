@@ -4,9 +4,10 @@
 // Two-tier verification for 1000+ government schemes.
 //
 // TIER 1 — Dead Link Check  (all online schemes · fast · free · no AI)
-//   Pings each scheme's apply.en URL via allorigins.win CORS proxy.
-//   allorigins /get returns the real HTTP status code as JSON.
-//   Batches of 10 run in parallel → ~2-3 min for 1000 schemes.
+//   Calls /api/ping-url (Vercel serverless) which makes a direct HEAD/GET
+//   request to each scheme URL from the server — bypasses browser CORS and
+//   avoids the allorigins.win proxy which is blocked by .gov.in domains.
+//   Batches of 10 run in parallel → ~2-3 min for 444 schemes.
 //
 // TIER 2 — AI Date Extraction  (priority schemes only · ~150-200)
 //   Calls /api/verify-scheme (Vercel serverless, same key-rotation as chat.js)
@@ -55,15 +56,14 @@ import {
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
 const BATCH_SIZE       = 10;
-const PING_TIMEOUT_MS  = 8000;   // 8 s per URL — enough for slow gov sites
-const ALLORIGINS_GET   = "https://api.allorigins.win/get?url=";
+const PING_TIMEOUT_MS  = 12000;  // 12 s — Vercel function makes direct request, gov sites can be slow
 const CHECKPOINT_PATH  = ["adminMeta", "verifyCheckpoint"];  // Firestore path
 const THIRTY_DAYS_MS   = 30 * 24 * 60 * 60 * 1000;
 
 
 // ─── URL NORMALISER ───────────────────────────────────────────────────────────
 // schemesData.js stores bare domains (e.g. "pmkisan.gov.in").
-// Prepend https:// so fetch() and allorigins can handle them correctly.
+// Prepend https:// so fetch() can handle them correctly.
 // Returns null for non-URL values like "Nearest bank branch".
 
 function normalizeUrl(raw) {
@@ -143,44 +143,34 @@ export function buildVerificationQueue(
 
 
 // ─── TIER 1: DEAD LINK PING ───────────────────────────────────────────────────
-// Uses allorigins.win/get which returns:
-//   { status: { http_code: 200, ... }, contents: "..." }
-// This gives us the ACTUAL HTTP status of the target URL, bypassing CORS.
+// Calls /api/ping-url (Vercel serverless) which makes a direct server-to-server
+// HEAD/GET request to the scheme URL.
+//
+// Why NOT using allorigins.win proxy anymore:
+//   Browser → allorigins proxy → .gov.in = BLOCKED (proxy IPs blacklisted by govt)
+//   Browser → /api/ping-url (Vercel) → .gov.in = WORKS (server-to-server)
 
 async function pingUrl(url) {
   const normalized = normalizeUrl(url);
   if (!normalized) {
     return { httpStatus: 0, alive: false, error: "invalid URL" };
   }
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
 
   try {
-    const proxyUrl = `${ALLORIGINS_GET}${encodeURIComponent(normalized)}`;
-    const res      = await fetch(proxyUrl, { signal: controller.signal });
-    clearTimeout(timer);
+    const res = await fetch("/api/ping-url", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ url: normalized }),
+    });
 
     if (!res.ok) {
-      // allorigins itself returned an error (not the target URL)
-      return { httpStatus: 0, alive: false, error: `allorigins ${res.status}` };
+      return { httpStatus: 0, alive: false, error: `ping-url API error ${res.status}` };
     }
 
-    const json       = await res.json();
-    const httpStatus = json?.status?.http_code ?? 0;
-
-    return {
-      httpStatus,
-      alive: httpStatus >= 200 && httpStatus < 400,
-      error: null,
-    };
+    return await res.json(); // { httpStatus, alive, error }
 
   } catch (err) {
-    clearTimeout(timer);
-    return {
-      httpStatus: 0,
-      alive:  false,
-      error:  err.name === "AbortError" ? "timeout" : err.message,
-    };
+    return { httpStatus: 0, alive: false, error: err.message };
   }
 }
 
