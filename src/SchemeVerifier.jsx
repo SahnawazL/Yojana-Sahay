@@ -353,7 +353,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     setAvailableStates(getStatesInDB());
     loadCheckpoint().then(cp => {
       // Only surface checkpoint if it's a real in-progress run, not cleared / completed
-      const valid = cp && !cp.cleared && !cp.isComplete && cp.completedIndex > 0;
+      const valid = cp && !cp.cleared && !cp.isComplete && cp.completedIndex > 0 && cp.completedIndex < cp.total;
       setCheckpoint(valid ? cp : null);
       setCheckpointLoaded(true);
     });
