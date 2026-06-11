@@ -18,6 +18,7 @@ import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
 import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
+import SchemeVerifier from "./SchemeVerifier.jsx";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -5088,6 +5089,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     ["schemes",   "🗺️ Schemes"],
     ["reports",   "📬 Reports"],
     ["cleanup",   "🗑️ Cleanup"],
+    ["verify",    "🔍 Verify"],
     ["export",    "📄 Export"],
   ];
   // allowedTabs=null means full admin (show all). Array means restricted — filter to those tabs only.
@@ -6399,6 +6401,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           </>
         );
       })()}
+
+      {/* ══ VERIFY — Scheme URL Verifier ══ */}
+      {!loading && !error && activeSection === "verify" && (
+        <SchemeVerifier dark={dark} isDesktop={isDesktop} />
+      )}
 
       </div>{/* end animated tab content */}
 
