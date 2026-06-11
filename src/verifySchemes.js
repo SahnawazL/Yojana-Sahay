@@ -150,7 +150,7 @@ export function buildVerificationQueue(
 //   Browser → allorigins proxy → .gov.in = BLOCKED (proxy IPs blacklisted by govt)
 //   Browser → /api/ping-url (Vercel) → .gov.in = WORKS (server-to-server)
 
-async function pingUrl(url) {
+async function pingUrl(url, signal = null) {
   const normalized = normalizeUrl(url);
   if (!normalized) {
     return { httpStatus: 0, alive: false, error: "invalid URL" };
@@ -161,6 +161,7 @@ async function pingUrl(url) {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ url: normalized }),
+      signal,                                        // ← abort immediately on Stop/Pause
     });
 
     if (!res.ok) {
@@ -183,13 +184,14 @@ async function pingUrl(url) {
 // This function is already wired up — once the endpoint exists it works
 // automatically.  Until then it returns { error: "endpoint not yet built" }.
 
-async function extractDateViaAI(scheme) {
+async function extractDateViaAI(scheme, signal = null) {
   try {
     const url = normalizeUrl(scheme.apply?.en);
     if (!url) return { lastDate: null, isActive: null, confidence: 0, error: "invalid URL" };
     const res = await fetch("/api/verify-scheme", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
+      signal,                                        // ← abort immediately on Stop/Pause
       body: JSON.stringify({
         id:    scheme.id,
         url,
@@ -380,7 +382,8 @@ export async function runVerification({
 
     // ── Tier 1: Dead link ping ─────────────────────────────────────────────────
     if (tier !== 2) {
-      const ping      = await pingUrl(scheme.apply?.en);
+      const ping      = await pingUrl(scheme.apply?.en, signal);
+      if (signal?.aborted) break;   // ← stop immediately; don't push half-baked result
       result.alive      = ping.alive;
       result.httpStatus = ping.httpStatus;
       result.error      = ping.error;
@@ -389,7 +392,8 @@ export async function runVerification({
     // ── Tier 2: AI date extraction ────────────────────────────────────────────
     if (needsAI(scheme)) {
       result.tier = 2;
-      const ai = await extractDateViaAI(scheme);
+      const ai = await extractDateViaAI(scheme, signal);
+      if (signal?.aborted) break;   // ← same guard for AI call
       result.lastDate   = ai.lastDate;
       result.isActive   = ai.isActive;
       result.confidence = ai.confidence;

@@ -528,7 +528,7 @@ function DBCoverageCard({ dark }) {
 // Premium scanning UI shown during an active verification run.
 // The scheme name/URL re-animates via `key` every time the scheme changes.
 
-function LiveSchemeCard({ schemeName, index, total, dark }) {
+function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityFilter, tier }) {
   const th  = THEME[dark ? "dark" : "light"];
   const pct = total > 0 ? Math.round((index / total) * 100) : 0;
 
@@ -565,13 +565,13 @@ function LiveSchemeCard({ schemeName, index, total, dark }) {
         pointerEvents: "none", zIndex: 2,
       }} />
 
-      {/* Corner tag */}
+      {/* Corner tag — reflects actual tier selected */}
       <div style={{
         position: "absolute", top: 10, right: 12,
         fontSize: 8, fontWeight: 800, letterSpacing: 2,
         color: `${NAVY}70`, fontFamily: "monospace",
       }}>
-        TIER·1
+        {tier === "both" ? "TIER·1+2" : `TIER·${tier}`}
       </div>
 
       {/* Content */}
@@ -580,7 +580,7 @@ function LiveSchemeCard({ schemeName, index, total, dark }) {
         {/* SCANNING label + live % */}
         <div style={{
           display: "flex", justifyContent: "space-between",
-          alignItems: "center", marginBottom: 12,
+          alignItems: "center", marginBottom: 8,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <div style={{
@@ -608,6 +608,33 @@ function LiveSchemeCard({ schemeName, index, total, dark }) {
           }}>
             {pct}%
           </span>
+        </div>
+
+        {/* Active settings pills — scope · priority · tier */}
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 }}>
+          {[
+            scopeFilter === "all"       ? "🌍 All Schemes"
+            : scopeFilter === "national" ? "🏛️ National"
+            : `📍 ${scopeFilter.replace("state:", "")}`,
+
+            priorityFilter === "all"            ? "⭐ All Priority"
+            : priorityFilter === "hasDate"       ? "📅 Has Deadline"
+            : priorityFilter === "neverVerified" ? "🆕 Never Verified"
+            : "🕰️ Stale 30d+",
+
+            tier === 1 ? "⚡ Tier 1 · Ping" : tier === 2 ? "🤖 Tier 2 · AI" : "🔬 Tier 1+2",
+          ].map(label => (
+            <span key={label} style={{
+              fontSize: 8, fontWeight: 700,
+              padding: "2px 7px", borderRadius: 5,
+              background: dark ? `${NAVY}25` : `${NAVY}12`,
+              color: dark ? `#7da8e8` : NAVY,
+              border: `1px solid ${NAVY}25`,
+              letterSpacing: 0.2,
+            }}>
+              {label}
+            </span>
+          ))}
         </div>
 
         {/* Scheme name — re-animates on each scheme change */}
@@ -1052,12 +1079,15 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       {running && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 
-          {/* Live scanner card — includes progress bar */}
+          {/* Live scanner card — includes progress bar + active settings */}
           <LiveSchemeCard
             schemeName={currentScheme}
             index={progress?.index || 0}
             total={progress?.total || previewCount}
             dark={dark}
+            scopeFilter={scopeFilter}
+            priorityFilter={priorityFilter}
+            tier={tier}
           />
 
           {/* Pause + Stop buttons */}
