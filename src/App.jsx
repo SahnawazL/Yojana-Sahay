@@ -4194,8 +4194,8 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       <div style={{
         margin:"0 20px 36px",
         borderRadius:16,
-        border:`1.5px solid ${dark?"rgba(255,255,255,0.09)":"rgba(0,0,0,0.09)"}`,
-        background:dark?"rgba(255,255,255,0.03)":"#fff",
+        background:th.card,
+        border:`1.5px solid ${th.border2}`,
         overflow:"hidden",
       }}>
 
@@ -4207,14 +4207,14 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             padding:"13px 14px",cursor:"pointer",
             WebkitTapHighlightColor:"transparent",
           }}
-          onTouchStart={e=>e.currentTarget.style.background=dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.03)"}
+          onTouchStart={e=>e.currentTarget.style.background=th.card2}
           onTouchEnd={e=>e.currentTarget.style.background="transparent"}
           onTouchCancel={e=>e.currentTarget.style.background="transparent"}
         >
           <div style={{
             width:36,height:36,borderRadius:10,flexShrink:0,
-            background:dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.05)",
-            border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"}`,
+            background:th.card2,
+            border:`1.5px solid ${th.border2}`,
             display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
           }}>ℹ️</div>
           <div style={{flex:1}}>
@@ -4227,19 +4227,15 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           </div>
           <div style={{
             width:26,height:26,borderRadius:7,flexShrink:0,
-            background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",
-            border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"}`,
+            background:th.card2,
+            border:`1.5px solid ${th.border2}`,
             display:"flex",alignItems:"center",justifyContent:"center",
-            color:dark?"#555":"#bbb",fontSize:14,fontWeight:700,
+            color:th.textMid,fontSize:14,fontWeight:700,
           }}>›</div>
         </div>
 
         {/* Divider */}
-        <div style={{
-          height:1,
-          background:dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.07)",
-          marginLeft:62,
-        }}/>
+        <div style={{height:1,background:th.divider,marginLeft:62}}/>
 
         {/* Row 2 — Government Helplines */}
         <div
@@ -4249,14 +4245,14 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             padding:"13px 14px",cursor:"pointer",
             WebkitTapHighlightColor:"transparent",
           }}
-          onTouchStart={e=>e.currentTarget.style.background=dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.03)"}
+          onTouchStart={e=>e.currentTarget.style.background=th.card2}
           onTouchEnd={e=>e.currentTarget.style.background="transparent"}
           onTouchCancel={e=>e.currentTarget.style.background="transparent"}
         >
           <div style={{
             width:36,height:36,borderRadius:10,flexShrink:0,
-            background:dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.05)",
-            border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"}`,
+            background:th.card2,
+            border:`1.5px solid ${th.border2}`,
             display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
           }}>📞</div>
           <div style={{flex:1}}>
@@ -4269,10 +4265,10 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           </div>
           <div style={{
             width:26,height:26,borderRadius:7,flexShrink:0,
-            background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",
-            border:`1.5px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"}`,
+            background:th.card2,
+            border:`1.5px solid ${th.border2}`,
             display:"flex",alignItems:"center",justifyContent:"center",
-            color:dark?"#555":"#bbb",fontSize:14,fontWeight:700,
+            color:th.textMid,fontSize:14,fontWeight:700,
           }}>›</div>
         </div>
 
