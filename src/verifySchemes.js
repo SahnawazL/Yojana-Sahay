@@ -429,6 +429,61 @@ export async function runVerification({
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
+// Full DB coverage stats — used by SchemeVerifier.jsx to show why only N schemes
+// are in the verification queue vs the total DB size.
+//
+// Returns:
+//   total          — every scheme in SCHEME_DB (national + all states)
+//   verifiable     — has applyType:"online" AND a valid URL → what the verifier pings
+//   onlineNoUrl    — applyType:"online" but apply.en is plain-text (e.g. "Nearest CSC")
+//   offline        — applyType:"offline" (bank/CSC/in-person — nothing to ping)
+//   otherType      — any other applyType value
+//   national       — scope:"national" schemes
+//   state          — scope:"state" schemes
+//   nationalOnline — national schemes that are verifiable
+//   stateOnline    — state schemes that are verifiable
+//   byState        — { "Assam": { total, online }, ... } sorted by total desc
+
+export function getDBStats() {
+  const total      = SCHEME_DB.length;
+  const online     = SCHEME_DB.filter(s => s.applyType === "online");
+  const verifiable = online.filter(s => !!normalizeUrl(s.apply?.en));
+
+  const national       = SCHEME_DB.filter(s => s.scope === "national");
+  const stateSchemes   = SCHEME_DB.filter(s => s.scope === "state");
+  const nationalOnline = national.filter(s => s.applyType === "online" && !!normalizeUrl(s.apply?.en));
+  const stateOnline    = stateSchemes.filter(s => s.applyType === "online" && !!normalizeUrl(s.apply?.en));
+
+  // Per-state breakdown
+  const byStateMap = {};
+  stateSchemes.forEach(s => {
+    if (!s.state) return;
+    if (!byStateMap[s.state]) byStateMap[s.state] = { total: 0, online: 0 };
+    byStateMap[s.state].total++;
+    if (s.applyType === "online" && !!normalizeUrl(s.apply?.en)) {
+      byStateMap[s.state].online++;
+    }
+  });
+  const byState = Object.entries(byStateMap)
+    .sort((a, b) => b[1].total - a[1].total)
+    .map(([name, counts]) => ({ name, ...counts }));
+
+  return {
+    total,
+    verifiable:  verifiable.length,
+    online:      online.length,
+    onlineNoUrl: online.length - verifiable.length,
+    offline:     SCHEME_DB.filter(s => s.applyType === "offline").length,
+    otherType:   SCHEME_DB.filter(s => !s.applyType).length,
+    national:    national.length,
+    state:       stateSchemes.length,
+    nationalOnline: nationalOnline.length,
+    stateOnline:    stateOnline.length,
+    byState,
+  };
+}
+
+
 // How many schemes will a given filter set produce?
 // Used by SchemeVerifier.jsx to preview the run size before starting.
 export function getVerifiableCount(

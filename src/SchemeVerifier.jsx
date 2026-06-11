@@ -29,6 +29,7 @@ import {
   clearCheckpoint,
   getVerifiableCount,
   getStatesInDB,
+  getDBStats,
 } from "./verifySchemes.js";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
@@ -305,6 +306,223 @@ function EmptyState({ message, dark }) {
   );
 }
 
+// ─── DB COVERAGE CARD ─────────────────────────────────────────────────────────
+// Shows full breakdown of all schemes vs what the verifier can actually ping.
+// Answers the question: "why only 444 out of 1100+?"
+
+function DBCoverageCard({ dark }) {
+  const th    = THEME[dark ? "dark" : "light"];
+  const stats = useMemo(() => getDBStats(), []);
+  const [showStates, setShowStates] = useState(false);
+
+  const verifiablePct = stats.total > 0
+    ? Math.round((stats.verifiable / stats.total) * 100)
+    : 0;
+
+  const Row = ({ label, value, color, sub }) => (
+    <div style={{
+      display: "flex", justifyContent: "space-between", alignItems: "center",
+      padding: "5px 0",
+      borderBottom: `1px solid ${th.border}`,
+    }}>
+      <span style={{ fontSize: 11, color: th.textMid }}>{label}</span>
+      <div style={{ textAlign: "right" }}>
+        <span style={{ fontSize: 13, fontWeight: 800, color: color || th.text }}>
+          {value}
+        </span>
+        {sub && (
+          <span style={{ fontSize: 9, color: th.textSub, marginLeft: 5 }}>{sub}</span>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{
+      background: th.card,
+      border: `1.5px solid ${th.border}`,
+      borderRadius: 16,
+      overflow: "hidden",
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: "12px 14px 10px",
+        borderBottom: `1px solid ${th.border}`,
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+      }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
+            📦 DB Coverage
+          </div>
+          <div style={{ fontSize: 10, color: th.textSub, marginTop: 1 }}>
+            Why {stats.verifiable} are queued out of {stats.total} total
+          </div>
+        </div>
+        <div style={{
+          fontSize: 20, fontWeight: 900,
+          color: NAVY,
+        }}>
+          {verifiablePct}%
+        </div>
+      </div>
+
+      {/* Progress bar — verifiable vs total */}
+      <div style={{ padding: "10px 14px 4px" }}>
+        <div style={{
+          height: 10, borderRadius: 6,
+          background: th.border, overflow: "hidden",
+          display: "flex",
+        }}>
+          {/* online verifiable */}
+          <div style={{
+            width: `${(stats.verifiable / stats.total) * 100}%`,
+            background: IND_GREEN, transition: "width 0.4s",
+          }} />
+          {/* online but no URL */}
+          <div style={{
+            width: `${(stats.onlineNoUrl / stats.total) * 100}%`,
+            background: AMBER,
+          }} />
+          {/* offline */}
+          <div style={{
+            width: `${(stats.offline / stats.total) * 100}%`,
+            background: `${RED}60`,
+          }} />
+        </div>
+        {/* Legend */}
+        <div style={{ display: "flex", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
+          {[
+            [IND_GREEN, `✅ Verifiable (${stats.verifiable})`],
+            [AMBER,     `⚠️ Online/No URL (${stats.onlineNoUrl})`],
+            [`${RED}99`, `❌ Offline (${stats.offline})`],
+          ].map(([color, label]) => (
+            <div key={label} style={{
+              display: "flex", alignItems: "center", gap: 4,
+              fontSize: 9, color: th.textMid,
+            }}>
+              <div style={{
+                width: 8, height: 8, borderRadius: 2,
+                background: color, flexShrink: 0,
+              }} />
+              {label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats rows */}
+      <div style={{ padding: "4px 14px 6px" }}>
+        <Row label="Total schemes in DB"  value={stats.total}      color={th.text} />
+        <Row
+          label="🟢 Verifiable (online + valid URL)"
+          value={stats.verifiable}
+          color={IND_GREEN}
+          sub="← what gets queued"
+        />
+        <Row
+          label="⚠️ Online but plain-text apply"
+          value={stats.onlineNoUrl}
+          color={AMBER}
+          sub="e.g. 'Nearest CSC center'"
+        />
+        <Row
+          label="🔴 Offline (bank / in-person / CSC)"
+          value={stats.offline}
+          color={RED}
+          sub="nothing to ping"
+        />
+        <Row label="🏛️ National schemes"  value={stats.national}   color={NAVY}   sub={`${stats.nationalOnline} verifiable`} />
+        <Row label="📍 State schemes"    value={stats.state}      color={VIOLET} sub={`${stats.stateOnline} verifiable`} />
+      </div>
+
+      {/* State breakdown toggle */}
+      {stats.byState.length > 0 && (
+        <div>
+          <div
+            onClick={() => setShowStates(s => !s)}
+            style={{
+              padding: "8px 14px",
+              borderTop: `1px solid ${th.border}`,
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              cursor: "pointer",
+            }}
+          >
+            <span style={{ fontSize: 11, fontWeight: 700, color: th.text }}>
+              Per-state breakdown
+            </span>
+            <span style={{ fontSize: 10, color: th.textSub }}>
+              {showStates ? "▲ Hide" : `▼ Show ${stats.byState.length} states`}
+            </span>
+          </div>
+
+          {showStates && (
+            <div style={{
+              maxHeight: 220, overflowY: "auto",
+              borderTop: `1px solid ${th.border}`,
+            }}>
+              {/* Table header */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 52px 52px 52px",
+                padding: "5px 14px",
+                background: th.card2,
+                position: "sticky", top: 0,
+              }}>
+                {["State", "Total", "Online", "Offline"].map(h => (
+                  <div key={h} style={{
+                    fontSize: 9, fontWeight: 800,
+                    color: th.textSub, textAlign: h === "State" ? "left" : "center",
+                  }}>
+                    {h}
+                  </div>
+                ))}
+              </div>
+
+              {stats.byState.map(({ name, total: st, online: so }) => {
+                const offline = st - so;
+                return (
+                  <div
+                    key={name}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 52px 52px 52px",
+                      padding: "5px 14px",
+                      borderBottom: `1px solid ${th.border}`,
+                      alignItems: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: 10, color: th.text, fontWeight: 600 }}>
+                      {name}
+                    </div>
+                    <div style={{
+                      fontSize: 11, fontWeight: 800, color: th.text, textAlign: "center",
+                    }}>
+                      {st}
+                    </div>
+                    <div style={{
+                      fontSize: 11, fontWeight: 700, color: IND_GREEN, textAlign: "center",
+                    }}>
+                      {so}
+                    </div>
+                    <div style={{
+                      fontSize: 11, fontWeight: 700,
+                      color: offline > 0 ? RED : th.textSub,
+                      textAlign: "center",
+                    }}>
+                      {offline}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function SchemeVerifier({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
@@ -523,6 +741,11 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ══ DB COVERAGE CARD — always visible when idle ══════════════════════ */}
+      {!running && results.length === 0 && (
+        <DBCoverageCard dark={dark} />
       )}
 
       {/* ══ CONFIG PANEL — hidden once run has results ════════════════════════ */}
