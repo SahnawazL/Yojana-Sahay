@@ -171,6 +171,7 @@ function ResultRow({ result, dark }) {
         borderBottom: `1px solid ${th.border}`,
         borderLeft: `3px solid ${accentColor}`,
         cursor: "pointer",
+        animation: "sv-result-fly-in 0.42s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
       {/* ── Row header ── */}
@@ -518,6 +519,140 @@ function DBCoverageCard({ dark }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+
+// ─── LIVE SCANNER CARD ────────────────────────────────────────────────────────
+// Premium scanning UI shown during an active verification run.
+// The scheme name/URL re-animates via `key` every time the scheme changes.
+
+function LiveSchemeCard({ schemeName, index, total, dark }) {
+  const th  = THEME[dark ? "dark" : "light"];
+  const pct = total > 0 ? Math.round((index / total) * 100) : 0;
+
+  return (
+    <div style={{
+      position: "relative",
+      background: dark
+        ? "linear-gradient(140deg, #06101e 0%, #0b1a2e 100%)"
+        : "linear-gradient(140deg, #eef3ff 0%, #e4eeff 100%)",
+      border: `1.5px solid ${NAVY}50`,
+      borderRadius: 16,
+      padding: "16px",
+      overflow: "hidden",
+      animation: "sv-card-glow 3s ease infinite",
+    }}>
+
+      {/* Grid texture overlay */}
+      <div style={{
+        position: "absolute", inset: 0, pointerEvents: "none",
+        backgroundImage: `
+          linear-gradient(${NAVY}09 1px, transparent 1px),
+          linear-gradient(90deg, ${NAVY}09 1px, transparent 1px)`,
+        backgroundSize: "22px 22px",
+      }} />
+
+      {/* Horizontal scan line */}
+      <div style={{
+        position: "absolute", left: 0, right: 0, height: 2,
+        background: `linear-gradient(90deg,
+          transparent 0%, ${NAVY}50 15%,
+          ${IND_GREEN}dd 50%,
+          ${NAVY}50 85%, transparent 100%)`,
+        animation: "sv-scan-line 2.2s ease-in-out infinite",
+        pointerEvents: "none", zIndex: 2,
+      }} />
+
+      {/* Corner tag */}
+      <div style={{
+        position: "absolute", top: 10, right: 12,
+        fontSize: 8, fontWeight: 800, letterSpacing: 2,
+        color: `${NAVY}70`, fontFamily: "monospace",
+      }}>
+        TIER·1
+      </div>
+
+      {/* Content */}
+      <div style={{ position: "relative", zIndex: 1 }}>
+
+        {/* SCANNING label + live % */}
+        <div style={{
+          display: "flex", justifyContent: "space-between",
+          alignItems: "center", marginBottom: 12,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <div style={{
+              width: 7, height: 7, borderRadius: "50%",
+              background: IND_GREEN,
+              animation: "sv-pulse 1.4s ease infinite",
+              boxShadow: `0 0 0 3px ${IND_GREEN}30`,
+            }} />
+            <span style={{
+              fontSize: 9, fontWeight: 800, letterSpacing: 2.5,
+              color: IND_GREEN, fontFamily: "monospace",
+            }}>
+              SCANNING
+            </span>
+            <span style={{
+              fontSize: 8, color: `${IND_GREEN}80`,
+              fontFamily: "monospace", letterSpacing: 1,
+            }}>
+              ▸▸
+            </span>
+          </div>
+          <span style={{
+            fontSize: 13, fontWeight: 900, color: NAVY,
+            fontFamily: "monospace", letterSpacing: 1,
+          }}>
+            {pct}%
+          </span>
+        </div>
+
+        {/* Scheme name — re-animates on each scheme change */}
+        <div
+          key={schemeName}
+          style={{
+            fontSize: 14, fontWeight: 800,
+            color: dark ? "#f0f0f0" : "#0d1b2e",
+            lineHeight: 1.3, marginBottom: 6,
+            animation: "sv-scheme-fly-in 0.38s cubic-bezier(0.22,1,0.36,1) both",
+          }}
+        >
+          {schemeName || "Initializing…"}
+        </div>
+
+        {/* Index + mini progress dots */}
+        <div style={{
+          display: "flex", alignItems: "center",
+          justifyContent: "space-between",
+        }}>
+          <span style={{
+            fontSize: 9, color: th.textSub,
+            fontFamily: "monospace",
+          }}>
+            <span style={{ color: NAVY, fontWeight: 700 }}>
+              #{String(index).padStart(3, "0")}
+            </span>
+            {" "}/ {total}
+          </span>
+
+          {/* Mini segment dots */}
+          <div style={{ display: "flex", gap: 2 }}>
+            {Array.from({ length: Math.min(total, 10) }).map((_, i) => {
+              const filled = i < Math.round((index / total) * 10);
+              return (
+                <div key={i} style={{
+                  width: 5, height: 5, borderRadius: 1.5,
+                  background: filled ? NAVY : `${NAVY}25`,
+                  transition: "background 0.3s",
+                }} />
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -890,65 +1025,65 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
       {/* ══ RUNNING PANEL ════════════════════════════════════════════════════ */}
       {running && (
-        <div style={{
-          background: th.card,
-          border: `1.5px solid ${NAVY}40`,
-          borderRadius: 16,
-          padding: "16px",
-          display: "flex", flexDirection: "column", gap: 12,
-        }}>
-          {/* Running header + Stop */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 8,
-              fontSize: 13, fontWeight: 800, color: th.text,
-            }}>
-              <span style={{
-                display: "inline-block",
-                width: 8, height: 8, borderRadius: "50%",
-                background: IND_GREEN,
-                boxShadow: `0 0 0 3px ${IND_GREEN}30`,
-                animation: "sv-pulse 1.4s ease infinite",
-              }} />
-              Verifying…
-            </div>
-            <div
-              onClick={handleStop}
-              style={{
-                padding: "6px 14px", borderRadius: 8,
-                fontSize: 11, fontWeight: 700,
-                background: "rgba(220,38,38,0.1)",
-                border: "1px solid rgba(220,38,38,0.28)",
-                color: RED, cursor: "pointer",
-              }}
-            >
-              ⏹ Stop
-            </div>
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 
-          <ProgressBar
-            value={progress?.index || 0}
+          {/* Live scanner card */}
+          <LiveSchemeCard
+            schemeName={currentScheme}
+            index={progress?.index || 0}
             total={progress?.total || previewCount}
-            color={NAVY}
             dark={dark}
           />
 
-          {currentScheme && (
+          {/* Progress bar + Stop */}
+          <div style={{
+            background: th.card,
+            border: `1.5px solid ${NAVY}30`,
+            borderRadius: 14,
+            padding: "12px 14px",
+            display: "flex", flexDirection: "column", gap: 8,
+          }}>
             <div style={{
-              fontSize: 10, color: th.textMid,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
             }}>
-              ▶ {currentScheme}
+              <span style={{
+                fontSize: 11, fontWeight: 800, color: th.text,
+                fontFamily: "monospace",
+              }}>
+                {progress?.index || 0}
+                <span style={{ color: th.textSub, fontWeight: 400 }}>
+                  {" "}/ {progress?.total || previewCount} schemes
+                </span>
+              </span>
+              <div
+                onClick={handleStop}
+                style={{
+                  padding: "5px 13px", borderRadius: 8,
+                  fontSize: 11, fontWeight: 700,
+                  background: "rgba(220,38,38,0.1)",
+                  border: "1px solid rgba(220,38,38,0.28)",
+                  color: RED, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 5,
+                }}
+              >
+                ⏹ Stop
+              </div>
             </div>
-          )}
+            <ProgressBar
+              value={progress?.index || 0}
+              total={progress?.total || previewCount}
+              color={NAVY}
+              dark={dark}
+            />
+          </div>
 
-          {/* Live mini cards */}
+          {/* Live mini stat cards */}
           {summary && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <MiniCard icon="✅" label="Active"    value={summary.active}     color={IND_GREEN} dark={dark} />
-              <MiniCard icon="❌" label="Dead"      value={summary.dead}       color={RED}       dark={dark} />
-              <MiniCard icon="🟡" label="No Resp."  value={summary.noResponse} color={AMBER}     dark={dark} />
-              <MiniCard icon="🐛" label="Errors"    value={summary.errors}     color={VIOLET}    dark={dark} />
+              <MiniCard icon="✅" label="Active"   value={summary.active}     color={IND_GREEN} dark={dark} />
+              <MiniCard icon="❌" label="Dead"     value={summary.dead}       color={RED}       dark={dark} />
+              <MiniCard icon="🟡" label="No Resp." value={summary.noResponse} color={AMBER}     dark={dark} />
+              <MiniCard icon="🐛" label="Errors"   value={summary.errors}     color={VIOLET}    dark={dark} />
             </div>
           )}
         </div>
@@ -964,6 +1099,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           borderRadius: 12,
           padding: "10px 14px",
           display: "flex", alignItems: "center", gap: 10,
+          animation: "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
         }}>
           <span style={{ fontSize: 18 }}>{wasAborted ? "🛑" : "✅"}</span>
           <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: th.text }}>
@@ -1119,11 +1255,35 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         </div>
       )}
 
-      {/* Pulse keyframe — scoped inline */}
+      {/* All keyframes — scoped inline */}
       <style>{`
         @keyframes sv-pulse {
           0%,100% { opacity: 1; box-shadow: 0 0 0 3px rgba(19,136,8,0.3); }
           50%      { opacity: 0.6; box-shadow: 0 0 0 6px rgba(19,136,8,0.1); }
+        }
+        @keyframes sv-scan-line {
+          0%   { top: -3px; opacity: 0; }
+          8%   { opacity: 1; }
+          92%  { opacity: 1; }
+          100% { top: 100%; opacity: 0; }
+        }
+        @keyframes sv-card-glow {
+          0%,100% { box-shadow: 0 0 0 0 transparent; }
+          50%     { box-shadow: 0 0 22px 2px rgba(0,53,128,0.18); }
+        }
+        @keyframes sv-scheme-fly-in {
+          0%   { opacity: 0; transform: translateX(18px) scale(0.97); filter: blur(3px); }
+          100% { opacity: 1; transform: translateX(0)    scale(1);    filter: blur(0);   }
+        }
+        @keyframes sv-result-fly-in {
+          0%   { opacity: 0; transform: translateY(-14px) scale(0.97); }
+          65%  { transform: translateY(2px)  scale(1.005); }
+          100% { opacity: 1; transform: translateY(0)    scale(1); }
+        }
+        @keyframes sv-done-pop {
+          0%   { opacity: 0; transform: scale(0.93) translateY(-6px); }
+          60%  { transform: scale(1.025) translateY(0); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
 
