@@ -5,7 +5,7 @@
 //
 // Flow:
 //   1. Receive POST { id, url, name, state, scope }
-//   2. Fetch the live page DIRECTLY from Vercel server (no proxy) → get raw HTML
+//   2. Fetch page content via Tavily Extract API (bypasses .gov.in IP blocks)
 //   3. Strip tags → clean readable text (truncated to MAX_PAGE_CHARS)
 //   4. Send to Groq with a tightly-scoped JSON-only extraction prompt
 //   5. Return { lastDate: "YYYY-MM-DD" | null, isActive: bool | null, confidence: 0–1 }
@@ -13,25 +13,24 @@
 // KEY ROTATION: identical to chat.js — up to 6 Groq keys, round-robin,
 //               skip on 429.
 //
+// WHY TAVILY: Direct fetch from Vercel and allorigins.win proxy are both
+//             blocked by .gov.in / .nic.in sites. Tavily has its own crawler
+//             infrastructure that can access these pages reliably.
+//
 // ERRORS: always return HTTP 200 with { error } field so verifySchemes.js
 //         can handle them gracefully without crashing the run.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const GROQ_URL      = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL         = "llama-3.3-70b-versatile";
-const FETCH_TIMEOUT = 8000;     // 8 s — keeps total fn time safely under Vercel limit
+const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
+const TAVILY_EXTRACT = "https://api.tavily.com/extract";
+const MODEL          = "llama-3.3-70b-versatile";
+const FETCH_TIMEOUT  = 10000;   // 10 s — Tavily is fast but allow some headroom
 const MAX_PAGE_CHARS = 4000;    // truncate stripped text to keep tokens low
 
-// Mimic a real browser to avoid bot-detection blocks (same as ping-url.js)
-const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-  "AppleWebKit/537.36 (KHTML, like Gecko) " +
-  "Chrome/124.0.0.0 Safari/537.36";
 
+// ── Key loader — Groq (identical to chat.js) ──────────────────────────────────
 
-// ── Key loader (identical to chat.js) ────────────────────────────────────────
-
-function loadKeys() {
+function loadGroqKeys() {
   const seen = new Set();
   const keys = [];
   const candidates = [
@@ -76,7 +75,7 @@ async function callGroq(keys, bodyObject) {
 
       const data = await res.json();
       if (res.status === 200) {
-        console.log(`[verify-scheme] ✓ Key #${i + 1} succeeded.`);
+        console.log(`[verify-scheme] ✓ Groq Key #${i + 1} succeeded.`);
       } else {
         console.error(
           `[verify-scheme] Groq error ${res.status} on Key #${i + 1}:`,
@@ -95,42 +94,55 @@ async function callGroq(keys, bodyObject) {
     ? `All ${keys.length} Groq keys are rate-limited. Try again later.`
     : "Groq key is rate-limited. Try again later.";
 
-  console.error(`[verify-scheme] ✗ All ${keys.length} key(s) exhausted.`);
+  console.error(`[verify-scheme] ✗ All ${keys.length} Groq key(s) exhausted.`);
   return { status: 429, data: { error: { message: msg, details: lastError } } };
 }
 
 
-// ── Page fetcher + HTML stripper ──────────────────────────────────────────────
-// Direct server-side fetch from Vercel (same approach as ping-url.js).
-// No allorigins proxy — those IPs are blacklisted by .gov.in sites.
+// ── Page fetcher via Tavily Extract ──────────────────────────────────────────
+// Tavily's crawler bypasses the IP blocks that stop direct Vercel → .gov.in
+// and allorigins → .gov.in fetches.
 // Returns { text, httpStatus, error }
 
-async function fetchPageText(url) {
+async function fetchPageText(url, tavilyKey) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
   try {
-    const res = await fetch(url, {
-      method:  "GET",
+    const res = await fetch(TAVILY_EXTRACT, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
       signal:  controller.signal,
-      headers: { "User-Agent": USER_AGENT },
-      redirect: "follow",
+      body: JSON.stringify({
+        api_key: tavilyKey,
+        urls:    [url],
+      }),
     });
     clearTimeout(timer);
 
-    const httpStatus = res.status;
-
     if (!res.ok) {
-      return { text: null, httpStatus, error: `HTTP ${httpStatus}` };
+      return { text: null, httpStatus: 0, error: `Tavily HTTP ${res.status}` };
     }
 
-    const raw = await res.text();
+    const data = await res.json();
 
+    // Tavily returns results[] for successes and failed_results[] for failures
+    const result = data.results?.[0];
+    if (!result) {
+      const failed = data.failed_results?.[0];
+      return {
+        text:       null,
+        httpStatus: 0,
+        error:      failed?.error ?? "Tavily: no result returned",
+      };
+    }
+
+    const raw = result.raw_content ?? "";
     if (!raw) {
-      return { text: null, httpStatus, error: "empty page content" };
+      return { text: null, httpStatus: 200, error: "empty page content" };
     }
 
-    // Strip scripts + styles first (they contain the most noise), then all tags.
+    // Strip scripts + styles first (most noise), then all remaining tags.
     const stripped = raw
       .replace(/<script[\s\S]*?<\/script>/gi, " ")
       .replace(/<style[\s\S]*?<\/style>/gi,   " ")
@@ -139,7 +151,11 @@ async function fetchPageText(url) {
       .trim()
       .slice(0, MAX_PAGE_CHARS);
 
-    return { text: stripped, httpStatus, error: null };
+    if (!stripped) {
+      return { text: null, httpStatus: 200, error: "empty after strip" };
+    }
+
+    return { text: stripped, httpStatus: 200, error: null };
 
   } catch (err) {
     clearTimeout(timer);
@@ -153,7 +169,6 @@ async function fetchPageText(url) {
 
 
 // ── Groq prompt builder ───────────────────────────────────────────────────────
-// Tightly-scoped: JSON only, no explanation, near-zero temperature.
 
 function buildPrompt(schemeName, state, pageText) {
   const systemPrompt =
@@ -189,13 +204,23 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Keys
-  const keys = loadKeys();
-  if (keys.length === 0) {
+  // Groq keys
+  const groqKeys = loadGroqKeys();
+  if (groqKeys.length === 0) {
     return res.status(500).json({
       error:
         "No Groq API keys configured. " +
         "Add GROQ_API_KEY in Vercel → Settings → Environment Variables, then redeploy.",
+    });
+  }
+
+  // Tavily key
+  const tavilyKey = process.env.TAVILY_API_KEY?.trim();
+  if (!tavilyKey) {
+    return res.status(500).json({
+      error:
+        "No Tavily API key configured. " +
+        "Add TAVILY_API_KEY in Vercel → Settings → Environment Variables, then redeploy.",
     });
   }
 
@@ -208,10 +233,10 @@ export default async function handler(req, res) {
 
   console.log(`[verify-scheme] Checking: "${name}" (${state}) → ${url}`);
 
-  // ── Step 1: Fetch the live page (direct, no proxy) ────────────────────────
-  const { text, httpStatus, error: fetchError } = await fetchPageText(url);
+  // ── Step 1: Fetch page via Tavily Extract ─────────────────────────────────
+  const { text, httpStatus, error: fetchError } = await fetchPageText(url, tavilyKey);
 
-  // If page is dead (4xx/5xx) or unreachable, skip the AI call and return early.
+  // If page is dead or unreachable, skip the AI call and return early.
   if (!text) {
     console.warn(`[verify-scheme] Page fetch failed for "${name}": ${fetchError}`);
     return res.status(200).json({
@@ -225,11 +250,11 @@ export default async function handler(req, res) {
   // ── Step 2: AI extraction ─────────────────────────────────────────────────
   const { systemPrompt, userPrompt } = buildPrompt(name, state, text);
 
-  const { status: groqStatus, data: groqData } = await callGroq(keys, {
-    model:       MODEL,
-    max_tokens:  80,    // {"lastDate":"2026-03-31","isActive":true,"confidence":0.9} fits in ~25 tokens
-    temperature: 0.1,   // near-deterministic — extraction, not generation
-    response_format: { type: "json_object" }, // guarantees valid JSON, eliminates parse failures
+  const { status: groqStatus, data: groqData } = await callGroq(groqKeys, {
+    model:           MODEL,
+    max_tokens:      80,   // full JSON response fits in ~25 tokens
+    temperature:     0.1,  // near-deterministic — extraction, not generation
+    response_format: { type: "json_object" }, // guarantees valid JSON
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user",   content: userPrompt   },
@@ -252,7 +277,6 @@ export default async function handler(req, res) {
 
   let parsed = null;
   try {
-    // Strip any accidental markdown fences before parsing
     const clean = raw.replace(/```json|```/g, "").trim();
     parsed = JSON.parse(clean);
   } catch {
