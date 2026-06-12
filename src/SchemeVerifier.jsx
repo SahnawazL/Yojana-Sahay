@@ -120,6 +120,36 @@ function matchesSearch(result, query) {
   );
 }
 
+/**
+ * Spread onto a clickable <div> to make it keyboard- and screen-reader-
+ * accessible: adds role="button", tabIndex, Enter/Space activation, and
+ * (when `disabled` is true) removes it from the tab order and announces
+ * it as disabled. `pressed`, when provided, sets aria-pressed for toggles.
+ */
+function a11yClickable(onClick, { disabled = false, pressed, label } = {}) {
+  if (disabled || !onClick) {
+    return {
+      role: "button",
+      "aria-disabled": true,
+      tabIndex: -1,
+      ...(label ? { "aria-label": label } : {}),
+    };
+  }
+  return {
+    role: "button",
+    tabIndex: 0,
+    onClick,
+    onKeyDown: (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onClick(e);
+      }
+    },
+    ...(pressed !== undefined ? { "aria-pressed": pressed } : {}),
+    ...(label ? { "aria-label": label } : {}),
+  };
+}
+
 /** Build numbered pagination range (max `maxVisible` pages shown). */
 function getPaginationRange(page, totalPages, maxVisible = 5) {
   if (totalPages <= maxVisible) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -128,6 +158,14 @@ function getPaginationRange(page, totalPages, maxVisible = 5) {
   let end     = Math.min(totalPages, start + maxVisible - 1);
   if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+}
+
+/** Resolve a result's status label (shared by CSV export and badges). */
+function getResultStatus(r) {
+  if (r.error && r.alive === null) return "Error";
+  if (r.alive === true)            return "Active";
+  if (r.alive === false)           return "Dead";
+  return "No Response";
 }
 
 /** Trigger a CSV download from the current results array. */
@@ -141,19 +179,14 @@ function exportResultsCSV(results) {
   const escape = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
   const rows = results.map(r => {
-    const s      = r.scheme;
-    const status =
-      r.error && r.alive === null ? "Error"       :
-      r.alive === true            ? "Active"       :
-      r.alive === false           ? "Dead"         : "No Response";
-
+    const s = r.scheme;
     return [
       s.id,
       s.name?.en  || "",
       s.scope     || "",
       s.state     || "",
       s.apply?.en || "",
-      status,
+      getResultStatus(r),
       r.httpStatus != null ? r.httpStatus : "",
       r.lastDate   || "",
       r.isActive === true  ? "Yes" : r.isActive === false ? "No" : "",
@@ -177,7 +210,7 @@ function exportResultsCSV(results) {
 
 
 // ─── MINI STAT CARD ───────────────────────────────────────────────────────────
-function MiniCard({ icon, label, value, color, dark }) {
+function MiniCard({ label, value, color, dark }) {
   const th      = THEME[dark ? "dark" : "light"];
   const display = useCountUp(value ?? 0);
 
@@ -191,10 +224,9 @@ function MiniCard({ icon, label, value, color, dark }) {
       flex:         "1 1 70px",
       minWidth:     70,
     }}>
-      <div style={{ fontSize: 14 }}>{icon}</div>
       <div style={{
         fontSize: 18, fontWeight: 800, color: th.text,
-        lineHeight: 1, marginTop: 4,
+        lineHeight: 1,
       }}>
         {display}
       </div>
@@ -244,27 +276,31 @@ function ProgressBar({ value, total, color, dark }) {
 // ─── STATUS BADGE ─────────────────────────────────────────────────────────────
 function StatusBadge({ result }) {
   if (!result) return null;
-  let dot, label, color, bg;
+  let label, color, bg;
 
   if (result.error && result.alive === null) {
-    [dot, label, color, bg] = ["🟣", "Error",       VIOLET,    "rgba(139,92,246,0.12)"];
+    [label, color, bg] = ["Error",       VIOLET,    "rgba(139,92,246,0.12)"];
   } else if (result.alive === true) {
-    [dot, label, color, bg] = ["🟢", "Active",      IND_GREEN, "rgba(19,136,8,0.12)"];
+    [label, color, bg] = ["Active",      IND_GREEN, "rgba(19,136,8,0.12)"];
   } else if (result.alive === false) {
-    [dot, label, color, bg] = ["🔴", "Dead",        RED,       "rgba(220,38,38,0.12)"];
+    [label, color, bg] = ["Dead",        RED,       "rgba(220,38,38,0.12)"];
   } else {
-    [dot, label, color, bg] = ["🟡", "No Response", AMBER,     "rgba(245,158,11,0.12)"];
+    [label, color, bg] = ["No Response", AMBER,     "rgba(245,158,11,0.12)"];
   }
 
   return (
     <span style={{
-      display: "inline-flex", alignItems: "center", gap: 3,
+      display: "inline-flex", alignItems: "center", gap: 4,
       padding: "2px 8px", borderRadius: 8,
       fontSize: 9, fontWeight: 700,
       color, background: bg,
       whiteSpace: "nowrap",
     }}>
-      {dot} {label}
+      <span style={{
+        width: 6, height: 6, borderRadius: "50%",
+        background: color, flexShrink: 0,
+      }} />
+      {label}
     </span>
   );
 }
@@ -323,12 +359,18 @@ function ResultRow({ result, dark }) {
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
-    }).catch(() => {});
+    }).catch(() => {
+      setCopied("error");
+      setTimeout(() => setCopied(false), 1800);
+    });
   };
 
   return (
     <div
-      onClick={() => setExpanded(e => !e)}
+      {...a11yClickable(() => setExpanded(e => !e), {
+        pressed: expanded,
+        label: `${scheme.name?.en || scheme.id} — ${expanded ? "collapse" : "expand"} details`,
+      })}
       style={{
         padding:      "10px 14px",
         borderBottom: `1px solid ${th.border}`,
@@ -392,7 +434,7 @@ function ResultRow({ result, dark }) {
               color:      isExpired ? RED : isExpiringSoon ? AMBER : th.textSub,
               fontWeight: isExpired || isExpiringSoon ? 700 : 400,
             }}>
-              📅 Deadline: {scheme.lastDate}
+              Deadline: {scheme.lastDate}
             </div>
           )}
         </div>
@@ -417,6 +459,7 @@ function ResultRow({ result, dark }) {
       {expanded && (
         <div
           onClick={e => e.stopPropagation()}
+          onKeyDown={e => e.stopPropagation()}
           style={{
             marginTop:     8,
             padding:       "10px 12px",
@@ -433,7 +476,7 @@ function ResultRow({ result, dark }) {
             ["Check Tier",      `Tier ${result.tier}`],
             ["HTTP Status",     result.httpStatus != null ? String(result.httpStatus) : "—"],
             ["AI lastDate",     result.lastDate || "—"],
-            ["AI isActive",     result.isActive === true ? "Yes ✅" : result.isActive === false ? "No ❌" : "—"],
+            ["AI isActive",     result.isActive === true ? "Yes" : result.isActive === false ? "No" : "—"],
             ["Confidence",      result.confidence != null ? `${Math.round(result.confidence * 100)}%` : "—"],
             ["Scheme lastDate", scheme.lastDate || "—"],
             ["Error",           result.error || "None"],
@@ -468,7 +511,7 @@ function ResultRow({ result, dark }) {
                   whiteSpace:   "nowrap",
                 }}
               >
-                🔗 Open URL →
+                Open URL →
               </a>
               <button
                 onClick={handleCopyUrl}
@@ -478,15 +521,15 @@ function ResultRow({ result, dark }) {
                   fontSize:     9,
                   fontWeight:   700,
                   cursor:       "pointer",
-                  border:       `1px solid ${copied ? IND_GREEN : th.border}`,
-                  background:   copied ? `${IND_GREEN}15` : th.card,
-                  color:        copied ? IND_GREEN : th.textMid,
+                  border:       `1px solid ${copied === "error" ? RED : copied ? IND_GREEN : th.border}`,
+                  background:   copied === "error" ? `${RED}15` : copied ? `${IND_GREEN}15` : th.card,
+                  color:        copied === "error" ? RED : copied ? IND_GREEN : th.textMid,
                   transition:   "all 0.2s",
                   flexShrink:   0,
                   fontFamily:   "inherit",
                 }}
               >
-                {copied ? "✓ Copied!" : "Copy URL"}
+                {copied === "error" ? "Failed" : copied ? "Copied" : "Copy URL"}
               </button>
             </div>
           )}
@@ -517,9 +560,8 @@ function EmptyState({ message, dark }) {
 // Shows full breakdown of all schemes vs what the verifier can actually ping.
 // Answers the question: "why only 444 out of 1100+?"
 
-function DBCoverageCard({ dark }) {
+function DBCoverageCard({ stats, dark }) {
   const th    = THEME[dark ? "dark" : "light"];
-  const stats = useMemo(() => getDBStats(), []);
   const [showStates, setShowStates] = useState(false);
 
   const verifiablePct = stats.total > 0
@@ -563,7 +605,7 @@ function DBCoverageCard({ dark }) {
       }}>
         <div>
           <div style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
-            📦 DB Coverage
+            DB Coverage
           </div>
           <div style={{ fontSize: 10, color: th.textSub, marginTop: 1 }}>
             Why {stats.verifiable} are queued out of {stats.total} total
@@ -584,16 +626,16 @@ function DBCoverageCard({ dark }) {
           display:      "flex",
         }}>
           <div style={{
-            width:      `${(stats.verifiable / stats.total) * 100}%`,
+            width:      `${stats.total > 0 ? (stats.verifiable / stats.total) * 100 : 0}%`,
             background: IND_GREEN,
             transition: "width 0.4s",
           }} />
           <div style={{
-            width:      `${(stats.onlineNoUrl / stats.total) * 100}%`,
+            width:      `${stats.total > 0 ? (stats.onlineNoUrl / stats.total) * 100 : 0}%`,
             background: AMBER,
           }} />
           <div style={{
-            width:      `${(stats.offline / stats.total) * 100}%`,
+            width:      `${stats.total > 0 ? (stats.offline / stats.total) * 100 : 0}%`,
             background: `${RED}60`,
           }} />
         </div>
@@ -601,9 +643,9 @@ function DBCoverageCard({ dark }) {
         {/* Legend */}
         <div style={{ display: "flex", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
           {[
-            [IND_GREEN,    `✅ Verifiable (${stats.verifiable})`],
-            [AMBER,        `⚠️ Online/No URL (${stats.onlineNoUrl})`],
-            [`${RED}99`,   `❌ Offline (${stats.offline})`],
+            [IND_GREEN,    `Verifiable (${stats.verifiable})`],
+            [AMBER,        `Online/No URL (${stats.onlineNoUrl})`],
+            [`${RED}99`,   `Offline (${stats.offline})`],
           ].map(([color, label]) => (
             <div key={label} style={{
               display:    "flex",
@@ -628,18 +670,21 @@ function DBCoverageCard({ dark }) {
       {/* Stat rows */}
       <div style={{ padding: "4px 14px 6px" }}>
         <Row label="Total schemes in DB"              value={stats.total}          color={th.text}  />
-        <Row label="🟢 Verifiable (online + valid URL)" value={stats.verifiable}    color={IND_GREEN} sub="← what gets queued"         />
-        <Row label="⚠️ Online but plain-text apply"    value={stats.onlineNoUrl}   color={AMBER}    sub="e.g. 'Nearest CSC center'"    />
-        <Row label="🔴 Offline (bank / in-person / CSC)" value={stats.offline}     color={RED}      sub="nothing to ping"              />
-        <Row label="🏛️ National schemes"              value={stats.national}        color={NAVY}     sub={`${stats.nationalOnline} verifiable`} />
-        <Row label="📍 State schemes"                 value={stats.state}           color={VIOLET}   sub={`${stats.stateOnline} verifiable`}    />
+        <Row label="Verifiable (online + valid URL)" value={stats.verifiable}    color={IND_GREEN} sub="← what gets queued"         />
+        <Row label="Online but plain-text apply"    value={stats.onlineNoUrl}   color={AMBER}    sub="e.g. 'Nearest CSC center'"    />
+        <Row label="Offline (bank / in-person / CSC)" value={stats.offline}     color={RED}      sub="nothing to ping"              />
+        <Row label="National schemes"              value={stats.national}        color={NAVY}     sub={`${stats.nationalOnline} verifiable`} />
+        <Row label="State schemes"                 value={stats.state}           color={VIOLET}   sub={`${stats.stateOnline} verifiable`}    />
       </div>
 
       {/* Per-state breakdown toggle */}
       {stats.byState.length > 0 && (
         <div>
           <div
-            onClick={() => setShowStates(s => !s)}
+            {...a11yClickable(() => setShowStates(s => !s), {
+              pressed: showStates,
+              label: "Per-state breakdown",
+            })}
             style={{
               padding:        "8px 14px",
               borderTop:      `1px solid ${th.border}`,
@@ -728,7 +773,7 @@ function DBCoverageCard({ dark }) {
 // ─── TECH STAT CARD ───────────────────────────────────────────────────────────
 // Single terminal-style cell used inside RunSummaryCard.
 
-function TechStatCard({ icon, label, value, color, dark }) {
+function TechStatCard({ label, value, color, dark }) {
   const th      = THEME[dark ? "dark" : "light"];
   const display = useCountUp(value ?? 0);
   const hot     = (value ?? 0) > 0;
@@ -746,12 +791,10 @@ function TechStatCard({ icon, label, value, color, dark }) {
       padding:      "8px 6px 6px",
       textAlign:    "center",
     }}>
-      <div style={{ fontSize: 13 }}>{icon}</div>
       <div style={{
         fontSize:   18,
         fontWeight: 900,
         lineHeight: 1,
-        marginTop:  3,
         color:      hot ? color : th.textSub,
         fontFamily: "monospace",
       }}>
@@ -779,7 +822,7 @@ function TechStatCard({ icon, label, value, color, dark }) {
 // Terminal-style post-run report.
 // Shows run metadata (scope / priority / tier) + health bar + 2-section stat grid.
 
-function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted, dark, onExport }) {
+function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted, dark }) {
   const th = THEME[dark ? "dark" : "light"];
 
   const scopeLabel =
@@ -978,10 +1021,10 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
           ▸ LINK_HEALTH
         </div>
         <div style={{ display: "flex", gap: 6 }}>
-          <TechStatCard icon="🔍" label="TOTAL"   value={summary.total}      color={NAVY}      dark={dark} />
-          <TechStatCard icon="✅" label="ACTIVE"  value={summary.active}     color={IND_GREEN} dark={dark} />
-          <TechStatCard icon="❌" label="DEAD"    value={summary.dead}       color={RED}       dark={dark} />
-          <TechStatCard icon="🟡" label="NO_RESP" value={summary.noResponse} color={AMBER}     dark={dark} />
+          <TechStatCard label="TOTAL"   value={summary.total}      color={NAVY}      dark={dark} />
+          <TechStatCard label="ACTIVE"  value={summary.active}     color={IND_GREEN} dark={dark} />
+          <TechStatCard label="DEAD"    value={summary.dead}       color={RED}       dark={dark} />
+          <TechStatCard label="NO_RESP" value={summary.noResponse} color={AMBER}     dark={dark} />
         </div>
       </div>
 
@@ -998,41 +1041,12 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
           ▸ DEADLINE_INTEL
         </div>
         <div style={{ display: "flex", gap: 6 }}>
-          <TechStatCard icon="⏰" label="EXPIRED"  value={summary.expired}      color={RED}     dark={dark} />
-          <TechStatCard icon="⚠️" label="EXP_SOON" value={summary.expiringSoon} color={SAFFRON} dark={dark} />
-          <TechStatCard icon="🆕" label="NO_HIST"  value={summary.neverChecked} color={VIOLET}  dark={dark} />
-          <TechStatCard icon="🐛" label="ERRORS"   value={summary.errors}       color={PINK}    dark={dark} />
+          <TechStatCard label="EXPIRED"  value={summary.expired}      color={RED}     dark={dark} />
+          <TechStatCard label="EXP_SOON" value={summary.expiringSoon} color={SAFFRON} dark={dark} />
+          <TechStatCard label="NO_HIST"  value={summary.neverChecked} color={VIOLET}  dark={dark} />
+          <TechStatCard label="ERRORS"   value={summary.errors}       color={PINK}    dark={dark} />
         </div>
       </div>
-
-      {/* ── Export CSV footer ── */}
-      {onExport && (
-        <div style={{
-          borderTop:      `1px solid ${dark ? "#21262d" : th.border}`,
-          padding:        "8px 14px",
-          display:        "flex",
-          justifyContent: "flex-end",
-        }}>
-          <div
-            onClick={onExport}
-            style={{
-              display:    "inline-flex",
-              alignItems: "center",
-              gap:        5,
-              padding:    "5px 12px",
-              borderRadius: 7,
-              fontSize:   10,
-              fontWeight: 700,
-              cursor:     "pointer",
-              background: dark ? `${IND_GREEN}18` : `${IND_GREEN}10`,
-              border:     `1px solid ${IND_GREEN}40`,
-              color:      IND_GREEN,
-            }}
-          >
-            ⬇ Export CSV
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1155,16 +1169,16 @@ function LiveSchemeCard({
         {/* Active settings pills */}
         <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 }}>
           {[
-            scopeFilter === "all"        ? "🌍 All Schemes"
-            : scopeFilter === "national" ? "🏛️ National"
-            : `📍 ${scopeFilter.replace("state:", "")}`,
+            scopeFilter === "all"        ? "All Schemes"
+            : scopeFilter === "national" ? "National"
+            : `${scopeFilter.replace("state:", "")}`,
 
-            priorityFilter === "all"             ? "⭐ All Priority"
-            : priorityFilter === "hasDate"       ? "📅 Has Deadline"
-            : priorityFilter === "neverVerified" ? "🆕 Never Verified"
-            : "🕰️ Stale 30d+",
+            priorityFilter === "all"             ? "All Priority"
+            : priorityFilter === "hasDate"       ? "Has Deadline"
+            : priorityFilter === "neverVerified" ? "Never Verified"
+            : "Stale 30d+",
 
-            tier === 1 ? "⚡ Tier 1 · Ping" : tier === 2 ? "🤖 Tier 2 · AI" : "🔬 Tier 1+2",
+            tier === 1 ? "Tier 1 · Ping" : tier === 2 ? "Tier 2 · AI" : "Tier 1+2",
           ].map(label => (
             <span key={label} style={{
               fontSize:      8,
@@ -1246,7 +1260,7 @@ function LiveSchemeCard({
                 color:         dark ? "#5b7fa6" : `${NAVY}80`,
                 letterSpacing: 0.5,
               }}>
-                ⏱ {fmtDuration(elapsed)}
+                {fmtDuration(elapsed)}
               </span>
             )}
             {speed > 0 && (
@@ -1305,6 +1319,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [tier,           setTier]           = useState(1);      // 1 | 2 | "both"
 
   // ── DB metadata ───────────────────────────────────────────────────────────
+  const dbStats           = useMemo(() => getDBStats(), []);
   const [availableStates,  setAvailableStates]  = useState([]);
   const [previewCount,     setPreviewCount]     = useState(0);
   const [checkpoint,       setCheckpoint]       = useState(null);
@@ -1388,6 +1403,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       setRunDone(false);
       setWasAborted(false);
       setProgress(null);
+      setCurrentScheme(null);   // prevent stale scheme name flash on new run
       await clearCheckpoint();
     }
 
@@ -1441,6 +1457,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const handleStop = useCallback(async () => {
     abortRef.current?.abort();
     await clearCheckpoint();
+    setCheckpoint(null);   // also clear React state so Resume banner never reappears
   }, []);
 
   // ── RESET to config screen ────────────────────────────────────────────────
@@ -1517,7 +1534,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div style={{ fontSize: 15, fontWeight: 800, color: th.text }}>
-            🔍 Scheme URL Verifier
+            Scheme URL Verifier
           </div>
           <div style={{ fontSize: 11, color: th.textSub, marginTop: 3 }}>
             Ping apply URLs · Detect dead links · Extract deadlines via AI
@@ -1532,10 +1549,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             lineHeight: 1.6,
           }}>
             <span style={{ fontWeight: 800, color: NAVY, fontSize: 13 }}>
-              {getDBStats().verifiable}
+              {dbStats.verifiable}
             </span>
             {" "}verifiable<br />
-            <span style={{ fontSize: 9 }}>of {getDBStats().total} total</span>
+            <span style={{ fontSize: 9 }}>of {dbStats.total} total</span>
           </div>
         )}
       </div>
@@ -1551,7 +1568,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           gap:          10,
           alignItems:   "center",
         }}>
-          <div style={{ fontSize: 20, flexShrink: 0 }}>⏸️</div>
+          <div style={{
+            width: 10, height: 10, borderRadius: "50%",
+            background: SAFFRON, flexShrink: 0,
+          }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: th.text }}>
               Previous run paused
@@ -1565,7 +1585,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           </div>
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
             <div
-              onClick={() => handleStart(checkpoint.completedIndex)}
+              {...a11yClickable(() => handleStart(checkpoint.completedIndex))}
               style={{
                 padding:      "6px 12px",
                 borderRadius: 8,
@@ -1579,7 +1599,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               Resume
             </div>
             <div
-              onClick={async () => { await clearCheckpoint(); setCheckpoint(null); }}
+              {...a11yClickable(async () => { await clearCheckpoint(); setCheckpoint(null); })}
               style={{
                 padding:      "6px 12px",
                 borderRadius: 8,
@@ -1598,7 +1618,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
       {/* ══ DB COVERAGE CARD — idle only ═════════════════════════════════════ */}
       {!running && results.length === 0 && (
-        <DBCoverageCard dark={dark} />
+        <DBCoverageCard stats={dbStats} dark={dark} />
       )}
 
       {/* ══ CONFIG PANEL — hidden once run has results ════════════════════════ */}
@@ -1613,7 +1633,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           gap:           10,
         }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
-            ⚙️ Verification Settings
+            Verification Settings
           </div>
 
           {/* ── Scope: pill button group (cleaner than native select for 3 options) ── */}
@@ -1623,15 +1643,18 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             </div>
             <div style={{ display: "flex", gap: 6 }}>
               {[
-                ["all",      "🌍 All"],
-                ["national", "🏛️ National"],
-                ["state",    "📍 By State"],
+                ["all",      "All"],
+                ["national", "National"],
+                ["state",    "By State"],
               ].map(([val, label]) => {
                 const active = scopeMode === val;
                 return (
                   <div
                     key={val}
-                    onClick={() => { setScopeMode(val); setSelectedState(""); }}
+                    {...a11yClickable(() => { setScopeMode(val); setSelectedState(""); }, {
+                      pressed: active,
+                      label: `Scope: ${label}`,
+                    })}
                     style={{
                       flex:       1,
                       padding:    "7px 6px",
@@ -1679,10 +1702,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               onChange={e => setPriorityFilter(e.target.value)}
               style={{ ...selectSt, flex: "none", width: "100%" }}
             >
-              <option value="all">⭐ All Priority</option>
-              <option value="hasDate">📅 Has Deadline</option>
-              <option value="neverVerified">🆕 Never Verified</option>
-              <option value="stale">🕰️ Stale (30d+)</option>
+              <option value="all">All Priority</option>
+              <option value="hasDate">Has Deadline</option>
+              <option value="neverVerified">Never Verified</option>
+              <option value="stale">Stale (30d+)</option>
             </select>
           </div>
 
@@ -1701,7 +1724,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 return (
                   <div
                     key={val}
-                    onClick={() => setTier(val)}
+                    {...a11yClickable(() => setTier(val), {
+                      pressed: active,
+                      label: `Check mode: ${label} — ${sub}`,
+                    })}
                     style={{
                       flex:       1,
                       padding:    "8px 10px",
@@ -1758,14 +1784,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               color:        th.textMid,
               lineHeight:   1.5,
             }}>
-              ⚠️ Tier 2 calls <strong style={{ color: th.text }}>/api/verify-scheme</strong> for
+              Tier 2 calls <strong style={{ color: th.text }}>/api/verify-scheme</strong> for
               each priority scheme — uses Groq credits. Tier 1 is free and much faster.
             </div>
           )}
 
           {/* Start button */}
           <div
-            onClick={canStart ? () => handleStart(0) : undefined}
+            {...a11yClickable(() => handleStart(0), { disabled: !canStart })}
             style={{
               padding:      "13px",
               borderRadius: 12,
@@ -1783,7 +1809,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               userSelect: "none",
             }}
           >
-            🚀 Start Verification
+            Start Verification
             {canStart && (
               <span style={{ fontWeight: 500, opacity: 0.85, marginLeft: 6 }}>
                 · {previewCount} scheme{previewCount !== 1 ? "s" : ""}
@@ -1814,7 +1840,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           {/* Pause + Stop buttons */}
           <div style={{ display: "flex", gap: 8 }}>
             <div
-              onClick={handlePause}
+              {...a11yClickable(handlePause)}
               style={{
                 flex:           1,
                 padding:        "10px",
@@ -1832,10 +1858,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 gap:            6,
               }}
             >
-              ⏸ Pause & Save
+              Pause & Save
             </div>
             <div
-              onClick={handleStop}
+              {...a11yClickable(handleStop)}
               style={{
                 flex:           1,
                 padding:        "10px",
@@ -1853,17 +1879,17 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 gap:            6,
               }}
             >
-              ⏹ Stop & Discard
+              Stop & Discard
             </div>
           </div>
 
           {/* Live mini stat cards */}
           {summary && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <MiniCard icon="✅" label="Active"   value={summary.active}     color={IND_GREEN} dark={dark} />
-              <MiniCard icon="❌" label="Dead"     value={summary.dead}       color={RED}       dark={dark} />
-              <MiniCard icon="🟡" label="No Resp." value={summary.noResponse} color={AMBER}     dark={dark} />
-              <MiniCard icon="🐛" label="Errors"   value={summary.errors}     color={VIOLET}    dark={dark} />
+              <MiniCard label="Active"   value={summary.active}     color={IND_GREEN} dark={dark} />
+              <MiniCard label="Dead"     value={summary.dead}       color={RED}       dark={dark} />
+              <MiniCard label="No Resp." value={summary.noResponse} color={AMBER}     dark={dark} />
+              <MiniCard label="Errors"   value={summary.errors}     color={VIOLET}    dark={dark} />
             </div>
           )}
         </div>
@@ -1883,7 +1909,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           gap:          10,
           animation:    "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
         }}>
-          <span style={{ fontSize: 18 }}>{wasAborted ? "🛑" : "✅"}</span>
+          <div style={{
+            width: 10, height: 10, borderRadius: "50%",
+            background: wasAborted ? RED : IND_GREEN, flexShrink: 0,
+          }} />
           <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: th.text }}>
             {wasAborted ? "Run stopped" : "Run complete"}
             <span style={{ fontWeight: 500, color: th.textMid, marginLeft: 6 }}>
@@ -1898,7 +1927,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
             {/* Export CSV */}
             <div
-              onClick={handleExport}
+              {...a11yClickable(handleExport)}
               style={{
                 padding:      "5px 10px",
                 borderRadius: 8,
@@ -1911,11 +1940,11 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 flexShrink:   0,
               }}
             >
-              ⬇ CSV
+              Export CSV
             </div>
             {/* New Run */}
             <div
-              onClick={handleReset}
+              {...a11yClickable(handleReset)}
               style={{
                 padding:      "5px 12px",
                 borderRadius: 8,
@@ -1927,7 +1956,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 flexShrink:   0,
               }}
             >
-              ↺ New Run
+              New Run
             </div>
           </div>
         </div>
@@ -1942,7 +1971,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           tier={tier}
           wasAborted={wasAborted}
           dark={dark}
-          onExport={results.length > 0 ? handleExport : null}
         />
       )}
 
@@ -1997,14 +2025,17 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             {/* Status filter pills */}
             {[
               ["all",        "All",         th.textMid, th.border],
-              ["active",     "✅ Active",    IND_GREEN,  `${IND_GREEN}40`],
-              ["dead",       "❌ Dead",      RED,        `${RED}40`],
-              ["noResponse", "🟡 No Resp.",  AMBER,      `${AMBER}40`],
-              ["error",      "🐛 Errors",    VIOLET,     `${VIOLET}40`],
+              ["active",     "Active",    IND_GREEN,  `${IND_GREEN}40`],
+              ["dead",       "Dead",      RED,        `${RED}40`],
+              ["noResponse", "No Resp.",  AMBER,      `${AMBER}40`],
+              ["error",      "Errors",    VIOLET,     `${VIOLET}40`],
             ].map(([key, label, color, bg]) => (
               <div
                 key={key}
-                onClick={() => { setResultFilter(key); setPage(1); }}
+                {...a11yClickable(() => { setResultFilter(key); setPage(1); }, {
+                  pressed: resultFilter === key,
+                  label: `Filter results: ${label}`,
+                })}
                 style={{
                   padding:      "3px 9px",
                   borderRadius: 10,
@@ -2054,7 +2085,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             }}>
               {/* Prev */}
               <div
-                onClick={() => page > 1 && setPage(p => p - 1)}
+                {...a11yClickable(() => setPage(p => p - 1), {
+                  disabled: page <= 1,
+                  label: "Previous page",
+                })}
                 style={{
                   padding:      "5px 10px",
                   borderRadius: 7,
@@ -2072,14 +2106,23 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               {/* Numbered page buttons */}
               {pageRange[0] > 1 && (
                 <>
-                  <div onClick={() => setPage(1)} style={pageBtn(1 === page, th)}>1</div>
+                  <div
+                    {...a11yClickable(() => setPage(1), { disabled: 1 === page, label: "Page 1" })}
+                    style={pageBtn(1 === page, th)}
+                  >
+                    1
+                  </div>
                   {pageRange[0] > 2 && (
                     <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
                   )}
                 </>
               )}
               {pageRange.map(p => (
-                <div key={p} onClick={() => setPage(p)} style={pageBtn(p === page, th, NAVY)}>
+                <div
+                  key={p}
+                  {...a11yClickable(() => setPage(p), { disabled: p === page, label: `Page ${p}` })}
+                  style={pageBtn(p === page, th, NAVY)}
+                >
                   {p}
                 </div>
               ))}
@@ -2088,7 +2131,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   {pageRange[pageRange.length - 1] < totalPages - 1 && (
                     <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
                   )}
-                  <div onClick={() => setPage(totalPages)} style={pageBtn(totalPages === page, th)}>
+                  <div
+                    {...a11yClickable(() => setPage(totalPages), { disabled: totalPages === page, label: `Page ${totalPages}` })}
+                    style={pageBtn(totalPages === page, th)}
+                  >
                     {totalPages}
                   </div>
                 </>
@@ -2096,7 +2142,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
               {/* Next */}
               <div
-                onClick={() => page < totalPages && setPage(p => p + 1)}
+                {...a11yClickable(() => setPage(p => p + 1), {
+                  disabled: page >= totalPages,
+                  label: "Next page",
+                })}
                 style={{
                   padding:      "5px 10px",
                   borderRadius: 7,
