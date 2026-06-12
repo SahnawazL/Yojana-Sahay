@@ -980,8 +980,10 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                   border:`1px solid ${isExpired?"#FECACA":isUrgent?"#FED7AA":"#BBF7D0"}`,
                 }}>
                   {isExpired
-                    ?`⌛ ${isHindi?"समाप्त":"Expired"} ${fmtDate}`
-                    :`📅 ${isHindi?"अंतिम तिथि":"Deadline"}: ${fmtDate}`}
+                    ?`⌛ ${isHindi?"आवेदन बंद":"Apply Closed"}: ${fmtDate}`
+                    :isUrgent
+                      ?`⚠️ ${daysLeft}${isHindi?"दिन बचे":" days left"} · ${fmtDate}`
+                      :`📅 ${isHindi?"अंतिम तिथि":"Last Date"}: ${fmtDate}`}
                 </span>
               );
             })()}
@@ -1082,6 +1084,26 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
 
             {/* Apply CTA */}
             <div style={{padding:"0 16px 16px",display:"flex",flexDirection:"column",gap:8}}>
+
+              {/* ── Expired info strip ── */}
+              {scheme.lastDate&&new Date(scheme.lastDate).getTime()<Date.now()&&(
+                <div style={{
+                  background:dark?"rgba(251,191,36,0.1)":"#FFFBEB",
+                  border:"1px solid #FDE68A",borderRadius:10,
+                  padding:"10px 12px",display:"flex",gap:8,alignItems:"flex-start",
+                }}>
+                  <span style={{fontSize:14,flexShrink:0}}>💡</span>
+                  <div>
+                    <div style={{fontSize:11,fontWeight:700,color:dark?"#FCD34D":"#92400E",marginBottom:2}}>
+                      {isHindi?"आवेदन की अंतिम तिथि बीत गई है":"Application deadline has passed"}
+                    </div>
+                    <div style={{fontSize:10,color:dark?"#FDE68A":"#78350F",lineHeight:1.5}}>
+                      {isHindi?"यह योजना अगले चक्र में फिर खुल सकती है। नवीनतम जानकारी के लिए ऑनलाइन खोजें।":"This scheme may reopen in the next cycle. Search online for the latest updates."}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Primary action */}
               <div
                 onClick={()=>{
@@ -1099,7 +1121,11 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                   boxShadow:applyUrl?`0 4px 16px ${scheme.color}40`:"0 4px 16px rgba(37,99,235,0.35)",
                 }}>
                 <div>
-                  <div style={{fontSize:12,fontWeight:800,color:"#fff",fontFamily:bf}}>{t.applyLabel}</div>
+                  <div style={{fontSize:12,fontWeight:800,color:"#fff",fontFamily:bf}}>
+                    {scheme.lastDate&&new Date(scheme.lastDate).getTime()<Date.now()
+                      ?(isHindi?"आधिकारिक वेबसाइट देखें":"Check Official Website")
+                      :t.applyLabel}
+                  </div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:3}}>
                     {applyUrl?"🌐 "+scheme.apply[lang]:"🔎 Find on Google"}
                   </div>
@@ -1116,16 +1142,41 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
 
               {/* Offline helper row */}
               {!applyUrl&&(
-                <div style={{
-                  display:"flex",alignItems:"center",gap:8,
-                  background:dark?"rgba(255,255,255,0.04)":"#f8f9fa",
-                  border:`1px solid ${th.border}`,borderRadius:11,padding:"9px 12px",
-                }}>
-                  <span style={{fontSize:14,flexShrink:0}}>🏢</span>
-                  <span style={{fontSize:11,color:th.textMid,fontFamily:bf,lineHeight:1.45}}>
-                    {scheme.apply[lang]} — {lang==="hi"?"नजदीकी केंद्र में जाएं या ऑनलाइन खोजें।":"Visit nearest centre or search online for exact process."}
-                  </span>
-                </div>
+                <>
+                  <div style={{
+                    display:"flex",alignItems:"center",gap:8,
+                    background:dark?"rgba(255,255,255,0.04)":"#f8f9fa",
+                    border:`1px solid ${th.border}`,borderRadius:11,padding:"9px 12px",
+                  }}>
+                    <span style={{fontSize:14,flexShrink:0}}>🏢</span>
+                    <span style={{fontSize:11,color:th.textMid,fontFamily:bf,lineHeight:1.45}}>
+                      {scheme.apply[lang]} — {isHindi?"नजदीकी केंद्र में जाएं।":"Visit nearest centre."}
+                    </span>
+                  </div>
+                  {/* Always-visible Google search for offline/unverifiable schemes */}
+                  <div
+                    onClick={e=>{e.stopPropagation();haptic(30);googleSearchScheme(scheme.name.en);}}
+                    style={{
+                      display:"flex",alignItems:"center",justifyContent:"center",gap:6,
+                      background:"#EFF6FF",border:"1px solid #93C5FD",
+                      borderRadius:10,padding:"10px 14px",cursor:"pointer",
+                    }}>
+                    <span style={{fontSize:13}}>🔎</span>
+                    <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8"}}>
+                      {isHindi?"गूगल पर नवीनतम जानकारी खोजें →":"Search Google for latest info →"}
+                    </span>
+                  </div>
+                  {/* Honest status note */}
+                  <div style={{
+                    fontSize:10,color:dark?"#9CA3AF":"#6B7280",textAlign:"center",
+                    background:dark?"rgba(255,255,255,0.03)":"#F9FAFB",
+                    borderRadius:8,padding:"7px 10px",
+                    border:`1px solid ${dark?"rgba(255,255,255,0.07)":"#E5E7EB"}`,
+                    lineHeight:1.5,
+                  }}>
+                    ℹ️ {isHindi?"यह योजना ऑफलाइन है — स्वत: सत्यापन संभव नहीं। सटीक जानकारी के लिए ऑनलाइन खोजें।":"This scheme is offline — auto-verification not available. Search online for the most accurate & current info."}
+                  </div>
+                </>
               )}
             </div>
           </div>
