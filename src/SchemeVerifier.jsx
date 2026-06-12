@@ -475,6 +475,35 @@ function getFixSuggestion(result) {
 }
 
 
+// ─── FILTER PILL ──────────────────────────────────────────────────────────────
+// Separate component so useCountUp hook can animate the count smoothly.
+function FilterPill({ label, count, color, bg, active, th, onClick }) {
+  const animCount = useCountUp(count ?? 0, 400);
+  return (
+    <div
+      {...a11yClickable(onClick, {
+        pressed: active,
+        label:   `Filter results: ${label}`,
+      })}
+      style={{
+        padding:      "3px 9px",
+        borderRadius: 10,
+        fontSize:     9,
+        fontWeight:   700,
+        color,
+        background:   active ? bg : "transparent",
+        border:       `1.5px solid ${active ? color : th.border}`,
+        cursor:       "pointer",
+        transition:   "all 0.15s",
+        whiteSpace:   "nowrap",
+      }}
+    >
+      {label}{animCount > 0 ? ` (${animCount})` : ""}
+    </div>
+  );
+}
+
+
 // ─── RESULT ROW ───────────────────────────────────────────────────────────────
 function ResultRow({ result, dark, expandAll = false }) {
   const th     = THEME[dark ? "dark" : "light"];
@@ -569,6 +598,82 @@ function ResultRow({ result, dark, expandAll = false }) {
           }}>
             {scheme.apply?.en || "—"}
           </div>
+
+          {/* ── Fix card — always visible, single source of truth ── */}
+          {(() => {
+            const fix = getFixSuggestion(result);
+            if (!fix) return null;
+            const icon     = fix.color === RED ? "✕" : fix.color === AMBER ? "△" : "◆";
+            const httpCode = result.httpStatus > 0 ? result.httpStatus : null;
+            const errCode  = !httpCode && result.error
+              ? result.error.replace(/^ai:\s*/i, "").slice(0, 28).toUpperCase()
+              : null;
+            return (
+              <div style={{
+                marginTop:    6,
+                borderRadius: 7,
+                border:       `1px solid ${fix.color}22`,
+                borderLeft:   `3px solid ${fix.color}`,
+                background:   `linear-gradient(120deg, ${fix.color}08 0%, transparent 80%)`,
+                overflow:     "hidden",
+              }}>
+                {/* ── Header: icon · label · code badge ── */}
+                <div style={{
+                  display:      "flex",
+                  alignItems:   "center",
+                  gap:          6,
+                  padding:      "5px 9px 4px",
+                  borderBottom: `1px solid ${fix.color}14`,
+                }}>
+                  <span style={{
+                    fontSize:   8,
+                    fontWeight: 900,
+                    color:      fix.color,
+                    flexShrink: 0,
+                    lineHeight: 1,
+                  }}>
+                    {icon}
+                  </span>
+                  <span style={{
+                    flex:          1,
+                    fontSize:      7.5,
+                    fontWeight:    800,
+                    letterSpacing: 0.9,
+                    color:         fix.color,
+                    textTransform: "uppercase",
+                  }}>
+                    {fix.label}
+                  </span>
+                  {(httpCode || errCode) && (
+                    <span style={{
+                      fontFamily:    "monospace",
+                      fontSize:      8,
+                      fontWeight:    700,
+                      letterSpacing: 0.4,
+                      color:         th.textMid,
+                      background:    th.card2,
+                      border:        `1px solid ${th.border}`,
+                      padding:       "1px 6px",
+                      borderRadius:  4,
+                      flexShrink:    0,
+                    }}>
+                      {httpCode ?? errCode}
+                    </span>
+                  )}
+                </div>
+                {/* ── Detail body ── */}
+                <div style={{
+                  padding:    "5px 9px 6px",
+                  fontSize:   8.5,
+                  color:      th.textMid,
+                  lineHeight: 1.6,
+                  wordBreak:  "break-word",
+                }}>
+                  {fix.detail}
+                </div>
+              </div>
+            );
+          })()}
 
           {scheme.lastDate && (
             <div style={{
@@ -677,51 +782,6 @@ function ResultRow({ result, dark, expandAll = false }) {
             </div>
           )}
 
-          {/* ── Fix suggestion ── */}
-          {(() => {
-            const fix = getFixSuggestion(result);
-            if (!fix) return null;
-            return (
-              <div style={{
-                marginTop:    6,
-                padding:      "8px 10px",
-                borderRadius: 7,
-                background:   `${fix.color}10`,
-                border:       `1px solid ${fix.color}35`,
-                display:      "flex",
-                gap:          8,
-                alignItems:   "flex-start",
-              }}>
-                <span style={{ fontSize: 11, lineHeight: 1.2, flexShrink: 0, marginTop: 1 }}>
-                  {fix.color === AMBER ? "⚠️" : fix.color === VIOLET ? "🔧" : "🔴"}
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{
-                    display:       "inline-block",
-                    fontSize:      8,
-                    fontWeight:    800,
-                    letterSpacing: 0.5,
-                    padding:       "1px 6px",
-                    borderRadius:  4,
-                    marginBottom:  3,
-                    background:    `${fix.color}22`,
-                    color:         fix.color,
-                    border:        `1px solid ${fix.color}40`,
-                  }}>
-                    {fix.label.toUpperCase()}
-                  </span>
-                  <div style={{
-                    fontSize:  9,
-                    color:     th.textMid,
-                    lineHeight: 1.55,
-                    wordBreak: "break-word",
-                  }}>
-                    {fix.detail}
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
         </div>
       )}
     </div>
@@ -2296,7 +2356,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               </div>
             )}
 
-            {/* Fix 1: Status filter pills with counts */}
+            {/* Fix 1 + animated counts: Status filter pills */}
             {[
               ["all",        "All",        filterCounts.all,        th.textMid, th.border],
               ["active",     "Active",     filterCounts.active,     IND_GREEN,  `${IND_GREEN}40`],
@@ -2304,27 +2364,16 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               ["noResponse", "No Resp.",   filterCounts.noResponse, AMBER,      `${AMBER}40`],
               ["error",      "Errors",     filterCounts.error,      VIOLET,     `${VIOLET}40`],
             ].map(([key, label, count, color, bg]) => (
-              <div
+              <FilterPill
                 key={key}
-                {...a11yClickable(() => { setResultFilter(key); setExpandAll(false); setPage(1); }, {
-                  pressed: resultFilter === key,
-                  label: `Filter results: ${label}`,
-                })}
-                style={{
-                  padding:      "3px 9px",
-                  borderRadius: 10,
-                  fontSize:     9,
-                  fontWeight:   700,
-                  color,
-                  background:   resultFilter === key ? bg : "transparent",
-                  border:       `1.5px solid ${resultFilter === key ? color : th.border}`,
-                  cursor:       "pointer",
-                  transition:   "all 0.15s",
-                  whiteSpace:   "nowrap",
-                }}
-              >
-                {label}{count > 0 ? ` (${count})` : ""}
-              </div>
+                label={label}
+                count={count}
+                color={color}
+                bg={bg}
+                active={resultFilter === key}
+                th={th}
+                onClick={() => { setResultFilter(key); setExpandAll(false); setPage(1); }}
+              />
             ))}
           </div>
 
