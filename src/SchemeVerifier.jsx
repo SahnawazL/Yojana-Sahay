@@ -335,6 +335,100 @@ function HttpBadge({ status }) {
 }
 
 
+// ─── FIX SUGGESTION RESOLVER ─────────────────────────────────────────────────
+// Returns { label, detail, color } for Dead / Error results, null otherwise.
+// Logic mirrors exactly what ping-url.js and verifySchemes.js produce:
+//   httpStatus 0 + error "timeout"  → site too slow / down
+//   httpStatus 0 + other error      → DNS / network failure
+//   httpStatus 403 / 401            → bot-blocking (might be live)
+//   httpStatus 404                  → URL is broken / moved
+//   httpStatus 5xx                  → server error (temporary)
+//   error "invalid URL"             → schemesData.js has plain-text, not a URL
+//   error "ping-url API error N"    → Vercel function itself failed
+//   error starts with "AI:"         → Tier 2 extraction failed
+
+function getFixSuggestion(result) {
+  const { alive, httpStatus, error } = result;
+  const err = (error ?? "").toLowerCase();
+
+  // ── Dead link (alive === false) ──────────────────────────────────────────
+  if (alive === false) {
+    if (httpStatus === 404)
+      return {
+        label:  "Update URL",
+        detail: "Page not found (404) — the URL has moved or the scheme page was removed. Find the new link on the official portal and update schemesData.js.",
+        color:  RED,
+      };
+    if (httpStatus === 403 || httpStatus === 401)
+      return {
+        label:  "Manual Check",
+        detail: `Server returned ${httpStatus} — it may be blocking automated requests. Open the URL in a browser to confirm it's actually live before updating.`,
+        color:  AMBER,
+      };
+    if (httpStatus >= 500)
+      return {
+        label:  "Retry Later",
+        detail: `Server error (${httpStatus}) — the site is likely temporarily down. Wait 24h and re-run the verifier before making any changes.`,
+        color:  AMBER,
+      };
+    if (httpStatus === 0 && err.includes("timeout"))
+      return {
+        label:  "Retry Later",
+        detail: "Request timed out (10s) — the server is very slow or under load. Retry the verifier. If it times out repeatedly, manually check the URL.",
+        color:  AMBER,
+      };
+    if (httpStatus === 0 && err.includes("ping-url api error"))
+      return {
+        label:  "Check Vercel Logs",
+        detail: "The /api/ping-url serverless function itself returned an error. Go to Vercel → Functions → ping-url and inspect the logs for this deployment.",
+        color:  VIOLET,
+      };
+    if (httpStatus === 0 && err.length > 0)
+      return {
+        label:  "Check Domain",
+        detail: "URL is unreachable — the domain may have been deactivated or renamed. Search the scheme on the official ministry site and update the URL in schemesData.js.",
+        color:  RED,
+      };
+    // Generic dead fallback
+    return {
+      label:  "Update URL",
+      detail: "Dead link detected — find the updated apply URL on the official government portal and update schemesData.js.",
+      color:  RED,
+    };
+  }
+
+  // ── Error (alive === null, error string present) ──────────────────────────
+  if (alive === null && error) {
+    if (err.includes("invalid url"))
+      return {
+        label:  "Fix URL Format",
+        detail: "The apply.en value in schemesData.js is not a valid URL — it likely contains spaces or is a plain-text description (e.g. 'Nearest CSC center'). Replace it with the actual scheme portal URL.",
+        color:  VIOLET,
+      };
+    if (err.includes("ping-url api error"))
+      return {
+        label:  "Check Vercel Logs",
+        detail: "The /api/ping-url serverless function returned an error. Go to Vercel → Functions → ping-url and inspect the logs for this deployment.",
+        color:  VIOLET,
+      };
+    if (err.includes("endpoint not yet built") || err.startsWith("ai:"))
+      return {
+        label:  "Tier 2 Config",
+        detail: "AI date extraction failed — confirm /api/verify-scheme is deployed and that GROQ_API_KEY is set in Vercel → Settings → Environment Variables.",
+        color:  VIOLET,
+      };
+    // Generic error fallback
+    return {
+      label:  "Inspect & Retry",
+      detail: `Verification failed — error: "${(error ?? "").slice(0, 100)}". Check the URL manually and retry the verifier.`,
+      color:  VIOLET,
+    };
+  }
+
+  return null; // Active / No Response → no fix needed
+}
+
+
 // ─── RESULT ROW ───────────────────────────────────────────────────────────────
 function ResultRow({ result, dark }) {
   const th     = THEME[dark ? "dark" : "light"];
@@ -533,6 +627,52 @@ function ResultRow({ result, dark }) {
               </button>
             </div>
           )}
+
+          {/* ── Fix suggestion ── */}
+          {(() => {
+            const fix = getFixSuggestion(result);
+            if (!fix) return null;
+            return (
+              <div style={{
+                marginTop:    6,
+                padding:      "8px 10px",
+                borderRadius: 7,
+                background:   `${fix.color}10`,
+                border:       `1px solid ${fix.color}35`,
+                display:      "flex",
+                gap:          8,
+                alignItems:   "flex-start",
+              }}>
+                <span style={{ fontSize: 11, lineHeight: 1.2, flexShrink: 0, marginTop: 1 }}>
+                  {fix.color === AMBER ? "⚠️" : fix.color === VIOLET ? "🔧" : "🔴"}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{
+                    display:       "inline-block",
+                    fontSize:      8,
+                    fontWeight:    800,
+                    letterSpacing: 0.5,
+                    padding:       "1px 6px",
+                    borderRadius:  4,
+                    marginBottom:  3,
+                    background:    `${fix.color}22`,
+                    color:         fix.color,
+                    border:        `1px solid ${fix.color}40`,
+                  }}>
+                    {fix.label.toUpperCase()}
+                  </span>
+                  <div style={{
+                    fontSize:  9,
+                    color:     th.textMid,
+                    lineHeight: 1.55,
+                    wordBreak: "break-word",
+                  }}>
+                    {fix.detail}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>
