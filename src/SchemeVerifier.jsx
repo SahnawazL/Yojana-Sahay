@@ -108,7 +108,7 @@ function fmtDuration(ms) {
   return r > 0 ? `${m}m ${r}s` : `${m}m`;
 }
 
-/** Fuzzy scheme name / ID search */
+/** Fuzzy scheme name / ID / URL search */
 function matchesSearch(result, query) {
   if (!query) return true;
   const q  = query.toLowerCase().trim();
@@ -116,7 +116,8 @@ function matchesSearch(result, query) {
   return (
     s.name?.en?.toLowerCase().includes(q) ||
     s.name?.hi?.toLowerCase().includes(q) ||
-    s.id?.toLowerCase().includes(q)
+    s.id?.toLowerCase().includes(q)        ||
+    s.apply?.en?.toLowerCase().includes(q)
   );
 }
 
@@ -209,7 +210,52 @@ function exportResultsCSV(results) {
 }
 
 
-// ─── MINI STAT CARD ───────────────────────────────────────────────────────────
+// ─── INJECT KEYFRAMES ONCE ───────────────────────────────────────────────────
+// Called once at module import — React doesn't deduplicate <style> tags injected
+// inside a component's render, so we do it here instead.
+(function injectSVKeyframes() {
+  const id = "sv-keyframes";
+  if (typeof document === "undefined" || document.getElementById(id)) return;
+  const s = document.createElement("style");
+  s.id = id;
+  s.textContent = `
+    @keyframes sv-pulse {
+      0%,100% { opacity: 1; box-shadow: 0 0 0 3px rgba(19,136,8,0.3); }
+      50%      { opacity: 0.6; box-shadow: 0 0 0 6px rgba(19,136,8,0.1); }
+    }
+    @keyframes sv-scan-line {
+      0%   { top: -3px; opacity: 0; }
+      8%   { opacity: 1; }
+      92%  { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+    @keyframes sv-card-glow {
+      0%,100% { box-shadow: 0 0 0 0 transparent; }
+      50%     { box-shadow: 0 0 22px 2px rgba(0,53,128,0.18); }
+    }
+    @keyframes sv-scheme-fly-in {
+      0%   { opacity: 0; transform: translateX(18px) scale(0.97); filter: blur(3px); }
+      100% { opacity: 1; transform: translateX(0)    scale(1);    filter: blur(0);   }
+    }
+    @keyframes sv-result-fly-in {
+      0%   { opacity: 0; transform: translateY(-14px) scale(0.97); }
+      65%  { transform: translateY(2px)  scale(1.005); }
+      100% { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+    @keyframes sv-done-pop {
+      0%   { opacity: 0; transform: scale(0.93) translateY(-6px); }
+      60%  { transform: scale(1.025) translateY(0); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes sv-progress-shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position:  200% center; }
+    }
+  `;
+  document.head.appendChild(s);
+}());
+
+
 function MiniCard({ label, value, color, dark }) {
   const th      = THEME[dark ? "dark" : "light"];
   const display = useCountUp(value ?? 0);
@@ -430,11 +476,14 @@ function getFixSuggestion(result) {
 
 
 // ─── RESULT ROW ───────────────────────────────────────────────────────────────
-function ResultRow({ result, dark }) {
+function ResultRow({ result, dark, expandAll = false }) {
   const th     = THEME[dark ? "dark" : "light"];
   const scheme = result.scheme;
-  const [expanded, setExpanded] = useState(false);
-  const [copied,   setCopied]   = useState(false);
+  const [localExpanded, setLocalExpanded] = useState(false);
+  const [copied,        setCopied]        = useState(false);
+
+  // Fix 7: expandAll overrides local state when active
+  const expanded = expandAll || localExpanded;
 
   const now = Date.now();
   const ld  = scheme.lastDate ? new Date(scheme.lastDate).getTime() : null;
@@ -461,7 +510,7 @@ function ResultRow({ result, dark }) {
 
   return (
     <div
-      {...a11yClickable(() => setExpanded(e => !e), {
+      {...a11yClickable(() => setLocalExpanded(e => !e), {
         pressed: expanded,
         label: `${scheme.name?.en || scheme.id} — ${expanded ? "collapse" : "expand"} details`,
       })}
@@ -1448,6 +1497,24 @@ function LiveSchemeCard({
 }
 
 
+// ─── PAGE BUTTON STYLE HELPER ─────────────────────────────────────────────────
+function pageBtn(active, th, activeColor = th?.text) {
+  return {
+    minWidth:     28,
+    padding:      "5px 7px",
+    borderRadius: 7,
+    textAlign:    "center",
+    fontSize:     11,
+    fontWeight:   active ? 800 : 600,
+    cursor:       active ? "default" : "pointer",
+    background:   active ? (activeColor ?? th.text) : th.border,
+    color:        active ? "#fff" : th.textMid,
+    userSelect:   "none",
+    transition:   "background 0.12s",
+  };
+}
+
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function SchemeVerifier({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
@@ -1461,7 +1528,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // ── DB metadata ───────────────────────────────────────────────────────────
   const dbStats           = useMemo(() => getDBStats(), []);
   const [availableStates,  setAvailableStates]  = useState([]);
-  const [previewCount,     setPreviewCount]     = useState(0);
   const [checkpoint,       setCheckpoint]       = useState(null);
   const [checkpointLoaded, setCheckpointLoaded] = useState(false);
 
@@ -1481,10 +1547,15 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // ── Results view ──────────────────────────────────────────────────────────
   const [resultFilter, setResultFilter] = useState("all");
   const [searchQuery,  setSearchQuery]  = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page,         setPage]         = useState(1);
+  const [expandAll,    setExpandAll]    = useState(false);  // Fix 7: expand all rows
+  const [isPendingStop, setIsPendingStop] = useState(false); // Fix 3: confirm-before-stop
 
-  const abortRef      = useRef(null);
-  const accResultsRef = useRef([]);  // avoids stale-closure issue in onProgress
+  const abortRef        = useRef(null);
+  const accResultsRef   = useRef([]);  // avoids stale-closure issue in onProgress
+  const endTimeRef      = useRef(null); // Fix 8: accurate final elapsed
+  const lastUpdateRef   = useRef(0);   // Fix 4: throttle onProgress state updates
 
   // ── Computed scope filter string ──────────────────────────────────────────
   const scopeFilter = useMemo(() => {
@@ -1493,6 +1564,12 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     }
     return scopeMode;
   }, [scopeMode, selectedState]);
+
+  // Fix 5: synchronous pure function — no need for useEffect+setState
+  const previewCount = useMemo(
+    () => getVerifiableCount(scopeFilter, priorityFilter),
+    [scopeFilter, priorityFilter]
+  );
 
   // ── Can the Start button be pressed? ─────────────────────────────────────
   const canStart = previewCount > 0 && !(scopeMode === "state" && !selectedState);
@@ -1527,10 +1604,11 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     });
   }, []);
 
-  // ── Update preview count whenever filters change ──────────────────────────
+  // Fix 6: debounce search to avoid re-filtering 400+ results on every keystroke
   useEffect(() => {
-    setPreviewCount(getVerifiableCount(scopeFilter, priorityFilter));
-  }, [scopeFilter, priorityFilter]);
+    const id = setTimeout(() => setDebouncedSearch(searchQuery), 150);
+    return () => clearTimeout(id);
+  }, [searchQuery]);
 
   // ── START / RESUME ────────────────────────────────────────────────────────
   const handleStart = useCallback(async (resumeFrom = 0) => {
@@ -1556,6 +1634,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
     const controller  = new AbortController();
     abortRef.current  = controller;
+    lastUpdateRef.current = 0;  // reset throttle clock
 
     try {
       await runVerification({
@@ -1567,11 +1646,18 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
         onProgress: ({ index, total, scheme, result }) => {
           accResultsRef.current.push(result);
-          const snap = [...accResultsRef.current];
+          // Fix 4: always update the live label + counter (cheap),
+          // but only spread the array and rebuild summary every 500ms or on the final scheme.
+          const now     = Date.now();
+          const isFinal = index === total;
           setProgress({ index, total });
           setCurrentScheme(scheme?.name?.en || scheme?.id || "…");
-          setResults(snap);
-          setSummary(buildSummary(snap));
+          if (isFinal || now - lastUpdateRef.current > 500) {
+            lastUpdateRef.current = now;
+            const snap = [...accResultsRef.current];
+            setResults(snap);
+            setSummary(buildSummary(snap));
+          }
         },
 
         onBatchSaved: (cp) => {
@@ -1582,7 +1668,13 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       console.error("[SchemeVerifier] Unexpected run error:", err);
     }
 
+    // Fix 8: capture exact end time before React state flush so done banner is accurate
+    endTimeRef.current = Date.now();
     setWasAborted(controller.signal.aborted);
+    // Fix 4: ensure the final batch is always flushed even if throttle didn't fire
+    const finalSnap = [...accResultsRef.current];
+    setResults(finalSnap);
+    setSummary(buildSummary(finalSnap));
     setRunning(false);
     setCurrentScheme(null);
     setRunDone(true);
@@ -1593,12 +1685,18 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     abortRef.current?.abort();
   }, []);
 
-  // ── STOP & DISCARD — abort + wipe checkpoint (no resume banner) ───────────
+  // ── STOP & DISCARD — confirm first, then abort + wipe checkpoint ─────────
   const handleStop = useCallback(async () => {
+    if (!isPendingStop) {
+      setIsPendingStop(true);
+      setTimeout(() => setIsPendingStop(false), 3000);
+      return;
+    }
+    setIsPendingStop(false);
     abortRef.current?.abort();
     await clearCheckpoint();
-    setCheckpoint(null);   // also clear React state so Resume banner never reappears
-  }, []);
+    setCheckpoint(null);
+  }, [isPendingStop]);
 
   // ── RESET to config screen ────────────────────────────────────────────────
   const handleReset = useCallback(() => {
@@ -1632,13 +1730,22 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       default: break;
     }
 
-    // Search filter
-    if (searchQuery.trim()) {
-      base = base.filter(r => matchesSearch(r, searchQuery));
+    // Fix 6: use debouncedSearch to avoid re-filtering on every keystroke
+    if (debouncedSearch.trim()) {
+      base = base.filter(r => matchesSearch(r, debouncedSearch));
     }
 
     return base;
-  }, [results, resultFilter, searchQuery]);
+  }, [results, resultFilter, debouncedSearch]);
+
+  // Fix 1: counts per status pill — derived from full results (not filtered slice)
+  const filterCounts = useMemo(() => ({
+    all:        results.length,
+    active:     summary?.active     ?? 0,
+    dead:       summary?.dead       ?? 0,
+    noResponse: summary?.noResponse ?? 0,
+    error:      summary?.errors     ?? 0,
+  }), [results.length, summary]);
 
   const totalPages = Math.ceil(filteredResults.length / PAGE_SIZE);
   const pageSlice  = filteredResults.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -2009,17 +2116,20 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 textAlign:      "center",
                 fontSize:       12,
                 fontWeight:     700,
-                background:     "rgba(220,38,38,0.08)",
-                border:         `1.5px solid ${RED}40`,
+                background:     isPendingStop
+                  ? "rgba(220,38,38,0.18)"
+                  : "rgba(220,38,38,0.08)",
+                border:         `1.5px solid ${isPendingStop ? RED : `${RED}40`}`,
                 color:          RED,
                 cursor:         "pointer",
                 display:        "flex",
                 alignItems:     "center",
                 justifyContent: "center",
                 gap:            6,
+                transition:     "all 0.2s",
               }}
             >
-              Stop & Discard
+              {isPendingStop ? "Confirm? Tap again" : "Stop & Discard"}
             </div>
           </div>
 
@@ -2058,9 +2168,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             <span style={{ fontWeight: 500, color: th.textMid, marginLeft: 6 }}>
               · {results.length} scheme{results.length !== 1 ? "s" : ""} checked
             </span>
-            {elapsed > 0 && (
+            {endTimeRef.current && startTimeRef.current && (
               <span style={{ fontWeight: 400, color: th.textSub, marginLeft: 6, fontSize: 11 }}>
-                in {fmtDuration(elapsed)}
+                in {fmtDuration(endTimeRef.current - startTimeRef.current)}
               </span>
             )}
           </div>
@@ -2136,7 +2246,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             </span>
             <span style={{ fontSize: 10, color: th.textSub }}>
               ({filteredResults.length}
-              {searchQuery && ` of ${results.length}`})
+              {debouncedSearch && ` of ${results.length}`})
             </span>
 
             {/* Search input */}
@@ -2144,7 +2254,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               type="text"
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-              placeholder="Search schemes…"
+              placeholder="Search name, ID, URL…"
               style={{
                 flex:         "1 1 110px",
                 minWidth:     80,
@@ -2162,17 +2272,41 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
             <div style={{ flex: 1 }} />
 
-            {/* Status filter pills */}
+            {/* Fix 7: Expand All toggle — only shown for dead/error filters */}
+            {(resultFilter === "dead" || resultFilter === "error") && filteredResults.length > 0 && (
+              <div
+                {...a11yClickable(() => setExpandAll(v => !v), {
+                  pressed: expandAll,
+                  label:   expandAll ? "Collapse all rows" : "Expand all rows",
+                })}
+                style={{
+                  padding:      "3px 9px",
+                  borderRadius: 10,
+                  fontSize:     9,
+                  fontWeight:   700,
+                  color:        expandAll ? NAVY : th.textMid,
+                  background:   expandAll ? `${NAVY}15` : "transparent",
+                  border:       `1.5px solid ${expandAll ? NAVY : th.border}`,
+                  cursor:       "pointer",
+                  whiteSpace:   "nowrap",
+                  transition:   "all 0.15s",
+                }}
+              >
+                {expandAll ? "Collapse All" : "Expand All"}
+              </div>
+            )}
+
+            {/* Fix 1: Status filter pills with counts */}
             {[
-              ["all",        "All",         th.textMid, th.border],
-              ["active",     "Active",    IND_GREEN,  `${IND_GREEN}40`],
-              ["dead",       "Dead",      RED,        `${RED}40`],
-              ["noResponse", "No Resp.",  AMBER,      `${AMBER}40`],
-              ["error",      "Errors",    VIOLET,     `${VIOLET}40`],
-            ].map(([key, label, color, bg]) => (
+              ["all",        "All",        filterCounts.all,        th.textMid, th.border],
+              ["active",     "Active",     filterCounts.active,     IND_GREEN,  `${IND_GREEN}40`],
+              ["dead",       "Dead",       filterCounts.dead,       RED,        `${RED}40`],
+              ["noResponse", "No Resp.",   filterCounts.noResponse, AMBER,      `${AMBER}40`],
+              ["error",      "Errors",     filterCounts.error,      VIOLET,     `${VIOLET}40`],
+            ].map(([key, label, count, color, bg]) => (
               <div
                 key={key}
-                {...a11yClickable(() => { setResultFilter(key); setPage(1); }, {
+                {...a11yClickable(() => { setResultFilter(key); setExpandAll(false); setPage(1); }, {
                   pressed: resultFilter === key,
                   label: `Filter results: ${label}`,
                 })}
@@ -2189,7 +2323,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   whiteSpace:   "nowrap",
                 }}
               >
-                {label}
+                {label}{count > 0 ? ` (${count})` : ""}
               </div>
             ))}
           </div>
@@ -2207,6 +2341,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   key={`${r.scheme?.id ?? i}-${(page - 1) * PAGE_SIZE + i}`}
                   result={r}
                   dark={dark}
+                  expandAll={expandAll}
                 />
               ))
             )}
@@ -2304,59 +2439,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         </div>
       )}
 
-      {/* All keyframes — scoped inline */}
-      <style>{`
-        @keyframes sv-pulse {
-          0%,100% { opacity: 1; box-shadow: 0 0 0 3px rgba(19,136,8,0.3); }
-          50%      { opacity: 0.6; box-shadow: 0 0 0 6px rgba(19,136,8,0.1); }
-        }
-        @keyframes sv-scan-line {
-          0%   { top: -3px; opacity: 0; }
-          8%   { opacity: 1; }
-          92%  { opacity: 1; }
-          100% { top: 100%; opacity: 0; }
-        }
-        @keyframes sv-card-glow {
-          0%,100% { box-shadow: 0 0 0 0 transparent; }
-          50%     { box-shadow: 0 0 22px 2px rgba(0,53,128,0.18); }
-        }
-        @keyframes sv-scheme-fly-in {
-          0%   { opacity: 0; transform: translateX(18px) scale(0.97); filter: blur(3px); }
-          100% { opacity: 1; transform: translateX(0)    scale(1);    filter: blur(0);   }
-        }
-        @keyframes sv-result-fly-in {
-          0%   { opacity: 0; transform: translateY(-14px) scale(0.97); }
-          65%  { transform: translateY(2px)  scale(1.005); }
-          100% { opacity: 1; transform: translateY(0)    scale(1); }
-        }
-        @keyframes sv-done-pop {
-          0%   { opacity: 0; transform: scale(0.93) translateY(-6px); }
-          60%  { transform: scale(1.025) translateY(0); }
-          100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        @keyframes sv-progress-shimmer {
-          0%   { background-position: -200% center; }
-          100% { background-position:  200% center; }
-        }
-      `}</style>
-
     </div>
   );
-}
-
-// ─── PAGE BUTTON STYLE HELPER ─────────────────────────────────────────────────
-function pageBtn(active, th, activeColor = th?.text) {
-  return {
-    minWidth:     28,
-    padding:      "5px 7px",
-    borderRadius: 7,
-    textAlign:    "center",
-    fontSize:     11,
-    fontWeight:   active ? 800 : 600,
-    cursor:       active ? "default" : "pointer",
-    background:   active ? (activeColor ?? th.text) : th.border,
-    color:        active ? "#fff" : th.textMid,
-    userSelect:   "none",
-    transition:   "background 0.12s",
-  };
 }
