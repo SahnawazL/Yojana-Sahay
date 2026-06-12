@@ -51,6 +51,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import schemesMeta from "./schemes-meta.json";
 
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -98,7 +99,8 @@ function getPriorityScore(scheme) {
 
 export function buildVerificationQueue(
   scopeFilter    = "all",
-  priorityFilter = "all"
+  priorityFilter = "all",
+  overlayMap     = null      // optional: pass a custom overlay; defaults to bundled schemesMeta
 ) {
   const now = Date.now();
 
@@ -108,6 +110,14 @@ export function buildVerificationQueue(
   let schemes = SCHEME_DB.filter(
     s => s.applyType === "online" && !!normalizeUrl(s.apply?.en)
   );
+
+  // 2. Merge schemes-meta.json overlay into each scheme so lastDate / lastVerified
+  //    actually exist on the objects — filters and priority scoring depend on them.
+  const overlay = overlayMap ?? schemesMeta;
+  schemes = schemes.map(s => {
+    const meta = overlay[s.id];
+    return meta ? { ...s, ...meta } : s;
+  });
 
   // 2. Scope filter
   if (scopeFilter === "national") {
@@ -428,6 +438,63 @@ export async function runVerification({
   }
 
   return results;
+}
+
+
+// ─── SCHEME OVERLAY LOADER ────────────────────────────────────────────────────
+// Returns the statically bundled schemes-meta.json object.
+// Used by SchemeVerifier.jsx on mount to pass into buildVerificationQueue,
+// and by App.jsx to merge into SCHEME_DB.
+
+export function loadSchemeOverlay() {
+  return schemesMeta;
+}
+
+
+// ─── WRITE SCHEME RESULTS ─────────────────────────────────────────────────────
+// Called automatically after every verification run to persist results back to
+// src/schemes-meta.json in the GitHub repo via /api/update-schemes-meta.
+//
+// Each result is distilled to: { lastVerified, isActive, httpStatus, lastDate?,
+// confidence? } and keyed by scheme ID.  The Vercel API merges this into the
+// existing JSON and commits — triggering an auto-redeploy (1-2 min).
+
+export async function writeSchemeResults(results) {
+  if (!Array.isArray(results) || results.length === 0) return;
+
+  const now     = new Date().toISOString();
+  const payload = {};
+
+  for (const r of results) {
+    const id = r.scheme?.id;
+    if (!id) continue;
+
+    const entry = {
+      lastVerified: now,
+      isActive:     r.alive      ?? null,
+      httpStatus:   r.httpStatus ?? null,
+    };
+
+    // Only write AI-extracted fields if Tier 2 actually ran
+    if (r.lastDate   != null) entry.lastDate   = r.lastDate;
+    if (r.isActive   != null) entry.isActive   = r.isActive;   // Tier 2 is more accurate
+    if (r.confidence != null) entry.confidence = r.confidence;
+
+    payload[id] = entry;
+  }
+
+  const res = await fetch("/api/update-schemes-meta", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ results: payload }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+
+  return await res.json();  // { success: true, updated: N }
 }
 
 

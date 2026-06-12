@@ -18,6 +18,7 @@ import {
   CATEGORIES,
   getSchemesForCategory,
 } from "./schemesData.js";
+import schemesMeta from "./schemes-meta.json";
 import { auth, db } from "./firebase.js";
 import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, arrayUnion, increment } from "firebase/firestore";
@@ -31,7 +32,17 @@ const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
 
-
+// ─── ENRICH SCHEME_DB WITH VERIFICATION METADATA ─────────────────────────────
+// Merges lastDate, lastVerified, isActive, httpStatus, confidence from
+// schemes-meta.json into SCHEME_DB in-place (runs once at module init).
+// After each verification run the JSON is committed to GitHub → Vercel redeploys
+// → next page load picks up the fresh data automatically.
+(function mergeSchemesMeta() {
+  for (const [id, meta] of Object.entries(schemesMeta)) {
+    const scheme = SCHEME_DB.find(s => s.id === id);
+    if (scheme) Object.assign(scheme, meta);
+  }
+}());
 
 
 // ─── PREMIUM LOADER ────────────────────────────────────────────────────────────
@@ -882,6 +893,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
   const isNational=scheme.scope==="national";
   const isOnline=scheme.applyType==="online";
   const applyUrl=isOnline?safeApplyUrl(scheme.apply.en):null;
+  const isHindi=lang==="hi";
 
   const [copied,setCopied]=useState(false);
   const [showGSearch,setShowGSearch]=useState(false);
@@ -951,6 +963,28 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
               border:`1px solid ${isOnline?"#bbf7d0":"#e0e0e0"}`}}>
               {isOnline?"🌐 Online":"🏢 Offline"}
             </span>
+            {/* Deadline badge — only shown when schemes-meta.json has lastDate for this scheme */}
+            {scheme.lastDate&&(()=>{
+              const now=Date.now();
+              const ld=new Date(scheme.lastDate).getTime();
+              const isExpired=ld<now;
+              const daysLeft=Math.ceil((ld-now)/(1000*60*60*24));
+              const isUrgent=!isExpired&&daysLeft<=30;
+              const fmtDate=new Date(scheme.lastDate).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+              return(
+                <span style={{
+                  fontSize:9,fontWeight:700,
+                  background:isExpired?"#FEF2F2":isUrgent?"#FFF7ED":"#F0FDF4",
+                  color:isExpired?"#DC2626":isUrgent?"#EA580C":"#15803D",
+                  borderRadius:6,padding:"2px 7px",
+                  border:`1px solid ${isExpired?"#FECACA":isUrgent?"#FED7AA":"#BBF7D0"}`,
+                }}>
+                  {isExpired
+                    ?`⌛ ${isHindi?"समाप्त":"Expired"} ${fmtDate}`
+                    :`📅 ${isHindi?"अंतिम तिथि":"Deadline"}: ${fmtDate}`}
+                </span>
+              );
+            })()}
           </div>
           <div style={{display:"flex",alignItems:"flex-start",gap:7,marginBottom:4}}>
             <div style={{fontSize:13,fontWeight:700,color:th.text,lineHeight:1.35,fontFamily:bf,flex:1}}>

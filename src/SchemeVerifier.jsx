@@ -33,6 +33,7 @@ import {
   getVerifiableCount,
   getStatesInDB,
   getDBStats,
+  writeSchemeResults,
 } from "./verifySchemes.js";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
@@ -318,6 +319,9 @@ function exportResultsCSV(results) {
     @keyframes sv-mini-sheen {
       0%   { transform: translateX(-120%) skewX(-15deg); }
       100% { transform: translateX(220%)  skewX(-15deg); }
+    }
+    @keyframes sv-spin {
+      to { transform: rotate(360deg); }
     }
   `;
   document.head.appendChild(s);
@@ -1746,6 +1750,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [liveStats,     setLiveStats]     = useState(null);  // { active, dead, noResponse, errors } — updates every scheme
   const [runDone,       setRunDone]       = useState(false);
   const [wasAborted,    setWasAborted]    = useState(false);
+  const [saveStatus,    setSaveStatus]    = useState(null); // null | "saving" | "saved" | "error"
 
   // ── Timing (elapsed / speed / ETA) ───────────────────────────────────────
   const startTimeRef = useRef(null);
@@ -1828,6 +1833,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       setLiveStats({ active: 0, dead: 0, noResponse: 0, errors: 0 });
       setRunDone(false);
       setWasAborted(false);
+      setSaveStatus(null);
       setProgress(null);
       setCurrentScheme(null);   // prevent stale scheme name flash on new run
       await clearCheckpoint();
@@ -1911,6 +1917,19 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     setRunning(false);
     setCurrentScheme(null);
     setRunDone(true);
+
+    // ── Auto-save results to GitHub repo via /api/update-schemes-meta ──────────
+    // Runs even on abort — partial data is still useful. Fires asynchronously so
+    // it doesn't block the done banner from appearing.
+    if (finalSnap.length > 0) {
+      setSaveStatus("saving");
+      writeSchemeResults(finalSnap)
+        .then(() => setSaveStatus("saved"))
+        .catch(err => {
+          console.error("[SchemeVerifier] Save to repo failed:", err);
+          setSaveStatus("error");
+        });
+    }
   }, [running, scopeFilter, priorityFilter, tier]);
 
   // ── PAUSE — abort but keep checkpoint so Resume banner appears ────────────
@@ -2381,68 +2400,119 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
       {/* ══ DONE BANNER ══════════════════════════════════════════════════════ */}
       {runDone && !running && results.length > 0 && (
-        <div style={{
-          background: wasAborted
-            ? (dark ? "rgba(220,38,38,0.07)" : "rgba(220,38,38,0.06)")
-            : (dark ? "rgba(19,136,8,0.07)"  : "rgba(19,136,8,0.06)"),
-          border:       `1.5px solid ${(wasAborted ? RED : IND_GREEN)}40`,
-          borderRadius: 12,
-          padding:      "10px 14px",
-          display:      "flex",
-          alignItems:   "center",
-          gap:          10,
-          animation:    "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
-        }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {/* ── Main done row ── */}
           <div style={{
-            width: 10, height: 10, borderRadius: "50%",
-            background: wasAborted ? RED : IND_GREEN, flexShrink: 0,
-          }} />
-          <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: th.text }}>
-            {wasAborted ? "Run stopped" : "Run complete"}
-            <span style={{ fontWeight: 500, color: th.textMid, marginLeft: 6 }}>
-              · {results.length} scheme{results.length !== 1 ? "s" : ""} checked
-            </span>
-            {endTimeRef.current && startTimeRef.current && (
-              <span style={{ fontWeight: 400, color: th.textSub, marginLeft: 6, fontSize: 11 }}>
-                in {fmtDuration(endTimeRef.current - startTimeRef.current)}
+            background: wasAborted
+              ? (dark ? "rgba(220,38,38,0.07)" : "rgba(220,38,38,0.06)")
+              : (dark ? "rgba(19,136,8,0.07)"  : "rgba(19,136,8,0.06)"),
+            border:       `1.5px solid ${(wasAborted ? RED : IND_GREEN)}40`,
+            borderRadius: 12,
+            padding:      "10px 14px",
+            display:      "flex",
+            alignItems:   "center",
+            gap:          10,
+            animation:    "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
+          }}>
+            <div style={{
+              width: 10, height: 10, borderRadius: "50%",
+              background: wasAborted ? RED : IND_GREEN, flexShrink: 0,
+            }} />
+            <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: th.text }}>
+              {wasAborted ? "Run stopped" : "Run complete"}
+              <span style={{ fontWeight: 500, color: th.textMid, marginLeft: 6 }}>
+                · {results.length} scheme{results.length !== 1 ? "s" : ""} checked
               </span>
-            )}
-          </div>
-          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            {/* Export CSV */}
-            <div
-              {...a11yClickable(handleExport)}
-              style={{
-                padding:      "5px 10px",
-                borderRadius: 8,
-                fontSize:     11,
-                fontWeight:   700,
-                background:   dark ? `${IND_GREEN}18` : `${IND_GREEN}10`,
-                border:       `1px solid ${IND_GREEN}40`,
-                color:        IND_GREEN,
-                cursor:       "pointer",
-                flexShrink:   0,
-              }}
-            >
-              Export CSV
+              {endTimeRef.current && startTimeRef.current && (
+                <span style={{ fontWeight: 400, color: th.textSub, marginLeft: 6, fontSize: 11 }}>
+                  in {fmtDuration(endTimeRef.current - startTimeRef.current)}
+                </span>
+              )}
             </div>
-            {/* New Run */}
-            <div
-              {...a11yClickable(handleReset)}
-              style={{
-                padding:      "5px 12px",
-                borderRadius: 8,
-                fontSize:     11,
-                fontWeight:   700,
-                background:   th.border,
-                color:        th.textMid,
-                cursor:       "pointer",
-                flexShrink:   0,
-              }}
-            >
-              New Run
+            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+              {/* Export CSV */}
+              <div
+                {...a11yClickable(handleExport)}
+                style={{
+                  padding:      "5px 10px",
+                  borderRadius: 8,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  background:   dark ? `${IND_GREEN}18` : `${IND_GREEN}10`,
+                  border:       `1px solid ${IND_GREEN}40`,
+                  color:        IND_GREEN,
+                  cursor:       "pointer",
+                  flexShrink:   0,
+                }}
+              >
+                Export CSV
+              </div>
+              {/* New Run */}
+              <div
+                {...a11yClickable(handleReset)}
+                style={{
+                  padding:      "5px 12px",
+                  borderRadius: 8,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  background:   th.border,
+                  color:        th.textMid,
+                  cursor:       "pointer",
+                  flexShrink:   0,
+                }}
+              >
+                New Run
+              </div>
             </div>
           </div>
+
+          {/* ── Save-to-repo status row ── */}
+          {saveStatus && (
+            <div style={{
+              display:      "flex",
+              alignItems:   "center",
+              gap:          8,
+              padding:      "7px 12px",
+              borderRadius: 10,
+              fontSize:     11,
+              fontWeight:   600,
+              background:
+                saveStatus === "saved" ? (dark ? "rgba(19,136,8,0.08)"  : "rgba(19,136,8,0.06)")  :
+                saveStatus === "error" ? (dark ? "rgba(220,38,38,0.08)" : "rgba(220,38,38,0.06)") :
+                (dark ? "rgba(0,53,128,0.10)" : "rgba(0,53,128,0.06)"),
+              border: `1px solid ${
+                saveStatus === "saved" ? `${IND_GREEN}40` :
+                saveStatus === "error" ? `${RED}40`       :
+                `${NAVY}35`}`,
+              color:
+                saveStatus === "saved" ? IND_GREEN :
+                saveStatus === "error" ? RED        :
+                NAVY,
+            }}>
+              {saveStatus === "saving" && (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+                    style={{ animation: "sv-spin 0.9s linear infinite", flexShrink: 0 }}>
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                  Saving to repo…
+                </>
+              )}
+              {saveStatus === "saved" && (
+                <>
+                  <span style={{ fontSize: 12, flexShrink: 0 }}>✓</span>
+                  Saved to repo · Deploying (~1–2 min)
+                </>
+              )}
+              {saveStatus === "error" && (
+                <>
+                  <span style={{ fontSize: 12, flexShrink: 0 }}>⚠</span>
+                  Save failed — check Vercel logs or GITHUB_TOKEN env var
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
 
