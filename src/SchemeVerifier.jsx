@@ -1597,6 +1597,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [currentScheme, setCurrentScheme] = useState(null);
   const [results,       setResults]       = useState([]);
   const [summary,       setSummary]       = useState(null);
+  const [liveStats,     setLiveStats]     = useState(null);  // { active, dead, noResponse, errors } — updates every scheme
   const [runDone,       setRunDone]       = useState(false);
   const [wasAborted,    setWasAborted]    = useState(false);
 
@@ -1678,11 +1679,22 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       accResultsRef.current = [];
       setResults([]);
       setSummary(null);
+      setLiveStats({ active: 0, dead: 0, noResponse: 0, errors: 0 });
       setRunDone(false);
       setWasAborted(false);
       setProgress(null);
       setCurrentScheme(null);   // prevent stale scheme name flash on new run
       await clearCheckpoint();
+    } else {
+      // Resuming: seed liveStats from whatever's already accumulated so the
+      // mini cards continue from the correct counts instead of resetting to 0.
+      const seed = buildSummary(accResultsRef.current);
+      setLiveStats({
+        active:     seed.active     ?? 0,
+        dead:       seed.dead       ?? 0,
+        noResponse: seed.noResponse ?? 0,
+        errors:     seed.errors     ?? 0,
+      });
     }
 
     startTimeRef.current = Date.now();
@@ -1712,6 +1724,21 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           const isFinal = index === total;
           setProgress({ index, total });
           setCurrentScheme(scheme?.name?.en || scheme?.id || "…");
+
+          // liveStats: bump exactly one bucket per scheme — O(1), no array
+          // spread — so MiniCards count up smoothly +1 at a time regardless
+          // of the 500ms throttle below.
+          const status = getResultStatus(result);
+          setLiveStats(prev => {
+            const base = prev || { active: 0, dead: 0, noResponse: 0, errors: 0 };
+            return {
+              active:     base.active     + (status === "Active"      ? 1 : 0),
+              dead:       base.dead       + (status === "Dead"         ? 1 : 0),
+              noResponse: base.noResponse + (status === "No Response"  ? 1 : 0),
+              errors:     base.errors     + (status === "Error"        ? 1 : 0),
+            };
+          });
+
           if (isFinal || now - lastUpdateRef.current > 500) {
             lastUpdateRef.current = now;
             const snap = [...accResultsRef.current];
@@ -1763,6 +1790,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     accResultsRef.current = [];
     setResults([]);
     setSummary(null);
+    setLiveStats(null);
     setProgress(null);
     setRunDone(false);
     setWasAborted(false);
@@ -2194,12 +2222,12 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           </div>
 
           {/* Live mini stat cards */}
-          {summary && (
+          {liveStats && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <MiniCard label="Active"   value={summary.active}     color={IND_GREEN} dark={dark} />
-              <MiniCard label="Dead"     value={summary.dead}       color={RED}       dark={dark} />
-              <MiniCard label="No Resp." value={summary.noResponse} color={AMBER}     dark={dark} />
-              <MiniCard label="Errors"   value={summary.errors}     color={VIOLET}    dark={dark} />
+              <MiniCard label="Active"   value={liveStats.active}     color={IND_GREEN} dark={dark} />
+              <MiniCard label="Dead"     value={liveStats.dead}       color={RED}       dark={dark} />
+              <MiniCard label="No Resp." value={liveStats.noResponse} color={AMBER}     dark={dark} />
+              <MiniCard label="Errors"   value={liveStats.errors}     color={VIOLET}    dark={dark} />
             </div>
           )}
         </div>
