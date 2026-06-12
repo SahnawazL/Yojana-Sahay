@@ -6,16 +6,19 @@
  * Consumed by AdminDashboard.jsx as: <SchemeVerifier dark={dark} isDesktop={isDesktop} />
  *
  * Features:
- *   · Scope filter  — All / National / By State
+ *   · Scope filter  — All / National / By State  (pill buttons, not native select)
  *   · Priority filter — All / Has Deadline / Never Verified / Stale 30d+
  *   · Tier selector — Tier 1 (dead-link ping) / Tier 2 (AI date extract) / Both
  *   · Preview count before run
  *   · Checkpoint detection with Resume / Dismiss
- *   · Progress bar + live current-scheme label
- *   · Live mini stat cards during run
+ *   · Progress bar + live scheme label + elapsed time + ETA + scan speed
+ *   · Live mini stat cards with count-up animation during run
  *   · Full 8-card summary post-run
- *   · Filterable, paginated results list with expand-to-detail rows
- *   · Stop mid-run via AbortController
+ *   · Filterable + searchable + paginated results (numbered pages)
+ *   · Color-coded HTTP status badge (2xx green / 3xx amber / 4xx red)
+ *   · Copy URL to clipboard from expanded result row
+ *   · Export all results to CSV (post-run)
+ *   · Stop / Pause mid-run via AbortController
  *   · New Run reset
  */
 
@@ -58,25 +61,142 @@ const AMBER     = "#F59E0B";
 const PAGE_SIZE     = 20;
 const THIRTY_DAYS   = 30 * 24 * 60 * 60 * 1000;
 
+
+// ─── COUNT-UP HOOK ────────────────────────────────────────────────────────────
+// Animates a number from its previous value to `target` over `duration` ms.
+// Used in MiniCard and TechStatCard for satisfying live updates.
+
+function useCountUp(target, duration = 500) {
+  const [display, setDisplay] = useState(target ?? 0);
+  const prevRef = useRef(target ?? 0);
+  const rafRef  = useRef(null);
+
+  useEffect(() => {
+    if (target == null) return;
+    const start = prevRef.current;
+    const end   = target;
+    if (start === end) return;
+
+    const startTime = performance.now();
+    const animate   = (now) => {
+      const t       = Math.min((now - startTime) / duration, 1);
+      const eased   = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      setDisplay(Math.round(start + (end - start) * eased));
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(animate);
+      } else {
+        prevRef.current = end;
+      }
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, duration]);
+
+  return display;
+}
+
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+/** Human-readable duration from milliseconds: "2m 34s", "47s", etc. */
+function fmtDuration(ms) {
+  if (!ms || ms <= 0) return "--";
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return r > 0 ? `${m}m ${r}s` : `${m}m`;
+}
+
+/** Fuzzy scheme name / ID search */
+function matchesSearch(result, query) {
+  if (!query) return true;
+  const q  = query.toLowerCase().trim();
+  const s  = result.scheme;
+  return (
+    s.name?.en?.toLowerCase().includes(q) ||
+    s.name?.hi?.toLowerCase().includes(q) ||
+    s.id?.toLowerCase().includes(q)
+  );
+}
+
+/** Build numbered pagination range (max `maxVisible` pages shown). */
+function getPaginationRange(page, totalPages, maxVisible = 5) {
+  if (totalPages <= maxVisible) return Array.from({ length: totalPages }, (_, i) => i + 1);
+  const half  = Math.floor(maxVisible / 2);
+  let start   = Math.max(1, page - half);
+  let end     = Math.min(totalPages, start + maxVisible - 1);
+  if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+}
+
+/** Trigger a CSV download from the current results array. */
+function exportResultsCSV(results) {
+  const headers = [
+    "ID", "Name (EN)", "Scope", "State", "Apply URL",
+    "Status", "HTTP Code", "AI lastDate", "AI isActive",
+    "Confidence", "Scheme Deadline", "Error",
+  ];
+
+  const escape = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+
+  const rows = results.map(r => {
+    const s      = r.scheme;
+    const status =
+      r.error && r.alive === null ? "Error"       :
+      r.alive === true            ? "Active"       :
+      r.alive === false           ? "Dead"         : "No Response";
+
+    return [
+      s.id,
+      s.name?.en  || "",
+      s.scope     || "",
+      s.state     || "",
+      s.apply?.en || "",
+      status,
+      r.httpStatus != null ? r.httpStatus : "",
+      r.lastDate   || "",
+      r.isActive === true  ? "Yes" : r.isActive === false ? "No" : "",
+      r.confidence != null ? `${Math.round(r.confidence * 100)}%` : "",
+      s.lastDate   || "",
+      r.error      || "",
+    ].map(escape).join(",");
+  });
+
+  const csv  = [headers.map(escape).join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = `yojana-sahay-verify-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
 // ─── MINI STAT CARD ───────────────────────────────────────────────────────────
 function MiniCard({ icon, label, value, color, dark }) {
-  const th = THEME[dark ? "dark" : "light"];
+  const th      = THEME[dark ? "dark" : "light"];
+  const display = useCountUp(value ?? 0);
+
   return (
     <div style={{
-      background: th.card,
-      border: `1.5px solid ${th.border}`,
-      borderTop: `3px solid ${color}`,
+      background:   th.card,
+      border:       `1.5px solid ${th.border}`,
+      borderTop:    `3px solid ${color}`,
       borderRadius: 12,
-      padding: "10px 11px",
-      flex: "1 1 70px",
-      minWidth: 70,
+      padding:      "10px 11px",
+      flex:         "1 1 70px",
+      minWidth:     70,
     }}>
       <div style={{ fontSize: 14 }}>{icon}</div>
       <div style={{
         fontSize: 18, fontWeight: 800, color: th.text,
         lineHeight: 1, marginTop: 4,
       }}>
-        {value ?? 0}
+        {display}
       </div>
       <div style={{ fontSize: 9, color: th.textSub, marginTop: 2, fontWeight: 500 }}>
         {label}
@@ -84,6 +204,7 @@ function MiniCard({ icon, label, value, color, dark }) {
     </div>
   );
 }
+
 
 // ─── PROGRESS BAR ─────────────────────────────────────────────────────────────
 function ProgressBar({ value, total, color, dark }) {
@@ -119,6 +240,7 @@ function ProgressBar({ value, total, color, dark }) {
   );
 }
 
+
 // ─── STATUS BADGE ─────────────────────────────────────────────────────────────
 function StatusBadge({ result }) {
   if (!result) return null;
@@ -147,11 +269,42 @@ function StatusBadge({ result }) {
   );
 }
 
+
+// ─── HTTP STATUS BADGE ────────────────────────────────────────────────────────
+// Color-coded HTTP code chip — green 2xx, amber 3xx, red 4xx+.
+
+function HttpBadge({ status }) {
+  if (!status || status <= 0) return null;
+
+  const color =
+    status >= 200 && status < 300 ? IND_GREEN :
+    status >= 300 && status < 400 ? AMBER     :
+    status >= 400                  ? RED       : VIOLET;
+
+  return (
+    <span style={{
+      fontSize:    8,
+      fontWeight:  800,
+      fontFamily:  "monospace",
+      padding:     "1px 6px",
+      borderRadius: 4,
+      color,
+      background:  `${color}15`,
+      border:      `1px solid ${color}35`,
+      whiteSpace:  "nowrap",
+    }}>
+      {status}
+    </span>
+  );
+}
+
+
 // ─── RESULT ROW ───────────────────────────────────────────────────────────────
 function ResultRow({ result, dark }) {
   const th     = THEME[dark ? "dark" : "light"];
   const scheme = result.scheme;
   const [expanded, setExpanded] = useState(false);
+  const [copied,   setCopied]   = useState(false);
 
   const now = Date.now();
   const ld  = scheme.lastDate ? new Date(scheme.lastDate).getTime() : null;
@@ -163,27 +316,41 @@ function ResultRow({ result, dark }) {
     result.alive === false ? RED :
     result.error           ? VIOLET : AMBER;
 
+  const handleCopyUrl = (e) => {
+    e.stopPropagation();
+    const url = scheme.apply?.en;
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    }).catch(() => {});
+  };
+
   return (
     <div
       onClick={() => setExpanded(e => !e)}
       style={{
-        padding: "10px 14px",
+        padding:      "10px 14px",
         borderBottom: `1px solid ${th.border}`,
-        borderLeft: `3px solid ${accentColor}`,
-        cursor: "pointer",
-        animation: "sv-result-fly-in 0.42s cubic-bezier(0.22,1,0.36,1) both",
+        borderLeft:   `3px solid ${accentColor}`,
+        cursor:       "pointer",
+        animation:    "sv-result-fly-in 0.42s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
       {/* ── Row header ── */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
 
-        {/* Left: name + URL + date */}
+        {/* Left: name + URL + deadline */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
             <span style={{
-              fontSize: 12, fontWeight: 700, color: th.text,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              maxWidth: "100%",
+              fontSize:      12,
+              fontWeight:    700,
+              color:         th.text,
+              overflow:      "hidden",
+              textOverflow:  "ellipsis",
+              whiteSpace:    "nowrap",
+              maxWidth:      "100%",
             }}>
               {scheme.name?.en || scheme.id}
             </span>
@@ -208,16 +375,21 @@ function ResultRow({ result, dark }) {
           </div>
 
           <div style={{
-            fontSize: 9, color: th.textSub, marginTop: 2,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            fontSize:     9,
+            color:        th.textSub,
+            marginTop:    2,
+            overflow:     "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace:   "nowrap",
           }}>
             {scheme.apply?.en || "—"}
           </div>
 
           {scheme.lastDate && (
             <div style={{
-              fontSize: 9, marginTop: 2,
-              color: isExpired ? RED : isExpiringSoon ? AMBER : th.textSub,
+              fontSize:   9,
+              marginTop:  2,
+              color:      isExpired ? RED : isExpiringSoon ? AMBER : th.textSub,
               fontWeight: isExpired || isExpiringSoon ? 700 : 400,
             }}>
               📅 Deadline: {scheme.lastDate}
@@ -225,17 +397,16 @@ function ResultRow({ result, dark }) {
           )}
         </div>
 
-        {/* Right: badge + HTTP + chevron */}
+        {/* Right: status badge + HTTP badge + chevron */}
         <div style={{
-          display: "flex", flexDirection: "column",
-          alignItems: "flex-end", gap: 4, flexShrink: 0,
+          display:       "flex",
+          flexDirection: "column",
+          alignItems:    "flex-end",
+          gap:           4,
+          flexShrink:    0,
         }}>
           <StatusBadge result={result} />
-          {result.httpStatus > 0 && (
-            <span style={{ fontSize: 9, color: th.textSub }}>
-              HTTP {result.httpStatus}
-            </span>
-          )}
+          <HttpBadge status={result.httpStatus} />
           <span style={{ fontSize: 9, color: th.textSub, lineHeight: 1 }}>
             {expanded ? "▲" : "▼"}
           </span>
@@ -244,49 +415,80 @@ function ResultRow({ result, dark }) {
 
       {/* ── Expanded detail ── */}
       {expanded && (
-        <div style={{
-          marginTop: 8, padding: "10px 12px",
-          background: th.card2, borderRadius: 8,
-          display: "flex", flexDirection: "column", gap: 4,
-        }}>
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            marginTop:     8,
+            padding:       "10px 12px",
+            background:    th.card2,
+            borderRadius:  8,
+            display:       "flex",
+            flexDirection: "column",
+            gap:           4,
+          }}
+        >
           {[
-            ["Scheme ID",    scheme.id],
-            ["Scope",        `${scheme.scope}${scheme.state ? ` · ${scheme.state}` : ""}`],
-            ["Check Tier",   `Tier ${result.tier}`],
-            ["HTTP Status",  result.httpStatus != null ? String(result.httpStatus) : "—"],
-            ["AI lastDate",  result.lastDate || "—"],
-            ["AI isActive",  result.isActive === true ? "Yes ✅" : result.isActive === false ? "No ❌" : "—"],
-            ["Confidence",   result.confidence != null ? `${Math.round(result.confidence * 100)}%` : "—"],
+            ["Scheme ID",       scheme.id],
+            ["Scope",           `${scheme.scope}${scheme.state ? ` · ${scheme.state}` : ""}`],
+            ["Check Tier",      `Tier ${result.tier}`],
+            ["HTTP Status",     result.httpStatus != null ? String(result.httpStatus) : "—"],
+            ["AI lastDate",     result.lastDate || "—"],
+            ["AI isActive",     result.isActive === true ? "Yes ✅" : result.isActive === false ? "No ❌" : "—"],
+            ["Confidence",      result.confidence != null ? `${Math.round(result.confidence * 100)}%` : "—"],
             ["Scheme lastDate", scheme.lastDate || "—"],
-            ["Error",        result.error || "None"],
+            ["Error",           result.error || "None"],
           ].map(([k, v]) => (
-            <div key={k} style={{
-              display: "flex", gap: 8, fontSize: 10, padding: "1px 0",
-            }}>
-              <span style={{ color: th.textSub, width: 100, flexShrink: 0 }}>{k}</span>
-              <span style={{
-                color: th.text, fontWeight: 600, wordBreak: "break-all",
-              }}>
+            <div key={k} style={{ display: "flex", gap: 8, fontSize: 10, padding: "1px 0" }}>
+              <span style={{ color: th.textSub, width: 110, flexShrink: 0 }}>{k}</span>
+              <span style={{ color: th.text, fontWeight: 600, wordBreak: "break-all" }}>
                 {v}
               </span>
             </div>
           ))}
 
+          {/* URL row with Open + Copy buttons */}
           {scheme.apply?.en && (
-            <a
-              href={scheme.apply.en}
-              target="_blank"
-              rel="noreferrer"
-              onClick={e => e.stopPropagation()}
-              style={{
-                display: "block", marginTop: 6,
-                fontSize: 10, color: NAVY,
-                textDecoration: "none",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}
-            >
-              🔗 Open URL →
-            </a>
+            <div style={{
+              display:    "flex",
+              gap:        6,
+              marginTop:  6,
+              alignItems: "center",
+            }}>
+              <a
+                href={scheme.apply.en}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  flex:         1,
+                  fontSize:     10,
+                  color:        NAVY,
+                  textDecoration: "none",
+                  overflow:     "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace:   "nowrap",
+                }}
+              >
+                🔗 Open URL →
+              </a>
+              <button
+                onClick={handleCopyUrl}
+                style={{
+                  padding:      "3px 9px",
+                  borderRadius: 6,
+                  fontSize:     9,
+                  fontWeight:   700,
+                  cursor:       "pointer",
+                  border:       `1px solid ${copied ? IND_GREEN : th.border}`,
+                  background:   copied ? `${IND_GREEN}15` : th.card,
+                  color:        copied ? IND_GREEN : th.textMid,
+                  transition:   "all 0.2s",
+                  flexShrink:   0,
+                  fontFamily:   "inherit",
+                }}
+              >
+                {copied ? "✓ Copied!" : "Copy URL"}
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -294,18 +496,22 @@ function ResultRow({ result, dark }) {
   );
 }
 
+
 // ─── EMPTY STATE ──────────────────────────────────────────────────────────────
 function EmptyState({ message, dark }) {
   const th = THEME[dark ? "dark" : "light"];
   return (
     <div style={{
-      padding: "28px 16px", textAlign: "center",
-      color: th.textSub, fontSize: 12,
+      padding:   "28px 16px",
+      textAlign: "center",
+      color:     th.textSub,
+      fontSize:  12,
     }}>
       {message}
     </div>
   );
 }
+
 
 // ─── DB COVERAGE CARD ─────────────────────────────────────────────────────────
 // Shows full breakdown of all schemes vs what the verifier can actually ping.
@@ -322,9 +528,11 @@ function DBCoverageCard({ dark }) {
 
   const Row = ({ label, value, color, sub }) => (
     <div style={{
-      display: "flex", justifyContent: "space-between", alignItems: "center",
-      padding: "5px 0",
-      borderBottom: `1px solid ${th.border}`,
+      display:        "flex",
+      justifyContent: "space-between",
+      alignItems:     "center",
+      padding:        "5px 0",
+      borderBottom:   `1px solid ${th.border}`,
     }}>
       <span style={{ fontSize: 11, color: th.textMid }}>{label}</span>
       <div style={{ textAlign: "right" }}>
@@ -340,16 +548,18 @@ function DBCoverageCard({ dark }) {
 
   return (
     <div style={{
-      background: th.card,
-      border: `1.5px solid ${th.border}`,
+      background:   th.card,
+      border:       `1.5px solid ${th.border}`,
       borderRadius: 16,
-      overflow: "hidden",
+      overflow:     "hidden",
     }}>
       {/* Header */}
       <div style={{
-        padding: "12px 14px 10px",
-        borderBottom: `1px solid ${th.border}`,
-        display: "flex", justifyContent: "space-between", alignItems: "center",
+        padding:        "12px 14px 10px",
+        borderBottom:   `1px solid ${th.border}`,
+        display:        "flex",
+        justifyContent: "space-between",
+        alignItems:     "center",
       }}>
         <div>
           <div style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
@@ -359,51 +569,55 @@ function DBCoverageCard({ dark }) {
             Why {stats.verifiable} are queued out of {stats.total} total
           </div>
         </div>
-        <div style={{
-          fontSize: 20, fontWeight: 900,
-          color: NAVY,
-        }}>
+        <div style={{ fontSize: 20, fontWeight: 900, color: NAVY }}>
           {verifiablePct}%
         </div>
       </div>
 
-      {/* Progress bar — verifiable vs total */}
+      {/* Segmented progress bar */}
       <div style={{ padding: "10px 14px 4px" }}>
         <div style={{
-          height: 10, borderRadius: 6,
-          background: th.border, overflow: "hidden",
-          display: "flex",
+          height:       10,
+          borderRadius: 6,
+          background:   th.border,
+          overflow:     "hidden",
+          display:      "flex",
         }}>
-          {/* online verifiable */}
           <div style={{
-            width: `${(stats.verifiable / stats.total) * 100}%`,
-            background: IND_GREEN, transition: "width 0.4s",
+            width:      `${(stats.verifiable / stats.total) * 100}%`,
+            background: IND_GREEN,
+            transition: "width 0.4s",
           }} />
-          {/* online but no URL */}
           <div style={{
-            width: `${(stats.onlineNoUrl / stats.total) * 100}%`,
+            width:      `${(stats.onlineNoUrl / stats.total) * 100}%`,
             background: AMBER,
           }} />
-          {/* offline */}
           <div style={{
-            width: `${(stats.offline / stats.total) * 100}%`,
+            width:      `${(stats.offline / stats.total) * 100}%`,
             background: `${RED}60`,
           }} />
         </div>
+
         {/* Legend */}
         <div style={{ display: "flex", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
           {[
-            [IND_GREEN, `✅ Verifiable (${stats.verifiable})`],
-            [AMBER,     `⚠️ Online/No URL (${stats.onlineNoUrl})`],
-            [`${RED}99`, `❌ Offline (${stats.offline})`],
+            [IND_GREEN,    `✅ Verifiable (${stats.verifiable})`],
+            [AMBER,        `⚠️ Online/No URL (${stats.onlineNoUrl})`],
+            [`${RED}99`,   `❌ Offline (${stats.offline})`],
           ].map(([color, label]) => (
             <div key={label} style={{
-              display: "flex", alignItems: "center", gap: 4,
-              fontSize: 9, color: th.textMid,
+              display:    "flex",
+              alignItems: "center",
+              gap:        4,
+              fontSize:   9,
+              color:      th.textMid,
             }}>
               <div style={{
-                width: 8, height: 8, borderRadius: 2,
-                background: color, flexShrink: 0,
+                width:        8,
+                height:       8,
+                borderRadius: 2,
+                background:   color,
+                flexShrink:   0,
               }} />
               {label}
             </div>
@@ -411,41 +625,28 @@ function DBCoverageCard({ dark }) {
         </div>
       </div>
 
-      {/* Stats rows */}
+      {/* Stat rows */}
       <div style={{ padding: "4px 14px 6px" }}>
-        <Row label="Total schemes in DB"  value={stats.total}      color={th.text} />
-        <Row
-          label="🟢 Verifiable (online + valid URL)"
-          value={stats.verifiable}
-          color={IND_GREEN}
-          sub="← what gets queued"
-        />
-        <Row
-          label="⚠️ Online but plain-text apply"
-          value={stats.onlineNoUrl}
-          color={AMBER}
-          sub="e.g. 'Nearest CSC center'"
-        />
-        <Row
-          label="🔴 Offline (bank / in-person / CSC)"
-          value={stats.offline}
-          color={RED}
-          sub="nothing to ping"
-        />
-        <Row label="🏛️ National schemes"  value={stats.national}   color={NAVY}   sub={`${stats.nationalOnline} verifiable`} />
-        <Row label="📍 State schemes"    value={stats.state}      color={VIOLET} sub={`${stats.stateOnline} verifiable`} />
+        <Row label="Total schemes in DB"              value={stats.total}          color={th.text}  />
+        <Row label="🟢 Verifiable (online + valid URL)" value={stats.verifiable}    color={IND_GREEN} sub="← what gets queued"         />
+        <Row label="⚠️ Online but plain-text apply"    value={stats.onlineNoUrl}   color={AMBER}    sub="e.g. 'Nearest CSC center'"    />
+        <Row label="🔴 Offline (bank / in-person / CSC)" value={stats.offline}     color={RED}      sub="nothing to ping"              />
+        <Row label="🏛️ National schemes"              value={stats.national}        color={NAVY}     sub={`${stats.nationalOnline} verifiable`} />
+        <Row label="📍 State schemes"                 value={stats.state}           color={VIOLET}   sub={`${stats.stateOnline} verifiable`}    />
       </div>
 
-      {/* State breakdown toggle */}
+      {/* Per-state breakdown toggle */}
       {stats.byState.length > 0 && (
         <div>
           <div
             onClick={() => setShowStates(s => !s)}
             style={{
-              padding: "8px 14px",
-              borderTop: `1px solid ${th.border}`,
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              cursor: "pointer",
+              padding:        "8px 14px",
+              borderTop:      `1px solid ${th.border}`,
+              display:        "flex",
+              justifyContent: "space-between",
+              alignItems:     "center",
+              cursor:         "pointer",
             }}
           >
             <span style={{ fontSize: 11, fontWeight: 700, color: th.text }}>
@@ -463,16 +664,19 @@ function DBCoverageCard({ dark }) {
             }}>
               {/* Table header */}
               <div style={{
-                display: "grid",
+                display:             "grid",
                 gridTemplateColumns: "1fr 52px 52px 52px",
-                padding: "5px 14px",
-                background: th.card2,
-                position: "sticky", top: 0,
+                padding:             "5px 14px",
+                background:          th.card2,
+                position:            "sticky",
+                top:                 0,
               }}>
                 {["State", "Total", "Online", "Offline"].map(h => (
                   <div key={h} style={{
-                    fontSize: 9, fontWeight: 800,
-                    color: th.textSub, textAlign: h === "State" ? "left" : "center",
+                    fontSize:   9,
+                    fontWeight: 800,
+                    color:      th.textSub,
+                    textAlign:  h === "State" ? "left" : "center",
                   }}>
                     {h}
                   </div>
@@ -485,29 +689,26 @@ function DBCoverageCard({ dark }) {
                   <div
                     key={name}
                     style={{
-                      display: "grid",
+                      display:             "grid",
                       gridTemplateColumns: "1fr 52px 52px 52px",
-                      padding: "5px 14px",
-                      borderBottom: `1px solid ${th.border}`,
-                      alignItems: "center",
+                      padding:             "5px 14px",
+                      borderBottom:        `1px solid ${th.border}`,
+                      alignItems:          "center",
                     }}
                   >
                     <div style={{ fontSize: 10, color: th.text, fontWeight: 600 }}>
                       {name}
                     </div>
-                    <div style={{
-                      fontSize: 11, fontWeight: 800, color: th.text, textAlign: "center",
-                    }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: th.text, textAlign: "center" }}>
                       {st}
                     </div>
-                    <div style={{
-                      fontSize: 11, fontWeight: 700, color: IND_GREEN, textAlign: "center",
-                    }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: IND_GREEN, textAlign: "center" }}>
                       {so}
                     </div>
                     <div style={{
-                      fontSize: 11, fontWeight: 700,
-                      color: offline > 0 ? RED : th.textSub,
+                      fontSize:  11,
+                      fontWeight: 700,
+                      color:     offline > 0 ? RED : th.textSub,
                       textAlign: "center",
                     }}>
                       {offline}
@@ -528,32 +729,44 @@ function DBCoverageCard({ dark }) {
 // Single terminal-style cell used inside RunSummaryCard.
 
 function TechStatCard({ icon, label, value, color, dark }) {
-  const th  = THEME[dark ? "dark" : "light"];
-  const hot = (value ?? 0) > 0;
+  const th      = THEME[dark ? "dark" : "light"];
+  const display = useCountUp(value ?? 0);
+  const hot     = (value ?? 0) > 0;
+
   return (
     <div style={{
-      flex: "1 1 0", minWidth: 0,
-      background: dark
+      flex:         "1 1 0",
+      minWidth:     0,
+      background:   dark
         ? hot ? `${color}14` : "#1c2128"
         : hot ? `${color}08` : th.card2,
       border:       `1px solid ${hot ? color + "38" : (dark ? "#30363d" : th.border)}`,
       borderBottom: `2px solid ${hot ? color        : (dark ? "#2d333b" : th.border)}`,
       borderRadius: 8,
-      padding: "8px 6px 6px",
-      textAlign: "center",
+      padding:      "8px 6px 6px",
+      textAlign:    "center",
     }}>
       <div style={{ fontSize: 13 }}>{icon}</div>
       <div style={{
-        fontSize: 18, fontWeight: 900, lineHeight: 1, marginTop: 3,
-        color: hot ? color : th.textSub,
+        fontSize:   18,
+        fontWeight: 900,
+        lineHeight: 1,
+        marginTop:  3,
+        color:      hot ? color : th.textSub,
         fontFamily: "monospace",
       }}>
-        {value ?? 0}
+        {display}
       </div>
       <div style={{
-        fontSize: 7, fontWeight: 800, letterSpacing: 0.8, marginTop: 3,
-        color: th.textSub, fontFamily: "monospace",
-        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        fontSize:   7,
+        fontWeight: 800,
+        letterSpacing: 0.8,
+        marginTop:  3,
+        color:      th.textSub,
+        fontFamily: "monospace",
+        whiteSpace: "nowrap",
+        overflow:   "hidden",
+        textOverflow: "ellipsis",
       }}>
         {label}
       </div>
@@ -566,11 +779,11 @@ function TechStatCard({ icon, label, value, color, dark }) {
 // Terminal-style post-run report.
 // Shows run metadata (scope / priority / tier) + health bar + 2-section stat grid.
 
-function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted, dark }) {
+function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted, dark, onExport }) {
   const th = THEME[dark ? "dark" : "light"];
 
   const scopeLabel =
-    scopeFilter === "all"       ? "All Schemes"
+    scopeFilter === "all"      ? "All Schemes"
     : scopeFilter === "national" ? "National"
     : scopeFilter.replace("state:", "");
 
@@ -607,7 +820,7 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
 
   return (
     <div style={{
-      background: dark
+      background:   dark
         ? "linear-gradient(145deg, #0d1117 0%, #161b22 100%)"
         : th.card,
       border:       `1.5px solid ${dark ? "#30363d" : th.border}`,
@@ -620,8 +833,10 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
       <div style={{
         background:   dark ? "#161b22" : `${NAVY}09`,
         borderBottom: `1px solid ${dark ? "#30363d" : th.border}`,
-        padding: "9px 14px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding:      "9px 14px",
+        display:      "flex",
+        alignItems:   "center",
+        justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {/* macOS-style traffic dots */}
@@ -631,19 +846,25 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
             ))}
           </div>
           <span style={{
-            fontSize: 8, fontWeight: 800, letterSpacing: 2.5,
-            color: dark ? "#6e7681" : th.textSub, fontFamily: "monospace",
+            fontSize:      8,
+            fontWeight:    800,
+            letterSpacing: 2.5,
+            color:         dark ? "#6e7681" : th.textSub,
+            fontFamily:    "monospace",
           }}>
             RUN_REPORT.LOG
           </span>
         </div>
         <span style={{
-          fontSize: 8, fontWeight: 800, letterSpacing: 1.5,
-          padding: "2px 8px", borderRadius: 4,
-          background: wasAborted ? `${RED}22`      : `${IND_GREEN}22`,
-          color:      wasAborted ? RED             : IND_GREEN,
-          border:     `1px solid ${wasAborted ? RED : IND_GREEN}45`,
-          fontFamily: "monospace",
+          fontSize:      8,
+          fontWeight:    800,
+          letterSpacing: 1.5,
+          padding:       "2px 8px",
+          borderRadius:  4,
+          background:    wasAborted ? `${RED}22`      : `${IND_GREEN}22`,
+          color:         wasAborted ? RED             : IND_GREEN,
+          border:        `1px solid ${wasAborted ? RED : IND_GREEN}45`,
+          fontFamily:    "monospace",
         }}>
           {wasAborted ? "● STOPPED" : "● COMPLETE"}
         </span>
@@ -653,22 +874,28 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
       <div style={{ padding: "10px 14px 0", display: "flex", gap: 5, flexWrap: "wrap" }}>
         {cfgItems.map(([key, val]) => (
           <div key={key} style={{
-            display: "inline-flex", alignItems: "stretch",
-            border: `1px solid ${dark ? "#30363d" : th.border}`,
-            borderRadius: 5, overflow: "hidden", fontSize: 8,
+            display:    "inline-flex",
+            alignItems: "stretch",
+            border:     `1px solid ${dark ? "#30363d" : th.border}`,
+            borderRadius: 5,
+            overflow:   "hidden",
+            fontSize:   8,
           }}>
             <span style={{
-              padding: "2px 5px",
-              background: dark ? "#2d333b" : `${NAVY}14`,
-              color: dark ? "#6e7681" : th.textSub,
-              fontFamily: "monospace", fontWeight: 800, letterSpacing: 0.5,
+              padding:       "2px 5px",
+              background:    dark ? "#2d333b" : `${NAVY}14`,
+              color:         dark ? "#6e7681" : th.textSub,
+              fontFamily:    "monospace",
+              fontWeight:    800,
+              letterSpacing: 0.5,
             }}>
               {key}
             </span>
             <span style={{
-              padding: "2px 7px",
+              padding:    "2px 7px",
               background: dark ? "#21262d" : `${NAVY}05`,
-              color: dark ? "#cdd9e5" : th.text, fontWeight: 700,
+              color:      dark ? "#cdd9e5" : th.text,
+              fontWeight: 700,
             }}>
               {val}
             </span>
@@ -679,18 +906,25 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
       {/* ── Link health bar ── */}
       <div style={{ padding: "12px 14px 10px" }}>
         <div style={{
-          display: "flex", justifyContent: "space-between",
-          alignItems: "center", marginBottom: 6,
+          display:        "flex",
+          justifyContent: "space-between",
+          alignItems:     "center",
+          marginBottom:   6,
         }}>
           <span style={{
-            fontSize: 8, fontWeight: 800, letterSpacing: 2,
-            color: dark ? "#6e7681" : th.textSub, fontFamily: "monospace",
+            fontSize:      8,
+            fontWeight:    800,
+            letterSpacing: 2,
+            color:         dark ? "#6e7681" : th.textSub,
+            fontFamily:    "monospace",
           }}>
             LINK_HEALTH
           </span>
           <span style={{
-            fontSize: 13, fontWeight: 900,
-            color: healthColor, fontFamily: "monospace",
+            fontSize:   13,
+            fontWeight: 900,
+            color:      healthColor,
+            fontFamily: "monospace",
           }}>
             {healthPct}%
           </span>
@@ -698,15 +932,18 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
 
         {/* Segmented bar */}
         <div style={{
-          height: 10, borderRadius: 6, overflow: "hidden",
-          background: dark ? "#21262d" : th.border,
-          display: "flex",
+          height:       10,
+          borderRadius: 6,
+          overflow:     "hidden",
+          background:   dark ? "#21262d" : th.border,
+          display:      "flex",
         }}>
           {segments.map(({ value, color }) => {
             const w = summary.total > 0 ? (value / summary.total) * 100 : 0;
             return w > 0 ? (
               <div key={color} style={{
-                width: `${w}%`, background: color,
+                width:      `${w}%`,
+                background: color,
                 transition: "width 0.5s cubic-bezier(0.22,1,0.36,1)",
               }} />
             ) : null;
@@ -728,11 +965,15 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
       {/* ── Divider ── */}
       <div style={{ height: 1, background: dark ? "#21262d" : th.border, margin: "0 14px" }} />
 
-      {/* ── Stat section: LINK_HEALTH ── */}
+      {/* ── LINK_HEALTH stat section ── */}
       <div style={{ padding: "10px 14px 4px" }}>
         <div style={{
-          fontSize: 7, fontWeight: 800, letterSpacing: 2.5, marginBottom: 7,
-          color: dark ? "#6e7681" : th.textSub, fontFamily: "monospace",
+          fontSize:      7,
+          fontWeight:    800,
+          letterSpacing: 2.5,
+          marginBottom:  7,
+          color:         dark ? "#6e7681" : th.textSub,
+          fontFamily:    "monospace",
         }}>
           ▸ LINK_HEALTH
         </div>
@@ -744,11 +985,15 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
         </div>
       </div>
 
-      {/* ── Stat section: DEADLINE_INTEL ── */}
-      <div style={{ padding: "8px 14px 14px" }}>
+      {/* ── DEADLINE_INTEL stat section ── */}
+      <div style={{ padding: "8px 14px 12px" }}>
         <div style={{
-          fontSize: 7, fontWeight: 800, letterSpacing: 2.5, marginBottom: 7,
-          color: dark ? "#6e7681" : th.textSub, fontFamily: "monospace",
+          fontSize:      7,
+          fontWeight:    800,
+          letterSpacing: 2.5,
+          marginBottom:  7,
+          color:         dark ? "#6e7681" : th.textSub,
+          fontFamily:    "monospace",
         }}>
           ▸ DEADLINE_INTEL
         </div>
@@ -760,6 +1005,34 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
         </div>
       </div>
 
+      {/* ── Export CSV footer ── */}
+      {onExport && (
+        <div style={{
+          borderTop:      `1px solid ${dark ? "#21262d" : th.border}`,
+          padding:        "8px 14px",
+          display:        "flex",
+          justifyContent: "flex-end",
+        }}>
+          <div
+            onClick={onExport}
+            style={{
+              display:    "inline-flex",
+              alignItems: "center",
+              gap:        5,
+              padding:    "5px 12px",
+              borderRadius: 7,
+              fontSize:   10,
+              fontWeight: 700,
+              cursor:     "pointer",
+              background: dark ? `${IND_GREEN}18` : `${IND_GREEN}10`,
+              border:     `1px solid ${IND_GREEN}40`,
+              color:      IND_GREEN,
+            }}
+          >
+            ⬇ Export CSV
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -767,29 +1040,36 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
 
 // ─── LIVE SCANNER CARD ────────────────────────────────────────────────────────
 // Premium scanning UI shown during an active verification run.
-// The scheme name/URL re-animates via `key` every time the scheme changes.
+// The scheme name re-animates via `key` every time the scheme changes.
+// Displays real-time elapsed time, scan speed, and estimated time remaining.
 
-function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityFilter, tier }) {
+function LiveSchemeCard({
+  schemeName, index, total, dark,
+  scopeFilter, priorityFilter, tier,
+  elapsed, speed, eta,
+}) {
   const th  = THEME[dark ? "dark" : "light"];
   const pct = total > 0 ? Math.round((index / total) * 100) : 0;
 
   return (
     <div style={{
-      position: "relative",
+      position:  "relative",
       background: dark
         ? "linear-gradient(140deg, #06101e 0%, #0b1a2e 100%)"
         : "linear-gradient(140deg, #eef3ff 0%, #e4eeff 100%)",
-      border: `1.5px solid ${NAVY}50`,
+      border:       `1.5px solid ${NAVY}50`,
       borderRadius: 16,
-      padding: "16px",
-      overflow: "hidden",
-      animation: "sv-card-glow 3s ease infinite",
+      padding:      "16px",
+      overflow:     "hidden",
+      animation:    "sv-card-glow 3s ease infinite",
     }}>
 
       {/* Grid texture overlay */}
       <div style={{
-        position: "absolute", inset: 0, pointerEvents: "none",
-        backgroundImage: `
+        position:         "absolute",
+        inset:            0,
+        pointerEvents:    "none",
+        backgroundImage:  `
           linear-gradient(${NAVY}09 1px, transparent 1px),
           linear-gradient(90deg, ${NAVY}09 1px, transparent 1px)`,
         backgroundSize: "22px 22px",
@@ -797,20 +1077,29 @@ function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityF
 
       {/* Horizontal scan line */}
       <div style={{
-        position: "absolute", left: 0, right: 0, height: 2,
-        background: `linear-gradient(90deg,
+        position:      "absolute",
+        left:          0,
+        right:         0,
+        height:        2,
+        background:    `linear-gradient(90deg,
           transparent 0%, ${NAVY}50 15%,
           ${IND_GREEN}dd 50%,
           ${NAVY}50 85%, transparent 100%)`,
-        animation: "sv-scan-line 2.2s ease-in-out infinite",
-        pointerEvents: "none", zIndex: 2,
+        animation:     "sv-scan-line 2.2s ease-in-out infinite",
+        pointerEvents: "none",
+        zIndex:        2,
       }} />
 
-      {/* Corner tag — reflects actual tier selected */}
+      {/* Corner tier tag */}
       <div style={{
-        position: "absolute", top: 10, right: 12,
-        fontSize: 8, fontWeight: 800, letterSpacing: 2,
-        color: `${NAVY}70`, fontFamily: "monospace",
+        position:      "absolute",
+        top:           10,
+        right:         12,
+        fontSize:      8,
+        fontWeight:    800,
+        letterSpacing: 2,
+        color:         `${NAVY}70`,
+        fontFamily:    "monospace",
       }}>
         {tier === "both" ? "TIER·1+2" : `TIER·${tier}`}
       </div>
@@ -820,45 +1109,57 @@ function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityF
 
         {/* SCANNING label + live % */}
         <div style={{
-          display: "flex", justifyContent: "space-between",
-          alignItems: "center", marginBottom: 8,
+          display:        "flex",
+          justifyContent: "space-between",
+          alignItems:     "center",
+          marginBottom:   8,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <div style={{
-              width: 7, height: 7, borderRadius: "50%",
+              width:      7,
+              height:     7,
+              borderRadius: "50%",
               background: IND_GREEN,
-              animation: "sv-pulse 1.4s ease infinite",
-              boxShadow: `0 0 0 3px ${IND_GREEN}30`,
+              animation:  "sv-pulse 1.4s ease infinite",
+              boxShadow:  `0 0 0 3px ${IND_GREEN}30`,
             }} />
             <span style={{
-              fontSize: 9, fontWeight: 800, letterSpacing: 2.5,
-              color: IND_GREEN, fontFamily: "monospace",
+              fontSize:      9,
+              fontWeight:    800,
+              letterSpacing: 2.5,
+              color:         IND_GREEN,
+              fontFamily:    "monospace",
             }}>
               SCANNING
             </span>
             <span style={{
-              fontSize: 8, color: `${IND_GREEN}80`,
-              fontFamily: "monospace", letterSpacing: 1,
+              fontSize:      8,
+              color:         `${IND_GREEN}80`,
+              fontFamily:    "monospace",
+              letterSpacing: 1,
             }}>
               ▸▸
             </span>
           </div>
           <span style={{
-            fontSize: 13, fontWeight: 900, color: NAVY,
-            fontFamily: "monospace", letterSpacing: 1,
+            fontSize:      13,
+            fontWeight:    900,
+            color:         NAVY,
+            fontFamily:    "monospace",
+            letterSpacing: 1,
           }}>
             {pct}%
           </span>
         </div>
 
-        {/* Active settings pills — scope · priority · tier */}
+        {/* Active settings pills */}
         <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 }}>
           {[
-            scopeFilter === "all"       ? "🌍 All Schemes"
+            scopeFilter === "all"        ? "🌍 All Schemes"
             : scopeFilter === "national" ? "🏛️ National"
             : `📍 ${scopeFilter.replace("state:", "")}`,
 
-            priorityFilter === "all"            ? "⭐ All Priority"
+            priorityFilter === "all"             ? "⭐ All Priority"
             : priorityFilter === "hasDate"       ? "📅 Has Deadline"
             : priorityFilter === "neverVerified" ? "🆕 Never Verified"
             : "🕰️ Stale 30d+",
@@ -866,11 +1167,13 @@ function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityF
             tier === 1 ? "⚡ Tier 1 · Ping" : tier === 2 ? "🤖 Tier 2 · AI" : "🔬 Tier 1+2",
           ].map(label => (
             <span key={label} style={{
-              fontSize: 8, fontWeight: 700,
-              padding: "2px 7px", borderRadius: 5,
-              background: dark ? `${NAVY}25` : `${NAVY}12`,
-              color: dark ? `#7da8e8` : NAVY,
-              border: `1px solid ${NAVY}25`,
+              fontSize:      8,
+              fontWeight:    700,
+              padding:       "2px 7px",
+              borderRadius:  5,
+              background:    dark ? `${NAVY}25` : `${NAVY}12`,
+              color:         dark ? `#7da8e8`   : NAVY,
+              border:        `1px solid ${NAVY}25`,
               letterSpacing: 0.2,
             }}>
               {label}
@@ -878,14 +1181,16 @@ function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityF
           ))}
         </div>
 
-        {/* Scheme name — re-animates on each scheme change */}
+        {/* Current scheme name — re-animates on change */}
         <div
           key={schemeName}
           style={{
-            fontSize: 14, fontWeight: 800,
-            color: dark ? "#f0f0f0" : "#0d1b2e",
-            lineHeight: 1.3, marginBottom: 6,
-            animation: "sv-scheme-fly-in 0.38s cubic-bezier(0.22,1,0.36,1) both",
+            fontSize:   14,
+            fontWeight: 800,
+            color:      dark ? "#f0f0f0" : "#0d1b2e",
+            lineHeight: 1.3,
+            marginBottom: 6,
+            animation:  "sv-scheme-fly-in 0.38s cubic-bezier(0.22,1,0.36,1) both",
           }}
         >
           {schemeName || "Initializing…"}
@@ -894,16 +1199,17 @@ function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityF
         {/* Progress bar with shimmer */}
         <div style={{ marginBottom: 8 }}>
           <div style={{
-            height: 4, borderRadius: 4,
-            background: `${NAVY}25`,
-            overflow: "hidden",
+            height:       4,
+            borderRadius: 4,
+            background:   `${NAVY}25`,
+            overflow:     "hidden",
           }}>
             <div style={{
-              height: "100%",
-              width: `${pct}%`,
+              height:     "100%",
+              width:      `${pct}%`,
               borderRadius: 4,
               transition: "width 0.4s cubic-bezier(0.22,1,0.36,1)",
-              minWidth: index > 0 ? 6 : 0,
+              minWidth:   index > 0 ? 6 : 0,
               background: `linear-gradient(
                 105deg,
                 ${NAVY} 0%, ${NAVY} 30%,
@@ -911,25 +1217,60 @@ function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityF
                 ${NAVY} 70%, ${NAVY} 100%
               )`,
               backgroundSize: "200% 100%",
-              animation: "sv-progress-shimmer 1.6s ease-in-out infinite",
+              animation:  "sv-progress-shimmer 1.6s ease-in-out infinite",
             }} />
           </div>
         </div>
 
-        {/* Index + mini segment dots */}
+        {/* Bottom row: index counter + timing strip + mini segment dots */}
         <div style={{
-          display: "flex", alignItems: "center",
+          display:     "flex",
+          alignItems:  "center",
           justifyContent: "space-between",
+          gap:         6,
         }}>
-          <span style={{
-            fontSize: 9, color: th.textSub,
-            fontFamily: "monospace",
-          }}>
+          {/* Index counter */}
+          <span style={{ fontSize: 9, color: th.textSub, fontFamily: "monospace" }}>
             <span style={{ color: NAVY, fontWeight: 700 }}>
               #{String(index).padStart(3, "0")}
             </span>
             {" "}/ {total}
           </span>
+
+          {/* Live timing strip: elapsed · speed · ETA */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {elapsed > 0 && (
+              <span style={{
+                fontSize:      8,
+                fontFamily:    "monospace",
+                color:         dark ? "#5b7fa6" : `${NAVY}80`,
+                letterSpacing: 0.5,
+              }}>
+                ⏱ {fmtDuration(elapsed)}
+              </span>
+            )}
+            {speed > 0 && (
+              <span style={{
+                fontSize:      8,
+                fontFamily:    "monospace",
+                color:         dark ? `${IND_GREEN}cc` : IND_GREEN,
+                fontWeight:    700,
+                letterSpacing: 0.5,
+              }}>
+                {speed}/min
+              </span>
+            )}
+            {eta != null && eta > 3000 && (
+              <span style={{
+                fontSize:      8,
+                fontFamily:    "monospace",
+                color:         dark ? "#5b7fa6" : `${NAVY}80`,
+                letterSpacing: 0.5,
+              }}>
+                ETA {fmtDuration(eta)}
+              </span>
+            )}
+          </div>
 
           {/* Mini segment dots */}
           <div style={{ display: "flex", gap: 2 }}>
@@ -937,9 +1278,11 @@ function LiveSchemeCard({ schemeName, index, total, dark, scopeFilter, priorityF
               const filled = i < Math.round((index / total) * 10);
               return (
                 <div key={i} style={{
-                  width: 5, height: 5, borderRadius: 1.5,
-                  background: filled ? NAVY : `${NAVY}25`,
-                  transition: "background 0.3s",
+                  width:        5,
+                  height:       5,
+                  borderRadius: 1.5,
+                  background:   filled ? NAVY : `${NAVY}25`,
+                  transition:   "background 0.3s",
                 }} />
               );
             })}
@@ -976,8 +1319,13 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [runDone,       setRunDone]       = useState(false);
   const [wasAborted,    setWasAborted]    = useState(false);
 
+  // ── Timing (elapsed / speed / ETA) ───────────────────────────────────────
+  const startTimeRef = useRef(null);
+  const [elapsed,    setElapsed]    = useState(0);  // ms since run started
+
   // ── Results view ──────────────────────────────────────────────────────────
   const [resultFilter, setResultFilter] = useState("all");
+  const [searchQuery,  setSearchQuery]  = useState("");
   const [page,         setPage]         = useState(1);
 
   const abortRef      = useRef(null);
@@ -994,11 +1342,30 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // ── Can the Start button be pressed? ─────────────────────────────────────
   const canStart = previewCount > 0 && !(scopeMode === "state" && !selectedState);
 
+  // ── Live timing ticker ────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      setElapsed(Date.now() - (startTimeRef.current || Date.now()));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  // ── Derived speed + ETA ───────────────────────────────────────────────────
+  const speed = useMemo(() => {
+    if (!progress?.index || elapsed < 2000) return 0;
+    return Math.round(progress.index / (elapsed / 60000));
+  }, [progress?.index, elapsed]);
+
+  const eta = useMemo(() => {
+    if (!speed || !progress) return null;
+    return Math.round(((progress.total - progress.index) / speed) * 60000);
+  }, [speed, progress]);
+
   // ── Init: load states + checkpoint ───────────────────────────────────────
   useEffect(() => {
     setAvailableStates(getStatesInDB());
     loadCheckpoint().then(cp => {
-      // Only surface checkpoint if it's a real in-progress run, not cleared / completed
       const valid = cp && !cp.cleared && !cp.isComplete && cp.completedIndex > 0 && cp.completedIndex < cp.total;
       setCheckpoint(valid ? cp : null);
       setCheckpointLoaded(true);
@@ -1015,7 +1382,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     if (running) return;
 
     if (resumeFrom === 0) {
-      // Fresh run — wipe previous results
       accResultsRef.current = [];
       setResults([]);
       setSummary(null);
@@ -1025,11 +1391,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       await clearCheckpoint();
     }
 
+    startTimeRef.current = Date.now();
+    setElapsed(0);
     setRunning(true);
     setPage(1);
     setResultFilter("all");
+    setSearchQuery("");
 
-    const controller = new AbortController();
+    const controller  = new AbortController();
     abortRef.current  = controller;
 
     try {
@@ -1063,8 +1432,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     setRunDone(true);
   }, [running, scopeFilter, priorityFilter, tier]);
 
-  // ── STOP ──────────────────────────────────────────────────────────────────
-  // ── PAUSE — abort but keep checkpoint so Resume banner appears ───────────
+  // ── PAUSE — abort but keep checkpoint so Resume banner appears ────────────
   const handlePause = useCallback(() => {
     abortRef.current?.abort();
   }, []);
@@ -1083,30 +1451,53 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     setProgress(null);
     setRunDone(false);
     setWasAborted(false);
+    setElapsed(0);
     setPage(1);
     setResultFilter("all");
+    setSearchQuery("");
   }, []);
 
-  // ── Filtered + paginated results ──────────────────────────────────────────
+  // ── EXPORT CSV ────────────────────────────────────────────────────────────
+  const handleExport = useCallback(() => {
+    if (results.length > 0) exportResultsCSV(results);
+  }, [results]);
+
+  // ── Filtered + searched + paginated results ───────────────────────────────
   const filteredResults = useMemo(() => {
+    let base = results;
+
+    // Status filter
     switch (resultFilter) {
-      case "active":     return results.filter(r => r.alive === true);
-      case "dead":       return results.filter(r => r.alive === false);
-      case "noResponse": return results.filter(r => r.alive === null && !r.error);
-      case "error":      return results.filter(r => !!r.error);
-      default:           return results;
+      case "active":     base = base.filter(r => r.alive === true);                    break;
+      case "dead":       base = base.filter(r => r.alive === false);                   break;
+      case "noResponse": base = base.filter(r => r.alive === null && !r.error);        break;
+      case "error":      base = base.filter(r => !!r.error);                           break;
+      default: break;
     }
-  }, [results, resultFilter]);
+
+    // Search filter
+    if (searchQuery.trim()) {
+      base = base.filter(r => matchesSearch(r, searchQuery));
+    }
+
+    return base;
+  }, [results, resultFilter, searchQuery]);
 
   const totalPages = Math.ceil(filteredResults.length / PAGE_SIZE);
   const pageSlice  = filteredResults.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pageRange  = getPaginationRange(page, totalPages);
 
   // ── Shared select style ───────────────────────────────────────────────────
   const selectSt = {
-    flex: 1, padding: "8px 10px", borderRadius: 10,
-    border: `1.5px solid ${th.border}`,
-    background: th.inputBg, color: th.text,
-    fontSize: 11, fontFamily: "inherit", outline: "none",
+    flex:       1,
+    padding:    "8px 10px",
+    borderRadius: 10,
+    border:     `1.5px solid ${th.border}`,
+    background: th.inputBg,
+    color:      th.text,
+    fontSize:   11,
+    fontFamily: "inherit",
+    outline:    "none",
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1123,23 +1514,42 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     }}>
 
       {/* ══ HEADER ═══════════════════════════════════════════════════════════ */}
-      <div>
-        <div style={{ fontSize: 15, fontWeight: 800, color: th.text }}>
-          🔍 Scheme URL Verifier
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: th.text }}>
+            🔍 Scheme URL Verifier
+          </div>
+          <div style={{ fontSize: 11, color: th.textSub, marginTop: 3 }}>
+            Ping apply URLs · Detect dead links · Extract deadlines via AI
+          </div>
         </div>
-        <div style={{ fontSize: 11, color: th.textSub, marginTop: 3 }}>
-          Ping apply URLs · Detect dead links · Extract deadlines via AI
-        </div>
+        {/* Quick DB stat */}
+        {!running && results.length === 0 && (
+          <div style={{
+            textAlign:  "right",
+            fontSize:   10,
+            color:      th.textSub,
+            lineHeight: 1.6,
+          }}>
+            <span style={{ fontWeight: 800, color: NAVY, fontSize: 13 }}>
+              {getDBStats().verifiable}
+            </span>
+            {" "}verifiable<br />
+            <span style={{ fontSize: 9 }}>of {getDBStats().total} total</span>
+          </div>
+        )}
       </div>
 
       {/* ══ CHECKPOINT BANNER ════════════════════════════════════════════════ */}
       {checkpointLoaded && checkpoint && !running && results.length === 0 && (
         <div style={{
-          background: dark ? "rgba(255,153,51,0.07)" : "rgba(255,153,51,0.09)",
-          border:     `1.5px solid ${SAFFRON}50`,
+          background:   dark ? "rgba(255,153,51,0.07)" : "rgba(255,153,51,0.09)",
+          border:       `1.5px solid ${SAFFRON}50`,
           borderRadius: 12,
-          padding: "12px 14px",
-          display: "flex", gap: 10, alignItems: "center",
+          padding:      "12px 14px",
+          display:      "flex",
+          gap:          10,
+          alignItems:   "center",
         }}>
           <div style={{ fontSize: 20, flexShrink: 0 }}>⏸️</div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -1157,9 +1567,13 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             <div
               onClick={() => handleStart(checkpoint.completedIndex)}
               style={{
-                padding: "6px 12px", borderRadius: 8,
-                fontSize: 11, fontWeight: 700,
-                background: SAFFRON, color: "#fff", cursor: "pointer",
+                padding:      "6px 12px",
+                borderRadius: 8,
+                fontSize:     11,
+                fontWeight:   700,
+                background:   SAFFRON,
+                color:        "#fff",
+                cursor:       "pointer",
               }}
             >
               Resume
@@ -1167,9 +1581,13 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             <div
               onClick={async () => { await clearCheckpoint(); setCheckpoint(null); }}
               style={{
-                padding: "6px 12px", borderRadius: 8,
-                fontSize: 11, fontWeight: 700,
-                background: th.border, color: th.textMid, cursor: "pointer",
+                padding:      "6px 12px",
+                borderRadius: 8,
+                fontSize:     11,
+                fontWeight:   700,
+                background:   th.border,
+                color:        th.textMid,
+                cursor:       "pointer",
               }}
             >
               Dismiss
@@ -1178,7 +1596,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         </div>
       )}
 
-      {/* ══ DB COVERAGE CARD — always visible when idle ══════════════════════ */}
+      {/* ══ DB COVERAGE CARD — idle only ═════════════════════════════════════ */}
       {!running && results.length === 0 && (
         <DBCoverageCard dark={dark} />
       )}
@@ -1186,40 +1604,58 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       {/* ══ CONFIG PANEL — hidden once run has results ════════════════════════ */}
       {!running && results.length === 0 && (
         <div style={{
-          background: th.card,
-          border: `1.5px solid ${th.border}`,
-          borderRadius: 16,
-          padding: "16px",
-          display: "flex", flexDirection: "column", gap: 10,
+          background:    th.card,
+          border:        `1.5px solid ${th.border}`,
+          borderRadius:  16,
+          padding:       "16px",
+          display:       "flex",
+          flexDirection: "column",
+          gap:           10,
         }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
             ⚙️ Verification Settings
           </div>
 
-          {/* Scope + Priority */}
-          <div style={{ display: "flex", gap: 8 }}>
-            <select
-              value={scopeMode}
-              onChange={e => { setScopeMode(e.target.value); setSelectedState(""); }}
-              style={selectSt}
-            >
-              <option value="all">🌍 All Schemes</option>
-              <option value="national">🏛️ National Only</option>
-              <option value="state">📍 By State</option>
-            </select>
-            <select
-              value={priorityFilter}
-              onChange={e => setPriorityFilter(e.target.value)}
-              style={selectSt}
-            >
-              <option value="all">⭐ All Priority</option>
-              <option value="hasDate">📅 Has Deadline</option>
-              <option value="neverVerified">🆕 Never Verified</option>
-              <option value="stale">🕰️ Stale (30d+)</option>
-            </select>
+          {/* ── Scope: pill button group (cleaner than native select for 3 options) ── */}
+          <div>
+            <div style={{ fontSize: 10, color: th.textSub, marginBottom: 5, fontWeight: 600 }}>
+              Scope
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {[
+                ["all",      "🌍 All"],
+                ["national", "🏛️ National"],
+                ["state",    "📍 By State"],
+              ].map(([val, label]) => {
+                const active = scopeMode === val;
+                return (
+                  <div
+                    key={val}
+                    onClick={() => { setScopeMode(val); setSelectedState(""); }}
+                    style={{
+                      flex:       1,
+                      padding:    "7px 6px",
+                      borderRadius: 9,
+                      textAlign:  "center",
+                      fontSize:   11,
+                      fontWeight: 700,
+                      cursor:     "pointer",
+                      border:     `1.5px solid ${active ? NAVY : th.border}`,
+                      background: active
+                        ? (dark ? "rgba(0,53,128,0.22)" : "rgba(0,53,128,0.08)")
+                        : "transparent",
+                      color:      active ? NAVY : th.textMid,
+                      transition: "all 0.14s",
+                    }}
+                  >
+                    {label}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* State picker — only when scope=state */}
+          {/* State picker — only when scope = state */}
           {scopeMode === "state" && (
             <select
               value={selectedState}
@@ -1233,47 +1669,75 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             </select>
           )}
 
+          {/* Priority filter (kept as select — has 4 options) */}
+          <div>
+            <div style={{ fontSize: 10, color: th.textSub, marginBottom: 5, fontWeight: 600 }}>
+              Priority
+            </div>
+            <select
+              value={priorityFilter}
+              onChange={e => setPriorityFilter(e.target.value)}
+              style={{ ...selectSt, flex: "none", width: "100%" }}
+            >
+              <option value="all">⭐ All Priority</option>
+              <option value="hasDate">📅 Has Deadline</option>
+              <option value="neverVerified">🆕 Never Verified</option>
+              <option value="stale">🕰️ Stale (30d+)</option>
+            </select>
+          </div>
+
           {/* Tier toggle */}
-          <div style={{ display: "flex", gap: 6 }}>
-            {[
-              [1,      "Tier 1",  "Dead-link ping · fast"],
-              [2,      "Tier 2",  "AI date extract · slow"],
-              ["both", "Both",    "Full check · thorough"],
-            ].map(([val, label, sub]) => {
-              const active = tier === val;
-              return (
-                <div
-                  key={val}
-                  onClick={() => setTier(val)}
-                  style={{
-                    flex: 1, padding: "8px 10px", borderRadius: 10,
-                    cursor: "pointer",
-                    border: `1.5px solid ${active ? NAVY : th.border}`,
-                    background: active
-                      ? (dark ? "rgba(0,53,128,0.2)" : "rgba(0,53,128,0.07)")
-                      : "transparent",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  <div style={{
-                    fontSize: 11, fontWeight: 700,
-                    color: active ? NAVY : th.text,
-                  }}>
-                    {label}
+          <div>
+            <div style={{ fontSize: 10, color: th.textSub, marginBottom: 5, fontWeight: 600 }}>
+              Check Mode
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {[
+                [1,      "Tier 1",  "Dead-link ping · fast"],
+                [2,      "Tier 2",  "AI date extract · slow"],
+                ["both", "Both",    "Full check · thorough"],
+              ].map(([val, label, sub]) => {
+                const active = tier === val;
+                return (
+                  <div
+                    key={val}
+                    onClick={() => setTier(val)}
+                    style={{
+                      flex:       1,
+                      padding:    "8px 10px",
+                      borderRadius: 10,
+                      cursor:     "pointer",
+                      border:     `1.5px solid ${active ? NAVY : th.border}`,
+                      background: active
+                        ? (dark ? "rgba(0,53,128,0.2)" : "rgba(0,53,128,0.07)")
+                        : "transparent",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    <div style={{
+                      fontSize:   11,
+                      fontWeight: 700,
+                      color:      active ? NAVY : th.text,
+                    }}>
+                      {label}
+                    </div>
+                    <div style={{ fontSize: 9, color: th.textSub, marginTop: 2 }}>
+                      {sub}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 9, color: th.textSub, marginTop: 2 }}>
-                    {sub}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
           {/* Preview count pill */}
           <div style={{
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "9px 13px",
-            background: th.card2, borderRadius: 9,
+            display:        "flex",
+            justifyContent: "space-between",
+            alignItems:     "center",
+            padding:        "9px 13px",
+            background:     th.card2,
+            borderRadius:   9,
           }}>
             <span style={{ fontSize: 11, color: th.textMid }}>Schemes in queue:</span>
             <span style={{ fontSize: 14, fontWeight: 800, color: NAVY }}>
@@ -1286,10 +1750,13 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           {/* Tier 2 / Both warning */}
           {(tier === 2 || tier === "both") && (
             <div style={{
-              padding: "8px 12px", borderRadius: 8,
-              background: dark ? "rgba(245,158,11,0.06)" : "rgba(245,158,11,0.08)",
-              border: `1px solid ${AMBER}30`,
-              fontSize: 10, color: th.textMid, lineHeight: 1.5,
+              padding:      "8px 12px",
+              borderRadius: 8,
+              background:   dark ? "rgba(245,158,11,0.06)" : "rgba(245,158,11,0.08)",
+              border:       `1px solid ${AMBER}30`,
+              fontSize:     10,
+              color:        th.textMid,
+              lineHeight:   1.5,
             }}>
               ⚠️ Tier 2 calls <strong style={{ color: th.text }}>/api/verify-scheme</strong> for
               each priority scheme — uses Groq credits. Tier 1 is free and much faster.
@@ -1300,12 +1767,15 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           <div
             onClick={canStart ? () => handleStart(0) : undefined}
             style={{
-              padding: "13px", borderRadius: 12, textAlign: "center",
-              background: canStart
+              padding:      "13px",
+              borderRadius: 12,
+              textAlign:    "center",
+              background:   canStart
                 ? `linear-gradient(135deg, ${NAVY} 0%, #004db3 100%)`
                 : th.border,
               color:      canStart ? "#fff" : th.textSub,
-              fontWeight: 800, fontSize: 13,
+              fontWeight: 800,
+              fontSize:   13,
               cursor:     canStart ? "pointer" : "default",
               opacity:    canStart ? 1 : 0.5,
               transition: "all 0.2s",
@@ -1327,7 +1797,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       {running && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 
-          {/* Live scanner card — includes progress bar + active settings */}
+          {/* Live scanner card */}
           <LiveSchemeCard
             schemeName={currentScheme}
             index={progress?.index || 0}
@@ -1336,6 +1806,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             scopeFilter={scopeFilter}
             priorityFilter={priorityFilter}
             tier={tier}
+            elapsed={elapsed}
+            speed={speed}
+            eta={eta}
           />
 
           {/* Pause + Stop buttons */}
@@ -1343,30 +1816,44 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             <div
               onClick={handlePause}
               style={{
-                flex: 1, padding: "10px", borderRadius: 10,
-                textAlign: "center",
-                fontSize: 12, fontWeight: 700,
-                background: dark ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.08)",
-                border: `1.5px solid ${AMBER}50`,
-                color: AMBER, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                flex:           1,
+                padding:        "10px",
+                borderRadius:   10,
+                textAlign:      "center",
+                fontSize:       12,
+                fontWeight:     700,
+                background:     dark ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.08)",
+                border:         `1.5px solid ${AMBER}50`,
+                color:          AMBER,
+                cursor:         "pointer",
+                display:        "flex",
+                alignItems:     "center",
+                justifyContent: "center",
+                gap:            6,
               }}
             >
-              ⏸ Pause
+              ⏸ Pause & Save
             </div>
             <div
               onClick={handleStop}
               style={{
-                flex: 1, padding: "10px", borderRadius: 10,
-                textAlign: "center",
-                fontSize: 12, fontWeight: 700,
-                background: "rgba(220,38,38,0.08)",
-                border: `1.5px solid ${RED}40`,
-                color: RED, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                flex:           1,
+                padding:        "10px",
+                borderRadius:   10,
+                textAlign:      "center",
+                fontSize:       12,
+                fontWeight:     700,
+                background:     "rgba(220,38,38,0.08)",
+                border:         `1.5px solid ${RED}40`,
+                color:          RED,
+                cursor:         "pointer",
+                display:        "flex",
+                alignItems:     "center",
+                justifyContent: "center",
+                gap:            6,
               }}
             >
-              ⏹ Stop
+              ⏹ Stop & Discard
             </div>
           </div>
 
@@ -1388,11 +1875,13 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           background: wasAborted
             ? (dark ? "rgba(220,38,38,0.07)" : "rgba(220,38,38,0.06)")
             : (dark ? "rgba(19,136,8,0.07)"  : "rgba(19,136,8,0.06)"),
-          border: `1.5px solid ${(wasAborted ? RED : IND_GREEN)}40`,
+          border:       `1.5px solid ${(wasAborted ? RED : IND_GREEN)}40`,
           borderRadius: 12,
-          padding: "10px 14px",
-          display: "flex", alignItems: "center", gap: 10,
-          animation: "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
+          padding:      "10px 14px",
+          display:      "flex",
+          alignItems:   "center",
+          gap:          10,
+          animation:    "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
         }}>
           <span style={{ fontSize: 18 }}>{wasAborted ? "🛑" : "✅"}</span>
           <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: th.text }}>
@@ -1400,22 +1889,51 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             <span style={{ fontWeight: 500, color: th.textMid, marginLeft: 6 }}>
               · {results.length} scheme{results.length !== 1 ? "s" : ""} checked
             </span>
+            {elapsed > 0 && (
+              <span style={{ fontWeight: 400, color: th.textSub, marginLeft: 6, fontSize: 11 }}>
+                in {fmtDuration(elapsed)}
+              </span>
+            )}
           </div>
-          <div
-            onClick={handleReset}
-            style={{
-              padding: "5px 12px", borderRadius: 8,
-              fontSize: 11, fontWeight: 700,
-              background: th.border, color: th.textMid, cursor: "pointer",
-              flexShrink: 0,
-            }}
-          >
-            ↺ New Run
+          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            {/* Export CSV */}
+            <div
+              onClick={handleExport}
+              style={{
+                padding:      "5px 10px",
+                borderRadius: 8,
+                fontSize:     11,
+                fontWeight:   700,
+                background:   dark ? `${IND_GREEN}18` : `${IND_GREEN}10`,
+                border:       `1px solid ${IND_GREEN}40`,
+                color:        IND_GREEN,
+                cursor:       "pointer",
+                flexShrink:   0,
+              }}
+            >
+              ⬇ CSV
+            </div>
+            {/* New Run */}
+            <div
+              onClick={handleReset}
+              style={{
+                padding:      "5px 12px",
+                borderRadius: 8,
+                fontSize:     11,
+                fontWeight:   700,
+                background:   th.border,
+                color:        th.textMid,
+                cursor:       "pointer",
+                flexShrink:   0,
+              }}
+            >
+              ↺ New Run
+            </div>
           </div>
         </div>
       )}
 
-      {/* ══ RUN REPORT — post-run only ═════════════════════════════════════ */}
+      {/* ══ RUN REPORT — post-run only ═════════════════════════════════════════ */}
       {summary && !running && (
         <RunSummaryCard
           summary={summary}
@@ -1424,31 +1942,59 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           tier={tier}
           wasAborted={wasAborted}
           dark={dark}
+          onExport={results.length > 0 ? handleExport : null}
         />
       )}
 
       {/* ══ RESULTS LIST ═════════════════════════════════════════════════════ */}
       {results.length > 0 && (
         <div style={{
-          background: th.card,
-          border: `1.5px solid ${th.border}`,
+          background:   th.card,
+          border:       `1.5px solid ${th.border}`,
           borderRadius: 16,
-          overflow: "hidden",
+          overflow:     "hidden",
         }}>
-          {/* Header + filter pills */}
+          {/* Header: title + search + filter pills */}
           <div style={{
-            padding: "10px 14px",
+            padding:      "10px 14px",
             borderBottom: `1px solid ${th.border}`,
-            display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center",
+            display:      "flex",
+            gap:          8,
+            flexWrap:     "wrap",
+            alignItems:   "center",
           }}>
             <span style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
               Results
             </span>
             <span style={{ fontSize: 10, color: th.textSub }}>
-              ({filteredResults.length})
+              ({filteredResults.length}
+              {searchQuery && ` of ${results.length}`})
             </span>
+
+            {/* Search input */}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              placeholder="Search schemes…"
+              style={{
+                flex:         "1 1 110px",
+                minWidth:     80,
+                maxWidth:     200,
+                padding:      "4px 9px",
+                borderRadius: 8,
+                border:       `1.5px solid ${searchQuery ? NAVY : th.border}`,
+                background:   th.inputBg,
+                color:        th.text,
+                fontSize:     10,
+                fontFamily:   "inherit",
+                outline:      "none",
+              }}
+            />
+
             <div style={{ flex: 1 }} />
 
+            {/* Status filter pills */}
             {[
               ["all",        "All",         th.textMid, th.border],
               ["active",     "✅ Active",    IND_GREEN,  `${IND_GREEN}40`],
@@ -1460,14 +2006,16 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 key={key}
                 onClick={() => { setResultFilter(key); setPage(1); }}
                 style={{
-                  padding: "3px 9px", borderRadius: 10,
-                  fontSize: 9, fontWeight: 700,
+                  padding:      "3px 9px",
+                  borderRadius: 10,
+                  fontSize:     9,
+                  fontWeight:   700,
                   color,
-                  background: resultFilter === key ? bg : "transparent",
-                  border: `1.5px solid ${resultFilter === key ? color : th.border}`,
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                  whiteSpace: "nowrap",
+                  background:   resultFilter === key ? bg : "transparent",
+                  border:       `1.5px solid ${resultFilter === key ? color : th.border}`,
+                  cursor:       "pointer",
+                  transition:   "all 0.15s",
+                  whiteSpace:   "nowrap",
                 }}
               >
                 {label}
@@ -1478,7 +2026,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           {/* Rows */}
           <div>
             {pageSlice.length === 0 ? (
-              <EmptyState message="No results in this category" dark={dark} />
+              <EmptyState
+                message={searchQuery ? `No results for "${searchQuery}"` : "No results in this category"}
+                dark={dark}
+              />
             ) : (
               pageSlice.map((r, i) => (
                 <ResultRow
@@ -1490,39 +2041,74 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             )}
           </div>
 
-          {/* Pagination */}
+          {/* Numbered pagination */}
           {totalPages > 1 && (
             <div style={{
-              padding: "10px 14px",
-              borderTop: `1px solid ${th.border}`,
-              display: "flex", justifyContent: "center", alignItems: "center", gap: 10,
+              padding:        "10px 14px",
+              borderTop:      `1px solid ${th.border}`,
+              display:        "flex",
+              justifyContent: "center",
+              alignItems:     "center",
+              gap:            4,
+              flexWrap:       "wrap",
             }}>
+              {/* Prev */}
               <div
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => page > 1 && setPage(p => p - 1)}
                 style={{
-                  padding: "6px 14px", borderRadius: 8,
-                  fontSize: 11, fontWeight: 700,
-                  background: th.border,
-                  color: page <= 1 ? th.textSub : th.text,
-                  cursor: page <= 1 ? "default" : "pointer",
+                  padding:      "5px 10px",
+                  borderRadius: 7,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  background:   th.border,
+                  color:        page <= 1 ? th.textSub : th.text,
+                  cursor:       page <= 1 ? "default" : "pointer",
+                  userSelect:   "none",
                 }}
               >
-                ← Prev
+                ←
               </div>
-              <div style={{ fontSize: 11, color: th.textMid }}>
-                {page} / {totalPages}
-              </div>
+
+              {/* Numbered page buttons */}
+              {pageRange[0] > 1 && (
+                <>
+                  <div onClick={() => setPage(1)} style={pageBtn(1 === page, th)}>1</div>
+                  {pageRange[0] > 2 && (
+                    <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
+                  )}
+                </>
+              )}
+              {pageRange.map(p => (
+                <div key={p} onClick={() => setPage(p)} style={pageBtn(p === page, th, NAVY)}>
+                  {p}
+                </div>
+              ))}
+              {pageRange[pageRange.length - 1] < totalPages && (
+                <>
+                  {pageRange[pageRange.length - 1] < totalPages - 1 && (
+                    <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
+                  )}
+                  <div onClick={() => setPage(totalPages)} style={pageBtn(totalPages === page, th)}>
+                    {totalPages}
+                  </div>
+                </>
+              )}
+
+              {/* Next */}
               <div
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => page < totalPages && setPage(p => p + 1)}
                 style={{
-                  padding: "6px 14px", borderRadius: 8,
-                  fontSize: 11, fontWeight: 700,
-                  background: th.border,
-                  color: page >= totalPages ? th.textSub : th.text,
-                  cursor: page >= totalPages ? "default" : "pointer",
+                  padding:      "5px 10px",
+                  borderRadius: 7,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  background:   th.border,
+                  color:        page >= totalPages ? th.textSub : th.text,
+                  cursor:       page >= totalPages ? "default" : "pointer",
+                  userSelect:   "none",
                 }}
               >
-                Next →
+                →
               </div>
             </div>
           )}
@@ -1567,4 +2153,21 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
     </div>
   );
+}
+
+// ─── PAGE BUTTON STYLE HELPER ─────────────────────────────────────────────────
+function pageBtn(active, th, activeColor = th?.text) {
+  return {
+    minWidth:     28,
+    padding:      "5px 7px",
+    borderRadius: 7,
+    textAlign:    "center",
+    fontSize:     11,
+    fontWeight:   active ? 800 : 600,
+    cursor:       active ? "default" : "pointer",
+    background:   active ? (activeColor ?? th.text) : th.border,
+    color:        active ? "#fff" : th.textMid,
+    userSelect:   "none",
+    transition:   "background 0.12s",
+  };
 }
