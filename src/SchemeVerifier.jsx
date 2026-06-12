@@ -251,6 +251,15 @@ function exportResultsCSV(results) {
       0%   { background-position: -200% center; }
       100% { background-position:  200% center; }
     }
+    @keyframes sv-mini-ping {
+      0%   { box-shadow: 0 0 0 0 currentColor; opacity: 0.9; }
+      70%  { box-shadow: 0 0 0 7px currentColor; opacity: 0; }
+      100% { box-shadow: 0 0 0 7px transparent;  opacity: 0; }
+    }
+    @keyframes sv-mini-sheen {
+      0%   { transform: translateX(-120%) skewX(-15deg); }
+      100% { transform: translateX(220%)  skewX(-15deg); }
+    }
   `;
   document.head.appendChild(s);
 }());
@@ -258,25 +267,103 @@ function exportResultsCSV(results) {
 
 function MiniCard({ label, value, color, dark }) {
   const th      = THEME[dark ? "dark" : "light"];
-  const display = useCountUp(value ?? 0);
+  const display = useCountUp(value ?? 0, 420);
+
+  // Flash a glow/pulse pulse for ~500ms every time the value ticks up.
+  const [flash, setFlash]   = useState(false);
+  const prevValRef          = useRef(value ?? 0);
+
+  useEffect(() => {
+    if (value == null) return;
+    if (value !== prevValRef.current) {
+      prevValRef.current = value;
+      setFlash(true);
+      const t = setTimeout(() => setFlash(false), 520);
+      return () => clearTimeout(t);
+    }
+  }, [value]);
 
   return (
     <div style={{
-      background:   th.card,
-      border:       `1.5px solid ${th.border}`,
-      borderTop:    `3px solid ${color}`,
-      borderRadius: 12,
-      padding:      "10px 11px",
-      flex:         "1 1 70px",
-      minWidth:     70,
+      position:     "relative",
+      flex:         "1 1 76px",
+      minWidth:     78,
+      borderRadius: 14,
+      padding:      "11px 12px 9px",
+      overflow:     "hidden",
+      background:   dark
+        ? `linear-gradient(150deg, ${th.card2} 0%, ${th.card} 75%)`
+        : `linear-gradient(150deg, #ffffff 0%, ${th.card2} 100%)`,
+      border:       `1px solid ${flash ? `${color}aa` : th.border}`,
+      boxShadow:    flash
+        ? `0 0 0 1px ${color}33, 0 6px 20px -6px ${color}66, inset 0 0 16px -4px ${color}40`
+        : `0 1px 2px rgba(0,0,0,${dark ? 0.35 : 0.04})`,
+      transform:    flash ? "translateY(-2px) scale(1.02)" : "translateY(0) scale(1)",
+      transition:   "border-color 0.3s ease, box-shadow 0.3s ease, transform 0.35s cubic-bezier(.34,1.56,.64,1)",
     }}>
+      {/* top accent strip — brightens on tick */}
       <div style={{
-        fontSize: 18, fontWeight: 800, color: th.text,
+        position:   "absolute", top: 0, left: 0, right: 0, height: 3,
+        background: `linear-gradient(90deg, ${color}99, ${color}, ${color}99)`,
+        boxShadow:  flash ? `0 0 12px 1px ${color}` : "none",
+        opacity:    flash ? 1 : 0.85,
+        transition: "box-shadow 0.3s ease, opacity 0.3s ease",
+      }} />
+
+      {/* diagonal sheen sweep on tick */}
+      {flash && (
+        <div style={{
+          position:   "absolute", top: 0, left: 0,
+          width:      "40%", height: "100%",
+          background: `linear-gradient(100deg, transparent, ${color}30, transparent)`,
+          animation:  "sv-mini-sheen 0.55s ease-out",
+          pointerEvents: "none",
+        }} />
+      )}
+
+      {/* big number */}
+      <div style={{
+        position:   "relative",
+        fontSize:   22,
+        fontWeight: 800,
+        color:      th.text,
         lineHeight: 1,
+        fontFamily: "'SF Mono','Roboto Mono','Courier New',monospace",
+        letterSpacing: -0.5,
+        textShadow: flash ? `0 0 14px ${color}90` : "none",
+        transition: "text-shadow 0.3s ease",
       }}>
         {display}
       </div>
-      <div style={{ fontSize: 9, color: th.textSub, marginTop: 2, fontWeight: 500 }}>
+
+      {/* label + live status dot */}
+      <div style={{
+        position:      "relative",
+        display:       "flex",
+        alignItems:    "center",
+        gap:           5,
+        marginTop:     4,
+        fontSize:      9,
+        fontWeight:    700,
+        letterSpacing: 0.7,
+        textTransform: "uppercase",
+        color:         th.textSub,
+      }}>
+        <span style={{ position: "relative", width: 6, height: 6, flexShrink: 0 }}>
+          <span style={{
+            position:     "absolute", inset: 0,
+            borderRadius: "50%",
+            background:   color,
+          }} />
+          {flash && (
+            <span style={{
+              position:     "absolute", inset: 0,
+              borderRadius: "50%",
+              color,
+              animation:    "sv-mini-ping 0.55s ease-out",
+            }} />
+          )}
+        </span>
         {label}
       </div>
     </div>
