@@ -408,6 +408,12 @@ export async function runVerification({
       result.isActive   = ai.isActive;
       result.confidence = ai.confidence;
 
+      // Sync alive from T2 isActive so buildSummary shows correct Active/Dead/NoResp
+      // in T2-only runs where Tier 1 ping is skipped (alive would otherwise stay null).
+      if (result.alive === null) {
+        result.alive = ai.isActive; // true / false / null (null = page unreachable)
+      }
+
       // Append AI error (if any) without overwriting ping error
       if (ai.error) {
         result.error = result.error
