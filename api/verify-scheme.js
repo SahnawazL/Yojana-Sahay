@@ -5,7 +5,7 @@
 //
 // Flow:
 //   1. Receive POST { id, url, name, state, scope }
-//   2. Fetch the live page via allorigins CORS proxy → get raw HTML
+//   2. Fetch the live page DIRECTLY from Vercel server (no proxy) → get raw HTML
 //   3. Strip tags → clean readable text (truncated to MAX_PAGE_CHARS)
 //   4. Send to Groq with a tightly-scoped JSON-only extraction prompt
 //   5. Return { lastDate: "YYYY-MM-DD" | null, isActive: bool | null, confidence: 0–1 }
@@ -17,11 +17,16 @@
 //         can handle them gracefully without crashing the run.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
-const ALLORIGINS_GET = "https://api.allorigins.win/get?url=";
-const MODEL          = "llama-3.3-70b-versatile";
-const FETCH_TIMEOUT  = 12000;   // 12 s — gov sites are often slow
+const GROQ_URL      = "https://api.groq.com/openai/v1/chat/completions";
+const MODEL         = "llama-3.3-70b-versatile";
+const FETCH_TIMEOUT = 8000;     // 8 s — keeps total fn time safely under Vercel limit
 const MAX_PAGE_CHARS = 4000;    // truncate stripped text to keep tokens low
+
+// Mimic a real browser to avoid bot-detection blocks (same as ping-url.js)
+const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+  "AppleWebKit/537.36 (KHTML, like Gecko) " +
+  "Chrome/124.0.0.0 Safari/537.36";
 
 
 // ── Key loader (identical to chat.js) ────────────────────────────────────────
@@ -96,7 +101,8 @@ async function callGroq(keys, bodyObject) {
 
 
 // ── Page fetcher + HTML stripper ──────────────────────────────────────────────
-// Uses the same allorigins proxy as Tier 1 in verifySchemes.js.
+// Direct server-side fetch from Vercel (same approach as ping-url.js).
+// No allorigins proxy — those IPs are blacklisted by .gov.in sites.
 // Returns { text, httpStatus, error }
 
 async function fetchPageText(url) {
@@ -104,17 +110,21 @@ async function fetchPageText(url) {
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
   try {
-    const proxyUrl = `${ALLORIGINS_GET}${encodeURIComponent(url)}`;
-    const res      = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await fetch(url, {
+      method:  "GET",
+      signal:  controller.signal,
+      headers: { "User-Agent": USER_AGENT },
+      redirect: "follow",
+    });
     clearTimeout(timer);
 
+    const httpStatus = res.status;
+
     if (!res.ok) {
-      return { text: null, httpStatus: 0, error: `allorigins ${res.status}` };
+      return { text: null, httpStatus, error: `HTTP ${httpStatus}` };
     }
 
-    const json       = await res.json();
-    const httpStatus = json?.status?.http_code ?? 0;
-    const raw        = json?.contents ?? "";
+    const raw = await res.text();
 
     if (!raw) {
       return { text: null, httpStatus, error: "empty page content" };
@@ -198,11 +208,10 @@ export default async function handler(req, res) {
 
   console.log(`[verify-scheme] Checking: "${name}" (${state}) → ${url}`);
 
-  // ── Step 1: Fetch the live page ───────────────────────────────────────────
+  // ── Step 1: Fetch the live page (direct, no proxy) ────────────────────────
   const { text, httpStatus, error: fetchError } = await fetchPageText(url);
 
   // If page is dead (4xx/5xx) or unreachable, skip the AI call and return early.
-  // isActive:false with confidence:0.7 for definite 4xx; null/0 for network issues.
   if (!text) {
     console.warn(`[verify-scheme] Page fetch failed for "${name}": ${fetchError}`);
     return res.status(200).json({
@@ -220,6 +229,7 @@ export default async function handler(req, res) {
     model:       MODEL,
     max_tokens:  80,    // {"lastDate":"2026-03-31","isActive":true,"confidence":0.9} fits in ~25 tokens
     temperature: 0.1,   // near-deterministic — extraction, not generation
+    response_format: { type: "json_object" }, // guarantees valid JSON, eliminates parse failures
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user",   content: userPrompt   },
@@ -256,7 +266,6 @@ export default async function handler(req, res) {
   }
 
   // ── Step 4: Sanitize + return ─────────────────────────────────────────────
-  // Enforce correct types — never trust the model blindly.
   const result = {
     lastDate:
       typeof parsed.lastDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parsed.lastDate)
