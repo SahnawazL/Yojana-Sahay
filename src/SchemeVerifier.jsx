@@ -96,6 +96,65 @@ function useCountUp(target, duration = 500) {
 }
 
 
+// ─── ROLLING DIGITS (odometer-style number) ──────────────────────────────────
+// Renders a number as a row of independently-rolling digit reels, each sliding
+// vertically through 0-9 to land on its new value. Pairs nicely with
+// useCountUp's rapid value changes for a smooth, "techy" tachometer feel.
+
+function RollingDigit({ digit }) {
+  return (
+    <span
+      style={{
+        display:       "inline-block",
+        position:      "relative",
+        width:         "0.62em",
+        height:        "1em",
+        overflow:      "hidden",
+        verticalAlign: "top",
+      }}
+    >
+      <span
+        style={{
+          position:   "absolute",
+          left:       0,
+          top:        0,
+          width:      "100%",
+          transform:  `translateY(${-digit * 10}%)`,
+          transition: "transform 0.4s cubic-bezier(.22,1,.36,1)",
+        }}
+      >
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+          <span
+            key={d}
+            style={{
+              display:    "block",
+              height:     "1em",
+              lineHeight: "1em",
+              textAlign:  "center",
+            }}
+          >
+            {d}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+function RollingNumber({ value }) {
+  const str = String(Math.max(0, Math.round(value ?? 0)));
+  return (
+    <span style={{ display: "inline-flex" }}>
+      {str.split("").map((ch, i) =>
+        /[0-9]/.test(ch)
+          ? <RollingDigit key={i} digit={Number(ch)} />
+          : <span key={i} style={{ display: "inline-block" }}>{ch}</span>
+      )}
+    </span>
+  );
+}
+
+
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 /** Human-readable duration from milliseconds: "2m 34s", "47s", etc. */
@@ -333,7 +392,7 @@ function MiniCard({ label, value, color, dark }) {
         textShadow: flash ? `0 0 14px ${color}90` : "none",
         transition: "text-shadow 0.3s ease",
       }}>
-        {display}
+        <RollingNumber value={display} />
       </div>
 
       {/* label + live status dot */}
@@ -1134,7 +1193,7 @@ function TechStatCard({ label, value, color, dark }) {
         color:      hot ? color : th.textSub,
         fontFamily: "monospace",
       }}>
-        {display}
+        <RollingNumber value={display} />
       </div>
       <div style={{
         fontSize:   7,
