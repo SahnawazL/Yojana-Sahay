@@ -267,5 +267,389 @@
     "isActive": null,
     "httpStatus": null,
     "confidence": 0
+  },
+  "pmkisan": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0.5
+  },
+  "pmawas_rural": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmawas_urban": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0.5
+  },
+  "ayushman": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 403,
+    "confidence": 0
+  },
+  "scholarship": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "mudra": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "ujjwala": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0.5
+  },
+  "betibachao": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "vriddhapension": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmjdy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmjjby": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmsby": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "apy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmvishwakarma": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 0,
+    "confidence": 0.5
+  },
+  "pmsvanidhi": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "sukanya": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmmvy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 403,
+    "confidence": 0
+  },
+  "pmfby": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "mgnrega": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0.5
+  },
+  "pmkvy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "pmegp": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 0,
+    "confidence": 0.5
+  },
+  "standup_india": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "nfsa_pds": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "sbm_gramin": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 403,
+    "confidence": 0.5
+  },
+  "daynrlm": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmpsmy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmjay_senior": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 403,
+    "confidence": 0
+  },
+  "pmgsy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "jjm": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0.5
+  },
+  "ddu_gky": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "pmay_urban2": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0.5
+  },
+  "pm_poshan": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "ignwps": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "soil_health_card": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 403,
+    "confidence": 0
+  },
+  "e_shram": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "pmkmy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "nmmss": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pm_yasasvi": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pm_kusum": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 404,
+    "confidence": 0
+  },
+  "surya_ghar": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 403,
+    "confidence": 0
+  },
+  "nikshay_poshan": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "pm_svamitva": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "igndps": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "daynulm": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "pm_internship": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 404,
+    "confidence": 0
+  },
+  "annapurna": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pm_vidyalaxmi": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmvvy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmmsy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "startup_india": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pms_sc_st": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "naps": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmkmy_kisan": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmksy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 403,
+    "confidence": 0
+  },
+  "premat_st_scholarship": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmlvmy": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "seekho_kamao": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pm_daksh": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "csss": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "mcm_minority": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "free_coaching_sc": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pmfme": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "premat_sc": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "pms_obc": {
+    "lastVerified": "2026-06-13T07:59:21.382Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
   }
 }
