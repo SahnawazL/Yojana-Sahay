@@ -32,8 +32,26 @@ export default async function handler(req, res) {
       currentData = JSON.parse(decoded);
     }
 
-    // Step 2: Merge new results
-    const merged = { ...currentData, ...results };
+    // Step 2: Deep merge — preserve existing non-null fields when new run returns null.
+    // Shallow spread ({ ...currentData, ...results }) would replace entire entries,
+    // e.g. a Tier-2 run that finds nothing (isActive:null, httpStatus:null) would
+    // wipe out good Tier-1 data (isActive:true, httpStatus:200) already stored.
+    const merged = { ...currentData };
+    for (const [id, newEntry] of Object.entries(results)) {
+      const existing = currentData[id] || {};
+      const entry    = { ...existing };
+      for (const [k, v] of Object.entries(newEntry)) {
+        if (k === 'lastVerified') {
+          // Always update the timestamp so freshness row stays accurate
+          entry[k] = v;
+        } else if (v != null) {
+          // Only overwrite with a real value — never clobber good data with null
+          entry[k] = v;
+        }
+        // v === null → keep whatever was already stored for this field
+      }
+      merged[id] = entry;
+    }
     const encoded = Buffer.from(JSON.stringify(merged, null, 2)).toString('base64');
 
     // Step 3: Commit back to GitHub
