@@ -963,6 +963,38 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
               border:`1px solid ${isOnline?"#bbf7d0":"#e0e0e0"}`}}>
               {isOnline?"🌐 Online":"🏢 Offline"}
             </span>
+            {/* ── URL Health badge — from schemes-meta.json (written by verifier → GitHub → Vercel) ── */}
+            {(()=>{
+              const st=scheme.isActive;
+              const http=scheme.httpStatus??0;
+              const hasBeenChecked=scheme.lastVerified!=null;
+              // Determine error type label
+              const errLabel=(()=>{
+                if(http===404) return isHindi?"पेज नहीं मिला":"Page Not Found";
+                if(http===403) return isHindi?"एक्सेस ब्लॉक्ड":"Access Blocked";
+                if(http===401) return isHindi?"लॉगिन जरूरी":"Login Required";
+                if(http>=500)  return isHindi?"सर्वर एरर":"Server Error";
+                if(http===0)   return isHindi?"कोई जवाब नहीं":"No Response";
+                return isHindi?"लिंक खराब":"Dead Link";
+              })();
+              if(!isOnline) return null; // offline schemes have no URL to check
+              if(st===true) return(
+                <span style={{fontSize:9,fontWeight:700,background:"#F0FDF4",color:"#15803D",borderRadius:6,padding:"2px 7px",border:"1px solid #BBF7D0"}}>
+                  ✅ {isHindi?"लिंक ठीक है":"Link OK"}
+                </span>
+              );
+              if(st===false) return(
+                <span style={{fontSize:9,fontWeight:700,background:"#FEF2F2",color:"#DC2626",borderRadius:6,padding:"2px 7px",border:"1px solid #FECACA"}}>
+                  🔴 {errLabel}
+                </span>
+              );
+              if(!hasBeenChecked) return(
+                <span style={{fontSize:9,fontWeight:700,background:dark?"rgba(251,191,36,0.15)":"#FFFBEB",color:"#B45309",borderRadius:6,padding:"2px 7px",border:"1px solid #FDE68A"}}>
+                  ⚠️ {isHindi?"सत्यापन बाकी":"Unverified"}
+                </span>
+              );
+              return null;
+            })()}
             {/* Deadline badge — only shown when schemes-meta.json has lastDate for this scheme */}
             {scheme.lastDate&&(()=>{
               const now=Date.now();
@@ -1085,6 +1117,134 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
             {/* Apply CTA */}
             <div style={{padding:"0 16px 16px",display:"flex",flexDirection:"column",gap:8}}>
 
+              {/* ── URL Status detail panel — shown for dead/unverified online schemes ── */}
+              {isOnline&&(()=>{
+                const st=scheme.isActive;
+                const http=scheme.httpStatus??0;
+                const hasBeenChecked=scheme.lastVerified!=null;
+                // Data freshness
+                const checkedAgo=hasBeenChecked
+                  ?Math.floor((Date.now()-new Date(scheme.lastVerified).getTime())/(1000*60*60*24))
+                  :null;
+                const freshLabel=checkedAgo===0
+                  ?(isHindi?"आज जांचा गया":"Checked today")
+                  :checkedAgo===1
+                    ?(isHindi?"कल जांचा गया":"Checked yesterday")
+                    :checkedAgo!=null
+                      ?(isHindi?`${checkedAgo} दिन पहले जांचा गया`:`Checked ${checkedAgo} days ago`)
+                      :null;
+                const isStale=checkedAgo!=null&&checkedAgo>30;
+
+                // Dead link detail
+                const deadDetail=(()=>{
+                  if(http===404) return{
+                    title:isHindi?"यह पेज अब उपलब्ध नहीं है":"This page no longer exists",
+                    desc:isHindi?"सरकार ने इस लिंक को बदल दिया होगा। नीचे गूगल पर खोजें।":"The government may have moved this link. Search Google below for the correct URL.",
+                    safe:false,
+                  };
+                  if(http===403||http===401) return{
+                    title:isHindi?"वेबसाइट ने एक्सेस ब्लॉक किया":"Website is blocking access",
+                    desc:isHindi?"यह साइट लॉगिन मांगती है या हमारे सर्वर को ब्लॉक करती है। सीधे ब्राउज़र में खोलने की कोशिश करें।":"This site requires login or blocks automated access. Try opening it directly in your browser.",
+                    safe:true,
+                  };
+                  if(http>=500) return{
+                    title:isHindi?"सरकारी सर्वर अभी बंद है":"Government server is currently down",
+                    desc:isHindi?"सर्वर पर तकनीकी समस्या है। कुछ घंटे बाद दोबारा कोशिश करें।":"Technical issue on the server. Try again after a few hours.",
+                    safe:true,
+                  };
+                  if(http===0||st===false) return{
+                    title:isHindi?"वेबसाइट ने जवाब नहीं दिया":"Website did not respond",
+                    desc:isHindi?"साइट डाउन हो सकती है या हमारे सर्वर को ब्लॉक कर रही है। सीधे खोलकर देख सकते हैं।":"Site may be down or blocking our server. You can still try opening it directly.",
+                    safe:true,
+                  };
+                  return null;
+                })();
+
+                return(<>
+                  {/* Dead link panel */}
+                  {st===false&&deadDetail&&(
+                    <div style={{
+                      background:dark?"rgba(220,38,38,0.08)":"#FEF2F2",
+                      border:"1px solid #FECACA",borderRadius:10,
+                      padding:"10px 12px",
+                    }}>
+                      <div style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:8}}>
+                        <span style={{fontSize:15,flexShrink:0}}>🔴</span>
+                        <div>
+                          <div style={{fontSize:11,fontWeight:700,color:dark?"#FCA5A5":"#991B1B",marginBottom:3}}>
+                            {deadDetail.title}
+                          </div>
+                          <div style={{fontSize:10,color:dark?"#FCA5A5":"#7F1D1D",lineHeight:1.5}}>
+                            {deadDetail.desc}
+                          </div>
+                        </div>
+                      </div>
+                      {deadDetail.safe&&(
+                        <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}>
+                          <span style={{fontSize:9,background:"#D1FAE5",color:"#065F46",borderRadius:5,padding:"2px 6px",fontWeight:700,border:"1px solid #A7F3D0"}}>
+                            ✓ {isHindi?"खोलना सुरक्षित है":"Safe to open"}
+                          </span>
+                        </div>
+                      )}
+                      <div
+                        onClick={e=>{e.stopPropagation();haptic(30);googleSearchScheme(scheme.name.en);}}
+                        style={{
+                          display:"flex",alignItems:"center",justifyContent:"center",gap:5,
+                          background:"#EFF6FF",border:"1px solid #93C5FD",
+                          borderRadius:8,padding:"8px 10px",cursor:"pointer",
+                        }}>
+                        <span style={{fontSize:12}}>🔎</span>
+                        <span style={{fontSize:10,fontWeight:700,color:"#1D4ED8"}}>
+                          {isHindi?"गूगल पर सही लिंक खोजें →":"Find correct link on Google →"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Unverified panel */}
+                  {st==null&&!hasBeenChecked&&(
+                    <div style={{
+                      background:dark?"rgba(251,191,36,0.08)":"#FFFBEB",
+                      border:"1px solid #FDE68A",borderRadius:10,
+                      padding:"9px 12px",display:"flex",gap:8,alignItems:"flex-start",
+                    }}>
+                      <span style={{fontSize:14,flexShrink:0}}>⚠️</span>
+                      <div>
+                        <div style={{fontSize:11,fontWeight:700,color:dark?"#FCD34D":"#92400E",marginBottom:2}}>
+                          {isHindi?"अभी तक सत्यापित नहीं":"Not yet verified"}
+                        </div>
+                        <div style={{fontSize:10,color:dark?"#FDE68A":"#78350F",lineHeight:1.5}}>
+                          {isHindi?"हमारी टीम इस लिंक को जल्द सत्यापित करेगी। अभी के लिए गूगल पर खोजें।":"Our team is working on verifying this link. Search Google for accurate info for now."}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Freshness row — shown when checked */}
+                  {hasBeenChecked&&(
+                    <div style={{
+                      display:"flex",alignItems:"center",justifyContent:"space-between",
+                      background:dark?"rgba(255,255,255,0.03)":"#F9FAFB",
+                      border:`1px solid ${isStale?(dark?"rgba(251,191,36,0.3)":"#FDE68A"):(dark?"rgba(255,255,255,0.07)":"#E5E7EB")}`,
+                      borderRadius:8,padding:"6px 10px",
+                    }}>
+                      <span style={{fontSize:10,color:isStale?"#B45309":(dark?"#9CA3AF":"#6B7280")}}>
+                        🕐 {freshLabel}
+                        {isStale&&(isHindi?" · जानकारी पुरानी हो सकती है":" · Data may be outdated")}
+                      </span>
+                      <span style={{
+                        fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:5,
+                        background:st===true?"#D1FAE5":st===false?"#FEE2E2":"#F3F4F6",
+                        color:st===true?"#065F46":st===false?"#991B1B":"#6B7280",
+                        border:`1px solid ${st===true?"#A7F3D0":st===false?"#FECACA":"#E5E7EB"}`,
+                      }}>
+                        {st===true?(isHindi?"लिंक सक्रिय":"Link Active"):st===false?(isHindi?"लिंक खराब":"Link Down"):(isHindi?"अज्ञात":"Unknown")}
+                      </span>
+                    </div>
+                  )}
+                </>);
+              })()}
+
               {/* ── Expired info strip ── */}
               {scheme.lastDate&&new Date(scheme.lastDate).getTime()<Date.now()&&(
                 <div style={{
@@ -1108,26 +1268,38 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
               <div
                 onClick={()=>{
                   haptic();
+                  // Dead link interceptor — 404 = page gone, redirect to Google search
+                  if(applyUrl&&scheme.isActive===false&&scheme.httpStatus===404){
+                    googleSearchScheme(scheme.name.en);
+                    return;
+                  }
                   if(applyUrl) window.open(applyUrl,"_blank");
                   else googleSearchScheme(scheme.name.en);
                 }}
                 style={{
-                  background:applyUrl
-                    ?`linear-gradient(135deg,${scheme.color},${scheme.color}cc)`
-                    :`linear-gradient(135deg,#1D4ED8,#2563eb)`,
+                  background:applyUrl&&scheme.isActive===false&&scheme.httpStatus===404
+                    ?"linear-gradient(135deg,#6B7280,#9CA3AF)"
+                    :applyUrl
+                      ?`linear-gradient(135deg,${scheme.color},${scheme.color}cc)`
+                      :`linear-gradient(135deg,#1D4ED8,#2563eb)`,
                   borderRadius:14,padding:"13px 16px",
                   display:"flex",alignItems:"center",justifyContent:"space-between",
                   cursor:"pointer",
                   boxShadow:applyUrl?`0 4px 16px ${scheme.color}40`:"0 4px 16px rgba(37,99,235,0.35)",
+                  opacity:scheme.isActive===false&&scheme.httpStatus===404?0.85:1,
                 }}>
                 <div>
                   <div style={{fontSize:12,fontWeight:800,color:"#fff",fontFamily:bf}}>
-                    {scheme.lastDate&&new Date(scheme.lastDate).getTime()<Date.now()
-                      ?(isHindi?"आधिकारिक वेबसाइट देखें":"Check Official Website")
-                      :t.applyLabel}
+                    {scheme.isActive===false&&scheme.httpStatus===404
+                      ?(isHindi?"गूगल पर सही लिंक खोजें":"Search Google for Correct Link")
+                      :scheme.lastDate&&new Date(scheme.lastDate).getTime()<Date.now()
+                        ?(isHindi?"आधिकारिक वेबसाइट देखें":"Check Official Website")
+                        :t.applyLabel}
                   </div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:3}}>
-                    {applyUrl?"🌐 "+scheme.apply[lang]:"🔎 Find on Google"}
+                    {scheme.isActive===false&&scheme.httpStatus===404
+                      ?"🔎 "+scheme.name.en
+                      :applyUrl?"🌐 "+scheme.apply[lang]:"🔎 Find on Google"}
                   </div>
                 </div>
                 <div style={{
@@ -1136,7 +1308,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                   display:"flex",alignItems:"center",justifyContent:"center",
                   border:"1.5px solid rgba(255,255,255,0.3)",
                 }}>
-                  {applyUrl?"↗":"🔍"}
+                  {scheme.isActive===false&&scheme.httpStatus===404?"🔎":applyUrl?"↗":"🔍"}
                 </div>
               </div>
 
@@ -1916,7 +2088,12 @@ function SchemesTab({lang,dark=false}){
     if(deferredState!=="all"){
       base=base.filter(s=>s.scope==="national"||s.state===deferredState);
     }
-    return base;
+    // Rank: active(2) > unverified(1) > expired/dead(0)
+    const now=Date.now();
+    return [...base].sort((a,b)=>{
+      const sc=s=>(s.isActive===true?2:s.isActive===false||(s.lastDate&&new Date(s.lastDate).getTime()<now)?0:1);
+      return sc(b)-sc(a);
+    });
   },[deferredFilter,deferredState]);
 
   const national=useMemo(()=>filtered.filter(s=>s.scope==="national"),[filtered]);
