@@ -138,11 +138,9 @@
     "confidence": 0
   },
   "assam_basundhara": {
-    "lastVerified": "2026-06-12T19:51:24.544Z",
-    "isActive": false,
-    "httpStatus": null,
-    "lastDate": "2023-04-02",
-    "confidence": 1
+    "lastVerified": "2026-06-13T08:00:37.882Z",
+    "isActive": true,
+    "httpStatus": 200
   },
   "assam_arohan": {
     "lastVerified": "2026-06-12T19:51:24.544Z",
@@ -193,32 +191,24 @@
     "confidence": 0
   },
   "bihar_mahila_udyami": {
-    "lastVerified": "2026-06-12T19:47:25.011Z",
+    "lastVerified": "2026-06-13T08:00:37.882Z",
     "isActive": true,
-    "httpStatus": null,
-    "lastDate": "2026-06-24",
-    "confidence": 1
+    "httpStatus": 200
   },
   "bihar_sc_st_udyami": {
-    "lastVerified": "2026-06-12T19:47:25.011Z",
+    "lastVerified": "2026-06-13T08:00:37.882Z",
     "isActive": true,
-    "httpStatus": null,
-    "lastDate": "2026-06-24",
-    "confidence": 1
+    "httpStatus": 200
   },
   "bihar_yuva_udyami": {
-    "lastVerified": "2026-06-12T19:47:25.011Z",
+    "lastVerified": "2026-06-13T08:00:37.882Z",
     "isActive": true,
-    "httpStatus": null,
-    "lastDate": "2026-06-24",
-    "confidence": 1
+    "httpStatus": 200
   },
   "bihar_laghu_udyami": {
-    "lastVerified": "2026-06-12T19:47:25.011Z",
+    "lastVerified": "2026-06-13T08:00:37.882Z",
     "isActive": true,
-    "httpStatus": null,
-    "lastDate": "2026-06-24",
-    "confidence": 1
+    "httpStatus": 200
   },
   "bihar_student_credit_card": {
     "lastVerified": "2026-06-12T19:47:25.011Z",
