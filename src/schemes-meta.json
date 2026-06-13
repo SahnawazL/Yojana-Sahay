@@ -614,5 +614,72 @@
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0
+  },
+  "tn_pudhumai_penn": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "tn_magalir_urimai": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "tn_chief_minister_health": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 403,
+    "confidence": 0
+  },
+  "tn_moovalur_scholarship": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "tn_solar_green_house": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "tn_housing_board_ews": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "tn_scst_free_coaching": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "tn_needs_entrepreneur": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": true,
+    "httpStatus": 200,
+    "lastDate": "2025-01-05",
+    "confidence": 0.5
+  },
+  "tn_vetri_nichayam": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "tn_gig_worker_insurance": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "tn_kakkum_karangal": {
+    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "isActive": false,
+    "httpStatus": 0,
+    "confidence": 0
   }
 }
