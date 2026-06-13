@@ -8,7 +8,8 @@
 //   2. Fetch page content via Tavily Extract API (bypasses .gov.in IP blocks)
 //   3. Strip tags → clean readable text (truncated to MAX_PAGE_CHARS)
 //   4. Send to Groq with a tightly-scoped JSON-only extraction prompt
-//   5. Return { lastDate: "YYYY-MM-DD" | null, isActive: bool | null, confidence: 0–1 }
+//   5. Return { lastDate: "YYYY-MM-DD" | null, isActive: bool | null, confidence: 0–1,
+//               httpStatus: number }   ← Fix 2: real page status (0/200/4xx/5xx)
 //
 // KEY ROTATION: identical to chat.js — up to 6 Groq keys, round-robin,
 //               skip on 429.
@@ -99,6 +100,21 @@ async function callGroq(keys, bodyObject) {
 }
 
 
+// ── Extract an HTTP status code from a Tavily failure message ────────────────
+// Tavily's failed_results[].error is a free-text string (Tavily doesn't give a
+// structured status code for the *target* page). When the target itself
+// returned 404/403/5xx, that code is often embedded in the message
+// (e.g. "...404 Client Error...", "...status code: 403..."). Best-effort
+// regex pull so Tier 2 can surface real codes even when Tier 1's direct ping
+// timed out / was blocked and returned 0. If nothing 4xx/5xx-shaped is found,
+// returns 0 (unknown).
+function extractHttpStatusFromError(message) {
+  if (!message) return 0;
+  const match = message.match(/\b([45]\d{2})\b/);
+  return match ? Number(match[1]) : 0;
+}
+
+
 // ── Page fetcher via Tavily Extract ──────────────────────────────────────────
 // Tavily's crawler bypasses the IP blocks that stop direct Vercel → .gov.in
 // and allorigins → .gov.in fetches.
@@ -130,10 +146,13 @@ async function fetchPageText(url, tavilyKey) {
     const result = data.results?.[0];
     if (!result) {
       const failed = data.failed_results?.[0];
+      const errMsg = failed?.error ?? "Tavily: no result returned";
       return {
         text:       null,
-        httpStatus: 0,
-        error:      failed?.error ?? "Tavily: no result returned",
+        // Fix 2: pull a real 404/403/5xx out of the message when present,
+        // so it can land in schemes-meta.json instead of a bare 0.
+        httpStatus: extractHttpStatusFromError(errMsg),
+        error:      errMsg,
       };
     }
 
@@ -243,6 +262,7 @@ export default async function handler(req, res) {
       lastDate:   null,
       isActive:   httpStatus >= 400 ? false : null,
       confidence: httpStatus >= 400 ? 0.7   : 0,
+      httpStatus, // Fix 2: real 404/403/5xx (or 0 if unknown) for schemes-meta.json
       error:      fetchError ?? "no page content",
     });
   }
@@ -268,6 +288,7 @@ export default async function handler(req, res) {
       lastDate:   null,
       isActive:   null,
       confidence: 0,
+      httpStatus, // page fetched fine (we got `text`); this is its real status
       error:      msg,
     });
   }
@@ -285,6 +306,7 @@ export default async function handler(req, res) {
       lastDate:   null,
       isActive:   null,
       confidence: 0,
+      httpStatus, // page fetched fine (we got `text`); this is its real status
       error:      "JSON parse failed — raw: " + raw.slice(0, 100),
     });
   }
@@ -301,6 +323,7 @@ export default async function handler(req, res) {
       typeof parsed.confidence === "number"
         ? Math.min(1, Math.max(0, parsed.confidence))
         : 0,
+    httpStatus, // Fix 2: page's real HTTP status (200 here, since extraction succeeded)
     error: null,
   };
 

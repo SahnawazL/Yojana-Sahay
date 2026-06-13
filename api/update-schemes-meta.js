@@ -36,6 +36,12 @@ export default async function handler(req, res) {
     // Shallow spread ({ ...currentData, ...results }) would replace entire entries,
     // e.g. a Tier-2 run that finds nothing (isActive:null, httpStatus:null) would
     // wipe out good Tier-1 data (isActive:true, httpStatus:200) already stored.
+    //
+    // Fix 4 exception — lastDate: when Tier 2 ran it always sends a `lastDate` key,
+    // even as `null`, to mean "I checked the page and there's no deadline now".
+    // For this field only, an explicit null CLEARS the stored value (instead of
+    // being ignored like other null fields), so stale "Apply Closed" dates don't
+    // linger forever once a scheme becomes ongoing/perpetual.
     const merged = { ...currentData };
     for (const [id, newEntry] of Object.entries(results)) {
       const existing = currentData[id] || {};
@@ -44,11 +50,15 @@ export default async function handler(req, res) {
         if (k === 'lastVerified') {
           // Always update the timestamp so freshness row stays accurate
           entry[k] = v;
+        } else if (k === 'lastDate') {
+          // Fix 4: explicit null clears a stale deadline; a real date overwrites.
+          if (v == null) delete entry[k];
+          else entry[k] = v;
         } else if (v != null) {
           // Only overwrite with a real value — never clobber good data with null
           entry[k] = v;
         }
-        // v === null → keep whatever was already stored for this field
+        // v === null (other fields) → keep whatever was already stored for this field
       }
       merged[id] = entry;
     }
