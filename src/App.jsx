@@ -963,29 +963,45 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
               border:`1px solid ${isOnline?"#bbf7d0":"#e0e0e0"}`}}>
               {isOnline?"🌐 Online":"🏢 Offline"}
             </span>
-            {/* ── URL Health badge — from schemes-meta.json (written by verifier → GitHub → Vercel) ── */}
+            {/* ── Status badge — combines URL liveness (Tier 1) + application status (Tier 2 AI) ── */}
             {(()=>{
-              // Fix 3: linkAlive is the pure URL-liveness signal (Tier 1).
-              // Fall back to the legacy isActive field for schemes that haven't
-              // been re-verified since this split was introduced.
+              if(!isOnline) return null;
               const st=scheme.linkAlive??scheme.isActive;
               const http=scheme.httpStatus??0;
               const hasBeenChecked=scheme.lastVerified!=null;
-              // Determine error type label
+              const _now=Date.now();
+              const _ld=scheme.lastDate?new Date(scheme.lastDate).getTime():null;
+              const deadlinePassed=_ld&&_ld<_now;
+
               const errLabel=(()=>{
                 if(http===404) return isHindi?"पेज नहीं मिला":"Page Not Found";
-                if(http===403) return isHindi?"एक्सेस ब्लॉक्ड":"Access Blocked";
+                if(http===403) return isHindi?"एक्सेस ब्लॉक्ड":"Blocked";
                 if(http===401) return isHindi?"लॉगिन जरूरी":"Login Required";
-                if(http>=500)  return isHindi?"सर्वर एरर":"Server Error";
+                if(http>=500)  return isHindi?"सर्वर डाउन":"Server Down";
                 if(http===0)   return isHindi?"कोई जवाब नहीं":"No Response";
                 return isHindi?"लिंक खराब":"Dead Link";
               })();
-              if(!isOnline) return null; // offline schemes have no URL to check
-              if(st===true) return(
-                <span style={{fontSize:9,fontWeight:700,background:"#F0FDF4",color:"#15803D",borderRadius:6,padding:"2px 7px",border:"1px solid #BBF7D0"}}>
-                  ✅ {isHindi?"लिंक ठीक है":"Link OK"}
-                </span>
-              );
+
+              if(st===true){
+                // AI confirmed open AND deadline hasn't passed
+                if(scheme.isActive===true&&!deadlinePassed) return(
+                  <span style={{fontSize:9,fontWeight:700,background:"#F0FDF4",color:"#15803D",borderRadius:6,padding:"2px 7px",border:"1px solid #BBF7D0"}}>
+                    ✅ {isHindi?"आवेदन खुले हैं":"Applications Open"}
+                  </span>
+                );
+                // Link alive but scheme closed (AI says so, or deadline passed)
+                if(scheme.isActive===false||deadlinePassed) return(
+                  <span style={{fontSize:9,fontWeight:700,background:dark?"rgba(251,191,36,0.15)":"#FFFBEB",color:"#B45309",borderRadius:6,padding:"2px 7px",border:"1px solid #FDE68A"}}>
+                    ⚠️ {isHindi?"योजना बंद":"Scheme Closed"}
+                  </span>
+                );
+                // Link alive, no AI data yet (Tier 1 only)
+                return(
+                  <span style={{fontSize:9,fontWeight:700,background:"#F0FDF4",color:"#15803D",borderRadius:6,padding:"2px 7px",border:"1px solid #BBF7D0"}}>
+                    🔗 {isHindi?"लिंक सक्रिय":"Link Live"}
+                  </span>
+                );
+              }
               if(st===false) return(
                 <span style={{fontSize:9,fontWeight:700,background:"#FEF2F2",color:"#DC2626",borderRadius:6,padding:"2px 7px",border:"1px solid #FECACA"}}>
                   🔴 {errLabel}
@@ -998,29 +1014,24 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
               );
               return null;
             })()}
-            {/* Deadline badge — only shown when schemes-meta.json has lastDate for this scheme */}
+            {/* ── Deadline badge — smart time-aware display ── */}
             {scheme.lastDate&&(()=>{
-              const now=Date.now();
+              const _now=Date.now();
               const ld=new Date(scheme.lastDate).getTime();
-              const isExpired=ld<now;
-              const daysLeft=Math.ceil((ld-now)/(1000*60*60*24));
-              const isUrgent=!isExpired&&daysLeft<=30;
-              const fmtDate=new Date(scheme.lastDate).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
-              return(
-                <span style={{
-                  fontSize:9,fontWeight:700,
-                  background:isExpired?"#FEF2F2":isUrgent?"#FFF7ED":"#F0FDF4",
-                  color:isExpired?"#DC2626":isUrgent?"#EA580C":"#15803D",
-                  borderRadius:6,padding:"2px 7px",
-                  border:`1px solid ${isExpired?"#FECACA":isUrgent?"#FED7AA":"#BBF7D0"}`,
-                }}>
-                  {isExpired
-                    ?`⌛ ${isHindi?"आवेदन बंद":"Apply Closed"}: ${fmtDate}`
-                    :isUrgent
-                      ?`⚠️ ${daysLeft}${isHindi?"दिन बचे":" days left"} · ${fmtDate}`
-                      :`📅 ${isHindi?"अंतिम तिथि":"Last Date"}: ${fmtDate}`}
-                </span>
-              );
+              const isExpired=ld<_now;
+              const daysLeft=Math.ceil((ld-_now)/(1000*60*60*24));
+              const daysAgo=Math.floor((_now-ld)/(1000*60*60*24));
+              const fmtShort=new Date(scheme.lastDate).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
+
+              if(isExpired){
+                const ago=daysAgo===0?(isHindi?"आज":"today"):daysAgo<2?(isHindi?"कल":"yesterday"):daysAgo<30?(isHindi?`${daysAgo}d पहले`:`${daysAgo}d ago`):daysAgo<365?(isHindi?`${Math.floor(daysAgo/30)} माह पहले`:`${Math.floor(daysAgo/30)}mo ago`):(isHindi?"1 साल+":"1yr+ ago");
+                return(<span style={{fontSize:9,fontWeight:700,background:"#FEF2F2",color:"#DC2626",borderRadius:6,padding:"2px 7px",border:"1px solid #FECACA"}}>⌛ {isHindi?"बंद":"Closed"} · {ago}</span>);
+              }
+              if(daysLeft===0) return(<span style={{fontSize:9,fontWeight:700,background:"#FEF2F2",color:"#DC2626",borderRadius:6,padding:"2px 7px",border:"1px solid #FECACA",letterSpacing:"0.1px"}}>🔥 {isHindi?"आज बंद!":"Closes Today!"}</span>);
+              if(daysLeft<=3)  return(<span style={{fontSize:9,fontWeight:700,background:"#FEF2F2",color:"#DC2626",borderRadius:6,padding:"2px 7px",border:"1px solid #FECACA"}}>🔥 {isHindi?`${daysLeft}दिन बचे!`:`${daysLeft}d left!`}</span>);
+              if(daysLeft<=7)  return(<span style={{fontSize:9,fontWeight:700,background:"#FFF7ED",color:"#C2410C",borderRadius:6,padding:"2px 7px",border:"1px solid #FED7AA"}}>⚡ {isHindi?`${daysLeft} दिन बचे`:`${daysLeft} days left`}</span>);
+              if(daysLeft<=30) return(<span style={{fontSize:9,fontWeight:700,background:"#FFF7ED",color:"#EA580C",borderRadius:6,padding:"2px 7px",border:"1px solid #FED7AA"}}>⏳ {isHindi?`${daysLeft} दिन शेष`:`${daysLeft} days left`}</span>);
+              return(<span style={{fontSize:9,fontWeight:700,background:"#F0FDF4",color:"#15803D",borderRadius:6,padding:"2px 7px",border:"1px solid #BBF7D0"}}>📅 {isHindi?`${fmtShort} तक`:`Till ${fmtShort}`}</span>);
             })()}
           </div>
           <div style={{display:"flex",alignItems:"flex-start",gap:7,marginBottom:4}}>
@@ -1126,6 +1137,9 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                 const st=scheme.linkAlive??scheme.isActive;
                 const http=scheme.httpStatus??0;
                 const hasBeenChecked=scheme.lastVerified!=null;
+                const nowTs=Date.now();
+                const deadlinePassed=scheme.lastDate&&new Date(scheme.lastDate).getTime()<nowTs;
+                const daysUntilDeadline=scheme.lastDate&&!deadlinePassed?Math.ceil((new Date(scheme.lastDate).getTime()-nowTs)/(1000*60*60*24)):null;
                 // Data freshness
                 const checkedAgo=hasBeenChecked
                   ?Math.floor((Date.now()-new Date(scheme.lastVerified).getTime())/(1000*60*60*24))
@@ -1246,27 +1260,80 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                       </span>
                     </div>
                   )}
+
+                  {/* ── Applications Open strip — AI-confirmed, link alive, deadline not passed ── */}
+                  {st===true&&scheme.isActive===true&&!deadlinePassed&&(
+                    <div style={{
+                      background:dark?"rgba(21,128,61,0.09)":"#F0FDF4",
+                      border:"1px solid #BBF7D0",borderRadius:10,
+                      padding:"10px 12px",display:"flex",gap:8,alignItems:"flex-start",
+                    }}>
+                      <span style={{fontSize:14,flexShrink:0}}>✅</span>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:11,fontWeight:700,color:dark?"#4ADE80":"#15803D",marginBottom:2}}>
+                          {isHindi?"आवेदन अभी खुले हैं":"Applications are currently open"}
+                        </div>
+                        <div style={{fontSize:10,color:dark?"#86EFAC":"#166534",lineHeight:1.5}}>
+                          {isHindi?"AI ने आधिकारिक वेबसाइट से यह सत्यापित किया है।":"Verified from the official website via AI scan."}
+                          {scheme.confidence!=null&&scheme.confidence>0&&(
+                            <span style={{opacity:0.65,marginLeft:4}}>({Math.round(scheme.confidence*100)}% confident)</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── Closing Soon urgency strip — deadline within 30 days ── */}
+                  {daysUntilDeadline!=null&&daysUntilDeadline<=30&&(
+                    <div style={{
+                      background:dark?(daysUntilDeadline<=7?"rgba(220,38,38,0.09)":"rgba(234,88,12,0.09)"):(daysUntilDeadline<=7?"#FEF2F2":"#FFF7ED"),
+                      border:`1px solid ${daysUntilDeadline<=7?"#FECACA":"#FED7AA"}`,borderRadius:10,
+                      padding:"10px 12px",display:"flex",gap:8,alignItems:"flex-start",
+                    }}>
+                      <span style={{fontSize:14,flexShrink:0}}>{daysUntilDeadline<=3?"🔥":daysUntilDeadline<=7?"⚡":"⏳"}</span>
+                      <div>
+                        <div style={{fontSize:11,fontWeight:700,color:dark?(daysUntilDeadline<=7?"#FCA5A5":"#FB923C"):(daysUntilDeadline<=7?"#991B1B":"#C2410C"),marginBottom:2}}>
+                          {daysUntilDeadline===0
+                            ?(isHindi?"आज आवेदन की अंतिम तिथि है!":"Today is the last day to apply!")
+                            :daysUntilDeadline<=7
+                              ?(isHindi?`सिर्फ ${daysUntilDeadline} दिन बचे हैं!`:`Only ${daysUntilDeadline} day${daysUntilDeadline===1?"":"s"} left to apply!`)
+                              :(isHindi?`${daysUntilDeadline} दिन में आवेदन बंद होगा`:`Deadline in ${daysUntilDeadline} days`)}
+                        </div>
+                        <div style={{fontSize:10,color:dark?(daysUntilDeadline<=7?"#FCA5A5":"#FDBA74"):(daysUntilDeadline<=7?"#7F1D1D":"#9A3412"),lineHeight:1.5}}>
+                          {isHindi?"जल्दी आवेदन करें — अंतिम तिथि नजदीक है।":"Apply soon — the deadline is approaching fast."}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>);
               })()}
 
-              {/* ── Expired info strip ── */}
-              {scheme.lastDate&&new Date(scheme.lastDate).getTime()<Date.now()&&(
-                <div style={{
-                  background:dark?"rgba(251,191,36,0.1)":"#FFFBEB",
-                  border:"1px solid #FDE68A",borderRadius:10,
-                  padding:"10px 12px",display:"flex",gap:8,alignItems:"flex-start",
-                }}>
-                  <span style={{fontSize:14,flexShrink:0}}>💡</span>
-                  <div>
-                    <div style={{fontSize:11,fontWeight:700,color:dark?"#FCD34D":"#92400E",marginBottom:2}}>
-                      {isHindi?"आवेदन की अंतिम तिथि बीत गई है":"Application deadline has passed"}
-                    </div>
-                    <div style={{fontSize:10,color:dark?"#FDE68A":"#78350F",lineHeight:1.5}}>
-                      {isHindi?"यह योजना अगले चक्र में फिर खुल सकती है। नवीनतम जानकारी के लिए ऑनलाइन खोजें।":"This scheme may reopen in the next cycle. Search online for the latest updates."}
+              {/* ── Expired info strip — shows exactly how long ago deadline passed ── */}
+              {scheme.lastDate&&(()=>{
+                const _now=Date.now();
+                const ld=new Date(scheme.lastDate).getTime();
+                if(ld>=_now) return null;
+                const daysAgo=Math.floor((_now-ld)/(1000*60*60*24));
+                const agoStr=daysAgo<1?(isHindi?"आज":"today"):daysAgo<2?(isHindi?"कल":"yesterday"):daysAgo<30?(isHindi?`${daysAgo} दिन पहले`:`${daysAgo} days ago`):daysAgo<365?(isHindi?`${Math.floor(daysAgo/30)} महीने पहले`:`${Math.floor(daysAgo/30)} months ago`):(isHindi?"1 साल से अधिक पहले":"over a year ago");
+                const fmtDate=new Date(scheme.lastDate).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+                return(
+                  <div style={{
+                    background:dark?"rgba(220,38,38,0.07)":"#FEF2F2",
+                    border:"1px solid #FECACA",borderRadius:10,
+                    padding:"10px 12px",display:"flex",gap:8,alignItems:"flex-start",
+                  }}>
+                    <span style={{fontSize:14,flexShrink:0}}>⌛</span>
+                    <div>
+                      <div style={{fontSize:11,fontWeight:700,color:dark?"#FCA5A5":"#991B1B",marginBottom:2}}>
+                        {isHindi?`आवेदन ${agoStr} बंद हुआ (${fmtDate})`:`Applications closed ${agoStr} · ${fmtDate}`}
+                      </div>
+                      <div style={{fontSize:10,color:dark?"#FCA5A5":"#7F1D1D",lineHeight:1.5}}>
+                        {isHindi?"यह योजना अगले चक्र में फिर खुल सकती है। सटीक जानकारी के लिए नीचे खोजें।":"This scheme may reopen in the next cycle. Search below for the latest update."}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Primary action */}
               <div
