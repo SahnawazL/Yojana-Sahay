@@ -33,8 +33,8 @@ const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
 
 // ─── ENRICH SCHEME_DB WITH VERIFICATION METADATA ─────────────────────────────
-// Merges lastDate, lastVerified, isActive, httpStatus, confidence from
-// schemes-meta.json into SCHEME_DB in-place (runs once at module init).
+// Merges lastDate, lastVerified, linkAlive, isActive, httpStatus, confidence
+// from schemes-meta.json into SCHEME_DB in-place (runs once at module init).
 // After each verification run the JSON is committed to GitHub → Vercel redeploys
 // → next page load picks up the fresh data automatically.
 (function mergeSchemesMeta() {
@@ -965,7 +965,10 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
             </span>
             {/* ── URL Health badge — from schemes-meta.json (written by verifier → GitHub → Vercel) ── */}
             {(()=>{
-              const st=scheme.isActive;
+              // Fix 3: linkAlive is the pure URL-liveness signal (Tier 1).
+              // Fall back to the legacy isActive field for schemes that haven't
+              // been re-verified since this split was introduced.
+              const st=scheme.linkAlive??scheme.isActive;
               const http=scheme.httpStatus??0;
               const hasBeenChecked=scheme.lastVerified!=null;
               // Determine error type label
@@ -1119,7 +1122,8 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
 
               {/* ── URL Status detail panel — shown for dead/unverified online schemes ── */}
               {isOnline&&(()=>{
-                const st=scheme.isActive;
+                // Fix 3: linkAlive is the pure URL-liveness signal (Tier 1).
+                const st=scheme.linkAlive??scheme.isActive;
                 const http=scheme.httpStatus??0;
                 const hasBeenChecked=scheme.lastVerified!=null;
                 // Data freshness
@@ -1269,7 +1273,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                 onClick={()=>{
                   haptic();
                   // Dead link interceptor — 404 = page gone, redirect to Google search
-                  if(applyUrl&&scheme.isActive===false&&scheme.httpStatus===404){
+                  if(applyUrl&&(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404){
                     googleSearchScheme(scheme.name.en);
                     return;
                   }
@@ -1277,7 +1281,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                   else googleSearchScheme(scheme.name.en);
                 }}
                 style={{
-                  background:applyUrl&&scheme.isActive===false&&scheme.httpStatus===404
+                  background:applyUrl&&(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404
                     ?"linear-gradient(135deg,#6B7280,#9CA3AF)"
                     :applyUrl
                       ?`linear-gradient(135deg,${scheme.color},${scheme.color}cc)`
@@ -1286,18 +1290,18 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                   display:"flex",alignItems:"center",justifyContent:"space-between",
                   cursor:"pointer",
                   boxShadow:applyUrl?`0 4px 16px ${scheme.color}40`:"0 4px 16px rgba(37,99,235,0.35)",
-                  opacity:scheme.isActive===false&&scheme.httpStatus===404?0.85:1,
+                  opacity:(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404?0.85:1,
                 }}>
                 <div>
                   <div style={{fontSize:12,fontWeight:800,color:"#fff",fontFamily:bf}}>
-                    {scheme.isActive===false&&scheme.httpStatus===404
+                    {(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404
                       ?(isHindi?"गूगल पर सही लिंक खोजें":"Search Google for Correct Link")
                       :scheme.lastDate&&new Date(scheme.lastDate).getTime()<Date.now()
                         ?(isHindi?"आधिकारिक वेबसाइट देखें":"Check Official Website")
                         :t.applyLabel}
                   </div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:3}}>
-                    {scheme.isActive===false&&scheme.httpStatus===404
+                    {(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404
                       ?"🔎 "+scheme.name.en
                       :applyUrl?"🌐 "+scheme.apply[lang]:"🔎 Find on Google"}
                   </div>
@@ -1308,7 +1312,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                   display:"flex",alignItems:"center",justifyContent:"center",
                   border:"1.5px solid rgba(255,255,255,0.3)",
                 }}>
-                  {scheme.isActive===false&&scheme.httpStatus===404?"🔎":applyUrl?"↗":"🔍"}
+                  {(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404?"🔎":applyUrl?"↗":"🔍"}
                 </div>
               </div>
 
@@ -2091,7 +2095,9 @@ function SchemesTab({lang,dark=false}){
     // Rank: active(2) > unverified(1) > expired/dead(0)
     const now=Date.now();
     return [...base].sort((a,b)=>{
-      const sc=s=>(s.isActive===true?2:s.isActive===false||(s.lastDate&&new Date(s.lastDate).getTime()<now)?0:1);
+      // Fix 3: rank by linkAlive (pure URL liveness), falling back to the
+      // legacy isActive field for schemes not yet re-verified.
+      const sc=s=>{const la=s.linkAlive??s.isActive;return la===true?2:la===false||(s.lastDate&&new Date(s.lastDate).getTime()<now)?0:1;};
       return sc(b)-sc(a);
     });
   },[deferredFilter,deferredState]);

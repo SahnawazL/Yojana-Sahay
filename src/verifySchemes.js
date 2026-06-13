@@ -9,11 +9,10 @@
 //   avoids the allorigins.win proxy which is blocked by .gov.in domains.
 //   Batches of 10 run in parallel → ~2-3 min for 444 schemes.
 //
-// TIER 2 — AI Date Extraction  (priority schemes only · ~150-200)
+// TIER 2 — AI Date Extraction  (all schemes with a URL in "both"/2 — Fix 1)
 //   Calls /api/verify-scheme (Vercel serverless, same key-rotation as chat.js)
 //   to extract lastDate + active/closed status from the live page.
-//   Only fires for: schemes with lastDate set  OR  failed Tier 1  OR  stale 30d+
-//   NOTE: /api/verify-scheme endpoint is scaffolded here — build next session.
+//   Runs for every scheme in the queue when tier is "both" or 2.
 //
 // FILTERS (applied before the run):
 //   scopeFilter:    "national" | "state:<state_name>" | "all"
@@ -197,7 +196,7 @@ async function pingUrl(url, signal = null) {
 async function extractDateViaAI(scheme, signal = null) {
   try {
     const url = normalizeUrl(scheme.apply?.en);
-    if (!url) return { lastDate: null, isActive: null, confidence: 0, error: "invalid URL" };
+    if (!url) return { lastDate: null, isActive: null, confidence: 0, httpStatus: 0, error: "invalid URL" };
     const res = await fetch("/api/verify-scheme", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
@@ -212,7 +211,7 @@ async function extractDateViaAI(scheme, signal = null) {
     });
 
     if (!res.ok) {
-      return { lastDate: null, isActive: null, confidence: 0, error: `API ${res.status}` };
+      return { lastDate: null, isActive: null, confidence: 0, httpStatus: 0, error: `API ${res.status}` };
     }
 
     const data = await res.json();
@@ -220,11 +219,15 @@ async function extractDateViaAI(scheme, signal = null) {
       lastDate:   data.lastDate   ?? null,
       isActive:   data.isActive   ?? null,
       confidence: data.confidence ?? 0,
+      // Fix 2: HTTP status of the scheme's page as seen by Tier 2's fetch
+      // (via Tavily). 0 = unknown/timeout, 200 = reachable, 4xx/5xx = real
+      // error codes that Tavily's crawler surfaced for the target page.
+      httpStatus: data.httpStatus ?? 0,
       error:      null,
     };
 
   } catch (err) {
-    return { lastDate: null, isActive: null, confidence: 0, error: err.message };
+    return { lastDate: null, isActive: null, confidence: 0, httpStatus: 0, error: err.message };
   }
 }
 
@@ -325,7 +328,7 @@ export function buildSummary(results) {
 //   tier           — 1 | 2 | "both"                             (default: 1)
 //                      1    → Tier 1 dead-link ping only
 //                      2    → Tier 2 AI extraction only (skips Tier 1 ping)
-//                      "both" → Tier 1 for all + Tier 2 for priority schemes
+//                      "both" → Tier 1 AND Tier 2 for every scheme (Fix 1)
 //   resumeFrom     — queue index to start from (0 = fresh run)   (default: 0)
 //   onProgress     — ({ index, total, scheme, result }) → void
 //                      called after EACH scheme completes
@@ -337,10 +340,11 @@ export function buildSummary(results) {
 //   Each result: {
 //     scheme,         — original scheme object from SCHEME_DB
 //     tier,           — 1 or 2 (which tier produced the primary result)
-//     alive,          — true | false | null
+//     alive,          — true | false | null  (display-only; for live summary UI)
+//     linkAlive,      — true | false | null  (Tier 1 only — pure URL-liveness, persisted)
 //     httpStatus,     — HTTP status code (0 if timeout/error)
 //     lastDate,       — "YYYY-MM-DD" or null (Tier 2 only)
-//     isActive,       — boolean or null     (Tier 2 only)
+//     isActive,       — boolean or null     (Tier 2 only — "applications open?")
 //     confidence,     — 0–1                 (Tier 2 only)
 //     error,          — error string or null
 //   }
@@ -360,15 +364,13 @@ export async function runVerification({
   const results = [];
 
   // Which schemes also need Tier 2 AI extraction?
-  const needsAI = (scheme) => {
-    if (tier === 2)     return true;   // explicit Tier 2 run
-    if (tier === 1)     return false;  // Tier 1 only — skip AI
-    // tier === "both": only run AI on priority schemes (saves Groq credits)
-    return (
-      !!scheme.lastDate          ||   // has a deadline to monitor
-      !scheme.lastVerified            // never been checked before
-    );
-  };
+  // Fix 1: previously "both" only ran AI on priority schemes (had a deadline,
+  // or never verified) to save Groq credits — but that left ~70-80% of
+  // schemes without lastDate/confidence after a "both" run. Now every scheme
+  // with a real URL gets a Groq call in both "2" and "both" modes. Slower
+  // (every scheme = a Groq call), but the JSON is genuinely complete after
+  // one full run.
+  const needsAI = (scheme) => tier !== 1;
 
   for (let i = resumeFrom; i < total; i++) {
 
@@ -383,6 +385,8 @@ export async function runVerification({
       scheme,
       tier:       1,
       alive:      null,
+      linkAlive:  null,  // Fix 3: pure Tier-1 URL-liveness, kept separate from
+                          // Tier-2's "is the scheme accepting applications" verdict
       httpStatus: null,
       lastDate:   null,
       isActive:   null,
@@ -395,6 +399,7 @@ export async function runVerification({
       const ping      = await pingUrl(scheme.apply?.en, signal);
       if (signal?.aborted) break;   // ← stop immediately; don't push half-baked result
       result.alive      = ping.alive;
+      result.linkAlive  = ping.alive;
       result.httpStatus = ping.httpStatus;
       result.error      = ping.error;
     }
@@ -408,8 +413,19 @@ export async function runVerification({
       result.isActive   = ai.isActive;
       result.confidence = ai.confidence;
 
+      // Fix 2: if Tier 1 didn't run (T2-only) or its ping returned 0
+      // (timeout/blocked/no-response — ambiguous), but Tier 2's page fetch
+      // via Tavily got a real status code, use that. Tavily's crawler often
+      // reaches .gov.in pages that direct pings/proxies can't, so a 404/403/5xx
+      // here is more informative than a bare 0.
+      if ((result.httpStatus === null || result.httpStatus === 0) && ai.httpStatus) {
+        result.httpStatus = ai.httpStatus;
+      }
+
       // Sync alive from T2 isActive so buildSummary shows correct Active/Dead/NoResp
       // in T2-only runs where Tier 1 ping is skipped (alive would otherwise stay null).
+      // Display-only — does NOT affect the persisted `linkAlive` field (Fix 3),
+      // which stays null whenever Tier 1 didn't actually run.
       if (result.alive === null) {
         result.alive = ai.isActive; // true / false / null (null = page unreachable)
       }
@@ -461,9 +477,31 @@ export function loadSchemeOverlay() {
 // Called automatically after every verification run to persist results back to
 // src/schemes-meta.json in the GitHub repo via /api/update-schemes-meta.
 //
-// Each result is distilled to: { lastVerified, isActive, httpStatus, lastDate?,
-// confidence? } and keyed by scheme ID.  The Vercel API merges this into the
-// existing JSON and commits — triggering an auto-redeploy (1-2 min).
+// Each result is distilled to an entry keyed by scheme ID:
+//   { lastVerified, linkAlive?, httpStatus?, lastDate?, isActive?, confidence? }
+//
+// Fix 3 — linkAlive vs isActive:
+//   `linkAlive`  = Tier 1's pure "is the URL reachable" result.
+//   `isActive`   = Tier 2's AI verdict on "is the scheme accepting applications".
+//   These used to share one `isActive` field, so a Tier 2 run on a perfectly
+//   live URL could overwrite the link-health badge with "Dead" just because the
+//   page said applications were closed. Now they're written separately and
+//   never clobber each other.
+//
+// Fix 4 — clearing stale deadlines:
+//   `lastDate` is written whenever Tier 2 ran — including as `null` when the AI
+//   confirms the page no longer shows a deadline. /api/update-schemes-meta treats
+//   an explicit `lastDate: null` as "clear this field" (unlike other fields,
+//   where null means "no new info, keep existing"), so a scheme that becomes
+//   ongoing/perpetual stops showing a stale "Apply Closed" badge.
+//
+// Fix 2 — httpStatus from Tier 2:
+//   `httpStatus` can now come from either tier: Tier 1's direct ping, or (when
+//   that returned 0 / no Tier 1 ran) Tier 2's Tavily page fetch. This lets real
+//   404/403/5xx codes surface for T2-only and "both" runs, not just T1 runs.
+//
+// The Vercel API merges this into the existing JSON and commits — triggering an
+// auto-redeploy (1-2 min).
 
 export async function writeSchemeResults(results) {
   if (!Array.isArray(results) || results.length === 0) return;
@@ -475,16 +513,31 @@ export async function writeSchemeResults(results) {
     const id = r.scheme?.id;
     if (!id) continue;
 
-    const entry = {
-      lastVerified: now,
-      isActive:     r.alive      ?? null,
-      httpStatus:   r.httpStatus ?? null,
-    };
+    const entry = { lastVerified: now };
 
-    // Only write AI-extracted fields if Tier 2 actually ran
-    if (r.lastDate   != null) entry.lastDate   = r.lastDate;
-    if (r.isActive   != null) entry.isActive   = r.isActive;   // Tier 2 is more accurate
-    if (r.confidence != null) entry.confidence = r.confidence;
+    // httpStatus — written whenever we have one, whether from Tier 1's ping or
+    // (Fix 2) Tier 2's page fetch filling in a real 404/403/5xx that Tier 1's
+    // ping reported as 0/ambiguous.
+    if (r.httpStatus !== null) {
+      entry.httpStatus = r.httpStatus;
+    }
+
+    // linkAlive — Tier 1's pure URL-liveness (Fix 3: separate from isActive).
+    // Only meaningful if Tier 1 actually ran for this scheme.
+    if (r.linkAlive !== null) {
+      entry.linkAlive = r.linkAlive;
+    }
+
+    // Tier 2 ran → AI-extracted deadline + application status.
+    // lastDate is written even when null so a confirmed "no deadline on page"
+    // result can clear a stale date (Fix 4). isActive/confidence are only
+    // written when the AI gave a real answer, so an "unclear" read doesn't
+    // wipe out a previously good value.
+    if (r.tier === 2) {
+      entry.lastDate = r.lastDate; // "YYYY-MM-DD" or null (explicit — see Fix 4)
+      if (r.isActive   != null) entry.isActive   = r.isActive;
+      if (r.confidence != null) entry.confidence = r.confidence;
+    }
 
     payload[id] = entry;
   }
