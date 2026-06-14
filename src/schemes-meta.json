@@ -801,5 +801,54 @@
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
+  },
+  "wb_kanyashree": {
+    "lastVerified": "2026-06-14T06:25:37.195Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "wb_rupashree": {
+    "lastVerified": "2026-06-14T06:25:37.195Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "wb_student_credit_card": {
+    "lastVerified": "2026-06-14T06:25:37.195Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "wb_shikshashree": {
+    "lastVerified": "2026-06-14T06:25:37.195Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "isActive": true,
+    "confidence": 0.5
+  },
+  "wb_aikyashree": {
+    "lastVerified": "2026-06-14T06:25:37.195Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "wb_yuvashree": {
+    "lastVerified": "2026-06-14T06:25:37.195Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "wb_utkarsh_bangla": {
+    "lastVerified": "2026-06-14T06:25:37.195Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "wb_krishak_bandhu": {
+    "lastVerified": "2026-06-14T06:25:37.195Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
   }
 }
