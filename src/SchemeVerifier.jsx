@@ -17,9 +17,23 @@
  *   · Filterable + searchable + paginated results (numbered pages)
  *   · Color-coded HTTP status badge (2xx green / 3xx amber / 4xx red)
  *   · Copy URL to clipboard from expanded result row
- *   · Export all results to CSV (post-run)
+ *   · Export results as print-ready PDF (post-run) — Claude AI-uploadable report
+ *   · Auto-save scan results to localStorage once per scope (national / state)
+ *   · Saved Scans panel — export PDF from a previous scan without re-running
  *   · Stop / Pause mid-run via AbortController
  *   · New Run reset
+ *
+ * PDF Report Structure (for uploading to Claude AI):
+ *   Cover → AI Usage Hint → 8-stat Summary →
+ *   Issues Requiring Fixes (grouped: critical / warnings / config) →
+ *   No Response (India-bound domains) →
+ *   Active Schemes (reference table)
+ *
+ *   Each issue card shows: scheme ID · file path (schemesData.js / state/xxx.js) ·
+ *   current apply URL · HTTP code · error text · exact fix instruction +
+ *   "search for <id> in <file>" hint so Claude can locate it instantly.
+ *
+ * localStorage keys:  "ys_scan_national" | "ys_scan_all" | "ys_scan_state_<name>"
  */
 
 import React, {
@@ -221,7 +235,7 @@ function getPaginationRange(page, totalPages, maxVisible = 5) {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 }
 
-/** Resolve a result's status label (shared by CSV export and badges). */
+/** Resolve a result's status label (used by PDF export and status badges). */
 function getResultStatus(r) {
   if (r.error && r.alive === null) return "Error";
   if (r.alive === true)            return "Active";
@@ -229,44 +243,649 @@ function getResultStatus(r) {
   return "No Response";
 }
 
-/** Trigger a CSV download from the current results array. */
-function exportResultsCSV(results) {
-  const headers = [
-    "ID", "Name (EN)", "Scope", "State", "Apply URL",
-    "Status", "HTTP Code", "AI lastDate", "AI isActive",
-    "Confidence", "Scheme Deadline", "Error",
-  ];
+// ─── LOCALSTORAGE SAVE / LOAD SYSTEM ─────────────────────────────────────────
+// Saves one scan result set per scope (national / all / state:<name>).
+// Key format: "ys_scan_national" | "ys_scan_all" | "ys_scan_state_assam"
+// Stores a slim version of results (no full SCHEME_DB objects) to keep size
+// well under localStorage's 5 MB limit even for 400+ scheme runs.
 
-  const escape = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+/** Convert scopeFilter string to a stable localStorage key. */
+function getScanStorageKey(scopeFilter) {
+  if (scopeFilter === "national") return "ys_scan_national";
+  if (scopeFilter === "all")      return "ys_scan_all";
+  const state = scopeFilter.replace("state:", "").trim().toLowerCase().replace(/\s+/g, "_");
+  return `ys_scan_state_${state}`;
+}
 
-  const rows = results.map(r => {
-    const s = r.scheme;
-    return [
-      s.id,
-      s.name?.en  || "",
-      s.scope     || "",
-      s.state     || "",
-      s.apply?.en || "",
-      getResultStatus(r),
-      r.httpStatus != null ? r.httpStatus : "",
-      r.lastDate   || "",
-      r.isActive === true  ? "Yes" : r.isActive === false ? "No" : "",
-      r.confidence != null ? `${Math.round(r.confidence * 100)}%` : "",
-      s.lastDate   || "",
-      r.error      || "",
-    ].map(escape).join(",");
-  });
+/**
+ * Strip a full result (with giant scheme object) down to only what the PDF
+ * report and getFixSuggestion need.  Saves ~70% space vs. the raw array.
+ */
+function slimifyResults(results) {
+  return results.map(r => ({
+    // ── scheme fields ──
+    id:       r.scheme?.id,
+    nameEn:   r.scheme?.name?.en,
+    nameHi:   r.scheme?.name?.hi,
+    scope:    r.scheme?.scope,
+    state:    r.scheme?.state,
+    applyUrl: r.scheme?.apply?.en,
+    lastDate: r.scheme?.lastDate,
+    // ── result fields ──
+    alive:      r.alive,
+    httpStatus: r.httpStatus,
+    tier:       r.tier,
+    aiLastDate: r.lastDate,
+    isActive:   r.isActive,
+    confidence: r.confidence,
+    error:      r.error,
+    linkAlive:  r.linkAlive,
+  }));
+}
 
-  const csv  = [headers.map(escape).join(","), ...rows].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href     = url;
-  a.download = `yojana-sahay-verify-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+/**
+ * Rebuild a result-shaped object from a slim entry.
+ * Compatible with getFixSuggestion(), getSchemeFilePath(), and the PDF renderer.
+ */
+function reconstituteResult(entry) {
+  return {
+    alive:      entry.alive,
+    httpStatus: entry.httpStatus,
+    tier:       entry.tier,
+    lastDate:   entry.aiLastDate,
+    isActive:   entry.isActive,
+    confidence: entry.confidence,
+    error:      entry.error,
+    linkAlive:  entry.linkAlive,
+    scheme: {
+      id:       entry.id,
+      name:     { en: entry.nameEn, hi: entry.nameHi },
+      scope:    entry.scope,
+      state:    entry.state,
+      apply:    { en: entry.applyUrl },
+      lastDate: entry.lastDate,
+    },
+  };
+}
+
+/** Persist a completed scan to localStorage (overwrites the same scope key). */
+function saveScanResults(scopeFilter, priorityFilter, tier, results, summary) {
+  try {
+    const key     = getScanStorageKey(scopeFilter);
+    const payload = {
+      scopeFilter,
+      priorityFilter,
+      tier,
+      savedAt:     new Date().toISOString(),
+      schemeCount: results.length,
+      summary,
+      results:     slimifyResults(results),
+    };
+    localStorage.setItem(key, JSON.stringify(payload));
+  } catch (err) {
+    // localStorage full or disabled — non-fatal
+    console.warn("[SchemeVerifier] Save to localStorage failed:", err.message);
+  }
+}
+
+/** Return metadata for all saved scans (no result payload — lightweight). */
+function loadAllSavedScans() {
+  const scans  = [];
+  const prefix = "ys_scan_";
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k?.startsWith(prefix)) continue;
+    try {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      const obj = JSON.parse(raw);
+      scans.push({
+        key:           k,
+        scopeFilter:   obj.scopeFilter,
+        priorityFilter: obj.priorityFilter,
+        tier:          obj.tier,
+        savedAt:       obj.savedAt,
+        schemeCount:   obj.schemeCount,
+        summary:       obj.summary,
+      });
+    } catch { /* skip corrupt entry */ }
+  }
+  // Most-recent first
+  return scans.sort((a, b) => (b.savedAt ?? "").localeCompare(a.savedAt ?? ""));
+}
+
+/** Load the full reconstituted result array for a given storage key. */
+function loadFullScan(storageKey) {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    return {
+      ...obj,
+      results: (obj.results || []).map(reconstituteResult),
+    };
+  } catch (err) {
+    console.warn("[SchemeVerifier] Failed to load scan:", err.message);
+    return null;
+  }
+}
+
+/** Remove one saved scan entry. */
+function clearSavedScan(key) {
+  try { localStorage.removeItem(key); } catch { /* ignore */ }
+}
+
+
+// ─── SOURCE FILE PATH RESOLVER ────────────────────────────────────────────────
+// National → src/schemesData.js
+// State   → src/state/<statename>.js   (matches actual folder structure)
+
+function getSchemeFilePath(result) {
+  if (result.scheme?.scope === "national") return "src/schemesData.js";
+  const st = result.scheme?.state;
+  if (!st) return "src/schemesData.js";
+  const fname = st.toLowerCase().replace(/\s+/g, "");
+  return `src/state/${fname}.js`;
+}
+
+
+// ─── PDF EXPORT ───────────────────────────────────────────────────────────────
+// Generates a print-ready HTML report in a new tab.
+// Designed to be uploaded to Claude AI with the scheme source file so Claude
+// can locate and fix each broken scheme automatically.
+//
+// Report sections:
+//   1. Cover (scope / tier / date)
+//   2. "How to use with Claude AI" hint
+//   3. 8-stat summary grid
+//   4. ISSUES REQUIRING FIXES — grouped by severity
+//      Each card: scheme ID · file path · current URL · HTTP code · error · fix detail
+//   5. No Response (India-bound domains — not necessarily broken)
+//   6. Active schemes (reference table)
+
+function exportResultsPDF(results, summary, scopeFilter, priorityFilter, tier) {
+  const now      = new Date();
+  const dateStr  = now.toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
+  const timeStr  = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+
+  const scopeLabel =
+    scopeFilter === "national"          ? "National (Central) Schemes"
+    : scopeFilter.startsWith("state:")  ? `${scopeFilter.replace("state:", "")} State Schemes`
+    : "All Schemes";
+
+  const tierLabel =
+    tier === 1     ? "Tier 1 — Dead-link Ping"
+    : tier === 2   ? "Tier 2 — AI Date Extraction"
+    : "Tier 1+2 — Full Check";
+
+  const priorityLabel =
+    priorityFilter === "all"             ? "All Priority"
+    : priorityFilter === "hasDate"       ? "Has Deadline"
+    : priorityFilter === "neverVerified" ? "Never Verified"
+    : "Stale 30d+";
+
+  // ── Categorise results ────────────────────────────────────────────────────
+  const issues     = results.filter(r => r.alive === false || (r.alive === null && r.error));
+  const noResponse = results.filter(r => r.alive === null && !r.error);
+  const active     = results.filter(r => r.alive === true);
+
+  // ── Fix-suggestion colours (hardcoded hex for standalone HTML) ────────────
+  const C_RED    = "#DC2626";
+  const C_AMBER  = "#B45309";
+  const C_VIOLET = "#6D28D9";
+  const C_GREEN  = "#138808";
+  const C_NAVY   = "#003580";
+
+  // ── Issue card renderer ───────────────────────────────────────────────────
+  // getFixSuggestion() uses the module-level RED/AMBER/VIOLET constants, so
+  // we map its returned color to the PDF-safe hex strings above.
+  const fixColorToPdf = (fixColor) =>
+    fixColor === RED    ? C_RED
+    : fixColor === AMBER  ? C_AMBER
+    : C_VIOLET;
+
+  const renderIssueCard = (r, i) => {
+    const fix      = getFixSuggestion(r);
+    const filePath = getSchemeFilePath(r);
+    const urlVal   = r.scheme?.apply?.en || "(none)";
+    const stateName = r.scheme?.state || "National";
+    const http     = r.httpStatus > 0 ? r.httpStatus : "—";
+    const errText  = r.error ? r.error.slice(0, 200) : "—";
+
+    const catColor = fix ? fixColorToPdf(fix.color) : C_VIOLET;
+    const catBg    =
+      catColor === C_RED    ? "#FEF2F2"
+      : catColor === C_AMBER  ? "#FFFBEB"
+      : "#F5F3FF";
+    const catIcon  =
+      catColor === C_RED    ? "✕"
+      : catColor === C_AMBER  ? "△"
+      : "◆";
+
+    // ── Smart fix instruction (field + search hint) ───────────────────────
+    let fieldHint = "";
+    const label = fix?.label ?? "";
+    if (label === "Update URL" || label === "Fix URL Format" || label === "Check Domain") {
+      fieldHint = `
+        <div class="field-hint">
+          <strong>Field to update:</strong>
+          <code>apply: { en: "NEW_URL_HERE" }</code><br/>
+          <strong>To find it:</strong> Search for
+          <code>"${r.scheme?.id ?? ""}"</code> in <code>${filePath}</code>
+          and update the <code>apply.en</code> value.
+        </div>`;
+    } else if (label === "Manual Check") {
+      fieldHint = `
+        <div class="field-hint">
+          <strong>Action:</strong> Open the URL in a browser to confirm it's actually live before editing the file.
+          If confirmed dead, search for <code>"${r.scheme?.id ?? ""}"</code> in <code>${filePath}</code>
+          and update <code>apply.en</code>.<br/>
+          Current URL: <code>${urlVal}</code>
+        </div>`;
+    } else if (label === "Retry Later") {
+      fieldHint = `
+        <div class="field-hint">
+          <strong>Action:</strong> No file edits needed yet — wait 24 h and re-run the verifier.
+          If the error persists after multiple runs, treat it as a dead link and update <code>apply.en</code>
+          in <code>${filePath}</code>.<br/>
+          Search for <code>"${r.scheme?.id ?? ""}"</code> to locate it.
+        </div>`;
+    } else {
+      fieldHint = `
+        <div class="field-hint">
+          <strong>To find it:</strong> Search for
+          <code>"${r.scheme?.id ?? ""}"</code> in <code>${filePath}</code>.
+        </div>`;
+    }
+
+    return `
+      <div class="issue-card" style="border-left-color:${catColor}; background:${catBg};">
+
+        <div class="issue-header" style="border-bottom-color:${catColor}22;">
+          <span class="issue-num">#${i + 1}</span>
+          <span class="issue-cat" style="color:${catColor};">${catIcon} ${label || "Unknown Issue"}</span>
+          ${r.httpStatus > 0
+            ? `<span class="http-badge" style="color:${catColor};border-color:${catColor}55;">${r.httpStatus}</span>`
+            : ""}
+        </div>
+
+        <table class="dtable">
+          <tr><td class="dk">Scheme ID</td>
+              <td class="dv mono" style="color:${C_NAVY}; font-weight:800;">${r.scheme?.id || "—"}</td></tr>
+          <tr><td class="dk">Name (EN)</td>
+              <td class="dv">${r.scheme?.name?.en || "—"}</td></tr>
+          <tr><td class="dk">File to Edit</td>
+              <td class="dv fp">${filePath}</td></tr>
+          <tr><td class="dk">State / Scope</td>
+              <td class="dv">${stateName} · ${r.scheme?.scope || "—"}</td></tr>
+          <tr><td class="dk">Current URL</td>
+              <td class="dv url">${urlVal}</td></tr>
+          ${r.scheme?.lastDate
+            ? `<tr><td class="dk">Deadline</td><td class="dv">${r.scheme.lastDate}</td></tr>`
+            : ""}
+          <tr><td class="dk">HTTP Status</td>
+              <td class="dv mono">${http}</td></tr>
+          ${r.error
+            ? `<tr><td class="dk">Error Detail</td><td class="dv err">${errText}</td></tr>`
+            : ""}
+        </table>
+
+        <div class="fix-block" style="border-top-color:${catColor}22;">
+          <strong style="color:${catColor};">WHAT TO FIX:</strong>
+          <p>${fix?.detail || "Check the URL manually and update if needed."}</p>
+        </div>
+
+        ${fieldHint}
+      </div>`;
+  };
+
+  const renderActiveRow = (r, i) => {
+    const url  = r.scheme?.apply?.en || "—";
+    const http = r.httpStatus > 0 ? r.httpStatus : "";
+    return `
+      <tr>
+        <td class="ti">${i + 1}</td>
+        <td class="tn">${r.scheme?.name?.en || r.scheme?.id || "—"}</td>
+        <td class="tu">${url}</td>
+        <td class="ts">${r.scheme?.state || "National"}</td>
+        <td class="th" style="color:${C_GREEN};">${http}</td>
+      </tr>`;
+  };
+
+  const renderNoRespRow = (r, i) => {
+    const url = r.scheme?.apply?.en || "—";
+    const err = r.error ? r.error.slice(0, 55) : "";
+    return `
+      <tr>
+        <td class="ti">${i + 1}</td>
+        <td class="tn">${r.scheme?.name?.en || r.scheme?.id || "—"}</td>
+        <td class="tu">${url}</td>
+        <td class="ts">${r.scheme?.state || "National"}</td>
+        <td class="th" style="color:#9CA3AF;font-size:7.5pt;">${err}</td>
+      </tr>`;
+  };
+
+  // ── Count issue groups for sub-headings ───────────────────────────────────
+  const critIssues = issues.filter(r => { const f = getFixSuggestion(r); return f?.color === RED; });
+  const warnIssues = issues.filter(r => { const f = getFixSuggestion(r); return f?.color === AMBER; });
+  const cfgIssues  = issues.filter(r => { const f = getFixSuggestion(r); return f?.color === VIOLET; });
+
+  // ── HTML ──────────────────────────────────────────────────────────────────
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Yojana Sahay — Verification Report — ${dateStr}</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 10.5pt;
+  color: #111827;
+  background: #fff;
+  padding: 20px 24px 32px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+@page { size: A4; margin: 14mm 12mm; }
+@media print {
+  body { padding: 0; max-width: none; }
+  .no-print { display: none !important; }
+  .issue-card { page-break-inside: avoid; }
+  .page-break { page-break-before: always; }
+}
+
+/* ── Print button ── */
+.print-btn {
+  position: fixed; top: 14px; right: 16px;
+  background: #003580; color: #fff;
+  border: none; border-radius: 8px;
+  padding: 9px 18px; font-size: 11pt; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 4px 14px rgba(0,53,128,0.3);
+  z-index: 999; transition: background 0.15s;
+}
+.print-btn:hover { background: #0047b3; }
+
+/* ── Cover ── */
+.cover {
+  background: linear-gradient(135deg, #001f5b 0%, #003580 60%, #004db3 100%);
+  color: #fff; border-radius: 10px;
+  padding: 22px 26px 18px; margin-bottom: 18px;
+}
+.cover h1 { font-size: 17pt; font-weight: 900; letter-spacing: -0.5px; }
+.cover .sub { font-size: 9.5pt; opacity: 0.75; margin-top: 3px; }
+.cover .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.cover .chip {
+  background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 4px; padding: 3px 10px;
+  font-size: 8.5pt; font-weight: 700; white-space: nowrap;
+}
+
+/* ── AI hint ── */
+.ai-hint {
+  background: #EFF6FF; border: 1.5px solid #BFDBFE;
+  border-left: 5px solid #2563EB; border-radius: 7px;
+  padding: 11px 14px; margin-bottom: 18px;
+  font-size: 9.5pt; color: #1E3A5F; line-height: 1.65;
+}
+.ai-hint strong { color: #1D4ED8; }
+
+/* ── Summary grid ── */
+.stat-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin-bottom: 22px;
+}
+.stat-card {
+  border: 1.5px solid #E5E7EB; border-radius: 8px;
+  padding: 10px 8px; text-align: center;
+}
+.stat-card .num { font-size: 20pt; font-weight: 900; line-height: 1; }
+.stat-card .lbl {
+  font-size: 7pt; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; color: #6B7280; margin-top: 4px;
+}
+
+/* ── Section header ── */
+.sec-head {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5pt; font-weight: 900; color: #111827;
+  padding-bottom: 7px; border-bottom: 2.5px solid #003580;
+  margin-bottom: 10px; margin-top: 22px;
+}
+.sec-head .badge {
+  font-size: 8.5pt; font-weight: 700; padding: 2px 9px;
+  border-radius: 12px; margin-left: auto; white-space: nowrap;
+}
+.sec-sub {
+  font-size: 8.5pt; color: #6B7280; margin-bottom: 12px; line-height: 1.55;
+}
+
+/* ── Sub-group header ── */
+.grp-head {
+  font-size: 9pt; font-weight: 800; letter-spacing: 0.5px;
+  text-transform: uppercase; padding: 5px 0 4px;
+  margin-top: 12px; margin-bottom: 6px;
+  border-top: 1px solid #E5E7EB; color: #374151;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ── Issue card ── */
+.issue-card {
+  border: 1px solid #E5E7EB; border-left: 4.5px solid #DC2626;
+  border-radius: 7px; margin-bottom: 12px; overflow: hidden;
+  break-inside: avoid;
+}
+.issue-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; border-bottom: 1px solid;
+}
+.issue-num {
+  font-family: monospace; font-size: 8pt; font-weight: 800;
+  color: #6B7280; background: rgba(0,0,0,0.07);
+  padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+}
+.issue-cat { font-size: 9.5pt; font-weight: 800; flex: 1; }
+.http-badge {
+  font-family: monospace; font-size: 8.5pt; font-weight: 800;
+  padding: 2px 7px; border: 1.5px solid; border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Detail table ── */
+.dtable { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+.dtable tr td { padding: 3.5px 12px; vertical-align: top; }
+.dtable tr:nth-child(even) { background: rgba(0,0,0,0.025); }
+.dk { width: 100px; color: #6B7280; font-weight: 700; white-space: nowrap; }
+.dv { color: #1a1a1a; word-break: break-all; }
+.mono { font-family: monospace; font-size: 8pt; }
+.fp { font-family: monospace; font-size: 8pt; color: #003580; font-weight: 800; }
+.url { font-family: monospace; font-size: 7.5pt; color: #374151; }
+.err { color: #DC2626; font-size: 8pt; }
+
+/* ── Fix block ── */
+.fix-block {
+  padding: 8px 12px; border-top: 1px solid;
+  font-size: 8.5pt; line-height: 1.6;
+  background: rgba(255,255,255,0.55);
+}
+.fix-block p { margin-top: 3px; color: #374151; }
+
+/* ── Field hint ── */
+.field-hint {
+  padding: 6px 12px 8px;
+  background: rgba(0,0,0,0.04);
+  border-top: 1px dashed rgba(0,0,0,0.12);
+  font-size: 8pt; color: #374151; line-height: 1.7;
+}
+.field-hint code {
+  font-family: monospace; background: rgba(0,53,128,0.08);
+  padding: 1px 5px; border-radius: 3px; font-size: 7.5pt; color: #003580;
+}
+
+/* ── Scheme table ── */
+.stbl { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin-top: 4px; }
+.stbl thead tr { background: #F9FAFB; }
+.stbl th {
+  padding: 5px 8px; text-align: left;
+  font-size: 7.5pt; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: #6B7280;
+}
+.stbl td { padding: 4px 8px; border-bottom: 1px solid #F3F4F6; }
+.ti { width: 26px; color: #9CA3AF; font-family: monospace; font-size: 8pt; }
+.tn { font-weight: 600; color: #111827; }
+.tu { font-family: monospace; font-size: 7.5pt; color: #374151; word-break: break-all; }
+.ts { width: 80px; color: #6B7280; font-size: 8pt; }
+.th { width: 46px; font-family: monospace; font-size: 8pt; text-align: right; }
+
+/* ── Footer ── */
+.footer {
+  margin-top: 28px; padding-top: 10px;
+  border-top: 1px solid #E5E7EB;
+  font-size: 7.5pt; color: #9CA3AF; text-align: center;
+}
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
+
+<!-- COVER -->
+<div class="cover">
+  <div style="font-size:8pt;opacity:0.6;letter-spacing:1.5px;font-weight:700;margin-bottom:6px;">YOJANA SAHAY · ADMIN DASHBOARD</div>
+  <h1>🇮🇳 Scheme Verification Report</h1>
+  <div class="sub">Scheme URL Verifier · ${scopeLabel}</div>
+  <div class="chips">
+    <div class="chip">📅 ${dateStr} · ${timeStr}</div>
+    <div class="chip">🎯 ${scopeLabel}</div>
+    <div class="chip">⚙ ${tierLabel}</div>
+    <div class="chip">🔢 Priority: ${priorityLabel}</div>
+    <div class="chip">📋 ${results.length} schemes verified</div>
+  </div>
+</div>
+
+<!-- AI USAGE HINT -->
+<div class="ai-hint">
+  <strong>📌 HOW TO USE THIS REPORT WITH CLAUDE AI:</strong><br/>
+  1. Upload this PDF to Claude AI.<br/>
+  2. Also upload the scheme source file — <code>src/schemesData.js</code> (for national) or
+     <code>src/state/statename.js</code> (for state schemes).<br/>
+  3. Tell Claude: <em>"Fix all the issues listed in the verification report.
+     For each issue the Scheme ID and File to Edit are shown — find that scheme and
+     update the <code>apply.en</code> field (or follow the WHAT TO FIX instruction)."</em><br/>
+  <strong>Focus Claude on the "ISSUES REQUIRING FIXES" section below.</strong>
+</div>
+
+<!-- SUMMARY -->
+<div class="stat-grid">
+  <div class="stat-card"><div class="num" style="color:${C_NAVY};">${summary?.total ?? results.length}</div><div class="lbl">Total</div></div>
+  <div class="stat-card"><div class="num" style="color:${C_GREEN};">${summary?.active ?? 0}</div><div class="lbl">Active</div></div>
+  <div class="stat-card"><div class="num" style="color:${C_RED};">${summary?.dead ?? 0}</div><div class="lbl">Dead Links</div></div>
+  <div class="stat-card"><div class="num" style="color:#B45309;">${summary?.noResponse ?? 0}</div><div class="lbl">No Response</div></div>
+  <div class="stat-card"><div class="num" style="color:#6D28D9;">${summary?.errors ?? 0}</div><div class="lbl">Errors</div></div>
+  <div class="stat-card"><div class="num" style="color:${C_RED};">${summary?.expired ?? 0}</div><div class="lbl">Expired</div></div>
+  <div class="stat-card"><div class="num" style="color:#FF9933;">${summary?.expiringSoon ?? 0}</div><div class="lbl">Expiring Soon</div></div>
+  <div class="stat-card"><div class="num" style="color:#6B7280;">${summary?.neverChecked ?? 0}</div><div class="lbl">Never Checked</div></div>
+</div>
+
+${issues.length > 0 ? `
+<!-- ISSUES SECTION -->
+<div class="sec-head">
+  ✕ ISSUES REQUIRING FIXES
+  <span class="badge" style="background:#FEF2F2;color:${C_RED};border:1px solid #FECACA;">${issues.length} schemes need attention</span>
+</div>
+<div class="sec-sub">
+  Each card below shows the exact <strong>File to Edit</strong>, <strong>Scheme ID</strong>, and
+  <strong>WHAT TO FIX</strong> instruction. Upload the corresponding source file alongside this
+  PDF to Claude AI for automated fixes.
+</div>
+
+${critIssues.length > 0 ? `
+<div class="grp-head" style="color:${C_RED};">
+  ✕ CRITICAL — Update URL in Source File
+  <span style="margin-left:auto;font-size:8.5pt;font-weight:700;background:#FEF2F2;color:${C_RED};padding:2px 8px;border-radius:10px;">${critIssues.length}</span>
+</div>
+${critIssues.map(renderIssueCard).join("")}
+` : ""}
+
+${warnIssues.length > 0 ? `
+<div class="grp-head" style="color:${C_AMBER};">
+  △ WARNINGS — Manual Check or Retry
+  <span style="margin-left:auto;font-size:8.5pt;font-weight:700;background:#FFFBEB;color:${C_AMBER};padding:2px 8px;border-radius:10px;">${warnIssues.length}</span>
+</div>
+${warnIssues.map(renderIssueCard).join("")}
+` : ""}
+
+${cfgIssues.length > 0 ? `
+<div class="grp-head" style="color:${C_VIOLET};">
+  ◆ CONFIGURATION / FORMAT ISSUES
+  <span style="margin-left:auto;font-size:8.5pt;font-weight:700;background:#F5F3FF;color:${C_VIOLET};padding:2px 8px;border-radius:10px;">${cfgIssues.length}</span>
+</div>
+${cfgIssues.map(renderIssueCard).join("")}
+` : ""}
+
+` : `
+<div class="sec-head">✓ No Issues Found</div>
+<div style="padding:16px;text-align:center;color:${C_GREEN};font-weight:700;font-size:12pt;">
+  All verified schemes have active links! 🎉
+</div>
+`}
+
+${noResponse.length > 0 ? `
+<!-- NO RESPONSE -->
+<div class="sec-head page-break">
+  △ NO RESPONSE (India-Bound Domains)
+  <span class="badge" style="background:#FFFBEB;color:${C_AMBER};border:1px solid #FDE68A;">${noResponse.length} schemes</span>
+</div>
+<div class="sec-sub">
+  These schemes did not respond from Vercel's US servers — typically NIC / nic.in / india.gov.in
+  domains that block non-Indian IPs. <strong>This does NOT mean the URL is broken.</strong>
+  Open each URL in a browser to confirm before making any edits to the source file.
+</div>
+<table class="stbl">
+  <thead><tr>
+    <th class="ti">#</th><th class="tn">Scheme Name</th>
+    <th class="tu">Apply URL</th><th class="ts">State</th><th class="th">Note</th>
+  </tr></thead>
+  <tbody>${noResponse.map(renderNoRespRow).join("")}</tbody>
+</table>
+` : ""}
+
+${active.length > 0 ? `
+<!-- ACTIVE SCHEMES -->
+<div class="sec-head page-break">
+  ✓ ACTIVE SCHEMES — No Action Needed
+  <span class="badge" style="background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0;">${active.length} schemes</span>
+</div>
+<table class="stbl">
+  <thead><tr>
+    <th class="ti">#</th><th class="tn">Scheme Name</th>
+    <th class="tu">Apply URL</th><th class="ts">State</th><th class="th">HTTP</th>
+  </tr></thead>
+  <tbody>${active.map(renderActiveRow).join("")}</tbody>
+</table>
+` : ""}
+
+<div class="footer">
+  Yojana Sahay Admin Dashboard · Scheme Verification Report ·
+  Generated ${dateStr} ${timeStr} · ${results.length} schemes verified ·
+  Scope: ${scopeLabel} · Mode: ${tierLabel}
+</div>
+
+</body>
+</html>`;
+
+  // Open in new tab and trigger print dialog
+  const win = window.open("", "_blank");
+  if (!win) {
+    alert("Pop-up blocked. Please allow pop-ups for this site and try again.");
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => {
+    try { win.print(); } catch { /* user may have closed the tab */ }
+  }, 700);
 }
 
 
@@ -1725,6 +2344,197 @@ function pageBtn(active, th, activeColor = th?.text) {
 }
 
 
+// ─── SAVED SCANS PANEL ───────────────────────────────────────────────────────
+// Shows all saved scan results stored in localStorage.
+// Each row: scope label · scheme count · issue count · save timestamp.
+// Buttons: "Export PDF" (loads full results + generates report) · "✕" (clear).
+// Renders null if no saved scans exist yet.
+
+function SavedScansSection({ dark, savedScans, onScanCleared }) {
+  const th = THEME[dark ? "dark" : "light"];
+
+  if (!savedScans || savedScans.length === 0) return null;
+
+  const handleExportScan = (key) => {
+    const scan = loadFullScan(key);
+    if (!scan || !scan.results?.length) {
+      alert("Saved scan data not found or is empty.");
+      return;
+    }
+    exportResultsPDF(scan.results, scan.summary, scan.scopeFilter, scan.priorityFilter, scan.tier);
+  };
+
+  const handleClear = (key) => {
+    clearSavedScan(key);
+    onScanCleared();
+  };
+
+  const formatDate = (iso) => {
+    if (!iso) return "Unknown date";
+    try {
+      return new Date(iso).toLocaleDateString("en-IN", {
+        day: "2-digit", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      });
+    } catch { return iso; }
+  };
+
+  const getScopeLabel = (scopeFilter) => {
+    if (scopeFilter === "national") return "National";
+    if (scopeFilter === "all")      return "All Schemes";
+    return scopeFilter.replace("state:", "");
+  };
+
+  return (
+    <div style={{
+      background:   th.card,
+      border:       `1.5px solid ${th.border}`,
+      borderRadius: 16,
+      overflow:     "hidden",
+    }}>
+      {/* Header */}
+      <div style={{
+        padding:        "10px 14px 9px",
+        borderBottom:   `1px solid ${th.border}`,
+        display:        "flex",
+        justifyContent: "space-between",
+        alignItems:     "center",
+      }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
+            Saved Scan Results
+          </div>
+          <div style={{ fontSize: 10, color: th.textSub, marginTop: 1 }}>
+            Export PDF from a previous scan — no need to re-run
+          </div>
+        </div>
+        <span style={{
+          fontSize: 9, fontWeight: 700, color: th.textSub,
+          padding: "2px 8px", background: th.card2,
+          border: `1px solid ${th.border}`, borderRadius: 8,
+        }}>
+          {savedScans.length} saved
+        </span>
+      </div>
+
+      {/* Scan rows */}
+      {savedScans.map((scan, idx) => {
+        const s          = scan.summary || {};
+        const issues     = (s.dead || 0) + (s.errors || 0);
+        const scopeLabel = getScopeLabel(scan.scopeFilter || "all");
+        const isLast     = idx === savedScans.length - 1;
+
+        return (
+          <div
+            key={scan.key}
+            style={{
+              padding:      "10px 14px",
+              borderBottom: isLast ? "none" : `1px solid ${th.border}`,
+              display:      "flex",
+              gap:          10,
+              alignItems:   "center",
+            }}
+          >
+            {/* Left: scope badge + info */}
+            <div style={{
+              width:        32, height: 32, borderRadius: 8, flexShrink: 0,
+              background:   dark ? `${NAVY}25` : `${NAVY}10`,
+              border:       `1px solid ${NAVY}30`,
+              display:      "flex", alignItems: "center", justifyContent: "center",
+              fontSize:     13, fontWeight: 900, color: NAVY,
+            }}>
+              {scan.scopeFilter === "national" ? "🇮🇳"
+               : scan.scopeFilter?.startsWith("state:") ? "📍"
+               : "📋"}
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: th.text }}>
+                  {scopeLabel}
+                </span>
+                <span style={{ fontSize: 9, color: th.textSub }}>
+                  · {scan.schemeCount} schemes
+                </span>
+                {issues > 0 && (
+                  <span style={{
+                    fontSize: 8, fontWeight: 800, padding: "1px 6px",
+                    borderRadius: 8,
+                    background: "rgba(220,38,38,0.1)", color: RED,
+                  }}>
+                    {issues} issue{issues !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+
+              <div style={{ fontSize: 9, color: th.textSub, marginTop: 1 }}>
+                Saved {formatDate(scan.savedAt)}
+              </div>
+
+              {s.total > 0 && (
+                <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
+                  {[
+                    [IND_GREEN, `${s.active     || 0} active`],
+                    [RED,       `${s.dead        || 0} dead`],
+                    [AMBER,     `${s.noResponse  || 0} no resp.`],
+                    [VIOLET,    `${s.errors      || 0} errors`],
+                  ].map(([color, label]) => (
+                    <span key={label} style={{ fontSize: 9, color, fontWeight: 700 }}>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right: actions */}
+            <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
+              <div
+                {...a11yClickable(() => handleExportScan(scan.key), {
+                  label: `Export PDF for ${scopeLabel} scan`,
+                })}
+                style={{
+                  padding:      "5px 11px",
+                  borderRadius: 8,
+                  fontSize:     10,
+                  fontWeight:   700,
+                  background:   dark ? `${NAVY}22` : `${NAVY}09`,
+                  border:       `1.5px solid ${NAVY}45`,
+                  color:        NAVY,
+                  cursor:       "pointer",
+                  whiteSpace:   "nowrap",
+                  transition:   "background 0.13s",
+                }}
+              >
+                Export PDF
+              </div>
+              <div
+                {...a11yClickable(() => handleClear(scan.key), {
+                  label: `Clear ${scopeLabel} saved scan`,
+                })}
+                style={{
+                  padding:      "5px 8px",
+                  borderRadius: 8,
+                  fontSize:     10,
+                  fontWeight:   700,
+                  background:   "transparent",
+                  border:       `1.5px solid ${th.border}`,
+                  color:        th.textSub,
+                  cursor:       "pointer",
+                  transition:   "border-color 0.13s",
+                }}
+              >
+                ✕
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function SchemeVerifier({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
@@ -1751,6 +2561,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [runDone,       setRunDone]       = useState(false);
   const [wasAborted,    setWasAborted]    = useState(false);
   const [saveStatus,    setSaveStatus]    = useState(null); // null | "saving" | "saved" | "error"
+
+  // ── Saved scans (localStorage) ────────────────────────────────────────────
+  const [savedScans, setSavedScans] = useState(() => loadAllSavedScans());
 
   // ── Timing (elapsed / speed / ETA) ───────────────────────────────────────
   const startTimeRef = useRef(null);
@@ -1929,6 +2742,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           console.error("[SchemeVerifier] Save to repo failed:", err);
           setSaveStatus("error");
         });
+
+      // ── Auto-save to localStorage for later PDF export ──────────────────
+      // Runs synchronously (before the async repo write) — localStorage is fast.
+      // Overwrites any previous scan for the same scope, keeping one slot per
+      // national / all / state:<name> combination.
+      const finalSummary = buildSummary(finalSnap);
+      saveScanResults(scopeFilter, priorityFilter, tier, finalSnap, finalSummary);
+      setSavedScans(loadAllSavedScans());
     }
   }, [running, scopeFilter, priorityFilter, tier]);
 
@@ -1965,10 +2786,12 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     setSearchQuery("");
   }, []);
 
-  // ── EXPORT CSV ────────────────────────────────────────────────────────────
+  // ── EXPORT PDF ────────────────────────────────────────────────────────────
   const handleExport = useCallback(() => {
-    if (results.length > 0) exportResultsCSV(results);
-  }, [results]);
+    if (results.length > 0) {
+      exportResultsPDF(results, summary, scopeFilter, priorityFilter, tier);
+    }
+  }, [results, summary, scopeFilter, priorityFilter, tier]);
 
   // ── Filtered + searched + paginated results ───────────────────────────────
   const filteredResults = useMemo(() => {
@@ -2119,6 +2942,15 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       {/* ══ DB COVERAGE CARD — idle only ═════════════════════════════════════ */}
       {!running && results.length === 0 && (
         <DBCoverageCard stats={dbStats} dark={dark} />
+      )}
+
+      {/* ══ SAVED SCANS — idle only ══════════════════════════════════════════ */}
+      {!running && results.length === 0 && (
+        <SavedScansSection
+          dark={dark}
+          savedScans={savedScans}
+          onScanCleared={() => setSavedScans(loadAllSavedScans())}
+        />
       )}
 
       {/* ══ CONFIG PANEL — hidden once run has results ════════════════════════ */}
@@ -2430,7 +3262,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               )}
             </div>
             <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-              {/* Export CSV */}
+              {/* Export PDF */}
               <div
                 {...a11yClickable(handleExport)}
                 style={{
@@ -2438,14 +3270,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   borderRadius: 8,
                   fontSize:     11,
                   fontWeight:   700,
-                  background:   dark ? `${IND_GREEN}18` : `${IND_GREEN}10`,
-                  border:       `1px solid ${IND_GREEN}40`,
-                  color:        IND_GREEN,
+                  background:   dark ? `${NAVY}18` : `${NAVY}09`,
+                  border:       `1px solid ${NAVY}45`,
+                  color:        NAVY,
                   cursor:       "pointer",
                   flexShrink:   0,
                 }}
               >
-                Export CSV
+                Export PDF
               </div>
               {/* New Run */}
               <div

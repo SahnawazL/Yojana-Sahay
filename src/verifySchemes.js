@@ -60,6 +60,17 @@ const PING_TIMEOUT_MS  = 12000;  // 12 s — Vercel function makes direct reques
 const CHECKPOINT_PATH  = ["adminMeta", "verifyCheckpoint"];  // Firestore path
 const THIRTY_DAYS_MS   = 30 * 24 * 60 * 60 * 1000;
 
+// Domains known to block direct pings from Vercel's server IPs.
+// Pinging these always returns a timeout or connection error, NOT because
+// the site is dead — but because NIC/government infrastructure firewalls
+// non-Indian server IPs. Short-circuiting these to alive:null ("No Response")
+// prevents valid scheme URLs from being falsely labelled "Dead" in the admin UI.
+// Tavily (Tier 2) can still reach these fine via its own crawler.
+const INDIA_ONLY_DOMAINS = [
+  "nic.in",       // National Informatics Centre — all subdomains (e.g. services.india.gov.in on nic infra)
+  "india.gov.in", // National Portal of India (NIC-hosted)
+];
+
 
 // ─── URL NORMALISER ───────────────────────────────────────────────────────────
 // schemesData.js stores bare domains (e.g. "pmkisan.gov.in").
@@ -151,6 +162,22 @@ export function buildVerificationQueue(
 }
 
 
+// ─── INDIA-BOUND DOMAIN DETECTOR ─────────────────────────────────────────────
+// Returns true if the URL's hostname ends with any domain in INDIA_ONLY_DOMAINS.
+// Uses URL() for safe parsing — no fragile regex on the raw string.
+
+function isIndiaBoundDomain(normalizedUrl) {
+  try {
+    const hostname = new URL(normalizedUrl).hostname.toLowerCase();
+    return INDIA_ONLY_DOMAINS.some(
+      d => hostname === d || hostname.endsWith(`.${d}`)
+    );
+  } catch {
+    return false; // malformed URL — let pingUrl's normalizeUrl guard handle it
+  }
+}
+
+
 // ─── TIER 1: DEAD LINK PING ───────────────────────────────────────────────────
 // Calls /api/ping-url (Vercel serverless) which makes a direct server-to-server
 // HEAD/GET request to the scheme URL.
@@ -165,6 +192,19 @@ async function pingUrl(url, signal = null) {
     return { httpStatus: 0, alive: false, error: "invalid URL" };
   }
 
+  // Fix A — India-bound domains: NIC and similar government infrastructure
+  // blocks direct pings from Vercel's US-based IPs. Rather than returning
+  // alive:false ("Dead"), return alive:null ("No Response") so the admin UI
+  // correctly shows these as unchecked, not broken. Tier 2 (Tavily) handles
+  // them fine and will fill in real status when it runs.
+  if (isIndiaBoundDomain(normalized)) {
+    return {
+      httpStatus: 0,
+      alive:      null,
+      error:      "India-bound domain — Vercel IP blocked by NIC infrastructure (skipped)",
+    };
+  }
+
   try {
     const res = await fetch("/api/ping-url", {
       method:  "POST",
@@ -177,7 +217,21 @@ async function pingUrl(url, signal = null) {
       return { httpStatus: 0, alive: false, error: `ping-url API error ${res.status}` };
     }
 
-    return await res.json(); // { httpStatus, alive, error }
+    const pingResult = await res.json(); // { httpStatus, alive, error }
+
+    // Fix B — 403 reclassify: a 403 means the server IS reachable and responded.
+    // It's only rejecting Vercel's bot/IP — the URL itself is live. Marking it
+    // "Dead" (alive:false) is wrong. Flip to alive:true so the admin sees
+    // "Active" with an explanatory note, not a false "Dead" badge.
+    if (pingResult.httpStatus === 403 && pingResult.alive === false) {
+      return {
+        ...pingResult,
+        alive: true,
+        error: "403 — server is live but blocks Vercel bot requests",
+      };
+    }
+
+    return pingResult;
 
   } catch (err) {
     return { httpStatus: 0, alive: false, error: err.message };
