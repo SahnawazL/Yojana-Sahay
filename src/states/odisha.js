@@ -37,7 +37,7 @@ export const ODISHA_SCHEMES = [
                hi: "₹10,000/वर्ष + जीवन बीमा + फसल सहायता; ध्यान दें: KALIA को CM किसान योजना (सितंबर 2024) से बदला गया है — मौजूदा लाभार्थियों को स्वतः स्थानांतरित किया जा सकता है" },
     tag:     { en: "Farmer (Legacy Scheme)", hi: "किसान (पुरानी योजना)" },
     annual: 10000,
-    apply:   { en: "kalia.odisha.gov.in", hi: "kalia.odisha.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/kalia", hi: "kalia.odisha.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records", "Bank Passbook", "Farmer ID"],
                hi: ["आधार कार्ड", "जमीन के कागज़", "बैंक पासबुक", "किसान आईडी"] },
     match: (a) => a.state === "Odisha" && a.who === "farmer",
