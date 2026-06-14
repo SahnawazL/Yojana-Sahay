@@ -1008,8 +1008,8 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                 </span>
               );
               if(!hasBeenChecked) return(
-                <span style={{fontSize:9,fontWeight:700,background:dark?"rgba(251,191,36,0.15)":"#FFFBEB",color:"#B45309",borderRadius:6,padding:"2px 7px",border:"1px solid #FDE68A"}}>
-                  ⚠️ {isHindi?"सत्यापन बाकी":"Unverified"}
+                <span style={{fontSize:9,fontWeight:700,background:dark?"rgba(99,102,241,0.13)":"#EEF2FF",color:dark?"#A5B4FC":"#4338CA",borderRadius:6,padding:"2px 7px",border:`1px solid ${dark?"rgba(165,180,252,0.3)":"#C7D2FE"}`}}>
+                  🕐 {isHindi?"जांच बाकी":"Check Pending"}
                 </span>
               );
               return null;
@@ -1219,20 +1219,20 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
                     </div>
                   )}
 
-                  {/* Unverified panel */}
+                  {/* Link not yet checked panel */}
                   {st==null&&!hasBeenChecked&&(
                     <div style={{
-                      background:dark?"rgba(251,191,36,0.08)":"#FFFBEB",
-                      border:"1px solid #FDE68A",borderRadius:10,
+                      background:dark?"rgba(99,102,241,0.08)":"#EEF2FF",
+                      border:"1px solid #C7D2FE",borderRadius:10,
                       padding:"9px 12px",display:"flex",gap:8,alignItems:"flex-start",
                     }}>
-                      <span style={{fontSize:14,flexShrink:0}}>⚠️</span>
+                      <span style={{fontSize:14,flexShrink:0}}>🕐</span>
                       <div>
-                        <div style={{fontSize:11,fontWeight:700,color:dark?"#FCD34D":"#92400E",marginBottom:2}}>
-                          {isHindi?"अभी तक सत्यापित नहीं":"Not yet verified"}
+                        <div style={{fontSize:11,fontWeight:700,color:dark?"#A5B4FC":"#3730A3",marginBottom:2}}>
+                          {isHindi?"लिंक की स्थिति जांचनी बाकी है":"Link status check pending"}
                         </div>
-                        <div style={{fontSize:10,color:dark?"#FDE68A":"#78350F",lineHeight:1.5}}>
-                          {isHindi?"हमारी टीम इस लिंक को जल्द सत्यापित करेगी। अभी के लिए गूगल पर खोजें।":"Our team is working on verifying this link. Search Google for accurate info for now."}
+                        <div style={{fontSize:10,color:dark?"#C7D2FE":"#4338CA",lineHeight:1.5}}>
+                          {isHindi?"यह लिंक अभी हमारे सिस्टम द्वारा स्कैन नहीं किया गया है। सटीक जानकारी के लिए आधिकारिक वेबसाइट पर जाएं या नीचे खोजें।":"This link hasn't been scanned by our system yet. For the most accurate and current information, visit the official website or search below."}
                         </div>
                       </div>
                     </div>
