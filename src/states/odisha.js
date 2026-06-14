@@ -87,7 +87,7 @@ export const ODISHA_SCHEMES = [
                hi: "महिला SHG सदस्यों को छोटे व्यवसाय शुरू/विस्तार हेतु ₹10 लाख तक ब्याज-मुक्त ऋण; नए SHGs के लिए ₹15,000 बीज राशि; रिवॉल्विंग फंड व क्षमता निर्माण सहायता; वर्दी व ब्लेज़र; उत्पाद बेचने के लिए मिशन शक्ति बाजार मंच" },
     tag:     { en: "Women / SHG / Entrepreneurship", hi: "महिला / SHG / उद्यमिता" },
     annual: 0,
-    apply:   { en: "missionshakti.odisha.gov.in", hi: "missionshakti.odisha.gov.in" }, applyType: "online",
+    apply:   { en: "https://missionshakti.odisha.gov.in/en/programme/mission-shakti-loan-state-interest-subvention", hi: "missionshakti.odisha.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SHG Membership Certificate / SHG passbook", "Bank Account (SHG account, Aadhaar-linked)", "Residence Proof (Odisha)", "Passport Photo", "Business plan / Project report (for larger loans)"],
                hi: ["आधार कार्ड", "SHG सदस्यता प्रमाण पत्र / SHG पासबुक", "बैंक खाता (SHG खाता, आधार-लिंक्ड)", "निवास प्रमाण (ओडिशा)", "पासपोर्ट फोटो", "व्यवसाय योजना / परियोजना रिपोर्ट (बड़े ऋण के लिए)"] },
     match: (a) => a.state === "Odisha" && a.who === "women",
