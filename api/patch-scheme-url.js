@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     if (!getRes.ok) {
       const err = await getRes.json().catch(() => ({}));
       return res.status(500).json({
-        error: `GitHub read failed (HTTP ${getRes.status}): ${err.message ?? "unknown error"}`,
+        error: `GitHub read failed (HTTP ${getRes.status}): ${err.message ?? "unknown error"} — tried path: "${file}"`,
       });
     }
 
