@@ -189,7 +189,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "14–45 वर्ष के युवाओं के लिए 200+ ट्रेडों (इलेक्ट्रिकल, प्लंबिंग, IT, ब्यूटी, आतिथ्य, वस्त्र आदि) में 3–6 माह का मुफ्त अल्पकालिक कौशल प्रशिक्षण; प्रशिक्षण के दौरान वजीफा; NSDC/राज्य बोर्ड से प्रमाण पत्र; प्लेसमेंट सहायता" },
     tag:     { en: "Youth / Skill Training", hi: "युवा / कौशल प्रशिक्षण" },
     annual: 0,
-    apply:   { en: "utkarshbangla.in", hi: "utkarshbangla.in" }, applyType: "online",
+    apply:   { en: "https://jalpaiguri.gov.in/pbssd-utkarsh-bangla", hi: "utkarshbangla.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 8 Pass Certificate (minimum)","Bank Account","Residence Proof (West Bengal)","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 8 उत्तीर्ण प्रमाण पत्र (न्यूनतम)","बैंक खाता","निवास प्रमाण (पश्चिम बंगाल)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "West Bengal" && ["18to35","35to60"].includes(a.age),
