@@ -106,7 +106,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "कक्षा 12 के बाद उच्च शिक्षा के लिए ₹10 लाख तक का शिक्षा ऋण 4% साधारण ब्याज पर (महिलाओं, दिव्यांग और ट्रांसजेंडर के लिए 0%); कोई गारंटी नहीं; कोई आय सीमा नहीं; नौकरी मिलने के 1 वर्ष बाद चुकाना शुरू; ट्यूशन, हॉस्टल, किताब, लैपटॉप सब कवर" },
     tag:     { en: "Student / Education Loan", hi: "छात्र / शिक्षा ऋण" },
     annual: 1000000,
-    apply:   { en: "wbscc.wb.gov.in", hi: "wbscc.wb.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/wbsccs", hi: "wbscc.wb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Pass Certificate & Marksheet","Admission Letter from College / University","Bank Account (Aadhaar-linked)","Residence Proof (West Bengal domicile)","Fee Structure from Institution","2 Passport Photos"],
                hi: ["आधार कार्ड","कक्षा 12 उत्तीर्ण प्रमाण पत्र व अंकसूची","कॉलेज/विश्वविद्यालय का प्रवेश पत्र","बैंक खाता (आधार-लिंक्ड)","निवास प्रमाण (पश्चिम बंगाल अधिवास)","संस्थान से शुल्क संरचना","2 पासपोर्ट फोटो"] },
     match: (a) => a.state === "West Bengal" && a.who === "student",
