@@ -980,32 +980,32 @@
     "confidence": 0
   },
   "odisha_cm_kisan": {
-    "lastVerified": "2026-06-14T16:22:22.854Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-06-14T18:44:01.599Z",
+    "httpStatus": 200,
     "linkAlive": false,
     "confidence": 0
   },
   "odisha_kalia": {
-    "lastVerified": "2026-06-14T16:22:22.854Z",
+    "lastVerified": "2026-06-14T18:44:01.599Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "odisha_subhadra": {
-    "lastVerified": "2026-06-14T16:22:22.854Z",
+    "lastVerified": "2026-06-14T18:44:01.599Z",
     "httpStatus": 403,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_mission_shakti": {
-    "lastVerified": "2026-06-14T16:22:22.854Z",
+    "lastVerified": "2026-06-14T18:44:01.599Z",
     "httpStatus": 200,
     "linkAlive": false,
     "isActive": true,
     "confidence": 0.5
   },
   "odisha_godabarisha_laptop": {
-    "lastVerified": "2026-06-14T16:22:22.854Z",
+    "lastVerified": "2026-06-14T18:44:01.599Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
