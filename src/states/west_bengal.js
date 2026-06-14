@@ -37,7 +37,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "K1: कक्षा 8–12 में पढ़ रही 13–18 वर्ष की अविवाहित छात्राओं को ₹1,000/वर्ष वार्षिक छात्रवृत्ति (पारिवारिक आय ₹1.2 लाख/वर्ष से कम); K2: 18 वर्ष होने पर अविवाहित व शिक्षा में रहने पर ₹25,000 एकमुश्त; UN पुरस्कार प्राप्त योजना" },
     tag:     { en: "Girl Student / Anti-Child Marriage", hi: "छात्रा / बाल विवाह विरोधी" },
     annual: 25000,
-    apply:   { en: "wbkanyashree.gov.in", hi: "wbkanyashree.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/wbkanyashree", hi: "wbkanyashree.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Birth Certificate / Age Proof","School Enrollment Certificate (Class 8–12)","Income Certificate (family income < ₹1.2 lakh/year)","Bank Account (girl's name)","Unmarried Declaration (self-attested)","Passport Photo"],
                hi: ["आधार कार्ड","जन्म प्रमाण पत्र / आयु प्रमाण","स्कूल नामांकन प्रमाण पत्र (कक्षा 8–12)","आय प्रमाण पत्र (पारिवारिक आय ₹1.2 लाख/वर्ष से कम)","बैंक खाता (छात्रा के नाम)","अविवाहित घोषणा (स्व-सत्यापित)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "West Bengal" && a.who === "student",
