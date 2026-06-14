@@ -138,7 +138,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "अल्पसंख्यक छात्रों (मुस्लिम, ईसाई, सिख, बौद्ध, जैन, पारसी) के लिए प्री-मैट्रिक और पोस्ट-मैट्रिक छात्रवृत्ति: पोस्ट-मैट्रिक के लिए ₹1,000–₹3,000/माह वजीफा + प्रवेश व ट्यूशन शुल्क प्रतिपूर्ति; पारिवारिक आय ₹2 लाख/वर्ष से कम" },
     tag:     { en: "Student / Minority", hi: "छात्र / अल्पसंख्यक" },
     annual: 36000,
-    apply:   { en: "wbmdfcscholar.org", hi: "wbmdfcscholar.org" }, applyType: "online",
+    apply:   { en: "https://www.govtschemes.in/west-bengal-aikyashree-scheme", hi: "wbmdfcscholar.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Minority Community Certificate","Class 10 / 12 Marksheet","College / University Admission Certificate","Family Income Certificate (< ₹2 lakh/year)","Bank Account (Aadhaar-linked)","Domicile Certificate (West Bengal)"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","कक्षा 10/12 अंकसूची","कॉलेज/विश्वविद्यालय प्रवेश प्रमाण पत्र","पारिवारिक आय प्रमाण पत्र (₹2 लाख/वर्ष से कम)","बैंक खाता (आधार-लिंक्ड)","अधिवास प्रमाण पत्र (पश्चिम बंगाल)"] },
     match: (a) => a.state === "West Bengal" && a.who === "student",
