@@ -1279,6 +1279,15 @@ function ResultRow({ result, dark, expandAll = false }) {
   const scheme = result.scheme;
   const [localExpanded, setLocalExpanded] = useState(false);
   const [copied,        setCopied]        = useState(false);
+  const [urlSearch,   setUrlSearch]   = useState(null);
+  // urlSearch shape:
+  //   null                            → not started
+  //   "loading"                       → API call in progress
+  //   { candidates: [...] }           → results ready
+  //   "patching"                      → GitHub commit in progress
+  //   { done: true, sha, commitUrl }  → committed successfully
+  //   { error: "..." }                → something went wrong
+  const [selectedUrl, setSelectedUrl] = useState(null);
 
   // Fix 7: expandAll overrides local state when active
   const expanded = expandAll || localExpanded;
@@ -1304,6 +1313,68 @@ function ResultRow({ result, dark, expandAll = false }) {
       setCopied("error");
       setTimeout(() => setCopied(false), 1800);
     });
+  };
+
+  // Only shown for confirmed dead links (alive === false) with fix label
+  // "Update URL" or "Check Domain" — i.e. the URL is genuinely gone.
+  const fix = getFixSuggestion(result);
+  const showFindNewUrl =
+    result.alive === false &&
+    fix != null &&
+    (fix.label === "Update URL" || fix.label === "Check Domain");
+
+  const handleFindNewUrl = async (e) => {
+    e.stopPropagation();
+    setUrlSearch("loading");
+    setSelectedUrl(null);
+    try {
+      const res = await fetch("/api/find-new-url", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id:       scheme.id,
+          name:     scheme.name?.en,
+          ministry: scheme.ministry?.en ?? null,
+          oldUrl:   scheme.apply?.en,
+          state:    scheme.state ?? "national",
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setUrlSearch({ candidates: data.candidates ?? [] });
+      if (data.candidates?.length > 0) setSelectedUrl(data.candidates[0].url);
+    } catch (err) {
+      setUrlSearch({ error: err.message });
+    }
+  };
+
+  const handleCommitFix = async (e) => {
+    e.stopPropagation();
+    if (!selectedUrl) return;
+    setUrlSearch("patching");
+    try {
+      const res = await fetch("/api/patch-scheme-url", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id:     scheme.id,
+          oldUrl: scheme.apply?.en,
+          newUrl: selectedUrl,
+          file:   getSchemeFilePath(result),
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setUrlSearch({ done: true, sha: data.sha, commitUrl: data.commitUrl });
+    } catch (err) {
+      setUrlSearch({ error: err.message });
+    }
+  };
+
+  const handleCancelSearch = (e) => {
+    e.stopPropagation();
+    setUrlSearch(null);
+    setSelectedUrl(null);
   };
 
   return (
@@ -1548,6 +1619,349 @@ function ResultRow({ result, dark, expandAll = false }) {
               >
                 {copied === "error" ? "Failed" : copied ? "Copied" : "Copy URL"}
               </button>
+            </div>
+          )}
+
+          {/* ── Find New URL — only for confirmed dead links ── */}
+          {showFindNewUrl && (
+            <div
+              onClick={e => e.stopPropagation()}
+              onKeyDown={e => e.stopPropagation()}
+              style={{ marginTop: 8 }}
+            >
+
+              {/* ── Initial button ── */}
+              {urlSearch === null && (
+                <button
+                  onClick={handleFindNewUrl}
+                  style={{
+                    width:        "100%",
+                    padding:      "6px 12px",
+                    borderRadius: 7,
+                    fontSize:     10,
+                    fontWeight:   700,
+                    cursor:       "pointer",
+                    border:       `1.5px solid ${NAVY}`,
+                    background:   `${NAVY}12`,
+                    color:        NAVY,
+                    fontFamily:   "inherit",
+                    transition:   "all 0.15s",
+                  }}
+                >
+                  🔍 Find New URL
+                </button>
+              )}
+
+              {/* ── Loading ── */}
+              {urlSearch === "loading" && (
+                <div style={{
+                  padding:      "8px 10px",
+                  borderRadius: 7,
+                  background:   th.card2,
+                  border:       `1px solid ${th.border}`,
+                  fontSize:     9,
+                  color:        th.textSub,
+                  display:      "flex",
+                  alignItems:   "center",
+                  gap:          6,
+                }}>
+                  <span style={{
+                    display:        "inline-block",
+                    width:          10,
+                    height:         10,
+                    borderRadius:   "50%",
+                    border:         `2px solid ${NAVY}`,
+                    borderTopColor: "transparent",
+                    animation:      "sv-spin 0.7s linear infinite",
+                    flexShrink:     0,
+                  }}/>
+                  Searching official portals…
+                </div>
+              )}
+
+              {/* ── Patching ── */}
+              {urlSearch === "patching" && (
+                <div style={{
+                  padding:      "8px 10px",
+                  borderRadius: 7,
+                  background:   th.card2,
+                  border:       `1px solid ${th.border}`,
+                  fontSize:     9,
+                  color:        th.textSub,
+                  display:      "flex",
+                  alignItems:   "center",
+                  gap:          6,
+                }}>
+                  <span style={{
+                    display:        "inline-block",
+                    width:          10,
+                    height:         10,
+                    borderRadius:   "50%",
+                    border:         `2px solid ${IND_GREEN}`,
+                    borderTopColor: "transparent",
+                    animation:      "sv-spin 0.7s linear infinite",
+                    flexShrink:     0,
+                  }}/>
+                  Committing to GitHub…
+                </div>
+              )}
+
+              {/* ── Candidates list ── */}
+              {urlSearch?.candidates && (
+                <div style={{
+                  borderRadius: 7,
+                  border:       `1px solid ${th.border}`,
+                  background:   th.card2,
+                  overflow:     "hidden",
+                }}>
+
+                  {/* Header */}
+                  <div style={{
+                    padding:        "6px 10px",
+                    borderBottom:   `1px solid ${th.border}`,
+                    fontSize:       9,
+                    fontWeight:     700,
+                    color:          th.textMid,
+                    display:        "flex",
+                    justifyContent: "space-between",
+                    alignItems:     "center",
+                  }}>
+                    <span>
+                      {urlSearch.candidates.length === 0
+                        ? "No candidates found"
+                        : `${urlSearch.candidates.length} candidate${urlSearch.candidates.length !== 1 ? "s" : ""} found`}
+                    </span>
+                    <button
+                      onClick={handleCancelSearch}
+                      style={{
+                        background: "none",
+                        border:     "none",
+                        cursor:     "pointer",
+                        color:      th.textSub,
+                        fontSize:   10,
+                        padding:    "0 2px",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Candidate rows */}
+                  {urlSearch.candidates.map((c, idx) => {
+                    const isSelected = c.url === selectedUrl;
+                    return (
+                      <div
+                        key={c.url}
+                        onClick={e => { e.stopPropagation(); setSelectedUrl(c.url); }}
+                        style={{
+                          padding:      "7px 10px",
+                          borderBottom: idx < urlSearch.candidates.length - 1
+                            ? `1px solid ${th.border}` : "none",
+                          cursor:       "pointer",
+                          background:   isSelected ? `${NAVY}10` : "transparent",
+                          borderLeft:   `3px solid ${isSelected ? NAVY : "transparent"}`,
+                          transition:   "all 0.1s",
+                        }}
+                      >
+                        {/* Domain + alive dot */}
+                        <div style={{
+                          display:      "flex",
+                          alignItems:   "center",
+                          gap:          6,
+                          marginBottom: 2,
+                        }}>
+                          <span style={{
+                            width:        6,
+                            height:       6,
+                            borderRadius: "50%",
+                            background:   c.alive ? IND_GREEN : RED,
+                            flexShrink:   0,
+                          }}/>
+                          <span style={{
+                            fontSize:   9,
+                            fontWeight: 700,
+                            color:      isSelected ? NAVY : th.text,
+                          }}>
+                            {c.domain}
+                          </span>
+                          {/* Confidence pill */}
+                          <span style={{
+                            fontSize:     7.5,
+                            fontWeight:   700,
+                            padding:      "1px 5px",
+                            borderRadius: 4,
+                            background:   c.confidence >= 0.7
+                              ? `${IND_GREEN}18`
+                              : c.confidence >= 0.4
+                              ? `${AMBER}18`
+                              : `${th.border}`,
+                            color: c.confidence >= 0.7
+                              ? IND_GREEN
+                              : c.confidence >= 0.4
+                              ? AMBER
+                              : th.textSub,
+                            marginLeft: "auto",
+                            flexShrink: 0,
+                          }}>
+                            {Math.round(c.confidence * 100)}%
+                          </span>
+                        </div>
+                        {/* Full URL */}
+                        <div style={{
+                          fontSize:     8,
+                          color:        th.textSub,
+                          overflow:     "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace:   "nowrap",
+                        }}>
+                          {c.url}
+                        </div>
+                        {/* Page title */}
+                        {c.title && (
+                          <div style={{
+                            fontSize:     7.5,
+                            color:        th.textSub,
+                            marginTop:    2,
+                            overflow:     "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace:   "nowrap",
+                            opacity:      0.75,
+                          }}>
+                            {c.title}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* Action row: Commit Fix + Preview */}
+                  {urlSearch.candidates.length > 0 && selectedUrl && (
+                    <div style={{
+                      padding:    "7px 10px",
+                      borderTop:  `1px solid ${th.border}`,
+                      display:    "flex",
+                      gap:        6,
+                      alignItems: "center",
+                    }}>
+                      <button
+                        onClick={handleCommitFix}
+                        style={{
+                          flex:         1,
+                          padding:      "5px 10px",
+                          borderRadius: 6,
+                          fontSize:     9,
+                          fontWeight:   700,
+                          cursor:       "pointer",
+                          border:       `1.5px solid ${IND_GREEN}`,
+                          background:   `${IND_GREEN}15`,
+                          color:        IND_GREEN,
+                          fontFamily:   "inherit",
+                          transition:   "all 0.15s",
+                        }}
+                      >
+                        ✓ Commit Fix
+                      </button>
+                      <a
+                        href={selectedUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          padding:        "5px 9px",
+                          borderRadius:   6,
+                          fontSize:       9,
+                          fontWeight:     600,
+                          color:          NAVY,
+                          border:         `1px solid ${th.border}`,
+                          background:     th.card,
+                          textDecoration: "none",
+                          whiteSpace:     "nowrap",
+                          flexShrink:     0,
+                        }}
+                      >
+                        Preview ↗
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Committed ── */}
+              {urlSearch?.done && (
+                <div style={{
+                  padding:      "8px 10px",
+                  borderRadius: 7,
+                  background:   `${IND_GREEN}10`,
+                  border:       `1px solid ${IND_GREEN}40`,
+                  fontSize:     9,
+                }}>
+                  <div style={{
+                    fontWeight:   700,
+                    color:        IND_GREEN,
+                    marginBottom: 3,
+                  }}>
+                    ✓ Committed — Vercel deploying (~1–2 min)
+                  </div>
+                  <div style={{
+                    fontFamily:   "monospace",
+                    color:        th.textSub,
+                    fontSize:     8,
+                    marginBottom: 4,
+                  }}>
+                    {urlSearch.sha?.slice(0, 7)}
+                  </div>
+                  {urlSearch.commitUrl && (
+                    <a
+                      href={urlSearch.commitUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        fontSize:       8,
+                        color:          NAVY,
+                        textDecoration: "none",
+                      }}
+                    >
+                      View commit on GitHub ↗
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* ── Error ── */}
+              {urlSearch?.error && (
+                <div style={{
+                  padding:      "8px 10px",
+                  borderRadius: 7,
+                  background:   `${RED}08`,
+                  border:       `1px solid ${RED}30`,
+                  fontSize:     9,
+                }}>
+                  <div style={{ fontWeight: 700, color: RED, marginBottom: 3 }}>
+                    Failed
+                  </div>
+                  <div style={{ color: th.textMid, wordBreak: "break-word" }}>
+                    {urlSearch.error}
+                  </div>
+                  <button
+                    onClick={handleCancelSearch}
+                    style={{
+                      marginTop:  6,
+                      background: "none",
+                      border:     "none",
+                      cursor:     "pointer",
+                      color:      th.textSub,
+                      fontSize:   8,
+                      padding:    0,
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
+
             </div>
           )}
 
