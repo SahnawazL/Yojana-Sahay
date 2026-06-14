@@ -21,7 +21,7 @@ export const ODISHA_SCHEMES = [
                hi: "छोटे व सीमांत किसानों को ₹4,000/वर्ष (रबी व खरीफ में ₹2,000–₹2,000 किस्त); भूमिहीन कृषि परिवारों को ₹12,500/वर्ष (3 किस्तों में) — PM-KISAN में शामिल न होने वाले किसानों के लिए — सीधे बैंक खाते में" },
     tag:     { en: "Farmer / Income Support", hi: "किसान / आय सहायता" },
     annual: 12500,
-    apply:   { en: "cmkisan.odisha.gov.in", hi: "cmkisan.odisha.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.govtschemes.in/odisha-cm-kisan-yojana", hi: "cmkisan.odisha.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records / Khatian (for small/marginal farmers)", "Farmer Registration on Krushak Portal", "Bank Account (Aadhaar-linked)", "Mobile Number (Aadhaar-linked)", "Proof of landlessness (for landless category)"],
                hi: ["आधार कार्ड", "भूमि अभिलेख / खतियान (छोटे/सीमांत किसानों के लिए)", "कृषक पोर्टल पर किसान पंजीकरण", "बैंक खाता (आधार-लिंक्ड)", "मोबाइल नंबर (आधार-लिंक्ड)", "भूमिहीनता का प्रमाण (भूमिहीन श्रेणी के लिए)"] },
     match: (a) => a.state === "Odisha" && (a.who === "farmer" || ["below1","1to3"].includes(a.income)),
