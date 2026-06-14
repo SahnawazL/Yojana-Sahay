@@ -384,8 +384,8 @@ function getSchemeFilePath(result) {
   if (result.scheme?.scope === "national") return "src/SchemeData/schemesData.js";
   const st = result.scheme?.state;
   if (!st) return "src/SchemeData/schemesData.js";
-  const fname = st.toLowerCase().replace(/\s+/g, "_");
-  return `src/SchemeData/stateSchemes/${fname}.js`;
+  const fname = st.toLowerCase().replace(/\s*&\s*/g, " ").replace(/\s+/g, "_");
+  return `src/SchemeData/states/${fname}.js`;
 }
 
 
