@@ -48,6 +48,9 @@ import {
   getStatesInDB,
   getDBStats,
   writeSchemeResults,
+  saveUrlFix,
+  markUrlFixCommitted,
+  loadUrlFixes,
 } from "./verifySchemes.js";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
@@ -1274,7 +1277,7 @@ function FilterPill({ label, count, color, bg, active, th, onClick }) {
 
 
 // ─── RESULT ROW ───────────────────────────────────────────────────────────────
-function ResultRow({ result, dark, expandAll = false }) {
+function ResultRow({ result, dark, expandAll = false, savedFix = null }) {
   const th     = THEME[dark ? "dark" : "light"];
   const scheme = result.scheme;
   const [localExpanded, setLocalExpanded] = useState(false);
@@ -1288,6 +1291,19 @@ function ResultRow({ result, dark, expandAll = false }) {
   //   { done: true, sha, commitUrl }  → committed successfully
   //   { error: "..." }                → something went wrong
   const [selectedUrl, setSelectedUrl] = useState(null);
+
+  // Restore persisted URL fix candidates from Firestore on mount.
+  // If a previous "Find New URL" run saved candidates for this scheme,
+  // they are restored here so the Fix button is available without re-running.
+  useEffect(() => {
+    if (!savedFix || urlSearch !== null) return;
+    if (savedFix.status === "committed") {
+      setUrlSearch({ done: true, sha: savedFix.commitSha, commitUrl: null });
+    } else if (savedFix.candidates?.length > 0) {
+      setUrlSearch({ candidates: savedFix.candidates });
+      setSelectedUrl(savedFix.candidates[0].url);
+    }
+  }, [savedFix]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fix 7: expandAll overrides local state when active
   const expanded = expandAll || localExpanded;
@@ -1343,6 +1359,8 @@ function ResultRow({ result, dark, expandAll = false }) {
       if (data.error) throw new Error(data.error);
       setUrlSearch({ candidates: data.candidates ?? [] });
       if (data.candidates?.length > 0) setSelectedUrl(data.candidates[0].url);
+      // Persist candidates to Firestore so Fix button survives tab close / refresh
+      await saveUrlFix(scheme.id, data.candidates ?? []);
     } catch (err) {
       setUrlSearch({ error: err.message });
     }
@@ -1366,6 +1384,8 @@ function ResultRow({ result, dark, expandAll = false }) {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setUrlSearch({ done: true, sha: data.sha, commitUrl: data.commitUrl });
+      // Persist committed status to Firestore for permanent audit trail
+      await markUrlFixCommitted(scheme.id, selectedUrl, data.sha);
     } catch (err) {
       setUrlSearch({ error: err.message });
     }
@@ -2979,6 +2999,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // ── Saved scans (localStorage) ────────────────────────────────────────────
   const [savedScans, setSavedScans] = useState(() => loadAllSavedScans());
 
+  // ── Persisted URL fix candidates (Firestore: adminMeta/urlFixes) ──────────
+  // Loaded once on mount. Passed into each ResultRow so "Find New URL"
+  // candidates survive tab switches, page refreshes, and session closes.
+  const [urlFixMap, setUrlFixMap] = useState({});
+  useEffect(() => {
+    loadUrlFixes().then(data => setUrlFixMap(data));
+  }, []);
+
   // ── Timing (elapsed / speed / ETA) ───────────────────────────────────────
   const startTimeRef = useRef(null);
   const [elapsed,    setElapsed]    = useState(0);  // ms since run started
@@ -3881,6 +3909,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   result={r}
                   dark={dark}
                   expandAll={expandAll}
+                  savedFix={urlFixMap[r.scheme?.id] ?? null}
                 />
               ))
             )}

@@ -687,3 +687,77 @@ export function getStatesInDB() {
   );
   return [...stateSet].sort();
 }
+
+
+// ─── URL FIX PERSISTENCE ──────────────────────────────────────────────────────
+// Saves discovered URL candidates for dead-link schemes to Firestore so the
+// "Find New URL" results survive tab switches, page refreshes, and session closes.
+//
+// Doc path: adminMeta/urlFixes
+// Shape:    { [schemeId]: { candidates, discoveredAt, status, newUrl?, commitSha? } }
+//
+// Covered by existing Firestore rule:
+//   match /adminMeta/{docId} { allow read, write: if isAdmin(); }
+// ─────────────────────────────────────────────────────────────────────────────
+
+const URL_FIXES_PATH = ["adminMeta", "urlFixes"];
+
+/**
+ * Save discovered URL candidates for a dead-link scheme.
+ * Called automatically after /api/find-new-url returns results.
+ * Uses merge:true so other schemes' entries are never overwritten.
+ */
+export async function saveUrlFix(schemeId, candidates) {
+  try {
+    await setDoc(
+      doc(db, ...URL_FIXES_PATH),
+      {
+        [schemeId]: {
+          candidates,
+          discoveredAt: new Date().toISOString(),
+          status: "pending",
+        },
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    console.warn("[saveUrlFix] Firestore write failed:", err.message);
+  }
+}
+
+/**
+ * Mark a fix as committed after /api/patch-scheme-url succeeds.
+ * Stores the chosen URL and commit SHA for the audit trail.
+ */
+export async function markUrlFixCommitted(schemeId, newUrl, commitSha) {
+  try {
+    await setDoc(
+      doc(db, ...URL_FIXES_PATH),
+      {
+        [schemeId]: {
+          status:      "committed",
+          newUrl,
+          commitSha,
+          committedAt: new Date().toISOString(),
+        },
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    console.warn("[markUrlFixCommitted] Firestore write failed:", err.message);
+  }
+}
+
+/**
+ * Load the full urlFixes map on SchemeVerifier mount.
+ * Returns { [schemeId]: { candidates, status, ... } } or {} on failure.
+ */
+export async function loadUrlFixes() {
+  try {
+    const snap = await getDoc(doc(db, ...URL_FIXES_PATH));
+    return snap.exists() ? snap.data() : {};
+  } catch (err) {
+    console.warn("[loadUrlFixes] Firestore read failed:", err.message);
+    return {};
+  }
+}
