@@ -381,11 +381,11 @@ function clearSavedScan(key) {
 // State   → src/state/<statename>.js   (matches actual folder structure)
 
 function getSchemeFilePath(result) {
-  if (result.scheme?.scope === "national") return "src/SchemeData/schemesData.js";
+  if (result.scheme?.scope === "national") return "src/schemesData.js";
   const st = result.scheme?.state;
-  if (!st) return "src/SchemeData/schemesData.js";
+  if (!st) return "src/schemesData.js";
   const fname = st.toLowerCase().replace(/\s*&\s*/g, " ").replace(/\s+/g, "_");
-  return `src/SchemeData/states/${fname}.js`;
+  return `src/states/${fname}.js`;
 }
 
 
