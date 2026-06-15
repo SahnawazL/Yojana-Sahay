@@ -789,18 +789,18 @@
     "lastDate": "2026-06-05"
   },
   "tn_solar_green_house": {
-    "lastVerified": "2026-06-15T19:16:25.929Z",
+    "lastVerified": "2026-06-15T19:18:36.538Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_housing_board_ews": {
-    "lastVerified": "2026-06-15T19:16:25.929Z",
+    "lastVerified": "2026-06-15T19:18:36.538Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_scst_free_coaching": {
     "lastVerified": "2026-06-15T19:16:25.929Z",
