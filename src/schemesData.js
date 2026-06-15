@@ -152,7 +152,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹5,000 support + free education", hi: "₹5,000 सहायता + मुफ्त शिक्षा" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 5000,
-    apply:   { en: "wcd.gov.in", hi: "wcd.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.india.gov.in/category/benefits-social-development/subcategory/women-children/details/beti-bachao-beti-padhao-scheme-ministry-of-women-child-development", hi: "wcd.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Birth Certificate","Bank Account"],
                hi: ["आधार कार्ड","जन्म प्रमाण","बैंक खाता"] },
     match: (a) => a.who === "women",
@@ -239,7 +239,7 @@ export const SCHEME_DB = [
     benefit: { en: "Guaranteed ₹1,000–₹5,000/month pension after age 60", hi: "60 वर्ष बाद ₹1,000–₹5,000/माह गारंटीड पेंशन" },
     tag:     { en: "Pension", hi: "पेंशन" },
     annual: 0,
-    apply:   { en: "jansuraksha.gov.in", hi: "jansuraksha.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/apy", hi: "jansuraksha.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Bank Account (Aadhaar-linked)", "Mobile Number"],
                hi: ["आधार कार्ड", "बैंक खाता (आधार से लिंक)", "मोबाइल नंबर"] },
     // Eligibility: age 18–40, unorganised sector, not an income-tax payer
@@ -730,7 +730,7 @@ export const SCHEME_DB = [
     benefit: { en: "10 kg free food grain per month for destitute senior citizens (65+) not covered under NOAPS", hi: "NOAPS में शामिल न होने वाले निराश्रित बुजुर्गों (65+) को 10 किलो मुफ्त अनाज/माह" },
     tag:     { en: "Senior / Food", hi: "वरिष्ठ / भोजन" },
     annual: 6000,
-    apply:   { en: "nsap.nic.in", hi: "nsap.nic.in" }, applyType: "online",
+    apply:   { en: "https://web.umang.gov.in/landing/department/national-social-assistance-programme-nsap.html", hi: "nsap.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (65+ years)","BPL Certificate","Proof of No Pension","Bank Account"],
                hi: ["आधार कार्ड","आयु प्रमाण (65+ वर्ष)","BPL प्रमाण","पेंशन न होने का प्रमाण","बैंक खाता"] },
     // Eligibility: destitute senior (65+), BPL, not receiving any other pension
@@ -1094,7 +1094,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹12,000/year (UG 1st–3rd year) · ₹20,000/year (PG) for Class 12 toppers", hi: "कक्षा 12 टॉपर्स को ₹12,000/वर्ष (UG 1–3 वर्ष) · ₹20,000/वर्ष (PG)" },
     tag:     { en: "Student / Merit", hi: "छात्र / मेधा" },
     annual: 12000,
-    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjustice.gov.in/schemes/27", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Mark Sheet (above 80th percentile in Board exam)","Income Certificate (≤₹4.5L/year)","College Admission Letter","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 12 मार्कशीट (बोर्ड परीक्षा में 80वीं प्रतिशत से ऊपर)","आय प्रमाण (≤₹4.5 लाख/वर्ष)","कॉलेज प्रवेश पत्र","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: students above 80th percentile in Class 12 Board, family income ≤ ₹4.5L, in regular UG/PG (not distance/open)
