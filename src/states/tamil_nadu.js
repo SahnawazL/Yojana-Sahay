@@ -19,7 +19,7 @@ export const TAMIL_NADU_SCHEMES = [
     benefit: { en: "₹1,000/month stipend for girl students Std 6–12", hi: "कक्षा 6–12 की छात्राओं को ₹1,000/माह" },
     tag:     { en: "Girl Student",  hi: "छात्रा" },
     annual:  12000,
-    apply:   { en: "pudumaipenn.tn.gov.in", hi: "pudumaipenn.tn.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/pudhumai-penn-scheme", hi: "pudumaipenn.tn.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "School Enrollment Certificate", "Bank Account (girl's name)"],
                hi: ["आधार कार्ड", "स्कूल नामांकन प्रमाण पत्र", "बैंक खाता (छात्रा के नाम पर)"] },
     // Eligibility: TN girl student in Std 6-12 in govt school
@@ -35,7 +35,7 @@ export const TAMIL_NADU_SCHEMES = [
     benefit: { en: "₹1,000/month direct cash transfer to women heads of household", hi: "परिवार की महिला मुखिया को ₹1,000/माह प्रत्यक्ष नकद" },
     tag:     { en: "Women", hi: "महिला" },
     annual:  12000,
-    apply:   { en: "magalurimai.tn.gov.in", hi: "magalurimai.tn.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.govtschemes.in/tamil-nadu-kalaignar-magalir-urimai-thittam-scheme", hi: "magalurimai.tn.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card", "Bank Account", "Income Certificate"],
                hi: ["आधार कार्ड", "राशन कार्ड", "बैंक खाता", "आय प्रमाण पत्र"] },
     // Eligibility: TN women (18–60), income below ₹3 lakh
