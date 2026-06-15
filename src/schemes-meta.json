@@ -396,11 +396,11 @@
     "linkAlive": true
   },
   "sukanya": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:35:00.437Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmmvy": {
     "lastVerified": "2026-06-14T08:41:43.237Z",
@@ -438,11 +438,11 @@
     "linkAlive": true
   },
   "standup_india": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:35:00.437Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0.5,
-    "linkAlive": false
+    "linkAlive": true
   },
   "nfsa_pds": {
     "lastVerified": "2026-06-14T08:41:43.237Z",
@@ -634,11 +634,11 @@
     "linkAlive": true
   },
   "startup_india": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:35:00.437Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pms_sc_st": {
     "lastVerified": "2026-06-15T02:32:53.834Z",
@@ -669,11 +669,11 @@
     "linkAlive": false
   },
   "premat_st_scholarship": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:35:00.437Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmlvmy": {
     "lastVerified": "2026-06-15T01:48:14.442Z",
@@ -683,11 +683,11 @@
     "linkAlive": true
   },
   "seekho_kamao": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:35:00.437Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pm_daksh": {
     "lastVerified": "2026-06-15T01:45:46.081Z",
