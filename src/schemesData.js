@@ -1169,7 +1169,7 @@ export const SCHEME_DB = [
     benefit: { en: "35% credit-linked capital subsidy (max ₹10 Lakh) for micro food processing units · Free FSSAI registration & branding support + skill training", hi: "सूक्ष्म खाद्य प्रसंस्करण इकाइयों को 35% सब्सिडी (अधिकतम ₹10 लाख) · मुफ्त FSSAI पंजीकरण, ब्रांडिंग और कौशल प्रशिक्षण" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "pmfme.mofpi.gov.in", hi: "pmfme.mofpi.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/pmfmpe", hi: "pmfme.mofpi.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN Card","Business Registration / FSSAI Licence (or applied for)","Project Report","Bank Statement (6 months)","Land / Shed Ownership or Lease Proof","Caste Certificate (SC/ST/OBC if applicable)"],
                hi: ["आधार और पैन कार्ड","व्यापार पंजीकरण / FSSAI लाइसेंस","प्रोजेक्ट रिपोर्ट","6 महीने बैंक स्टेटमेंट","जमीन/शेड स्वामित्व या पट्टा","जाति प्रमाण (SC/ST/OBC हो तो)"] },
     // Eligibility: individual micro food entrepreneurs, SHGs, FPOs in food processing; monthly turnover < ₹1 Crore
