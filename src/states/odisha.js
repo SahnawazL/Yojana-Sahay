@@ -139,7 +139,7 @@ export const ODISHA_SCHEMES = [
                hi: "कक्षा 12 उत्तीर्ण मेधावी छात्रों को लैपटॉप खरीदने के लिए ₹30,000 एकमुश्त DBT; प्रति वर्ष 15,000 छात्रवृत्तियां; SC/ST/OBC/सामान्य/SBC/EBC सभी वर्गों के छात्र पात्र; पूर्व में बीजू युवा सशक्तिकरण योजना — 2024 में नाम बदला" },
     tag:     { en: "Student / Technology", hi: "छात्र / तकनीक" },
     annual: 30000,
-    apply:   { en: "scholarship.odisha.gov.in", hi: "scholarship.odisha.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.govtschemes.in/odisha-godabarisha-vidyarthi-protsahana-yojana-laptop-dbt", hi: "scholarship.odisha.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 12 Marksheet / Certificate (CHSE Odisha)", "Bank Account (Aadhaar-linked, student's name)", "Residence Proof (Odisha)", "Caste Certificate (if SC/ST/OBC)", "Student ID Card", "Class 12 Admit Card", "Passport Photo", "Mobile number and email"],
                hi: ["आधार कार्ड", "कक्षा 12 अंकसूची / प्रमाण पत्र (CHSE ओडिशा)", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "निवास प्रमाण (ओडिशा)", "जाति प्रमाण पत्र (SC/ST/OBC के लिए)", "छात्र पहचान पत्र", "कक्षा 12 प्रवेश पत्र", "पासपोर्ट फोटो", "मोबाइल नंबर व ईमेल"] },
     match: (a) => a.state === "Odisha" && a.who === "student",
