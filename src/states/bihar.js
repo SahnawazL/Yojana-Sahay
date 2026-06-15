@@ -275,7 +275,7 @@ export const BIHAR_SCHEMES = [
                hi: "60–79 वर्ष के सभी वृद्धजनों को ₹400/माह पेंशन; 80 वर्ष व उससे अधिक आयु के लिए ₹500/माह; सार्वभौमिक — कोई आय सीमा नहीं, कोई जाति शर्त नहीं; हर माह बैंक खाते में सीधे" },
     tag:     { en: "Senior Citizen / Pension", hi: "वृद्धजन / पेंशन" },
     annual: 6000,
-    apply:   { en: "sspmis.in", hi: "sspmis.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/mvpy-bihar", hi: "sspmis.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (Birth Certificate / Voter ID)","Bank Account (Aadhaar-linked)","Residence Proof (Bihar)","Two Passport Photos"],
                hi: ["आधार कार्ड","आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID)","बैंक खाता (आधार-लिंक्ड)","निवास प्रमाण (बिहार)","दो पासपोर्ट फोटो"] },
     match: (a) => a.state === "Bihar" && (a.who === "senior" || a.age === "above60"),
