@@ -89,7 +89,7 @@ export const UTTARAKHAND_SCHEMES = [
                hi: "उत्तराखंड बोर्ड की कक्षा 10 में 70%+ अंक लाने वाले छात्रों के लिए मेरिट छात्रवृत्ति — कक्षा 11–12: ₹600/माह; स्नातक: ₹1,000–₹2,000/माह; स्नातकोत्तर: ₹2,500/माह; पूरे शैक्षणिक वर्ष सीधे बैंक खाते में; सभी वर्गों के लिए, पारिवारिक आय ₹6 लाख तक" },
     tag:     { en: "Student / Merit Scholarship", hi: "छात्र / मेरिट छात्रवृत्ति" },
     annual: 24000,
-    apply:   { en: "escholarship.uk.gov.in", hi: "escholarship.uk.gov.in" }, applyType: "online",
+    apply:   { en: "https://he.uk.gov.in/scholarship-portal", hi: "escholarship.uk.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 10 Marksheet (Uttarakhand Board, 70%+)", "Income Certificate (family ≤ ₹6 lakh)", "Uttarakhand Domicile Certificate", "Current Admission / College ID", "Bank Account (student's, Aadhaar-linked)", "Caste Certificate (if SC/ST/OBC)", "Passport Photo", "Mobile Number & Email"],
                hi: ["आधार कार्ड", "कक्षा 10 अंकसूची (उत्तराखंड बोर्ड, 70%+)", "आय प्रमाण पत्र (परिवार ₹6 लाख तक)", "उत्तराखंड डोमिसाइल प्रमाण पत्र", "वर्तमान प्रवेश / कॉलेज ID", "बैंक खाता (छात्र का, आधार-लिंक्ड)", "जाति प्रमाण पत्र (SC/ST/OBC के लिए)", "पासपोर्ट फोटो", "मोबाइल नंबर व ईमेल"] },
     match: (a) => a.state === "Uttarakhand" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
