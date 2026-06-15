@@ -383,6 +383,23 @@ function clearSavedScan(key) {
   try { localStorage.removeItem(key); } catch { /* ignore */ }
 }
 
+/**
+ * Return confirmed-dead scheme IDs from a saved scan.
+ * Reads the slim JSON stored by saveScanResults — no reconstruction needed.
+ * Used by FixProgressPanel to count how many dead links have been fixed.
+ */
+function loadDeadIds(storageKey) {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return [];
+    const obj = JSON.parse(raw);
+    return (obj.results || [])
+      .filter(r => r.alive === false)
+      .map(r => r.id)
+      .filter(Boolean);
+  } catch { return []; }
+}
+
 
 // ─── HEALTH TREND HISTORY ─────────────────────────────────────────────────────
 // Appends a slim summary snapshot to a trend array in localStorage every time a
@@ -4037,6 +4054,209 @@ function SavedScansSection({ dark, savedScans, onScanCleared }) {
 }
 
 
+
+// ─── FIX PROGRESS PANEL ───────────────────────────────────────────────────────
+// Compact per-scope tracker: for each saved scan that had dead links, shows how
+// many have been committed-fixed (Firestore urlFixMap) vs. still pending.
+// Queued fixes (in-session, not yet committed) show as amber on the bar.
+// Updates live — every commit refreshes urlFixMap, which re-renders the panel.
+
+function FixProgressPanel({ dark, savedScans, urlFixMap, queuedFixes }) {
+  const th        = THEME[dark ? "dark" : "light"];
+  const queuedSet = useMemo(
+    () => new Set((queuedFixes || []).map(f => f.id)),
+    [queuedFixes],
+  );
+
+  // Compute fix counts per saved scan (reads slim localStorage JSON — very fast)
+  const rows = useMemo(() => {
+    return savedScans
+      .map(scan => {
+        const deadIds = loadDeadIds(scan.key);
+        if (deadIds.length === 0) return null;
+        const total   = deadIds.length;
+        const fixed   = deadIds.filter(id => urlFixMap[id]?.committed).length;
+        const queued  = deadIds.filter(id => !urlFixMap[id]?.committed && queuedSet.has(id)).length;
+        const pending = total - fixed - queued;
+        const label   = scan.scopeFilter === "national" ? "National"
+                      : scan.scopeFilter === "all"      ? "All Schemes"
+                      : scan.scopeFilter.replace("state:", "");
+        return { key: scan.key, label, total, fixed, queued, pending };
+      })
+      .filter(Boolean);
+  }, [savedScans, urlFixMap, queuedSet]);
+
+  if (rows.length === 0) return null;
+
+  const totalFixed   = rows.reduce((s, r) => s + r.fixed,   0);
+  const totalPending = rows.reduce((s, r) => s + r.pending + r.queued, 0);
+
+  return (
+    <div style={{
+      background:   th.card,
+      border:       `1.5px solid ${th.border}`,
+      borderRadius: 16,
+      overflow:     "hidden",
+    }}>
+      {/* ── Header ── */}
+      <div style={{
+        padding:      "8px 14px",
+        borderBottom: `1px solid ${th.border}`,
+        display:      "flex",
+        alignItems:   "center",
+        gap:          8,
+      }}>
+        {/* Shield-check SVG icon */}
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+          stroke={totalPending === 0 ? (dark ? IND_GREEN_DARK : IND_GREEN) : AMBER}
+          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          {totalPending === 0
+            ? <polyline points="9 12 11 14 15 10"/>
+            : <line x1="12" y1="8" x2="12" y2="12"/>
+          }
+        </svg>
+        <span style={{ fontSize: 11, fontWeight: 800, color: th.text }}>
+          Fix Progress
+        </span>
+        <span style={{ fontSize: 9, color: th.textSub }}>· dead-link tracker</span>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 5, alignItems: "center" }}>
+          {totalFixed > 0 && (
+            <span style={{
+              fontSize: 9, fontWeight: 700,
+              color: dark ? IND_GREEN_DARK : IND_GREEN,
+            }}>
+              {totalFixed} fixed
+            </span>
+          )}
+          {totalPending > 0 ? (
+            <span style={{
+              fontSize: 9, fontWeight: 800, padding: "1px 7px",
+              borderRadius: 8, background: `${RED}15`, color: RED,
+            }}>
+              {totalPending} pending
+            </span>
+          ) : (
+            <span style={{
+              fontSize: 9, fontWeight: 800, padding: "1px 7px",
+              borderRadius: 8,
+              background: dark ? `${IND_GREEN_DARK}18` : `${IND_GREEN}12`,
+              color:      dark ? IND_GREEN_DARK : IND_GREEN,
+            }}>
+              All done ✓
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Rows: one per saved scope ── */}
+      <div style={{ padding: "7px 14px 9px", display: "flex", flexDirection: "column", gap: 6 }}>
+        {rows.map(({ key, label, total, fixed, queued, pending }) => {
+          const allDone  = pending === 0 && queued === 0;
+          const fixedPct = total > 0 ? (fixed  / total) * 100 : 100;
+          const qPct     = total > 0 ? (queued / total) * 100 : 0;
+          return (
+            <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {/* Scope label */}
+              <span style={{
+                fontSize:     10,
+                fontWeight:   700,
+                color:        th.text,
+                width:        86,
+                flexShrink:   0,
+                overflow:     "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace:   "nowrap",
+              }}>
+                {label}
+              </span>
+
+              {/* Segmented progress bar: green = fixed, amber = queued, bg = pending */}
+              <div style={{
+                flex:         1,
+                height:       6,
+                borderRadius: 4,
+                background:   dark ? "#2c2c2e" : "#e5e7eb",
+                overflow:     "hidden",
+                position:     "relative",
+              }}>
+                <div style={{
+                  position:   "absolute",
+                  left: 0, top: 0, height: "100%",
+                  width:      `${fixedPct}%`,
+                  background: dark ? IND_GREEN_DARK : IND_GREEN,
+                  transition: "width 0.4s ease",
+                }} />
+                {queued > 0 && (
+                  <div style={{
+                    position:   "absolute",
+                    left:       `${fixedPct}%`, top: 0, height: "100%",
+                    width:      `${qPct}%`,
+                    background: AMBER,
+                    transition: "all 0.4s ease",
+                  }} />
+                )}
+              </div>
+
+              {/* fixed / total */}
+              <span style={{
+                fontSize:   10,
+                fontWeight: 700,
+                fontFamily: "monospace",
+                color:      allDone ? (dark ? IND_GREEN_DARK : IND_GREEN) : th.textMid,
+                flexShrink: 0,
+                minWidth:   30,
+                textAlign:  "right",
+              }}>
+                {fixed}/{total}
+              </span>
+
+              {/* Status badge */}
+              {allDone ? (
+                <span style={{
+                  fontSize: 9, fontWeight: 800, flexShrink: 0,
+                  color: dark ? IND_GREEN_DARK : IND_GREEN, minWidth: 14,
+                }}>
+                  ✓
+                </span>
+              ) : pending > 0 ? (
+                <span style={{
+                  fontSize: 9, fontWeight: 700, flexShrink: 0,
+                  color: RED, background: `${RED}12`,
+                  padding: "1px 5px", borderRadius: 5, whiteSpace: "nowrap",
+                }}>
+                  {pending} left
+                </span>
+              ) : (
+                <span style={{
+                  fontSize: 9, fontWeight: 700, flexShrink: 0,
+                  color: AMBER, background: `${AMBER}15`,
+                  padding: "1px 5px", borderRadius: 5, whiteSpace: "nowrap",
+                }}>
+                  {queued} queued
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Footer ── */}
+      <div style={{
+        padding:       "4px 14px 5px",
+        borderTop:     `1px solid ${th.border}`,
+        fontSize:      8,
+        color:         th.textSub,
+        fontFamily:    "monospace",
+        letterSpacing: 0.3,
+      }}>
+        FROM SAVED SCANS · UPDATES LIVE AS YOU COMMIT FIXES
+      </div>
+    </div>
+  );
+}
+
+
 // ─── DOMAIN GROUP PANEL ───────────────────────────────────────────────────────
 // Groups dead + no-response results by root domain so you can instantly tell
 // the difference between "one broken link" and "all 8 NIC schemes migrated".
@@ -4959,6 +5179,16 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         />
       )}
 
+      {/* ══ FIX PROGRESS — idle only: shows pending dead-link fix count per scope ═ */}
+      {!running && results.length === 0 && savedScans.length > 0 && (
+        <FixProgressPanel
+          dark={dark}
+          savedScans={savedScans}
+          urlFixMap={urlFixMap}
+          queuedFixes={queuedFixes}
+        />
+      )}
+
       {/* ══ KNOWN DEAD LINKS — persisted, no re-scan needed ═══════════════════ */}
       {/* Sourced from schemes-meta.json (written by the last verification run
           and committed to the repo) — so "Find New URL" / "Queue Fix" stay
@@ -5487,31 +5717,34 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             background: wasAborted
               ? (dark ? "rgba(220,38,38,0.07)" : "rgba(220,38,38,0.06)")
               : (dark ? "rgba(19,136,8,0.07)"  : "rgba(19,136,8,0.06)"),
-            border:       `1.5px solid ${(wasAborted ? RED : IND_GREEN)}40`,
-            borderRadius: 12,
-            padding:      "10px 14px",
-            display:      "flex",
-            alignItems:   "center",
-            gap:          10,
-            flexWrap:     "wrap",
-            animation:    "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
+            border:        `1.5px solid ${(wasAborted ? RED : IND_GREEN)}40`,
+            borderRadius:  12,
+            padding:       "10px 14px",
+            display:       "flex",
+            flexDirection: "column",
+            gap:           8,
+            animation:     "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
           }}>
-            <div style={{
-              width: 10, height: 10, borderRadius: "50%",
-              background: wasAborted ? RED : IND_GREEN, flexShrink: 0,
-            }} />
-            <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: th.text }}>
-              {wasAborted ? "Run stopped" : "Run complete"}
-              <span style={{ fontWeight: 500, color: th.textMid, marginLeft: 6 }}>
-                · {results.length} scheme{results.length !== 1 ? "s" : ""} checked
-              </span>
-              {endTimeRef.current && startTimeRef.current && (
-                <span style={{ fontWeight: 400, color: th.textSub, marginLeft: 6, fontSize: 11 }}>
-                  in {fmtDuration(endTimeRef.current - startTimeRef.current)}
+            {/* ── Status line: dot + text ── */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{
+                width: 10, height: 10, borderRadius: "50%",
+                background: wasAborted ? RED : IND_GREEN, flexShrink: 0,
+              }} />
+              <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: th.text }}>
+                {wasAborted ? "Run stopped" : "Run complete"}
+                <span style={{ fontWeight: 500, color: th.textMid, marginLeft: 6 }}>
+                  · {results.length} scheme{results.length !== 1 ? "s" : ""} checked
                 </span>
-              )}
+                {endTimeRef.current && startTimeRef.current && (
+                  <span style={{ fontWeight: 400, color: th.textSub, marginLeft: 6, fontSize: 11 }}>
+                    in {fmtDuration(endTimeRef.current - startTimeRef.current)}
+                  </span>
+                )}
+              </div>
             </div>
-            <div style={{ display: "flex", gap: 6, flexShrink: 0, flexWrap: "wrap" }}>
+            {/* ── Action buttons — wrapping row, mobile-friendly ── */}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {/* Re-check Dead — targeted re-ping of failed links only */}
               {(summary?.dead ?? 0) > 0 && (
                 <div
@@ -5527,7 +5760,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                     border:       `1px solid ${RED}45`,
                     color:        RED,
                     cursor:       reVerifying ? "default" : "pointer",
-                    flexShrink:   0,
                     opacity:      reVerifying ? 0.75 : 1,
                     transition:   "all 0.2s",
                     display:      "flex",
@@ -5565,7 +5797,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   border:       `1px solid ${mdCopied ? `${IND_GREEN}60` : `${IND_GREEN}35`}`,
                   color:        IND_GREEN,
                   cursor:       "pointer",
-                  flexShrink:   0,
                   transition:   "all 0.2s",
                 }}
               >
@@ -5583,7 +5814,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   border:       `1px solid ${NAVY}45`,
                   color:        NAVY,
                   cursor:       "pointer",
-                  flexShrink:   0,
                 }}
               >
                 Export PDF
@@ -5600,7 +5830,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   border:       `1px solid ${SAFFRON}55`,
                   color:        SAFFRON,
                   cursor:       "pointer",
-                  flexShrink:   0,
                 }}
               >
                 Issues PDF
@@ -5616,7 +5845,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   background:   th.border,
                   color:        th.textMid,
                   cursor:       "pointer",
-                  flexShrink:   0,
                 }}
               >
                 New Run
@@ -5704,6 +5932,16 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           summary={summary}
           scopeFilter={scopeFilter}
           dark={dark}
+        />
+      )}
+
+      {/* ══ FIX PROGRESS — post-run: updated immediately after each scan ════════ */}
+      {runDone && !running && results.length > 0 && savedScans.length > 0 && (
+        <FixProgressPanel
+          dark={dark}
+          savedScans={savedScans}
+          urlFixMap={urlFixMap}
+          queuedFixes={queuedFixes}
         />
       )}
 
