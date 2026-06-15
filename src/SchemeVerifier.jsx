@@ -5493,13 +5493,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             display:      "flex",
             alignItems:   "center",
             gap:          10,
+            flexWrap:     "wrap",
             animation:    "sv-done-pop 0.5s cubic-bezier(0.22,1,0.36,1) both",
           }}>
             <div style={{
               width: 10, height: 10, borderRadius: "50%",
               background: wasAborted ? RED : IND_GREEN, flexShrink: 0,
             }} />
-            <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: th.text }}>
+            <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: th.text }}>
               {wasAborted ? "Run stopped" : "Run complete"}
               <span style={{ fontWeight: 500, color: th.textMid, marginLeft: 6 }}>
                 · {results.length} scheme{results.length !== 1 ? "s" : ""} checked
@@ -5510,7 +5511,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 </span>
               )}
             </div>
-            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 6, flexShrink: 0, flexWrap: "wrap" }}>
               {/* Re-check Dead — targeted re-ping of failed links only */}
               {(summary?.dead ?? 0) > 0 && (
                 <div
