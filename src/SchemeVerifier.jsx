@@ -384,6 +384,46 @@ function clearSavedScan(key) {
 }
 
 
+// ─── HEALTH TREND HISTORY ─────────────────────────────────────────────────────
+// Appends a slim summary snapshot to a trend array in localStorage every time a
+// scan finishes. Keeps the last 10 entries per scope. Displayed as a sparkline
+// in the Saved Scans panel — "dead went 3→8→12→5→2" makes fixing efforts visible.
+// Keys:  "ys_trend_national" | "ys_trend_all" | "ys_trend_state_<name>"
+
+function getTrendStorageKey(scopeFilter) {
+  if (scopeFilter === "national") return "ys_trend_national";
+  if (scopeFilter === "all")      return "ys_trend_all";
+  const state = scopeFilter.replace("state:", "").trim().toLowerCase().replace(/\s+/g, "_");
+  return `ys_trend_state_${state}`;
+}
+
+/** Append one summary snapshot to the trend history (max 10 kept). */
+function appendTrendEntry(scopeFilter, summary) {
+  try {
+    const key = getTrendStorageKey(scopeFilter);
+    const raw = localStorage.getItem(key);
+    const arr = raw ? JSON.parse(raw) : [];
+    arr.push({
+      savedAt: new Date().toISOString(),
+      dead:    summary?.dead       ?? 0,
+      active:  summary?.active     ?? 0,
+      total:   summary?.total      ?? 0,
+    });
+    localStorage.setItem(key, JSON.stringify(arr.slice(-10)));
+  } catch { /* non-fatal — localStorage may be full or disabled */ }
+}
+
+/** Load trend history for a scope (up to last 10 entries). */
+function loadTrendHistory(scopeFilter) {
+  try {
+    const key = getTrendStorageKey(scopeFilter);
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch { return []; }
+}
+
+
 // ─── SOURCE FILE PATH RESOLVER ────────────────────────────────────────────────
 // National → src/schemesData.js
 // State   → src/state/<statename>.js   (matches actual folder structure)
@@ -895,8 +935,220 @@ ${active.length > 0 ? `
 }
 
 
+// ─── ISSUES-ONLY PDF EXPORT ──────────────────────────────────────────────────
+// Leaner variant of exportResultsPDF for uploading to Claude AI.
+// Includes: Cover + AI Hint + 8-stat Summary + Issues section only.
+// Omits the No Response table and Active Schemes table — those are noise for
+// the Claude AI workflow where you only want fixes, not reference data.
+
+function exportIssuesOnlyPDF(results, summary, scopeFilter, priorityFilter, tier) {
+  const now      = new Date();
+  const dateStr  = now.toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
+  const timeStr  = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+
+  const scopeLabel =
+    scopeFilter === "national"          ? "National (Central) Schemes"
+    : scopeFilter.startsWith("state:")  ? `${scopeFilter.replace("state:", "")} State Schemes`
+    : "All Schemes";
+
+  const tierLabel =
+    tier === 1     ? "Tier 1 — Dead-link Ping"
+    : tier === 2   ? "Tier 2 — AI Date Extraction"
+    : "Tier 1+2 — Full Check";
+
+  const priorityLabel =
+    priorityFilter === "all"             ? "All Priority"
+    : priorityFilter === "hasDate"       ? "Has Deadline"
+    : priorityFilter === "neverVerified" ? "Never Verified"
+    : "Stale 30d+";
+
+  const issues = results.filter(r => r.alive === false || (r.alive === null && r.error));
+
+  const C_RED    = "#DC2626";
+  const C_AMBER  = "#B45309";
+  const C_VIOLET = "#6D28D9";
+  const C_GREEN  = "#138808";
+  const C_NAVY   = "#003580";
+
+  const fixColorToPdf = (fixColor) =>
+    fixColor === RED ? C_RED : fixColor === AMBER ? C_AMBER : C_VIOLET;
+
+  const renderIssueCard = (r, i) => {
+    const fix       = getFixSuggestion(r);
+    const filePath  = getSchemeFilePath(r);
+    const urlVal    = r.scheme?.apply?.en || "(none)";
+    const stateName = r.scheme?.state || "National";
+    const http      = r.httpStatus > 0 ? r.httpStatus : "—";
+    const catColor  = fix ? fixColorToPdf(fix.color) : C_VIOLET;
+    const catBg     = catColor === C_RED ? "#FEF2F2" : catColor === C_AMBER ? "#FFFBEB" : "#F5F3FF";
+    const catIcon   = fix?.icon ?? "◆";
+    const label     = fix?.label ?? "";
+    let fieldHint   = "";
+    if (label === "Update URL" || label === "Fix URL Format" || label === "Check Domain") {
+      fieldHint = `<div class="field-hint"><strong>Field to update:</strong> <code>apply: { en: "NEW_URL_HERE" }</code><br/><strong>To find it:</strong> Search for <code>"${r.scheme?.id ?? ""}"</code> in <code>${filePath}</code> and update the <code>apply.en</code> value.</div>`;
+    } else {
+      fieldHint = `<div class="field-hint"><strong>To find it:</strong> Search for <code>"${r.scheme?.id ?? ""}"</code> in <code>${filePath}</code>.</div>`;
+    }
+    return `<div class="issue-card" style="border-left-color:${catColor};background:${catBg};">
+      <div class="issue-header" style="border-bottom-color:${catColor}22;">
+        <span class="issue-num">#${i + 1}</span>
+        <span class="issue-cat" style="color:${catColor};">${catIcon} ${label || "Unknown Issue"}</span>
+        ${r.httpStatus > 0 ? `<span class="http-badge" style="color:${catColor};border-color:${catColor}55;">${r.httpStatus}</span>` : ""}
+      </div>
+      <table class="dtable">
+        <tr><td class="dk">Scheme ID</td><td class="dv mono" style="color:${C_NAVY};font-weight:800;">${r.scheme?.id || "—"}</td></tr>
+        <tr><td class="dk">Name (EN)</td><td class="dv">${r.scheme?.name?.en || "—"}</td></tr>
+        <tr><td class="dk">File to Edit</td><td class="dv fp">${filePath}</td></tr>
+        <tr><td class="dk">State / Scope</td><td class="dv">${stateName} · ${r.scheme?.scope || "—"}</td></tr>
+        <tr><td class="dk">Current URL</td><td class="dv url">${urlVal}</td></tr>
+        ${r.scheme?.lastDate ? `<tr><td class="dk">Deadline</td><td class="dv">${r.scheme.lastDate}</td></tr>` : ""}
+        <tr><td class="dk">HTTP Status</td><td class="dv mono">${http}</td></tr>
+        ${r.error ? `<tr><td class="dk">Error Detail</td><td class="dv err">${r.error.slice(0, 200)}</td></tr>` : ""}
+      </table>
+      <div class="fix-block" style="border-top-color:${catColor}22;">
+        <strong style="color:${catColor};">WHAT TO FIX:</strong>
+        <p>${fix?.detail || "Check the URL manually and update if needed."}</p>
+      </div>
+      ${fieldHint}
+    </div>`;
+  };
+
+  const critIssues = issues.filter(r => { const f = getFixSuggestion(r); return f?.color === RED; });
+  const warnIssues = issues.filter(r => { const f = getFixSuggestion(r); return f?.color === AMBER; });
+  const cfgIssues  = issues.filter(r => { const f = getFixSuggestion(r); return f?.color === VIOLET; });
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Yojana Sahay — Issues Only — ${dateStr}</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 10.5pt; color: #111827; background: #fff; padding: 20px 24px 32px; max-width: 860px; margin: 0 auto; }
+@page { size: A4; margin: 14mm 12mm; }
+@media print { body { padding: 0; max-width: none; } .no-print { display: none !important; } .issue-card { page-break-inside: avoid; } }
+.print-btn { position: fixed; top: 14px; right: 16px; background: #FF9933; color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-size: 11pt; font-weight: 700; cursor: pointer; font-family: inherit; box-shadow: 0 4px 14px rgba(255,153,51,0.35); z-index: 999; }
+.print-btn:hover { background: #e88520; }
+.cover { background: linear-gradient(135deg, #001f5b 0%, #003580 60%, #004db3 100%); color: #fff; border-radius: 10px; padding: 22px 26px 18px; margin-bottom: 18px; }
+.cover h1 { font-size: 17pt; font-weight: 900; letter-spacing: -0.5px; }
+.cover .sub { font-size: 9.5pt; opacity: 0.75; margin-top: 3px; }
+.cover .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.cover .chip { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); border-radius: 4px; padding: 3px 10px; font-size: 8.5pt; font-weight: 700; white-space: nowrap; }
+.issues-only-badge { display: inline-block; background: #FF9933; color: #fff; border-radius: 4px; padding: 2px 10px; font-size: 8pt; font-weight: 800; margin-top: 8px; letter-spacing: 0.5px; }
+.ai-hint { background: #EFF6FF; border: 1.5px solid #BFDBFE; border-left: 5px solid #2563EB; border-radius: 7px; padding: 11px 14px; margin-bottom: 18px; font-size: 9.5pt; color: #1E3A5F; line-height: 1.65; }
+.ai-hint strong { color: #1D4ED8; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 22px; }
+.stat-card { border: 1.5px solid #E5E7EB; border-radius: 8px; padding: 10px 8px; text-align: center; }
+.stat-card .num { font-size: 20pt; font-weight: 900; line-height: 1; }
+.stat-card .lbl { font-size: 7pt; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #6B7280; margin-top: 4px; }
+.sec-head { display: flex; align-items: center; gap: 10px; font-size: 12.5pt; font-weight: 900; color: #111827; padding-bottom: 7px; border-bottom: 2.5px solid #003580; margin-bottom: 10px; margin-top: 22px; }
+.sec-head .badge { font-size: 8.5pt; font-weight: 700; padding: 2px 9px; border-radius: 12px; margin-left: auto; white-space: nowrap; }
+.sec-sub { font-size: 8.5pt; color: #6B7280; margin-bottom: 12px; line-height: 1.55; }
+.grp-head { font-size: 9pt; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; padding: 5px 0 4px; margin-top: 12px; margin-bottom: 6px; border-top: 1px solid #E5E7EB; color: #374151; display: flex; align-items: center; gap: 6px; }
+.issue-card { border: 1px solid #E5E7EB; border-left: 4.5px solid #DC2626; border-radius: 7px; margin-bottom: 12px; overflow: hidden; break-inside: avoid; }
+.issue-header { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-bottom: 1px solid; }
+.issue-num { font-family: monospace; font-size: 8pt; font-weight: 800; color: #6B7280; background: rgba(0,0,0,0.07); padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.issue-cat { font-size: 9.5pt; font-weight: 800; flex: 1; }
+.http-badge { font-family: monospace; font-size: 8.5pt; font-weight: 800; padding: 2px 7px; border: 1.5px solid; border-radius: 4px; flex-shrink: 0; }
+.dtable { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+.dtable tr td { padding: 3.5px 12px; vertical-align: top; }
+.dtable tr:nth-child(even) { background: rgba(0,0,0,0.025); }
+.dk { width: 100px; color: #6B7280; font-weight: 700; white-space: nowrap; }
+.dv { color: #1a1a1a; word-break: break-all; }
+.mono { font-family: monospace; font-size: 8pt; }
+.fp { font-family: monospace; font-size: 8pt; color: #003580; font-weight: 800; }
+.url { font-family: monospace; font-size: 7.5pt; color: #374151; }
+.err { color: #DC2626; font-size: 8pt; }
+.fix-block { padding: 8px 12px; border-top: 1px solid; font-size: 8.5pt; line-height: 1.6; background: rgba(255,255,255,0.55); }
+.fix-block p { margin-top: 3px; color: #374151; }
+.field-hint { padding: 6px 12px 8px; background: rgba(0,0,0,0.04); border-top: 1px dashed rgba(0,0,0,0.12); font-size: 8pt; color: #374151; line-height: 1.7; }
+.field-hint code { font-family: monospace; background: rgba(0,53,128,0.08); padding: 1px 5px; border-radius: 3px; font-size: 7.5pt; color: #003580; }
+.footer { margin-top: 28px; padding-top: 10px; border-top: 1px solid #E5E7EB; font-size: 7.5pt; color: #9CA3AF; text-align: center; }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
+
+<div class="cover">
+  <div style="font-size:8pt;opacity:0.6;letter-spacing:1.5px;font-weight:700;margin-bottom:6px;">YOJANA SAHAY · ADMIN DASHBOARD</div>
+  <h1>🇮🇳 Scheme Verification — Issues Only</h1>
+  <div class="sub">Scheme URL Verifier · ${scopeLabel}</div>
+  <div><span class="issues-only-badge">⚡ ISSUES ONLY — Optimized for Claude AI upload</span></div>
+  <div class="chips">
+    <div class="chip">📅 ${dateStr} · ${timeStr}</div>
+    <div class="chip">🎯 ${scopeLabel}</div>
+    <div class="chip">⚙ ${tierLabel}</div>
+    <div class="chip">🔢 Priority: ${priorityLabel}</div>
+    <div class="chip">📋 ${results.length} verified · ${issues.length} issues</div>
+  </div>
+</div>
+
+<div class="ai-hint">
+  <strong>📌 HOW TO USE THIS REPORT WITH CLAUDE AI (Issues Only):</strong><br/>
+  1. Upload this PDF to Claude AI — it contains <strong>only the issues</strong>, no noise from active/no-response schemes.<br/>
+  2. Also upload the scheme source file — <code>src/schemesData.js</code> (national) or <code>src/state/statename.js</code>.<br/>
+  3. Tell Claude: <em>"Fix all the issues listed. For each issue the Scheme ID and File to Edit are shown."</em><br/>
+  <strong>This leaner format keeps Claude focused on what actually needs fixing.</strong>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="num" style="color:${C_NAVY};">${summary?.total ?? results.length}</div><div class="lbl">Total</div></div>
+  <div class="stat-card"><div class="num" style="color:${C_GREEN};">${summary?.active ?? 0}</div><div class="lbl">Active</div></div>
+  <div class="stat-card"><div class="num" style="color:${C_RED};">${summary?.dead ?? 0}</div><div class="lbl">Dead Links</div></div>
+  <div class="stat-card"><div class="num" style="color:#B45309;">${summary?.noResponse ?? 0}</div><div class="lbl">No Response</div></div>
+  <div class="stat-card"><div class="num" style="color:#6D28D9;">${summary?.errors ?? 0}</div><div class="lbl">Errors</div></div>
+  <div class="stat-card"><div class="num" style="color:${C_RED};">${summary?.expired ?? 0}</div><div class="lbl">Expired</div></div>
+  <div class="stat-card"><div class="num" style="color:#FF9933;">${summary?.expiringSoon ?? 0}</div><div class="lbl">Expiring Soon</div></div>
+  <div class="stat-card"><div class="num" style="color:#6B7280;">${summary?.neverChecked ?? 0}</div><div class="lbl">Never Checked</div></div>
+</div>
+
+${issues.length > 0 ? `
+<div class="sec-head">
+  ✕ ISSUES REQUIRING FIXES
+  <span class="badge" style="background:#FEF2F2;color:${C_RED};border:1px solid #FECACA;">${issues.length} schemes need attention</span>
+</div>
+<div class="sec-sub">Each card shows the exact <strong>File to Edit</strong>, <strong>Scheme ID</strong>, and <strong>WHAT TO FIX</strong> instruction.</div>
+
+${critIssues.length > 0 ? `
+<div class="grp-head" style="color:${C_RED};">✕ CRITICAL — Update URL in Source File<span style="margin-left:auto;font-size:8.5pt;font-weight:700;background:#FEF2F2;color:${C_RED};padding:2px 8px;border-radius:10px;">${critIssues.length}</span></div>
+${critIssues.map(renderIssueCard).join("")}` : ""}
+
+${warnIssues.length > 0 ? `
+<div class="grp-head" style="color:${C_AMBER};">△ WARNINGS — Manual Check or Retry<span style="margin-left:auto;font-size:8.5pt;font-weight:700;background:#FFFBEB;color:${C_AMBER};padding:2px 8px;border-radius:10px;">${warnIssues.length}</span></div>
+${warnIssues.map(renderIssueCard).join("")}` : ""}
+
+${cfgIssues.length > 0 ? `
+<div class="grp-head" style="color:${C_VIOLET};">◆ CONFIGURATION / FORMAT ISSUES<span style="margin-left:auto;font-size:8.5pt;font-weight:700;background:#F5F3FF;color:${C_VIOLET};padding:2px 8px;border-radius:10px;">${cfgIssues.length}</span></div>
+${cfgIssues.map(renderIssueCard).join("")}` : ""}
+
+` : `
+<div class="sec-head">✓ No Issues Found</div>
+<div style="padding:16px;text-align:center;color:${C_GREEN};font-weight:700;font-size:12pt;">All verified schemes have active links! 🎉</div>
+`}
+
+<div class="footer">
+  Yojana Sahay Admin Dashboard · Issues Only Report · Generated ${dateStr} ${timeStr} ·
+  ${results.length} schemes verified · ${issues.length} issues · Scope: ${scopeLabel} · Mode: ${tierLabel}
+</div>
+
+</body>
+</html>`;
+
+  const win = window.open("", "_blank");
+  if (!win) {
+    alert("Pop-up blocked. Please allow pop-ups for this site and try again.");
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => {
+    try { win.print(); } catch { /* user may have closed the tab */ }
+  }, 700);
+}
+
+
 // ─── MARKDOWN EXPORT ─────────────────────────────────────────────────────────
-// Copies a concise issue list to clipboard in Markdown format.
 // Lighter than PDF — paste into GitHub issues, Slack, or Notion instantly.
 
 function buildResultsMarkdown(results, summary, scopeFilter, priorityFilter, tier) {
@@ -1232,6 +1484,35 @@ function HttpBadge({ status }) {
       whiteSpace:  "nowrap",
     }}>
       {status}
+    </span>
+  );
+}
+
+
+// ─── CONFIDENCE BADGE ─────────────────────────────────────────────────────────
+// HIGH / MED / LOW chip shown next to Tier 2 results in ResultRow.
+// Makes "EXPIRED — LOW confidence" visually distinct from "EXPIRED — HIGH".
+// Only rendered when result.tier is 2 (or "both") and confidence is not null.
+
+function ConfidenceBadge({ confidence }) {
+  if (confidence == null) return null;
+  const pct   = Math.round(confidence * 100);
+  const label = pct >= 70 ? "HIGH" : pct >= 40 ? "MED" : "LOW";
+  const color = pct >= 70 ? IND_GREEN : pct >= 40 ? AMBER : RED;
+  return (
+    <span style={{
+      fontSize:      7,
+      fontWeight:    800,
+      fontFamily:    "monospace",
+      letterSpacing: 0.7,
+      padding:       "1px 5px",
+      borderRadius:  4,
+      color,
+      background:    `${color}15`,
+      border:        `1px solid ${color}35`,
+      whiteSpace:    "nowrap",
+    }}>
+      T2·{label}
     </span>
   );
 }
@@ -1754,6 +2035,9 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
           flexShrink:    0,
         }}>
           <StatusBadge result={result} />
+          {(result.tier === 2 || result.tier === "both") && result.confidence != null && (
+            <ConfidenceBadge confidence={result.confidence} />
+          )}
           <HttpBadge status={result.httpStatus} />
           <span style={{ fontSize: 9, color: th.textSub, lineHeight: 1 }}>
             {expanded ? "▲" : "▼"}
@@ -3470,6 +3754,61 @@ function pageBtn(active, th, activeColor = th?.text) {
 }
 
 
+// ─── TREND SPARKLINE ──────────────────────────────────────────────────────────
+// Tiny inline SVG showing dead-link count over the last N scans.
+// Used in SavedScansSection: "dead went 3→8→12→5→2" makes fixing progress
+// immediately visible without needing to open and compare old PDFs.
+
+function TrendSparkline({ history, dark }) {
+  if (!history || history.length < 2) return null;
+  const last5  = history.slice(-5);
+  const values = last5.map(h => h.dead ?? 0);
+  const maxV   = Math.max(...values, 1);
+  const W = 60, H = 20, pad = 3;
+  const xs = values.map((_, i) =>
+    values.length === 1 ? W / 2 : pad + (i / (values.length - 1)) * (W - pad * 2)
+  );
+  const ys = values.map(v => H - pad - ((v / maxV) * (H - pad * 2)));
+  const polyPoints = xs.map((x, i) => `${x},${ys[i]}`).join(" ");
+  const isImproving = values[values.length - 1] <= values[0];
+  const lineColor   = isImproving ? IND_GREEN : RED;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 5 }}>
+      <svg
+        width={W}
+        height={H}
+        viewBox={`0 0 ${W} ${H}`}
+        style={{ overflow: "visible", flexShrink: 0 }}
+        aria-hidden="true"
+      >
+        <polyline
+          points={polyPoints}
+          fill="none"
+          stroke={lineColor}
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          opacity="0.8"
+        />
+        {xs.map((x, i) => (
+          <circle key={i} cx={x} cy={ys[i]} r="2" fill={lineColor} opacity="0.9" />
+        ))}
+      </svg>
+      <span style={{
+        fontSize:   8,
+        fontWeight: 700,
+        color:      dark ? (isImproving ? IND_GREEN_DARK : RED) : lineColor,
+        fontFamily: "monospace",
+        letterSpacing: 0.3,
+      }}>
+        {values.join("→")} dead
+      </span>
+    </div>
+  );
+}
+
+
 // ─── SAVED SCANS PANEL ───────────────────────────────────────────────────────
 // Shows all saved scan results stored in localStorage.
 // Each row: scope label · scheme count · issue count · save timestamp.
@@ -3488,6 +3827,15 @@ function SavedScansSection({ dark, savedScans, onScanCleared }) {
       return;
     }
     exportResultsPDF(scan.results, scan.summary, scan.scopeFilter, scan.priorityFilter, scan.tier);
+  };
+
+  const handleExportIssuesOnly = (key) => {
+    const scan = loadFullScan(key);
+    if (!scan || !scan.results?.length) {
+      alert("Saved scan data not found or is empty.");
+      return;
+    }
+    exportIssuesOnlyPDF(scan.results, scan.summary, scan.scopeFilter, scan.priorityFilter, scan.tier);
   };
 
   const handleClear = (key) => {
@@ -3611,13 +3959,19 @@ function SavedScansSection({ dark, savedScans, onScanCleared }) {
                   ))}
                 </div>
               )}
+
+              {/* ── Health trend sparkline — shows dead count over last 5 scans ── */}
+              <TrendSparkline
+                history={loadTrendHistory(scan.scopeFilter || "all")}
+                dark={dark}
+              />
             </div>
 
             {/* Right: actions */}
-            <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5, flexShrink: 0 }}>
               <div
                 {...a11yClickable(() => handleExportScan(scan.key), {
-                  label: `Export PDF for ${scopeLabel} scan`,
+                  label: `Export full PDF for ${scopeLabel} scan`,
                 })}
                 style={{
                   padding:      "5px 11px",
@@ -3629,10 +3983,31 @@ function SavedScansSection({ dark, savedScans, onScanCleared }) {
                   color:        NAVY,
                   cursor:       "pointer",
                   whiteSpace:   "nowrap",
+                  textAlign:    "center",
                   transition:   "background 0.13s",
                 }}
               >
                 Export PDF
+              </div>
+              <div
+                {...a11yClickable(() => handleExportIssuesOnly(scan.key), {
+                  label: `Export issues-only PDF for ${scopeLabel} scan`,
+                })}
+                style={{
+                  padding:      "5px 11px",
+                  borderRadius: 8,
+                  fontSize:     10,
+                  fontWeight:   700,
+                  background:   dark ? "rgba(255,153,51,0.12)" : "rgba(255,153,51,0.09)",
+                  border:       `1.5px solid ${SAFFRON}55`,
+                  color:        SAFFRON,
+                  cursor:       "pointer",
+                  whiteSpace:   "nowrap",
+                  textAlign:    "center",
+                  transition:   "background 0.13s",
+                }}
+              >
+                Issues PDF
               </div>
               <div
                 {...a11yClickable(() => handleClear(scan.key), {
@@ -3647,6 +4022,7 @@ function SavedScansSection({ dark, savedScans, onScanCleared }) {
                   border:       `1.5px solid ${th.border}`,
                   color:        th.textSub,
                   cursor:       "pointer",
+                  textAlign:    "center",
                   transition:   "border-color 0.13s",
                 }}
               >
@@ -4296,6 +4672,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       // Overwrites any previous scan for the same scope, keeping one slot per
       // national / all / state:<name> combination.
       saveScanResults(scopeFilter, priorityFilter, tier, finalSnap, finalSummary);
+      appendTrendEntry(scopeFilter, finalSummary);
       setSavedScans(loadAllSavedScans());
     }
   }, [running, scopeFilter, priorityFilter, tier]);
@@ -4342,6 +4719,13 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const handleExport = useCallback(() => {
     if (results.length > 0) {
       exportResultsPDF(results, summary, scopeFilter, priorityFilter, tier);
+    }
+  }, [results, summary, scopeFilter, priorityFilter, tier]);
+
+  // ── EXPORT ISSUES-ONLY PDF ────────────────────────────────────────────────
+  const handleExportIssuesOnly = useCallback(() => {
+    if (results.length > 0) {
+      exportIssuesOnlyPDF(results, summary, scopeFilter, priorityFilter, tier);
     }
   }, [results, summary, scopeFilter, priorityFilter, tier]);
 
@@ -5202,6 +5586,23 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 }}
               >
                 Export PDF
+              </div>
+              {/* Issues Only PDF — leaner report for Claude AI upload */}
+              <div
+                {...a11yClickable(handleExportIssuesOnly)}
+                style={{
+                  padding:      "5px 10px",
+                  borderRadius: 8,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  background:   dark ? "rgba(255,153,51,0.12)" : "rgba(255,153,51,0.08)",
+                  border:       `1px solid ${SAFFRON}55`,
+                  color:        SAFFRON,
+                  cursor:       "pointer",
+                  flexShrink:   0,
+                }}
+              >
+                Issues PDF
               </div>
               {/* New Run */}
               <div
