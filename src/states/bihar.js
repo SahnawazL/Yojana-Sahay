@@ -257,7 +257,7 @@ export const BIHAR_SCHEMES = [
                hi: "ग्रामीण बिहार में सार्वजनिक परिवहन के लिए 4-पहिया वाणिज्यिक वाहन (ऑटो, ई-रिक्शा, मिनी वैन) खरीद पर 50% सब्सिडी (₹1 लाख तक); 21–45 वर्ष SC/ST/EWS के लोगों के लिए जिनके गांव में वाहन मालिक नहीं हैं" },
     tag:     { en: "SC/ST/EWS / Transport", hi: "SC/ST/EWS / परिवहन" },
     annual: 100000,
-    apply:   { en: "state.bihar.gov.in/transport", hi: "state.bihar.gov.in/transport" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/mmppy", hi: "state.bihar.gov.in/transport" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST/EWS)","Age Proof","Residence Proof (Bihar rural village)","Driving Licence","Bank Account (Aadhaar-linked)","Income Certificate (annual income < ₹3 lakh)","Passport Photo"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST/EWS)","आयु प्रमाण","निवास प्रमाण (बिहार ग्रामीण गांव)","ड्राइविंग लाइसेंस","बैंक खाता (आधार-लिंक्ड)","आय प्रमाण पत्र (वार्षिक ₹3 लाख से कम)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Bihar" && a.area === "rural" && ["sc","st","ews"].includes(a.caste),
