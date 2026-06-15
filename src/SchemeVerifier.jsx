@@ -3709,10 +3709,89 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // scheme from this list immediately — it's no longer a known dead link.
   const [knownDeadLinks, setKnownDeadLinks] = useState(() => getKnownDeadLinks());
   const [deadSearch, setDeadSearch] = useState("");
-  const filteredDeadLinks = useMemo(
-    () => knownDeadLinks.filter(r => matchesSearch(r, deadSearch)),
-    [knownDeadLinks, deadSearch]
+  const [deadPage,   setDeadPage]   = useState(1);
+
+  // Smart filters — "Known Dead Links" used to dump every dead / no-response /
+  // error entry from every state + national into one flat list. These let the
+  // user narrow to e.g. "Dead links only" or "Tamil Nadu only" before paging.
+  const [deadStatusFilter, setDeadStatusFilter] = useState("all"); // all | dead | noResponse | error
+  const [deadScopeFilter,  setDeadScopeFilter]  = useState("all"); // all | "National" | <state name>
+
+  // Status counts — drives the filter pills below (mirrors the Results pills).
+  const deadStatusCounts = useMemo(() => {
+    const counts = { all: knownDeadLinks.length, dead: 0, noResponse: 0, error: 0 };
+    for (const r of knownDeadLinks) {
+      const status = getResultStatus(r);
+      if (status === "Dead")             counts.dead++;
+      else if (status === "No Response") counts.noResponse++;
+      else if (status === "Error")       counts.error++;
+    }
+    return counts;
+  }, [knownDeadLinks]);
+
+  // Scope groups — "National" + every state that has at least one entry, with
+  // counts, so the picker only ever shows options that are actually relevant.
+  const deadScopeGroups = useMemo(() => {
+    const map = new Map();
+    for (const r of knownDeadLinks) {
+      const key = r.scheme?.scope === "national" ? "National" : (r.scheme?.state || "Unknown");
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return Array.from(map.entries()).sort(([a], [b]) => {
+      if (a === "National") return -1;
+      if (b === "National") return 1;
+      return a.localeCompare(b);
+    });
+  }, [knownDeadLinks]);
+
+  // Filter (status → scope → search), then sort by scope/state so National
+  // and each state form a natural visual block even within a flat list.
+  const filteredDeadLinks = useMemo(() => {
+    let base = knownDeadLinks;
+
+    if (deadStatusFilter !== "all") {
+      base = base.filter(r => {
+        const status = getResultStatus(r);
+        if (deadStatusFilter === "dead")       return status === "Dead";
+        if (deadStatusFilter === "noResponse") return status === "No Response";
+        if (deadStatusFilter === "error")      return status === "Error";
+        return true;
+      });
+    }
+
+    if (deadScopeFilter !== "all") {
+      base = base.filter(r => {
+        const key = r.scheme?.scope === "national" ? "National" : (r.scheme?.state || "Unknown");
+        return key === deadScopeFilter;
+      });
+    }
+
+    if (deadSearch.trim()) {
+      base = base.filter(r => matchesSearch(r, deadSearch));
+    }
+
+    return [...base].sort((a, b) => {
+      const ka = a.scheme?.scope === "national" ? "" : (a.scheme?.state || "Unknown");
+      const kb = b.scheme?.scope === "national" ? "" : (b.scheme?.state || "Unknown");
+      if (ka !== kb) return ka.localeCompare(kb);
+      return (a.scheme?.name?.en || "").localeCompare(b.scheme?.name?.en || "");
+    });
+  }, [knownDeadLinks, deadStatusFilter, deadScopeFilter, deadSearch]);
+
+  // Pagination for Known Dead Links — reset to page 1 whenever a filter or
+  // the search query changes, and clamp back onto the last valid page if
+  // "Apply All Fixes" shrinks the list out from under the current page.
+  const DEAD_PAGE_SIZE   = 10;
+  const deadTotalPages   = Math.max(1, Math.ceil(filteredDeadLinks.length / DEAD_PAGE_SIZE));
+  const deadPageSlice    = filteredDeadLinks.slice(
+    (deadPage - 1) * DEAD_PAGE_SIZE,
+    deadPage * DEAD_PAGE_SIZE
   );
+  const deadPageRange    = getPaginationRange(deadPage, deadTotalPages);
+  useEffect(() => { setDeadPage(1); }, [deadSearch, deadStatusFilter, deadScopeFilter]);
+  useEffect(() => {
+    if (deadPage > deadTotalPages) setDeadPage(deadTotalPages);
+  }, [deadTotalPages, deadPage]);
 
 
   // ── "Apply All Fixes" queue ───────────────────────────────────────────────
@@ -4207,7 +4286,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           borderRadius: 16,
           overflow:     "hidden",
         }}>
-          {/* Header: title + count + search */}
+          {/* Header: title + count + "from last scan" hint */}
           <div style={{
             padding:      "10px 14px",
             borderBottom: `1px solid ${th.border}`,
@@ -4221,8 +4300,68 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             </span>
             <span style={{ fontSize: 10, color: th.textSub }}>
               ({filteredDeadLinks.length}
-              {deadSearch && ` of ${knownDeadLinks.length}`})
+              {filteredDeadLinks.length !== knownDeadLinks.length && ` of ${knownDeadLinks.length}`})
             </span>
+
+            <div style={{ flex: 1 }} />
+
+            <span style={{ fontSize: 9, color: th.textSub, whiteSpace: "nowrap" }}>
+              From your last scan — fix anytime, no re-scan needed
+            </span>
+          </div>
+
+          {/* Filters: status pills + state/scope picker + search — lets the
+              user narrow down instead of scrolling one giant mixed list. */}
+          <div style={{
+            padding:      "8px 14px",
+            borderBottom: `1px solid ${th.border}`,
+            display:      "flex",
+            gap:          6,
+            flexWrap:     "wrap",
+            alignItems:   "center",
+          }}>
+            {[
+              ["all",        "All",        deadStatusCounts.all,        th.textMid, th.border],
+              ["dead",       "Dead",       deadStatusCounts.dead,       RED,        `${RED}40`],
+              ["noResponse", "No Resp.",   deadStatusCounts.noResponse, AMBER,      `${AMBER}40`],
+              ["error",      "Errors",     deadStatusCounts.error,      VIOLET,     `${VIOLET}40`],
+            ].map(([key, label, count, color, bg]) => (
+              <FilterPill
+                key={key}
+                label={label}
+                count={count}
+                color={color}
+                bg={bg}
+                active={deadStatusFilter === key}
+                th={th}
+                onClick={() => setDeadStatusFilter(key)}
+              />
+            ))}
+
+            {/* Scope/state picker — only shown when there's more than one
+                group, so a national-only or single-state list stays simple */}
+            {deadScopeGroups.length > 1 && (
+              <select
+                value={deadScopeFilter}
+                onChange={e => setDeadScopeFilter(e.target.value)}
+                style={{
+                  padding:      "3px 7px",
+                  borderRadius: 8,
+                  border:       `1.5px solid ${deadScopeFilter !== "all" ? NAVY : th.border}`,
+                  background:   th.inputBg,
+                  color:        th.text,
+                  fontSize:     9,
+                  fontWeight:   700,
+                  fontFamily:   "inherit",
+                  outline:      "none",
+                }}
+              >
+                <option value="all">All Scopes ({knownDeadLinks.length})</option>
+                {deadScopeGroups.map(([name, count]) => (
+                  <option key={name} value={name}>{name} ({count})</option>
+                ))}
+              </select>
+            )}
 
             {/* Search input */}
             <input
@@ -4244,12 +4383,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 outline:      "none",
               }}
             />
-
-            <div style={{ flex: 1 }} />
-
-            <span style={{ fontSize: 9, color: th.textSub, whiteSpace: "nowrap" }}>
-              From your last scan — fix anytime, no re-scan needed
-            </span>
           </div>
 
           {/* Apply All Fixes — same queue as the Results list below;
@@ -4265,9 +4398,18 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           {/* Rows */}
           <div>
             {filteredDeadLinks.length === 0 ? (
-              <EmptyState message={`No results for "${deadSearch}"`} dark={dark} />
+              <EmptyState
+                message={
+                  deadSearch
+                    ? `No results for "${deadSearch}"`
+                    : (deadStatusFilter !== "all" || deadScopeFilter !== "all")
+                      ? "No links match the selected filters"
+                      : "No known dead links"
+                }
+                dark={dark}
+              />
             ) : (
-              filteredDeadLinks.map((r, i) => (
+              deadPageSlice.map((r, i) => (
                 <ResultRow
                   key={`dead-${r.scheme?.id ?? i}`}
                   result={r}
@@ -4279,6 +4421,100 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               ))
             )}
           </div>
+
+          {/* Pagination */}
+          {deadTotalPages > 1 && (
+            <div style={{
+              padding:        "10px 14px",
+              borderTop:      `1px solid ${th.border}`,
+              display:        "flex",
+              justifyContent: "center",
+              alignItems:     "center",
+              gap:            4,
+              flexWrap:       "wrap",
+            }}>
+              {/* Prev */}
+              <div
+                {...a11yClickable(() => setDeadPage(p => p - 1), {
+                  disabled: deadPage <= 1,
+                  label: "Previous page",
+                })}
+                style={{
+                  padding:      "5px 10px",
+                  borderRadius: 7,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  background:   th.border,
+                  color:        deadPage <= 1 ? th.textSub : th.text,
+                  cursor:       deadPage <= 1 ? "default" : "pointer",
+                  userSelect:   "none",
+                }}
+              >
+                ←
+              </div>
+
+              {/* First page + ellipsis */}
+              {deadPageRange[0] > 1 && (
+                <>
+                  <div
+                    {...a11yClickable(() => setDeadPage(1), { disabled: deadPage === 1, label: "Page 1" })}
+                    style={pageBtn(deadPage === 1, th)}
+                  >
+                    1
+                  </div>
+                  {deadPageRange[0] > 2 && (
+                    <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
+                  )}
+                </>
+              )}
+
+              {/* Numbered pages */}
+              {deadPageRange.map(p => (
+                <div
+                  key={p}
+                  {...a11yClickable(() => setDeadPage(p), { disabled: p === deadPage, label: `Page ${p}` })}
+                  style={pageBtn(p === deadPage, th, RED)}
+                >
+                  {p}
+                </div>
+              ))}
+
+              {/* Last page + ellipsis */}
+              {deadPageRange[deadPageRange.length - 1] < deadTotalPages && (
+                <>
+                  {deadPageRange[deadPageRange.length - 1] < deadTotalPages - 1 && (
+                    <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
+                  )}
+                  <div
+                    {...a11yClickable(() => setDeadPage(deadTotalPages), { disabled: deadPage === deadTotalPages, label: `Page ${deadTotalPages}` })}
+                    style={pageBtn(deadPage === deadTotalPages, th)}
+                  >
+                    {deadTotalPages}
+                  </div>
+                </>
+              )}
+
+              {/* Next */}
+              <div
+                {...a11yClickable(() => setDeadPage(p => p + 1), {
+                  disabled: deadPage >= deadTotalPages,
+                  label: "Next page",
+                })}
+                style={{
+                  padding:      "5px 10px",
+                  borderRadius: 7,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  background:   th.border,
+                  color:        deadPage >= deadTotalPages ? th.textSub : th.text,
+                  cursor:       deadPage >= deadTotalPages ? "default" : "pointer",
+                  userSelect:   "none",
+                }}
+              >
+                →
+              </div>
+            </div>
+          )}
         </div>
       )}
 
