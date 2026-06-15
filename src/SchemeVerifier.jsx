@@ -51,6 +51,10 @@ import {
   saveUrlFix,
   markUrlFixCommitted,
   loadUrlFixes,
+  queueUrlFix,
+  unqueueUrlFix,
+  commitQueuedFixes,
+  getKnownDeadLinks,
 } from "./verifySchemes.js";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
@@ -1276,29 +1280,126 @@ function FilterPill({ label, count, color, bg, active, th, onClick }) {
 }
 
 
+// ─── APPLY ALL FIXES BAR ────────────────────────────────────────────────────
+// Shared between the "RESULTS LIST" and "KNOWN DEAD LINKS" sections — both
+// read/write the SAME urlFixMap, so a fix queued from either panel shows up
+// here and "Apply All Fixes" batch-commits across both.
+function ApplyAllFixesBar({ queuedFixes, applyingFixes, applyResult, onApply, th }) {
+  if (queuedFixes.length === 0 && !applyResult) return null;
+
+  return (
+    <div style={{
+      padding:      "8px 14px",
+      borderBottom: `1px solid ${th.border}`,
+      display:      "flex",
+      flexWrap:     "wrap",
+      gap:          8,
+      alignItems:   "center",
+      background:   `${AMBER}08`,
+    }}>
+      {queuedFixes.length > 0 && (
+        <>
+          <span style={{ fontSize: 10, fontWeight: 800, color: AMBER }}>
+            📋 {queuedFixes.length} fix{queuedFixes.length !== 1 ? "es" : ""} queued
+          </span>
+          <button
+            onClick={onApply}
+            disabled={applyingFixes}
+            style={{
+              padding:      "5px 12px",
+              borderRadius: 8,
+              fontSize:     10,
+              fontWeight:   700,
+              cursor:       applyingFixes ? "default" : "pointer",
+              border:       `1.5px solid ${IND_GREEN}`,
+              background:   `${IND_GREEN}15`,
+              color:        IND_GREEN,
+              fontFamily:   "inherit",
+              opacity:      applyingFixes ? 0.6 : 1,
+              display:      "flex",
+              alignItems:   "center",
+              gap:          6,
+              transition:   "all 0.15s",
+            }}
+          >
+            {applyingFixes && (
+              <span style={{
+                display:        "inline-block",
+                width:          10,
+                height:         10,
+                borderRadius:   "50%",
+                border:         `2px solid ${IND_GREEN}`,
+                borderTopColor: "transparent",
+                animation:      "sv-spin 0.7s linear infinite",
+              }}/>
+            )}
+            {applyingFixes ? "Applying…" : `✓ Apply All Fixes (${queuedFixes.length})`}
+          </button>
+          <span style={{ fontSize: 9, color: th.textSub }}>
+            {(() => {
+              const fileCount = new Set(queuedFixes.map(q => q.file)).size;
+              return `→ ${fileCount} commit${fileCount !== 1 ? "s" : ""} / Vercel deploy${fileCount !== 1 ? "s" : ""} instead of ${queuedFixes.length}`;
+            })()}
+          </span>
+        </>
+      )}
+
+      {applyResult && (
+        <span style={{
+          fontSize:   9,
+          fontWeight: 700,
+          color:      applyResult.failed.length > 0 ? RED : IND_GREEN,
+        }}>
+          {applyResult.committed > 0 &&
+            `✓ ${applyResult.committed} committed across ${applyResult.commits.length} commit${applyResult.commits.length !== 1 ? "s" : ""}`}
+          {applyResult.failed.length > 0 &&
+            ` · ${applyResult.failed.length} failed: ${applyResult.failed.map(f => f.id).join(", ")}`}
+        </span>
+      )}
+    </div>
+  );
+}
+
+
 // ─── RESULT ROW ───────────────────────────────────────────────────────────────
-function ResultRow({ result, dark, expandAll = false, savedFix = null }) {
+function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueChange = null }) {
   const th     = THEME[dark ? "dark" : "light"];
   const scheme = result.scheme;
   const [localExpanded, setLocalExpanded] = useState(false);
   const [copied,        setCopied]        = useState(false);
   const [urlSearch,   setUrlSearch]   = useState(null);
   // urlSearch shape:
-  //   null                            → not started
-  //   "loading"                       → API call in progress
-  //   { candidates: [...] }           → results ready
-  //   "patching"                      → GitHub commit in progress
-  //   { done: true, sha, commitUrl }  → committed successfully
-  //   { error: "..." }                → something went wrong
+  //   null                                    → not started
+  //   "loading"                               → API call in progress
+  //   { candidates: [...] }                   → results ready, not yet queued
+  //   { candidates: [...], queued: true }     → queued for next "Apply All Fixes"
+  //   { done: true, sha, commitUrl }          → committed (single batch result)
+  //   { error: "..." }                        → something went wrong
   const [selectedUrl, setSelectedUrl] = useState(null);
 
-  // Restore persisted URL fix candidates from Firestore on mount.
-  // If a previous "Find New URL" run saved candidates for this scheme,
-  // they are restored here so the Fix button is available without re-running.
+  // Restore persisted URL fix state from Firestore on mount / when the
+  // dashboard's urlFixMap refreshes (e.g. after "Apply All Fixes").
+  //
+  //   status "committed" → always sync to the "done" card, even if this row
+  //                         was showing "queued" a moment ago (this is how a
+  //                         queued fix flips to committed after a batch run).
+  //   status "queued"    → restore candidates + selection, marked queued.
+  //   status "pending"   → restore candidates only (original behaviour).
   useEffect(() => {
-    if (!savedFix || urlSearch !== null) return;
+    if (!savedFix) return;
+
     if (savedFix.status === "committed") {
-      setUrlSearch({ done: true, sha: savedFix.commitSha, commitUrl: null });
+      if (!urlSearch?.done) {
+        setUrlSearch({ done: true, sha: savedFix.commitSha, commitUrl: savedFix.commitUrl ?? null });
+      }
+      return;
+    }
+
+    if (urlSearch !== null) return; // a search/queue is already in progress or restored
+
+    if (savedFix.status === "queued") {
+      setUrlSearch({ candidates: savedFix.candidates ?? [], queued: true });
+      setSelectedUrl(savedFix.newUrl);
     } else if (savedFix.candidates?.length > 0) {
       setUrlSearch({ candidates: savedFix.candidates });
       setSelectedUrl(savedFix.candidates[0].url);
@@ -1366,29 +1467,35 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null }) {
     }
   };
 
-  const handleCommitFix = async (e) => {
+  // Add the selected candidate to the "Apply All Fixes" queue instead of
+  // committing immediately. Persisted to Firestore (status:"queued") and
+  // mirrored into the dashboard's urlFixMap via onQueueChange so the
+  // "Apply All Fixes" count updates right away.
+  const handleQueueFix = (e) => {
     e.stopPropagation();
-    if (!selectedUrl) return;
-    setUrlSearch("patching");
-    try {
-      const res = await fetch("/api/patch-scheme-url", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id:     scheme.id,
-          oldUrl: scheme.apply?.en,
-          newUrl: selectedUrl,
-          file:   getSchemeFilePath(result),
-        }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setUrlSearch({ done: true, sha: data.sha, commitUrl: data.commitUrl });
-      // Persist committed status to Firestore for permanent audit trail
-      await markUrlFixCommitted(scheme.id, selectedUrl, data.sha);
-    } catch (err) {
-      setUrlSearch({ error: err.message });
-    }
+    if (!selectedUrl || !urlSearch?.candidates) return;
+
+    const entry = {
+      status:     "queued",
+      candidates: urlSearch.candidates,
+      newUrl:     selectedUrl,
+      oldUrl:     scheme.apply?.en,
+      file:       getSchemeFilePath(result),
+    };
+
+    setUrlSearch(prev => ({ ...prev, queued: true }));
+    queueUrlFix(scheme.id, entry);
+    onQueueChange?.(scheme.id, entry);
+  };
+
+  // Move this fix back to "pending" — keeps the candidates list but removes
+  // it from the next batch run.
+  const handleUnqueueFix = (e) => {
+    e.stopPropagation();
+    const candidates = urlSearch?.candidates ?? [];
+    setUrlSearch({ candidates });
+    unqueueUrlFix(scheme.id, candidates);
+    onQueueChange?.(scheme.id, { status: "pending", candidates });
   };
 
   const handleCancelSearch = (e) => {
@@ -1699,35 +1806,8 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null }) {
                 </div>
               )}
 
-              {/* ── Patching ── */}
-              {urlSearch === "patching" && (
-                <div style={{
-                  padding:      "8px 10px",
-                  borderRadius: 7,
-                  background:   th.card2,
-                  border:       `1px solid ${th.border}`,
-                  fontSize:     9,
-                  color:        th.textSub,
-                  display:      "flex",
-                  alignItems:   "center",
-                  gap:          6,
-                }}>
-                  <span style={{
-                    display:        "inline-block",
-                    width:          10,
-                    height:         10,
-                    borderRadius:   "50%",
-                    border:         `2px solid ${IND_GREEN}`,
-                    borderTopColor: "transparent",
-                    animation:      "sv-spin 0.7s linear infinite",
-                    flexShrink:     0,
-                  }}/>
-                  Committing to GitHub…
-                </div>
-              )}
-
               {/* ── Candidates list ── */}
-              {urlSearch?.candidates && (
+              {urlSearch?.candidates && !urlSearch.queued && (
                 <div style={{
                   borderRadius: 7,
                   border:       `1px solid ${th.border}`,
@@ -1865,7 +1945,7 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null }) {
                       alignItems: "center",
                     }}>
                       <button
-                        onClick={handleCommitFix}
+                        onClick={handleQueueFix}
                         style={{
                           flex:         1,
                           padding:      "5px 10px",
@@ -1873,14 +1953,14 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null }) {
                           fontSize:     9,
                           fontWeight:   700,
                           cursor:       "pointer",
-                          border:       `1.5px solid ${IND_GREEN}`,
-                          background:   `${IND_GREEN}15`,
-                          color:        IND_GREEN,
+                          border:       `1.5px solid ${AMBER}`,
+                          background:   `${AMBER}15`,
+                          color:        AMBER,
                           fontFamily:   "inherit",
                           transition:   "all 0.15s",
                         }}
                       >
-                        ✓ Commit Fix
+                        📋 Queue Fix
                       </button>
                       <a
                         href={selectedUrl}
@@ -1904,6 +1984,49 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null }) {
                       </a>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* ── Queued — selected, pending "Apply All Fixes" ── */}
+              {urlSearch?.queued && !urlSearch?.done && (
+                <div style={{
+                  padding:      "8px 10px",
+                  borderRadius: 7,
+                  background:   `${AMBER}10`,
+                  border:       `1px solid ${AMBER}40`,
+                  fontSize:     9,
+                }}>
+                  <div style={{
+                    fontWeight:   700,
+                    color:        AMBER,
+                    marginBottom: 3,
+                  }}>
+                    📋 Queued — apply with "Apply All Fixes"
+                  </div>
+                  <div style={{
+                    color:        th.textSub,
+                    overflow:     "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace:   "nowrap",
+                    marginBottom: 4,
+                  }}>
+                    → {selectedUrl}
+                  </div>
+                  <button
+                    onClick={handleUnqueueFix}
+                    style={{
+                      background: "none",
+                      border:     "none",
+                      cursor:     "pointer",
+                      color:      th.textSub,
+                      fontSize:   8,
+                      padding:    0,
+                      fontFamily: "inherit",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Remove from queue
+                  </button>
                 </div>
               )}
 
@@ -3007,6 +3130,95 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     loadUrlFixes().then(data => setUrlFixMap(data));
   }, []);
 
+  // ── Known Dead Links (bundled schemes-meta.json overlay) ──────────────────
+  // Every scheme whose LAST verification run marked the link dead — available
+  // immediately on mount, no Firestore call and no re-scan needed. This is
+  // what lets "Find New URL" stay available for a dead scheme found in a
+  // previous session, even after closing the app.
+  //
+  // Kept as state (not memo) so a successful "Apply All Fixes" can remove a
+  // scheme from this list immediately — it's no longer a known dead link.
+  const [knownDeadLinks, setKnownDeadLinks] = useState(() => getKnownDeadLinks());
+  const [deadSearch, setDeadSearch] = useState("");
+  const filteredDeadLinks = useMemo(
+    () => knownDeadLinks.filter(r => matchesSearch(r, deadSearch)),
+    [knownDeadLinks, deadSearch]
+  );
+
+
+  // ── "Apply All Fixes" queue ───────────────────────────────────────────────
+  // Every scheme with status:"queued" in urlFixMap — ready for one batch
+  // commit via /api/batch-patch-urls (grouped by file, one commit per file).
+  const queuedFixes = useMemo(() => {
+    return Object.entries(urlFixMap)
+      .filter(([, v]) => v?.status === "queued")
+      .map(([id, v]) => ({ id, oldUrl: v.oldUrl, newUrl: v.newUrl, file: v.file }));
+  }, [urlFixMap]);
+
+  // Optimistic local update — a ResultRow calls this immediately after
+  // queueing/unqueueing so the "Apply All Fixes" count updates without
+  // waiting for a full loadUrlFixes() round trip.
+  const handleQueueChange = useCallback((schemeId, entry) => {
+    setUrlFixMap(prev => ({ ...prev, [schemeId]: entry }));
+  }, []);
+
+  const [applyingFixes, setApplyingFixes] = useState(false);
+  const [applyResult,   setApplyResult]   = useState(null); // { committed, failed, commits } | null
+
+  const handleApplyAllFixes = useCallback(async () => {
+    if (queuedFixes.length === 0 || applyingFixes) return;
+    setApplyingFixes(true);
+    setApplyResult(null);
+
+    try {
+      const { results: patchResults, commits } = await commitQueuedFixes(queuedFixes);
+
+      let committed = 0;
+      const failed     = [];
+      const successIds = [];
+
+      for (const r of patchResults) {
+        if (r.success) {
+          const q = queuedFixes.find(item => item.id === r.id);
+          await markUrlFixCommitted(r.id, q?.newUrl, r.sha, r.commitUrl);
+          committed++;
+          successIds.push(r.id);
+        } else {
+          failed.push({ id: r.id, error: r.error });
+        }
+      }
+
+      // Remove fixed schemes from "Known Dead Links" right away — the URL has
+      // been replaced, so they're no longer dead. (Doesn't wait for redeploy.)
+      if (successIds.length > 0) {
+        const successSet = new Set(successIds);
+        setKnownDeadLinks(prev => prev.filter(item => !successSet.has(item.scheme?.id)));
+
+        // Correct schemes-meta.json too — otherwise it would keep reporting
+        // linkAlive:false for these schemes (only a full re-scan would clear
+        // it), and "Known Dead Links" would show them again after the next
+        // deploy. One extra commit covers the whole batch.
+        try {
+          await writeSchemeResults(
+            successIds.map(id => ({ scheme: { id }, httpStatus: null, linkAlive: true, tier: 1 }))
+          );
+        } catch (err) {
+          console.warn("[handleApplyAllFixes] schemes-meta.json update failed:", err.message);
+        }
+      }
+
+      // Refresh from Firestore so every ResultRow's savedFix prop updates and
+      // each row's restore effect fires the "queued" → "committed" transition.
+      const fresh = await loadUrlFixes();
+      setUrlFixMap(fresh);
+      setApplyResult({ committed, failed, commits: commits ?? [] });
+    } catch (err) {
+      setApplyResult({ committed: 0, failed: [{ id: "—", error: err.message }], commits: [] });
+    } finally {
+      setApplyingFixes(false);
+    }
+  }, [queuedFixes, applyingFixes]);
+
   // ── Timing (elapsed / speed / ETA) ───────────────────────────────────────
   const startTimeRef = useRef(null);
   const [elapsed,    setElapsed]    = useState(0);  // ms since run started
@@ -3089,6 +3301,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       setRunDone(false);
       setWasAborted(false);
       setSaveStatus(null);
+      setApplyResult(null);
       setProgress(null);
       setCurrentScheme(null);   // prevent stale scheme name flash on new run
       await clearCheckpoint();
@@ -3393,6 +3606,92 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           savedScans={savedScans}
           onScanCleared={() => setSavedScans(loadAllSavedScans())}
         />
+      )}
+
+      {/* ══ KNOWN DEAD LINKS — persisted, no re-scan needed ═══════════════════ */}
+      {/* Sourced from schemes-meta.json (written by the last verification run
+          and committed to the repo) — so "Find New URL" / "Queue Fix" stay
+          available for dead schemes from a previous session at any time. */}
+      {!running && results.length === 0 && knownDeadLinks.length > 0 && (
+        <div style={{
+          background:   th.card,
+          border:       `1.5px solid ${th.border}`,
+          borderRadius: 16,
+          overflow:     "hidden",
+        }}>
+          {/* Header: title + count + search */}
+          <div style={{
+            padding:      "10px 14px",
+            borderBottom: `1px solid ${th.border}`,
+            display:      "flex",
+            gap:          8,
+            flexWrap:     "wrap",
+            alignItems:   "center",
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
+              🔴 Known Dead Links
+            </span>
+            <span style={{ fontSize: 10, color: th.textSub }}>
+              ({filteredDeadLinks.length}
+              {deadSearch && ` of ${knownDeadLinks.length}`})
+            </span>
+
+            {/* Search input */}
+            <input
+              type="text"
+              value={deadSearch}
+              onChange={e => setDeadSearch(e.target.value)}
+              placeholder="Search name, ID, URL…"
+              style={{
+                flex:         "1 1 110px",
+                minWidth:     80,
+                maxWidth:     200,
+                padding:      "4px 9px",
+                borderRadius: 8,
+                border:       `1.5px solid ${deadSearch ? NAVY : th.border}`,
+                background:   th.inputBg,
+                color:        th.text,
+                fontSize:     10,
+                fontFamily:   "inherit",
+                outline:      "none",
+              }}
+            />
+
+            <div style={{ flex: 1 }} />
+
+            <span style={{ fontSize: 9, color: th.textSub, whiteSpace: "nowrap" }}>
+              From your last scan — fix anytime, no re-scan needed
+            </span>
+          </div>
+
+          {/* Apply All Fixes — same queue as the Results list below;
+              fixes queued here count toward the same batch commit. */}
+          <ApplyAllFixesBar
+            queuedFixes={queuedFixes}
+            applyingFixes={applyingFixes}
+            applyResult={applyResult}
+            onApply={handleApplyAllFixes}
+            th={th}
+          />
+
+          {/* Rows */}
+          <div>
+            {filteredDeadLinks.length === 0 ? (
+              <EmptyState message={`No results for "${deadSearch}"`} dark={dark} />
+            ) : (
+              filteredDeadLinks.map((r, i) => (
+                <ResultRow
+                  key={`dead-${r.scheme?.id ?? i}`}
+                  result={r}
+                  dark={dark}
+                  expandAll={false}
+                  savedFix={urlFixMap[r.scheme?.id] ?? null}
+                  onQueueChange={handleQueueChange}
+                />
+              ))
+            )}
+          </div>
+        </div>
       )}
 
       {/* ══ CONFIG PANEL — hidden once run has results ════════════════════════ */}
@@ -3895,6 +4194,16 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             ))}
           </div>
 
+          {/* Apply All Fixes — batch commit (Problem 2 fix): turns N queued
+              URL fixes into ~1-2 Vercel deploys instead of N */}
+          <ApplyAllFixesBar
+            queuedFixes={queuedFixes}
+            applyingFixes={applyingFixes}
+            applyResult={applyResult}
+            onApply={handleApplyAllFixes}
+            th={th}
+          />
+
           {/* Rows */}
           <div>
             {pageSlice.length === 0 ? (
@@ -3910,6 +4219,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   dark={dark}
                   expandAll={expandAll}
                   savedFix={urlFixMap[r.scheme?.id] ?? null}
+                  onQueueChange={handleQueueChange}
                 />
               ))
             )}

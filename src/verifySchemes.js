@@ -39,8 +39,16 @@
 //   clearCheckpoint()                                   → void
 //   getVerifiableCount(scopeFilter, priorityFilter)     → number
 //   getStatesInDB()                                     → string[]
+//   saveUrlFix(schemeId, candidates)                    → void
+//   loadUrlFixes()                                      → { [schemeId]: fix }
+//   queueUrlFix(schemeId, payload)                      → void
+//   unqueueUrlFix(schemeId, candidates)                 → void
+//   commitQueuedFixes(queue)                            → { results, commits }
+//   markUrlFixCommitted(id, url, sha, commitUrl)        → void
+//   getKnownDeadLinks()                                 → result[] (persisted)
 //
 // ─────────────────────────────────────────────────────────────────────────────
+
 
 import { SCHEME_DB } from "./schemesData.js";
 import { db } from "./firebase.js";
@@ -694,7 +702,18 @@ export function getStatesInDB() {
 // "Find New URL" results survive tab switches, page refreshes, and session closes.
 //
 // Doc path: adminMeta/urlFixes
-// Shape:    { [schemeId]: { candidates, discoveredAt, status, newUrl?, commitSha? } }
+// Shape:    { [schemeId]: { candidates, status, newUrl?, oldUrl?, file?,
+//                            commitSha?, commitUrl?, discoveredAt?,
+//                            queuedAt?, committedAt? } }
+//
+// status lifecycle:
+//   "pending"   — candidates found, not yet queued      (saveUrlFix)
+//   "queued"    — selected for the next batch commit    (queueUrlFix)
+//   "committed" — patched + committed to GitHub         (markUrlFixCommitted)
+//
+// "Apply All Fixes" (commitQueuedFixes) sends every "queued" entry to
+// /api/batch-patch-urls in ONE request, which groups them by file and
+// commits each file once — turning N fixes into ~1-2 Vercel deploys.
 //
 // Covered by existing Firestore rule:
 //   match /adminMeta/{docId} { allow read, write: if isAdmin(); }
@@ -726,10 +745,10 @@ export async function saveUrlFix(schemeId, candidates) {
 }
 
 /**
- * Mark a fix as committed after /api/patch-scheme-url succeeds.
- * Stores the chosen URL and commit SHA for the audit trail.
+ * Mark a fix as committed after a commit succeeds (single or batch).
+ * Stores the chosen URL, commit SHA, and GitHub commit link for the audit trail.
  */
-export async function markUrlFixCommitted(schemeId, newUrl, commitSha) {
+export async function markUrlFixCommitted(schemeId, newUrl, commitSha, commitUrl = null) {
   try {
     await setDoc(
       doc(db, ...URL_FIXES_PATH),
@@ -738,6 +757,7 @@ export async function markUrlFixCommitted(schemeId, newUrl, commitSha) {
           status:      "committed",
           newUrl,
           commitSha,
+          commitUrl,
           committedAt: new Date().toISOString(),
         },
       },
@@ -746,6 +766,70 @@ export async function markUrlFixCommitted(schemeId, newUrl, commitSha) {
   } catch (err) {
     console.warn("[markUrlFixCommitted] Firestore write failed:", err.message);
   }
+}
+
+/**
+ * Add a confirmed replacement URL to the local "Apply All Fixes" queue.
+ * Persists status:"queued" plus the exact payload /api/batch-patch-urls needs
+ * (oldUrl, newUrl, file) — so the queue survives tab switches and page
+ * refreshes until the batch commit runs.
+ */
+export async function queueUrlFix(schemeId, { newUrl, oldUrl, file, candidates }) {
+  try {
+    await setDoc(
+      doc(db, ...URL_FIXES_PATH),
+      {
+        [schemeId]: {
+          status: "queued",
+          newUrl,
+          oldUrl,
+          file,
+          candidates: candidates ?? [],
+          queuedAt: new Date().toISOString(),
+        },
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    console.warn("[queueUrlFix] Firestore write failed:", err.message);
+  }
+}
+
+/**
+ * Move a queued fix back to "pending" — keeps the discovered candidates but
+ * removes it from the next "Apply All Fixes" batch. Reuses saveUrlFix's shape.
+ */
+export async function unqueueUrlFix(schemeId, candidates) {
+  return saveUrlFix(schemeId, candidates ?? []);
+}
+
+/**
+ * Send every queued fix to /api/batch-patch-urls in ONE request.
+ * The endpoint groups patches by file and commits each file once — turning
+ * N queued fixes into roughly 1-2 Vercel deploys instead of N.
+ *
+ * Returns { success, results: [{id, file, success, sha?, commitUrl?, error?}],
+ * commits: [{file, sha, commitUrl, count}] }.
+ *
+ * Caller (SchemeVerifier.jsx) is responsible for calling markUrlFixCommitted()
+ * for each successful result.
+ */
+export async function commitQueuedFixes(queue) {
+  if (!Array.isArray(queue) || queue.length === 0) {
+    return { success: true, results: [], commits: [] };
+  }
+
+  const res = await fetch("/api/batch-patch-urls", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ patches: queue }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.error) {
+    throw new Error(data.error || `HTTP ${res.status}`);
+  }
+  return data;
 }
 
 /**
@@ -761,3 +845,52 @@ export async function loadUrlFixes() {
     return {};
   }
 }
+
+
+// ─── KNOWN DEAD LINKS ──────────────────────────────────────────────────────────
+// Persistent (no-rescan-needed) list of every scheme whose LAST verification
+// run marked the link dead — read straight from the bundled schemes-meta.json
+// overlay (written by writeSchemeResults → /api/update-schemes-meta → commit
+// → Vercel redeploy).
+//
+// This is what makes "Find New URL" / "Queue Fix" available for a dead scheme
+// at ANY time — even after the tab that found it was closed, with no
+// verification run, no Firestore read, and no network call. The "Known Dead
+// Links" panel in SchemeVerifier.jsx renders this list directly on mount.
+//
+// Returns result-shaped objects compatible with ResultRow / getFixSuggestion:
+//   { scheme, alive: false, httpStatus, error: null, lastDate, isActive,
+//     confidence, lastVerified }
+//
+// Sorted: national schemes first, then alphabetically by state, then by name —
+// so results from the same scan ("scan a state or central schemes") cluster
+// together.
+export function getKnownDeadLinks() {
+  const out = [];
+
+  for (const scheme of SCHEME_DB) {
+    const meta = schemesMeta[scheme.id];
+    if (!meta || meta.linkAlive !== false) continue;
+
+    out.push({
+      scheme,
+      alive:        false,
+      httpStatus:   meta.httpStatus ?? 0,
+      error:        null,
+      lastDate:     meta.lastDate ?? scheme.lastDate ?? null,
+      isActive:     meta.isActive ?? null,
+      confidence:   meta.confidence ?? 0,
+      lastVerified: meta.lastVerified ?? null,
+    });
+  }
+
+  out.sort((a, b) => {
+    const sa = a.scheme.scope === "national" ? "" : (a.scheme.state ?? "");
+    const sb = b.scheme.scope === "national" ? "" : (b.scheme.state ?? "");
+    if (sa !== sb) return sa.localeCompare(sb);
+    return (a.scheme.name?.en ?? "").localeCompare(b.scheme.name?.en ?? "");
+  });
+
+  return out;
+}
+
