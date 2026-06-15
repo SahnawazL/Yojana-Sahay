@@ -254,7 +254,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹15,000 toolkit grant + loan up to ₹3L at 5% · Free skill training", hi: "₹15,000 टूलकिट अनुदान + 5% पर ₹3 लाख तक लोन · मुफ्त कौशल प्रशिक्षण" },
     tag:     { en: "Artisan / Craftsman", hi: "कारीगर / शिल्पकार" },
     annual: 15000,
-    apply:   { en: "pmvishwakarma.gov.in", hi: "pmvishwakarma.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/pmv", hi: "pmvishwakarma.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card", "Bank Account", "Proof of Trade / Occupation"],
                hi: ["आधार कार्ड", "राशन कार्ड", "बैंक खाता", "व्यापार / व्यवसाय का प्रमाण"] },
     // Eligibility: traditional artisan/craftsman, age 18+, self-employed
@@ -269,7 +269,7 @@ export const SCHEME_DB = [
     benefit: { en: "Loan ₹10,000–₹50,000 · 7% interest subsidy · No collateral", hi: "₹10,000–₹50,000 लोन · 7% ब्याज सब्सिडी · बिना गारंटी" },
     tag:     { en: "Street Vendor", hi: "रेहड़ी-पटरी" },
     annual: 0,
-    apply:   { en: "pmsvanidhi.mohua.gov.in", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
+    apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/pm-street-vendors-atmanirbhar-nidhi-pm-svanidhi_pm-svanidhi.html", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Bank Account", "Vending Certificate / Letter of Recommendation from ULB"],
                hi: ["आधार कार्ड", "बैंक खाता", "वेंडिंग प्रमाण पत्र / नगर निकाय से अनुशंसा पत्र"] },
     // Eligibility: street vendor / small trader (business), any area
@@ -595,7 +595,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹75,000/year (Class 9) · ₹1,25,000/year (Class 11) via DBT", hi: "कक्षा 9: ₹75,000/वर्ष · कक्षा 11: ₹1,25,000/वर्ष · DBT से सीधे बैंक में" },
     tag:     { en: "Student / OBC", hi: "छात्र / OBC" },
     annual: 75000,
-    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjustice.gov.in/schemes/101", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC/EBC/DNT Caste Certificate","Income Certificate (≤₹2.5L/year)","Previous Year Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","OBC/EBC/DNT जाति प्रमाण पत्र","आय प्रमाण पत्र (≤₹2.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC/EBC/DNT student in Class 9 or 11, family income ≤ ₹2.5L, merit-based selection
@@ -655,7 +655,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free legal property card for rural households · Enables using property as loan collateral", hi: "ग्रामीण घरों को मुफ्त कानूनी संपत्ति कार्ड · संपत्ति पर बैंक लोन लेने योग्य" },
     tag:     { en: "Rural / Property", hi: "ग्रामीण / संपत्ति" },
     annual: 0,
-    apply:   { en: "svamitva.nic.in", hi: "svamitva.nic.in" }, applyType: "online",
+    apply:   { en: "https://indbiz.gov.in/pm-modi-launches-property-cards-under-svamitva-scheme", hi: "svamitva.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Existing Land / House Records","Village Abadi Land Proof","Bank Account"],
                hi: ["आधार कार्ड","मौजूदा भूमि/घर के कागज़","ग्राम आबादी भूमि प्रमाण","बैंक खाता"] },
     // Eligibility: any rural household resident
@@ -745,7 +745,7 @@ export const SCHEME_DB = [
     benefit: { en: "Education loan up to ₹10 Lakh · 3% interest subvention (1% for girls) · No collateral", hi: "₹10 लाख तक शिक्षा ऋण · 3% ब्याज सब्सिडी (बेटियों को 1%) · बिना गारंटी" },
     tag:     { en: "Student / Education Loan", hi: "छात्र / शिक्षा ऋण" },
     annual: 0,
-    apply:   { en: "vidyalaxmi.ac.in", hi: "vidyalaxmi.ac.in" }, applyType: "online",
+    apply:   { en: "https://indianembassypanama.gov.in/eoipa_listview/MjQ,", hi: "vidyalaxmi.ac.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","PAN Card","Admission Letter from Institute","10th/12th/Graduation Mark Sheets","Income Certificate","Bank Account"],
                hi: ["आधार कार्ड","पैन कार्ड","संस्था का प्रवेश पत्र","10वीं/12वीं/स्नातक मार्कशीट","आय प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: student admitted to recognised higher education institution, family income below ₹8L
@@ -790,7 +790,7 @@ export const SCHEME_DB = [
     benefit: { en: "7.4% guaranteed pension · Invest up to ₹15 Lakh · Min. ₹1,000/month pension guaranteed for 10 years", hi: "7.4% गारंटीड पेंशन · ₹15 लाख तक निवेश · 10 वर्ष के लिए न्यूनतम ₹1,000/माह पेंशन" },
     tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
     annual: 12000,
-    apply:   { en: "licindia.in", hi: "licindia.in" }, applyType: "online",
+    apply:   { en: "https://web.umang.gov.in/landing/department/pmvvy.html", hi: "licindia.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (60+ years)","PAN Card","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","आयु प्रमाण (60+ वर्ष)","पैन कार्ड","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: senior citizens 60 years and above
@@ -835,7 +835,7 @@ export const SCHEME_DB = [
     benefit: { en: "Full tuition fee reimbursement + maintenance allowance ₹230–₹1,200/month · All post-Class 10 courses", hi: "पूरी ट्यूशन फीस + ₹230–₹1,200/माह रखरखाव भत्ता · Class 10 के बाद सभी कोर्स" },
     tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
     annual: 14400,
-    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://oasis.wb.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC / ST Caste Certificate","Income Certificate (≤₹2.5L/year)","Previous Year Mark Sheet","Institution Admission Letter","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","SC/ST जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
     // Eligibility: SC/ST student post Class 10, family income ≤ ₹2.5L
@@ -1214,7 +1214,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹150–₹350/month maintenance allowance + full tuition & school fee reimbursement for SC students in Class 9–10", hi: "कक्षा 9–10 के SC छात्रों को ₹150–₹350/माह रखरखाव भत्ता + पूरी ट्यूशन और स्कूल फीस प्रतिपूर्ति" },
     tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
     annual: 4200,
-    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjustice.gov.in/schemes", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Income Certificate (≤₹2.5L/year)","Class 8 Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","कक्षा 8 मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     // Eligibility: SC student in Class 9–10 in govt/govt-aided school, family income ≤ ₹2.5L
@@ -1274,7 +1274,7 @@ export const SCHEME_DB = [
     benefit: { en: "Maintenance allowance ₹700–₹1,200/month + full tuition & fee reimbursement · All post-Class 10 courses", hi: "₹700–₹1,200/माह रखरखाव भत्ता + पूरी ट्यूशन और शुल्क प्रतिपूर्ति · कक्षा 10 के बाद सभी कोर्स" },
     tag:     { en: "Student / OBC", hi: "छात्र / OBC" },
     annual: 14400,
-    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://oasis.wb.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC (Non-Creamy Layer) Caste Certificate","Income Certificate (≤₹1.5L/year)","Previous Year Mark Sheet","Institution Admission Letter","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) जाति प्रमाण पत्र","आय प्रमाण (≤₹1.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC (non-creamy layer) student post Class 10, family income ≤ ₹1.5L
