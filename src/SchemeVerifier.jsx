@@ -74,7 +74,8 @@ const THEME = {
 
 const SAFFRON   = "#FF9933";
 const NAVY      = "#003580";
-const IND_GREEN = "#138808";
+const IND_GREEN      = "#138808";
+const IND_GREEN_DARK = "#4ade80"; // bright green for text/numbers on dark backgrounds
 const VIOLET    = "#8B5CF6";
 const PINK      = "#EC4899";
 const RED       = "#DC2626";
@@ -2245,7 +2246,7 @@ function DBCoverageCard({ stats, dark }) {
       {/* Stat rows */}
       <div style={{ padding: "4px 14px 6px" }}>
         <Row label="Total schemes in DB"              value={stats.total}          color={th.text}  />
-        <Row label="Verifiable (online + valid URL)" value={stats.verifiable}    color={IND_GREEN} sub="← what gets queued"         />
+        <Row label="Verifiable (online + valid URL)" value={stats.verifiable}    color={dark ? IND_GREEN_DARK : IND_GREEN} sub="← what gets queued"         />
         <Row label="Online but plain-text apply"    value={stats.onlineNoUrl}   color={AMBER}    sub="e.g. 'Nearest CSC center'"    />
         <Row label="Offline (bank / in-person / CSC)" value={stats.offline}     color={RED}      sub="nothing to ping"              />
         <Row label="National schemes"              value={stats.national}        color={NAVY}     sub={`${stats.nationalOnline} verifiable`} />
@@ -2322,7 +2323,7 @@ function DBCoverageCard({ stats, dark }) {
                     <div style={{ fontSize: 11, fontWeight: 800, color: th.text, textAlign: "center" }}>
                       {st}
                     </div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: IND_GREEN, textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: dark ? IND_GREEN_DARK : IND_GREEN, textAlign: "center" }}>
                       {so}
                     </div>
                     <div style={{
@@ -2419,11 +2420,12 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
   const healthPct = summary.total > 0
     ? Math.round((summary.active / summary.total) * 100)
     : 0;
+  const activeGreen = dark ? IND_GREEN_DARK : IND_GREEN;
   const healthColor =
-    healthPct >= 70 ? IND_GREEN : healthPct >= 40 ? AMBER : RED;
+    healthPct >= 70 ? activeGreen : healthPct >= 40 ? AMBER : RED;
 
   const segments = [
-    { value: summary.active,     color: IND_GREEN, label: "Active"  },
+    { value: summary.active,     color: activeGreen, label: "Active"  },
     { value: summary.dead,       color: RED,        label: "Dead"    },
     { value: summary.noResponse, color: AMBER,      label: "No Resp" },
     { value: summary.errors,     color: VIOLET,     label: "Errors"  },
@@ -2479,9 +2481,9 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
           letterSpacing: 1.5,
           padding:       "2px 8px",
           borderRadius:  4,
-          background:    wasAborted ? `${RED}22`      : `${IND_GREEN}22`,
-          color:         wasAborted ? RED             : IND_GREEN,
-          border:        `1px solid ${wasAborted ? RED : IND_GREEN}45`,
+          background:    wasAborted ? `${RED}22`         : `${activeGreen}22`,
+          color:         wasAborted ? RED               : activeGreen,
+          border:        `1px solid ${wasAborted ? RED : activeGreen}45`,
           fontFamily:    "monospace",
         }}>
           {wasAborted ? "● STOPPED" : "● COMPLETE"}
@@ -2597,7 +2599,7 @@ function RunSummaryCard({ summary, scopeFilter, priorityFilter, tier, wasAborted
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           <TechStatCard label="TOTAL"   value={summary.total}      color={NAVY}      dark={dark} />
-          <TechStatCard label="ACTIVE"  value={summary.active}     color={IND_GREEN} dark={dark} />
+          <TechStatCard label="ACTIVE"  value={summary.active}     color={activeGreen} dark={dark} />
           <TechStatCard label="DEAD"    value={summary.dead}       color={RED}       dark={dark} />
           <TechStatCard label="NO_RESP" value={summary.noResponse} color={AMBER}     dark={dark} />
         </div>
@@ -3031,7 +3033,7 @@ function SavedScansSection({ dark, savedScans, onScanCleared }) {
               {s.total > 0 && (
                 <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
                   {[
-                    [IND_GREEN, `${s.active     || 0} active`],
+                    [dark ? IND_GREEN_DARK : IND_GREEN, `${s.active     || 0} active`],
                     [RED,       `${s.dead        || 0} dead`],
                     [AMBER,     `${s.noResponse  || 0} no resp.`],
                     [VIOLET,    `${s.errors      || 0} errors`],
@@ -4176,7 +4178,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             {/* Fix 1 + animated counts: Status filter pills */}
             {[
               ["all",        "All",        filterCounts.all,        th.textMid, th.border],
-              ["active",     "Active",     filterCounts.active,     IND_GREEN,  `${IND_GREEN}40`],
+              ["active",     "Active",     filterCounts.active,     dark ? IND_GREEN_DARK : IND_GREEN,  `${dark ? IND_GREEN_DARK : IND_GREEN}40`],
               ["dead",       "Dead",       filterCounts.dead,       RED,        `${RED}40`],
               ["noResponse", "No Resp.",   filterCounts.noResponse, AMBER,      `${AMBER}40`],
               ["error",      "Errors",     filterCounts.error,      VIOLET,     `${VIOLET}40`],
