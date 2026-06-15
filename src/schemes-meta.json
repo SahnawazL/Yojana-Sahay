@@ -1161,5 +1161,15 @@
     "lastVerified": "2026-06-15T11:32:35.587Z",
     "httpStatus": 0,
     "confidence": 0
+  },
+  "uk_vatsalya": {
+    "lastVerified": "2026-06-15T11:52:25.515Z",
+    "httpStatus": 200,
+    "linkAlive": true
+  },
+  "uk_medhavi_chhatravriti": {
+    "lastVerified": "2026-06-15T11:52:25.515Z",
+    "httpStatus": 0,
+    "linkAlive": false
   }
 }
