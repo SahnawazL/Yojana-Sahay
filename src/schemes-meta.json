@@ -1064,9 +1064,10 @@
     "confidence": 0
   },
   "goa_housing_board_affordable": {
-    "lastVerified": "2026-06-15T07:31:47.821Z",
-    "httpStatus": 0,
-    "linkAlive": false,
-    "confidence": 0
+    "lastVerified": "2026-06-15T07:32:27.581Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0.5,
+    "isActive": true
   }
 }
