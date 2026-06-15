@@ -760,71 +760,81 @@
     "linkAlive": true
   },
   "tn_pudhumai_penn": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
     "httpStatus": 0,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": false
   },
   "tn_magalir_urimai": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
     "httpStatus": 0,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": false
   },
   "tn_chief_minister_health": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
     "httpStatus": 403,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": true
   },
   "tn_moovalur_scholarship": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
     "httpStatus": 0,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": false
   },
   "tn_solar_green_house": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
     "httpStatus": 0,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": false
   },
   "tn_housing_board_ews": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
     "httpStatus": 0,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": false
   },
   "tn_scst_free_coaching": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
     "httpStatus": 0,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": false
   },
   "tn_needs_entrepreneur": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": true,
     "httpStatus": 200,
-    "lastDate": "2025-01-05",
-    "confidence": 0.5
+    "confidence": 0.5,
+    "linkAlive": true
   },
   "tn_vetri_nichayam": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
     "httpStatus": 0,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": false
   },
   "tn_gig_worker_insurance": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
     "httpStatus": 0,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": false
   },
   "tn_kakkum_karangal": {
-    "lastVerified": "2026-06-13T12:57:43.210Z",
+    "lastVerified": "2026-06-15T16:38:52.474Z",
     "isActive": false,
-    "httpStatus": 0,
-    "confidence": 0
+    "httpStatus": 200,
+    "confidence": 0,
+    "linkAlive": false
   },
   "up_kanya": {
     "lastVerified": "2026-06-14T16:56:12.033Z",
