@@ -1042,9 +1042,9 @@
     "confidence": 0
   },
   "ts_rythu_bandhu": {
-    "lastVerified": "2026-06-15T11:54:46.763Z",
+    "lastVerified": "2026-06-15T19:31:44.492Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "ts_aarogyasri": {
@@ -1054,15 +1054,15 @@
     "confidence": 0
   },
   "ts_kalyana_lakshmi": {
-    "lastVerified": "2026-06-15T11:54:46.763Z",
+    "lastVerified": "2026-06-15T19:31:44.492Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "ts_shaadi_mubarak": {
-    "lastVerified": "2026-06-15T11:54:46.763Z",
+    "lastVerified": "2026-06-15T19:31:44.492Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "ts_epass_fee": {
@@ -1072,9 +1072,9 @@
     "confidence": 0
   },
   "ts_task_skill": {
-    "lastVerified": "2026-06-15T11:54:46.763Z",
+    "lastVerified": "2026-06-15T19:31:44.492Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "goa_housing_board_affordable": {
