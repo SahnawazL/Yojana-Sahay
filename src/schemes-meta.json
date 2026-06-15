@@ -837,53 +837,53 @@
     "linkAlive": true
   },
   "up_kanya": {
-    "lastVerified": "2026-06-14T16:56:12.033Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "isActive": true,
     "confidence": 0.5
   },
   "up_samuhik_vivah": {
-    "lastVerified": "2026-06-14T16:56:12.033Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "up_vidhva": {
-    "lastVerified": "2026-06-14T16:56:12.033Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "up_vridha_pension": {
-    "lastVerified": "2026-06-14T16:56:12.033Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "up_divyang_pension": {
-    "lastVerified": "2026-06-14T16:56:12.033Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "up_parivarik_labh": {
-    "lastVerified": "2026-06-14T16:56:12.033Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "up_free_tablet": {
-    "lastVerified": "2026-06-14T16:56:12.033Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0.5,
     "isActive": false
   },
   "up_abhyudaya": {
-    "lastVerified": "2026-06-14T16:56:12.033Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "up_internship": {
@@ -893,9 +893,9 @@
     "confidence": 0
   },
   "up_vishwakarma_shram": {
-    "lastVerified": "2026-06-14T16:56:12.033Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "wb_kanyashree": {
@@ -1178,8 +1178,8 @@
     "linkAlive": true
   },
   "uk_medhavi_chhatravriti": {
-    "lastVerified": "2026-06-15T11:52:25.515Z",
+    "lastVerified": "2026-06-15T19:36:40.834Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   }
 }
