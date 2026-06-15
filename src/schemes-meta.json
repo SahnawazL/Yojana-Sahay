@@ -781,11 +781,11 @@
     "linkAlive": true
   },
   "tn_moovalur_scholarship": {
-    "lastVerified": "2026-06-15T19:00:28.940Z",
+    "lastVerified": "2026-06-15T19:02:49.377Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_solar_green_house": {
     "lastVerified": "2026-06-15T19:00:28.940Z",
@@ -802,11 +802,11 @@
     "linkAlive": false
   },
   "tn_scst_free_coaching": {
-    "lastVerified": "2026-06-15T19:00:28.940Z",
+    "lastVerified": "2026-06-15T19:02:49.377Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_needs_entrepreneur": {
     "lastVerified": "2026-06-15T19:00:28.940Z",
@@ -816,25 +816,25 @@
     "linkAlive": true
   },
   "tn_vetri_nichayam": {
-    "lastVerified": "2026-06-15T19:00:28.940Z",
+    "lastVerified": "2026-06-15T19:02:49.377Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_gig_worker_insurance": {
-    "lastVerified": "2026-06-15T19:00:28.940Z",
+    "lastVerified": "2026-06-15T19:02:49.377Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_kakkum_karangal": {
-    "lastVerified": "2026-06-15T19:00:28.940Z",
+    "lastVerified": "2026-06-15T19:02:49.377Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0.5,
-    "linkAlive": false
+    "linkAlive": true
   },
   "up_kanya": {
     "lastVerified": "2026-06-14T16:56:12.033Z",
