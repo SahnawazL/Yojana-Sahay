@@ -3661,6 +3661,206 @@ function SavedScansSection({ dark, savedScans, onScanCleared }) {
 }
 
 
+// ─── DOMAIN GROUP PANEL ───────────────────────────────────────────────────────
+// Groups dead + no-response results by root domain so you can instantly tell
+// the difference between "one broken link" and "all 8 NIC schemes migrated".
+// A domain with 3+ dead entries gets a "domain issue?" badge — that's a signal
+// to check whether the whole domain has moved rather than fixing URLs one by one.
+
+function DomainGroupPanel({ results, dark }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [expanded, setExpanded] = useState(false);
+
+  const groups = useMemo(() => {
+    const map = new Map();
+    for (const r of results) {
+      if (r.alive === true) continue; // skip active schemes
+      const url = r.scheme?.apply?.en;
+      if (!url) continue;
+      let host;
+      try {
+        host = new URL(url).hostname.replace(/^www\./, "");
+      } catch {
+        host = "invalid-url";
+      }
+      if (!map.has(host)) {
+        map.set(host, { host, dead: 0, noResponse: 0, error: 0, total: 0 });
+      }
+      const g      = map.get(host);
+      const status = getResultStatus(r);
+      if      (status === "Dead")        g.dead++;
+      else if (status === "No Response") g.noResponse++;
+      else if (status === "Error")       g.error++;
+      g.total++;
+    }
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [results]);
+
+  if (groups.length === 0) return null;
+
+  const maxCount   = groups[0].total;
+  const topGroups  = expanded ? groups : groups.slice(0, 5);
+  const groupColor = (g) => g.dead > 0 ? RED : g.noResponse > 0 ? AMBER : VIOLET;
+
+  return (
+    <div style={{
+      background:   th.card,
+      border:       `1.5px solid ${th.border}`,
+      borderRadius: 16,
+      overflow:     "hidden",
+      animation:    "sv-diff-in 0.4s 0.1s cubic-bezier(0.22,1,0.36,1) both",
+    }}>
+      {/* Header */}
+      <div style={{
+        padding:      "10px 14px",
+        borderBottom: `1px solid ${th.border}`,
+        display:      "flex",
+        alignItems:   "center",
+        gap:          8,
+        flexWrap:     "wrap",
+      }}>
+        <span style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
+          🌐 Dead Links by Domain
+        </span>
+        <span style={{ fontSize: 10, color: th.textSub }}>
+          · {groups.length} domain{groups.length !== 1 ? "s" : ""} affected
+        </span>
+        <span style={{
+          marginLeft:   "auto",
+          fontSize:     9,
+          color:        th.textSub,
+          padding:      "2px 8px",
+          background:   th.card2,
+          border:       `1px solid ${th.border}`,
+          borderRadius: 8,
+          whiteSpace:   "nowrap",
+        }}>
+          Spot systemic patterns
+        </span>
+      </div>
+
+      {/* Domain rows */}
+      <div style={{ padding: "8px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
+        {topGroups.map(g => {
+          const color    = groupColor(g);
+          const barPct   = Math.max(6, Math.round((g.total / maxCount) * 100));
+          const isSystemic = g.total >= 3 && g.dead > 0;
+          return (
+            <div key={g.host} style={{ position: "relative" }}>
+              {/* Background fill bar */}
+              <div style={{
+                position:     "absolute",
+                top: 0, left: 0, height: "100%",
+                width:        `${barPct}%`,
+                background:   `${color}09`,
+                borderRadius: 8,
+                transition:   "width 0.5s ease",
+                pointerEvents: "none",
+              }} />
+
+              <div style={{
+                position:     "relative",
+                display:      "flex",
+                alignItems:   "center",
+                gap:          8,
+                padding:      "6px 10px",
+                borderRadius: 8,
+                border:       `1px solid ${color}25`,
+              }}>
+                {/* Count circle */}
+                <span style={{
+                  minWidth:       24,
+                  height:         24,
+                  borderRadius:   "50%",
+                  background:     `${color}18`,
+                  border:         `1.5px solid ${color}55`,
+                  color,
+                  fontSize:       10,
+                  fontWeight:     900,
+                  display:        "flex",
+                  alignItems:     "center",
+                  justifyContent: "center",
+                  flexShrink:     0,
+                }}>
+                  {g.total}
+                </span>
+
+                {/* Domain name */}
+                <span style={{
+                  flex:         1,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  fontFamily:   "monospace",
+                  color:        th.text,
+                  overflow:     "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace:   "nowrap",
+                }}>
+                  {g.host}
+                </span>
+
+                {/* Sub-counts */}
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  {g.dead > 0 && (
+                    <span style={{ fontSize: 9, fontWeight: 700, color: RED }}>
+                      {g.dead} dead
+                    </span>
+                  )}
+                  {g.noResponse > 0 && (
+                    <span style={{ fontSize: 9, fontWeight: 700, color: AMBER }}>
+                      {g.noResponse} no resp.
+                    </span>
+                  )}
+                  {g.error > 0 && (
+                    <span style={{ fontSize: 9, fontWeight: 700, color: VIOLET }}>
+                      {g.error} err.
+                    </span>
+                  )}
+                </div>
+
+                {/* "domain issue?" badge for systemic failures */}
+                {isSystemic && (
+                  <span style={{
+                    fontSize:     8,
+                    fontWeight:   800,
+                    color:        "#fff",
+                    background:   RED,
+                    padding:      "2px 7px",
+                    borderRadius: 10,
+                    flexShrink:   0,
+                    letterSpacing: 0.3,
+                  }}>
+                    domain issue?
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {groups.length > 5 && (
+          <div
+            {...a11yClickable(() => setExpanded(v => !v), {
+              label: expanded ? "Show fewer domains" : `Show all ${groups.length} domains`,
+            })}
+            style={{
+              textAlign:  "center",
+              padding:    "6px",
+              fontSize:   10,
+              color:      NAVY,
+              fontWeight: 700,
+              cursor:     "pointer",
+            }}
+          >
+            {expanded ? "Show less ↑" : `Show all ${groups.length} domains ↓`}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function SchemeVerifier({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
@@ -3744,6 +3944,16 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     });
   }, [knownDeadLinks]);
 
+  // If a fix removes the last entry for the currently-selected scope (e.g.
+  // every Tamil Nadu dead link gets fixed in one "Apply All Fixes" batch),
+  // the picker may shrink to ≤1 option and disappear — reset the filter back
+  // to "all" so it can't get stuck pointing at a now-hidden, empty selection.
+  useEffect(() => {
+    if (deadScopeFilter !== "all" && !deadScopeGroups.some(([name]) => name === deadScopeFilter)) {
+      setDeadScopeFilter("all");
+    }
+  }, [deadScopeGroups, deadScopeFilter]);
+
   // Filter (status → scope → search), then sort by scope/state so National
   // and each state form a natural visual block even within a flat list.
   const filteredDeadLinks = useMemo(() => {
@@ -3814,6 +4024,13 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [applyResult,   setApplyResult]   = useState(null); // { committed, failed, commits } | null
   const [mdCopied,      setMdCopied]      = useState(false); // "Copy MD" flash state
   const [scheduleDismissed, setScheduleDismissed] = useState(false);
+
+  // ── Re-verify Dead state ──────────────────────────────────────────────────
+  // Lets the user re-ping only the dead links post-run without starting a full
+  // new scan — useful when some failures are transient (gov portals maintenance).
+  const [reVerifying,   setReVerifying]   = useState(false);
+  const [reVerifyMap,   setReVerifyMap]   = useState({}); // schemeId → { alive, httpStatus?, error? }
+  const [reVerifyDone,  setReVerifyDone]  = useState(false);
 
   const handleApplyAllFixes = useCallback(async () => {
     if (queuedFixes.length === 0 || applyingFixes) return;
@@ -3974,6 +4191,16 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     setResultFilter("all");
     setSearchQuery("");
 
+    // Request browser notification permission for long-running scans
+    // (fires once; browsers remember the answer permanently)
+    if (
+      previewCount > 5 &&
+      typeof Notification !== "undefined" &&
+      Notification.permission === "default"
+    ) {
+      Notification.requestPermission().catch(() => {});
+    }
+
     const controller  = new AbortController();
     abortRef.current  = controller;
     lastUpdateRef.current = 0;  // reset throttle clock
@@ -4029,12 +4256,28 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     endTimeRef.current = Date.now();
     setWasAborted(controller.signal.aborted);
     // Fix 4: ensure the final batch is always flushed even if throttle didn't fire
-    const finalSnap = [...accResultsRef.current];
+    const finalSnap    = [...accResultsRef.current];
+    const finalSummary = buildSummary(finalSnap);   // computed once, used below + in auto-save
     setResults(finalSnap);
-    setSummary(buildSummary(finalSnap));
+    setSummary(finalSummary);
     setRunning(false);
     setCurrentScheme(null);
     setRunDone(true);
+
+    // ── Browser notification — fires even when tab is in background ───────────
+    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+      try {
+        const dead        = finalSummary?.dead   ?? 0;
+        const active      = finalSummary?.active ?? 0;
+        const abortedNote = controller.signal.aborted ? " (stopped early)" : "";
+        new Notification(`Yojana Sahay — Scan done${abortedNote}`, {
+          body:     `${finalSnap.length} schemes · ${dead} dead · ${active} active`,
+          icon:     "/favicon.ico",
+          tag:      "ys-scan-done",
+          renotify: false,
+        });
+      } catch { /* notification blocked in some browser contexts */ }
+    }
 
     // ── Auto-save results to GitHub repo via /api/update-schemes-meta ──────────
     // Runs even on abort — partial data is still useful. Fires asynchronously so
@@ -4052,7 +4295,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       // Runs synchronously (before the async repo write) — localStorage is fast.
       // Overwrites any previous scan for the same scope, keeping one slot per
       // national / all / state:<name> combination.
-      const finalSummary = buildSummary(finalSnap);
       saveScanResults(scopeFilter, priorityFilter, tier, finalSnap, finalSummary);
       setSavedScans(loadAllSavedScans());
     }
@@ -4091,6 +4333,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     setSearchQuery("");
     setScheduleDismissed(false);
     setMdCopied(false);
+    setReVerifying(false);
+    setReVerifyMap({});
+    setReVerifyDone(false);
   }, []);
 
   // ── EXPORT PDF ────────────────────────────────────────────────────────────
@@ -4109,6 +4354,61 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       setTimeout(() => setMdCopied(false), 2000);
     } catch { /* clipboard may be unavailable */ }
   }, [results, summary, scopeFilter, priorityFilter, tier]);
+
+  // ── RE-VERIFY DEAD LINKS ONLY ─────────────────────────────────────────────
+  // Pings only the schemes that came back dead in the current run — skips
+  // active / no-response ones. Updates results in-place so fixed links
+  // immediately move out of the "Dead" filter bucket.
+  const handleReVerifyDead = useCallback(async () => {
+    if (running || reVerifying) return;
+    const dead = results.filter(r => r.alive === false && r.scheme?.apply?.en);
+    if (dead.length === 0) return;
+
+    setReVerifying(true);
+    setReVerifyDone(false);
+    setReVerifyMap({});
+
+    const mapRef = {};
+
+    for (const r of dead) {
+      const id  = r.scheme.id;
+      const url = r.scheme.apply.en;
+      try {
+        const res  = await fetch("/api/ping-url", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+        const data = await res.json();
+        mapRef[id] = { alive: data.alive === true, httpStatus: data.status ?? null };
+      } catch (err) {
+        mapRef[id] = { alive: false, error: err.message };
+      }
+      // Progressive update — each result appears as it arrives
+      setReVerifyMap({ ...mapRef });
+    }
+
+    // Patch results array in-place; any link that came back alive moves
+    // out of the dead bucket. Rebuild summary to keep filter pill counts accurate.
+    setResults(prev => {
+      const updated = prev.map(r => {
+        const patch = mapRef[r.scheme?.id];
+        if (!patch) return r;
+        return {
+          ...r,
+          alive:      patch.alive,
+          httpStatus: patch.httpStatus ?? r.httpStatus,
+          error:      patch.alive ? null : (patch.error ?? r.error),
+          reVerified: true,
+        };
+      });
+      setSummary(buildSummary(updated));
+      return updated;
+    });
+
+    setReVerifying(false);
+    setReVerifyDone(true);
+  }, [running, reVerifying, results]);
 
   // ── Filtered + searched + paginated results ───────────────────────────────
   const filteredResults = useMemo(() => {
@@ -4827,6 +5127,45 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               )}
             </div>
             <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+              {/* Re-check Dead — targeted re-ping of failed links only */}
+              {(summary?.dead ?? 0) > 0 && (
+                <div
+                  {...a11yClickable(handleReVerifyDead, { disabled: reVerifying })}
+                  style={{
+                    padding:      "5px 10px",
+                    borderRadius: 8,
+                    fontSize:     11,
+                    fontWeight:   700,
+                    background:   reVerifying
+                      ? `${RED}18`
+                      : (dark ? `${RED}10` : `${RED}07`),
+                    border:       `1px solid ${RED}45`,
+                    color:        RED,
+                    cursor:       reVerifying ? "default" : "pointer",
+                    flexShrink:   0,
+                    opacity:      reVerifying ? 0.75 : 1,
+                    transition:   "all 0.2s",
+                    display:      "flex",
+                    alignItems:   "center",
+                    gap:          5,
+                  }}
+                >
+                  {reVerifying ? (
+                    <>
+                      <span style={{
+                        display:        "inline-block",
+                        width:          8, height: 8, borderRadius: "50%",
+                        border:         `1.5px solid ${RED}`,
+                        borderTopColor: "transparent",
+                        animation:      "sv-spin 0.7s linear infinite",
+                      }} />
+                      {Object.keys(reVerifyMap).length}/{summary.dead}
+                    </>
+                  ) : (
+                    `↻ Re-check Dead (${summary.dead})`
+                  )}
+                </div>
+              )}
               {/* Copy Markdown */}
               <div
                 {...a11yClickable(handleCopyMarkdown)}
@@ -4930,10 +5269,33 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               )}
             </div>
           )}
+          {/* ── Re-verify result summary ── */}
+          {reVerifyDone && (
+            <div style={{
+              display:      "flex",
+              alignItems:   "center",
+              gap:          8,
+              padding:      "7px 12px",
+              borderRadius: 10,
+              fontSize:     11,
+              fontWeight:   600,
+              background:   dark ? "rgba(19,136,8,0.08)" : "rgba(19,136,8,0.06)",
+              border:       `1px solid ${IND_GREEN}40`,
+              color:        IND_GREEN,
+              animation:    "sv-done-pop 0.4s cubic-bezier(0.22,1,0.36,1) both",
+            }}>
+              <span style={{ fontSize: 13, flexShrink: 0 }}>↻</span>
+              {(() => {
+                const revived   = Object.values(reVerifyMap).filter(v => v.alive).length;
+                const stillDead = Object.values(reVerifyMap).filter(v => !v.alive).length;
+                if (revived === 0)
+                  return `Re-check done · all ${stillDead} dead link${stillDead !== 1 ? "s" : ""} confirmed still down`;
+                return `Re-check done · ${revived} link${revived !== 1 ? "s" : ""} now active · ${stillDead} still dead`;
+              })()}
+            </div>
+          )}
         </div>
       )}
-
-      {/* ══ SCAN DIFF — post-run, requires a previous saved scan ════════════ */}
       {runDone && !running && results.length > 0 && (
         <ScanDiffPanel
           results={results}
@@ -5011,6 +5373,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           tier={tier}
           dark={dark}
         />
+      )}
+
+      {/* ══ DOMAIN GROUP PANEL — post-run dead-link breakdown by domain ═══════ */}
+      {/* Shows how many failing links share the same root domain — instantly
+          reveals systemic domain migrations vs individual broken pages.
+          "domain issue?" badge fires when 3+ dead links share one domain.   */}
+      {runDone && !running && (summary?.dead ?? 0) + (summary?.noResponse ?? 0) > 0 && (
+        <DomainGroupPanel results={results} dark={dark} />
       )}
 
       {/* ══ RUN REPORT — post-run only ═════════════════════════════════════════ */}
