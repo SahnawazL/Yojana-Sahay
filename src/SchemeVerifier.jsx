@@ -2665,22 +2665,20 @@ Respond ONLY with a JSON object (no markdown, no backticks, no preamble) in this
 Rules: max 4 patterns, max 4 actions, be specific (mention domain names if relevant), prioritize actionable over generic.`;
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
+      // Route through /api/ai-insights (Vercel serverless) — direct browser calls
+      // to api.anthropic.com / api.groq.com are blocked by CORS. All AI calls in
+      // this project go through server-side Vercel functions.
+      const res = await fetch("/api/ai-insights", {
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model:      "claude-sonnet-4-6",
-          max_tokens: 1000,
-          messages:   [{ role: "user", content: prompt }],
-        }),
+        body:    JSON.stringify({ prompt }),
       });
 
       const data = await res.json();
-      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
 
-      const raw  = (data.content || []).map(b => b.text || "").join("");
-      const json = raw.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(json);
+      const raw    = (data.text || "").replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(raw);
       setInsights(parsed);
       setState("done");
     } catch (err) {
