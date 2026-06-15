@@ -760,18 +760,18 @@
     "linkAlive": true
   },
   "tn_pudhumai_penn": {
-    "lastVerified": "2026-06-15T16:38:52.474Z",
+    "lastVerified": "2026-06-15T16:40:27.993Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_magalir_urimai": {
-    "lastVerified": "2026-06-15T16:38:52.474Z",
+    "lastVerified": "2026-06-15T16:40:27.993Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_chief_minister_health": {
     "lastVerified": "2026-06-15T16:38:52.474Z",
