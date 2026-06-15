@@ -382,18 +382,18 @@
     "linkAlive": true
   },
   "pmvishwakarma": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:32:53.834Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0.5,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmsvanidhi": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:32:53.834Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "sukanya": {
     "lastVerified": "2026-06-14T08:41:43.237Z",
@@ -550,11 +550,11 @@
     "linkAlive": true
   },
   "pm_yasasvi": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:32:53.834Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pm_kusum": {
     "lastVerified": "2026-06-15T01:48:14.442Z",
@@ -578,11 +578,11 @@
     "linkAlive": true
   },
   "pm_svamitva": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:32:53.834Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "igndps": {
     "lastVerified": "2026-06-15T01:33:07.513Z",
@@ -613,18 +613,18 @@
     "linkAlive": true
   },
   "pm_vidyalaxmi": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:32:53.834Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmvvy": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:32:53.834Z",
     "isActive": false,
     "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmmsy": {
     "lastVerified": "2026-06-14T08:41:43.237Z",
@@ -641,11 +641,11 @@
     "linkAlive": false
   },
   "pms_sc_st": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:32:53.834Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "naps": {
     "lastVerified": "2026-06-15T01:33:07.513Z",
@@ -725,18 +725,18 @@
     "linkAlive": true
   },
   "premat_sc": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:32:53.834Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pms_obc": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T02:32:53.834Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_pudhumai_penn": {
     "lastVerified": "2026-06-13T12:57:43.210Z",
