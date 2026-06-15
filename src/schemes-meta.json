@@ -1073,5 +1073,93 @@
     "linkAlive": true,
     "confidence": 0.5,
     "isActive": true
+  },
+  "mp_ladli": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_kanya_vivah": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_mmvy": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "mp_sambal": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_vridha_pension": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_vidhwa_pension": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_sikho_kamao": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_yuva_udyami": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "mp_swarojgar": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "mp_chirayu": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_ladli_behna": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "mp_viklang_pension": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_kalyani_sahayata": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_udyam_kranti": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "mp_gaon_ki_beti": {
+    "lastVerified": "2026-06-15T11:32:35.587Z",
+    "httpStatus": 0,
+    "confidence": 0
   }
 }
