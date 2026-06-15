@@ -125,7 +125,7 @@ export const GOA_SCHEMES = [
                hi: "गोवा डोमिसाइल EWS/LIG/MIG परिवारों के लिए बाजार से कम कीमत पर सब्सिडी युक्त फ्लैट/घर; EWS इकाइयां (30 वर्गमीटर तक) रियायती दरों पर; PMAY-U क्रेडिट लिंक्ड सब्सिडी (₹1.5–2.67 लाख) भी उपलब्ध; लॉटरी द्वारा आवंटन; SC/ST/दिव्यांग/भूतपूर्व सैनिकों को प्राथमिकता" },
     tag:     { en: "Housing / EWS-LIG / Urban", hi: "आवास / EWS-LIG / शहरी" },
     annual: 0,
-    apply:   { en: "ghb.goa.gov.in", hi: "ghb.goa.gov.in" }, applyType: "online",
+    apply:   { en: "https://leasewarehouse.in/blog/post_details/238", hi: "ghb.goa.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Goa Domicile Certificate (15 years)", "Income Certificate (EWS: ≤ ₹3 lakh / LIG: ₹3–6 lakh / MIG: ₹6–18 lakh)", "Proof of no existing pucca house anywhere in India", "PAN Card", "Bank Account (Aadhaar-linked)", "Caste Certificate (if SC/ST)", "Disability Certificate (if applicable)", "Passport Photo"],
                hi: ["आधार कार्ड", "गोवा डोमिसाइल प्रमाण पत्र (15 वर्ष)", "आय प्रमाण पत्र (EWS: ₹3 लाख तक / LIG: ₹3–6 लाख / MIG: ₹6–18 लाख)", "भारत में कहीं भी पक्का मकान न होने का प्रमाण", "PAN कार्ड", "बैंक खाता (आधार-लिंक्ड)", "जाति प्रमाण पत्र (SC/ST के लिए)", "दिव्यांगता प्रमाण पत्र (यदि लागू)", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Goa" && ["below1","1to3","3to6"].includes(a.income),
