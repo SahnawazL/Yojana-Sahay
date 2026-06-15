@@ -1157,29 +1157,29 @@
     "httpStatus": 0
   },
   "delhi_pm_uday": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_sc_scholarship": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_st_scholarship": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_obc_scholarship": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_bocw": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_kaushal_vikas": {
     "lastVerified": "2026-06-15T21:15:30.153Z",
@@ -1187,19 +1187,19 @@
     "linkAlive": true
   },
   "delhi_dsidc_sc_loan": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_pre_matric_sc_st": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_ews_scholarship": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_free_coaching": {
     "lastVerified": "2026-06-15T21:15:30.153Z",
@@ -1239,9 +1239,9 @@
     "httpStatus": 0
   },
   "delhi_apprenticeship": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_doorstep_services": {
     "lastVerified": "2026-06-15T21:15:30.153Z",
@@ -1249,9 +1249,9 @@
     "linkAlive": false
   },
   "delhi_ev_subsidy": {
-    "lastVerified": "2026-06-15T21:15:30.153Z",
+    "lastVerified": "2026-06-15T21:18:05.358Z",
     "httpStatus": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "delhi_minority_scholarship": {
     "lastVerified": "2026-06-15T21:15:30.153Z",
