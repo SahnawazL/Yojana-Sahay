@@ -326,11 +326,11 @@
     "linkAlive": true
   },
   "mudra": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T01:48:14.442Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "ujjwala": {
     "lastVerified": "2026-06-14T08:41:43.237Z",
@@ -368,11 +368,11 @@
     "linkAlive": true
   },
   "pmsby": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T01:48:14.442Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "apy": {
     "lastVerified": "2026-06-15T01:27:00.840Z",
@@ -466,11 +466,11 @@
     "linkAlive": true
   },
   "pmpsmy": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T01:48:14.442Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmjay_senior": {
     "lastVerified": "2026-06-14T08:41:43.237Z",
@@ -508,11 +508,11 @@
     "linkAlive": true
   },
   "pm_poshan": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T01:48:14.442Z",
     "isActive": false,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "ignwps": {
     "lastVerified": "2026-06-15T01:33:07.513Z",
@@ -536,11 +536,11 @@
     "linkAlive": true
   },
   "pmkmy": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T01:48:14.442Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0.5,
-    "linkAlive": false
+    "linkAlive": true
   },
   "nmmss": {
     "lastVerified": "2026-06-15T01:33:07.513Z",
@@ -557,11 +557,11 @@
     "linkAlive": false
   },
   "pm_kusum": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T01:48:14.442Z",
     "isActive": false,
     "httpStatus": 404,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "surya_ghar": {
     "lastVerified": "2026-06-14T08:41:43.237Z",
@@ -676,11 +676,11 @@
     "linkAlive": false
   },
   "pmlvmy": {
-    "lastVerified": "2026-06-14T08:41:43.237Z",
+    "lastVerified": "2026-06-15T01:48:14.442Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0.5,
-    "linkAlive": false
+    "linkAlive": true
   },
   "seekho_kamao": {
     "lastVerified": "2026-06-14T08:41:43.237Z",
