@@ -950,15 +950,15 @@
     "confidence": 0
   },
   "kerala_karunya": {
-    "lastVerified": "2026-06-14T06:31:46.096Z",
+    "lastVerified": "2026-06-15T19:11:02.584Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "kerala_merit_scholarship": {
-    "lastVerified": "2026-06-14T06:31:46.096Z",
+    "lastVerified": "2026-06-15T19:11:02.584Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "kerala_asap": {
@@ -980,15 +980,15 @@
     "confidence": 0
   },
   "kerala_minority_scholarship": {
-    "lastVerified": "2026-06-14T06:31:46.096Z",
+    "lastVerified": "2026-06-15T19:11:02.584Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "kerala_cmss_abroad": {
-    "lastVerified": "2026-06-14T06:31:46.096Z",
+    "lastVerified": "2026-06-15T19:11:02.584Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "kerala_pratibha_scholarship": {
