@@ -198,12 +198,19 @@ function buildPrompt(schemeName, state, pageText) {
     "Field rules:\n" +
     "  lastDate   — the application closing / last date to apply in YYYY-MM-DD format. " +
                    "null if no date found.\n" +
-    "  isActive   — true if scheme is open/accepting applications, " +
-                   "false if closed/expired/ended, null if unclear.\n" +
+    "  isActive   — true ONLY if the page explicitly states the scheme is open or " +
+                   "currently accepting applications. " +
+                   "false ONLY if the page explicitly states the scheme is closed, " +
+                   "discontinued, expired, or no longer accepting applications. " +
+                   "null if the page has no clear open/closed statement, or if you are unsure. " +
+                   "CRITICAL: Do NOT return false just because the page does not say 'open'. " +
+                   "Most government scheme pages are informational and do not state status — " +
+                   "in that case return null. " +
+                   "If confidence is 0.0, isActive MUST be null.\n" +
     "  confidence — your confidence in the extraction: " +
-                   "1.0 = date/status found explicitly, " +
-                   "0.5 = inferred from context, " +
-                   "0.0 = no relevant information found.";
+                   "1.0 = date/status found explicitly in the text, " +
+                   "0.5 = inferred from context (e.g. deadline mentioned), " +
+                   "0.0 = no relevant information found — isActive must be null in this case.";
 
   const userPrompt =
     `Scheme: ${schemeName}\n` +
@@ -312,17 +319,31 @@ export default async function handler(req, res) {
   }
 
   // ── Step 4: Sanitize + return ─────────────────────────────────────────────
+  const confidence =
+    typeof parsed.confidence === "number"
+      ? Math.min(1, Math.max(0, parsed.confidence))
+      : 0;
+
+  // Raw isActive from the model
+  let isActive = typeof parsed.isActive === "boolean" ? parsed.isActive : null;
+
+  // Safety guard — if the model found no relevant information (confidence < 0.3)
+  // a "false" is just the model's default bias, not a real signal. Treat as null
+  // so we never wrongly mark a live scheme as closed due to an uninformative page.
+  if (isActive === false && confidence < 0.3) {
+    console.warn(
+      `[verify-scheme] "${name}" → confidence=${confidence} too low to trust isActive=false; overriding to null`
+    );
+    isActive = null;
+  }
+
   const result = {
     lastDate:
       typeof parsed.lastDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parsed.lastDate)
         ? parsed.lastDate
         : null,
-    isActive:
-      typeof parsed.isActive === "boolean" ? parsed.isActive : null,
-    confidence:
-      typeof parsed.confidence === "number"
-        ? Math.min(1, Math.max(0, parsed.confidence))
-        : 0,
+    isActive,
+    confidence,
     httpStatus, // Fix 2: page's real HTTP status (200 here, since extraction succeeded)
     error: null,
   };
