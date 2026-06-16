@@ -293,7 +293,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "60% subsidy on underground irrigation pipeline · max ₹18,000 for small/marginal farmers",                         hi: "भूमिगत सिंचाई पाइपलाइन पर 60% सब्सिडी · लघु/सीमांत किसानों को अधिकतम ₹18,000" },
     tag:     { en: "Farmer / Irrigation", hi: "किसान / सिंचाई" },
     annual: 18000,
-    apply:   { en: "rajkisan.rajasthan.gov.in", hi: "rajkisan.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://rajkisan.rajasthan.gov.in", hi: "rajkisan.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Land Records (Jamabandi)", "Water Source Proof (well / tubewell)", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "जमाबंदी (भूमि अभिलेख)", "जल स्रोत प्रमाण (कुआँ / ट्यूबवेल)", "बैंक खाता"] },
     // Eligibility: any Rajasthan farmer with existing water source and agricultural land
