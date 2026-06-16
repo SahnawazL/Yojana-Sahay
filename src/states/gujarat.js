@@ -87,7 +87,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹10,000/year (Class 9–10) · ₹15,000/year (Class 11–12) · Total ₹50,000 for girl students", hi: "कक्षा 9–10 में ₹10,000/वर्ष · कक्षा 11–12 में ₹15,000/वर्ष · कुल ₹50,000 बालिका छात्राओं को" },
     tag:     { en: "Student / Girl", hi: "छात्र / बालिका" },
     annual: 15000,
-    apply:   { en: "https://sebexam.org", hi: "sebexam.org" }, applyType: "online",
+    apply:   { en: "https://https://sebexam.org", hi: "sebexam.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "School Enrollment Certificate", "Income Certificate (below ₹6L)", "Bank Account", "Caste Certificate (if applicable)", "Passport Photo"],
                hi: ["आधार कार्ड", "स्कूल नामांकन प्रमाण", "आय प्रमाण (₹6 लाख से कम)", "बैंक खाता", "जाति प्रमाण (यदि लागू हो)", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
