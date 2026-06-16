@@ -1101,7 +1101,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Free 20-hour digital literacy training covering internet, UPI, e-govt services & cybersecurity for one member per rural household", hi: "ग्रामीण परिवार के एक सदस्य को इंटरनेट, UPI, ई-सरकारी सेवाओं और साइबर सुरक्षा पर 20 घंटे का मुफ्त डिजिटल प्रशिक्षण" },
     tag:     { en: "General", hi: "सामान्य" },
     annual: 0,
-    apply:   { en: "pmgdisha.in / Nearest CSC (Common Service Centre)", hi: "pmgdisha.in / नज़दीकी CSC (सामान्य सेवा केंद्र)" }, applyType: "online",
+    apply:   { en: "https://pmgdisha.in", hi: "pmgdisha.in / नज़दीकी CSC (सामान्य सेवा केंद्र)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Mobile Number"],
                hi: ["आधार कार्ड", "मोबाइल नंबर"] },
     match: (a) => a.state === "Karnataka" && a.area === "rural" && ["below1", "1to3"].includes(a.income),
