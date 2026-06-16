@@ -507,7 +507,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "90% subsidy on bee boxes, colonies & extraction equipment for farmers and tribal communities", hi: "किसानों व जनजातीय समुदाय को मधुमक्खी बक्से, कॉलोनी व निष्कर्षण उपकरण पर 90% सब्सिडी" },
     tag:     { en: "Farmer / Apiculture", hi: "किसान / मधुमक्खी पालन" },
     annual: 45000,
-    apply:   { en: "ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land / Domicile Certificate", "Bank Passbook", "Photo"],
                hi: ["आधार कार्ड", "जमीन / अधिवास प्रमाण", "बैंक पासबुक", "फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer",
