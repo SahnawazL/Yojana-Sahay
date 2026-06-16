@@ -193,7 +193,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "Compensation for crop loss due to drought, flood or natural calamity · No premium from farmer", hi: "सूखा, बाढ़ या प्राकृतिक आपदा से फसल नुकसान पर मुआवज़ा · किसान से कोई प्रीमियम नहीं" },
     tag:     { en: "Farmer / Crop Insurance", hi: "किसान / फसल बीमा" },
     annual: 0,
-    apply:   { en: "jrfry.jharkhand.gov.in", hi: "jrfry.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://jrfry.jharkhand.gov.in", hi: "jrfry.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (Khatiyan / Khasra)", "Bank Account (Aadhaar-linked)", "Ration Card", "Sowing Certificate from Patwari"],
                hi: ["आधार कार्ड", "भूमि अभिलेख (खतियान / खसरा)", "बैंक खाता (आधार से लिंक)", "राशन कार्ड", "पटवारी से बुवाई प्रमाण पत्र"] },
     match: (a) => a.state === "Jharkhand" && a.who === "farmer",
