@@ -341,7 +341,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "Free online land-record services — land mutation, Annual-to-Periodic Patta conversion, homestead land allotment for landless indigenous families (up to 1 bigha), correction of land records, settlement of Bhoodan/Gramdan land, and more", hi: "मुफ्त ऑनलाइन भूमि सेवाएँ — भूमि उत्परिवर्तन, वार्षिक से आवधिक पट्टा रूपांतरण, भूमिहीन परिवारों को 1 बीघा तक गृहस्थल भूमि, जमीन रिकॉर्ड सुधार आदि" },
     tag:     { en: "Farmer / Land", hi: "किसान / भूमि" },
     annual: 0,
-    apply:   { en: "basundhara.assam.gov.in", hi: "basundhara.assam.gov.in" }, applyType: "online",
+    apply:   { en: "https://basundhara.assam.gov.in", hi: "basundhara.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card / PAN Card (for login)","Existing Land Documents / Patta","Revenue Receipt","Caste Certificate (SC/ST applicants)","Residence Proof","Relevant deed / ownership documents (varies by service)"],
                hi: ["आधार कार्ड/PAN कार्ड (लॉगिन के लिए)","मौजूदा भूमि दस्तावेज़/पट्टा","राजस्व रसीद","जाति प्रमाण पत्र (SC/ST)","निवास प्रमाण","संबंधित विलेख/स्वामित्व दस्तावेज़ (सेवा अनुसार)"] },
     match: (a) => a.state === "Assam" && (a.who === "farmer" || a.housing === "no"),
