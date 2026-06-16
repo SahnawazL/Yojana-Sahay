@@ -305,7 +305,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "Collateral-free working capital loan ₹10,000 → ₹20,000 → ₹50,000 in 3 cycles for street vendors", hi: "रेहड़ी-पटरी विक्रेताओं को 3 चरणों में ₹10,000 → ₹20,000 → ₹50,000 बिना गारंटी ऋण" },
     tag:     { en: "Business / Street Vendor", hi: "व्यापार / रेहड़ी-पटरी" },
     annual: 0,
-    apply:   { en: "pmsvanidhi.mohua.gov.in", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmsvanidhi.mohua.gov.in", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Vendor ID / Certificate of Vending","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","वेंडर पहचान पत्र / विक्रय प्रमाण पत्र","बैंक खाता","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Punjab" && a.who === "business" && ["below1","1to3","3to6"].includes(a.income),
