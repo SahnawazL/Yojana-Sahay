@@ -82,7 +82,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹2.50 Lakh subsidy on home loan", hi: "होम लोन पर ₹2.50 लाख सब्सिडी" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 250000,
-    apply:   { en: "pmaymis.gov.in", hi: "pmaymis.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmaymis.gov.in", hi: "pmaymis.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Income Proof","Bank Statement","No Property Certificate"],
                hi: ["आधार कार्ड","आय प्रमाण","बैंक स्टेटमेंट","संपत्ति न होने का प्रमाण"] },
     match: (a) => ["no","kutcha"].includes(a.house) && ["below1","1to3","3to6"].includes(a.income) && ["urban","semi"].includes(a.area),
