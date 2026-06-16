@@ -227,7 +227,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "Seed capital + working capital funding for first-generation entrepreneurs and innovative startups in Assam", hi: "असम में पहली पीढ़ी के उद्यमियों और स्टार्टअप को सीड कैपिटल + वर्किंग कैपिटल सहायता" },
     tag:     { en: "Startup / Business", hi: "स्टार्टअप / व्यापार" },
     annual: 0,
-    apply:   { en: "industriescom.assam.gov.in", hi: "industriescom.assam.gov.in" }, applyType: "online", // ℹ️ same portal as SVAYEM
+    apply:   { en: "https://industriescom.assam.gov.in", hi: "industriescom.assam.gov.in" }, applyType: "online", // ℹ️ same portal as SVAYEM
     docs:    { en: ["Aadhaar Card","Business / Startup Plan","Educational Certificate","Bank Account","Domicile Certificate","No-Defaulter Declaration from Bank"],
                hi: ["आधार कार्ड","व्यापार/स्टार्टअप योजना","शैक्षणिक प्रमाण","बैंक खाता","अधिवास प्रमाण","बैंक डिफॉल्टर न होने की घोषणा"] },
     match: (a) => a.state === "Assam" && ["18to35","35to60"].includes(a.age),
