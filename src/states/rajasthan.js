@@ -310,7 +310,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "5–8% interest subsidy on bank loans up to ₹10 crore for new manufacturing, service & trading MSMEs",              hi: "नए विनिर्माण, सेवा और व्यापार MSME के लिए ₹10 करोड़ तक बैंक लोन पर 5–8% ब्याज सब्सिडी" },
     tag:     { en: "Business / MSME", hi: "व्यापार / MSME" },
     annual: 0,
-    apply:   { en: "industries.rajasthan.gov.in", hi: "industries.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://industries.rajasthan.gov.in", hi: "industries.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN Card", "Jan Aadhaar Card", "Business Registration / Udyam Certificate", "Project Report", "Bank Loan Sanction Letter", "Bank Account"],
                hi: ["आधार और पैन कार्ड", "जन आधार कार्ड", "व्यापार पंजीकरण / उद्यम प्रमाण पत्र", "प्रोजेक्ट रिपोर्ट", "बैंक लोन मंजूरी पत्र", "बैंक खाता"] },
     // Eligibility: new MSME unit in Rajasthan taking a bank loan; manufacturing gets 8%, service/trading gets 5%
