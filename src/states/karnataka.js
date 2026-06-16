@@ -1069,7 +1069,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "35%–50% capital subsidy (max ₹10 Lakh) for setting up cold storage, ripening chambers & pack houses for fruits & vegetables", hi: "फल व सब्जियों के लिए शीत भंडारण, पकान कक्ष और पैक हाउस स्थापना पर 35%–50% पूंजी सब्सिडी (अधिकतम ₹10 लाख)" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "horticulture.karnataka.gov.in", hi: "horticulture.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://horticulture.karnataka.gov.in", hi: "horticulture.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land/Lease Documents", "Project Report", "Bank Loan Sanction Letter", "Bank Account"],
                hi: ["आधार कार्ड", "जमीन/पट्टा दस्तावेज़", "परियोजना रिपोर्ट", "बैंक ऋण स्वीकृति पत्र", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer",
