@@ -1141,7 +1141,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹18L per FPO over 3 years (₹15L handholding + ₹3L matching equity grant) to register & run farmer collectives; plus ₹10–50L credit guarantee cover and market linkage support for 500–1000 member FPOs", hi: "3 वर्षांत प्रति FPO ₹18L (₹15L हँडहोल्डिंग + ₹3L समतुल्य इक्विटी अनुदान); तसेच 500–1000 सदस्य FPO साठी ₹10–50L क्रेडिट गॅरंटी कव्हर व बाजारपेठ जोडणी सहाय्य" },
     tag:     { en: "Farmer / FPO / Collective Farming", hi: "किसान / FPO / सामूहिक शेती" },
     annual: 60000,
-    apply:   { en: "sfacindia.com / nabard.org / mahadbt.maharashtra.gov.in", hi: "sfacindia.com / nabard.org / mahadbt.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://sfacindia.com", hi: "sfacindia.com / nabard.org / mahadbt.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (all promoter farmers)", "7/12 Land Extract (members)", "FPO Registration Certificate (Companies Act / Cooperative Society)", "Business Plan", "Bank Account in FPO's name"],
                hi: ["आधार कार्ड (सर्व प्रवर्तक शेतकरी)", "7/12 उतारा (सदस्य)", "FPO नोंदणी प्रमाणपत्र (कंपनी कायदा/सहकारी संस्था)", "व्यापार योजना", "FPO च्या नावे बैंक खाते"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["1to3","3to6","6to10"].includes(a.income),
