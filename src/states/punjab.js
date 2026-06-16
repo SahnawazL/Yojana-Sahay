@@ -107,7 +107,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "Free skill training + job placement assistance + ₹2,500/month stipend during training", hi: "मुफ्त कौशल प्रशिक्षण + नौकरी सहायता + प्रशिक्षण के दौरान ₹2,500/माह वजीफा" },
     tag:     { en: "Student / Employment", hi: "छात्र / रोजगार" },
     annual: 30000,
-    apply:   { en: "pgrkam.com", hi: "pgrkam.com" }, applyType: "online",
+    apply:   { en: "https://pgrkam.com", hi: "pgrkam.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Educational Certificates","Punjab Domicile","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","शैक्षणिक प्रमाण पत्र","पंजाब अधिवास","बैंक खाता","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Punjab" && a.who === "student" && ["18to35"].includes(a.age),
