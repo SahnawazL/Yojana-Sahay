@@ -398,7 +398,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹12,000 grant to build toilet at home",           hi: "घर में शौचालय निर्माण के लिए ₹12,000 अनुदान" },
     tag:     { en: "Sanitation", hi: "स्वच्छता" },
     annual: 12000,
-    apply:   { en: "sbm.gov.in", hi: "sbm.gov.in" }, applyType: "online",
+    apply:   { en: "https://sbm.gov.in", hi: "sbm.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","No-Toilet Proof","Bank Account"],
                hi: ["आधार कार्ड","राशन कार्ड","शौचालय न होने का प्रमाण","बैंक खाता"] },
     match: (a) => a.area === "rural" && ["below1","1to3"].includes(a.income),
