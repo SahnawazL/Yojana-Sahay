@@ -865,7 +865,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "55%–75% subsidy on drip & sprinkler irrigation systems for small & marginal farmers", hi: "छोटे व सीमांत किसानों को ड्रिप व स्प्रिंकलर सिंचाई प्रणाली पर 55%–75% सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "raitamitra.karnataka.gov.in", hi: "raitamitra.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://raitamitra.karnataka.gov.in", hi: "raitamitra.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC, < 2 ha for max subsidy)", "Bank Account", "Quotation from approved vendor"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC, अधिकतम सब्सिडी हेतु < 2 हेक्टेयर)", "बैंक खाता", "अनुमोदित विक्रेता का कोटेशन"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer",
