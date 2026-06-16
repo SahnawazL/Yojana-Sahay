@@ -1407,7 +1407,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "Free short-term skill training (100–300 hours) in 200+ trades (IT, hospitality, beauty, construction, retail, healthcare etc.) with government-recognised NSQF certificate and ₹500 post-placement incentive", hi: "200+ ट्रेडों (IT, आतिथ्य, सौंदर्य, निर्माण, खुदरा, स्वास्थ्य आदि) में 100–300 घंटे का मुफ्त कौशल प्रशिक्षण, NSQF मान्यता प्राप्त सरकारी प्रमाण पत्र व ₹500 पोस्ट-प्लेसमेंट प्रोत्साहन" },
     tag:     { en: "Employment", hi: "रोजगार" },
     annual: 15000,
-    apply:   { en: "dseu.ac.in / skillindia.gov.in / nearest PMKVY Training Centre", hi: "dseu.ac.in / skillindia.gov.in / नजदीकी PMKVY प्रशिक्षण केंद्र" }, applyType: "online",
+    apply:   { en: "https://dseu.ac.in", hi: "dseu.ac.in / skillindia.gov.in / नजदीकी PMKVY प्रशिक्षण केंद्र" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Delhi Address Proof", "Class 8 / 10 Marksheet (minimum)", "Passport-size Photo", "Bank Passbook"],
                hi: ["आधार कार्ड", "दिल्ली पता प्रमाण", "कक्षा 8 / 10 अंकतालिका (न्यूनतम)", "पासपोर्ट फोटो", "बैंक पासबुक"] },
     match: (a) => a.state === "Delhi" && (a.who === "general" || a.who === "women" || a.who === "student") && (a.age === "18to35" || a.age === "below18"),
