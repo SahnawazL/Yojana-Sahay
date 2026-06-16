@@ -409,7 +409,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹20,000/ha subsidy on organic certification, inputs & bio-fertilisers; up to 2 ha per farmer", hi: "जैविक प्रमाणीकरण, इनपुट व जैव-उर्वरक पर ₹20,000/हेक्टेयर सब्सिडी; प्रति किसान 2 हेक्टेयर तक" },
     tag:     { en: "Farmer / Organic", hi: "किसान / जैविक खेती" },
     annual: 40000,
-    apply:   { en: "https://agri.gujarat.gov.in", hi: "agri.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://agri.gujarat.gov.in", hi: "agri.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (7/12 Utara)", "Soil Health Card", "Bank Passbook", "Photo"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (7/12 उतारा)", "मृदा स्वास्थ्य कार्ड", "बैंक पासबुक", "फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer",
