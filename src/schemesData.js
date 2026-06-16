@@ -138,7 +138,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free LPG connection + first refill free", hi: "मुफ्त एलपीजी + पहली रिफिल मुफ्त" },
     tag:     { en: "Women / BPL", hi: "महिला / बीपीएल" },
     annual: 1600,
-    apply:   { en: "pmuy.gov.in", hi: "pmuy.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmuy.gov.in", hi: "pmuy.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","BPL Certificate"],
                hi: ["आधार कार्ड","राशन कार्ड","बीपीएल प्रमाण"] },
     match: (a) => a.who === "women" && ["below1","1to3"].includes(a.income),
