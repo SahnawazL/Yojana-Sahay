@@ -91,7 +91,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Price deficiency compensation when market price falls below MSP for vegetables/fruits", hi: "सब्जी/फल का बाजार मूल्य MSP से कम होने पर मूल्य अंतर मुआवजा" },
     tag:     { en: "Farmer / Price Support", hi: "किसान / मूल्य समर्थन" },
     annual: 0,
-    apply:   { en: "ekharid.haryana.gov.in", hi: "ekharid.haryana.gov.in" }, applyType: "online",
+    apply:   { en: "https://ekharid.haryana.gov.in", hi: "ekharid.haryana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Girdawari)","Parivar Pehchan Patra","Bank Account","Meri Fasal Mera Byora Registration"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/गिरदावरी)","परिवार पहचान पत्र","बैंक खाता","मेरी फसल मेरा ब्यौरा पंजीकरण"] },
     // Eligibility: Haryana farmer registered on Meri Fasal Mera Byora portal
