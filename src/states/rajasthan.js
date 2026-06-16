@@ -344,7 +344,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Interest-free self-employment loan up to ₹5 lakh for persons with ≥40% disability",                  hi: "≥40% विकलांगता वाले व्यक्तियों को ₹5 लाख तक ब्याजमुक्त स्वरोज़गार ऋण" },
     tag:     { en: "Disability / Business", hi: "दिव्यांग / व्यापार" },
     annual: 0,
-    apply:   { en: "sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Disability Certificate (≥40%)", "Income Certificate (family ≤ ₹2 lakh/year)", "Business Plan / Project Report", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "विकलांगता प्रमाण पत्र (≥40%)", "आय प्रमाण (परिवार ≤ ₹2 लाख/वर्ष)", "व्यापार योजना / प्रोजेक्ट रिपोर्ट", "बैंक खाता"] },
     // Eligibility: person with ≥40% certified disability, aged 18–50, family income ≤ ₹2 lakh/year
