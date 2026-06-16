@@ -173,7 +173,7 @@ export const BIHAR_SCHEMES = [
                hi: "बिहार से कक्षा 12 पास, 20–25 वर्ष के बेरोजगार युवाओं को 2 वर्ष तक ₹1,000/माह; कुशल युवा कार्यक्रम के तहत कौशल प्रशिक्षण से जुड़ा" },
     tag:     { en: "Youth / Unemployment Allowance", hi: "युवा / बेरोजगारी भत्ता" },
     annual: 12000,
-    apply:   { en: "https://https://7nishchay-yuvaupmission.bihar.gov.in", hi: "7nishchay-yuvaupmission.bihar.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://https://7nishchay-yuvaupmission.bihar.gov.in", hi: "7nishchay-yuvaupmission.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Pass Certificate","Bank Account (Aadhaar-linked)","Residence Proof (Bihar)","Employment Registration Certificate (from Rozgar Karyalay)","Affidavit of unemployment","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 12 उत्तीर्ण प्रमाण पत्र","बैंक खाता (आधार-लिंक्ड)","निवास प्रमाण (बिहार)","रोजगार कार्यालय पंजीकरण प्रमाण पत्र","बेरोजगारी का शपथ-पत्र","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Bihar" && a.age === "18to35",
