@@ -103,7 +103,7 @@ export const BIHAR_SCHEMES = [
                hi: "प्रत्येक BPL परिवार के एक सदस्य को सूक्ष्म उद्यम शुरू करने के लिए ₹2 लाख अनुदान (वापसी नहीं); बिहार के 94 लाख गरीब परिवार पात्र; 3 किस्तों में: ₹25,000 / ₹50,000 / ₹1.25 लाख" },
     tag:     { en: "BPL / Micro Enterprise", hi: "BPL / सूक्ष्म उद्यम" },
     annual: 200000,
-    apply:   { en: "https://https://udyami.bihar.gov.in", hi: "udyami.bihar.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://https://udyami.bihar.gov.in", hi: "udyami.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card (showing BPL status)","Bank Account (Aadhaar-linked)","Caste Certificate (if applicable)","10th Pass / Literacy Certificate","Residence Proof (Bihar)","Passport Photo"],
                hi: ["आधार कार्ड","राशन कार्ड (BPL दर्शाने वाला)","बैंक खाता (आधार-लिंक्ड)","जाति प्रमाण पत्र (यदि लागू)","10वीं पास / साक्षरता प्रमाण पत्र","निवास प्रमाण (बिहार)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Bihar" && ["below1","1to3"].includes(a.income),
