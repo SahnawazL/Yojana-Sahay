@@ -242,7 +242,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Unemployment allowance ₹3,500/month (male grad) · ₹3,750/month (female/disabled) for up to 2 years",         hi: "बेरोज़गारी भत्ता ₹3,500/माह (पुरुष स्नातक) · ₹3,750/माह (महिला/दिव्यांग) — अधिकतम 2 वर्ष" },
     tag:     { en: "Employment / Youth", hi: "रोज़गार / युवा" },
     annual: 45000,
-    apply:   { en: "employment.rajasthan.gov.in", hi: "employment.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://employment.rajasthan.gov.in", hi: "employment.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Graduation Degree Certificate", "Income Certificate (family ≤ ₹2 lakh/year)", "Employment Exchange Registration", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "स्नातक डिग्री प्रमाण पत्र", "आय प्रमाण (परिवार ≤ ₹2 लाख/वर्ष)", "रोज़गार कार्यालय पंजीकरण", "बैंक खाता"] },
     // Eligibility: unemployed Rajasthan graduate aged 21–35, family income ≤ ₹2 lakh/year
