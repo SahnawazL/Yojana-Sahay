@@ -311,7 +311,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹225–₹700/month maintenance allowance + free books & uniforms for SC/ST students", hi: "SC/ST छात्रों को ₹225–₹700/माह रखरखाव भत्ता + मुफ्त किताबें व वर्दी" },
     tag:     { en: "Student / Pre-Matric SC", hi: "छात्र / प्री-मैट्रिक SC" },
     annual: 8400,
-    apply:   { en: "esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC / ST)", "School Enrollment Certificate", "Income Certificate (below ₹2.5L)", "Bank Account (Parent)", "Photo"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST)", "स्कूल नामांकन प्रमाण", "आय प्रमाण (₹2.5 लाख से कम)", "बैंक खाता (माता-पिता)", "फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income),
