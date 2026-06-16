@@ -409,7 +409,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Up to 95% subsidy on 1 kW rooftop solar panel (BPL pays only ₹2,500 for a ₹50,000 system) generating ~120 units/month free electricity", hi: "BPL परिवारों को 1 kW रूफटॉप सोलर पर 95% सब्सिडी — ₹50,000 के सिस्टम पर केवल ₹2,500 भुगतान, हर माह ~120 यूनिट मुफ्त बिजली" },
     tag:     { en: "Solar / Energy / BPL", hi: "सोलर / ऊर्जा / BPL" },
     annual: 12000,
-    apply:   { en: "msedcl.in / mahadiscom.in", hi: "msedcl.in / mahadiscom.in" }, applyType: "online",
+    apply:   { en: "https://mahadiscom.in", hi: "msedcl.in / mahadiscom.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Electricity Bill (consumer number)", "Yellow / Saffron Ration Card (for BPL subsidy)", "Bank Passbook", "Roof Ownership Proof or NOC from owner"],
                hi: ["आधार कार्ड", "बिजली बिल (उपभोक्ता क्रमांक)", "पीला/केसरी राशन कार्ड (BPL सब्सिडी हेतु)", "बैंक पासबुक", "छत स्वामित्व प्रमाण या NOC"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
