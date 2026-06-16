@@ -361,7 +361,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Cashless surgeries up to ₹2.5 Lakh/year for cooperative members & rural workers", hi: "सहकारी सदस्यों व ग्रामीण कामगारों को ₹2.5 लाख/वर्ष तक कैशलेस सर्जरी" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 250000,
-    apply:   { en: "karnataka.gov.in/yashasvini", hi: "karnataka.gov.in/yashasvini" }, applyType: "online",
+    apply:   { en: "https://karnataka.gov.in/yashasvini", hi: "karnataka.gov.in/yashasvini" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Cooperative Membership Card", "Ration Card", "Bank Account"],
                hi: ["आधार कार्ड", "सहकारी सदस्यता कार्ड", "राशन कार्ड", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income) && a.area === "rural",
