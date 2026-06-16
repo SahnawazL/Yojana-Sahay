@@ -342,7 +342,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free skill training + ₹8,000 reward + placement help", hi: "मुफ्त कौशल प्रशिक्षण + ₹8,000 पुरस्कार + नौकरी सहायता" },
     tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
     annual: 8000,
-    apply:   { en: "skillindiadigital.gov.in", hi: "skillindiadigital.gov.in" }, applyType: "online",
+    apply:   { en: "https://skillindiadigital.gov.in", hi: "skillindiadigital.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Educational Certificates","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","शैक्षणिक प्रमाण पत्र","बैंक खाता","पासपोर्ट फोटो"] },
     match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
