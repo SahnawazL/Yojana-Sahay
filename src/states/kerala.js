@@ -358,7 +358,7 @@ export const KERALA_SCHEMES = [
     benefit: { en: "₹1,000/month for Class 11–12 and ₹1,200/month for Degree for top SSLC scorers", hi: "SSLC टॉपर को कक्षा 11–12 में ₹1,000/माह और डिग्री में ₹1,200/माह" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 12000,
-    apply:   { en: "education.kerala.gov.in", hi: "education.kerala.gov.in" }, applyType: "online",
+    apply:   { en: "https://education.kerala.gov.in", hi: "education.kerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SSLC Mark Sheet (A+ in all subjects)", "School Headmaster Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "SSLC मार्कशीट (सभी विषयों में A+)", "विद्यालय प्रधानाचार्य प्रमाण पत्र", "बैंक खाता"] },
     match: (a) => a.state === "Kerala" && a.who === "student",
