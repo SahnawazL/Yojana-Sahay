@@ -590,7 +590,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Top-4 girl toppers per district (Class 12 RBSE): laptop + ₹1 lakh scholarship · State topper: additional ₹1 lakh for international study", hi: "प्रत्येक जिले की RBSE 12वीं टॉप-4 बालिकाओं को: लैपटॉप + ₹1 लाख छात्रवृत्ति · राज्य टॉपर को अतिरिक्त ₹1 लाख अंतर्राष्ट्रीय अध्ययन के लिए" },
     tag:     { en: "Education / Top Merit", hi: "शिक्षा / टॉप मेरिट" },
     annual: 100000,
-    apply:   { en: "rajshaladarpan.nic.in", hi: "rajshaladarpan.nic.in" }, applyType: "online",
+    apply:   { en: "https://rajshaladarpan.nic.in", hi: "rajshaladarpan.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "RBSE Class 12 Mark Sheet (district top-4 rank proof)", "College Admission Proof", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "RBSE 12वीं मार्कशीट (जिला टॉप-4 रैंक प्रमाण)", "कॉलेज प्रवेश प्रमाण", "बैंक खाता"] },
     // Eligibility: girl student ranked in top 4 of district in RBSE Class 12 board exam
