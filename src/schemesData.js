@@ -1471,7 +1471,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹50,000/year + ₹2,000 contingency for girl students in AICTE-approved diploma/degree programmes", hi: "AICTE-अनुमोदित डिप्लोमा/डिग्री में छात्राओं को ₹50,000/वर्ष + ₹2,000 आकस्मिक अनुदान" },
     tag:     { en: "Student / Women", hi: "छात्र / महिला" },
     annual: 50000,
-    apply:   { en: "aicte-india.org / scholarships.gov.in", hi: "aicte-india.org / scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in", hi: "aicte-india.org / scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Income Certificate (family income ≤₹8L/year)","AICTE-institution Admission Letter","Class 10 & 12 Mark Sheets","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","आय प्रमाण (पारिवारिक आय ≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","कक्षा 10 और 12 की मार्कशीट","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: girl student in AICTE-approved technical diploma/degree, family income ≤ ₹8L
