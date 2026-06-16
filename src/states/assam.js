@@ -59,7 +59,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "Free scooty for girls scoring 75%+ in HSLC/HS · Free bicycle for other meritorious students", hi: "HSLC/HS में 75%+ लाने वाली छात्राओं को मुफ्त स्कूटी · अन्य को साइकिल" },
     tag:     { en: "Student / Girl", hi: "छात्रा" },
     annual: 60000,
-    apply:   { en: "sebaonline.org", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Anundoram Award
+    apply:   { en: "https://sebaonline.org", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Anundoram Award
     docs:    { en: ["Aadhaar Card","HSLC / HS Marksheet (75%+)","School Certificate","Bank Account"],
                hi: ["आधार कार्ड","HSLC/HS अंकसूची (75%+)","स्कूल प्रमाण पत्र","बैंक खाता"] },
     match: (a) => a.state === "Assam" && a.who === "student",
