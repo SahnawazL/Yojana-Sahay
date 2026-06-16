@@ -122,7 +122,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "सरकारी/सरकारी-सहायता प्राप्त स्कूलों में कक्षा 5–8 के SC/ST छात्रों के लिए वार्षिक छात्रवृत्ति: ₹800/वर्ष (कक्षा 5–6); ₹1,000/वर्ष (कक्षा 7–8); ₹1,300/वर्ष (कक्षा 9–10); सीधे बैंक खाते में" },
     tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
     annual: 1300,
-    apply:   { en: "oasis.wb.gov.in", hi: "oasis.wb.gov.in" }, applyType: "online",
+    apply:   { en: "https://oasis.wb.gov.in", hi: "oasis.wb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC/ST Caste Certificate","School Enrollment Certificate","Bank Account (student / parent, Aadhaar-linked)","Income Certificate (family income < ₹2.5 lakh/year)","Previous Year Marksheet"],
                hi: ["आधार कार्ड","SC/ST जाति प्रमाण पत्र","स्कूल नामांकन प्रमाण पत्र","बैंक खाता (छात्र/अभिभावक, आधार-लिंक्ड)","आय प्रमाण पत्र (पारिवारिक आय ₹2.5 लाख/वर्ष से कम)","पिछले वर्ष की अंकसूची"] },
     match: (a) => a.state === "West Bengal" && a.who === "student" && ["sc","st"].includes(a.caste),
