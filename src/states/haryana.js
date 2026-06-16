@@ -316,7 +316,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "80–85% subsidy on drip & sprinkler irrigation systems (90% for SC/ST/small farmers)", hi: "ड्रिप और स्प्रिंकलर सिंचाई प्रणाली पर 80–85% सब्सिडी (SC/ST/लघु किसानों को 90%)" },
     tag:     { en: "Farmer / Irrigation Subsidy", hi: "किसान / सिंचाई सब्सिडी" },
     annual: 0,
-    apply:   { en: "agriharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://agriharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Jamabandi)","Water Source Proof (borewell/canal)","Bank Account","Parivar Pehchan Patra","Caste Certificate (if SC/ST)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/जमाबंदी)","जल स्रोत प्रमाण (बोरवेल/नहर)","बैंक खाता","परिवार पहचान पत्र","जाति प्रमाण पत्र (SC/ST के लिए)"] },
     // Eligibility: Haryana farmer with own land & irrigation source, priority to small/marginal
