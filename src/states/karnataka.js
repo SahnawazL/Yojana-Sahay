@@ -77,7 +77,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹25,000 bond for girl child at birth + ₹1 Lakh at age 18",    hi: "बालिका जन्म पर ₹25,000 बॉन्ड + 18 वर्ष पर ₹1 लाख" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 0,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "BPL Ration Card", "Girl Child Birth Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "BPL राशन कार्ड", "बालिका जन्म प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "women" && ["below1", "1to3"].includes(a.income),
