@@ -298,7 +298,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "50% subsidy (up to ₹36,000) on shallow tubewell / borewell installation for irrigation", hi: "सिंचाई के लिए उथले नलकूप / बोरवेल पर 50% सब्सिडी (₹36,000 तक)" },
     tag:     { en: "Farmer / Irrigation", hi: "किसान / सिंचाई" },
     annual: 36000,
-    apply:   { en: "agri.jharkhand.gov.in", hi: "agri.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://agri.jharkhand.gov.in", hi: "agri.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (Khatiyan)", "Bank Account", "Geo-tagged Photo of Land", "Income Certificate"],
                hi: ["आधार कार्ड", "भूमि अभिलेख (खतियान)", "बैंक खाता", "जमीन की जियो-टैग फोटो", "आय प्रमाण पत्र"] },
     match: (a) => a.state === "Jharkhand" && a.who === "farmer" && ["below1","1to3","3to6"].includes(a.income),
