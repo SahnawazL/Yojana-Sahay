@@ -35,7 +35,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "₹1,500/month for orphan/destitute child care till age 18",            hi: "अनाथ/निराश्रित बच्चे की 18 वर्ष तक देखभाल के लिए ₹1,500/माह" },
     tag:     { en: "Child / Social", hi: "बच्चे / सामाजिक" },
     annual: 18000,
-    apply:   { en: "sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Child's Birth Certificate", "Orphan/Destitute Proof", "Guardian Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "बच्चे का जन्म प्रमाण", "अनाथ/निराश्रित प्रमाण", "अभिभावक बैंक खाता"] },
     match: (a) => a.state === "Rajasthan" && ["below1", "1to3"].includes(a.income),
