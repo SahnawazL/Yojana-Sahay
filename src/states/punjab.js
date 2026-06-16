@@ -49,7 +49,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "5 kg wheat flour + 1 kg dal at subsidised rates per month for BPL families", hi: "BPL परिवारों को प्रति माह 5 kg आटा + 1 kg दाल सब्सिडी पर" },
     tag:     { en: "Farmer / Food Security", hi: "किसान / खाद्य सुरक्षा" },
     annual: 0,
-    apply:   { en: "edistrict.punjabgovt.gov.in", hi: "edistrict.punjabgovt.gov.in" }, applyType: "online",
+    apply:   { en: "https://edistrict.punjabgovt.gov.in", hi: "edistrict.punjabgovt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","BPL Ration Card","Punjab Domicile Certificate"],
                hi: ["आधार कार्ड","BPL राशन कार्ड","पंजाब अधिवास प्रमाण पत्र"] },
     match: (a) => a.state === "Punjab" && ["below1","1to3"].includes(a.income),
