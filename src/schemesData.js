@@ -625,7 +625,7 @@ export const SCHEME_DB = [
     benefit: { en: "300 units free electricity/month via rooftop solar + subsidy up to ₹78,000", hi: "रूफटॉप सोलर से 300 यूनिट मुफ्त बिजली/माह + ₹78,000 तक सब्सिडी" },
     tag:     { en: "Solar / Electricity", hi: "सौर / बिजली" },
     annual: 36000,
-    apply:   { en: "pmsuryaghar.gov.in", hi: "pmsuryaghar.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmsuryaghar.gov.in", hi: "pmsuryaghar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Electricity Consumer Number","Bank Account","Passport Photo","Roof Ownership Proof"],
                hi: ["आधार कार्ड","बिजली उपभोक्ता नंबर","बैंक खाता","पासपोर्ट फोटो","छत का स्वामित्व प्रमाण"] },
     // Eligibility: residential consumer with own roof and electricity connection
