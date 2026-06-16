@@ -310,7 +310,7 @@ export const BIHAR_SCHEMES = [
                hi: "उच्च शिक्षा में अल्पसंख्यक छात्रों (मुस्लिम, सिख, ईसाई, बौद्ध, जैन, पारसी) के लिए पोस्ट-मैट्रिक छात्रवृत्ति: ₹1,000–₹3,000/माह वजीफा + सरकारी/सहायता प्राप्त संस्थान में ट्यूशन व प्रवेश शुल्क प्रतिपूर्ति" },
     tag:     { en: "Student / Minority", hi: "छात्र / अल्पसंख्यक" },
     annual: 36000,
-    apply:   { en: "pfms.nic.in / state minority welfare portal", hi: "pfms.nic.in / राज्य अल्पसंख्यक कल्याण पोर्टल" }, applyType: "online",
+    apply:   { en: "https://pfms.nic.in", hi: "pfms.nic.in / राज्य अल्पसंख्यक कल्याण पोर्टल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Minority Community Certificate (e.g. Muslim, Sikh etc.)","Class 10 / 12 Marksheet","College/University Admission Certificate","Family Income Certificate (annual income < ₹2 lakh)","Bank Account (Aadhaar-linked)","Domicile Certificate (Bihar)"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र (जैसे मुस्लिम, सिख आदि)","कक्षा 10/12 अंकसूची","कॉलेज/विश्वविद्यालय प्रवेश प्रमाण पत्र","पारिवारिक आय प्रमाण पत्र (वार्षिक ₹2 लाख से कम)","बैंक खाता (आधार-लिंक्ड)","अधिवास प्रमाण पत्र (बिहार)"] },
     match: (a) => a.state === "Bihar" && a.who === "student",
