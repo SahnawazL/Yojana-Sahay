@@ -53,7 +53,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "₹1.5 लाख/वर्ष से कम आय वाले परिवारों की 18+ वर्षीय लड़की के विवाह के लिए ₹25,000 एकमुश्त अनुदान; विवाह तिथि से पहले दुल्हन के बैंक खाते में सीधे" },
     tag:     { en: "Women / Marriage Grant", hi: "महिला / विवाह अनुदान" },
     annual: 25000,
-    apply:   { en: "wbrupashree.gov.in", hi: "wbrupashree.gov.in" }, applyType: "online",
+    apply:   { en: "https://wbrupashree.gov.in", hi: "wbrupashree.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (bride)","Birth Certificate (girl aged 18+)","Income Certificate (family income < ₹1.5 lakh/year)","Bank Account (bride's name)","Marriage Invitation / Proof of marriage date","Voter ID / Domicile Certificate (West Bengal)","Passport Photo"],
                hi: ["आधार कार्ड (दुल्हन का)","जन्म प्रमाण पत्र (18+ वर्षीय लड़की)","आय प्रमाण पत्र (पारिवारिक आय ₹1.5 लाख/वर्ष से कम)","बैंक खाता (दुल्हन के नाम)","विवाह निमंत्रण / विवाह तिथि का प्रमाण","मतदाता ID / अधिवास प्रमाण पत्र (पश्चिम बंगाल)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "West Bengal" && a.who === "women" && ["below1","1to3"].includes(a.income),
