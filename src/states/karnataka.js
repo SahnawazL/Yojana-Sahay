@@ -257,7 +257,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Subsidy on mulberry cultivation, silkworm rearing & reeling equipment up to ₹50,000", hi: "शहतूत की खेती, रेशमकीट पालन और रीलिंग उपकरण पर ₹50,000 तक सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "seridept.karnataka.gov.in", hi: "seridept.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://seridept.karnataka.gov.in", hi: "seridept.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बैंक खाता", "फोटो"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer" && a.area === "rural",
