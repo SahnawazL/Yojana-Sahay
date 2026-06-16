@@ -63,7 +63,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "Crop insurance coverage up to ₹50,000 per acre against natural calamities", hi: "प्राकृतिक आपदाओं में प्रति एकड़ ₹50,000 तक फसल बीमा कवरेज" },
     tag:     { en: "Farmer / Insurance", hi: "किसान / बीमा" },
     annual: 50000,
-    apply:   { en: "agripb.gov.in", hi: "agripb.gov.in" }, applyType: "online",
+    apply:   { en: "https://agripb.gov.in", hi: "agripb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Girdawari)","Bank Account","Crop Sowing Certificate"],
                hi: ["आधार कार्ड","जमीन के कागज़ (गिरदावरी)","बैंक खाता","फसल बुवाई प्रमाण पत्र"] },
     match: (a) => a.state === "Punjab" && a.who === "farmer",
