@@ -325,7 +325,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹1 Lakh financial assistance for marriage of girls from SC / ST / OBC / EWS families", hi: "SC/ST/OBC/EWS परिवारों की बेटियों के विवाह हेतु ₹1 लाख वित्तीय सहायता" },
     tag:     { en: "Women / Marriage Aid", hi: "महिला / विवाह सहायता" },
     annual: 100000,
-    apply:   { en: "https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (Girl)", "Caste Certificate (SC/ST/OBC)", "Income Certificate (below ₹1.5L)", "Age Proof (18+)", "Marriage Registration", "Bank Account"],
                hi: ["आधार कार्ड (बालिका)", "जाति प्रमाण पत्र (SC/ST/OBC)", "आय प्रमाण (₹1.5 लाख से कम)", "आयु प्रमाण (18+)", "विवाह पंजीकरण", "बैंक खाता"] },
     match: (a) => a.state === "Gujarat" && a.who === "women" && a.income === "below1",
