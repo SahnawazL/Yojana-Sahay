@@ -926,7 +926,7 @@ export const SCHEME_DB = [
     benefit: { en: "55% subsidy (80% for SC/ST) on drip & sprinkler irrigation systems", hi: "ड्रिप और स्प्रिंकलर सिंचाई पर 55% सब्सिडी (SC/ST को 80%)" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "pmksy.gov.in", hi: "pmksy.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmksy.gov.in", hi: "pmksy.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Khatauni)","Bank Account","Caste Certificate (SC/ST if applicable)","Electricity Bill"],
                hi: ["आधार कार्ड","जमीन के कागज़ (खसरा/खतौनी)","बैंक खाता","जाति प्रमाण (SC/ST हो तो)","बिजली बिल"] },
     match: (a) => a.who === "farmer" && a.area === "rural",
