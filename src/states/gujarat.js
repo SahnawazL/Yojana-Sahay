@@ -661,7 +661,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "Low-interest loan up to ₹10 Lakh at 5% p.a. for entrepreneurs from Muslim, Christian, Parsi, Jain, Buddhist & Sikh communities", hi: "मुस्लिम, ईसाई, पारसी, जैन, बौद्ध व सिख समुदाय के उद्यमियों को 5% प्रति वर्ष ब्याज पर ₹10 लाख तक ऋण" },
     tag:     { en: "Business / Minority Loan", hi: "व्यापार / अल्पसंख्यक ऋण" },
     annual: 0,
-    apply:   { en: "gujaratminority.gov.in", hi: "gujaratminority.gov.in" }, applyType: "online",
+    apply:   { en: "https://gujaratminority.gov.in", hi: "gujaratminority.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN Card", "Minority Community Certificate", "Income Certificate (below ₹6L)", "Business Plan", "Bank Statement (6 months)", "Guarantor Details"],
                hi: ["आधार और पैन कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "आय प्रमाण (₹6 लाख से कम)", "व्यापार योजना", "बैंक स्टेटमेंट (6 माह)", "ज़मानतदार विवरण"] },
     match: (a) => a.state === "Gujarat" && a.who === "business" && ["below1", "1to3", "3to6"].includes(a.income),
