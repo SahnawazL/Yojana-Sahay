@@ -33,7 +33,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Subsidy on farm pond, pump set & drip irrigation", hi: "खेत तालाब, पंप सेट और ड्रिप सिंचाई पर सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "raitamitra.karnataka.gov.in", hi: "raitamitra.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://raitamitra.karnataka.gov.in", hi: "raitamitra.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बैंक खाता", "फोटो"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer" && a.area === "rural",
