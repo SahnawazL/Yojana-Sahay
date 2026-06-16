@@ -82,7 +82,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Free coaching for UPSC/RPSC/REET/CLAT/NEET + ₹40,000/year stipend for outstation students",            hi: "UPSC/RPSC/REET/CLAT/NEET हेतु निःशुल्क कोचिंग + बाहरी छात्रों को ₹40,000/वर्ष स्टाइपेंड" },
     tag:     { en: "Education / Student", hi: "शिक्षा / छात्र" },
     annual: 40000,
-    apply:   { en: "sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Caste Certificate (SC/ST/OBC/EWS/BPL)", "Income Certificate (family ≤ ₹8 lakh/year)", "Last Qualifying Mark Sheet", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC/EWS/BPL)", "आय प्रमाण (परिवार ≤ ₹8 लाख/वर्ष)", "अंतिम योग्यता मार्कशीट", "बैंक खाता"] },
     // Eligibility: SC/ST/OBC/EWS/BPL student, family income ≤ ₹8 lakh/year
