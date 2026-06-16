@@ -391,7 +391,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Affordable residential plots & flats for EWS/LIG urban families at subsidised rates in licensed colonies", hi: "लाइसेंस प्राप्त कॉलोनियों में EWS/LIG शहरी परिवारों को सब्सिडी दर पर आवासीय प्लॉट एवं फ्लैट" },
     tag:     { en: "Housing / Urban EWS", hi: "आवास / शहरी EWS" },
     annual: 0,
-    apply:   { en: "tcpharyana.gov.in", hi: "tcpharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://tcpharyana.gov.in", hi: "tcpharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parivar Pehchan Patra","Income Certificate (EWS ≤₹3L / LIG ≤₹6L per year)","No Property Certificate","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","परिवार पहचान पत्र","आय प्रमाण (EWS ≤₹3 लाख / LIG ≤₹6 लाख)","संपत्ति न होने का प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: Haryana urban resident, no pucca house, income EWS or LIG category
