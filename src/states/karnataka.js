@@ -555,7 +555,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Subsidised yarn, free loom upgrades, health insurance ₹15,000 & ₹2 Lakh accidental death cover for weavers", hi: "बुनकरों को सब्सिडी पर धागा, मुफ्त करघा उन्नयन, ₹15,000 स्वास्थ्य बीमा और ₹2 लाख दुर्घटना मृत्यु बीमा" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "handloom.karnataka.gov.in", hi: "handloom.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://handloom.karnataka.gov.in", hi: "handloom.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Weaver Identity Card", "Cooperative Membership (if any)", "Bank Account"],
                hi: ["आधार कार्ड", "बुनकर पहचान पत्र", "सहकारी सदस्यता (यदि हो)", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
