@@ -166,7 +166,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Skill training + livelihood support targeting poorest 1 lakh families (income < ₹1 Lakh/year)", hi: "सबसे गरीब 1 लाख परिवारों को कौशल प्रशिक्षण + आजीविका सहायता (आय <₹1 लाख/वर्ष)" },
     tag:     { en: "Livelihood / Skill", hi: "आजीविका / कौशल" },
     annual: 0,
-    apply:   { en: "antyodaya.haryana.gov.in", hi: "antyodaya.haryana.gov.in" }, applyType: "online",
+    apply:   { en: "https://antyodaya.haryana.gov.in", hi: "antyodaya.haryana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parivar Pehchan Patra (PPP)","Income Certificate (< ₹1 Lakh/year)","Bank Account"],
                hi: ["आधार कार्ड","परिवार पहचान पत्र (PPP)","आय प्रमाण (<₹1 लाख/वर्ष)","बैंक खाता"] },
     // Eligibility: Haryana resident, identified as poorest family via PPP, income < ₹1 lakh/year
