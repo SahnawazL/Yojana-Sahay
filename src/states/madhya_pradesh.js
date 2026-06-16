@@ -311,7 +311,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     benefit: { en: "Free pucca house (₹1.2–₹1.5 Lakh grant) for women in families missed by PMAY Gramin · Priority to Ladli Behna beneficiaries", hi: "PMAY ग्रामीण से छूटे परिवारों की महिलाओं को मुफ्त पक्का मकान (₹1.2–₹1.5 लाख अनुदान) · लाड़ली बहना लाभार्थियों को प्राथमिकता" },
     tag:     { en: "Housing / Women", hi: "आवास / महिला" },
     annual: 150000,
-    apply:   { en: "cmladlibahna.mp.gov.in / Nearest Gram Panchayat", hi: "cmladlibahna.mp.gov.in / नजदीकी ग्राम पंचायत" }, applyType: "online",
+    apply:   { en: "https://cmladlibahna.mp.gov.in", hi: "cmladlibahna.mp.gov.in / नजदीकी ग्राम पंचायत" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Samagra ID", "Ladli Behna Registration ID", "Land / Plot Ownership Proof", "No Pucca House Declaration", "Bank Account"],
                hi: ["आधार कार्ड", "समग्र ID", "लाड़ली बहना पंजीकरण ID", "जमीन/प्लॉट स्वामित्व प्रमाण", "पक्का मकान न होने की घोषणा", "बैंक खाता"] },
     match: (a) => a.state === "Madhya Pradesh" && a.who === "women" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3"].includes(a.income),
