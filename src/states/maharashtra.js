@@ -335,7 +335,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Guaranteed 365-day unskilled employment @ ₹309/day for rural job-seekers (pre-dates MGNREGA)", hi: "ग्रामीण बेरोजगारों को ₹309/दिन पर 365 दिन गारंटीड रोजगार" },
     tag:     { en: "Employment / Rural", hi: "रोजगार / ग्रामीण" },
     annual: 37000,
-    apply:   { en: "egs.mahaonline.gov.in", hi: "egs.mahaonline.gov.in" }, applyType: "online",
+    apply:   { en: "https://egs.mahaonline.gov.in", hi: "egs.mahaonline.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Maharashtra Domicile", "Job Card (from Gram Panchayat)", "Bank / Post Office Account"],
                hi: ["आधार कार्ड", "महाराष्ट्र अधिवास", "जॉब कार्ड (ग्राम पंचायत से)", "बैंक / डाकघर खाता"] },
     match: (a) => a.state === "Maharashtra" && a.area === "rural" && ["below1","1to3"].includes(a.income),
