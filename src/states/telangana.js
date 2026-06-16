@@ -93,7 +93,7 @@ export const TELANGANA_SCHEMES = [
     benefit: { en: "₹5 Lakh/year free cashless treatment for 1,044+ medical procedures at 350+ empanelled govt & pvt hospitals", hi: "350+ पैनलबद्ध सरकारी व निजी अस्पतालों में 1,044+ प्रक्रियाओं के लिए ₹5 लाख/वर्ष मुफ्त कैशलेस इलाज" },
     tag:     { en: "Health Insurance", hi: "स्वास्थ्य बीमा" },
     annual: 500000,
-    apply:   { en: "aarogyasri.telangana.gov.in", hi: "aarogyasri.telangana.gov.in" }, applyType: "online",
+    apply:   { en: "https://aarogyasri.telangana.gov.in", hi: "aarogyasri.telangana.gov.in" }, applyType: "online",
     docs:    { en: ["White Ration Card (BPL)", "Aadhaar Card", "Aarogyasri Health Card (issued at hospital)"],
                hi: ["सफेद राशन कार्ड (BPL)", "आधार कार्ड", "आरोग्यश्री स्वास्थ्य कार्ड (अस्पताल में जारी)"] },
     match: (a) => a.state === "Telangana" && ["below1", "1to3"].includes(a.income),
