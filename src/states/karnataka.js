@@ -271,7 +271,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "50%–75% subsidy on fruit/vegetable cultivation, greenhouses & micro-irrigation", hi: "फल/सब्जी की खेती, ग्रीनहाउस और माइक्रो-सिंचाई पर 50%–75% सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "horticulture.karnataka.gov.in", hi: "horticulture.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://horticulture.karnataka.gov.in", hi: "horticulture.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Bank Account", "Project Plan"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बैंक खाता", "परियोजना योजना"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer",
