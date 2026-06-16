@@ -220,7 +220,7 @@ export const KERALA_SCHEMES = [
     benefit: { en: "Seed funding up to ₹10 Lakh + free co-working space + mentoring for tech startups", hi: "टेक स्टार्टअप के लिए ₹10 लाख तक सीड फंड + मुफ्त को-वर्किंग स्पेस + मेंटरिंग" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "startupmission.kerala.gov.in", hi: "startupmission.kerala.gov.in" }, applyType: "online",
+    apply:   { en: "https://startupmission.kerala.gov.in", hi: "startupmission.kerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN", "Business Registration / DPIIT Certificate", "Business Plan / Pitch Deck", "Bank Account"],
                hi: ["आधार और पैन", "व्यापार पंजीकरण / DPIIT प्रमाण पत्र", "बिजनेस प्लान / पिच डेक", "बैंक खाता"] },
     match: (a) => a.state === "Kerala" && a.who === "business",
