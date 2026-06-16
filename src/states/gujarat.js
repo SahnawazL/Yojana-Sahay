@@ -283,7 +283,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹2 Lakh accident insurance + 50% subsidy on boat & net equipment for registered fishermen", hi: "पंजीकृत मछुआरों को ₹2 लाख दुर्घटना बीमा + नाव व जाल उपकरण पर 50% सब्सिडी" },
     tag:     { en: "Fishermen / Welfare", hi: "मछुआरा / कल्याण" },
     annual: 50000,
-    apply:   { en: "https://fisheries.gujarat.gov.in", hi: "fisheries.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://fisheries.gujarat.gov.in", hi: "fisheries.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Fisherman Registration Certificate", "Bank Passbook", "Domicile Certificate", "Photo"],
                hi: ["आधार कार्ड", "मछुआरा पंजीकरण प्रमाण पत्र", "बैंक पासबुक", "अधिवास प्रमाण", "फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer",
