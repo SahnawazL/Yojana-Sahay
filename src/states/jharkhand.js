@@ -223,7 +223,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹15,000–₹38,000/year covering tuition, hostel & maintenance for SC/ST/BC students", hi: "SC/ST/BC छात्रों के लिए ट्यूशन, छात्रावास व रख-रखाव हेतु ₹15,000–₹38,000/वर्ष" },
     tag:     { en: "Education / SC ST", hi: "शिक्षा / SC ST" },
     annual: 25000,
-    apply:   { en: "ekalyan.jharkhand.gov.in", hi: "ekalyan.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://ekalyan.jharkhand.gov.in", hi: "ekalyan.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/BC)", "10th Mark Sheet", "College / Institution Admission Proof", "Income Certificate (below ₹2.5L)", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/BC)", "10वीं अंकपत्र", "कॉलेज / संस्था प्रवेश प्रमाण", "आय प्रमाण पत्र (₹2.5 लाख से कम)", "बैंक खाता"] },
     match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
