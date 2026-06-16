@@ -31,7 +31,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "₹2 Lakh/year cashless treatment for 5 critical illness groups", hi: "5 गंभीर रोग समूहों के लिए ₹2 लाख/वर्ष कैशलेस इलाज" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 200000,
-    apply:   { en: "atalamritabhiyan.assam.gov.in", hi: "atalamritabhiyan.assam.gov.in" }, applyType: "online",
+    apply:   { en: "https://atalamritabhiyan.assam.gov.in", hi: "atalamritabhiyan.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card (BPL/APBPL)","Income Certificate","Residence Proof"],
                hi: ["आधार कार्ड","राशन कार्ड (BPL/APBPL)","आय प्रमाण पत्र","निवास प्रमाण"] },
     match: (a) => a.state === "Assam" && ["below1","1to3"].includes(a.income),
