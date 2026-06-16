@@ -153,7 +153,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹1,500/month for persons with ≥50% disability from BPL families", hi: "BPL परिवार के ≥50% दिव्यांग व्यक्तियों को ₹1,500/माह" },
     tag:     { en: "Disability / Pension", hi: "दिव्यांग / पेंशन" },
     annual: 18000,
-    apply:   { en: "sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥50%)","BPL Ration Card","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (≥50%)","BPL राशन कार्ड","बैंक खाता","पंजाब अधिवास"] },
     match: (a) => a.state === "Punjab" && ["below1","1to3"].includes(a.income),
