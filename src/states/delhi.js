@@ -517,7 +517,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "₹2,500/month pension for transgender persons registered with Delhi Social Welfare", hi: "दिल्ली समाज कल्याण में पंजीकृत ट्रांसजेंडर व्यक्तियों को ₹2,500 प्रतिमाह पेंशन" },
     tag:     { en: "Transgender Welfare", hi: "ट्रांसजेंडर कल्याण" },
     annual: 30000,
-    apply:   { en: "edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
+    apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Transgender Identity Certificate (TG Card)", "Delhi Address Proof", "Bank Passbook"],
                hi: ["आधार कार्ड", "ट्रांसजेंडर पहचान प्रमाण पत्र (TG कार्ड)", "दिल्ली पता प्रमाण", "बैंक पासबुक"] },
     match: (a) => a.state === "Delhi",
