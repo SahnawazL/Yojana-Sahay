@@ -17,7 +17,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹1.5 Lakh/year cashless hospital treatment", hi: "₹1.5 लाख/वर्ष कैशलेस अस्पताल" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 150000,
-    apply:   { en: "https://jeevandayee.maharashtra.gov.in", hi: "jeevandayee.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://jeevandayee.maharashtra.gov.in", hi: "jeevandayee.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Yellow/Orange Ration Card","Income Certificate"],
                hi: ["आधार कार्ड","पीला/नारंगी राशन कार्ड","आय प्रमाण पत्र"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income),
