@@ -1244,7 +1244,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹31,000/month (JRF, first 2 yrs) · ₹35,000/month (SRF, yrs 3–5) + HRA + contingency grant for M.Phil/PhD", hi: "M.Phil/PhD के लिए ₹31,000/माह (JRF, पहले 2 वर्ष) · ₹35,000/माह (SRF, वर्ष 3–5) + HRA + आकस्मिक अनुदान" },
     tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
     annual: 420000,
-    apply:   { en: "ugc.ac.in / scholarships.gov.in", hi: "ugc.ac.in / scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in", hi: "ugc.ac.in / scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Admission Letter for M.Phil / PhD","NET / JRF Score Card (or UGC-exempted category proof)","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड (या UGC-छूट श्रेणी)","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: SC student admitted to M.Phil/PhD in UGC-recognised university; no income restriction
