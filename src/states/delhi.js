@@ -1471,7 +1471,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "6.5% interest subsidy on home loans up to ₹6 lakh (EWS/LIG); NPV benefit of ~₹2.67 lakh; for first-time homebuyers in Delhi with household income up to ₹6 lakh/year", hi: "₹6 लाख तक के गृह ऋण पर 6.5% ब्याज सब्सिडी (EWS/LIG); लगभग ₹2.67 लाख NPV लाभ; ₹6 लाख/वर्ष तक आय वाले दिल्ली के पहली बार घर खरीदने वालों के लिए" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 26700,
-    apply:   { en: "pmaymis.gov.in / any empanelled bank or HFC in Delhi", hi: "pmaymis.gov.in / दिल्ली में किसी भी सूचीबद्ध बैंक या HFC" }, applyType: "online",
+    apply:   { en: "https://pmaymis.gov.in", hi: "pmaymis.gov.in / दिल्ली में किसी भी सूचीबद्ध बैंक या HFC" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (EWS: below ₹3L; LIG: ₹3L–₹6L p.a.)", "No Pucca House Affidavit (self or spouse)", "Delhi Domicile Proof", "Property Purchase Agreement / Sale Deed", "Bank Account Statement"],
                hi: ["आधार कार्ड", "आय प्रमाण पत्र (EWS: ₹3L से कम; LIG: ₹3L–₹6L)", "पक्का मकान नहीं होने का शपथपत्र (स्वयं या पति/पत्नी)", "दिल्ली अधिवास प्रमाण", "संपत्ति खरीद अनुबंध / विक्रय विलेख", "बैंक खाता विवरण"] },
     match: (a) => a.state === "Delhi" && (a.house === "no" || a.house === "kutcha") && (a.income === "below1" || a.income === "1to3"),
