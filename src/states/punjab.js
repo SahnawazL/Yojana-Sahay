@@ -869,7 +869,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹5 Lakh seed grant + free incubation space (12 months) + mentorship + 100% SGST reimbursement for 3 years for registered Punjab startups", hi: "पंजीकृत पंजाब स्टार्टअप को ₹5 लाख बीज अनुदान + 12 माह मुफ्त इनक्यूबेशन + मेंटरशिप + 3 वर्ष 100% SGST प्रतिपूर्ति" },
     tag:     { en: "Business / Startup", hi: "व्यापार / स्टार्टअप" },
     annual: 500000,
-    apply:   { en: "investpunjab.gov.in", hi: "investpunjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://investpunjab.gov.in", hi: "investpunjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card / PAN","DPIIT / Startup India Recognition","Business Plan","GST Registration","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड / PAN","DPIIT / स्टार्टअप इंडिया मान्यता","व्यापार योजना","GST पंजीकरण","बैंक खाता","पंजाब अधिवास"] },
     match: (a) => a.state === "Punjab" && a.who === "business" && ["18to35","35to60"].includes(a.age),
