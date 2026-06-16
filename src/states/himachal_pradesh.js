@@ -17,7 +17,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "₹3,000/month financial aid for patients of serious chronic diseases", hi: "गंभीर पुरानी बीमारियों के रोगियों को ₹3,000/माह सहायता" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 36000,
-    apply:   { en: "hpsocialjustice.gov.in", hi: "hpsocialjustice.gov.in" }, applyType: "online",
+    apply:   { en: "https://hpsocialjustice.gov.in", hi: "hpsocialjustice.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Medical Certificate (Disease Proof)","Income Certificate","Bank Account","Domicile Certificate"],
                hi: ["आधार कार्ड","चिकित्सा प्रमाण पत्र (बीमारी का प्रमाण)","आय प्रमाण","बैंक खाता","अधिवास प्रमाण"] },
     match: (a) => a.state === "Himachal Pradesh" && ["below1","1to3"].includes(a.income),
