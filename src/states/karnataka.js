@@ -213,7 +213,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Loan ₹1–₹10 Lakh at 6% interest for SC/ST/OBC self-employment", hi: "SC/ST/OBC स्वरोजगार हेतु 6% ब्याज पर ₹1–₹10 लाख ऋण" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "dubckarnataka.org.in", hi: "dubckarnataka.org.in" }, applyType: "online",
+    apply:   { en: "https://dubckarnataka.org.in", hi: "dubckarnataka.org.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "Income Certificate (< ₹1.5L)", "Business Plan", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "आय प्रमाण (< ₹1.5 लाख)", "व्यापार योजना", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income),
