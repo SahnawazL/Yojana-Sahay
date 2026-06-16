@@ -601,7 +601,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹50,000 grant for marriage of SC/ST/OBC & minority girls from BPL families", hi: "BPL परिवारों की SC/ST/OBC व अल्पसंख्यक बालिकाओं के विवाह पर ₹50,000 अनुदान" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 0,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "BPL Ration Card", "Caste Certificate", "Girl's Age Proof (18+)", "Marriage Invitation / Registration", "Bank Account"],
                hi: ["आधार कार्ड", "BPL राशन कार्ड", "जाति प्रमाण", "बालिका आयु प्रमाण (18+)", "विवाह निमंत्रण / पंजीकरण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "women" && ["below1", "1to3"].includes(a.income),
