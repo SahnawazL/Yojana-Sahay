@@ -269,7 +269,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "Monthly pension for artistes aged 60+ who contributed to Assam's art & culture (Music, Dance, Fine Arts, Theatre, Film, etc.) · One-time Barxik Silpi Sanman grant of ₹50,000 · ₹50,000 one-time assistance to families of deceased artistes", hi: "असम की कला-संस्कृति में योगदान देने वाले 60+ वर्षीय कलाकारों को मासिक पेंशन · बार्षिक शिल्पी सम्मान ₹50,000 · दिवंगत कलाकार के परिवार को ₹50,000 एकमुश्त" },
     tag:     { en: "Artist / Senior", hi: "कलाकार / वरिष्ठ" },
     annual: 0,
-    apply:   { en: "culturalaffairs.assam.gov.in", hi: "culturalaffairs.assam.gov.in" }, applyType: "online",
+    apply:   { en: "https://culturalaffairs.assam.gov.in", hi: "culturalaffairs.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","PAN Card","Age Proof (60+ years)","Recognition / Award Proof Certificate (field of art/culture)","Bank Account","Passport Photo","Identity Proof (Voter ID / Passport / Driving License)"],
                hi: ["आधार कार्ड","PAN कार्ड","आयु प्रमाण (60+ वर्ष)","कला/संस्कृति क्षेत्र में मान्यता/पुरस्कार प्रमाण पत्र","बैंक खाता","पासपोर्ट फोटो","पहचान प्रमाण (मतदाता ID/पासपोर्ट/ड्राइविंग लाइसेंस)"] },
     match: (a) => a.state === "Assam" && a.age === "60plus",
