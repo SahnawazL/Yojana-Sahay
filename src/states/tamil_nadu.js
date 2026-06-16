@@ -66,7 +66,7 @@ export const TAMIL_NADU_SCHEMES = [
     benefit: { en: "₹5 Lakh/year free treatment for 1,370+ procedures at govt & pvt hospitals", hi: "सरकारी व निजी अस्पतालों में 1,370+ प्रक्रियाओं के लिए ₹5 लाख/वर्ष मुफ्त इलाज" },
     tag:     { en: "Health Insurance", hi: "स्वास्थ्य बीमा" },
     annual:  500000,
-    apply:   { en: "cmchistn.com", hi: "cmchistn.com" }, applyType: "online",
+    apply:   { en: "https://cmchistn.com", hi: "cmchistn.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card (Kith & Kin Card)", "Income Certificate"],
                hi: ["आधार कार्ड", "राशन कार्ड (किथ एंड किन कार्ड)", "आय प्रमाण पत्र"] },
     // Eligibility: TN residents with annual income ≤ ₹72,000 (below1 bracket)
