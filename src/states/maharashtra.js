@@ -31,7 +31,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹6,000/year additional to PM Kisan",     hi: "पीएम किसान के अतिरिक्त ₹6,000/वर्ष" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 6000,
-    apply:   { en: "krishi.maharashtra.gov.in", hi: "krishi.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://krishi.maharashtra.gov.in", hi: "krishi.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","7/12 Land Extract","Bank Passbook"],
                hi: ["आधार कार्ड","7/12 जमीन उतारा","बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
