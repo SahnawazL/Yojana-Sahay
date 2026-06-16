@@ -549,7 +549,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "50% subsidy up to ₹2 Lakh for disabled persons to set up a small business or shop", hi: "दिव्यांग व्यक्तियों को छोटा व्यापार / दुकान स्थापित करने पर ₹2 लाख तक 50% सब्सिडी" },
     tag:     { en: "Disability / Self-Employment", hi: "दिव्यांग / स्व-रोजगार" },
     annual: 200000,
-    apply:   { en: "esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ from Govt. Hospital)", "Income Certificate", "Business Plan / Proposal", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (सरकारी अस्पताल से 40%+)", "आय प्रमाण", "व्यापार योजना / प्रस्ताव", "बैंक खाता", "फोटो"] },
     match: (a) => a.state === "Gujarat" && ["below1", "1to3"].includes(a.income),
