@@ -157,7 +157,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     benefit: { en: "Self-employment loan ₹50,000–₹10 Lakh · 15% subsidy (general) or 30% (SC/ST/Women/Divyang)", hi: "स्वरोजगार के लिए ₹50,000–₹10 लाख लोन · 15% सब्सिडी (सामान्य) · 30% (SC/ST/महिला/दिव्यांग)" },
     tag:     { en: "Business / Self-employment", hi: "व्यापार / स्वरोजगार" },
     annual: 0,
-    apply:   { en: "msme.mponline.gov.in", hi: "msme.mponline.gov.in" }, applyType: "online",
+    apply:   { en: "https://msme.mponline.gov.in", hi: "msme.mponline.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 8 Pass Certificate (minimum)","Project Report","Bank Account","Caste Certificate (if applicable)","Residential Proof"],
                hi: ["आधार कार्ड","कक्षा 8 उत्तीर्ण (न्यूनतम)","प्रोजेक्ट रिपोर्ट","बैंक खाता","जाति प्रमाण पत्र (लागू हो तो)","निवास प्रमाण"] },
     match: (a) => a.state === "Madhya Pradesh" && (a.who === "business" || a.who === "general") && ["below1","1to3","3to6"].includes(a.income),
