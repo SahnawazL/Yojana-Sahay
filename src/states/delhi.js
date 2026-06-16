@@ -1295,7 +1295,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "₹3,000/month guaranteed pension on reaching age 60; monthly contribution ₹55–₹200 matched equally by govt; for unorganised workers earning below ₹15,000/month", hi: "60 वर्ष की आयु पर ₹3,000 प्रतिमाह गारंटीड पेंशन; ₹55–₹200 प्रतिमाह अंशदान जो सरकार भी समान रूप से जमा करती है; ₹15,000/माह से कम कमाने वाले असंगठित कामगारों के लिए" },
     tag:     { en: "Pension", hi: "पेंशन" },
     annual: 36000,
-    apply:   { en: "maandhan.in / nearest CSC (Common Service Centre)", hi: "maandhan.in / नजदीकी CSC (कॉमन सर्विस सेंटर)" }, applyType: "online",
+    apply:   { en: "https://maandhan.in", hi: "maandhan.in / नजदीकी CSC (कॉमन सर्विस सेंटर)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Mobile Number linked to Aadhaar", "Savings / Jan Dhan Bank Account", "Age Proof (18–40 years at entry)", "Income Self-Declaration (below ₹15,000/month)"],
                hi: ["आधार कार्ड", "आधार से जुड़ा मोबाइल नंबर", "बचत / जन धन बैंक खाता", "आयु प्रमाण (प्रवेश के समय 18–40 वर्ष)", "आय स्व-घोषणा (₹15,000/माह से कम)"] },
     match: (a) => a.state === "Delhi" && (a.who === "general" || a.who === "women") && (a.income === "below1" || a.income === "1to3") && (a.age === "18to35" || a.age === "35to60"),
