@@ -549,7 +549,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "Free coaching for UPSC, HP Administrative Services, Banking, SSC & JEE/NEET for SC/ST/OBC/EWS youth with ₹1,500/month stipend", hi: "SC/ST/OBC/EWS युवाओं को UPSC, HP प्रशासनिक सेवा, बैंकिंग, SSC और JEE/NEET की मुफ्त कोचिंग + ₹1,500/माह वजीफा" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 18000,
-    apply:   { en: "hpsocialjustice.gov.in", hi: "hpsocialjustice.gov.in" }, applyType: "online",
+    apply:   { en: "https://hpsocialjustice.gov.in", hi: "hpsocialjustice.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "HP Domicile Certificate", "Caste Certificate (SC/ST/OBC) or EWS Certificate", "Educational Certificates (Graduation)", "Income Certificate (below ₹2.5 Lakh/year)", "Bank Account"],
                hi: ["आधार कार्ड", "हिमाचल अधिवास प्रमाण", "जाति प्रमाण पत्र (SC/ST/OBC) या EWS प्रमाण पत्र", "शैक्षणिक प्रमाण पत्र (स्नातक)", "आय प्रमाण पत्र (₹2.5 लाख/वर्ष से कम)", "बैंक खाता"] },
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["18to35"].includes(a.age) && ["below1","1to3"].includes(a.income),
