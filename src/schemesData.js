@@ -1349,7 +1349,7 @@ export const SCHEME_DB = [
     benefit: { en: "3% interest subvention for 7 years on loans up to ₹2 Crore for post-harvest infra: cold storage, warehouse, sorting/grading, primary processing, assaying labs", hi: "शीत भंडारण, गोदाम, छंटाई/श्रेणीकरण, प्राथमिक प्रसंस्करण केंद्र हेतु ₹2 करोड़ तक के ऋण पर 7 वर्ष के लिए 3% ब्याज सब्सिडी" },
     tag:     { en: "Farmer / Organic", hi: "किसान / जैविक" },
     annual: 0,
-    apply:   { en: "agriinfra.dac.gov.in / Nearest NABARD or Scheduled Commercial Bank", hi: "agriinfra.dac.gov.in / नजदीकी NABARD या अनुसूचित वाणिज्यिक बैंक" }, applyType: "online",
+    apply:   { en: "https://agriinfra.dac.gov.in", hi: "agriinfra.dac.gov.in / नजदीकी NABARD या अनुसूचित वाणिज्यिक बैंक" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN Card","Land Records / Lease Deed","Detailed Project Report (DPR)","Bank Statement (6 months)","Farmer / FPO / SHG Registration Proof","Environmental Clearance (if applicable)"],
                hi: ["आधार और पैन कार्ड","जमीन के कागज़ / पट्टा","विस्तृत परियोजना रिपोर्ट (DPR)","6 महीने बैंक स्टेटमेंट","किसान/FPO/SHG पंजीकरण प्रमाण","पर्यावरण अनुमति (यदि लागू)"] },
     // Eligibility: individual farmers, FPOs, SHGs, cooperatives, agri-entrepreneurs building post-harvest infra
