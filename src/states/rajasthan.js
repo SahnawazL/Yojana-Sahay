@@ -144,7 +144,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "50% subsidy on crop-field fencing · max ₹40,000 grant for 400 running metres",       hi: "खेत की तारबंदी पर 50% सब्सिडी · 400 रनिंग मीटर तक अधिकतम ₹40,000 अनुदान" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 40000,
-    apply:   { en: "rajkisan.rajasthan.gov.in", hi: "rajkisan.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://rajkisan.rajasthan.gov.in", hi: "rajkisan.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Land Records (Jamabandi)", "Bank Account", "Affidavit (not availed benefit in last 10 years)"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "जमाबंदी (भूमि अभिलेख)", "बैंक खाता", "शपथ पत्र (पिछले 10 वर्षों में लाभ नहीं लिया)"] },
     // Eligibility: Rajasthan farmer with ≥1.5 bigha land, rural area
