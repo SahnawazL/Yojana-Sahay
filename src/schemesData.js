@@ -440,7 +440,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹5 Lakh/year free health cover for all citizens 70 years & above", hi: "70+ वर्ष के सभी नागरिकों को ₹5 लाख/वर्ष मुफ्त स्वास्थ्य कवर" },
     tag:     { en: "Senior / Health", hi: "वरिष्ठ / स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "pmjay.gov.in", hi: "pmjay.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmjay.gov.in", hi: "pmjay.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (70+ years)","Any ID Proof"],
                hi: ["आधार कार्ड","आयु प्रमाण (70+ वर्ष)","कोई भी पहचान पत्र"] },
     match: (a) => a.who === "senior" || a.age === "above60",
