@@ -331,7 +331,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Multiple benefits for registered construction workers — maternity ₹36,000 · marriage ₹51,000 · education scholarship · medical aid · tool kit · pension", hi: "पंजीकृत निर्माण श्रमिकों के लिए — मातृत्व ₹36,000 · विवाह ₹51,000 · शिक्षा छात्रवृत्ति · चिकित्सा · औजार किट · पेंशन" },
     tag:     { en: "Labour / Construction Worker", hi: "श्रमिक / निर्माण मजदूर" },
     annual: 36000,
-    apply:   { en: "bocwharyana.gov.in", hi: "bocwharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://bocwharyana.gov.in", hi: "bocwharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","BOCW Registration Certificate","Employer Certificate (90 days work proof)","Bank Account","Parivar Pehchan Patra"],
                hi: ["आधार कार्ड","BOCW पंजीकरण प्रमाण पत्र","नियोक्ता प्रमाण पत्र (90 दिन कार्य प्रमाण)","बैंक खाता","परिवार पहचान पत्र"] },
     // Eligibility: Construction worker registered with BOCW Board, 90+ days worked/year
