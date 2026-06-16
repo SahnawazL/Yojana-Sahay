@@ -391,7 +391,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Accident cover ₹2L, maternity ₹5,000, education aid ₹3K–₹20K, funeral ₹5,000 for registered workers", hi: "पंजीकृत मज़दूरों को दुर्घटना बीमा ₹2L, प्रसव सहायता ₹5,000, शिक्षा सहायता ₹3K–₹20K, अंत्येष्टि ₹5,000" },
     tag:     { en: "Labour", hi: "श्रमिक" },
     annual: 0,
-    apply:   { en: "labour.karnataka.gov.in", hi: "labour.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://labour.karnataka.gov.in", hi: "labour.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "BOCW Registration Card", "Work Proof (employer letter)", "Bank Account"],
                hi: ["आधार कार्ड", "BOCW पंजीकरण कार्ड", "कार्य प्रमाण (नियोक्ता पत्र)", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income) && ["18to35", "35to60"].includes(a.age),
