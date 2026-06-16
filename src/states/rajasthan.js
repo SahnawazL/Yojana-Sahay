@@ -66,7 +66,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Home-based employment for women · Priority to widows, divorcees & specially-abled women",             hi: "महिलाओं को घर से रोज़गार · विधवाओं, तलाकशुदा और दिव्यांग महिलाओं को प्राथमिकता" },
     tag:     { en: "Women / Employment", hi: "महिला / रोज़गार" },
     annual: 0,
-    apply:   { en: "mahilawfh.rajasthan.gov.in", hi: "mahilawfh.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahilawfh.rajasthan.gov.in", hi: "mahilawfh.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Educational / Skill Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "शैक्षणिक / कौशल प्रमाण पत्र", "बैंक खाता"] },
     match: (a) => a.state === "Rajasthan" && a.who === "women",
