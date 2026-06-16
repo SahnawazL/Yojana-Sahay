@@ -345,7 +345,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Education loan up to ₹5 Lakh at 4% interest for SC/ST students pursuing higher education", hi: "उच्च शिक्षा हेतु SC/ST छात्रों को 4% ब्याज पर ₹5 लाख तक शिक्षा ऋण" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 0,
-    apply:   { en: "kscdc.net", hi: "kscdc.net" }, applyType: "online",
+    apply:   { en: "https://kscdc.net", hi: "kscdc.net" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "College Admission Letter", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "कॉलेज प्रवेश पत्र", "आय प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
