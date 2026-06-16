@@ -185,7 +185,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "Full tuition fee reimbursement + maintenance allowance up to ₹1,200/month for SC/ST students in Class 11 and above", hi: "कक्षा 11 और उससे ऊपर के SC/ST छात्रों को पूर्ण शिक्षण शुल्क + ₹1,200/माह रखरखाव भत्ता" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 14400,
-    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST)","Mark Sheets","Income Certificate (below ₹2.5 Lakh/year)","HP Domicile Certificate","College / School Enrollment Proof","Bank Account"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST)","मार्कशीट","आय प्रमाण पत्र (₹2.5 लाख/वर्ष से कम)","हिमाचल अधिवास प्रमाण","कॉलेज/स्कूल नामांकन प्रमाण","बैंक खाता"] },
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income),
