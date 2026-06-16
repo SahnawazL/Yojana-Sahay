@@ -1109,7 +1109,7 @@ export const SCHEME_DB = [
     benefit: { en: "50% subsidy (max ₹50 Lakh; 60% for SC/ST/Women) on poultry, goat, sheep, cattle & fodder enterprises", hi: "मुर्गी पालन, बकरी, भेड़, मवेशी व चारा इकाइयों पर 50% सब्सिडी (अधिकतम ₹50 लाख; SC/ST/महिलाओं को 60%)" },
     tag:     { en: "Farmer / Animal Husbandry", hi: "किसान / पशुपालन" },
     annual: 0,
-    apply:   { en: "nlm.udyamimitra.in / State Animal Husbandry Dept.", hi: "nlm.udyamimitra.in / राज्य पशुपालन विभाग" }, applyType: "online",
+    apply:   { en: "https://nlm.udyamimitra.in", hi: "nlm.udyamimitra.in / राज्य पशुपालन विभाग" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records / Shed Lease Deed","Project Report","Bank Statement (6 months)","Caste Certificate (SC/ST if applicable)","Bank Account"],
                hi: ["आधार कार्ड","जमीन के कागज़ / शेड पट्टा","प्रोजेक्ट रिपोर्ट","6 महीने बैंक स्टेटमेंट","जाति प्रमाण (SC/ST हो तो)","बैंक खाता"] },
     // Eligibility: farmers, SHGs, cooperatives, FPOs engaged in livestock/poultry rearing
