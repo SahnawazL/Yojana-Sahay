@@ -409,7 +409,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "Crop insurance at 1.5–2% premium for Rabi & Kharif; full coverage against drought, flood, hailstorm & pest damage", hi: "रबी और खरीफ के लिए 1.5–2% प्रीमियम पर फसल बीमा; सूखा, बाढ़, ओलावृष्टि और कीट नुकसान पर पूर्ण कवरेज" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "pmfby.gov.in", hi: "pmfby.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmfby.gov.in", hi: "pmfby.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (Khasra/Khatauni)", "Bank Account / Kisan Credit Card", "Sowing Certificate from Patwari", "HP Domicile Certificate"],
                hi: ["आधार कार्ड", "भूमि अभिलेख (खसरा/खतौनी)", "बैंक खाता / किसान क्रेडिट कार्ड", "पटवारी से बुवाई प्रमाण पत्र", "हिमाचल अधिवास प्रमाण"] },
     match: (a) => a.state === "Himachal Pradesh" && a.who === "farmer",
