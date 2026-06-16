@@ -71,7 +71,7 @@ export const BIHAR_SCHEMES = [
                hi: "SC/ST उद्यमी को ₹10 लाख: ₹5 लाख अनुदान + ₹5 लाख ब्याज-मुक्त ऋण (84 माह में); नई विनिर्माण/सेवा/व्यापार इकाई स्थापित करने के लिए" },
     tag:     { en: "SC/ST / Entrepreneurship", hi: "SC/ST / उद्यमिता" },
     annual: 500000,
-    apply:   { en: "https://https://udyami.bihar.gov.in", hi: "udyami.bihar.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://https://udyami.bihar.gov.in", hi: "udyami.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","PAN Card","SC/ST Caste Certificate","10th Pass Certificate","Bank Account (Aadhaar-linked)","Project Report","Residence Proof (Bihar)","Passport Photo"],
                hi: ["आधार कार्ड","पैन कार्ड","SC/ST जाति प्रमाण पत्र","10वीं पास प्रमाण पत्र","बैंक खाता (आधार-लिंक्ड)","प्रोजेक्ट रिपोर्ट","निवास प्रमाण (बिहार)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Bihar" && ["sc","st"].includes(a.caste),
