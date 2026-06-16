@@ -157,7 +157,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "70–80% subsidy on solar water pumps (2–10 HP) for irrigation", hi: "सिंचाई के लिए सौर जल पंप (2–10 HP) पर 70–80% सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "hpenergy.gov.in", hi: "hpenergy.gov.in" }, applyType: "online",
+    apply:   { en: "https://hpenergy.gov.in", hi: "hpenergy.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records","HP Domicile Certificate","Bank Account","Electricity Bill / No-Electricity Connection Proof"],
                hi: ["आधार कार्ड","भूमि अभिलेख","हिमाचल अधिवास प्रमाण","बैंक खाता","बिजली बिल / बिजली कनेक्शन न होने का प्रमाण"] },
     match: (a) => a.state === "Himachal Pradesh" && a.who === "farmer" && a.area === "rural",
