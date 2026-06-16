@@ -211,7 +211,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹8,000 (Class 10) · ₹10,000 (Class 12) · Up to ₹1,00,000 for IIT/Medical admission — for SC/BC meritorious students", hi: "SC/BC मेधावी छात्रों को ₹8,000 (कक्षा 10) · ₹10,000 (कक्षा 12) · IIT/मेडिकल प्रवेश पर ₹1,00,000 तक" },
     tag:     { en: "Student / Merit Scholarship", hi: "छात्र / मेरिट छात्रवृत्ति" },
     annual: 10000,
-    apply:   { en: "haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
+    apply:   { en: "https://haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC/BC Caste Certificate","Mark Sheet (Class 10 / 12 Board)","Admission Letter (for IIT/Medical)","Bank Account","Domicile Certificate"],
                hi: ["आधार कार्ड","SC/BC जाति प्रमाण पत्र","मार्कशीट (कक्षा 10/12 बोर्ड)","प्रवेश पत्र (IIT/मेडिकल के लिए)","बैंक खाता","निवास प्रमाण पत्र"] },
     // Eligibility: Haryana SC/BC student with 60%+ in board exams or admitted to IIT/Medical college
