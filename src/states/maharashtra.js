@@ -351,7 +351,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹10,000–₹20,000/year scholarship for Muslim, Christian, Buddhist, Sikh, Jain & Parsi students in higher education", hi: "मुस्लिम, ईसाई, बौद्ध, सिख, जैन व पारसी छात्रों को उच्च शिक्षा में ₹10,000–₹20,000/वर्ष छात्रवृत्ती" },
     tag:     { en: "Student / Minority", hi: "छात्र / अल्पसंख्यक" },
     annual: 20000,
-    apply:   { en: "mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "Income Certificate (≤₹8L/year)", "Previous Year Mark Sheet", "College Bonafide", "Bank Passbook"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "आय प्रमाण (≤₹8 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज बोनाफाइड", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
