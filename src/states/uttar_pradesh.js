@@ -203,7 +203,7 @@ export const UTTAR_PRADESH_SCHEMES = [
                hi: "विनिर्माण, सेवा या व्यापार क्षेत्र में नई सूक्ष्म इकाई/स्वरोजगार शुरू करने के लिए युवाओं (18–40 वर्ष) को ₹5 लाख तक ब्याज-मुक्त ऋण; सरकार ब्याज वहन करती है; प्रति वर्ष 1 लाख युवाओं को लक्षित, 10 वर्षों में 10 लाख सूक्ष्म इकाइयां बनाने का लक्ष्य; न्यूनतम योग्यता कक्षा 8 (कक्षा 12+ को प्राथमिकता)" },
     tag:     { en: "Youth / Entrepreneurship / MSME", hi: "युवा / उद्यमिता / MSME" },
     annual: 0,
-    apply:   { en: "msme.up.gov.in / Common Service Centre (CSC)", hi: "msme.up.gov.in / जन सेवा केंद्र (CSC)" }, applyType: "online",
+    apply:   { en: "https://msme.up.gov.in", hi: "msme.up.gov.in / जन सेवा केंद्र (CSC)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (Class 8 minimum)", "Age Proof (18–40 years)", "UP Domicile / Residence Proof", "Bank Account (Aadhaar-linked)", "Business Plan / Project Report", "Caste Certificate (if applicable)", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षिक प्रमाण पत्र (न्यूनतम कक्षा 8)", "आयु प्रमाण (18–40 वर्ष)", "UP अधिवास/निवास प्रमाण", "बैंक खाता (आधार-लिंक्ड)", "व्यवसाय योजना / परियोजना रिपोर्ट", "जाति प्रमाण पत्र (यदि लागू)", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Uttar Pradesh" && a.who === "business" && ["18to35","35to60"].includes(a.age),
