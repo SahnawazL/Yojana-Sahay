@@ -617,7 +617,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹1,500–₹4,000/month scholarship for students with ≥40% disability studying in Class 1 to PG level", hi: "≥40% दिव्यांगता वाले कक्षा 1 से PG तक के छात्रों को ₹1,500–₹4,000/माह छात्रवृत्ति" },
     tag:     { en: "Student / Disability Scholarship", hi: "छात्र / दिव्यांग छात्रवृत्ति" },
     annual: 48000,
-    apply:   { en: "sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (>=40%)","School / College Enrolment Proof","Income Certificate","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (>=40%)","स्कूल/कॉलेज प्रवेश प्रमाण","आय प्रमाण","बैंक खाता","पंजाब अधिवास"] },
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
