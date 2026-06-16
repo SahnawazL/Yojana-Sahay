@@ -51,7 +51,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "₹50,000 total in 6 installments from birth through Class 12 for every girl child",     hi: "बालिका के जन्म से कक्षा 12 तक 6 किस्तों में कुल ₹50,000" },
     tag:     { en: "Women / Girl Child", hi: "महिला / बालिका" },
     annual: 50000,
-    apply:   { en: "wcd.rajasthan.gov.in", hi: "wcd.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://wcd.rajasthan.gov.in", hi: "wcd.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Girl Child's Birth Certificate", "Institutional Delivery Proof", "Bank Account (mother's)"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "बालिका का जन्म प्रमाण पत्र", "संस्थागत प्रसव प्रमाण", "बैंक खाता (माँ का)"] },
     // Eligibility: girl child born on/after 1 June 2016 in Rajasthan
