@@ -245,7 +245,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Full tuition fee + ₹380–₹1,200/month maintenance allowance for ST students in college", hi: "ST कॉलेज छात्रों को पूरी ट्यूशन फीस + ₹380–₹1,200/माह भत्ता" },
     tag:     { en: "Student / Tribal / ST", hi: "छात्र / आदिवासी / ST" },
     annual: 14400,
-    apply:   { en: "mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Income Certificate (≤₹2.5L/year)", "Previous Year Mark Sheet", "College Fee Receipt", "Bank Passbook"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "आय प्रमाण (≤₹2.5 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज शुल्क रसीद", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income),
