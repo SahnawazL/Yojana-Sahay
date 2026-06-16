@@ -121,7 +121,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Full tuition fee + ₹1,200–₹2,500/month maintenance allowance", hi: "पूरी फीस + ₹1,200–₹2,500/माह रखरखाव भत्ता" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 30000,
-    apply:   { en: "scholarships.karnataka.gov.in", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.karnataka.gov.in", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "Income Certificate (< ₹2.5L)", "Mark Sheets", "College Admission Proof", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "आय प्रमाण (< ₹2.5 लाख)", "मार्कशीट", "कॉलेज प्रवेश प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
