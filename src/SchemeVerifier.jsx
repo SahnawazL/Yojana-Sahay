@@ -4686,6 +4686,17 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   }, [deadTotalPages, deadPage]);
 
 
+  // ── URL Issues pre-scan state ─────────────────────────────────────────────
+  // Declared HERE (before the useMemo blocks below) to avoid TDZ errors —
+  // the dependency arrays [urlIssueFilter] and [urlIssuePage] are evaluated
+  // immediately when useMemo is called, so the consts must exist first.
+  const [urlIssueFilter,    setUrlIssueFilter]    = useState("all");     // all | NO_HTTPS | MULTI_URL | TEXT_ONLY | NO_URL
+  const [urlIssuePage,      setUrlIssuePage]      = useState(1);
+  const [selectedUrls,      setSelectedUrls]      = useState({});         // schemeId → chosen URL string for MULTI_URL
+  const [fixingUrlId,       setFixingUrlId]       = useState(null);       // schemeId currently being patched
+  const [urlFixStatuses,    setUrlFixStatuses]    = useState({});         // schemeId → { success, commitUrl } | { error }
+  const [urlIssueCollapsed, setUrlIssueCollapsed] = useState(false);      // collapse the whole panel
+
   // ── URL Issues pre-scan computations ─────────────────────────────────────
   // Runs entirely in the browser from SCHEME_DB — no API call, no scan needed.
   // Re-computes whenever scopeFilter changes (e.g. user switches All → Bihar).
@@ -4763,15 +4774,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [applyResult,   setApplyResult]   = useState(null); // { committed, failed, commits } | null
   const [mdCopied,      setMdCopied]      = useState(false); // "Copy MD" flash state
   const [scheduleDismissed, setScheduleDismissed] = useState(false);
-
-  // ── URL Issues pre-scan state ─────────────────────────────────────────────
-  // Detects URL format problems from SCHEME_DB without running verification.
-  const [urlIssueFilter,   setUrlIssueFilter]   = useState("all");     // all | NO_HTTPS | MULTI_URL | TEXT_ONLY | NO_URL
-  const [urlIssuePage,     setUrlIssuePage]     = useState(1);
-  const [selectedUrls,     setSelectedUrls]     = useState({});         // schemeId → chosen URL string for MULTI_URL
-  const [fixingUrlId,      setFixingUrlId]      = useState(null);       // schemeId currently being patched
-  const [urlFixStatuses,   setUrlFixStatuses]   = useState({});         // schemeId → { success, commitUrl } | { error }
-  const [urlIssueCollapsed, setUrlIssueCollapsed] = useState(false);    // collapse the whole panel
 
   // ── Re-verify Dead state ──────────────────────────────────────────────────
   // Lets the user re-ping only the dead links post-run without starting a full
