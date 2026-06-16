@@ -101,7 +101,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "Interest-free loan up to ₹1 Lakh for women SHGs (SWAMIH / SHRI groups)", hi: "महिला स्वयं सहायता समूहों (SWAMIH/SHRI) को ₹1 लाख तक ब्याज मुक्त ऋण" },
     tag:     { en: "Women / SHG", hi: "महिला / SHG" },
     annual: 0,
-    apply:   { en: "mmuy.gujarat.gov.in", hi: "mmuy.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://mmuy.gujarat.gov.in", hi: "mmuy.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SHG Registration Certificate", "Bank Account (Group)", "Income Certificate", "Ration Card"],
                hi: ["आधार कार्ड", "SHG पंजीकरण प्रमाण पत्र", "बैंक खाता (समूह)", "आय प्रमाण", "राशन कार्ड"] },
     match: (a) => a.state === "Gujarat" && a.who === "women" && ["below1", "1to3"].includes(a.income),
