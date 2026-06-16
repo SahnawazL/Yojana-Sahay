@@ -1486,7 +1486,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹50,000/year + ₹2,000 contingency for differently-abled students (≥40% disability) in AICTE-approved technical diploma/degree programmes", hi: "AICTE-अनुमोदित तकनीकी पाठ्यक्रमों में दिव्यांग छात्रों (≥40% विकलांगता) को ₹50,000/वर्ष + ₹2,000 आकस्मिक अनुदान" },
     tag:     { en: "Student / Disability", hi: "छात्र / दिव्यांगता" },
     annual: 50000,
-    apply:   { en: "https://scholarships.gov.in", hi: "aicte-india.org / scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in", hi: "https://scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥40% disability)","Income Certificate (family income ≤₹8L/year)","AICTE-institution Admission Letter","Mark Sheets","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (≥40%)","आय प्रमाण (≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","मार्कशीट","बैंक खाता (आधार लिंक)"] },
     // Eligibility: student with ≥40% disability in AICTE-approved technical programme, income ≤ ₹8L
