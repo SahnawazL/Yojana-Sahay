@@ -1045,7 +1045,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Purchase subsidies: ₹10,000 on e-2 wheelers, ₹30,000 on e-auto rickshaws, up to ₹2L on EV taxis, 15% on e-tractors & agri EVs. 100% exemption from road tax & registration fees on all EVs (2025–2030). ₹11,373 Cr total allocation.", hi: "खरेदी अनुदान: e-दुचाकी ₹10,000, e-ऑटो रिक्षा ₹30,000, EV टॅक्सी ₹2L पर्यंत, e-ट्रॅक्टर व कृषी EV वर 15%. सर्व EV वर रोड टॅक्स व नोंदणी शुल्क 100% माफ (2025–2030). एकूण ₹11,373 कोटी तरतूद." },
     tag:     { en: "Transport / EV / Green Energy", hi: "परिवहन / EV / हरित ऊर्जा" },
     annual: 30000,
-    apply:   { en: "transport.maharashtra.gov.in / through authorised dealer at RTO registration", hi: "transport.maharashtra.gov.in / अधिकृत डीलरमार्फत RTO नोंदणीवेळी" }, applyType: "online",
+    apply:   { en: "https://transport.maharashtra.gov.in", hi: "transport.maharashtra.gov.in / अधिकृत डीलरमार्फत RTO नोंदणीवेळी" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Vehicle Purchase Invoice (approved EV model)", "Maharashtra Address Proof", "Bank Passbook", "Vehicle Registration Certificate (RC)"],
                hi: ["आधार कार्ड", "वाहन खरेदी चलान (मंजूर EV मॉडेल)", "महाराष्ट्र पता प्रमाण", "बैंक पासबुक", "वाहन नोंदणी प्रमाणपत्र (RC)"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6","6to10"].includes(a.income),
