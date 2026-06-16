@@ -93,7 +93,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹10,000 – ₹25,000 scholarship for meritorious students in 10th/12th board exams", hi: "10वीं/12वीं बोर्ड में मेधावी छात्रों को ₹10,000–₹25,000 छात्रवृत्ति" },
     tag:     { en: "Student / Scholarship", hi: "छात्र / छात्रवृत्ति" },
     annual: 25000,
-    apply:   { en: "scholarships.punjab.gov.in", hi: "scholarships.punjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.punjab.gov.in", hi: "scholarships.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","10th/12th Marksheet","Income Certificate","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","10वीं/12वीं मार्कशीट","आय प्रमाण पत्र","बैंक खाता","पंजाब अधिवास"] },
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
