@@ -261,7 +261,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "Full tuition fee reimbursement + ₹1,200–₹2,250/month maintenance allowance for SC students in Class 11 to PhD", hi: "SC छात्रों के लिए पूर्ण ट्यूशन शुल्क + ₹1,200–₹2,250/माह रखरखाव भत्ता (कक्षा 11 से PhD तक)" },
     tag:     { en: "Student / SC Scholarship", hi: "छात्र / SC छात्रवृत्ति" },
     annual: 27000,
-    apply:   { en: "scholarships.punjab.gov.in", hi: "scholarships.punjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.punjab.gov.in", hi: "scholarships.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC)","Previous Year Marksheet","Income Certificate (≤₹2.5L/year)","Bank Account","Admission Receipt"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC)","पिछले वर्ष की मार्कशीट","आय प्रमाण (≤₹2.5 लाख/वर्ष)","बैंक खाता","प्रवेश रसीद"] },
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
