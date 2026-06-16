@@ -1501,7 +1501,7 @@ export const SCHEME_DB = [
     benefit: { en: "4-year defence service: ₹30,000–₹40,000/month · ₹11.71 Lakh Seva Nidhi corpus on exit · 25% retained permanently · Priority in central govt. jobs & entrepreneur support on exit", hi: "4 वर्ष की रक्षा सेवा: ₹30,000–₹40,000/माह · बाहर निकलने पर ₹11.71 लाख सेवा निधि · 25% स्थायी · केंद्र सरकार की नौकरियों में प्राथमिकता" },
     tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
     annual: 360000,
-    apply:   { en: "https://agnipathvayu.cdac.in", hi: "joinindianarmy.nic.in / joinindiannavy.gov.in / agnipathvayu.cdac.in" }, applyType: "online",
+    apply:   { en: "https://agnipathvayu.cdac.in", hi: "https://agnipathvayu.cdac.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 10 & 12 Mark Sheet + Certificate","Medical Fitness Certificate","Age Proof (17.5–21 years)","Physical Fitness Certificate","Character Certificate","Bank Account"],
                hi: ["आधार कार्ड","कक्षा 10/12 मार्कशीट और प्रमाण पत्र","चिकित्सा स्वास्थ्य प्रमाण पत्र","आयु प्रमाण (17.5–21 वर्ष)","शारीरिक फिटनेस प्रमाण पत्र","चरित्र प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: Indian youth aged 17.5–21 years, physically & medically fit, Class 10/12 pass
