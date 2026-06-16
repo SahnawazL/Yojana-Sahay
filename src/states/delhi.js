@@ -137,7 +137,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "₹2,500/month pension for persons with 40%+ disability", hi: "40%+ दिव्यांगता वाले व्यक्तियों को ₹2,500 प्रतिमाह पेंशन" },
     tag:     { en: "Disability", hi: "दिव्यांग कल्याण" },
     annual: 30000,
-    apply:   { en: "edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
+    apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "Delhi Address Proof", "Income Certificate", "Bank Passbook"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+)", "दिल्ली पता प्रमाण", "आय प्रमाण पत्र", "बैंक पासबुक"] },
     match: (a) => a.state === "Delhi",
