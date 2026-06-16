@@ -31,7 +31,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹6,000/year · Social security (insurance + pension) for EWS families", hi: "₹6,000/वर्ष · ईडब्ल्यूएस परिवारों को बीमा + पेंशन सुरक्षा" },
     tag:     { en: "Social Security / Insurance", hi: "सामाजिक सुरक्षा / बीमा" },
     annual: 6000,
-    apply:   { en: "cm-psy.haryana.gov.in", hi: "cm-psy.haryana.gov.in" }, applyType: "online",
+    apply:   { en: "https://cm-psy.haryana.gov.in", hi: "cm-psy.haryana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parivar Pehchan Patra (PPP)","Income Certificate (≤₹1.80 Lakh/year)","Bank Account"],
                hi: ["आधार कार्ड","परिवार पहचान पत्र (PPP)","आय प्रमाण (≤₹1.80 लाख/वर्ष)","बैंक खाता"] },
     // Eligibility: Haryana resident, family income ≤ ₹1.80 lakh/year, age 18–50
