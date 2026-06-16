@@ -286,7 +286,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹3,000/month to women aged 45+ who have no son (to support girl child & women with daughters only)", hi: "बिना बेटे वाली 45+ वर्ष की महिलाओं को ₹3,000/माह (बालिका संरक्षण हेतु)" },
     tag:     { en: "Women / Girl Child Support", hi: "महिला / बालिका सहायता" },
     annual: 36000,
-    apply:   { en: "socialjusticehry.gov.in", hi: "socialjusticehry.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjusticehry.gov.in", hi: "socialjusticehry.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof","Parivar Pehchan Patra","Bank Account","Affidavit (no male child)","Income Certificate (≤₹2 Lakh/year)"],
                hi: ["आधार कार्ड","आयु प्रमाण","परिवार पहचान पत्र","बैंक खाता","शपथ पत्र (पुत्र न होने का)","आय प्रमाण (≤₹2 लाख/वर्ष)"] },
     // Eligibility: Haryana woman aged 45+, no male child, income ≤ ₹2 lakh/year
