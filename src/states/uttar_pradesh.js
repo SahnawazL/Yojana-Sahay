@@ -53,7 +53,7 @@ export const UTTAR_PRADESH_SCHEMES = [
                hi: "COVID-19 या किसी अन्य कारण से माता-पिता में से एक या दोनों को खोने वाले 18 वर्ष से कम बच्चों को ₹2,500/माह; अटल आवासीय विद्यालयों में निःशुल्क आवासीय शिक्षा; बड़े बच्चों को निःशुल्क टैबलेट/लैपटॉप; लड़कियों को शादी या 21 वर्ष तक सहायता; मासिक राशि सीधे बैंक खाते में" },
     tag:     { en: "Child / Orphan / Social Support", hi: "बच्चे / अनाथ / सामाजिक सहायता" },
     annual: 30000,
-    apply:   { en: "wecd.up.gov.in / District Probation Officer office", hi: "wecd.up.gov.in / जिला प्रोबेशन अधिकारी कार्यालय" }, applyType: "online",
+    apply:   { en: "https://wecd.up.gov.in", hi: "wecd.up.gov.in / जिला प्रोबेशन अधिकारी कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (child and guardian)", "Child's Birth Certificate", "Death Certificate of parent(s)", "Guardian's ID and Relationship Proof", "Bank Account (child/guardian, Aadhaar-linked)", "UP Residence Proof", "School Enrollment Certificate"],
                hi: ["आधार कार्ड (बच्चे और अभिभावक का)", "बच्चे का जन्म प्रमाण पत्र", "माता-पिता का मृत्यु प्रमाण पत्र", "अभिभावक की पहचान और संबंध प्रमाण", "बैंक खाता (बच्चे/अभिभावक, आधार-लिंक्ड)", "UP निवास प्रमाण", "स्कूल नामांकन प्रमाण पत्र"] },
     match: (a) => a.state === "Uttar Pradesh" && ["below1","1to3"].includes(a.income),
