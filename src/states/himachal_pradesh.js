@@ -395,7 +395,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "50% subsidy (up to ₹50,000) on purchase of electric taxi for unemployed HP youth (18–45 years)", hi: "18–45 वर्ष के बेरोजगार HP युवाओं को इलेक्ट्रिक टैक्सी खरीदने पर 50% सब्सिडी (₹50,000 तक)" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "himachal.nic.in", hi: "himachal.nic.in" }, applyType: "online",
+    apply:   { en: "https://himachal.nic.in", hi: "himachal.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","HP Domicile Certificate","Driving Licence (Commercial)","Age Proof (18–45 years)","Bank Account","Income Certificate","Unemployment Certificate from Employment Exchange"],
                hi: ["आधार कार्ड","हिमाचल अधिवास प्रमाण","ड्राइविंग लाइसेंस (व्यावसायिक)","आयु प्रमाण (18–45 वर्ष)","बैंक खाता","आय प्रमाण पत्र","रोजगार कार्यालय से बेरोजगारी प्रमाण पत्र"] },
     match: (a) => a.state === "Himachal Pradesh" && ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
