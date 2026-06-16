@@ -297,7 +297,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "Tuition fee reimbursement + maintenance allowance up to ₹1,000/month for OBC students in Class 11 and above", hi: "कक्षा 11 और उससे ऊपर के OBC छात्रों को शिक्षण शुल्क + ₹1,000/माह रखरखाव भत्ता" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 12000,
-    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC Certificate (Non-Creamy Layer)","Mark Sheets","Income Certificate (below ₹1 Lakh/year)","HP Domicile Certificate","College / School Enrollment Proof","Bank Account"],
                hi: ["आधार कार्ड","ओबीसी प्रमाण पत्र (नॉन-क्रीमी लेयर)","मार्कशीट","आय प्रमाण पत्र (₹1 लाख/वर्ष से कम)","हिमाचल अधिवास प्रमाण","कॉलेज/स्कूल नामांकन प्रमाण","बैंक खाता"] },
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income),
