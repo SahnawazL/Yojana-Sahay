@@ -525,7 +525,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Subsidy up to ₹50,000 on fishing boats, nets & equipment for marine & inland fishermen", hi: "समुद्री व अंतर्देशीय मछुआरों को नाव, जाल और उपकरण पर ₹50,000 तक सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "fisheries.karnataka.gov.in", hi: "fisheries.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://fisheries.karnataka.gov.in", hi: "fisheries.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Fisherman Identity Card", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "मछुआरा पहचान पत्र", "बैंक खाता", "फोटो"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer" && ["below1", "1to3"].includes(a.income),
