@@ -647,7 +647,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹5 Lakh cash award + trophy for outstanding sportspersons + free coaching & kit under Sports Nursery Scheme for rural youth aged 8–19", hi: "उत्कृष्ट खिलाड़ियों को ₹5 लाख नकद + ट्रॉफी + क्रीडा रोपवाटिका के तहत 8–19 वर्ष ग्रामीण युवाओं को मुफ्त कोचिंग व किट" },
     tag:     { en: "Sports / Youth", hi: "क्रीडा / युवा" },
     annual: 500000,
-    apply:   { en: "sports.maharashtra.gov.in", hi: "sports.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://sports.maharashtra.gov.in", hi: "sports.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof", "Sports Achievement Certificates (district/state/national level)", "Maharashtra Domicile", "Photo", "Bank Passbook", "NOC from School / Club"],
                hi: ["आधार कार्ड", "आयु प्रमाण", "खेल उपलब्धि प्रमाण पत्र (जिला/राज्य/राष्ट्रीय स्तर)", "महाराष्ट्र अधिवास", "फोटो", "बैंक पासबुक", "स्कूल/क्लब से NOC"] },
     match: (a) => a.state === "Maharashtra" && ["18to35","below18"].includes(a.age),
