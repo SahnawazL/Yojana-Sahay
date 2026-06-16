@@ -509,7 +509,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Health insurance up to ₹5 Lakh/year for APL families not covered under Ayushman Bharat", hi: "आयुष्मान भारत से बाहर APL परिवारों को ₹5 लाख/वर्ष स्वास्थ्य बीमा" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "karunadu.karnataka.gov.in", hi: "karunadu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://karunadu.karnataka.gov.in", hi: "karunadu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card (APL/non-BPL)", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "राशन कार्ड (APL/गैर-BPL)", "आय प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["1to3", "3to6"].includes(a.income),
