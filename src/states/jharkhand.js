@@ -105,7 +105,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹5,000/acre/year for small & marginal farmers (up to 5 acres)", hi: "छोटे व सीमांत किसानों को ₹5,000/एकड़/वर्ष (5 एकड़ तक)" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 25000,
-    apply:   { en: "mmkay.jharkhand.gov.in", hi: "mmkay.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://mmkay.jharkhand.gov.in", hi: "mmkay.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (Khatiyan / Khasra)", "Bank Account (Aadhaar-linked)", "Ration Card"],
                hi: ["आधार कार्ड", "भूमि अभिलेख (खतियान / खसरा)", "बैंक खाता (आधार से लिंक)", "राशन कार्ड"] },
     match: (a) => a.state === "Jharkhand" && a.who === "farmer" && ["below1","1to3"].includes(a.income),
