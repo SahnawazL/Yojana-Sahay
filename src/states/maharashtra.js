@@ -201,7 +201,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹600/month state pension for persons with 80%+ disability (BPL)", hi: "80%+ दिव्यांग BPL व्यक्तियों को ₹600/माह राज्य पेंशन" },
     tag:     { en: "Disability / Pension", hi: "दिव्यांग / पेंशन" },
     annual: 7200,
-    apply:   { en: "aaplesarkar.mahaonline.gov.in", hi: "aaplesarkar.mahaonline.gov.in" }, applyType: "online",
+    apply:   { en: "https://aaplesarkar.mahaonline.gov.in", hi: "aaplesarkar.mahaonline.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (80%+, from Civil Surgeon)", "BPL / Income Certificate", "Bank Passbook", "Maharashtra Domicile"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (80%+, सिविल सर्जन से)", "BPL/आय प्रमाण", "बैंक पासबुक", "महाराष्ट्र अधिवास प्रमाण"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
