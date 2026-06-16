@@ -63,7 +63,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹2,000/month to the woman head of every BPL household",   hi: "हर BPL घर की महिला मुखिया को ₹2,000/माह" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 24000,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card (BPL)", "Bank Account (women's name)", "Domicile Certificate"],
                hi: ["आधार कार्ड", "राशन कार्ड (BPL)", "बैंक खाता (महिला के नाम)", "अधिवास प्रमाण"] },
     match: (a) => a.state === "Karnataka" && a.who === "women" && ["below1", "1to3"].includes(a.income),
