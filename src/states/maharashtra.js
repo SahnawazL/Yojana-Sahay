@@ -321,7 +321,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Free permanent pucca house (269 sq ft carpet) for eligible slum dwellers in Maharashtra", hi: "पात्र झुग्गीवासियों को मुफ्त पक्का मकान (269 वर्ग फुट कार्पेट)" },
     tag:     { en: "Housing / Urban Poor", hi: "आवास / शहरी गरीब" },
     annual: 500000,
-    apply:   { en: "https://sra.gov.in", hi: "sra.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://sra.gov.in", hi: "sra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Slum Identity Card / Electoral Roll (pre-2000 residence proof)", "Ration Card", "Passport Photo", "Bank Passbook"],
                hi: ["आधार कार्ड", "स्लम पहचान पत्र / मतदाता सूची (2000 से पहले निवास प्रमाण)", "राशन कार्ड", "पासपोर्ट फोटो", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["urban","semi"].includes(a.area) && ["below1","1to3"].includes(a.income),
