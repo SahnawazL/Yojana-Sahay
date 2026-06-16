@@ -5689,9 +5689,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                           borderRadius: 99,
                           cursor:       "pointer",
                           userSelect:   "none",
-                          border:       `1px solid ${active ? "#f59e0b" : th.border}`,
-                          background:   active ? "rgba(245,158,11,0.15)" : "transparent",
-                          color:        active ? "#f59e0b" : th.textSub,
+                          border:       `1px solid ${active ? "#f59e0b" : (dark ? "#3a3a3d" : th.border)}`,
+                          background:   active ? "rgba(245,158,11,0.15)" : th.card2,
+                          color:        active ? "#f59e0b" : th.text,
                           transition:   "all 0.15s",
                         }
                       })}
@@ -5729,7 +5729,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
                   return (
                     <div key={sid} style={{
-                      background:   isFixed ? "rgba(16,185,129,0.06)" : th.rowBg ?? "rgba(255,255,255,0.02)",
+                      background:   isFixed ? "rgba(16,185,129,0.06)" : (dark ? "rgba(255,255,255,0.025)" : "rgba(0,0,0,0.02)"),
                       border:       `1px solid ${isFixed ? "#10b981" : typeColor}30`,
                       borderLeft:   `3px solid ${isFixed ? "#10b981" : typeColor}`,
                       borderRadius: 8,
@@ -5765,7 +5765,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                             <div style={{
                               fontSize: 9, color: th.textSub, fontFamily: "monospace",
                               marginTop: 2, wordBreak: "break-all",
-                              background: "rgba(255,255,255,0.04)",
+                              background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.035)",
                               borderRadius: 4, padding: "2px 5px",
                             }}>
                               current: {rawUrl}
@@ -5845,8 +5845,8 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                                           padding: "3px 8px", borderRadius: 6,
                                           cursor: "pointer", userSelect: "none",
                                           border: `1px solid ${isSelected ? "#8b5cf6" : th.border}`,
-                                          background: isSelected ? "rgba(139,92,246,0.15)" : "rgba(255,255,255,0.03)",
-                                          color: isSelected ? "#8b5cf6" : th.textSub,
+                                          background: isSelected ? "rgba(139,92,246,0.15)" : (dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
+                                          color: isSelected ? "#8b5cf6" : th.text,
                                           wordBreak: "break-all",
                                         }
                                       })}
@@ -5880,7 +5880,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                           {(type === "TEXT_ONLY" || type === "NO_URL") && (
                             <div style={{
                               fontSize: 9, color: th.textSub,
-                              background: "rgba(255,255,255,0.03)",
+                              background: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
                               borderRadius: 5, padding: "4px 8px",
                             }}>
                               {type === "TEXT_ONLY"
@@ -5908,9 +5908,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                           style: {
                             fontSize: 10, fontWeight: p === urlIssuePage ? 800 : 500,
                             padding: "3px 9px", borderRadius: 6, cursor: "pointer",
-                            background: p === urlIssuePage ? "rgba(245,158,11,0.15)" : "transparent",
-                            border: `1px solid ${p === urlIssuePage ? "#f59e0b" : th.border}`,
-                            color: p === urlIssuePage ? "#f59e0b" : th.textSub,
+                            background: p === urlIssuePage ? "rgba(245,158,11,0.15)" : th.card2,
+                            border: `1px solid ${p === urlIssuePage ? "#f59e0b" : (dark ? "#3a3a3d" : th.border)}`,
+                            color: p === urlIssuePage ? "#f59e0b" : th.text,
                             userSelect: "none",
                           }
                         })}
