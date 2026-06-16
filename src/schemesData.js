@@ -1364,7 +1364,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹5 Lakh/year for 5 years · Free training at SAI centres + coaching, nutrition, equipment, travel & insurance support", hi: "5 वर्षों के लिए ₹5 लाख/वर्ष · SAI केंद्रों पर मुफ्त प्रशिक्षण + कोचिंग, पोषण, उपकरण, यात्रा और बीमा सहायता" },
     tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
     annual: 500000,
-    apply:   { en: "kheloindia.gov.in / State Sports Authority / District Sports Officer", hi: "kheloindia.gov.in / राज्य खेल प्राधिकरण / जिला खेल अधिकारी" }, applyType: "online",
+    apply:   { en: "https://kheloindia.gov.in", hi: "kheloindia.gov.in / राज्य खेल प्राधिकरण / जिला खेल अधिकारी" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof","State / National Level Sports Performance Certificate","School or College Enrollment Certificate","Bank Account (Aadhaar-linked)","Passport Photo","Coach Recommendation Letter"],
                hi: ["आधार कार्ड","आयु प्रमाण","राज्य/राष्ट्रीय स्तर का खेल प्रदर्शन प्रमाण पत्र","स्कूल/कॉलेज नामांकन प्रमाण","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो","कोच अनुशंसा पत्र"] },
     // Eligibility: young athletes under 18 (school) or under 21 (college) with state/national sports achievement
