@@ -136,7 +136,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹3,000/month for persons with ≥ 60% disability", hi: "≥60% दिव्यांगता वाले व्यक्तियों को ₹3,000/माह" },
     tag:     { en: "Disability / Allowance", hi: "दिव्यांगता / भत्ता" },
     annual: 36000,
-    apply:   { en: "socialjusticehry.gov.in", hi: "socialjusticehry.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjusticehry.gov.in", hi: "socialjusticehry.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥60% from CMO/Civil Surgeon)","Parivar Pehchan Patra","Bank Account","Income Certificate"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (≥60% CMO/सिविल सर्जन से)","परिवार पहचान पत्र","बैंक खाता","आय प्रमाण पत्र"] },
     // Eligibility: Haryana resident, ≥60% disability, income ≤ ₹3 lakh/year
