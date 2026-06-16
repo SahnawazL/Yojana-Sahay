@@ -327,7 +327,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "₹5 lakh/year cashless medical treatment at empanelled private hospitals for Assam State Govt. employees, pensioners and their dependents — replaces old reimbursement system", hi: "असम सरकार के कर्मचारियों, पेंशनरों एवं परिवार के लिए ₹5 लाख/वर्ष कैशलेस इलाज — पुरानी प्रतिपूर्ति प्रणाली की जगह" },
     tag:     { en: "Health / Govt Employee", hi: "स्वास्थ्य / सरकारी कर्मचारी" },
     annual: 500000,
-    apply:   { en: "mmlsay.assam.gov.in", hi: "mmlsay.assam.gov.in" }, applyType: "online",
+    apply:   { en: "https://mmlsay.assam.gov.in", hi: "mmlsay.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Employee / Pensioner ID","Service Book / PPO (Pension Payment Order)","ABHA Health Card (linked)","Dependent Family Member Proof","Bank Account"],
                hi: ["आधार कार्ड","कर्मचारी/पेंशनर पहचान पत्र","सर्विस बुक/PPO","ABHA हेल्थ कार्ड (लिंक्ड)","आश्रित परिवार सदस्य प्रमाण","बैंक खाता"] },
     match: (a) => a.state === "Assam",
