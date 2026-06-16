@@ -915,7 +915,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "3% interest subvention on loans up to ₹2 Crore for post-harvest infrastructure (cold storage, warehouses, processing units, primary processing centres) for farmers, FPOs & agri-entrepreneurs", hi: "किसान, FPO व कृषी उद्योजकांसाठी कापणीपश्चात पायाभूत सुविधा (शीतगृह, गोदाम, प्रक्रिया युनिट) साठी ₹2 कोटींपर्यंत कर्जावर 3% व्याज सवलत" },
     tag:     { en: "Farmer / Agri Processing / Cold Storage", hi: "किसान / कृषी प्रक्रिया / शीतगृह" },
     annual: 0,
-    apply:   { en: "agriinfra.dac.gov.in / mahadbt.gov.in", hi: "agriinfra.dac.gov.in / mahadbt.gov.in" }, applyType: "online",
+    apply:   { en: "https://agriinfra.dac.gov.in", hi: "agriinfra.dac.gov.in / mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card / Company PAN", "Project Report / DPR", "Land Ownership / Lease Deed", "Bank Loan Sanction Letter", "7/12 Land Extract (farmers)", "FPO / Society Registration (if applicable)"],
                hi: ["आधार कार्ड / कंपनी PAN", "परियोजना रिपोर्ट / DPR", "भूमि स्वामित्व / लीज डीड", "बैंक लोन स्वीकृति पत्र", "7/12 उतारा (किसानों के लिए)", "FPO / सोसायटी पंजीकरण (यदि लागू)"] },
     match: (a) => a.state === "Maharashtra" && (a.who === "farmer" || a.who === "business") && ["3to6","6to10","above10"].includes(a.income),
