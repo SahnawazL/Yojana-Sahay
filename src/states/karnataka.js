@@ -709,7 +709,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Collateral-free working capital loan ₹10,000 → ₹20,000 → ₹50,000 in 3 cycles + digital payment incentive ₹1,200/year", hi: "3 चरणों में ₹10,000 → ₹20,000 → ₹50,000 बिना गारंटी कार्यशील ऋण + ₹1,200/वर्ष डिजिटल भुगतान प्रोत्साहन" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 1200,
-    apply:   { en: "pmsvanidhi.mohua.gov.in", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmsvanidhi.mohua.gov.in", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Vendor Certificate / Letter of Recommendation (LoR) from ULB", "Bank Account"],
                hi: ["आधार कार्ड", "विक्रेता प्रमाण / ULB से सिफारिश पत्र (LoR)", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income) && ["urban", "semi"].includes(a.area),
