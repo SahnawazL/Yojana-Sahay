@@ -963,7 +963,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Monthly stipend ₹6,000–₹10,000 for unemployed youth (18–35) during vocational training/apprenticeship + job placement support; complements Ladki Bahin scheme", hi: "व्यावसायिक प्रशिक्षण/अप्रेंटिसशिप दरम्यान 18–35 वर्षांच्या बेरोजगार युवकांना ₹6,000–₹10,000/माह वेतन + रोजगार प्लेसमेंट सहाय्य" },
     tag:     { en: "Youth / Employment / Stipend", hi: "युवा / रोजगार / वेतन" },
     annual: 120000,
-    apply:   { en: "rojgar.mahaswayam.gov.in", hi: "rojgar.mahaswayam.gov.in" }, applyType: "online",
+    apply:   { en: "https://rojgar.mahaswayam.gov.in", hi: "rojgar.mahaswayam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (12th/ITI/Diploma/Graduate)", "Maharashtra Domicile", "Unemployment Registration Certificate", "Bank Passbook", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षणिक प्रमाण पत्र (12वीं/ITI/डिप्लोमा/ग्रेजुएट)", "महाराष्ट्र अधिवास", "बेरोजगारी पंजीकरण प्रमाण पत्र", "बैंक पासबुक", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Maharashtra" && ["18to35"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
