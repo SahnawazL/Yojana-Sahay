@@ -867,7 +867,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹1,01,000 total in 5 instalments from birth to age 18: ₹5,000 at birth → ₹6,000 (Class 1) → ₹7,000 (Class 6) → ₹8,000 (Class 11) → ₹75,000 lump-sum at 18. For yellow/orange ration card families.", hi: "जन्म से 18 वर्ष तक 5 किश्तों में कुल ₹1,01,000: जन्म पर ₹5,000 → कक्षा 1 में ₹6,000 → कक्षा 6 में ₹7,000 → कक्षा 11 में ₹8,000 → 18 वर्ष पर ₹75,000 एकमुश्त। पीले/नारंगी राशन कार्ड धारक परिवारों के लिए।" },
     tag:     { en: "Women / Girl Child / Education", hi: "महिला / बालिका / शिक्षा" },
     annual: 0,
-    apply:   { en: "womenchild.maharashtra.gov.in / Anganwadi Centre", hi: "womenchild.maharashtra.gov.in / अंगणवाडी केंद्र" }, applyType: "online",
+    apply:   { en: "https://womenchild.maharashtra.gov.in", hi: "womenchild.maharashtra.gov.in / अंगणवाडी केंद्र" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (parent)", "Girl Child's Birth Certificate (born after Apr 1, 2023)", "Yellow / Orange Ration Card", "Bank Account in girl's name", "Maharashtra Domicile"],
                hi: ["आधार कार्ड (माता-पिता)", "बालिका का जन्म प्रमाण पत्र (1 अप्रैल 2023 के बाद जन्म)", "पीला/नारंगी राशन कार्ड", "बालिका के नाम बैंक खाता", "महाराष्ट्र अधिवास"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
