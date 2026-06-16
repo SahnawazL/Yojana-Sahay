@@ -19,7 +19,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹21,000 cash gift on daughter's marriage for BPL families", hi: "BPL परिवारों में बेटी की शादी पर ₹21,000 नकद सहायता" },
     tag:     { en: "Women / Marriage", hi: "महिला / विवाह" },
     annual: 21000,
-    apply:   { en: "sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","BPL Ration Card","Marriage Certificate","Bank Account"],
                hi: ["आधार कार्ड","BPL राशन कार्ड","विवाह प्रमाण पत्र","बैंक खाता"] },
     match: (a) => a.state === "Punjab" && a.who === "women" && ["below1","1to3"].includes(a.income),
