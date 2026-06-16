@@ -321,7 +321,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹500/month kit allowance + ₹5 Lakh cash award for national level + ₹20 Lakh for international medal winners", hi: "₹500/माह किट भत्ता + राष्ट्रीय स्तर पर ₹5 लाख + अंतर्राष्ट्रीय पदक पर ₹20 लाख नकद पुरस्कार" },
     tag:     { en: "Student / Sports", hi: "छात्र / खेल" },
     annual: 6000,
-    apply:   { en: "punjabsports.gov.in", hi: "punjabsports.gov.in" }, applyType: "online",
+    apply:   { en: "https://punjabsports.gov.in", hi: "punjabsports.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Sports Achievement Certificate","Punjab Domicile","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","खेल उपलब्धि प्रमाण पत्र","पंजाब अधिवास","बैंक खाता","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Punjab" && ["18to35"].includes(a.age),
