@@ -157,7 +157,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹1.20–₹1.50 Lakh for BPL rural families to build a pucca house", hi: "BPL ग्रामीण परिवारों को पक्का मकान बनाने के लिए ₹1.20–₹1.50 लाख सहायता" },
     tag:     { en: "Housing / Rural", hi: "आवास / ग्रामीण" },
     annual: 150000,
-    apply:   { en: "gramnirman.gujarat.gov.in", hi: "gramnirman.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://gramnirman.gujarat.gov.in", hi: "gramnirman.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "BPL Certificate", "Land / Plot Ownership Proof", "No-House Certificate", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "BPL प्रमाण पत्र", "जमीन/प्लॉट स्वामित्व प्रमाण", "मकान न होने का प्रमाण", "बैंक खाता", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Gujarat" && a.area === "rural" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3"].includes(a.income),
