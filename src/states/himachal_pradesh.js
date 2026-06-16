@@ -199,7 +199,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "Free vocational/skill training + ₹1,000/month stipend + placement assistance for youth (18–35 years)", hi: "18–35 वर्ष के युवाओं को निःशुल्क व्यावसायिक प्रशिक्षण + ₹1,000/माह वजीफा + नौकरी सहायता" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 12000,
-    apply:   { en: "hpkvn.gov.in", hi: "hpkvn.gov.in" }, applyType: "online",
+    apply:   { en: "https://hpkvn.gov.in", hi: "hpkvn.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","HP Domicile Certificate","Educational Certificate (Min. Class 8)","Age Proof (18–35 years)","Passport Size Photo","Bank Account"],
                hi: ["आधार कार्ड","हिमाचल अधिवास प्रमाण","शैक्षणिक प्रमाण पत्र (न्यूनतम कक्षा 8)","आयु प्रमाण (18–35 वर्ष)","पासपोर्ट साइज फोटो","बैंक खाता"] },
     match: (a) => a.state === "Himachal Pradesh" && ["18to35"].includes(a.age),
