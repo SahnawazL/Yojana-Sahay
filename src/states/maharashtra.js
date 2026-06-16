@@ -509,7 +509,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Bundle: ₹5L accidental death, ₹2L natural death, ₹15,000 maternity, ₹1L critical illness, ₹51,000 daughter marriage grant, ₹2,500–₹25,000/yr children scholarship, ₹10,000 tool grant, ₹2L housing aid", hi: "₹5L दुर्घटना मृत्यु, ₹2L स्वाभाविक मृत्यु, ₹15,000 मातृत्व, ₹1L गंभीर बीमारी, ₹51,000 बेटी विवाह, बच्चों की छात्रवृत्ति ₹2,500–₹25,000/वर्ष, ₹10,000 टूल अनुदान, ₹2L आवास सहायता" },
     tag:     { en: "Labour / Construction Worker", hi: "श्रमिक / बांधकाम कामगार" },
     annual: 15000,
-    apply:   { en: "mahabocw.in", hi: "mahabocw.in" }, applyType: "online",
+    apply:   { en: "https://mahabocw.in", hi: "mahabocw.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Proof of 90 days construction work in last 12 months (employer certificate)", "Bank Passbook", "Passport Photo", "Age Proof", "Address Proof"],
                hi: ["आधार कार्ड", "पिछले 12 महीनों में 90 दिन बांधकाम कार्य प्रमाण (नियोक्ता प्रमाण पत्र)", "बैंक पासबुक", "पासपोर्ट फोटो", "आयु प्रमाण", "पता प्रमाण"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
