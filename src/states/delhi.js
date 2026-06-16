@@ -391,7 +391,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "Zero-collateral business loans up to ₹25 lakh + mentorship for young entrepreneurs", hi: "युवा उद्यमियों को ₹25 लाख तक शून्य-जमानत व्यापार ऋण + मार्गदर्शन" },
     tag:     { en: "Entrepreneurship", hi: "उद्यमिता" },
     annual: 0,
-    apply:   { en: "dseu.ac.in/muva", hi: "dseu.ac.in/muva" }, applyType: "online",
+    apply:   { en: "https://dseu.ac.in/muva", hi: "dseu.ac.in/muva" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Delhi Domicile Certificate", "Business Plan / Idea Pitch", "Class 12 Marksheet", "Bank Statement"],
                hi: ["आधार कार्ड", "दिल्ली अधिवास प्रमाण पत्र", "व्यवसाय योजना / आइडिया पिच", "कक्षा 12 अंकतालिका", "बैंक विवरण"] },
     match: (a) => a.state === "Delhi" && a.who === "business" && (a.age === "18to35" || a.age === "35to60"),
