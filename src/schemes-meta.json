@@ -1116,7 +1116,7 @@
     "confidence": 0
   },
   "uk_vatsalya": {
-    "lastVerified": "2026-06-16T07:08:43.706Z",
+    "lastVerified": "2026-06-16T20:36:16.595Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1518,5 +1518,225 @@
     "lastVerified": "2026-06-16T18:24:38.552Z",
     "httpStatus": 0,
     "linkAlive": false
+  },
+  "cg_dr_khoobasuram_health": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_higher_ed_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_solar_suryashakti": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_shauchalay_nirman": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_kaushal_vikas": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_labour_card": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_pre_matric_tribal": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_saur_sujala": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_organic_farming": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_drip_sprinkler": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_msme_subsidy": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "cg_startup_niti": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "uk_nanda_gaura": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "uk_atal_ayushman": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "uk_saur_swarojgar": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "uk_swarozgar_yojana": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "delhi_svnidhi": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "mp_nishakt_vivah": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ts_t_pride": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ts_prematric_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ts_dalit_bandhu": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ts_stree_nidhi": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ts_micro_irrigation": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ts_overseas_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ts_minority_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ts_t_fiber": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ts_rajiv_yuva_vikasam": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "odisha_samrudha_krushak": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "odisha_gjay": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "punjab_minority_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "manipur_cm_kisan_samman": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "manipur_cm_health_insurance": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "manipur_cm_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "manipur_startup_manipur": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "meghalaya_cm_kisan_samman": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "meghalaya_mhis": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "meghalaya_cm_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "meghalaya_msy_entrepreneur": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "mizoram_health_insurance": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "mizoram_cm_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "nagaland_health_scheme": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "nagaland_cm_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "tripura_cm_krishak_samridhi": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "tripura_mukhyamantri_swasthya": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "tripura_cm_scholarship": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "jk_kisan_samman": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "jk_apple_mission": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "jk_crop_insurance": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "jk_tejaswini": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "jk_sehat_health_insurance": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "jk_himayat": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ladakh_himayat_skill": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "ladakh_sehat_health_insurance": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "an_youth_skill_ddet": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
+  },
+  "an_pmjay_health": {
+    "lastVerified": "2026-06-16T20:36:16.595Z",
+    "linkAlive": true
   }
 }
