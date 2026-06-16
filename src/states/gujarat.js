@@ -185,7 +185,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹25,000/year scholarship for girl students in Science stream (Class 11–12)", hi: "विज्ञान प्रवाह (कक्षा 11–12) की बालिका छात्राओं को ₹25,000/वर्ष छात्रवृत्ति" },
     tag:     { en: "Student / Science", hi: "छात्र / विज्ञान" },
     annual: 25000,
-    apply:   { en: "sebexam.org", hi: "sebexam.org" }, applyType: "online",
+    apply:   { en: "https://sebexam.org", hi: "sebexam.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Enrollment in Science Stream (Class 11 / 12)", "Income Certificate (below ₹6L)", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "विज्ञान प्रवाह में नामांकन (कक्षा 11/12)", "आय प्रमाण (₹6 लाख से कम)", "बैंक खाता", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
