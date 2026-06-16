@@ -633,7 +633,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "25–40% capital subsidy for construction of cold storage, pack houses & primary processing units for farmers / FPOs", hi: "किसानों / FPOs को कोल्ड स्टोरेज, पैक हाउस व प्राथमिक प्रसंस्करण इकाई पर 25–40% पूंजी सब्सिडी" },
     tag:     { en: "Farmer / Agri Infra", hi: "किसान / कृषि अवसंरचना" },
     annual: 0,
-    apply:   { en: "agriinfra.dac.gov.in / agri.gujarat.gov.in", hi: "agriinfra.dac.gov.in / agri.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://agri.gujarat.gov.in", hi: "agriinfra.dac.gov.in / agri.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN Card", "Land Ownership / Lease Proof", "Detailed Project Report (DPR)", "Bank Statement (6 months)", "Caste Certificate (if SC/ST)"],
                hi: ["आधार और पैन कार्ड", "जमीन स्वामित्व / पट्टा प्रमाण", "विस्तृत परियोजना रिपोर्ट (DPR)", "बैंक स्टेटमेंट (6 माह)", "जाति प्रमाण (SC/ST के लिए)"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer",
