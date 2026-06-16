@@ -305,7 +305,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Subsidy up to 50% on climate-resilient farming inputs, farm ponds & micro-irrigation for drought-prone villages", hi: "सूखाग्रस्त गांवों में जलवायु-अनुकूल खेती इनपुट, फार्म पॉन्ड व सूक्ष्म सिंचाई पर 50% तक सब्सिडी" },
     tag:     { en: "Farmer / Climate Resilience", hi: "किसान / जलवायु अनुकूलन" },
     annual: 25000,
-    apply:   { en: "https://pocramaharashtra.gov.in", hi: "pocramaharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://pocramaharashtra.gov.in", hi: "pocramaharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Soil & Water Test Report", "Bank Passbook", "Village Inclusion Certificate (PoCRA village list)"],
                hi: ["आधार कार्ड", "7/12 उतारा", "मिट्टी व पानी जांच रिपोर्ट", "बैंक पासबुक", "ग्राम समावेश प्रमाण (PoCRA ग्राम सूची)"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["below1","1to3","3to6"].includes(a.income),
