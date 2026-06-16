@@ -773,7 +773,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹12,000–₹20,000/year tuition support for nursing / paramedical students from BPL families in Govt. institutes", hi: "सरकारी संस्थानों में BPL परिवार के नर्सिंग/पैरामेडिकल छात्रों को ₹12,000–₹20,000/वर्ष ट्यूशन सहायता" },
     tag:     { en: "Student / Medical Scholarship", hi: "छात्र / मेडिकल छात्रवृत्ति" },
     annual: 20000,
-    apply:   { en: "scholarships.punjab.gov.in", hi: "scholarships.punjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.punjab.gov.in", hi: "scholarships.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Admission Letter (Nursing / Paramedical)","Income Certificate (BPL)","Previous Marksheet","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","प्रवेश पत्र (नर्सिंग/पैरामेडिकल)","आय प्रमाण (BPL)","पिछले वर्ष की मार्कशीट","बैंक खाता","पंजाब अधिवास"] },
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
