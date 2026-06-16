@@ -301,7 +301,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Low-interest loans up to ₹2 Lakh + training & market linkage for women SHGs", hi: "महिला SHG को ₹2 लाख तक कम ब्याज ऋण + प्रशिक्षण और बाज़ार संपर्क" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 0,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SHG Registration Certificate", "Bank Account (SHG)", "Group Meeting Records"],
                hi: ["आधार कार्ड", "SHG पंजीकरण प्रमाण", "SHG बैंक खाता", "समूह बैठक रिकॉर्ड"] },
     match: (a) => a.state === "Karnataka" && a.who === "women",
