@@ -465,7 +465,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "Free 3–6 month vocational training in 200+ trades (IT, construction, garment, hospitality, etc.) + job placement support", hi: "200+ व्यवसायों में 3–6 माह का मुफ्त व्यावसायिक प्रशिक्षण (IT, निर्माण, वस्त्र, आतिथ्य आदि) + नौकरी सहायता" },
     tag:     { en: "Skill / Vocational", hi: "कौशल / व्यावसायिक" },
     annual: 25000,
-    apply:   { en: "https://gsdm.gujarat.gov.in", hi: "gsdm.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://gsdm.gujarat.gov.in", hi: "gsdm.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (min. Class 8)", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षणिक प्रमाण (न्यूनतम कक्षा 8)", "बैंक खाता", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Gujarat" && ["18to35"].includes(a.age) && ["below1", "1to3"].includes(a.income),
