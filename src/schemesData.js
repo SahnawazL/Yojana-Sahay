@@ -805,7 +805,7 @@ export const SCHEME_DB = [
     benefit: { en: "40–60% subsidy on boats, nets & fish farm units (80% for SC/ST/Women)", hi: "नाव, जाल और मछली फार्म पर 40–60% सब्सिडी (SC/ST/महिलाओं को 80%)" },
     tag:     { en: "Fisherman / Farmer", hi: "मछुआरा / किसान" },
     annual: 0,
-    apply:   { en: "pmmsy.dof.gov.in", hi: "pmmsy.dof.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmmsy.dof.gov.in", hi: "pmmsy.dof.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST if applicable)","Bank Account","Land / Water Body Lease Proof","Fisherman Registration Certificate"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST हो तो)","बैंक खाता","जमीन/जल निकाय पट्टा","मछुआरा पंजीकरण प्रमाण"] },
     // Eligibility: fishermen, fish farmers, aquaculture workers
