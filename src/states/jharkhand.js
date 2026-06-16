@@ -283,7 +283,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹5,000 tool grant + children's scholarship + ₹20,000 maternity benefit for registered construction workers", hi: "पंजीकृत निर्माण मजदूरों को ₹5,000 औज़ार अनुदान + बच्चों की छात्रवृत्ति + ₹20,000 प्रसूति लाभ" },
     tag:     { en: "Labour / Construction", hi: "श्रमिक / निर्माण" },
     annual: 5000,
-    apply:   { en: "bocboard.jharkhand.gov.in", hi: "bocboard.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://bocboard.jharkhand.gov.in", hi: "bocboard.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "BOCW Registration Card (Labour Card)", "90-day Work Certificate from Contractor", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "BOCW पंजीकरण कार्ड (लेबर कार्ड)", "ठेकेदार से 90 दिन कार्य प्रमाण पत्र", "बैंक खाता", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Jharkhand" && ["general","business"].includes(a.who) && ["below1","1to3","3to6"].includes(a.income),
