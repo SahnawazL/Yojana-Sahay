@@ -787,7 +787,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Registration + helpline support + access to food, shelter & medical aid for inter-state migrant workers employed in Maharashtra; state-level nodal centres in 6 major cities", hi: "महाराष्ट्र में कार्यरत अंतर-राज्यीय प्रवासी कामगारों का पंजीकरण + हेल्पलाइन सहायता + भोजन, आश्रय व चिकित्सा सहायता; 6 प्रमुख शहरों में नोडल केंद्र" },
     tag:     { en: "Labour / Migrant Worker", hi: "श्रमिक / स्थलांतर कामगार" },
     annual: 0,
-    apply:   { en: "mahalabour.gov.in / e-Shram portal (eshram.gov.in)", hi: "mahalabour.gov.in / e-Shram पोर्टल (eshram.gov.in)" }, applyType: "online",
+    apply:   { en: "https://mahalabour.gov.in", hi: "mahalabour.gov.in / e-Shram पोर्टल (eshram.gov.in)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "e-Shram UAN Card", "Employer Contract / Letter", "Bank Passbook", "Passport Photo"],
                hi: ["आधार कार्ड", "e-Shram UAN कार्ड", "नियोक्ता अनुबंध / पत्र", "बैंक पासबुक", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
