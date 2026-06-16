@@ -185,7 +185,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹5 Lakh/year free cashless treatment at empanelled hospitals for all Punjab residents", hi: "पंजाब निवासियों को सूचीबद्ध अस्पतालों में ₹5 लाख/वर्ष मुफ्त नकद-रहित इलाज" },
     tag:     { en: "Health / Insurance", hi: "स्वास्थ्य / बीमा" },
     annual: 500000,
-    apply:   { en: "shapunjab.gov.in", hi: "shapunjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://shapunjab.gov.in", hi: "shapunjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Punjab Domicile / Voter ID","Ration Card or e-Card (SSBY)"],
                hi: ["आधार कार्ड","पंजाब अधिवास / मतदाता पहचान पत्र","राशन कार्ड या ई-कार्ड (SSBY)"] },
     match: (a) => a.state === "Punjab" && ["below1","1to3","3to6"].includes(a.income),
