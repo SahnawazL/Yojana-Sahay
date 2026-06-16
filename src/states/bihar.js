@@ -239,7 +239,7 @@ export const BIHAR_SCHEMES = [
                hi: "खरीफ फसलों के दौरान सूखे/शुष्क अवधि में डीज़ल पंप सिंचाई के लिए ₹50/लीटर (अधिकतम 400 लीटर/एकड़, 8 एकड़ तक) की सब्सिडी; सीधे बैंक खाते में" },
     tag:     { en: "Farmer / Irrigation", hi: "किसान / सिंचाई" },
     annual: 20000,
-    apply:   { en: "dbtagriculture.bihar.gov.in", hi: "dbtagriculture.bihar.gov.in" }, applyType: "online",
+    apply:   { en: "https://dbtagriculture.bihar.gov.in", hi: "dbtagriculture.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khesra / Khatian)","Bank Account (Aadhaar-linked)","Farmer Registration on DBT Portal","Diesel purchase receipt / pump operator certificate","Mobile number (Aadhaar-linked)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खेसरा / खतियान)","बैंक खाता (आधार-लिंक्ड)","DBT पोर्टल पर किसान पंजीकरण","डीज़ल खरीद रसीद / पंप ऑपरेटर प्रमाण पत्र","मोबाइल नंबर (आधार-लिंक्ड)"] },
     match: (a) => a.state === "Bihar" && a.who === "farmer",
