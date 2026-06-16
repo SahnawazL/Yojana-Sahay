@@ -129,7 +129,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹1.20 Lakh housing grant for SC/Nav-Buddhist BPL families (state top-up to PMAY)", hi: "SC/नव-बौद्ध BPL परिवारों को ₹1.20 लाख आवास अनुदान" },
     tag:     { en: "Housing / SC", hi: "आवास / SC" },
     annual: 120000,
-    apply:   { en: "rhgrhay.maharashtra.gov.in", hi: "rhgrhay.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://rhgrhay.maharashtra.gov.in", hi: "rhgrhay.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC / Nav-Buddhist Caste Certificate", "BPL Certificate", "7/12 Land Extract or Plot Allotment Letter", "Bank Passbook"],
                hi: ["आधार कार्ड", "SC/नव-बौद्ध जाति प्रमाण पत्र", "BPL प्रमाण पत्र", "7/12 उतारा या भूखंड आवंटन पत्र", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income),
