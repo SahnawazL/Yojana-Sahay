@@ -45,7 +45,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹1,500/month to women aged 21–65 with income below ₹2.5 Lakh/year", hi: "21–65 वर्ष की महिलाओं को ₹1,500/माह (वार्षिक आय ₹2.5 लाख से कम)" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 18000,
-    apply:   { en: "ladakibahin.maharashtra.gov.in", hi: "ladakibahin.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://ladakibahin.maharashtra.gov.in", hi: "ladakibahin.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","Bank Account (women's name)","Income Certificate","Maharashtra Domicile"],
                hi: ["आधार कार्ड","राशन कार्ड","बैंक खाता (महिला के नाम)","आय प्रमाण","महाराष्ट्र अधिवास प्रमाण"] },
     match: (a) => a.state === "Maharashtra" && a.who === "women" && ["below1","1to3"].includes(a.income),
