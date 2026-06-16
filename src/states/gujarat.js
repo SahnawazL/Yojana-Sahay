@@ -227,7 +227,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹1,000/month pension + free assistive devices (wheelchair, hearing aid, etc.) for persons with disability (40%+)", hi: "₹1,000/माह पेंशन + मुफ्त सहायक उपकरण (व्हीलचेयर, श्रवण यंत्र आदि) 40%+ दिव्यांगजनों को" },
     tag:     { en: "Disability / Pension", hi: "दिव्यांग / पेंशन" },
     annual: 12000,
-    apply:   { en: "esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ disability from Govt. Hospital)", "Income Certificate", "Domicile Certificate", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (सरकारी अस्पताल से 40%+)", "आय प्रमाण", "अधिवास प्रमाण", "बैंक खाता", "फोटो"] },
     match: (a) => a.state === "Gujarat" && ["below1", "1to3"].includes(a.income),
