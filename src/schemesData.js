@@ -496,7 +496,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹2.5 Lakh central subsidy for EWS/LIG house construction or purchase", hi: "EWS/LIG को मकान निर्माण/खरीद पर ₹2.5 लाख केंद्रीय सब्सिडी" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 250000,
-    apply:   { en: "pmaymis.gov.in", hi: "pmaymis.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmaymis.gov.in", hi: "pmaymis.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Income Proof (EWS/LIG)","No Property Certificate","Bank Statement","Marriage Certificate"],
                hi: ["आधार कार्ड","आय प्रमाण (EWS/LIG)","संपत्ति न होने का प्रमाण","बैंक स्टेटमेंट","विवाह प्रमाण"] },
     match: (a) => ["no","kutcha"].includes(a.house) && ["below1","1to3","3to6"].includes(a.income) && ["urban","semi"].includes(a.area),
