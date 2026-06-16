@@ -165,7 +165,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹1,000/month for persons with 40%+ disability", hi: "40%+ विकलांगता वाले व्यक्तियों को ₹1,000/माह" },
     tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
     annual: 12000,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "BPL Card", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+)", "BPL कार्ड", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
