@@ -287,7 +287,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹1,000/month pension for BPL widows (18–64 yrs)", hi: "BPL विधवाओं (18–64 वर्ष) को ₹1,000/माह पेंशन" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 12000,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Husband's Death Certificate", "BPL Ration Card", "Bank Account", "Domicile Certificate"],
                hi: ["आधार कार्ड", "पति का मृत्यु प्रमाण", "BPL राशन कार्ड", "बैंक खाता", "अधिवास प्रमाण"] },
     match: (a) => a.state === "Karnataka" && a.who === "women" && ["below1", "1to3"].includes(a.income),
