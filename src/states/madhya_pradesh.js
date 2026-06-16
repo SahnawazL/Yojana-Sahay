@@ -143,7 +143,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     benefit: { en: "Loan ₹10L – ₹1 Crore at 5% interest · 15–30% margin money (subsidy) for youth businesses", hi: "5% ब्याज पर ₹10 लाख–₹1 करोड़ लोन · 15–30% मार्जिन मनी अनुदान" },
     tag:     { en: "Business / Youth", hi: "व्यापार / युवा" },
     annual: 0,
-    apply:   { en: "msme.mponline.gov.in", hi: "msme.mponline.gov.in" }, applyType: "online",
+    apply:   { en: "https://msme.mponline.gov.in", hi: "msme.mponline.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN Card","Class 10 Pass Certificate","Business Plan / Project Report","Bank Statement (6 months)","Caste Certificate (if SC/ST/OBC)","Passport Photo"],
                hi: ["आधार और पैन कार्ड","कक्षा 10 उत्तीर्ण प्रमाण","व्यापार योजना/प्रोजेक्ट रिपोर्ट","6 महीने बैंक स्टेटमेंट","जाति प्रमाण पत्र (SC/ST/OBC हो तो)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Madhya Pradesh" && a.who === "business" && ["18to35"].includes(a.age),
