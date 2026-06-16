@@ -143,7 +143,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹600/month pension for destitute, disabled, widows & orphans not covered by other pensions", hi: "अन्य पेंशन से वंचित असहाय, विकलांग, विधवा व अनाथों को ₹600/माह" },
     tag:     { en: "Pension / Senior", hi: "पेंशन / वरिष्ठ" },
     annual: 7200,
-    apply:   { en: "aaplesarkar.mahaonline.gov.in", hi: "aaplesarkar.mahaonline.gov.in" }, applyType: "online",
+    apply:   { en: "https://aaplesarkar.mahaonline.gov.in", hi: "aaplesarkar.mahaonline.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (≤₹21,000/year)", "Disability / Widow / Destitute Proof", "Bank Passbook", "Maharashtra Domicile"],
                hi: ["आधार कार्ड", "आय प्रमाण (≤₹21,000/वर्ष)", "विकलांगता/विधवा/निराधार प्रमाण", "बैंक पासबुक", "महाराष्ट्र अधिवास प्रमाण"] },
     match: (a) => a.state === "Maharashtra" && ["below1"].includes(a.income) && (a.who === "senior" || a.who === "women" || a.age === "above60"),
