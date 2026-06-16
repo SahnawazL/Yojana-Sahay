@@ -601,7 +601,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Full scholarship for SC students to study abroad — tuition + living + travel (up to ₹12 Lakh/year) for Master's / PhD at top global universities", hi: "SC छात्रों के विदेशी उच्च शिक्षा के लिए पूर्ण छात्रवृत्ति — ट्यूशन + जीवनयापन + यात्रा (₹12 लाख/वर्ष तक), मास्टर्स/PhD" },
     tag:     { en: "Student / SC / Overseas", hi: "छात्र / SC / विदेशी शिक्षा" },
     annual: 1200000,
-    apply:   { en: "mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "Income Certificate (family ≤₹6L/year)", "Admission Letter from QS Top-500 Foreign University", "Degree Marksheet (min. 60%)", "Bank Passbook", "Passport"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "आय प्रमाण (परिवार ≤₹6 लाख/वर्ष)", "QS Top-500 विदेशी विश्वविद्यालय का प्रवेश पत्र", "डिग्री मार्कशीट (न्यूनतम 60%)", "बैंक पासबुक", "पासपोर्ट"] },
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
