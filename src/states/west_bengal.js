@@ -173,7 +173,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "BPL/SEGY परिवारों के 18–45 वर्ष के शिक्षित बेरोजगार युवाओं को 3 वर्ष तक ₹1,500/माह; न्यूनतम कक्षा 8 उत्तीर्ण; WB रोजगार बैंक में पंजीकरण और प्रशिक्षण/शिक्षुता से जुड़ा" },
     tag:     { en: "Youth / Unemployment Allowance", hi: "युवा / बेरोजगारी भत्ता" },
     annual: 18000,
-    apply:   { en: "employmentbankwb.gov.in", hi: "employmentbankwb.gov.in" }, applyType: "online",
+    apply:   { en: "https://employmentbankwb.gov.in", hi: "employmentbankwb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 8 Pass Certificate (minimum)","BPL / SEGY Certificate (or Ration Card)","Employment Bank Registration Certificate","Bank Account (Aadhaar-linked)","Residence Proof (West Bengal)","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 8 उत्तीर्ण प्रमाण पत्र (न्यूनतम)","BPL/SEGY प्रमाण पत्र (या राशन कार्ड)","रोजगार बैंक पंजीकरण प्रमाण पत्र","बैंक खाता (आधार-लिंक्ड)","निवास प्रमाण (पश्चिम बंगाल)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "West Bengal" && a.age === "18to35" && ["below1","1to3"].includes(a.income),
