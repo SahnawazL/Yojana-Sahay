@@ -773,7 +773,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹5,000–₹20,000/year + free assistive devices for students with 40%+ disability", hi: "40%+ विकलांगता वाले छात्रों को ₹5,000–₹20,000/वर्ष + मुफ्त सहायक उपकरण" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 20000,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "School/College Enrollment Proof", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+)", "स्कूल/कॉलेज नामांकन प्रमाण", "आय प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "student",
