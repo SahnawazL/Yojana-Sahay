@@ -605,7 +605,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "Gujarat state pays 100% farmer premium; free coverage ₹40,000–₹60,000/ha against drought, flood & pest crop loss", hi: "गुजरात राज्य 100% किसान प्रीमियम वहन करता है; सूखे, बाढ़ व कीटों से ₹40,000–₹60,000/हेक्टेयर मुफ्त फसल बीमा" },
     tag:     { en: "Farmer / Crop Insurance", hi: "किसान / फसल बीमा" },
     annual: 50000,
-    apply:   { en: "pmfby.gov.in / ikhedut.gujarat.gov.in", hi: "pmfby.gov.in / ikhedut.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmfby.gov.in", hi: "pmfby.gov.in / ikhedut.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (7/12 Utara)", "Bank Passbook", "Crop Sowing Certificate"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (7/12 उतारा)", "बैंक पासबुक", "फसल बुवाई प्रमाण"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer",
