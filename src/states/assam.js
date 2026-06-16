@@ -73,7 +73,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "₹1 Lakh cash + free laptop for students scoring Distinction in HSLC", hi: "HSLC में डिस्टिंक्शन पाने पर ₹1 लाख नकद + मुफ्त लैपटॉप" },
     tag:     { en: "Student / Merit", hi: "छात्र / मेधावी" },
     annual: 100000,
-    apply:   { en: "sebaonline.org", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Pragyan Bharati
+    apply:   { en: "https://sebaonline.org", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Pragyan Bharati
     docs:    { en: ["Aadhaar Card","HSLC Marksheet (Distinction)","School Certificate","Bank Account"],
                hi: ["आधार कार्ड","HSLC अंकसूची (डिस्टिंक्शन)","स्कूल प्रमाण पत्र","बैंक खाता"] },
     match: (a) => a.state === "Assam" && a.who === "student",
