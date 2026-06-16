@@ -178,7 +178,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹5,000/month allowance for educated unemployed youth registered with Employment Exchange", hi: "रोजगार कार्यालय में पंजीकृत शिक्षित बेरोजगार युवाओं को ₹5,000/माह भत्ता" },
     tag:     { en: "Youth / Employment", hi: "युवा / रोजगार" },
     annual: 60000,
-    apply:   { en: "rojgar.jharkhand.gov.in", hi: "rojgar.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://rojgar.jharkhand.gov.in", hi: "rojgar.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jharkhand Domicile Certificate", "12th / Graduation Certificate", "Employment Exchange Registration", "Bank Account", "Income Certificate"],
                hi: ["आधार कार्ड", "झारखंड स्थायी निवास प्रमाण", "12वीं / स्नातक प्रमाण पत्र", "रोजगार कार्यालय पंजीकरण", "बैंक खाता", "आय प्रमाण पत्र"] },
     match: (a) => a.state === "Jharkhand" && ["student","general"].includes(a.who) && a.age === "18to35" && ["below1","1to3"].includes(a.income),
