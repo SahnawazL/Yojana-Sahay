@@ -883,7 +883,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Cashless hospitalisation up to ₹1.5L/year (₹2.5L for renal transplants) across 1,000+ empanelled hospitals. Since July 2024, integrated with AB-PMJAY covering all Maharashtra families. 1,000+ surgeries & therapies covered.", hi: "1,000+ सूचीबद्ध अस्पतालों में ₹1.5L/वर्ष तक कॅशलेस उपचार (गुर्दा प्रत्यारोपण ₹2.5L)। जुलाई 2024 से AB-PMJAY के साथ एकत्रित — महाराष्ट्र के सभी परिवार पात्र।" },
     tag:     { en: "Health / Cashless Treatment", hi: "आरोग्य / कॅशलेस उपचार" },
     annual: 150000,
-    apply:   { en: "jeevandayee.gov.in / nearest empanelled hospital Aarogyamitra", hi: "jeevandayee.gov.in / नजदीकी सूचीबद्ध अस्पताल आरोग्यमित्र" }, applyType: "online",
+    apply:   { en: "https://jeevandayee.gov.in", hi: "jeevandayee.gov.in / नजदीकी सूचीबद्ध अस्पताल आरोग्यमित्र" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Yellow / Orange / Antyodaya / Annapurna Ration Card", "Ayushman Card (if available)", "Income Certificate (for non-ration card holders)"],
                hi: ["आधार कार्ड", "पीला/नारंगी/अंत्योदय/अन्नपूर्णा राशन कार्ड", "आयुष्मान कार्ड (यदि उपलब्ध)", "आय प्रमाण पत्र (राशन कार्ड न होने पर)"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income),
