@@ -375,7 +375,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "₹6,000–₹8,000/year for students with 40%+ disability pursuing education", hi: "40%+ दिव्यांग छात्रों को शिक्षा हेतु ₹6,000–₹8,000 वार्षिक छात्रवृत्ति" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 8000,
-    apply:   { en: "edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
+    apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "School / College Bonafide", "Marksheet", "Bank Passbook"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+)", "विद्यालय / महाविद्यालय बोनाफाइड", "अंकतालिका", "बैंक पासबुक"] },
     match: (a) => a.state === "Delhi" && a.who === "student",
