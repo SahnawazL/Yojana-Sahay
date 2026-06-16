@@ -693,7 +693,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Accident insurance ₹2 Lakh, hospitalisation ₹25,000/year & children's scholarship ₹5,000 for registered auto/taxi drivers", hi: "पंजीकृत ऑटो/टैक्सी चालकों को ₹2 लाख दुर्घटना बीमा, ₹25,000/वर्ष अस्पताल भत्ता और बच्चों को ₹5,000 छात्रवृत्ति" },
     tag:     { en: "Labour", hi: "श्रमिक" },
     annual: 0,
-    apply:   { en: "labour.karnataka.gov.in", hi: "labour.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://labour.karnataka.gov.in", hi: "labour.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Driving Licence", "Vehicle Registration Certificate", "Auto/Taxi Permit", "Bank Account"],
                hi: ["आधार कार्ड", "ड्राइविंग लाइसेंस", "वाहन पंजीकरण प्रमाण", "ऑटो/टैक्सी परमिट", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income) && ["18to35", "35to60"].includes(a.age),
