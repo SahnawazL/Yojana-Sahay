@@ -171,7 +171,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹1.20 Lakh for SC families to construct a pucca house (rural)", hi: "SC परिवारों को ग्रामीण क्षेत्र में पक्का मकान बनाने हेतु ₹1.20 लाख सहायता" },
     tag:     { en: "Housing / SC", hi: "आवास / SC" },
     annual: 120000,
-    apply:   { en: "sje.gujarat.gov.in", hi: "sje.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://sje.gujarat.gov.in", hi: "sje.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC)", "Income Certificate (below ₹1.20L)", "Land Ownership Proof", "No-House Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC)", "आय प्रमाण (₹1.20 लाख से कम)", "भूमि स्वामित्व प्रमाण", "मकान न होने का प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Gujarat" && ["no", "kutcha"].includes(a.house) && a.income === "below1",
