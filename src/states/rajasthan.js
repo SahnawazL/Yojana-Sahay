@@ -225,7 +225,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "₹750–₹1,500/month for senior citizens (women 55+, men 58+), widows (18+) & persons with disabilities (18+)",         hi: "वरिष्ठ नागरिकों (महिला 55+, पुरुष 58+), विधवाओं (18+) और दिव्यांगजनों (18+) को ₹750–₹1,500/माह पेंशन" },
     tag:     { en: "Pension / Senior", hi: "पेंशन / वरिष्ठ" },
     annual: 18000,
-    apply:   { en: "rajssp.raj.nic.in", hi: "rajssp.raj.nic.in" }, applyType: "online",
+    apply:   { en: "https://rajssp.raj.nic.in", hi: "rajssp.raj.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Age Proof", "BPL / Income Certificate", "Widowhood / Disability Certificate (if applicable)", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "आयु प्रमाण", "BPL / आय प्रमाण", "विधवा / दिव्यांगता प्रमाण (लागू हो तो)", "बैंक खाता"] },
     // Eligibility: BPL senior citizen, widow, or person with ≥40% disability in Rajasthan
