@@ -168,7 +168,7 @@ export const TELANGANA_SCHEMES = [
     benefit: { en: "Full tuition fee + special fee reimbursed by govt for SC/ST/BC/EBC/Minority students pursuing degree, engineering, medicine & other professional courses", hi: "SC/ST/BC/EBC/अल्पसंख्यक छात्रों की डिग्री, इंजीनियरिंग, मेडिसिन और अन्य प्रोफेशनल कोर्सों की पूरी ट्यूशन फीस सरकार भरती है" },
     tag:     { en: "Student / Scholarship", hi: "छात्र / छात्रवृत्ति" },
     annual: 50000,
-    apply:   { en: "telanganaepass.cgg.gov.in", hi: "telanganaepass.cgg.gov.in" }, applyType: "online",
+    apply:   { en: "https://telanganaepass.cgg.gov.in", hi: "telanganaepass.cgg.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/BC/EBC/Minority)", "Income Certificate (≤₹2L/year)", "Previous Year Mark Sheet", "College Admission & Fee Receipt", "Bank Account (student's name)"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/BC/EBC/अल्पसंख्यक)", "आय प्रमाण पत्र (≤₹2 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज प्रवेश और शुल्क रसीद", "बैंक खाता (छात्र के नाम)"] },
     match: (a) => a.state === "Telangana" && a.who === "student" && ["below1", "1to3"].includes(a.income) && ["18to35"].includes(a.age),
