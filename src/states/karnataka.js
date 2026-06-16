@@ -647,7 +647,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹10,000–₹60,000/year + equipment & coaching support for athletes representing Karnataka at state/national level", hi: "राज्य/राष्ट्रीय स्तर पर कर्नाटक का प्रतिनिधित्व करने वाले एथलीटों को ₹10,000–₹60,000/वर्ष + उपकरण और कोचिंग" },
     tag:     { en: "General", hi: "सामान्य" },
     annual: 60000,
-    apply:   { en: "yas.karnataka.gov.in", hi: "yas.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://yas.karnataka.gov.in", hi: "yas.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Sports Achievement Certificate", "School/College Enrollment Proof", "Coach Recommendation", "Bank Account"],
                hi: ["आधार कार्ड", "खेल उपलब्धि प्रमाण", "स्कूल/कॉलेज नामांकन प्रमाण", "कोच सिफारिश पत्र", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["18to35", "below18"].includes(a.age),
