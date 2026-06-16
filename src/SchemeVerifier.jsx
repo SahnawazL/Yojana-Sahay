@@ -4686,6 +4686,18 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   }, [deadTotalPages, deadPage]);
 
 
+  // ── Computed scope filter string ──────────────────────────────────────────
+  // Moved here (before the URL Issues useMemo blocks) because those blocks
+  // reference [scopeFilter] in their dependency arrays, which are evaluated
+  // immediately — scopeFilter must be declared first to avoid a TDZ crash.
+  // Only depends on scopeMode + selectedState (both declared above at ~4551).
+  const scopeFilter = useMemo(() => {
+    if (scopeMode === "state") {
+      return selectedState ? `state:${selectedState}` : "all";
+    }
+    return scopeMode;
+  }, [scopeMode, selectedState]);
+
   // ── URL Issues pre-scan state ─────────────────────────────────────────────
   // Declared HERE (before the useMemo blocks below) to avoid TDZ errors —
   // the dependency arrays [urlIssueFilter] and [urlIssuePage] are evaluated
@@ -4852,14 +4864,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const accResultsRef   = useRef([]);  // avoids stale-closure issue in onProgress
   const endTimeRef      = useRef(null); // Fix 8: accurate final elapsed
   const lastUpdateRef   = useRef(0);   // Fix 4: throttle onProgress state updates
-
-  // ── Computed scope filter string ──────────────────────────────────────────
-  const scopeFilter = useMemo(() => {
-    if (scopeMode === "state") {
-      return selectedState ? `state:${selectedState}` : "all";
-    }
-    return scopeMode;
-  }, [scopeMode, selectedState]);
 
   // Fix 5: synchronous pure function — no need for useEffect+setState
   const previewCount = useMemo(
