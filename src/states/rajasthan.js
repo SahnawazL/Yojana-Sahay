@@ -159,7 +159,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Accident compensation ₹5,000–₹2,00,000 for farmers injured or killed during farm activities",         hi: "खेती कार्य के दौरान दुर्घटना पर ₹5,000–₹2,00,000 का मुआवज़ा" },
     tag:     { en: "Farmer / Insurance", hi: "किसान / बीमा" },
     annual: 200000,
-    apply:   { en: "rajkisan.rajasthan.gov.in", hi: "rajkisan.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://rajkisan.rajasthan.gov.in", hi: "rajkisan.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Land Records", "FIR / Post-mortem Report (on death)", "Hospital Disability Certificate (on injury)", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "भूमि अभिलेख", "FIR / पोस्टमार्टम रिपोर्ट (मृत्यु पर)", "अस्पताल विकलांगता प्रमाण (चोट पर)", "बैंक खाता"] },
     // Eligibility: registered Rajasthan farmer aged 5–70 years
