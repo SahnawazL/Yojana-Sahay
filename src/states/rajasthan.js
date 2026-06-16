@@ -457,7 +457,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Free pilgrimage (train + stay + meals) to Ayodhya, Haridwar, Varanasi, Tirupati, Shirdi etc. — once in a lifetime",    hi: "जीवन में एक बार अयोध्या, हरिद्वार, वाराणसी, तिरुपति, शिर्डी आदि — निःशुल्क ट्रेन, ठहरना और भोजन" },
     tag:     { en: "Senior / Pilgrimage", hi: "वरिष्ठ / तीर्थ यात्रा" },
     annual: 0,
-    apply:   { en: "devasthan.rajasthan.gov.in", hi: "devasthan.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://devasthan.rajasthan.gov.in", hi: "devasthan.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Age Proof (60+)", "Rajasthan Domicile Certificate", "Medical Fitness Certificate", "Passport Photo"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "आयु प्रमाण (60+)", "राजस्थान मूल निवास प्रमाण पत्र", "चिकित्सा स्वास्थ्य प्रमाण पत्र", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Rajasthan" && (a.who === "senior" || a.age === "above60"),
