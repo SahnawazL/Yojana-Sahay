@@ -899,7 +899,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "80% subsidy on beehive boxes, equipment & training to start/expand beekeeping units. Up to 50 boxes per farmer; SC/ST/women get priority. Supports honey production & crop pollination income.", hi: "मधुमक्खी पालन सुरू/विस्तारसाठी मधुपेटी, उपकरणे व प्रशिक्षणावर 80% सब्सिडी। प्रति शेतकरी 50 पेटी पर्यंत; SC/ST/महिलांना प्राधान्य। मध उत्पादन व परागीभवन उत्पन्नास मदत।" },
     tag:     { en: "Farmer / Beekeeping / Apiculture", hi: "किसान / मधुमक्खी पालन / मधुपालन" },
     annual: 20000,
-    apply:   { en: "horticulture.maharashtra.gov.in / mahadbt.gov.in", hi: "horticulture.maharashtra.gov.in / mahadbt.gov.in" }, applyType: "online",
+    apply:   { en: "https://horticulture.maharashtra.gov.in", hi: "horticulture.maharashtra.gov.in / mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract or Farm Land Proof", "Caste Certificate (SC/ST for priority)", "Bank Passbook", "Passport Photo", "Training Certificate (if completed)"],
                hi: ["आधार कार्ड", "7/12 उतारा या खेत प्रमाण", "जाति प्रमाण (SC/ST प्राधान्यासाठी)", "बैंक पासबुक", "पासपोर्ट फोटो", "प्रशिक्षण प्रमाण पत्र (पूर्ण झाल्यास)"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["below1","1to3","3to6"].includes(a.income),
