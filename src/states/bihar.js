@@ -121,7 +121,7 @@ export const BIHAR_SCHEMES = [
                hi: "कक्षा 12 के बाद उच्च शिक्षा के लिए ₹4 लाख तक का शिक्षा ऋण 4% साधारण ब्याज पर (लड़कियों/दिव्यांग/ट्रांसजेंडर के लिए 1%); कोई गारंटी नहीं; कोर्स पूरा होने के 1 वर्ष बाद तक ब्याज नहीं; ट्यूशन, हॉस्टल, किताब, लैपटॉप सब कवर" },
     tag:     { en: "Student / Education Loan", hi: "छात्र / शिक्षा ऋण" },
     annual: 400000,
-    apply:   { en: "https://https://7nishchay-yuvaupmission.bihar.gov.in", hi: "7nishchay-yuvaupmission.bihar.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://https://7nishchay-yuvaupmission.bihar.gov.in", hi: "7nishchay-yuvaupmission.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Pass Certificate & Marksheet","Admission Letter from College / University","Bank Account (Aadhaar-linked)","Income Certificate (parents')","Residence Proof (Bihar domicile)","2 Passport Photos","Fee Structure from Institution"],
                hi: ["आधार कार्ड","कक्षा 12 उत्तीर्ण प्रमाण पत्र व अंकसूची","कॉलेज/विश्वविद्यालय का प्रवेश पत्र","बैंक खाता (आधार-लिंक्ड)","आय प्रमाण पत्र (माता-पिता का)","निवास प्रमाण (बिहार अधिवास)","2 पासपोर्ट फोटो","संस्थान से शुल्क संरचना"] },
     match: (a) => a.state === "Bihar" && a.who === "student",
