@@ -76,7 +76,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹71,000 marriage grant for SC/ST/BPL girls · ₹31,000 for general poor families", hi: "SC/ST/BPL लड़कियों को ₹71,000 विवाह अनुदान · सामान्य गरीब को ₹31,000" },
     tag:     { en: "Women / Marriage Grant", hi: "महिला / विवाह अनुदान" },
     annual: 71000,
-    apply:   { en: "haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
+    apply:   { en: "https://haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST/OBC)","BPL Certificate (if applicable)","Age Proof of Bride (18+)","Marriage Certificate","Bank Account"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST/OBC)","बीपीएल प्रमाण (यदि लागू हो)","दुल्हन का आयु प्रमाण (18+)","विवाह प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: Haryana resident, girl from SC/ST/BPL/general poor family, bride age ≥ 18
