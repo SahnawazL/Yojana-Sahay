@@ -388,7 +388,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹10,000–₹30,000/year for Muslim, Christian, Sikh, Buddhist & Parsi students (Class 11 to PG)", hi: "कक्षा 11 से स्नातकोत्तर तक मुस्लिम, ईसाई, सिख, बौद्ध व पारसी छात्रों को ₹10,000–₹30,000/वर्ष" },
     tag:     { en: "Education / Minority", hi: "शिक्षा / अल्पसंख्यक" },
     annual: 15000,
-    apply:   { en: "jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "10th Mark Sheet", "College / Institution Admission Proof", "Income Certificate (below ₹2L)", "Bank Account"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "10वीं अंकपत्र", "कॉलेज / संस्था प्रवेश प्रमाण", "आय प्रमाण पत्र (₹2 लाख से कम)", "बैंक खाता"] },
     match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
