@@ -465,7 +465,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Interest-free or subsidised loan ₹1–₹3 Lakh for women starting small businesses (income < ₹1.5L)", hi: "छोटे व्यवसाय शुरू करने वाली महिलाओं को ₹1–₹3 लाख ब्याज मुक्त/सब्सिडी ऋण (आय < ₹1.5L)" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "kwdc.karnataka.gov.in", hi: "kwdc.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://kwdc.karnataka.gov.in", hi: "kwdc.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (< ₹1.5L)", "Business Plan", "Caste Certificate (if applicable)", "Bank Account"],
                hi: ["आधार कार्ड", "आय प्रमाण (< ₹1.5 लाख)", "व्यापार योजना", "जाति प्रमाण (लागू होने पर)", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "women" && ["below1", "1to3"].includes(a.income),
