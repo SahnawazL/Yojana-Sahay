@@ -1338,9 +1338,9 @@
     "confidence": 0
   },
   "rajasthan_chiranjeevi": {
-    "lastVerified": "2026-06-16T07:12:29.166Z",
+    "lastVerified": "2026-06-16T09:42:58.931Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "raj_palanhar": {
@@ -1375,9 +1375,9 @@
     "confidence": 0
   },
   "raj_kalibai_scooty": {
-    "lastVerified": "2026-06-16T07:12:29.166Z",
+    "lastVerified": "2026-06-16T09:42:58.931Z",
     "httpStatus": 404,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "raj_devnarayan_scooty": {
@@ -1399,15 +1399,15 @@
     "confidence": 0
   },
   "raj_dugdh_sambal": {
-    "lastVerified": "2026-06-16T07:12:29.166Z",
+    "lastVerified": "2026-06-16T09:42:58.931Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "raj_vishwakarma_kamgar": {
-    "lastVerified": "2026-06-16T07:12:29.166Z",
+    "lastVerified": "2026-06-16T09:42:58.931Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "raj_ssp_pension": {
@@ -1457,9 +1457,9 @@
     "confidence": 0
   },
   "raj_cm_higher_scholarship": {
-    "lastVerified": "2026-06-16T07:12:29.166Z",
+    "lastVerified": "2026-06-16T09:42:58.931Z",
     "httpStatus": 404,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "raj_teerth_yatra": {
@@ -1475,9 +1475,9 @@
     "confidence": 0
   },
   "raj_rsldc_skill": {
-    "lastVerified": "2026-06-16T07:12:29.166Z",
+    "lastVerified": "2026-06-16T09:42:58.931Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "raj_kisan_mitra_urja": {
@@ -1487,9 +1487,9 @@
     "confidence": 0
   },
   "raj_polyhouse": {
-    "lastVerified": "2026-06-16T07:12:29.166Z",
+    "lastVerified": "2026-06-16T09:42:58.931Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "raj_hamari_beti": {
@@ -1504,9 +1504,9 @@
     "confidence": 0
   },
   "raj_bocw_welfare": {
-    "lastVerified": "2026-06-16T07:12:29.166Z",
+    "lastVerified": "2026-06-16T09:42:58.931Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
