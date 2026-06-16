@@ -713,7 +713,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "Free skill training (3–6 months) + ₹1,500/month stipend + ₹50,000 seed capital for self-employment for persons with disabilities", hi: "दिव्यांग व्यक्तियों को 3–6 माह मुफ्त कौशल प्रशिक्षण + ₹1,500/माह वजीफा + ₹50,000 स्वरोजगार बीज पूंजी" },
     tag:     { en: "Business / Disability Skill", hi: "व्यापार / दिव्यांग कौशल" },
     annual: 18000,
-    apply:   { en: "sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (>=40%)","Bank Account","Punjab Domicile","Passport Photo"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (>=40%)","बैंक खाता","पंजाब अधिवास","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Punjab" && ["below1","1to3","3to6"].includes(a.income) && ["18to35","35to60"].includes(a.age),
