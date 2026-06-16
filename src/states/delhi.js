@@ -1503,7 +1503,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "Collateral-free working capital loan ₹10,000 (1st), ₹20,000 (2nd), ₹50,000 (3rd tranche) at 7% interest; 7% interest subsidy via DBT; digital transactions rewarded up to ₹1,200/year cashback", hi: "बिना जमानत कार्यशील ऋण ₹10,000 (1st), ₹20,000 (2nd), ₹50,000 (3rd) 7% ब्याज; DBT से 7% ब्याज सब्सिडी; डिजिटल लेनदेन पर ₹1,200/वर्ष तक कैशबैक" },
     tag:     { en: "Livelihood", hi: "आजीविका" },
     annual: 10000,
-    apply:   { en: "pmsvanidhi.mohua.gov.in / nearest MCD / Urban Local Body office", hi: "pmsvanidhi.mohua.gov.in / नजदीकी MCD / शहरी स्थानीय निकाय कार्यालय" }, applyType: "online",
+    apply:   { en: "https://pmsvanidhi.mohua.gov.in", hi: "pmsvanidhi.mohua.gov.in / नजदीकी MCD / शहरी स्थानीय निकाय कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Vending Certificate / Letter of Recommendation from TVC or ULB", "Delhi Address Proof", "Bank Passbook / Jan Dhan Account", "Mobile Number linked to Aadhaar"],
                hi: ["आधार कार्ड", "विक्रय प्रमाण पत्र / TVC या ULB की सिफारिश पत्र", "दिल्ली पता प्रमाण", "बैंक पासबुक / जन धन खाता", "आधार से जुड़ा मोबाइल नंबर"] },
     match: (a) => a.state === "Delhi" && (a.who === "general" || a.who === "women" || a.who === "business") && (a.income === "below1" || a.income === "1to3"),
