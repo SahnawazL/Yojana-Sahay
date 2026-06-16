@@ -139,7 +139,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹1,500/month pension for senior citizens aged 58+ from BPL families", hi: "BPL परिवार के 58+ वर्ष के वरिष्ठ नागरिकों को ₹1,500/माह पेंशन" },
     tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
     annual: 18000,
-    apply:   { en: "sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
+    apply:   { en: "https://sswepb.punjab.gov.in", hi: "sswepb.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (Birth Certificate / School Certificate)","BPL Ration Card","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","आयु प्रमाण (जन्म/स्कूल प्रमाण पत्र)","BPL राशन कार्ड","बैंक खाता","पंजाब अधिवास"] },
     match: (a) => a.state === "Punjab" && (a.who === "senior" || a.age === "above60") && ["below1","1to3"].includes(a.income),
