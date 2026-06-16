@@ -311,7 +311,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "Seed grant up to ₹10 Lakh + 3-year electricity & rent subsidy + mentorship for innovative startups by HP youth", hi: "HP युवाओं के नवाचारी स्टार्टअप को ₹10 लाख तक बीज अनुदान + 3 वर्ष बिजली और किराया सब्सिडी + मेंटरशिप" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "startup.hp.gov.in", hi: "startup.hp.gov.in" }, applyType: "online",
+    apply:   { en: "https://startup.hp.gov.in", hi: "startup.hp.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","HP Domicile Certificate","Startup Registration (DPIIT / State)","Business Plan / Pitch Deck","Educational Certificates","Bank Account","GST Registration (if applicable)"],
                hi: ["आधार कार्ड","हिमाचल अधिवास प्रमाण","स्टार्टअप पंजीकरण (DPIIT / राज्य)","व्यापार योजना / पिच डेक","शैक्षणिक प्रमाण पत्र","बैंक खाता","GST पंजीकरण (यदि लागू हो)"] },
     match: (a) => a.state === "Himachal Pradesh" && (a.who === "business" || ["18to35","35to60"].includes(a.age)),
