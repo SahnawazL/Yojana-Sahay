@@ -231,7 +231,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "75% subsidy on solar water pumps (2HP – 10HP) for farmers; saves ₹12,000–₹40,000/year on electricity", hi: "किसानों को 2HP–10HP सौर पम्प पर 75% सब्सिडी; बिजली में ₹12,000–₹40,000/वर्ष की बचत" },
     tag:     { en: "Farmer / Solar Energy", hi: "किसान / सौर ऊर्जा" },
     annual: 40000,
-    apply:   { en: "peda.gov.in", hi: "peda.gov.in" }, applyType: "online",
+    apply:   { en: "https://peda.gov.in", hi: "peda.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Girdawari)","Bank Account","Punjab Domicile","Electricity Bill"],
                hi: ["आधार कार्ड","जमीन के कागज़ (गिरदावरी)","बैंक खाता","पंजाब अधिवास","बिजली बिल"] },
     match: (a) => a.state === "Punjab" && a.who === "farmer",
