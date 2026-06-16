@@ -255,7 +255,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹3,000/month stipend for 1 year during industry apprenticeship + placement support", hi: "उद्योग प्रशिक्षुता के दौरान 1 वर्ष तक ₹3,000/माह वजीफा + नौकरी सहायता" },
     tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
     annual: 36000,
-    apply:   { en: "nats.education.gov.in", hi: "nats.education.gov.in" }, applyType: "online",
+    apply:   { en: "https://nats.education.gov.in", hi: "nats.education.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (10th / ITI / Diploma / Degree)", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षणिक प्रमाण (10वीं / ITI / डिप्लोमा / डिग्री)", "बैंक खाता", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Gujarat" && a.age === "18to35" && ["below1", "1to3", "3to6"].includes(a.income),
