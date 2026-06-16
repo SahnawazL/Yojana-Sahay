@@ -299,7 +299,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹5,000 for 1st child · ₹6,000 for 2nd girl child · Direct to bank", hi: "पहले बच्चे पर ₹5,000 · दूसरी बेटी पर ₹6,000 · बैंक में सीधे" },
     tag:     { en: "Maternity", hi: "मातृत्व" },
     annual: 5000,
-    apply:   { en: "pmmvy.wcd.gov.in", hi: "pmmvy.wcd.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmmvy.wcd.gov.in", hi: "pmmvy.wcd.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Bank Account", "MCP Card (Mother & Child Protection)", "Marriage Certificate"],
                hi: ["आधार कार्ड", "बैंक खाता", "MCP कार्ड (माँ और बच्चा सुरक्षा)", "विवाह प्रमाण पत्र"] },
     // Eligibility: pregnant/lactating women for first live birth (or 2nd if girl child)
