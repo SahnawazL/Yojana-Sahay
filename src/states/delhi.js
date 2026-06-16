@@ -1727,7 +1727,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "One-time grant of ₹80,000 for renovation, repair or extension of a dilapidated pucca / semi-pucca house for SC BPL families residing in Delhi for 3+ years", hi: "3+ वर्षों से दिल्ली में रह रहे SC BPL परिवारों के जीर्ण-शीर्ण पक्के / अर्ध-पक्के मकान की मरम्मत, नवीनीकरण या विस्तार के लिए ₹80,000 एकमुश्त अनुदान" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 80000,
-    apply:   { en: "scstwelfare.delhi.gov.in / edistrict.delhigovt.nic.in", hi: "scstwelfare.delhi.gov.in / edistrict.delhigovt.nic.in" }, applyType: "online",
+    apply:   { en: "https://scstwelfare.delhi.gov.in", hi: "scstwelfare.delhi.gov.in / edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "BPL / Income Certificate (below ₹1L p.a.)", "Delhi Domicile (3+ years)", "House Ownership Proof / Lease Document", "Bank Passbook", "Passport-size Photo"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "BPL / आय प्रमाण पत्र (₹1L प्रति वर्ष से कम)", "दिल्ली अधिवास (3+ वर्ष)", "घर स्वामित्व प्रमाण / लीज दस्तावेज", "बैंक पासबुक", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Delhi" && a.caste === "sc" && (a.income === "below1") && (a.house === "kutcha" || a.house === "no"),
