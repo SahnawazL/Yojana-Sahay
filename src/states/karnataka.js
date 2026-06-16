@@ -197,7 +197,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Free OPD, diagnostics & hospitalization up to ₹5 Lakh/year at Govt. hospitals", hi: "सरकारी अस्पतालों में OPD, जांच और ₹5 लाख/वर्ष तक मुफ्त अस्पताल उपचार" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "karunadu.karnataka.gov.in", hi: "karunadu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://karunadu.karnataka.gov.in", hi: "karunadu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card", "Income Certificate", "Domicile Proof"],
                hi: ["आधार कार्ड", "राशन कार्ड", "आय प्रमाण", "अधिवास प्रमाण"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
