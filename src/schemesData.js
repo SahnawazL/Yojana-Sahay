@@ -96,7 +96,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹5 Lakh/year free hospital treatment", hi: "₹5 लाख/वर्ष मुफ्त अस्पताल इलाज" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "pmjay.gov.in", hi: "pmjay.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmjay.gov.in", hi: "pmjay.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","Income Certificate"],
                hi: ["आधार कार्ड","राशन कार्ड","आय प्रमाण पत्र"] },
     match: (a) => ["below1","1to3"].includes(a.income),
