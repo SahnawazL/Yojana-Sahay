@@ -97,7 +97,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Annual grant: ₹2,100 (Class 1–8) · ₹2,500 (Class 9–12) for BPL girl students in govt schools",         hi: "सरकारी स्कूल में BPL बालिका छात्राओं को वार्षिक अनुदान: कक्षा 1–8 → ₹2,100 · कक्षा 9–12 → ₹2,500" },
     tag:     { en: "Education / Girl Child", hi: "शिक्षा / बालिका" },
     annual: 2500,
-    apply:   { en: "rajshaladarpan.nic.in", hi: "rajshaladarpan.nic.in" }, applyType: "online",
+    apply:   { en: "https://rajshaladarpan.nic.in", hi: "rajshaladarpan.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "BPL Ration Card", "School Enrolment Certificate", "Parent/Guardian Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "BPL राशन कार्ड", "स्कूल नामांकन प्रमाण", "अभिभावक बैंक खाता"] },
     // Eligibility: BPL girl student studying in a government school
