@@ -381,7 +381,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "40% subsidy on rooftop solar (up to 3kW) + net metering buyback ₹3/unit fed to grid", hi: "3kW तक रूफटॉप सोलर पर 40% सब्सिडी + ग्रिड को भेजी यूनिट पर ₹3/यूनिट वापसी" },
     tag:     { en: "Energy / Solar", hi: "ऊर्जा / सोलर" },
     annual: 40000,
-    apply:   { en: "https://solarrooftop.gov.in", hi: "solarrooftop.gov.in / guvnl.in" }, applyType: "online",
+    apply:   { en: "https://solarrooftop.gov.in", hi: "https://guvnl.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Electricity Consumer Number", "Latest Electricity Bill", "Bank Account", "Photo of Roof Area"],
                hi: ["आधार कार्ड", "बिजली उपभोक्ता संख्या", "नवीनतम बिजली बिल", "बैंक खाता", "छत क्षेत्र की फोटो"] },
     match: (a) => a.state === "Gujarat" && ["below1", "1to3", "3to6"].includes(a.income),
