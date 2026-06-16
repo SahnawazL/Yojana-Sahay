@@ -851,7 +851,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹50,000/hectare over 3 years for conversion to organic farming + certification support & market linkage", hi: "3 वर्षों में ₹50,000/हेक्टेयर जैविक खेती रूपांतरण + प्रमाणीकरण सहायता और बाज़ार संपर्क" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "raitamitra.karnataka.gov.in", hi: "raitamitra.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://raitamitra.karnataka.gov.in", hi: "raitamitra.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Farmer Group/Cluster Registration", "Bank Account"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "किसान समूह/क्लस्टर पंजीकरण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer" && a.area === "rural",
