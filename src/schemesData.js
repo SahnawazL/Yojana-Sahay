@@ -52,7 +52,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹6,000/year · 3 installments of ₹2,000", hi: "₹6,000/वर्ष · ₹2,000 की 3 किस्तें" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 6000,
-    apply:   { en: "pmkisan.gov.in", hi: "pmkisan.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmkisan.gov.in", hi: "pmkisan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra)","Bank Passbook"],
                hi: ["आधार कार्ड","जमीन के कागज़","बैंक पासबुक"] },
     // Eligibility: farmer + income below ₹6 lakh
