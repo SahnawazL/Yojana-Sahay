@@ -479,7 +479,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹5 Lakh/year cashless treatment at empanelled hospitals for families with annual income ₹2.5–₹4 Lakh", hi: "₹2.5–₹4 लाख वार्षिक आय वाले परिवारों को सूचीबद्ध अस्पतालों में ₹5 लाख/वर्ष कैशलेस उपचार" },
     tag:     { en: "Health / Insurance", hi: "स्वास्थ्य / बीमा" },
     annual: 500000,
-    apply:   { en: "maavcard.gujarat.gov.in", hi: "maavcard.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://maavcard.gujarat.gov.in", hi: "maavcard.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (₹2.5L–₹4L)", "Ration Card", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "आय प्रमाण (₹2.5–₹4 लाख)", "राशन कार्ड", "बैंक खाता", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Gujarat" && a.income === "1to3",
