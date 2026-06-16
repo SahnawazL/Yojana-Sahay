@@ -297,7 +297,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     benefit: { en: "₹500/month (10 months/year) scholarship for rural girls who scored 60%+ in Class 12 and are pursuing higher education", hi: "60%+ अंक से कक्षा 12 उत्तीर्ण ग्रामीण बेटियों को उच्च शिक्षा के दौरान ₹500/माह (10 माह/वर्ष) छात्रवृत्ति" },
     tag:     { en: "Student / Women", hi: "छात्र / महिला" },
     annual: 5000,
-    apply:   { en: "scholarshipportal.mp.nic.in", hi: "scholarshipportal.mp.nic.in" }, applyType: "online",
+    apply:   { en: "https://scholarshipportal.mp.nic.in", hi: "scholarshipportal.mp.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Samagra ID", "Class 12 Mark Sheet (min. 60%)", "Rural Domicile / Caste Certificate", "College Enrollment Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "समग्र ID", "कक्षा 12 मार्कशीट (न्यूनतम 60%)", "ग्रामीण निवास / जाति प्रमाण पत्र", "कॉलेज नामांकन प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Madhya Pradesh" && a.who === "student" && a.area === "rural" && ["18to35"].includes(a.age),
