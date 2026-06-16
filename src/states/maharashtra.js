@@ -115,7 +115,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Free hostel + ₹51,000/year living & education expenses for SC girls studying away from home", hi: "SC छात्राओं को मुफ्त हॉस्टल + ₹51,000/वर्ष शिक्षा व जीवन व्यय" },
     tag:     { en: "Student / Women / SC", hi: "छात्र / महिला / SC" },
     annual: 51000,
-    apply:   { en: "sjsa.maharashtra.gov.in", hi: "sjsa.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://sjsa.maharashtra.gov.in", hi: "sjsa.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "Income Certificate", "College Admission Proof", "Bank Passbook"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "आय प्रमाण पत्र", "कॉलेज प्रवेश प्रमाण", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "student" && a.who === "women" || (a.state === "Maharashtra" && a.who === "women" && ["below1","1to3"].includes(a.income)),
