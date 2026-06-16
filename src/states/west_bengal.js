@@ -207,7 +207,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "1 एकड़ या अधिक भूमि वाले किसानों को ₹10,000/वर्ष: 2 किस्तों में (₹5,000 खरीफ + ₹5,000 रबी); 1 एकड़ से कम के लिए ₹4,000/वर्ष; साथ में ₹2 लाख का जीवन बीमा; WB के सभी पंजीकृत किसान पात्र" },
     tag:     { en: "Farmer / Income Support", hi: "किसान / आय सहायता" },
     annual: 10000,
-    apply:   { en: "krishakbandhu.net", hi: "krishakbandhu.net" }, applyType: "online",
+    apply:   { en: "https://krishakbandhu.net", hi: "krishakbandhu.net" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Parcha / Khatian)","Bank Account (Aadhaar-linked)","Voter ID (West Bengal)","Mobile Number (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","भूमि अभिलेख (परचा / खतियान)","बैंक खाता (आधार-लिंक्ड)","मतदाता ID (पश्चिम बंगाल)","मोबाइल नंबर (आधार-लिंक्ड)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "West Bengal" && a.who === "farmer",
