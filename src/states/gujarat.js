@@ -521,7 +521,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹1.25 Lakh one-time financial assistance to encourage widow remarriage", hi: "विधवा पुनर्विवाह को प्रोत्साहित करने हेतु ₹1.25 लाख एकमुश्त वित्तीय सहायता" },
     tag:     { en: "Women / Widow Remarriage", hi: "महिला / विधवा पुनर्विवाह" },
     annual: 125000,
-    apply:   { en: "esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Husband's Death Certificate", "Age Proof", "New Marriage Certificate / Registration", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "पति का मृत्यु प्रमाण पत्र", "आयु प्रमाण", "नया विवाह प्रमाण पत्र / पंजीकरण", "आय प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Gujarat" && a.who === "women" && ["below1", "1to3"].includes(a.income),
