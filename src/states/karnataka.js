@@ -897,7 +897,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹1,000/month financial assistance + free skill training, healthcare & legal identity support for transgender persons", hi: "ट्रांसजेंडर व्यक्तियों को ₹1,000/माह वित्तीय सहायता + मुफ्त कौशल प्रशिक्षण, स्वास्थ्य और कानूनी पहचान सहायता" },
     tag:     { en: "General", hi: "सामान्य" },
     annual: 12000,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Transgender Identity Certificate", "Bank Account", "Domicile Certificate"],
                hi: ["आधार कार्ड", "ट्रांसजेंडर पहचान प्रमाण पत्र", "बैंक खाता", "अधिवास प्रमाण"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
