@@ -61,7 +61,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹3,000/month financial assistance for widows/destitute women", hi: "विधवा/निराश्रित महिलाओं को ₹3,000/माह सहायता" },
     tag:     { en: "Women / Widow Pension", hi: "महिला / विधवा पेंशन" },
     annual: 36000,
-    apply:   { en: "socialjusticehry.gov.in", hi: "socialjusticehry.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjusticehry.gov.in", hi: "socialjusticehry.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Husband's Death Certificate (for widow)","Parivar Pehchan Patra","Bank Account","Income Certificate"],
                hi: ["आधार कार्ड","पति का मृत्यु प्रमाण पत्र (विधवा के लिए)","परिवार पहचान पत्र","बैंक खाता","आय प्रमाण पत्र"] },
     // Eligibility: Haryana resident widow/destitute woman, income ≤ ₹3 lakh/year
