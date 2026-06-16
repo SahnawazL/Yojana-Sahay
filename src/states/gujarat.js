@@ -353,7 +353,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "Below-market-rate flats for EWS (₹4–8L) & LIG (₹8–15L) families in urban Gujarat cities", hi: "शहरी गुजरात में EWS (₹4–8 लाख) व LIG (₹8–15 लाख) परिवारों को बाज़ार से कम दर पर फ्लैट" },
     tag:     { en: "Housing / Urban", hi: "आवास / शहरी" },
     annual: 0,
-    apply:   { en: "ghb.gujarat.gov.in", hi: "ghb.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://ghb.gujarat.gov.in", hi: "ghb.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (EWS: below ₹3L · LIG: ₹3–6L)", "No-Property Certificate", "Bank Statement (6 months)", "Passport Photo"],
                hi: ["आधार कार्ड", "आय प्रमाण (EWS: ₹3 लाख से कम · LIG: ₹3–6 लाख)", "संपत्ति न होने का प्रमाण", "बैंक स्टेटमेंट (6 माह)", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Gujarat" && ["urban", "semi"].includes(a.area) && ["no", "kutcha"].includes(a.house) && ["below1", "1to3", "3to6"].includes(a.income),
