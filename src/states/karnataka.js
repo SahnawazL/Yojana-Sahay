@@ -421,7 +421,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹700–₹1,000/month + free uniform & books for SC/ST students (Class 1–10)", hi: "SC/ST छात्रों (कक्षा 1–10) को ₹700–₹1,000/माह + मुफ्त वर्दी और किताबें" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 12000,
-    apply:   { en: "scholarships.karnataka.gov.in", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.karnataka.gov.in", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST)", "Income Certificate", "School Enrollment Proof"],
                hi: ["आधार कार्ड", "जाति प्रमाण (SC/ST)", "आय प्रमाण", "स्कूल नामांकन प्रमाण"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
