@@ -169,7 +169,7 @@ export const UTTAR_PRADESH_SCHEMES = [
                hi: "सरकारी विभागों या निजी कंपनियों के साथ 6 माह से 1 वर्ष की इंटर्नशिप के लिए ₹2,500/माह वजीफा; तकनीकी/इंजीनियरिंग इंटर्न को ₹2,500/माह (राज्य ₹1,500 + कंपनी ₹1,000); गैर-तकनीकी इंटर्न को ₹2,500/माह; प्रशिक्षण पूरा होने के बाद प्लेसमेंट सहायता; UP के 10वीं/12वीं पास व स्नातकों के लिए खुला" },
     tag:     { en: "Youth / Employment / Internship", hi: "युवा / रोजगार / इंटर्नशिप" },
     annual: 30000,
-    apply:   { en: "sewayojan.up.nic.in", hi: "sewayojan.up.nic.in" }, applyType: "online",
+    apply:   { en: "https://sewayojan.up.nic.in", hi: "sewayojan.up.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Qualification Certificate (10th / 12th / Degree)", "UP Domicile / Residence Proof", "Bank Account (Aadhaar-linked)", "Passport Photo", "Mobile Number (Aadhaar-linked)", "Sewayojan Portal Registration"],
                hi: ["आधार कार्ड", "शैक्षिक योग्यता प्रमाण पत्र (10वीं / 12वीं / डिग्री)", "UP अधिवास/निवास प्रमाण", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "मोबाइल नंबर (आधार-लिंक्ड)", "सेवायोजन पोर्टल पंजीकरण"] },
     match: (a) => a.state === "Uttar Pradesh" && (a.who === "student" || (a.who === "business" && ["18to35"].includes(a.age))),
