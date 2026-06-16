@@ -1027,7 +1027,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Free registration on e-NAM digital mandi + transparent online price discovery + direct payment to farmer's bank account within 3 days; 'One Taluka One APMC' ensures every taluka has an accessible market committee", hi: "e-NAM डिजिटल मंडीवर मुफ्त नोंदणी + पारदर्शी ऑनलाइन भाव शोध + 3 दिवसात शेतकऱ्याच्या बैंक खात्यात थेट पेमेंट; 'एक तालुका एक APMC' प्रत्येक तालुक्याला बाजार समिती सुनिश्चित करते" },
     tag:     { en: "Farmer / Market Access / Digital Mandi", hi: "किसान / बाजार प्रवेश / डिजिटल मंडी" },
     annual: 0,
-    apply:   { en: "enam.gov.in / nearest APMC / Farmer Registry portal", hi: "enam.gov.in / नजदीकी APMC / शेतकरी नोंदणी पोर्टल" }, applyType: "online",
+    apply:   { en: "https://enam.gov.in", hi: "enam.gov.in / नजदीकी APMC / शेतकरी नोंदणी पोर्टल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Farmer Registry / Digital Farmer ID", "7/12 Land Extract", "Bank Passbook (Aadhaar-linked)", "Mobile Number"],
                hi: ["आधार कार्ड", "शेतकरी नोंदणी / डिजिटल शेतकरी ID", "7/12 उतारा", "बैंक पासबुक (आधार लिंक)", "मोबाइल नंबर"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
