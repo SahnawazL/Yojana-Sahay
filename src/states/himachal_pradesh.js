@@ -87,7 +87,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "₹1,500/month pension for senior citizens aged 60+ from low-income families", hi: "60+ वर्ष के कम आय वाले बुजुर्गों को ₹1,500/माह पेंशन" },
     tag:     { en: "Pension", hi: "पेंशन" },
     annual: 18000,
-    apply:   { en: "hpsocialjustice.gov.in", hi: "hpsocialjustice.gov.in" }, applyType: "online",
+    apply:   { en: "https://hpsocialjustice.gov.in", hi: "hpsocialjustice.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (60+ years)","Income Certificate (below ₹35,000/year)","HP Domicile Certificate","Bank Account","Passport Size Photo"],
                hi: ["आधार कार्ड","आयु प्रमाण (60+ वर्ष)","आय प्रमाण (₹35,000/वर्ष से कम)","हिमाचल अधिवास प्रमाण","बैंक खाता","पासपोर्ट साइज फोटो"] },
     match: (a) => a.state === "Himachal Pradesh" && a.who === "senior" && a.age === "above60" && ["below1","1to3"].includes(a.income),
