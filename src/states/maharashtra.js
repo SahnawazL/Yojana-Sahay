@@ -73,7 +73,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Free drip/sprinkler irrigation installation for small & marginal farmers", hi: "लघु व सीमांत किसानों को मुफ्त ड्रिप/स्प्रिंकलर सिंचाई" },
     tag:     { en: "Farmer / Irrigation", hi: "किसान / सिंचाई" },
     annual: 45000,
-    apply:   { en: "https://mahaagri.gov.in", hi: "mahaagri.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://mahaagri.gov.in", hi: "mahaagri.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Caste Certificate (if SC/ST)", "Bank Passbook"],
                hi: ["आधार कार्ड", "7/12 जमीन उतारा", "जाति प्रमाण (SC/ST के लिए)", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["below1","1to3"].includes(a.income),
