@@ -17,7 +17,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹9,000/month allowance for graduates", hi: "स्नातक युवाओं को ₹9,000/माह भत्ता" },
     tag:     { en: "Youth / Student", hi: "युवा / छात्र" },
     annual: 108000,
-    apply:   { en: "hreyahs.gov.in", hi: "hreyahs.gov.in" }, applyType: "online",
+    apply:   { en: "https://hreyahs.gov.in", hi: "hreyahs.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Graduation Certificate","Domicile Certificate","Bank Account"],
                hi: ["आधार कार्ड","स्नातक प्रमाण","निवास प्रमाण","बैंक खाता"] },
     match: (a) => a.state === "Haryana" && (a.who === "student" || a.who === "general") && ["below1","1to3"].includes(a.income),
