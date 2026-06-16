@@ -212,13 +212,14 @@ function matchesSearch(result, query) {
  * (when `disabled` is true) removes it from the tab order and announces
  * it as disabled. `pressed`, when provided, sets aria-pressed for toggles.
  */
-function a11yClickable(onClick, { disabled = false, pressed, label } = {}) {
+function a11yClickable(onClick, { disabled = false, pressed, label, style } = {}) {
   if (disabled || !onClick) {
     return {
       role: "button",
       "aria-disabled": true,
       tabIndex: -1,
       ...(label ? { "aria-label": label } : {}),
+      ...(style ? { style } : {}),
     };
   }
   return {
@@ -233,6 +234,7 @@ function a11yClickable(onClick, { disabled = false, pressed, label } = {}) {
     },
     ...(pressed !== undefined ? { "aria-pressed": pressed } : {}),
     ...(label ? { "aria-label": label } : {}),
+    ...(style ? { style } : {}),
   };
 }
 
