@@ -493,7 +493,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Daytime solar-powered agricultural electricity to farmers — eliminates night-time load shedding for irrigation; 119+ solar feeders commissioned (147 MW)", hi: "किसानों को दिन के समय सौर ऊर्जा से कृषि बिजली — सिंचाई के लिए रात की लोड शेडिंग समाप्त; 119+ सौर फीडर चालू (147 MW)" },
     tag:     { en: "Farmer / Solar / Electricity", hi: "किसान / सौर / बिजली" },
     annual: 15000,
-    apply:   { en: "msedcl.in / agri feeder solarisation portal", hi: "msedcl.in / कृषि फीडर सोलराइजेशन पोर्टल" }, applyType: "online",
+    apply:   { en: "https://msedcl.in", hi: "msedcl.in / कृषि फीडर सोलराइजेशन पोर्टल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Agricultural Electricity Connection Number (meter details)", "Bank Passbook"],
                hi: ["आधार कार्ड", "7/12 उतारा", "कृषि बिजली कनेक्शन क्रमांक (मीटर विवरण)", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer" && a.area === "rural",
