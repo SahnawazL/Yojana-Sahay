@@ -615,7 +615,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Full tuition & exam fee reimbursement for women enrolled in engineering, medical, pharmacy, law, MBA & other professional courses (Budget 2025 announcement)", hi: "इंजीनियरिंग, मेडिकल, फार्मसी, कानून, MBA व अन्य व्यावसायिक पाठ्यक्रमों में नामांकित महिलाओं को 100% ट्यूशन व परीक्षा शुल्क वापसी (बजट 2025)" },
     tag:     { en: "Student / Women / Professional", hi: "छात्र / महिला / व्यावसायिक" },
     annual: 150000,
-    apply:   { en: "mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "College Admission Letter & Fee Receipt", "Gender Certificate", "Income Certificate", "Maharashtra Domicile", "Previous Marksheet", "Bank Passbook"],
                hi: ["आधार कार्ड", "कॉलेज प्रवेश पत्र व शुल्क रसीद", "लिंग प्रमाण पत्र", "आय प्रमाण", "महाराष्ट्र अधिवास", "पिछले वर्ष की मार्कशीट", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "women" && ["18to35"].includes(a.age),
