@@ -331,7 +331,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Free residential schooling (Class 5–12) with meals, uniform & books for SC/ST/OBC students", hi: "SC/ST/OBC छात्रों के लिए मुफ्त आवासीय स्कूली शिक्षा (कक्षा 5–12) + भोजन, वर्दी और किताबें" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 0,
-    apply:   { en: "schooleducation.kar.nic.in", hi: "schooleducation.kar.nic.in" }, applyType: "online",
+    apply:   { en: "https://schooleducation.kar.nic.in", hi: "schooleducation.kar.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "Income Certificate", "Previous Class Mark Sheet"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "आय प्रमाण", "पिछली कक्षा की मार्कशीट"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income) && a.area === "rural",
