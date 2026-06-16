@@ -463,7 +463,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹1,000–₹10,000/year scholarship for minority community students (Muslim, Sikh, Christian, Buddhist, Jain, Parsi) with income ≤₹2L", hi: "अल्पसंख्यक समुदाय (मुस्लिम, सिख, ईसाई, बौद्ध, जैन, पारसी) के छात्रों को ₹1,000–₹10,000/वर्ष छात्रवृत्ति (आय ≤₹2 लाख)" },
     tag:     { en: "Student / Minority Scholarship", hi: "छात्र / अल्पसंख्यक छात्रवृत्ति" },
     annual: 10000,
-    apply:   { en: "minorityaffairs.gov.in / scholarships.gov.in", hi: "minorityaffairs.gov.in / scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://minorityaffairs.gov.in", hi: "https://minorityaffairs.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Minority Community Certificate","Previous Marksheet","Income Certificate","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","पिछले वर्ष की मार्कशीट","आय प्रमाण पत्र","बैंक खाता","पंजाब अधिवास"] },
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
