@@ -301,7 +301,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "40–50% subsidy on farm equipment (tractor, harvester, rotavator, seed drill, laser leveller & more)", hi: "कृषि यंत्रों पर 40–50% सब्सिडी (ट्रैक्टर, हार्वेस्टर, रोटावेटर, सीड ड्रिल, लेजर लेवलर आदि)" },
     tag:     { en: "Farmer / Equipment Subsidy", hi: "किसान / यंत्र अनुदान" },
     annual: 0,
-    apply:   { en: "agriharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://agriharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Jamabandi)","Tractor RC (for tractor-drawn implements)","Bank Account","Parivar Pehchan Patra","Caste Certificate (SC/ST for higher subsidy)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/जमाबंदी)","ट्रैक्टर RC (ट्रैक्टर चालित यंत्रों के लिए)","बैंक खाता","परिवार पहचान पत्र","जाति प्रमाण पत्र (SC/ST को अधिक सब्सिडी)"] },
     // Eligibility: Haryana farmer, priority to small/marginal farmers & SC/ST
