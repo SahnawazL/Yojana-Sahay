@@ -571,7 +571,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "₹10,000/acre/year incentive (max 5 acres) for switching to organic farming + free organic certification support", hi: "जैविक खेती अपनाने पर ₹10,000/एकड़/वर्ष प्रोत्साहन (अधिकतम 5 एकड़) + मुफ्त जैविक प्रमाणन सहायता" },
     tag:     { en: "Farmer / Organic", hi: "किसान / जैविक खेती" },
     annual: 50000,
-    apply:   { en: "agripb.gov.in", hi: "agripb.gov.in" }, applyType: "online",
+    apply:   { en: "https://agripb.gov.in", hi: "agripb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Girdawari)","Bank Account","Punjab Domicile","Previous Crop Records"],
                hi: ["आधार कार्ड","जमीन के कागज़ (गिरदावरी)","बैंक खाता","पंजाब अधिवास","पिछली फसल अभिलेख"] },
     match: (a) => a.state === "Punjab" && a.who === "farmer",
