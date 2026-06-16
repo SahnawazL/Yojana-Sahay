@@ -115,7 +115,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     benefit: { en: "₹16,000 maternity benefit: ₹4,000 before delivery + ₹12,000 after delivery (Sambal-registered workers)", hi: "₹16,000 मातृत्व सहायता: प्रसव से पहले ₹4,000 + प्रसव के बाद ₹12,000 (सम्बल पंजीकृत)" },
     tag:     { en: "Maternity / Women", hi: "मातृत्व / महिला" },
     annual: 16000,
-    apply:   { en: "sambal.mp.gov.in / Nearest Labour Office", hi: "sambal.mp.gov.in / नजदीकी श्रम कार्यालय" }, applyType: "online",
+    apply:   { en: "https://sambal.mp.gov.in", hi: "sambal.mp.gov.in / नजदीकी श्रम कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Samagra ID","Sambal Card","MCH Card (Mother & Child Health)","Delivery Certificate","Bank Account"],
                hi: ["आधार कार्ड","समग्र ID","सम्बल कार्ड","MCH कार्ड","प्रसव प्रमाण पत्र","बैंक खाता"] },
     match: (a) => a.state === "Madhya Pradesh" && a.who === "women" && ["below1","1to3"].includes(a.income),
