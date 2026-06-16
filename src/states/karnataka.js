@@ -631,7 +631,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Free rooftop solar panels for farmers — excess power sold back to BESCOM at ₹3.5/unit", hi: "किसानों को मुफ्त रूफटॉप सोलर पैनल — अतिरिक्त बिजली ₹3.5/यूनिट पर BESCOM को बेचें" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "bescom.org / kredl.kar.nic.in", hi: "bescom.org / kredl.kar.nic.in" }, applyType: "online",
+    apply:   { en: "https://bescom.org", hi: "bescom.org / kredl.kar.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Electricity Bill (existing connection)", "Bank Account"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बिजली बिल (मौजूदा कनेक्शन)", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer",
