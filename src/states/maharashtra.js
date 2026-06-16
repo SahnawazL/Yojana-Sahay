@@ -851,7 +851,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Free once-in-a-lifetime pilgrimage to 139 religious sites across India (all faiths) for senior citizens aged 60+. Covers train travel, food, accommodation. ₹30,000 per person borne by state. Citizens above 75 may bring one caretaker.", hi: "60+ वर्ष वरिष्ठ नागरिकों को भारत के 139 तीर्थस्थलों (सभी धर्म) की जीवनकाल में एक बार मुफ्त यात्रा — ट्रेन, भोजन, आवास सहित। राज्य ₹30,000/व्यक्ति वहन करता है। 75+ वर्ष के नागरिक एक सहायक साथ ले सकते हैं।" },
     tag:     { en: "Senior / Pilgrimage / Free Travel", hi: "वरिष्ठ / तीर्थयात्रा / मुफ्त प्रवास" },
     annual: 30000,
-    apply:   { en: "aaplesarkar.mahaonline.gov.in / District Collector Office", hi: "aaplesarkar.mahaonline.gov.in / जिला कलेक्टर कार्यालय" }, applyType: "online",
+    apply:   { en: "https://aaplesarkar.mahaonline.gov.in", hi: "aaplesarkar.mahaonline.gov.in / जिला कलेक्टर कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof (60+)", "Income Certificate (≤₹2.5L/year)", "Maharashtra Domicile", "Passport-size Photo", "Caretaker Aadhaar (if 75+)"],
                hi: ["आधार कार्ड", "आयु प्रमाण (60+)", "आय प्रमाण (≤₹2.5 लाख/वर्ष)", "महाराष्ट्र अधिवास", "पासपोर्ट फोटो", "सहायक का आधार (75+ वर्ष के लिए)"] },
     match: (a) => a.state === "Maharashtra" && (a.who === "senior" || a.age === "above60") && ["below1","1to3"].includes(a.income),
