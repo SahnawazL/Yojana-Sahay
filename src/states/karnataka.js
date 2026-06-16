@@ -107,7 +107,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹5,000–₹20,000/year for SC/ST/OBC students", hi: "SC/ST/OBC छात्रों को ₹5,000–₹20,000/वर्ष" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 15000,
-    apply:   { en: "scholarships.karnataka.gov.in", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.karnataka.gov.in", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "Income Certificate", "Mark Sheets", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "आय प्रमाण", "मार्कशीट", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
