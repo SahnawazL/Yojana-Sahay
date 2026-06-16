@@ -451,7 +451,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹3,000/month (graduates) or ₹1,500/month (diploma holders) for up to 2 years while job searching", hi: "नौकरी खोजते समय ₹3,000/माह (स्नातक) या ₹1,500/माह (डिप्लोमा) 2 वर्ष तक" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 36000,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Degree/Diploma Certificate", "Unemployment Registration Proof", "Bank Account"],
                hi: ["आधार कार्ड", "डिग्री/डिप्लोमा प्रमाण", "बेरोजगार पंजीकरण प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.age === "18to35" && ["below1", "1to3"].includes(a.income),
