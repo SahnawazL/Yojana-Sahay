@@ -241,7 +241,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "75% subsidy on solar water pump (90% for SC/ST farmers) under PM-KUSUM component-B", hi: "सोलर वाटर पंप पर 75% सब्सिडी (SC/ST किसानों को 90%) PM-KUSUM कंपोनेंट-B अंतर्गत" },
     tag:     { en: "Farmer / Solar Energy", hi: "किसान / सौर ऊर्जा" },
     annual: 0,
-    apply:   { en: "hareda.gov.in", hi: "hareda.gov.in" }, applyType: "online",
+    apply:   { en: "https://hareda.gov.in", hi: "hareda.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra)","Electricity Bill (existing pump connection)","Bank Account","Caste Certificate (SC/ST for higher subsidy)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा)","बिजली बिल (मौजूदा पंप कनेक्शन)","बैंक खाता","जाति प्रमाण पत्र (SC/ST अधिक सब्सिडी के लिए)"] },
     // Eligibility: Haryana farmer with agricultural land & existing pump connection
