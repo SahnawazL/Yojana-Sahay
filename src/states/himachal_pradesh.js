@@ -101,7 +101,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "25–35% capital subsidy on plant & machinery for starting own enterprise (up to ₹60 Lakh project)", hi: "अपना उद्यम शुरू करने पर संयंत्र और मशीनरी पर 25–35% पूंजी सब्सिडी (₹60 लाख तक)" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "mmsy.hp.gov.in", hi: "mmsy.hp.gov.in" }, applyType: "online",
+    apply:   { en: "https://mmsy.hp.gov.in", hi: "mmsy.hp.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","HP Domicile Certificate","Business/Project Report","Educational Certificates","Bank Account","Caste Certificate (if applicable)"],
                hi: ["आधार कार्ड","हिमाचल अधिवास प्रमाण","व्यापार/परियोजना रिपोर्ट","शैक्षणिक प्रमाण पत्र","बैंक खाता","जाति प्रमाण पत्र (यदि लागू हो)"] },
     match: (a) => a.state === "Himachal Pradesh" && (a.who === "business" || ["18to35","35to60"].includes(a.age)),
