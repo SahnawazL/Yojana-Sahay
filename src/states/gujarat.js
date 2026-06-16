@@ -493,7 +493,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "50% subsidy on certified planting material, poly-house, shade net & drip for fruit & vegetable farmers", hi: "फल व सब्जी किसानों को प्रमाणित पौध सामग्री, पॉलीहाउस, शेडनेट व ड्रिप पर 50% सब्सिडी" },
     tag:     { en: "Farmer / Horticulture", hi: "किसान / बागवानी" },
     annual: 60000,
-    apply:   { en: "agri.gujarat.gov.in", hi: "agri.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://agri.gujarat.gov.in", hi: "agri.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (7/12 Utara)", "Bank Passbook", "Caste Certificate (if SC/ST)", "Photo"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (7/12 उतारा)", "बैंक पासबुक", "जाति प्रमाण (SC/ST के लिए)", "फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer",
