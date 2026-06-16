@@ -339,7 +339,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹1,000/month pension · ₹20,000 daughter's marriage aid · ₹5,000 tool grant · Education & health benefits for registered construction workers", hi: "₹1,000/माह पेंशन · बेटी की शादी पर ₹20,000 · ₹5,000 उपकरण अनुदान · पंजीकृत निर्माण श्रमिकों को शिक्षा व स्वास्थ्य सहायता" },
     tag:     { en: "Labour / Construction", hi: "श्रम / निर्माण" },
     annual: 20000,
-    apply:   { en: "https://bocwwb.gujarat.gov.in", hi: "bocwwb.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://bocwwb.gujarat.gov.in", hi: "bocwwb.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "90-day Work Certificate from Contractor", "Bank Account", "Photo", "Nominee's Aadhaar"],
                hi: ["आधार कार्ड", "ठेकेदार से 90 दिन का कार्य प्रमाण पत्र", "बैंक खाता", "फोटो", "नामांकित व्यक्ति का आधार"] },
     match: (a) => a.state === "Gujarat" && ["below1", "1to3"].includes(a.income) && ["18to35", "35to60"].includes(a.age),
