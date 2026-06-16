@@ -1007,7 +1007,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Seed funding ₹20–₹50 Lakh, 5-year SGST reimbursement, free co-working space & mentorship for DPIIT-recognised Karnataka startups", hi: "DPIIT-मान्यता प्राप्त कर्नाटक स्टार्टअप को ₹20–₹50 लाख सीड फंड, 5 वर्ष SGST प्रतिपूर्ति, मुफ्त को-वर्किंग स्पेस और मेंटरशिप" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "startup.karnataka.gov.in", hi: "startup.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://startup.karnataka.gov.in", hi: "startup.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar/PAN of Founders", "DPIIT Startup Recognition Certificate", "Company Registration (MCA)", "Business Plan / Pitch Deck", "Bank Account"],
                hi: ["संस्थापकों का आधार/पैन", "DPIIT स्टार्टअप मान्यता प्रमाण", "कंपनी पंजीकरण (MCA)", "व्यापार योजना / पिच डेक", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "business" && ["18to35", "35to60"].includes(a.age),
