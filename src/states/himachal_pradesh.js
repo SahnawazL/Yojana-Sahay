@@ -31,7 +31,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "₹5 Lakh/year free hospital treatment for families not covered under PMJAY", hi: "PMJAY में शामिल नहीं परिवारों के लिए ₹5 लाख/वर्ष मुफ्त इलाज" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "himcare.hp.gov.in", hi: "himcare.hp.gov.in" }, applyType: "online",
+    apply:   { en: "https://himcare.hp.gov.in", hi: "himcare.hp.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card / BPL Certificate","HP Domicile Certificate","Passport Size Photo","Bank Account"],
                hi: ["आधार कार्ड","राशन कार्ड / बीपीएल प्रमाण पत्र","हिमाचल अधिवास प्रमाण","पासपोर्ट साइज फोटो","बैंक खाता"] },
     match: (a) => a.state === "Himachal Pradesh" && ["below1","1to3","3to6"].includes(a.income),
