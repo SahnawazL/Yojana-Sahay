@@ -226,7 +226,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Free 4–6 week freelancing & IT skills training at college + ₹3,000/month stipend during training", hi: "कॉलेज में 4–6 सप्ताह मुफ्त फ्रीलांसिंग और IT कौशल प्रशिक्षण + ₹3,000/माह वजीफा" },
     tag:     { en: "Youth / IT Skills", hi: "युवा / IT कौशल" },
     annual: 9000,
-    apply:   { en: "ekarmaindia.com", hi: "ekarmaindia.com" }, applyType: "online",
+    apply:   { en: "https://ekarmaindia.com", hi: "ekarmaindia.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","College Enrollment Certificate","Bank Account","Domicile Certificate (Haryana)"],
                hi: ["आधार कार्ड","कॉलेज नामांकन प्रमाण पत्र","बैंक खाता","निवास प्रमाण पत्र (हरियाणा)"] },
     // Eligibility: Haryana college student (UG/PG), enrolled in affiliated college
