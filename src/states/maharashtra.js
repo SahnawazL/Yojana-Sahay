@@ -757,7 +757,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Full tuition fee + ₹250–₹550/month maintenance allowance for VJNT/NT/SBC students in degree & diploma courses (income ≤₹2.5L/year)", hi: "VJNT/NT/SBC छात्रों को डिग्री व डिप्लोमा पाठ्यक्रमों में पूर्ण ट्यूशन शुल्क + ₹250–₹550/माह भत्ता (आय ≤₹2.5 लाख/वर्ष)" },
     tag:     { en: "Student / VJNT / Nomadic Tribe", hi: "छात्र / VJNT / भटक्या जाती" },
     annual: 6600,
-    apply:   { en: "mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "VJNT / NT / SBC Caste Certificate", "Income Certificate (≤₹2.5L/year)", "Previous Year Mark Sheet", "College Bonafide & Fee Receipt", "Bank Passbook"],
                hi: ["आधार कार्ड", "VJNT / NT / SBC जाति प्रमाण पत्र", "आय प्रमाण (≤₹2.5 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज बोनाफाइड व शुल्क रसीद", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income),
