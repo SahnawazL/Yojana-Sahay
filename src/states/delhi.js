@@ -257,7 +257,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "Free industry-linked skill training with placement support for youth 18–45", hi: "18–45 वर्ष युवाओं को उद्योग-संबद्ध मुफ्त कौशल प्रशिक्षण व नियोजन सहायता" },
     tag:     { en: "Employment", hi: "रोजगार" },
     annual: 5000,
-    apply:   { en: "dseu.ac.in", hi: "dseu.ac.in" }, applyType: "online",
+    apply:   { en: "https://dseu.ac.in", hi: "dseu.ac.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Delhi Address Proof", "Class 8/10 Marksheet", "Passport-size Photo"],
                hi: ["आधार कार्ड", "दिल्ली पता प्रमाण", "कक्षा 8/10 अंकतालिका", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Delhi" && (a.who === "general" || a.who === "student") && (a.age === "18to35" || a.age === "35to60"),
