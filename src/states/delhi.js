@@ -577,7 +577,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "₹10,000–₹15,000/year scholarship for sportspersons representing Delhi at national / state level", hi: "राज्य / राष्ट्रीय स्तर पर दिल्ली का प्रतिनिधित्व करने वाले खिलाड़ियों को ₹10,000–₹15,000 वार्षिक छात्रवृत्ति" },
     tag:     { en: "Sports", hi: "खेल" },
     annual: 12000,
-    apply:   { en: "sports.delhigovt.nic.in", hi: "sports.delhigovt.nic.in" }, applyType: "online",
+    apply:   { en: "https://sports.delhigovt.nic.in", hi: "sports.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Sports Achievement Certificate (State / National level)", "School / College Bonafide", "Delhi Domicile", "Bank Passbook"],
                hi: ["आधार कार्ड", "खेल उपलब्धि प्रमाण पत्र (राज्य / राष्ट्रीय स्तर)", "स्कूल / कॉलेज बोनाफाइड", "दिल्ली अधिवास", "बैंक पासबुक"] },
     match: (a) => a.state === "Delhi" && (a.who === "student" || a.who === "general") && (a.age === "below18" || a.age === "18to35"),
