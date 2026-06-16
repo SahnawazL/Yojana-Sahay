@@ -607,7 +607,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "₹825–₹1,500/month scholarship for minority students (Muslim, Christian, Sikh, Buddhist, Parsi, Jain) in Class 11 onwards", hi: "कक्षा 11 से आगे पढ़ने वाले अल्पसंख्यक छात्रों (मुस्लिम, ईसाई, सिख, बौद्ध, पारसी, जैन) को ₹825–₹1,500/माह छात्रवृत्ति" },
     tag:     { en: "Student / Minority", hi: "छात्र / अल्पसंख्यक" },
     annual: 18000,
-    apply:   { en: "minority.rajasthan.gov.in", hi: "minority.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://minority.rajasthan.gov.in", hi: "minority.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Minority Community Certificate", "Income Certificate (family ≤ ₹2 lakh/year)", "Previous Year Mark Sheet", "School / College Enrolment Proof", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "आय प्रमाण (परिवार ≤ ₹2 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "स्कूल / कॉलेज नामांकन प्रमाण", "बैंक खाता"] },
     // Eligibility: minority community student, family income ≤ ₹2 lakh/year, enrolled Class 11 onwards
