@@ -19,7 +19,7 @@ export const CHHATTISGARH_SCHEMES = [
     benefit: { en: "₹9,000–₹13,000/acre input subsidy for paddy & other crops", hi: "धान व अन्य फसलों पर ₹9,000–₹13,000/एकड़ इनपुट सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 13000,
-    apply:   { en: "kisan.cg.gov.in", hi: "kisan.cg.gov.in" }, applyType: "online",
+    apply:   { en: "https://kisan.cg.gov.in", hi: "kisan.cg.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (B1/P2)","Bank Passbook","Farmer Registration"],
                hi: ["आधार कार्ड","भूमि अभिलेख (B1/P2)","बैंक पासबुक","किसान पंजीकरण"] },
     match: (a) => a.state === "Chhattisgarh" && a.who === "farmer",
