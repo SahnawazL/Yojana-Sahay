@@ -199,7 +199,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     benefit: { en: "₹1,250/month direct cash transfer to all married women (21–60 years) in MP", hi: "म.प्र. की सभी विवाहित महिलाओं (21–60 वर्ष) को ₹1,250/माह सीधे बैंक में" },
     tag:     { en: "Women / Cash Transfer", hi: "महिला / नकद हस्तांतरण" },
     annual: 15000,
-    apply:   { en: "cmladlibahna.mp.gov.in", hi: "cmladlibahna.mp.gov.in" }, applyType: "online",
+    apply:   { en: "https://cmladlibahna.mp.gov.in", hi: "cmladlibahna.mp.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Samagra ID", "Bank Account (Aadhaar-linked)", "Marriage Certificate / Self-declaration", "MP Domicile Proof"],
                hi: ["आधार कार्ड", "समग्र ID", "बैंक खाता (आधार लिंक)", "विवाह प्रमाण पत्र / स्व-घोषणा", "म.प्र. निवास प्रमाण"] },
     match: (a) => a.state === "Madhya Pradesh" && a.who === "women" && ["18to35", "35to60"].includes(a.age),
