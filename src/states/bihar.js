@@ -189,7 +189,7 @@ export const BIHAR_SCHEMES = [
                hi: "15–28 वर्ष के युवाओं के लिए 3–6 माह का मुफ्त कौशल प्रशिक्षण: संचार कौशल, बेसिक IT (कंप्यूटर), जीवन कौशल; पूर्णता पर प्रमाण पत्र; नौकरी प्लेसमेंट से जुड़ा; पंजीकृत KYP केंद्रों पर" },
     tag:     { en: "Youth / Skill Training", hi: "युवा / कौशल प्रशिक्षण" },
     annual: 0,
-    apply:   { en: "skillmissionbihar.org", hi: "skillmissionbihar.org" }, applyType: "online",
+    apply:   { en: "https://skillmissionbihar.org", hi: "skillmissionbihar.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 10 Pass Certificate (minimum)","Bank Account","Residence Proof (Bihar)","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 10 उत्तीर्ण प्रमाण पत्र (न्यूनतम)","बैंक खाता","निवास प्रमाण (बिहार)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Bihar" && a.age === "18to35",
