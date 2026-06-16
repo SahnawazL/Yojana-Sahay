@@ -787,7 +787,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Loan up to ₹5 Lakh at 4% interest + ₹25,000 margin money grant for persons with 40%+ disability to start business", hi: "40%+ विकलांगता वाले व्यक्तियों को व्यवसाय हेतु 4% ब्याज पर ₹5 लाख ऋण + ₹25,000 मार्जिन मनी अनुदान" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://sevasindhu.karnataka.gov.in", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "Business Plan", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+)", "व्यापार योजना", "आय प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income),
