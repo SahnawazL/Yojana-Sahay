@@ -535,7 +535,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "₹1,000/month maintenance allowance + full fees for Class 1–10 minority community students from low-income families", hi: "कम आय वाले अल्पसंख्यक समुदाय के कक्षा 1–10 छात्रों को ₹1,000/माह रखरखाव भत्ता + पूर्ण शुल्क" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 12000,
-    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate (Muslim/Sikh/Christian/Buddhist/Jain/Parsi)", "Income Certificate (below ₹1 Lakh/year)", "Mark Sheets", "HP Domicile Certificate", "School Enrollment Proof", "Bank Account"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र (मुस्लिम/सिख/ईसाई/बौद्ध/जैन/पारसी)", "आय प्रमाण पत्र (₹1 लाख/वर्ष से कम)", "मार्कशीट", "हिमाचल अधिवास प्रमाण", "स्कूल नामांकन प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && a.income === "below1",
