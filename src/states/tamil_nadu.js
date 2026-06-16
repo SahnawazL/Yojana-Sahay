@@ -292,7 +292,7 @@ export const TAMIL_NADU_SCHEMES = [
     benefit: { en: "25% capital subsidy (max ₹75 Lakh) + soft loan at 3% interest for first-generation entrepreneurs", hi: "प्रथम पीढ़ी के उद्यमियों को 25% पूंजी सब्सिडी (अधिकतम ₹75 लाख) + 3% ब्याज पर सॉफ्ट लोन" },
     tag:     { en: "Entrepreneurship", hi: "उद्यमिता" },
     annual:  750000,
-    apply:   { en: "tiic.org", hi: "tiic.org" }, applyType: "online",
+    apply:   { en: "https://tiic.org", hi: "tiic.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (Graduate/Diploma)", "Project Report", "Community Certificate (if SC/ST/OBC)", "Bank Account"],
                hi: ["आधार कार्ड", "शैक्षिक प्रमाण पत्र (स्नातक/डिप्लोमा)", "प्रोजेक्ट रिपोर्ट", "जाति प्रमाण पत्र (SC/ST/OBC)", "बैंक खाता"] },
     match: (a) => a.state === "Tamil Nadu" && a.who === "business" && a.age === "18to35",
