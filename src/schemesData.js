@@ -700,7 +700,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹10,000–₹2 Lakh loan at 5–7% interest + free skill training for urban poor", hi: "शहरी गरीबों के लिए ₹10,000–₹2 लाख 5–7% ब्याज पर लोन + मुफ्त कौशल प्रशिक्षण" },
     tag:     { en: "Business / Urban", hi: "व्यापार / शहरी" },
     annual: 0,
-    apply:   { en: "nulm.gov.in", hi: "nulm.gov.in" }, applyType: "online",
+    apply:   { en: "https://nulm.gov.in", hi: "nulm.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","BPL / EWS Certificate","Bank Account","Address Proof","Business Activity Proof"],
                hi: ["आधार कार्ड","BPL/EWS प्रमाण","बैंक खाता","पता प्रमाण","व्यापार गतिविधि प्रमाण"] },
     // Eligibility: urban poor, BPL/EWS, seeking self-employment
