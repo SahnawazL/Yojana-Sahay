@@ -1093,7 +1093,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Up to ₹2.5L central grant + state top-up for EWS/LIG urban families to buy/construct pucca house. Special priority for widows, single women, transgender, disabled & minorities. Affordable Rental Housing for urban migrants.", hi: "EWS/LIG शहरी परिवारांना पक्के घर खरेदी/बांधणीसाठी ₹2.5L केंद्रीय अनुदान + राज्य टॉप-अप. विधवा, एकल महिला, ट्रान्सजेंडर, दिव्यांग व अल्पसंख्याकांना विशेष प्राधान्य. शहरी स्थलांतरितांसाठी परवडणारी भाड्याची घरे." },
     tag:     { en: "Housing / Urban / EWS", hi: "आवास / शहरी / EWS" },
     annual: 250000,
-    apply:   { en: "pmaymis.gov.in / ULB / Ward Office", hi: "pmaymis.gov.in / नगरपालिका / वार्ड कार्यालय" }, applyType: "online",
+    apply:   { en: "https://pmaymis.gov.in", hi: "pmaymis.gov.in / नगरपालिका / वार्ड कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (EWS ≤₹3L/yr, LIG ≤₹6L/yr)", "No Pucca House Declaration (self & spouse)", "Address Proof", "Ration Card", "Bank Passbook", "Caste Certificate (if SC/ST/OBC/Minority)"],
                hi: ["आधार कार्ड", "आय प्रमाण (EWS ≤₹3L/वर्ष, LIG ≤₹6L/वर्ष)", "पक्के घर नसल्याचे घोषणापत्र (स्वतः व पती/पत्नी)", "पता प्रमाण", "राशन कार्ड", "बैंक पासबुक", "जाति प्रमाण (SC/ST/OBC/अल्पसंख्याक)"] },
     match: (a) => a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["urban","semi"].includes(a.area) && ["below1","1to3","3to6"].includes(a.income),
