@@ -87,7 +87,7 @@ export const BIHAR_SCHEMES = [
                hi: "सामान्य/OBC/EWS युवा उद्यमियों (18–50 वर्ष) के लिए ₹10 लाख: ₹5 लाख अनुदान + ₹5 लाख ऋण 1% ब्याज पर; विनिर्माण या सेवा क्षेत्र में नई इकाई शुरू करने के लिए" },
     tag:     { en: "Youth / Entrepreneurship", hi: "युवा / उद्यमिता" },
     annual: 500000,
-    apply:   { en: "https://udyami.bihar.gov.in", hi: "udyami.bihar.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://udyami.bihar.gov.in", hi: "udyami.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","PAN Card","Caste Certificate (OBC/EWS)","10th Pass Certificate","Bank Account (Aadhaar-linked)","Project Report","Residence Proof (Bihar)","Passport Photo"],
                hi: ["आधार कार्ड","पैन कार्ड","जाति प्रमाण पत्र (OBC/EWS)","10वीं पास प्रमाण पत्र","बैंक खाता (आधार-लिंक्ड)","प्रोजेक्ट रिपोर्ट","निवास प्रमाण (बिहार)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Bihar" && a.who === "business" && ["18to35","35to60"].includes(a.age),
