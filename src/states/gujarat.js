@@ -73,7 +73,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹4,000 at birth · ₹6,000 at Class 1 · ₹10,000 at Class 9 · ₹1 Lakh at age 18", hi: "जन्म पर ₹4,000 · कक्षा 1 में ₹6,000 · कक्षा 9 में ₹10,000 · 18 वर्ष पर ₹1 लाख" },
     tag:     { en: "Girl Child / Women", hi: "बालिका / महिला" },
     annual: 4000,
-    apply:   { en: "https://wcd.gujarat.gov.in", hi: "wcd.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://wcd.gujarat.gov.in", hi: "wcd.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (Parent)", "Girl Child's Birth Certificate", "Income Certificate (below ₹2L)", "Bank Account (Parent)", "Ration Card"],
                hi: ["आधार कार्ड (माता-पिता)", "बालिका का जन्म प्रमाण पत्र", "आय प्रमाण (₹2 लाख से कम)", "बैंक खाता (माता-पिता)", "राशन कार्ड"] },
     match: (a) => a.state === "Gujarat" && a.who === "women" && ["below1", "1to3"].includes(a.income),
