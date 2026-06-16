@@ -199,7 +199,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "Tuition fee waiver + maintenance allowance ₹5,000–₹18,000/year for higher studies", hi: "उच्च शिक्षा हेतु ट्यूशन फीस माफी + ₹5,000–₹18,000/वर्ष रखरखाव भत्ता" },
     tag:     { en: "Student / SC OBC", hi: "छात्र / SC OBC" },
     annual: 18000,
-    apply:   { en: "esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC / ST / OBC)", "Previous Year Mark Sheets", "Income Certificate (below ₹2.5L)", "Bonafide Certificate from Institution", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC)", "पिछले वर्ष की मार्कशीट", "आय प्रमाण (₹2.5 लाख से कम)", "संस्थान से बोनाफाइड प्रमाण पत्र", "बैंक खाता"] },
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income),
