@@ -451,7 +451,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "₹2,000/month pension after 60 + ₹1 Lakh accident cover + maternity benefit + child scholarship for registered construction workers", hi: "पंजीकृत निर्माण श्रमिकों को 60 वर्ष के बाद ₹2,000/माह पेंशन + ₹1 लाख दुर्घटना बीमा + प्रसूति लाभ + बच्चों की छात्रवृत्ति" },
     tag:     { en: "Insurance", hi: "बीमा" },
     annual: 24000,
-    apply:   { en: "hplabour.gov.in", hi: "hplabour.gov.in" }, applyType: "online",
+    apply:   { en: "https://hplabour.gov.in", hi: "hplabour.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Proof of Construction Work (90 days in a year)", "HP Domicile Certificate", "Bank Account", "Passport Size Photo", "Age Proof"],
                hi: ["आधार कार्ड", "निर्माण कार्य का प्रमाण (वर्ष में 90 दिन)", "हिमाचल अधिवास प्रमाण", "बैंक खाता", "पासपोर्ट साइज फोटो", "आयु प्रमाण"] },
     match: (a) => a.state === "Himachal Pradesh" && ["below1","1to3"].includes(a.income),
