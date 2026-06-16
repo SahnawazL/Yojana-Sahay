@@ -1116,14 +1116,16 @@
     "confidence": 0
   },
   "uk_vatsalya": {
-    "lastVerified": "2026-06-15T11:52:25.515Z",
+    "lastVerified": "2026-06-16T07:08:43.706Z",
     "httpStatus": 200,
-    "linkAlive": true
+    "linkAlive": true,
+    "confidence": 0
   },
   "uk_medhavi_chhatravriti": {
-    "lastVerified": "2026-06-15T19:36:40.834Z",
-    "httpStatus": 0,
-    "linkAlive": true
+    "lastVerified": "2026-06-16T07:08:43.706Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
   },
   "delhi_mohalla": {
     "lastVerified": "2026-06-16T06:59:31.004Z",
