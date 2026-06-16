@@ -45,7 +45,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "₹1,000–₹2,500/month stipend for girl students (Class 11 to PG) to prevent child marriage", hi: "बाल विवाह रोकने के लिए छात्राओं को ₹1,000–₹2,500/माह वजीफा" },
     tag:     { en: "Girl Student", hi: "छात्रा" },
     annual: 12000,
-    apply:   { en: "sebaonline.org", hi: "sebaonline.org" }, applyType: "online",
+    apply:   { en: "https://sebaonline.org", hi: "sebaonline.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","School / College Enrollment Certificate","Bank Account (girl's name)","Birth Certificate"],
                hi: ["आधार कार्ड","स्कूल/कॉलेज नामांकन प्रमाण","बैंक खाता (छात्रा के नाम)","जन्म प्रमाण पत्र"] },
     match: (a) => a.state === "Assam" && a.who === "student",
