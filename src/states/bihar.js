@@ -53,7 +53,7 @@ export const BIHAR_SCHEMES = [
                hi: "महिला उद्यमी को ₹10 लाख: ₹5 लाख अनुदान (वापसी नहीं) + ₹5 लाख ब्याज-मुक्त ऋण 84 महीनों में चुकाने योग्य; नई विनिर्माण या सेवा इकाई शुरू करने के लिए" },
     tag:     { en: "Women / Entrepreneurship", hi: "महिला / उद्यमिता" },
     annual: 500000,
-    apply:   { en: "https://udyami.bihar.gov.in", hi: "udyami.bihar.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://udyami.bihar.gov.in", hi: "udyami.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","PAN Card","Bank Account (Aadhaar-linked)","10th Pass Certificate (minimum qualification)","Caste Certificate (if applicable)","Project Report / Business Plan","Residence Proof (Bihar domicile)","Passport Photo"],
                hi: ["आधार कार्ड","पैन कार्ड","बैंक खाता (आधार-लिंक्ड)","10वीं पास प्रमाण पत्र (न्यूनतम योग्यता)","जाति प्रमाण पत्र (यदि लागू हो)","प्रोजेक्ट रिपोर्ट / व्यापार योजना","निवास प्रमाण (बिहार अधिवास)","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Bihar" && a.who === "women",
