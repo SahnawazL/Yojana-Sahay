@@ -127,7 +127,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Free scooty + ₹10,000–₹20,000/year stipend for OBC backward-class girl students scoring ≥50% in Class 12",   hi: "12वीं में ≥50% पाने वाली OBC पिछड़ा वर्ग छात्राओं को निःशुल्क स्कूटी + ₹10,000–₹20,000/वर्ष स्टाइपेंड" },
     tag:     { en: "Student / Women", hi: "छात्र / महिला" },
     annual: 20000,
-    apply:   { en: "sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "OBC Caste Certificate (Gurjar/Raika/Banjara/Gadia Luhar)", "12th Mark Sheet (≥50%)", "College Admission Proof", "Income Certificate (family ≤ ₹2 lakh/year)", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "OBC जाति प्रमाण (गुर्जर/राइका/बंजारा/गाडिया लोहार)", "12वीं मार्कशीट (≥50%)", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण (परिवार ≤ ₹2 लाख/वर्ष)", "बैंक खाता"] },
     // Eligibility: girl from specific OBC backward communities, ≥50% in 12th board
