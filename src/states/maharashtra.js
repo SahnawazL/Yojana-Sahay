@@ -59,7 +59,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Interest-free/subsidised loan up to ₹10 Lakh for OBC entrepreneurs", hi: "OBC उद्यमियों को ₹10 लाख तक ब्याजमुक्त/सब्सिडी लोन" },
     tag:     { en: "Business / OBC", hi: "व्यापार / OBC" },
     annual: 0,
-    apply:   { en: "mahaswayam.gov.in", hi: "mahaswayam.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahaswayam.gov.in", hi: "mahaswayam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (OBC)", "Business Plan", "Income Certificate", "Bank Passbook"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (OBC)", "व्यापार योजना", "आय प्रमाण पत्र", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "business" && ["below1","1to3","3to6"].includes(a.income),
