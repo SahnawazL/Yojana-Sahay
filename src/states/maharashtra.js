@@ -709,7 +709,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Collateral-free loans: ₹15,000 (1st), ₹25,000 (2nd), ₹50,000 (3rd tranche) + 7% interest subsidy + UPI-linked RuPay credit card (₹30,000 limit) + ₹1,200/yr cashback on digital payments", hi: "बिना गारंटी लोन: ₹15,000 (1ली), ₹25,000 (2री), ₹50,000 (3री किस्त) + 7% ब्याज सब्सिडी + UPI-लिंक्ड RuPay क्रेडिट कार्ड (₹30,000 सीमा) + डिजिटल भुगतान पर ₹1,200/वर्ष कैशबैक" },
     tag:     { en: "Street Vendor / Urban / Micro Credit", hi: "पथविक्रेता / शहरी / सूक्ष्म ऋण" },
     annual: 1200,
-    apply:   { en: "pmsvanidhi.mohua.gov.in / nearest ULB office or bank", hi: "pmsvanidhi.mohua.gov.in / नजदीकी नगरपालिका कार्यालय या बैंक" }, applyType: "online",
+    apply:   { en: "https://pmsvanidhi.mohua.gov.in", hi: "pmsvanidhi.mohua.gov.in / नजदीकी नगरपालिका कार्यालय या बैंक" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Vending Certificate / Letter of Recommendation from ULB / Town Vending Committee", "Bank Passbook", "Passport Photo", "Mobile Number (for UPI)"],
                hi: ["आधार कार्ड", "वेंडिंग प्रमाण पत्र / ULB/टाउन वेंडिंग कमेटी से अनुशंसा पत्र", "बैंक पासबुक", "पासपोर्ट फोटो", "मोबाइल नंबर (UPI हेतु)"] },
     match: (a) => a.state === "Maharashtra" && a.who === "business" && ["urban","semi"].includes(a.area) && ["below1","1to3"].includes(a.income),
