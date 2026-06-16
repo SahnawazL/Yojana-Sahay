@@ -276,7 +276,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Subsidised flats for EWS (≤₹3L income) & LIG (≤₹6L) · EWS units from ₹3.5 lakh in urban areas",     hi: "EWS (≤₹3 लाख आय) और LIG (≤₹6 लाख) को सब्सिडी पर फ्लैट · शहरी क्षेत्रों में EWS यूनिट ₹3.5 लाख से" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 0,
-    apply:   { en: "urban.rajasthan.gov.in", hi: "urban.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://urban.rajasthan.gov.in", hi: "urban.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Income Certificate", "No Property Ownership Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "आय प्रमाण पत्र", "संपत्ति न होने का प्रमाण", "बैंक खाता"] },
     // Eligibility: EWS/LIG household in urban Rajasthan with no pucca house
