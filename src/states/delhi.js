@@ -501,7 +501,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "Affordable flats for EWS & LIG applicants at below-market prices via DDA housing draws", hi: "DDA आवास ड्रॉ के माध्यम से EWS व LIG को बाजार से कम कीमत पर किफायती फ्लैट" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 0,
-    apply:   { en: "dda.gov.in", hi: "dda.gov.in" }, applyType: "online",
+    apply:   { en: "https://dda.gov.in", hi: "dda.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "EWS / Income Certificate (below ₹3L p.a.)", "Delhi Domicile (3+ years)", "No Existing Property Affidavit", "Bank Statement"],
                hi: ["आधार कार्ड", "EWS / आय प्रमाण पत्र (₹3L प्रति वर्ष से कम)", "दिल्ली अधिवास (3+ वर्ष)", "कोई संपत्ति नहीं का शपथपत्र", "बैंक विवरण"] },
     match: (a) => a.state === "Delhi" && (a.house === "no" || a.house === "kutcha") && (a.caste === "ews" || a.income === "below1" || a.income === "1to3"),
