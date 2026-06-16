@@ -63,7 +63,7 @@ export const CHHATTISGARH_SCHEMES = [
     benefit: { en: "₹1,000/month (₹12,000/year) direct benefit to married women", hi: "विवाहित महिलाओं को ₹1,000/माह (₹12,000/वर्ष) सीधे बैंक में" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 12000,
-    apply:   { en: "mahtarivandan.cgstate.gov.in", hi: "mahtarivandan.cgstate.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahtarivandan.cgstate.gov.in", hi: "mahtarivandan.cgstate.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Marriage Certificate","Bank Passbook","Domicile Certificate"],
                hi: ["आधार कार्ड","विवाह प्रमाण पत्र","बैंक पासबुक","निवास प्रमाण पत्र"] },
     match: (a) => a.state === "Chhattisgarh" && a.who === "women",
