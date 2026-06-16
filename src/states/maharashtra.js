@@ -741,7 +741,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "50% subsidy on fruit orchard establishment (mango, banana, pomegranate, grapes) + drip irrigation + protected cultivation (polyhouse) under National Horticulture Mission", hi: "राष्ट्रीय फलोत्पादन मिशन के तहत फळबाग लागवड (आम, केला, डाळिंब, द्राक्षे) + ठिबक सिंचन + संरक्षित शेती (पॉलीहाउस) पर 50% सब्सिडी" },
     tag:     { en: "Farmer / Horticulture", hi: "किसान / फलोत्पादन" },
     annual: 35000,
-    apply:   { en: "horticulture.maharashtra.gov.in / MahaDBT portal", hi: "horticulture.maharashtra.gov.in / MahaDBT पोर्टल" }, applyType: "online",
+    apply:   { en: "https://horticulture.maharashtra.gov.in", hi: "horticulture.maharashtra.gov.in / MahaDBT पोर्टल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Soil & Water Test Report", "Bank Passbook", "Photograph of Farm Land", "Caste Certificate (SC/ST for higher subsidy)"],
                hi: ["आधार कार्ड", "7/12 उतारा", "मिट्टी व पानी जांच रिपोर्ट", "बैंक पासबुक", "खेत की फोटो", "जाति प्रमाण (SC/ST अधिक सब्सिडी हेतु)"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
