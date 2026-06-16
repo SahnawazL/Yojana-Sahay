@@ -1394,7 +1394,7 @@ export const SCHEME_DB = [
     benefit: { en: "Comprehensive welfare for transgender persons: ABHA / Aadhaar support, free education, PMKVY skill training, PM SVANidhi loan, Ayushman Bharat ₹5L health cover, shelter & livelihood rehabilitation", hi: "ट्रांसजेंडर व्यक्तियों के लिए व्यापक कल्याण: ABHA/आधार सहायता, मुफ्त शिक्षा, PMKVY प्रशिक्षण, PM स्वनिधि लोन, आयुष्मान ₹5 लाख स्वास्थ्य बीमा, आश्रय और आजीविका पुनर्वास" },
     tag:     { en: "General", hi: "सामान्य" },
     annual: 0,
-    apply:   { en: "smilecdo.dosje.gov.in / District Social Welfare Office / State Transgender Welfare Board", hi: "smilecdo.dosje.gov.in / जिला समाज कल्याण कार्यालय / राज्य ट्रांसजेंडर कल्याण बोर्ड" }, applyType: "online",
+    apply:   { en: "https://smilecdo.dosje.gov.in", hi: "smilecdo.dosje.gov.in / जिला समाज कल्याण कार्यालय / राज्य ट्रांसजेंडर कल्याण बोर्ड" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Self-identification as Transgender (or District Screening Committee Certificate)","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","ट्रांसजेंडर स्व-पहचान (या जिला स्क्रीनिंग समिति प्रमाण पत्र)","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: transgender persons and persons engaged in begging seeking rehabilitation
