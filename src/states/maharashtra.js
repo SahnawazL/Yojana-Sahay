@@ -835,7 +835,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "15–35% subsidy on project cost (₹5L–₹50L) to set up micro enterprises in manufacturing or service sector; urban 15%, rural 25%, SC/ST/women/disabled 35%", hi: "सूक्ष्म उद्योग (₹5L–₹50L) स्थापनेसाठी परियोजना लागत पर 15–35% सब्सिडी; शहरी 15%, ग्रामीण 25%, SC/ST/महिला/दिव्यांग 35%" },
     tag:     { en: "Business / Entrepreneur / Micro Enterprise", hi: "व्यापार / उद्योजक / सूक्ष्म उद्योग" },
     annual: 0,
-    apply:   { en: "maha-cmegp.gov.in", hi: "maha-cmegp.gov.in" }, applyType: "online",
+    apply:   { en: "https://maha-cmegp.gov.in", hi: "maha-cmegp.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "8th Pass Certificate (minimum)", "Business / Project Report", "Quotations for Machinery", "Caste / Disability / Domicile Certificate (as applicable)", "Bank Passbook"],
                hi: ["आधार कार्ड", "8वीं पास प्रमाण पत्र (न्यूनतम)", "व्यापार / परियोजना रिपोर्ट", "मशीनरी की कोटेशन", "जाति / दिव्यांगता / अधिवास प्रमाण (यदि लागू)", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "business" && ["below1","1to3","3to6"].includes(a.income),
