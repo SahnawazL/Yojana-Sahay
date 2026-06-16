@@ -31,7 +31,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "Free toolkit worth ₹4,000 for SC artisans to start self-employment", hi: "SC कारीगरों को स्वरोजगार के लिए ₹4,000 मूल्य का मुफ्त टूलकिट" },
     tag:     { en: "Business / SC", hi: "व्यापार / SC" },
     annual: 4000,
-    apply:   { en: "esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC)","Income Certificate (below ₹1.20L)","Domicile Certificate","Photo"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC)","आय प्रमाण (₹1.20 लाख से कम)","अधिवास प्रमाण","फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "business" && ["below1"].includes(a.income),
