@@ -115,7 +115,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "₹100/sapling reward for planting & nurturing trees for 3 years", hi: "3 साल तक पेड़ उगाने पर ₹100/पौधा पुरस्कार" },
     tag:     { en: "Environment", hi: "पर्यावरण" },
     annual: 5000,
-    apply:   { en: "forest.assam.gov.in", hi: "forest.assam.gov.in" }, applyType: "online",
+    apply:   { en: "https://forest.assam.gov.in", hi: "forest.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Bank Account","Land / Land Use Proof","Sapling Planting Proof"],
                hi: ["आधार कार्ड","बैंक खाता","जमीन उपयोग प्रमाण","पौधारोपण प्रमाण"] },
     match: (a) => a.state === "Assam",
