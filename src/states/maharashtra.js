@@ -185,7 +185,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Free skill training + ₹2,000–₹5,000/month stipend during apprenticeship for youth", hi: "युवाओं को मुफ्त कौशल प्रशिक्षण + अप्रेंटिसशिप में ₹2,000–₹5,000/माह" },
     tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
     annual: 60000,
-    apply:   { en: "mahaswayam.gov.in", hi: "mahaswayam.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahaswayam.gov.in", hi: "mahaswayam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (Min. SSC)", "Maharashtra Domicile", "Bank Passbook", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षणिक प्रमाण (न्यूनतम SSC)", "महाराष्ट्र अधिवास प्रमाण", "बैंक पासबुक", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Maharashtra" && ["18to35"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
