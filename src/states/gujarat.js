@@ -17,7 +17,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹5 Lakh/year free medical treatment", hi: "₹5 लाख/वर्ष मुफ्त चिकित्सा" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "health.gujarat.gov.in", hi: "health.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://health.gujarat.gov.in", hi: "health.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","Income Certificate"],
                hi: ["आधार कार्ड","राशन कार्ड","आय प्रमाण"] },
     match: (a) => a.state === "Gujarat" && ["below1","1to3"].includes(a.income),
