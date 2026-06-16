@@ -571,7 +571,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹50,000 FD in girl's name at birth (family income ≤₹7.5L); interest paid for education at key milestones + ₹1L at age 18 for higher education or marriage", hi: "जन्म पर बालिका के नाम ₹50,000 FD (परिवार आय ≤₹7.5 लाख); शिक्षा हेतु समय-समय पर ब्याज + 18 वर्ष पर ₹1 लाख" },
     tag:     { en: "Women / Girl Child / Savings", hi: "महिला / बालिका / बचत" },
     annual: 0,
-    apply:   { en: "womenchild.maharashtra.gov.in", hi: "womenchild.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://womenchild.maharashtra.gov.in", hi: "womenchild.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (parent)", "Girl Child's Birth Certificate", "Income Certificate (≤₹7.5L/year)", "Bank Account in girl's name", "Maharashtra Domicile", "Family Planning Certificate"],
                hi: ["आधार कार्ड (माता-पिता)", "बालिका का जन्म प्रमाण पत्र", "आय प्रमाण (≤₹7.5 लाख/वर्ष)", "बालिका के नाम बैंक खाता", "महाराष्ट्र अधिवास", "परिवार नियोजन प्रमाण पत्र"] },
     match: (a) => a.state === "Maharashtra" && a.who === "women" && ["below1","1to3","3to6"].includes(a.income),
