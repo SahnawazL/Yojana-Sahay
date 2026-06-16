@@ -157,7 +157,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "Loan up to ₹2 lakh + seed money ₹50,000 for youth starting businesses in manufacturing, trade or services", hi: "व्यापार शुरू करने के लिए ₹2 लाख तक लोन + ₹50,000 सीड मनी" },
     tag:     { en: "Youth / Business", hi: "युवा / व्यापार" },
     annual: 0,
-    apply:   { en: "industriescom.assam.gov.in", hi: "industriescom.assam.gov.in" }, applyType: "online",
+    apply:   { en: "https://industriescom.assam.gov.in", hi: "industriescom.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (18+ years)","Educational Certificate (min. Class VII pass)","Bank Account","Business Plan","Domicile Certificate"],
                hi: ["आधार कार्ड","आयु प्रमाण (18+ वर्ष)","शैक्षणिक प्रमाण (न्यूनतम कक्षा 7 पास)","बैंक खाता","व्यापार योजना","अधिवास प्रमाण पत्र"] },
     match: (a) => a.state === "Assam" && ["18to35","35to60"].includes(a.age),
