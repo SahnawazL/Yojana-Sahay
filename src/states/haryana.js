@@ -181,7 +181,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹10/quintal bonus on registered crop sale + eligibility for crop damage compensation & MSP procurement", hi: "पंजीकृत फसल बिक्री पर ₹10/क्विंटल बोनस + फसल नुकसान मुआवजे और MSP खरीद की पात्रता" },
     tag:     { en: "Farmer / Crop Registration", hi: "किसान / फसल पंजीकरण" },
     annual: 0,
-    apply:   { en: "fasal.haryana.gov.in", hi: "fasal.haryana.gov.in" }, applyType: "online",
+    apply:   { en: "https://fasal.haryana.gov.in", hi: "fasal.haryana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Jamabandi)","Bank Account","Mobile Number linked to Aadhaar"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/जमाबंदी)","बैंक खाता","आधार से जुड़ा मोबाइल नंबर"] },
     // Eligibility: Any Haryana farmer who wants to sell crop at MSP or claim crop damage compensation
