@@ -423,7 +423,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "3 free LPG cylinders per year for families holding yellow or saffron ration cards (~52 lakh families covered)", hi: "पीला या केसरी राशन कार्ड धारक परिवारों को प्रतिवर्ष 3 मुफ्त LPG सिलेंडर (~52 लाख परिवार)" },
     tag:     { en: "LPG / Women / BPL", hi: "LPG / महिला / BPL" },
     annual: 2400,
-    apply:   { en: "mahafood.gov.in", hi: "mahafood.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahafood.gov.in", hi: "mahafood.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Yellow / Saffron Ration Card", "LPG Connection Details (existing connection)", "Bank Passbook"],
                hi: ["आधार कार्ड", "पीला/केसरी राशन कार्ड", "LPG कनेक्शन विवरण (मौजूदा कनेक्शन)", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
