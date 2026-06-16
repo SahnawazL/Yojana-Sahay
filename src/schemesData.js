@@ -482,7 +482,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free placement-linked skill training + ₹1,000–₹1,500/month stipend during training", hi: "मुफ्त कौशल प्रशिक्षण + प्रशिक्षण के दौरान ₹1,000–₹1,500/माह वजीफा" },
     tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
     annual: 18000,
-    apply:   { en: "kaushal.rural.gov.in", hi: "kaushal.rural.gov.in" }, applyType: "online",
+    apply:   { en: "https://kaushal.rural.gov.in", hi: "kaushal.rural.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (15–35 years)","Educational Certificate","Bank Account","BPL/Ration Card"],
                hi: ["आधार कार्ड","आयु प्रमाण (15–35 वर्ष)","शैक्षणिक प्रमाण","बैंक खाता","BPL/राशन कार्ड"] },
     match: (a) => a.area === "rural" && ["18to35"].includes(a.age) && ["below1","1to3"].includes(a.income),
