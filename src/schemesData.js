@@ -314,7 +314,7 @@ export const SCHEME_DB = [
     benefit: { en: "Full crop loss insurance at just 1.5–2% premium", hi: "केवल 1.5–2% प्रीमियम पर पूरी फसल बीमा" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "pmfby.gov.in", hi: "pmfby.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmfby.gov.in", hi: "pmfby.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra)","Bank Passbook","Sowing Certificate"],
                hi: ["आधार कार्ड","खसरा/जमीन के कागज़","बैंक पासबुक","बुवाई प्रमाण पत्र"] },
     match: (a) => a.who === "farmer",
