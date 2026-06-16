@@ -881,7 +881,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Accident insurance ₹1 Lakh, maternity benefit ₹5,000, hospitalisation ₹10,000 & children's scholarship for registered domestic workers", hi: "पंजीकृत घरेलू कामगारों को ₹1 लाख दुर्घटना बीमा, ₹5,000 प्रसव लाभ, ₹10,000 अस्पताल भत्ता और बच्चों की छात्रवृत्ति" },
     tag:     { en: "Labour", hi: "श्रमिक" },
     annual: 0,
-    apply:   { en: "labour.karnataka.gov.in", hi: "labour.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://labour.karnataka.gov.in", hi: "labour.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Employer Reference Letter", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "नियोक्ता संदर्भ पत्र", "बैंक खाता", "फोटो"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income) && ["18to35", "35to60"].includes(a.age),
