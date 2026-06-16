@@ -803,7 +803,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹15,000 grant for BPL / EWS urban households to construct individual toilets + ODF+ certification support for slum communities", hi: "BPL / EWS शहरी परिवारों को वैयक्तिक शौचालय बांधणीसाठी ₹15,000 अनुदान + झोपडपट्टी समुदायांना ODF+ प्रमाणपत्र सहाय्य" },
     tag:     { en: "Sanitation / Urban Poor / BPL", hi: "स्वच्छता / शहरी गरीब / BPL" },
     annual: 15000,
-    apply:   { en: "swachhbharaturban.gov.in / Ward Office of local ULB", hi: "swachhbharaturban.gov.in / स्थानीय नगरपालिका वार्ड कार्यालय" }, applyType: "online",
+    apply:   { en: "https://swachhbharaturban.gov.in", hi: "swachhbharaturban.gov.in / स्थानीय नगरपालिका वार्ड कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "BPL / EWS Income Certificate", "Ration Card", "House Ownership / Tenancy Proof", "Bank Passbook", "Passport Photo"],
                hi: ["आधार कार्ड", "BPL / EWS आय प्रमाण", "राशन कार्ड", "मकान स्वामित्व / किरायेदारी प्रमाण", "बैंक पासबुक", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Maharashtra" && ["urban","semi"].includes(a.area) && ["below1","1to3"].includes(a.income),
