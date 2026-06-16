@@ -640,7 +640,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹500/month nutritional support directly to bank account during TB treatment", hi: "टीबी उपचार के दौरान ₹500/माह सीधे बैंक में पोषण सहायता" },
     tag:     { en: "Health / TB", hi: "स्वास्थ्य / टीबी" },
     annual: 6000,
-    apply:   { en: "nikshay.in", hi: "nikshay.in" }, applyType: "online",
+    apply:   { en: "https://nikshay.in", hi: "nikshay.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","TB Notification / NIKSHAY ID (from doctor)","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","डॉक्टर से टीबी अधिसूचना / NIKSHAY ID","बैंक खाता (आधार लिंक)"] },
     // Eligibility: any TB patient registered under NIKSHAY portal (all incomes)
