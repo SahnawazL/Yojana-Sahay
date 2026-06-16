@@ -367,7 +367,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "Seed grant up to ₹15 Lakh + mentoring, lab access & co-working space for tech startups", hi: "टेक स्टार्टअप को ₹15 लाख तक बीज अनुदान + मेंटरिंग, लैब एक्सेस व को-वर्किंग स्पेस" },
     tag:     { en: "Business / Startup", hi: "व्यापार / स्टार्टअप" },
     annual: 0,
-    apply:   { en: "icreate.org.in", hi: "icreate.org.in" }, applyType: "online",
+    apply:   { en: "https://icreate.org.in", hi: "icreate.org.in" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN Card", "Startup / Business Registration", "Project Proposal / Pitch Deck", "Bank Account"],
                hi: ["आधार और पैन कार्ड", "स्टार्टअप / व्यापार पंजीकरण", "प्रोजेक्ट प्रस्ताव / पिच डेक", "बैंक खाता"] },
     match: (a) => a.state === "Gujarat" && a.who === "business" && ["18to35", "35to60"].includes(a.age),
