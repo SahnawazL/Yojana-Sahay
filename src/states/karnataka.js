@@ -1225,7 +1225,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹600–₹1,000/month + free uniform, books & stationery for OBC students (Class 1–10) with family income below ₹1 Lakh", hi: "₹1 लाख से कम आय वाले OBC परिवारों के छात्रों (कक्षा 1–10) को ₹600–₹1,000/माह + मुफ्त वर्दी, किताबें और स्टेशनरी" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 12000,
-    apply:   { en: "scholarships.karnataka.gov.in", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.karnataka.gov.in", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate (< ₹1L)", "School Enrollment Proof", "Bank Account"],
                hi: ["आधार कार्ड", "OBC जाति प्रमाण", "आय प्रमाण (< ₹1 लाख)", "स्कूल नामांकन प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
