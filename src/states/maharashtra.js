@@ -437,7 +437,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Full PMFBY crop insurance coverage at just ₹1 premium — state pays entire farmer's share of premium", hi: "केवल ₹1 प्रीमियम पर पूर्ण PMFBY फसल बीमा — किसान के हिस्से का पूरा प्रीमियम राज्य सरकार भरती है" },
     tag:     { en: "Farmer / Crop Insurance", hi: "किसान / फसल बीमा" },
     annual: 0,
-    apply:   { en: "aaplesarkar.mahaonline.gov.in / nearest bank or CSC", hi: "aaplesarkar.mahaonline.gov.in / नजदीकी बैंक या CSC" }, applyType: "online",
+    apply:   { en: "https://aaplesarkar.mahaonline.gov.in", hi: "aaplesarkar.mahaonline.gov.in / नजदीकी बैंक या CSC" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Sowing Certificate", "Bank Passbook", "₹1 payment receipt"],
                hi: ["आधार कार्ड", "7/12 उतारा", "बुवाई प्रमाण पत्र", "बैंक पासबुक", "₹1 भुगतान रसीद"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
