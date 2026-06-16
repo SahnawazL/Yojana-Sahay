@@ -505,7 +505,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "₹1,000/month electricity subsidy (max ₹12,000/year) for farmers with metered agricultural connections", hi: "मीटर वाले कृषि बिजली कनेक्शन के किसानों को ₹1,000/माह बिजली सब्सिडी (अधिकतम ₹12,000/वर्ष)" },
     tag:     { en: "Farmer / Electricity", hi: "किसान / बिजली" },
     annual: 12000,
-    apply:   { en: "energy.rajasthan.gov.in", hi: "energy.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://energy.rajasthan.gov.in", hi: "energy.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Agricultural Electricity Connection Number", "Land Records (Jamabandi)", "Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "कृषि बिजली कनेक्शन नंबर", "जमाबंदी (भूमि अभिलेख)", "बैंक खाता (आधार लिंक)"] },
     // Eligibility: Rajasthan farmer with metered agricultural electricity connection; subsidy auto-credited to bill
