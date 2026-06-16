@@ -433,7 +433,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "Up to ₹25 Lakh loan for business setup · 40% subsidy (max ₹5L) for SC/ST/OBC/Minority/Women/Divyang", hi: "व्यवसाय स्थापना के लिए ₹25 लाख तक ऋण · SC/ST/OBC/अल्पसंख्यक/महिला/दिव्यांग को 40% सब्सिडी (अधिकतम ₹5 लाख)" },
     tag:     { en: "Business / Self-Employment", hi: "व्यापार / स्वरोजगार" },
     annual: 0,
-    apply:   { en: "jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/OBC)", "Jharkhand Domicile Certificate", "Business Plan", "Bank Account", "Income Certificate", "Educational Certificate"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC)", "झारखंड निवास प्रमाण", "व्यापार योजना", "बैंक खाता", "आय प्रमाण पत्र", "शैक्षणिक प्रमाण पत्र"] },
     match: (a) => a.state === "Jharkhand" && a.who === "business" && ["below1","1to3","3to6"].includes(a.income),
