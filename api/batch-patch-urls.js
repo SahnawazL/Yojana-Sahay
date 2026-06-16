@@ -146,8 +146,12 @@ export default async function handler(req, res) {
           continue;
         }
 
-        // Non-regex replace — only the FIRST occurrence past this scheme's id.
-        const patchedAfter   = afterId.replace(oldUrl, newUrl);
+        // Non-regex replace — first pass updates apply.en (first occurrence),
+        // second pass updates apply.hi if it had the same oldUrl value.
+        // Both passes are safe: if hi differs from oldUrl, the second .replace()
+        // is a no-op (no match left). This is the fix for hi links not updating.
+        let patchedAfter = afterId.replace(oldUrl, newUrl); // → apply.en
+            patchedAfter = patchedAfter.replace(oldUrl, newUrl); // → apply.hi
         const patchedContent = beforeId + patchedAfter;
 
         if (patchedContent === content) {
