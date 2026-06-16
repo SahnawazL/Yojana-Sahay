@@ -121,7 +121,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹80,000 grant for house repair/renovation for SC families", hi: "SC परिवारों को घर की मरम्मत/नवीनीकरण के लिए ₹80,000 अनुदान" },
     tag:     { en: "Housing / SC Welfare", hi: "आवास / SC कल्याण" },
     annual: 80000,
-    apply:   { en: "haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
+    apply:   { en: "https://haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Land/House Ownership Proof","Parivar Pehchan Patra","Bank Account","Income Certificate (≤₹1.80 Lakh/year)"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","भूमि/घर का स्वामित्व प्रमाण","परिवार पहचान पत्र","बैंक खाता","आय प्रमाण (≤₹1.80 लाख/वर्ष)"] },
     // Eligibility: Haryana SC family, owns land/house but it needs repair, income ≤ ₹1.80 lakh
