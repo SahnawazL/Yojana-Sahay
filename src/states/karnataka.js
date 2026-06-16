@@ -181,7 +181,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹1.75 Lakh grant for house construction for BPL rural families", hi: "BPL ग्रामीण परिवारों को मकान निर्माण हेतु ₹1.75 लाख अनुदान" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 175000,
-    apply:   { en: "rgjrhcl.karnataka.gov.in", hi: "rgjrhcl.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://rgjrhcl.karnataka.gov.in", hi: "rgjrhcl.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "BPL Ration Card", "Land Ownership Document", "Bank Account", "Income Certificate"],
                hi: ["आधार कार्ड", "BPL राशन कार्ड", "भूमि स्वामित्व दस्तावेज़", "बैंक खाता", "आय प्रमाण"] },
     match: (a) => a.state === "Karnataka" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3"].includes(a.income) && a.area === "rural",
