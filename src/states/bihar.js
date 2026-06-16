@@ -223,7 +223,7 @@ export const BIHAR_SCHEMES = [
                hi: "प्राकृतिक आपदा से फसल नुकसान पर कृषि इनपुट अनुदान: सिंचित भूमि पर ₹13,500/हेक्टेयर; वर्षाश्रित भूमि पर ₹6,800/हेक्टेयर; बारहमासी फसल नुकसान पर ₹12,000/हेक्टेयर; DBT से किसान के बैंक खाते में" },
     tag:     { en: "Farmer / Natural Calamity", hi: "किसान / प्राकृतिक आपदा" },
     annual: 13500,
-    apply:   { en: "dbtagriculture.bihar.gov.in", hi: "dbtagriculture.bihar.gov.in" }, applyType: "online",
+    apply:   { en: "https://dbtagriculture.bihar.gov.in", hi: "dbtagriculture.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khatian / Khesra number)","Bank Account (Aadhaar-linked)","Farmer Registration on DBT Agriculture Portal","Affidavit of crop loss (self-declaration)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खतियान / खेसरा नंबर)","बैंक खाता (आधार-लिंक्ड)","DBT कृषि पोर्टल पर किसान पंजीकरण","फसल नुकसान का स्व-घोषणा शपथ-पत्र"] },
     match: (a) => a.state === "Bihar" && a.who === "farmer",
