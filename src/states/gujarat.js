@@ -59,7 +59,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "25–50% subsidy on tractors, tools, seeds & irrigation equipment", hi: "ट्रेक्टर, औज़ार, बीज व सिंचाई उपकरण पर 25–50% सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 50000,
-    apply:   { en: "https://ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (7/12 Utara)", "Bank Passbook", "Caste Certificate (if SC/ST)", "Photo"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (7/12 उतारा)", "बैंक पासबुक", "जाति प्रमाण (SC/ST के लिए)", "फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer",
