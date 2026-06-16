@@ -435,7 +435,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Loan up to ₹5 Lakh at 5% interest for SC/ST families to construct/repair house", hi: "SC/ST परिवारों को मकान निर्माण/मरम्मत हेतु 5% ब्याज पर ₹5 लाख ऋण" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 0,
-    apply:   { en: "kscdc.net", hi: "kscdc.net" }, applyType: "online",
+    apply:   { en: "https://kscdc.net", hi: "kscdc.net" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST)", "Income Certificate", "Land/Site Documents", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण (SC/ST)", "आय प्रमाण", "जमीन के कागज़", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3"].includes(a.income),
