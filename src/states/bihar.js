@@ -207,7 +207,7 @@ export const BIHAR_SCHEMES = [
                hi: "फसल नुकसान मुआवज़ा: 20% तक नुकसान पर ₹7,500/हेक्टेयर; 20% से अधिक नुकसान पर ₹10,000/हेक्टेयर; खरीफ व रबी दोनों फसलें कवर; सभी पंजीकृत किसान पात्र; कोई प्रीमियम नहीं — पूर्णतः राज्य-वित्तपोषित" },
     tag:     { en: "Farmer / Crop Insurance", hi: "किसान / फसल बीमा" },
     annual: 10000,
-    apply:   { en: "pacsonline.bih.nic.in", hi: "pacsonline.bih.nic.in" }, applyType: "online",
+    apply:   { en: "https://pacsonline.bih.nic.in", hi: "pacsonline.bih.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khatian / Khesra)","Bank Account (Aadhaar-linked)","Farmer Registration Certificate","Mobile Number linked to Aadhaar","Passport Photo"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खतियान / खेसरा)","बैंक खाता (आधार-लिंक्ड)","किसान पंजीकरण प्रमाण पत्र","आधार से जुड़ा मोबाइल नंबर","पासपोर्ट फोटो"] },
     match: (a) => a.state === "Bihar" && a.who === "farmer",
