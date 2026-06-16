@@ -468,7 +468,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free piped drinking water connection to every rural household", hi: "हर ग्रामीण घर को मुफ्त नल जल कनेक्शन" },
     tag:     { en: "Water / Rural", hi: "जल / ग्रामीण" },
     annual: 0,
-    apply:   { en: "jaljeevanmission.gov.in", hi: "jaljeevanmission.gov.in" }, applyType: "online",
+    apply:   { en: "https://jaljeevanmission.gov.in", hi: "jaljeevanmission.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Address Proof","Ration Card"],
                hi: ["आधार कार्ड","पता प्रमाण","राशन कार्ड"] },
     match: (a) => a.area === "rural" && ["no","kutcha"].includes(a.house),
