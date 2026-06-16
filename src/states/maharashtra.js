@@ -395,7 +395,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "90% subsidy (95% for SC/ST) on solar irrigation pump (3–7.5 HP) + 5-year repair guarantee & insurance. Farmer pays only 5–10%", hi: "सिंचाई सौर पंप (3–7.5 HP) पर 90% सब्सिडी (SC/ST को 95%) + 5 वर्ष मरम्मत गारंटी व बीमा। किसान केवल 5–10% भुगतान करे" },
     tag:     { en: "Farmer / Solar / Irrigation", hi: "किसान / सौर / सिंचाई" },
     annual: 90000,
-    apply:   { en: "mahadiscom.in", hi: "mahadiscom.in" }, applyType: "online",
+    apply:   { en: "https://mahadiscom.in", hi: "mahadiscom.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Proof of Water Source (borewell/well/pond)", "Caste Certificate (SC/ST for extra subsidy)", "Bank Passbook", "Passport Photo"],
                hi: ["आधार कार्ड", "7/12 उतारा", "जल स्रोत का प्रमाण (बोरवेल/कुआं/तालाब)", "जाति प्रमाण (SC/ST अतिरिक्त सब्सिडी हेतु)", "बैंक पासबुक", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
