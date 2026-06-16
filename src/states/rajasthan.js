@@ -408,7 +408,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Cash award for girls scoring ≥75% in RBSE board: ₹3,000 (Class 10) · ₹5,000 (Class 12) + certificate", hi: "RBSE बोर्ड में ≥75% पाने वाली बालिकाओं को: ₹3,000 (कक्षा 10) · ₹5,000 (कक्षा 12) + प्रमाण पत्र" },
     tag:     { en: "Education / Merit", hi: "शिक्षा / मेरिट" },
     annual: 5000,
-    apply:   { en: "rajshaladarpan.nic.in", hi: "rajshaladarpan.nic.in" }, applyType: "online",
+    apply:   { en: "https://rajshaladarpan.nic.in", hi: "rajshaladarpan.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "RBSE 10th / 12th Mark Sheet (≥75%)", "School Enrolment Certificate (studies must be continuing)", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "RBSE 10वीं / 12वीं मार्कशीट (≥75%)", "स्कूल नामांकन प्रमाण (पढ़ाई जारी होनी चाहिए)", "बैंक खाता"] },
     // Eligibility: girl scoring ≥75% in RBSE Class 10 or 12, still enrolled in studies
