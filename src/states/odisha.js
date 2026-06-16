@@ -71,7 +71,7 @@ export const ODISHA_SCHEMES = [
                hi: "21–60 वर्ष की महिलाओं को 5 साल (2024–2029) में कुल ₹50,000 — प्रति वर्ष ₹10,000 दो किस्तों में (रक्षा बंधन व अंतर्राष्ट्रीय महिला दिवस पर ₹5,000–₹5,000); आधार-लिंक्ड बैंक खाते में DBT; सुभद्रा डेबिट कार्ड भी जारी; प्रत्येक गांव में डिजिटल लेनदेन करने वाली शीर्ष 100 महिलाओं को ₹500 अतिरिक्त" },
     tag:     { en: "Women / Financial Empowerment", hi: "महिला / वित्तीय सशक्तिकरण" },
     annual: 10000,
-    apply:   { en: "subhadra.odisha.gov.in", hi: "subhadra.odisha.gov.in" }, applyType: "online",
+    apply:   { en: "https://subhadra.odisha.gov.in", hi: "subhadra.odisha.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (mandatory)", "Aadhaar-linked Bank Account (single-holder, DBT-enabled)", "NFSA / SFSS Ration Card OR Income Certificate (family income < ₹2.5 lakh)", "Mobile Number (Aadhaar-linked)", "e-KYC completion on the portal"],
                hi: ["आधार कार्ड (अनिवार्य)", "आधार-लिंक्ड बैंक खाता (एकल धारक, DBT-सक्षम)", "NFSA / SFSS राशन कार्ड या आय प्रमाण पत्र (पारिवारिक आय ₹2.5 लाख से कम)", "मोबाइल नंबर (आधार-लिंक्ड)", "पोर्टल पर e-KYC पूर्ण"] },
     match: (a) => a.state === "Odisha" && a.who === "women" && ["below1","1to3","3to6"].includes(a.income),
