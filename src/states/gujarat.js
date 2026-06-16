@@ -143,7 +143,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹1,000/month pension for destitute senior citizens aged 60+", hi: "60+ वर्ष के निराश्रित वरिष्ठ नागरिकों को ₹1,000/माह पेंशन" },
     tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
     annual: 12000,
-    apply:   { en: "esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof (60+)", "Income Certificate", "Domicile Certificate", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "आयु प्रमाण (60+)", "आय प्रमाण", "अधिवास प्रमाण", "बैंक खाता", "फोटो"] },
     match: (a) => a.state === "Gujarat" && (a.who === "senior" || a.age === "above60") && ["below1", "1to3"].includes(a.income),
