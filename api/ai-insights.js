@@ -24,18 +24,70 @@ const MODEL         = "llama-3.3-70b-versatile";
 const MAX_TOKENS    = 800;
 const TEMPERATURE   = 0.2;
 
-/**
- * Pick a Groq API key from env vars.
- * Tries GROQ_API_KEY first, then GROQ_API_KEY_1, GROQ_API_KEY_2 … up to 5.
- * Returns null if none are set — caller returns a 500.
- */
-function pickGroqKey() {
-  if (process.env.GROQ_API_KEY) return process.env.GROQ_API_KEY;
-  for (let i = 1; i <= 5; i++) {
-    const k = process.env[`GROQ_API_KEY_${i}`];
-    if (k) return k;
+// ── Load ALL Groq keys (identical to chat.js) ────────────────────────────────
+// Deduplicates, preserves order. Returns empty array if none configured.
+function loadGroqKeys() {
+  const seen = new Set();
+  const keys = [];
+  const candidates = [
+    process.env.GROQ_API_KEY,
+    process.env.GROQ_API_KEY_1,
+    process.env.GROQ_API_KEY_2,
+    process.env.GROQ_API_KEY_3,
+    process.env.GROQ_API_KEY_4,
+    process.env.GROQ_API_KEY_5,
+  ];
+  for (const k of candidates) {
+    const t = k && k.trim();
+    if (t && !seen.has(t)) { seen.add(t); keys.push(t); }
   }
-  return null;
+  return keys;
+}
+
+// ── Call Groq with key rotation (identical to chat.js) ───────────────────────
+// Tries each key in order; skips on 429. Returns { status, data }.
+async function callGroq(keys, bodyObject) {
+  let lastError = null;
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    try {
+      const groqRes = await fetch(GROQ_ENDPOINT, {
+        method:  "POST",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${key}`,
+        },
+        body: JSON.stringify(bodyObject),
+      });
+
+      if (groqRes.status === 429) {
+        const errData = await groqRes.json().catch(() => ({}));
+        lastError = errData;
+        console.warn(`[ai-insights] Key #${i + 1} → 429 rate limited. Trying next key…`);
+        continue;
+      }
+
+      const data = await groqRes.json();
+      if (groqRes.status === 200) {
+        console.log(`[ai-insights] ✓ Key #${i + 1} succeeded.`);
+      } else {
+        console.error(`[ai-insights] Groq error ${groqRes.status} on Key #${i + 1}:`,
+          JSON.stringify(data).slice(0, 200));
+      }
+      return { status: groqRes.status, data };
+
+    } catch (err) {
+      console.error(`[ai-insights] Network error on Key #${i + 1}:`, err.message);
+      lastError = { message: err.message };
+    }
+  }
+
+  const msg = keys.length > 1
+    ? `All ${keys.length} Groq keys are rate-limited. Try again in a moment.`
+    : "Groq key is rate-limited. Try again in a moment.";
+  console.error(`[ai-insights] ✗ All ${keys.length} key(s) exhausted.`);
+  return { status: 429, data: { error: { message: msg, details: lastError } } };
 }
 
 export default async function handler(req, res) {
@@ -50,48 +102,39 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing or invalid 'prompt' in request body." });
   }
 
-  // ── Groq key ───────────────────────────────────────────────────────────────
-  const apiKey = pickGroqKey();
-  if (!apiKey) {
+  // ── Load all Groq keys ─────────────────────────────────────────────────────
+  const keys = loadGroqKeys();
+  if (keys.length === 0) {
     return res.status(500).json({
       error: "No Groq API key configured. Add GROQ_API_KEY to Vercel → Environment Variables.",
     });
   }
 
-  // ── Call Groq ──────────────────────────────────────────────────────────────
+  // ── Call Groq with key rotation ────────────────────────────────────────────
   try {
-    const groqRes = await fetch(GROQ_ENDPOINT, {
-      method:  "POST",
-      headers: {
-        "Content-Type":  "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model:       MODEL,
-        max_tokens:  MAX_TOKENS,
-        temperature: TEMPERATURE,
-        messages: [
-          {
-            role:    "system",
-            content: "You are a data analyst specialising in Indian government scheme compliance. Respond only with a valid JSON object — no markdown, no backticks, no explanation before or after.",
-          },
-          {
-            role:    "user",
-            content: prompt.trim(),
-          },
-        ],
-      }),
+    const { status, data } = await callGroq(keys, {
+      model:       MODEL,
+      max_tokens:  MAX_TOKENS,
+      temperature: TEMPERATURE,
+      messages: [
+        {
+          role:    "system",
+          content: "You are a data analyst specialising in Indian government scheme compliance. Respond only with a valid JSON object — no markdown, no backticks, no explanation before or after.",
+        },
+        {
+          role:    "user",
+          content: prompt.trim(),
+        },
+      ],
     });
 
-    if (!groqRes.ok) {
-      const errBody = await groqRes.json().catch(() => ({}));
-      const msg = errBody?.error?.message || `Groq HTTP ${groqRes.status}`;
+    if (status !== 200) {
+      const msg = data?.error?.message || `Groq HTTP ${status}`;
       console.error("[ai-insights] Groq error:", msg);
-      return res.status(502).json({ error: `Groq API error: ${msg}` });
+      return res.status(status === 429 ? 429 : 502).json({ error: `Groq API error: ${msg}` });
     }
 
-    const data    = await groqRes.json();
-    const text    = data?.choices?.[0]?.message?.content ?? "";
+    const text = data?.choices?.[0]?.message?.content ?? "";
 
     if (!text) {
       return res.status(502).json({ error: "Groq returned an empty response." });
