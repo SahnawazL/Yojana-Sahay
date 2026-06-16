@@ -947,7 +947,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "India's first state AI Agriculture Policy (₹500 Cr budget) — free AI-based soil & crop advisory via WhatsApp/app, digital farmer ID, smart farm schools, satellite crop monitoring & precision farming tools for 50,000+ farmers", hi: "भारताचे पहिले राज्य AI कृषी धोरण (₹500 कोटी बजेट) — WhatsApp/ॲपद्वारे मुफ्त AI आधारित माती व पीक सल्ला, डिजिटल शेतकरी ओळखपत्र, स्मार्ट शेती शाळा व उपग्रह पीक निरीक्षण" },
     tag:     { en: "Farmer / Digital / AI Agriculture", hi: "किसान / डिजिटल / AI शेती" },
     annual: 0,
-    apply:   { en: "mahadbt.gov.in / CropSAP app / WhatsApp helpline 14447", hi: "mahadbt.gov.in / CropSAP ॲप / WhatsApp हेल्पलाइन 14447" }, applyType: "online",
+    apply:   { en: "https://mahadbt.gov.in", hi: "mahadbt.gov.in / CropSAP ॲप / WhatsApp हेल्पलाइन 14447" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Farmer Registry / Digital Farmer ID", "7/12 Land Extract", "Mobile Number (Aadhaar-linked)"],
                hi: ["आधार कार्ड", "शेतकरी नोंदणी / डिजिटल शेतकरी ओळखपत्र", "7/12 उतारा", "मोबाइल नंबर (आधार से लिंक)"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
