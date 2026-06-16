@@ -47,7 +47,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Subsidy up to ₹1 Lakh for purchasing milch cattle & poultry", hi: "दुधारू पशु और मुर्गी पालन के लिए ₹1 लाख तक सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "ahvs.karnataka.gov.in", hi: "ahvs.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://ahvs.karnataka.gov.in", hi: "ahvs.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land/Caste Certificate", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "जमीन/जाति प्रमाण", "बैंक खाता", "फोटो"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer" && ["below1", "1to3"].includes(a.income),
