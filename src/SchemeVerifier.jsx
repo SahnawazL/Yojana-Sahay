@@ -4707,8 +4707,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [urlIssueFilter,    setUrlIssueFilter]    = useState("all");     // all | NO_HTTPS | MULTI_URL | TEXT_ONLY | NO_URL
   const [urlIssuePage,      setUrlIssuePage]      = useState(1);
   const [selectedUrls,      setSelectedUrls]      = useState({});         // schemeId → chosen URL string for MULTI_URL
-  const [fixingUrlId,       setFixingUrlId]       = useState(null);       // schemeId currently being patched
-  const [urlFixStatuses,    setUrlFixStatuses]    = useState({});         // schemeId → { success, commitUrl } | { error }
+  const [urlFixStatuses,    setUrlFixStatuses]    = useState({});         // schemeId → { success, commitUrl } | { error } | { queued }
   const [urlIssueCollapsed, setUrlIssueCollapsed] = useState(false);      // collapse the whole panel
 
   // ── URL Issues pre-scan computations ─────────────────────────────────────
@@ -4741,32 +4740,27 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     if (urlIssuePage > urlIssueTotalPages) setUrlIssuePage(urlIssueTotalPages);
   }, [urlIssueTotalPages, urlIssuePage]);
 
-  // Fix handler — calls /api/patch-scheme-url directly (same endpoint used by
-  // dead link fixes, but without the Firestore queue since these are format
-  // corrections, not link replacements that need tracking).
-  const handleUrlIssueFix = useCallback(async (scheme, oldUrl, newUrl) => {
+  // Queue a URL-format fix into the shared batch instead of committing immediately.
+  // URL Issues panel fixes (missing https://, multi-URL, etc.) now use the same
+  // queueUrlFix → ApplyAllFixesBar → handleApplyAllFixes → /api/batch-patch-urls
+  // path as dead-link fixes. Result: N URL fixes across M files = M deploys, not N.
+  const handleUrlIssueFix = useCallback((scheme, oldUrl, newUrl) => {
     if (!scheme?.id || !oldUrl || !newUrl || newUrl === oldUrl) return;
-    const file = getUrlIssueFilePath(scheme);
-    setFixingUrlId(scheme.id);
-    try {
-      const res = await fetch("/api/patch-scheme-url", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ id: scheme.id, oldUrl, newUrl, file }),
-      });
-      const data = await res.json();
-      setUrlFixStatuses(prev => ({
-        ...prev,
-        [scheme.id]: data.success
-          ? { success: true, commitUrl: data.commitUrl }
-          : { error: data.error ?? "Patch failed" },
-      }));
-    } catch (err) {
-      setUrlFixStatuses(prev => ({ ...prev, [scheme.id]: { error: err.message } }));
-    } finally {
-      setFixingUrlId(null);
-    }
-  }, []);
+    const file  = getUrlIssueFilePath(scheme);
+    const entry = {
+      status:     "queued",
+      candidates: [],   // URL-format fixes have no AI-search candidates
+      newUrl,
+      oldUrl,
+      file,
+    };
+    queueUrlFix(scheme.id, entry);
+    handleQueueChange(scheme.id, entry);   // update local urlFixMap immediately
+    setUrlFixStatuses(prev => ({
+      ...prev,
+      [scheme.id]: { queued: true },       // show "Queued" chip in the issue row
+    }));
+  }, [handleQueueChange]);
 
   // ── "Apply All Fixes" queue ───────────────────────────────────────────────
   // Every scheme with status:"queued" in urlFixMap — ready for one batch
@@ -4814,6 +4808,12 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           await markUrlFixCommitted(r.id, q?.newUrl, r.sha, r.commitUrl);
           committed++;
           successIds.push(r.id);
+          // Sync the URL Issues panel display so its rows flip to "✅ Fixed"
+          // without needing a separate state update from the Firestore round-trip.
+          setUrlFixStatuses(prev => ({
+            ...prev,
+            [r.id]: { success: true, commitUrl: r.commitUrl ?? null },
+          }));
         } else {
           failed.push({ id: r.id, error: r.error });
         }
@@ -5704,13 +5704,21 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 })}
               </div>
 
+              {/* Queue bar — same batch as dead-link fixes; commits all in one push */}
+              <ApplyAllFixesBar
+                queuedFixes={queuedFixes}
+                applyingFixes={applyingFixes}
+                applyResult={applyResult}
+                onApply={handleApplyAllFixes}
+                th={th}
+              />
+
               {/* Issue rows */}
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {urlIssueSlice.map(issue => {
                   const { scheme, type, rawUrl, suggestedUrl, parts, urlParts } = issue;
                   const sid        = scheme.id;
                   const fixStatus  = urlFixStatuses[sid];
-                  const isFixing   = fixingUrlId === sid;
                   const isFixed    = fixStatus?.success;
                   const chosenUrl  = selectedUrls[sid];
 
@@ -5775,7 +5783,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                           )}
                         </div>
 
-                        {/* Fixed badge */}
+                        {/* Fixed / Queued / Error badges */}
                         {isFixed && (
                           <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                             <span style={{ fontSize: 10, color: "#10b981", fontWeight: 700 }}>✅ Fixed</span>
@@ -5791,6 +5799,21 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                             )}
                           </div>
                         )}
+                        {fixStatus?.queued && !isFixed && (
+                          <span style={{
+                            fontSize:     10,
+                            color:        AMBER,
+                            fontWeight:   700,
+                            background:   `${AMBER}15`,
+                            border:       `1px solid ${AMBER}40`,
+                            borderRadius: 6,
+                            padding:      "2px 8px",
+                            flexShrink:   0,
+                            whiteSpace:   "nowrap",
+                          }}>
+                            📋 Queued
+                          </span>
+                        )}
                         {fixStatus?.error && (
                           <span style={{ fontSize: 9, color: "#ef4444", fontWeight: 600, flexShrink: 0 }}>
                             ❌ {fixStatus.error}
@@ -5798,8 +5821,8 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                         )}
                       </div>
 
-                      {/* Fix controls per type */}
-                      {!isFixed && (
+                      {/* Fix controls per type — hidden once queued or fixed */}
+                      {!isFixed && !fixStatus?.queued && (
                         <>
                           {/* NO_HTTPS — one-click auto fix */}
                           {type === "NO_HTTPS" && (
@@ -5814,15 +5837,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                                 {...a11yClickable(() => handleUrlIssueFix(scheme, rawUrl, suggestedUrl), {
                                   style: {
                                     fontSize: 9, fontWeight: 700, padding: "3px 10px",
-                                    borderRadius: 99, cursor: isFixing ? "wait" : "pointer",
-                                    background: isFixing ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.15)",
+                                    borderRadius: 99, cursor: "pointer",
+                                    background: "rgba(245,158,11,0.15)",
                                     border: "1px solid rgba(245,158,11,0.4)",
                                     color: "#f59e0b", userSelect: "none",
-                                    opacity: isFixing ? 0.6 : 1,
                                   }
                                 })}
                               >
-                                {isFixing ? "Fixing…" : "Add https:// →"}
+                                📋 Queue Fix →
                               </div>
                             </div>
                           )}
@@ -5864,15 +5886,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                                     style: {
                                       alignSelf: "flex-start",
                                       fontSize: 9, fontWeight: 700, padding: "3px 12px",
-                                      borderRadius: 99, cursor: isFixing ? "wait" : "pointer",
-                                      background: isFixing ? "rgba(139,92,246,0.1)" : "rgba(139,92,246,0.15)",
+                                      borderRadius: 99, cursor: "pointer",
+                                      background: "rgba(139,92,246,0.15)",
                                       border: "1px solid rgba(139,92,246,0.4)",
                                       color: "#8b5cf6", userSelect: "none",
-                                      opacity: isFixing ? 0.6 : 1,
                                     }
                                   })}
                                 >
-                                  {isFixing ? "Patching…" : `Use this URL →`}
+                                  📋 Queue this URL →
                                 </div>
                               )}
                             </div>
