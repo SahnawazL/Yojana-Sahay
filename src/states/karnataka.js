@@ -617,7 +617,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "90% subsidy on solar water pumps (3–7.5 HP) for farmers — only 10% farmer contribution", hi: "किसानों को सोलर वाटर पंप (3–7.5 HP) पर 90% सब्सिडी — केवल 10% किसान का योगदान" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "kredl.kar.nic.in", hi: "kredl.kar.nic.in" }, applyType: "online",
+    apply:   { en: "https://kredl.kar.nic.in", hi: "kredl.kar.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Electricity Connection Proof (or absence of grid power)", "Bank Account"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बिजली कनेक्शन प्रमाण (या ग्रिड न होने का प्रमाण)", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer" && a.area === "rural",
