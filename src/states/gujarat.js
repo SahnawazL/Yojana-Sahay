@@ -45,7 +45,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹20,000/ha for 33–60% crop loss · ₹25,000/ha for >60% loss · Up to 4 ha", hi: "33–60% फसल नुकसान पर ₹20,000/हेक्टेयर · 60% से अधिक नुकसान पर ₹25,000/हेक्टेयर · अधिकतम 4 हेक्टेयर" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 80000,
-    apply:   { en: "ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (7/12 Utara)", "Bank Passbook", "Crop Sowing Certificate", "Photo"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (7/12 उतारा)", "बैंक पासबुक", "फसल बुवाई प्रमाण", "फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer",
