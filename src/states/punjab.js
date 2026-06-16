@@ -77,7 +77,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "Crop loan waiver up to ₹2 Lakh for small and marginal farmers", hi: "छोटे व सीमांत किसानों के ₹2 लाख तक के फसली ऋण माफ" },
     tag:     { en: "Farmer / Loan Waiver", hi: "किसान / कर्ज माफी" },
     annual: 200000,
-    apply:   { en: "agripb.gov.in", hi: "agripb.gov.in" }, applyType: "online",
+    apply:   { en: "https://agripb.gov.in", hi: "agripb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records","Loan Documents","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","जमीन के कागज़","ऋण दस्तावेज़","बैंक खाता","पंजाब अधिवास"] },
     match: (a) => a.state === "Punjab" && a.who === "farmer" && ["below1","1to3"].includes(a.income),
