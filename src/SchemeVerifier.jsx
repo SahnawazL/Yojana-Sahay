@@ -4740,6 +4740,23 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     if (urlIssuePage > urlIssueTotalPages) setUrlIssuePage(urlIssueTotalPages);
   }, [urlIssueTotalPages, urlIssuePage]);
 
+  // Optimistic local update — a ResultRow calls this immediately after
+  // queueing/unqueueing so the "Apply All Fixes" count updates without
+  // waiting for a full loadUrlFixes() round trip.
+  // ⚠️ MUST be declared BEFORE handleUrlIssueFix and queuedFixes (TDZ guard)
+  const handleQueueChange = useCallback((schemeId, entry) => {
+    setUrlFixMap(prev => ({ ...prev, [schemeId]: entry }));
+  }, []);
+
+  // ── "Apply All Fixes" queue ───────────────────────────────────────────────
+  // Every scheme with status:"queued" in urlFixMap — ready for one batch
+  // commit via /api/batch-patch-urls (grouped by file, one commit per file).
+  const queuedFixes = useMemo(() => {
+    return Object.entries(urlFixMap)
+      .filter(([, v]) => v?.status === "queued")
+      .map(([id, v]) => ({ id, oldUrl: v.oldUrl, newUrl: v.newUrl, file: v.file }));
+  }, [urlFixMap]);
+
   // Queue a URL-format fix into the shared batch instead of committing immediately.
   // URL Issues panel fixes (missing https://, multi-URL, etc.) now use the same
   // queueUrlFix → ApplyAllFixesBar → handleApplyAllFixes → /api/batch-patch-urls
@@ -4761,22 +4778,6 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       [scheme.id]: { queued: true },       // show "Queued" chip in the issue row
     }));
   }, [handleQueueChange]);
-
-  // ── "Apply All Fixes" queue ───────────────────────────────────────────────
-  // Every scheme with status:"queued" in urlFixMap — ready for one batch
-  // commit via /api/batch-patch-urls (grouped by file, one commit per file).
-  const queuedFixes = useMemo(() => {
-    return Object.entries(urlFixMap)
-      .filter(([, v]) => v?.status === "queued")
-      .map(([id, v]) => ({ id, oldUrl: v.oldUrl, newUrl: v.newUrl, file: v.file }));
-  }, [urlFixMap]);
-
-  // Optimistic local update — a ResultRow calls this immediately after
-  // queueing/unqueueing so the "Apply All Fixes" count updates without
-  // waiting for a full loadUrlFixes() round trip.
-  const handleQueueChange = useCallback((schemeId, entry) => {
-    setUrlFixMap(prev => ({ ...prev, [schemeId]: entry }));
-  }, []);
 
   const [applyingFixes, setApplyingFixes] = useState(false);
   const [applyResult,   setApplyResult]   = useState(null); // { committed, failed, commits } | null
