@@ -185,7 +185,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "Monthly old-age pension for senior citizens aged 60+ not covered under any other pension scheme", hi: "60+ वर्ष के वरिष्ठ नागरिकों को मासिक वृद्धा पेंशन जो किसी अन्य पेंशन से वंचित हैं" },
     tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
     annual: 0,
-    apply:   { en: "socialjustice.assam.gov.in", hi: "socialjustice.assam.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjustice.assam.gov.in", hi: "socialjustice.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (60+ years)","Bank Account","BPL / Income Certificate","Residence Proof","Declaration of no other pension"],
                hi: ["आधार कार्ड","आयु प्रमाण (60+ वर्ष)","बैंक खाता","BPL/आय प्रमाण पत्र","निवास प्रमाण","किसी अन्य पेंशन न होने की घोषणा"] },
     match: (a) => a.state === "Assam" && a.age === "60plus",
