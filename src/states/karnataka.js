@@ -1239,7 +1239,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Free residential hostel with meals, bedding & study room for OBC students studying away from home (Classes 5–Degree)", hi: "घर से दूर पढ़ने वाले OBC छात्रों को मुफ्त आवासीय छात्रावास, भोजन, बिस्तर और अध्ययन कक्ष (कक्षा 5–स्नातक)" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 0,
-    apply:   { en: "backwardclasses.karnataka.gov.in", hi: "backwardclasses.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://backwardclasses.karnataka.gov.in", hi: "backwardclasses.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate", "School/College Admission Letter", "Bank Account"],
                hi: ["आधार कार्ड", "OBC जाति प्रमाण", "आय प्रमाण", "स्कूल/कॉलेज प्रवेश पत्र", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
