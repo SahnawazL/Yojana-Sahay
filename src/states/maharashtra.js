@@ -631,7 +631,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Subsidised loan ₹1–₹10 Lakh at 4% interest to start or expand poultry farm; SC/ST/women/BPL get higher subsidy; NABARD-linked", hi: "कुक्कुटपालन शुरू या विस्तार हेतु 4% ब्याज पर ₹1–₹10 लाख लोन; SC/ST/महिला/BPL को अधिक सब्सिडी; NABARD से जुड़ा" },
     tag:     { en: "Farmer / Poultry / Animal Husbandry", hi: "किसान / कुक्कुटपालन / पशुसंवर्धन" },
     annual: 0,
-    apply:   { en: "ahdmaharashtra.gov.in / nearest bank", hi: "ahdmaharashtra.gov.in / नजदीकी बैंक" }, applyType: "online",
+    apply:   { en: "https://ahdmaharashtra.gov.in", hi: "ahdmaharashtra.gov.in / नजदीकी बैंक" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land / Shed Ownership Proof", "Project Report (bird count, breed, feed plan)", "Bank Passbook", "Caste Certificate (SC/ST for higher subsidy)", "Income Certificate"],
                hi: ["आधार कार्ड", "जमीन/शेड स्वामित्व प्रमाण", "परियोजना रिपोर्ट (पक्षी संख्या, नस्ल, चारा योजना)", "बैंक पासबुक", "जाति प्रमाण (SC/ST अधिक सब्सिडी हेतु)", "आय प्रमाण पत्र"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["below1","1to3","3to6"].includes(a.income),
