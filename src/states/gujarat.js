@@ -577,7 +577,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "Free private school education (Class 1–8) for EWS children; school fees reimbursed by Gujarat govt up to ₹24,000/year", hi: "EWS बच्चों को निजी स्कूल में कक्षा 1–8 तक मुफ्त शिक्षा; गुजरात सरकार ₹24,000/वर्ष तक शुल्क वापसी" },
     tag:     { en: "Student / RTE EWS", hi: "छात्र / RTE EWS" },
     annual: 24000,
-    apply:   { en: "rte.orpgujarat.com", hi: "rte.orpgujarat.com" }, applyType: "online",
+    apply:   { en: "https://rte.orpgujarat.com", hi: "rte.orpgujarat.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (Child)", "Income Certificate (below ₹1L for EWS)", "Caste / Disability Certificate (if applicable)", "Birth Certificate", "Domicile Certificate", "Passport Photo"],
                hi: ["आधार कार्ड (बच्चा)", "आय प्रमाण (EWS: ₹1 लाख से कम)", "जाति/विकलांगता प्रमाण (यदि लागू)", "जन्म प्रमाण पत्र", "अधिवास प्रमाण", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "student" && a.income === "below1",
