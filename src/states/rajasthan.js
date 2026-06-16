@@ -327,7 +327,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "₹2,000/month rent voucher (urban) · ₹1,000/month (semi-urban) for SC/OBC/EWS/MBC students living away for studies", hi: "पढ़ाई के लिए घर से दूर रहने वाले SC/OBC/EWS/MBC छात्रों को ₹2,000/माह (शहरी) · ₹1,000/माह (अर्ध-शहरी) किराया वाउचर" },
     tag:     { en: "Student / SC-OBC", hi: "छात्र / SC-OBC" },
     annual: 24000,
-    apply:   { en: "sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://sje.rajasthan.gov.in", hi: "sje.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Caste Certificate (SC/OBC/EWS/MBC)", "Income Certificate (family ≤ ₹2.5 lakh/year)", "College / University Enrolment Certificate", "Rent Agreement or Hostel Receipt", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "जाति प्रमाण पत्र (SC/OBC/EWS/MBC)", "आय प्रमाण (परिवार ≤ ₹2.5 लाख/वर्ष)", "कॉलेज / विश्वविद्यालय नामांकन प्रमाण", "किराया अनुबंध या हॉस्टल रसीद", "बैंक खाता"] },
     // Eligibility: SC/OBC/EWS/MBC graduate/postgrad student living away from home; family income ≤ ₹2.5L
