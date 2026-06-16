@@ -539,7 +539,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "40–60% subsidy on fishing boats, nets, aquaculture ponds, ice plants & fish kiosks; SC/ST/women fishers get up to 60% subsidy", hi: "मछली नाव, जाल, जलकृषि तालाब, बर्फ संयंत्र व मछली कियोस्क पर 40–60% सब्सिडी; SC/ST/महिला को 60% तक" },
     tag:     { en: "Fishermen / Aquaculture", hi: "मच्छीमार / जलकृषि" },
     annual: 75000,
-    apply:   { en: "pmmsy.dof.gov.in / fisheries.maharashtra.gov.in", hi: "pmmsy.dof.gov.in / fisheries.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://fisheries.maharashtra.gov.in", hi: "pmmsy.dof.gov.in / fisheries.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Fishermen / Aquaculture Farmer Registration", "Project Report / Cost Estimate", "Land / Water Body Documents", "Bank Passbook", "Caste Certificate (SC/ST for higher subsidy)"],
                hi: ["आधार कार्ड", "मच्छीमार / जलकृषि किसान पंजीकरण", "परियोजना रिपोर्ट / लागत अनुमान", "भूमि / जलाशय दस्तावेज", "बैंक पासबुक", "जाति प्रमाण (SC/ST अधिक सब्सिडी हेतु)"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income),
