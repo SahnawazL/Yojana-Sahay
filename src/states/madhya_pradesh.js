@@ -45,7 +45,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     benefit: { en: "Full higher-education fee paid by Govt. for students with 75%+ (MP Board) or 85%+ (CBSE/ICSE) in Class 12", hi: "कक्षा 12 में 75%+ (MP बोर्ड) या 85%+ (CBSE/ICSE) पर सरकार पूरी उच्च शिक्षा फीस देती है" },
     tag:     { en: "Student / Education", hi: "छात्र / शिक्षा" },
     annual: 0,
-    apply:   { en: "scholarshipportal.mp.nic.in", hi: "scholarshipportal.mp.nic.in" }, applyType: "online",
+    apply:   { en: "https://scholarshipportal.mp.nic.in", hi: "scholarshipportal.mp.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Mark Sheet (75%+ / 85%+)","Income Certificate (≤₹6L/year)","Admission Letter from College","Samagra ID","Bank Account"],
                hi: ["आधार कार्ड","कक्षा 12 मार्कशीट (75%+ / 85%+)","आय प्रमाण (≤₹6 लाख/वर्ष)","कॉलेज प्रवेश पत्र","समग्र ID","बैंक खाता"] },
     match: (a) => a.state === "Madhya Pradesh" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income) && a.age === "18to35",
