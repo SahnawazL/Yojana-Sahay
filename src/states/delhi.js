@@ -799,7 +799,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "One-time grant of ₹51,000 for marriage of daughters from BPL / EWS families", hi: "BPL / EWS परिवारों की बेटियों के विवाह पर ₹51,000 की एकमुश्त सहायता" },
     tag:     { en: "Marriage Aid", hi: "विवाह सहायता" },
     annual: 51000,
-    apply:   { en: "edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
+    apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card of Parents & Bride", "BPL / Income Certificate", "Marriage Card / Invitation", "Delhi Address Proof (3+ years)", "Bank Passbook"],
                hi: ["माता-पिता व वधू का आधार कार्ड", "BPL / आय प्रमाण पत्र", "विवाह कार्ड / निमंत्रण पत्र", "दिल्ली पता प्रमाण (3+ वर्ष)", "बैंक पासबुक"] },
     match: (a) => a.state === "Delhi" && (a.income === "below1" || a.income === "1to3"),
