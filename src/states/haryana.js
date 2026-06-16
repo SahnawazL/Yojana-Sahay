@@ -46,7 +46,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹3,000/month pension for senior citizens 60+", hi: "60+ वरिष्ठ नागरिकों को ₹3,000/माह पेंशन" },
     tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
     annual: 36000,
-    apply:   { en: "socialjusticehry.gov.in", hi: "socialjusticehry.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjusticehry.gov.in", hi: "socialjusticehry.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (birth certificate / voter ID)","Parivar Pehchan Patra","Bank Account","Income Certificate"],
                hi: ["आधार कार्ड","आयु प्रमाण (जन्म प्रमाण / मतदाता पहचान पत्र)","परिवार पहचान पत्र","बैंक खाता","आय प्रमाण पत्र"] },
     // Eligibility: Haryana resident, age 60+, family income ≤ ₹3 lakh/year
