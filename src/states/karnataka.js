@@ -1395,7 +1395,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "5 kg rice/wheat per family member/month at ₹2–₹3/kg under NFSA; fast-track issuance within 30 days under Sakala framework", hi: "NFSA के तहत परिवार के प्रत्येक सदस्य को ₹2–₹3/किलो पर 5 किलो चावल/गेहूं/माह; सकाला ढांचे में 30 दिन के अंदर राशन कार्ड जारी" },
     tag:     { en: "General", hi: "सामान्य" },
     annual: 0,
-    apply:   { en: "ahara.kar.nic.in / Nearest Ration Shop or Tahsildar Office", hi: "ahara.kar.nic.in / नज़दीकी राशन दुकान या तहसीलदार कार्यालय" }, applyType: "online",
+    apply:   { en: "https://ahara.kar.nic.in", hi: "ahara.kar.nic.in / नज़दीकी राशन दुकान या तहसीलदार कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Proof", "Address Proof", "Family Photo"],
                hi: ["आधार कार्ड", "आय प्रमाण", "पता प्रमाण", "परिवार की फोटो"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
