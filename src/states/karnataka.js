@@ -19,7 +19,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹2,000/acre crop bonus up to 2 acres", hi: "₹2,000/एकड़ फसल बोनस (अधिकतम 2 एकड़)" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 4000,
-    apply:   { en: "raitamitra.karnataka.gov.in", hi: "raitamitra.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://raitamitra.karnataka.gov.in", hi: "raitamitra.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Bank Account"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer",
