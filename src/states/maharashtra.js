@@ -367,7 +367,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Complete crop loan waiver up to ₹2 Lakh for defaulting farmers (loans Apr 2019–Mar 2025, overdue as of Sep 2025) + ₹50,000 incentive for regular repayers", hi: "अप्रैल 2019–मार्च 2025 के बकाया फसल लोन पर ₹2 लाख तक पूर्ण कर्जमाफी + नियमित चुकाने वाले किसानों को ₹50,000 प्रोत्साहन" },
     tag:     { en: "Farmer / Loan Waiver", hi: "किसान / कर्जमाफी" },
     annual: 200000,
-    apply:   { en: "krishi.maharashtra.gov.in", hi: "krishi.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://krishi.maharashtra.gov.in", hi: "krishi.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Farmer Registry Registration Number", "Crop Loan Account Details (Bank Passbook)", "7/12 Land Extract", "Mobile Number (Aadhaar-linked)"],
                hi: ["आधार कार्ड", "शेतकरी नोंदणी क्रमांक", "फसल लोन खाता विवरण (बैंक पासबुक)", "7/12 उतारा", "मोबाइल नंबर (आधार से लिंक)"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
