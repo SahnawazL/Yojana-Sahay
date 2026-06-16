@@ -328,7 +328,7 @@ export const SCHEME_DB = [
     benefit: { en: "100 days guaranteed wage employment/year · ₹220–₹357/day", hi: "100 दिन का गारंटीड रोजगार · ₹220–₹357/दिन" },
     tag:     { en: "Employment", hi: "रोजगार" },
     annual: 22000,
-    apply:   { en: "nrega.nic.in", hi: "nrega.nic.in" }, applyType: "online",
+    apply:   { en: "https://nrega.nic.in", hi: "nrega.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Job Card (from Gram Panchayat)","Bank / Post Office Account"],
                hi: ["आधार कार्ड","जॉब कार्ड (ग्राम पंचायत से)","बैंक / डाकघर खाता"] },
     match: (a) => a.area === "rural" && ["below1","1to3"].includes(a.income),
