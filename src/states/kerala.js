@@ -418,7 +418,7 @@ export const KERALA_SCHEMES = [
     benefit: { en: "Loan up to ₹2 Lakh at 7% + pension ₹2,000/month for returned NR Keralites in distress", hi: "लौटे प्रवासी केरलवासियों को 7% पर ₹2 लाख तक ऋण + ₹2,000/माह पेंशन" },
     tag:     { en: "Employment", hi: "रोजगार" },
     annual: 24000,
-    apply:   { en: "norkaroots.org", hi: "norkaroots.org" }, applyType: "online",
+    apply:   { en: "https://norkaroots.org", hi: "norkaroots.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Passport with UAE/Gulf Visa Stamps", "Pravasi Certificate from NORKA", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "UAE/खाड़ी वीज़ा स्टैम्प के साथ पासपोर्ट", "NORKA से प्रवासी प्रमाण पत्र", "आय प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Kerala" && ["below1", "1to3"].includes(a.income) && ["18to35", "35to60"].includes(a.age),
