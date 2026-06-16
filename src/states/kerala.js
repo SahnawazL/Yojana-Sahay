@@ -204,7 +204,7 @@ export const KERALA_SCHEMES = [
     benefit: { en: "₹500–₹1,000/month allowance for educated unemployed youth registered in employment exchange", hi: "रोजगार कार्यालय में पंजीकृत शिक्षित बेरोजगार युवाओं को ₹500–₹1,000/माह भत्ता" },
     tag:     { en: "Employment", hi: "रोजगार" },
     annual: 9000,
-    apply:   { en: "employment.kerala.gov.in", hi: "employment.kerala.gov.in" }, applyType: "online",
+    apply:   { en: "https://employment.kerala.gov.in", hi: "employment.kerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificates (10th / ITI / Degree)", "Employment Exchange Registration Card", "Income Certificate (below ₹1 Lakh)", "Bank Account"],
                hi: ["आधार कार्ड", "शैक्षिक प्रमाण पत्र (10वीं/ITI/डिग्री)", "रोजगार कार्यालय पंजीकरण कार्ड", "आय प्रमाण (₹1 लाख से कम)", "बैंक खाता"] },
     match: (a) => a.state === "Kerala" && ["below1", "1to3"].includes(a.income) && ["18to35", "35to60"].includes(a.age),
