@@ -395,7 +395,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "50% subsidy (SC/ST) · 25% (Others) on purchase of milch cattle, goats & poultry units", hi: "दुधारू पशु, बकरी व मुर्गी इकाई खरीद पर SC/ST को 50% · अन्य को 25% सब्सिडी" },
     tag:     { en: "Farmer / Livestock", hi: "किसान / पशुपालन" },
     annual: 50000,
-    apply:   { en: "https://ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land / Domicile Certificate", "Caste Certificate (SC/ST if applicable)", "Bank Passbook", "Veterinary Certificate for Animal", "Photo"],
                hi: ["आधार कार्ड", "जमीन / अधिवास प्रमाण", "जाति प्रमाण (SC/ST यदि लागू)", "बैंक पासबुक", "पशु का पशु-चिकित्सा प्रमाण", "फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer",
