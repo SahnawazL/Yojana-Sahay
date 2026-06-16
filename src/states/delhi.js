@@ -107,7 +107,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "Free all-inclusive pilgrimage trip for seniors 60+ to major religious sites", hi: "60+ वरिष्ठ नागरिकों के लिए प्रमुख तीर्थस्थलों की मुफ्त यात्रा" },
     tag:     { en: "Senior Welfare", hi: "वरिष्ठ नागरिक कल्याण" },
     annual: 0,
-    apply:   { en: "edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
+    apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof (60+)", "Delhi Voter ID", "Medical Fitness Certificate"],
                hi: ["आधार कार्ड", "आयु प्रमाण (60+)", "दिल्ली मतदाता पहचान पत्र", "स्वास्थ्य प्रमाण पत्र"] },
     match: (a) => a.state === "Delhi" && (a.who === "senior" || a.age === "above60"),
