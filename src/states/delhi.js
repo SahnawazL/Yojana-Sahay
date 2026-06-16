@@ -121,7 +121,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "₹2,000/month old-age pension for BPL seniors 60+", hi: "BPL वरिष्ठ नागरिकों को ₹2,000 प्रतिमाह पेंशन" },
     tag:     { en: "Pension", hi: "पेंशन" },
     annual: 24000,
-    apply:   { en: "edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
+    apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof (60+)", "BPL / Income Certificate", "Delhi Address Proof", "Bank Passbook"],
                hi: ["आधार कार्ड", "आयु प्रमाण (60+)", "BPL / आय प्रमाण पत्र", "दिल्ली पता प्रमाण", "बैंक पासबुक"] },
     match: (a) => a.state === "Delhi" && (a.who === "senior" || a.age === "above60") && (a.income === "below1" || a.income === "1to3"),
