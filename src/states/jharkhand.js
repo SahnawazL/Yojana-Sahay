@@ -418,7 +418,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "90% subsidy on solar home light system for BPL rural households · Rooftop solar at 30–40% subsidy", hi: "BPL ग्रामीण परिवारों को सोलर होम लाइट सिस्टम पर 90% सब्सिडी · रूफटॉप सोलर पर 30–40% सब्सिडी" },
     tag:     { en: "Energy / Solar", hi: "ऊर्जा / सौर" },
     annual: 0,
-    apply:   { en: "jreda.com", hi: "jreda.com" }, applyType: "online",
+    apply:   { en: "https://jreda.com", hi: "jreda.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "BPL Ration Card (for 90% subsidy)", "Electricity Bill or No-Grid Connection Certificate", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "BPL राशन कार्ड (90% सब्सिडी हेतु)", "बिजली बिल या ग्रिड कनेक्शन न होने का प्रमाण", "बैंक खाता", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Jharkhand" && a.area === "rural" && ["below1","1to3"].includes(a.income),
