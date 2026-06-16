@@ -21,7 +21,7 @@ export const BIHAR_SCHEMES = [
                hi: "जन्म से स्नातक तक कुल ₹50,000 किस्तों में — जन्म पर ₹2,000, टीकाकरण पर ₹1,000, कक्षा 1 पर ₹2,000, कक्षा 12 पर ₹10,000, स्नातक पर ₹25,000; सभी जातियों की बालिकाओं के लिए" },
     tag:     { en: "Girl Child / Education", hi: "बालिका / शिक्षा" },
     annual: 50000,
-    apply:   { en: "medhasoft.bih.nic.in", hi: "medhasoft.bih.nic.in" }, applyType: "online",
+    apply:   { en: "https://medhasoft.bih.nic.in", hi: "medhasoft.bih.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (girl's)","Birth Certificate","Parent's Bank Account (Aadhaar-linked)","Income Certificate","Caste Certificate (if SC/ST)","School Enrollment Certificate (for Class 12 / graduation installment)","Parent's Aadhaar Card"],
                hi: ["आधार कार्ड (बालिका का)","जन्म प्रमाण पत्र","माता-पिता का बैंक खाता (आधार-लिंक्ड)","आय प्रमाण पत्र","जाति प्रमाण पत्र (SC/ST हेतु)","स्कूल नामांकन प्रमाण पत्र (कक्षा 12 / स्नातक किस्त के लिए)","माता-पिता का आधार कार्ड"] },
     match: (a) => a.state === "Bihar" && a.who === "student",
