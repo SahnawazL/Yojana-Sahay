@@ -135,7 +135,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Free laptop for meritorious students of Class 12 from Govt. schools", hi: "सरकारी स्कूलों के कक्षा 12 के मेधावी छात्रों को मुफ्त लैपटॉप" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 0,
-    apply:   { en: "schooleducation.kar.nic.in", hi: "schooleducation.kar.nic.in" }, applyType: "online",
+    apply:   { en: "https://schooleducation.kar.nic.in", hi: "schooleducation.kar.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 12 Marks Card", "Govt. School Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "कक्षा 12 मार्कशीट", "सरकारी स्कूल प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
