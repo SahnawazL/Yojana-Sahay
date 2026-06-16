@@ -1157,7 +1157,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "3% reservation in all govt jobs for persons with disabilities + self-employment loan up to ₹5L at 4% interest + free skill training through NHFDC for 40%+ disability certificate holders", hi: "सर्व सरकारी नोकऱ्यांमध्ये दिव्यांगांसाठी 3% आरक्षण + 40%+ दिव्यांगता प्रमाणपत्रधारकांसाठी 4% व्याजावर ₹5L स्वयंरोजगार कर्ज + NHFDC मार्फत मोफत कौशल्य प्रशिक्षण" },
     tag:     { en: "Disability / Employment / Self Employment", hi: "दिव्यांग / रोजगार / स्वयंरोजगार" },
     annual: 0,
-    apply:   { en: "sjsa.maharashtra.gov.in / District Social Welfare Office / nhfdc.nic.in", hi: "sjsa.maharashtra.gov.in / जिला समाज कल्याण कार्यालय / nhfdc.nic.in" }, applyType: "online",
+    apply:   { en: "https://sjsa.maharashtra.gov.in", hi: "sjsa.maharashtra.gov.in / जिला समाज कल्याण कार्यालय / nhfdc.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ from Civil Surgeon)", "Income Certificate", "Educational Qualification Certificate", "Bank Passbook", "Business Plan (for self-employment loan)"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+, सिविल सर्जनकडून)", "आय प्रमाण पत्र", "शैक्षणिक पात्रता प्रमाण पत्र", "बैंक पासबुक", "व्यापार योजना (स्वयंरोजगार कर्जासाठी)"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income),
