@@ -57,6 +57,9 @@ import {
   getKnownDeadLinks,
 } from "./verifySchemes.js";
 
+// ── SCHEME_DB — needed for URL Issues pre-scan (no verification run required) ─
+import { SCHEME_DB } from "./schemesData.js";
+
 // ─── THEME ────────────────────────────────────────────────────────────────────
 // Mirrors AdminDashboard.jsx THEME exactly so the tab blends in.
 const THEME = {
@@ -453,6 +456,89 @@ function getSchemeFilePath(result) {
   return `src/states/${fname}.js`;
 }
 
+
+// ─── URL ISSUES — PRE-SCAN UTILITIES ─────────────────────────────────────────
+// Detects URL format problems directly from SCHEME_DB at runtime.
+// No verification run or API call needed — pure data analysis.
+//
+// Issue types (online schemes only — offline is always skipped):
+//   NO_HTTPS   — bare domain like "pmkisan.gov.in"          → add https://
+//   MULTI_URL  — "ugc.ac.in / scholarships.gov.in"          → pick one URL
+//   TEXT_ONLY  — "Nearest bank branch" (no URL at all)      → mark offline
+//   NO_URL     — apply.en is null / empty string            → needs URL added
+
+// Like getSchemeFilePath but takes a scheme object directly (not a result wrapper).
+function getUrlIssueFilePath(scheme) {
+  if (scheme?.scope === "national") return "src/schemesData.js";
+  const st = scheme?.state;
+  if (!st) return "src/schemesData.js";
+  const fname = st.toLowerCase().replace(/\s*&\s*/g, " ").replace(/\s+/g, "_");
+  return `src/states/${fname}.js`;
+}
+
+// Returns true if a string looks like a bare domain or URL (has a valid TLD).
+function isUrlLike(s) {
+  if (!s) return false;
+  const clean = s.trim();
+  return /^(https?:\/\/)?[a-zA-Z0-9][^\s]*\.(gov\.in|nic\.in|ac\.in|org\.in|edu\.in|co\.in|com|net|org|in)(\S*)$/i.test(clean);
+}
+
+// Normalises a raw URL-like string to a proper https:// URL.
+function toHttpsUrl(raw) {
+  const s = raw.trim();
+  if (s.startsWith("https://") || s.startsWith("http://")) return s;
+  return `https://${s}`;
+}
+
+// Scans SCHEME_DB and returns all online schemes that have a URL format problem.
+// scopeFilter: "all" | "national" | "state:<StateName>"
+function detectUrlIssues(schemes, scopeFilter) {
+  if (!Array.isArray(schemes)) return [];
+
+  return schemes
+    .filter(s => {
+      if (scopeFilter === "national") return s.scope === "national";
+      if (scopeFilter?.startsWith("state:")) {
+        return s.state === scopeFilter.replace("state:", "").trim();
+      }
+      return true; // "all"
+    })
+    .filter(s => s.applyType === "online") // ← offline schemes never need a URL check
+    .reduce((acc, s) => {
+      const raw = (s.apply?.en ?? "").trim();
+
+      // 1. Empty / null
+      if (!raw) {
+        acc.push({ scheme: s, type: "NO_URL", parts: [] });
+        return acc;
+      }
+
+      // 2. Already a valid URL — no issue
+      if (raw.startsWith("https://") || raw.startsWith("http://")) return acc;
+
+      // 3. Multiple URLs separated by " / "
+      if (raw.includes(" / ")) {
+        const parts = raw.split(" / ").map(p => p.trim()).filter(Boolean);
+        const urlParts = parts.filter(isUrlLike);
+        // Only flag as MULTI_URL if there are at least 2 URL-like parts,
+        // OR if there is exactly 1 URL-like part mixed with plain text.
+        if (urlParts.length >= 1) {
+          acc.push({ scheme: s, type: "MULTI_URL", parts, urlParts, rawUrl: raw });
+          return acc;
+        }
+      }
+
+      // 4. Bare domain (no https://)
+      if (isUrlLike(raw)) {
+        acc.push({ scheme: s, type: "NO_HTTPS", rawUrl: raw, suggestedUrl: toHttpsUrl(raw) });
+        return acc;
+      }
+
+      // 5. Plain text — no usable URL at all
+      acc.push({ scheme: s, type: "TEXT_ONLY", rawUrl: raw });
+      return acc;
+    }, []);
+}
 
 // ─── PDF EXPORT ───────────────────────────────────────────────────────────────
 // Generates a print-ready HTML report in a new tab.
@@ -4600,6 +4686,63 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   }, [deadTotalPages, deadPage]);
 
 
+  // ── URL Issues pre-scan computations ─────────────────────────────────────
+  // Runs entirely in the browser from SCHEME_DB — no API call, no scan needed.
+  // Re-computes whenever scopeFilter changes (e.g. user switches All → Bihar).
+  const urlIssues = useMemo(
+    () => detectUrlIssues(SCHEME_DB, scopeFilter),
+    [scopeFilter]
+  );
+
+  const filteredUrlIssues = useMemo(() => {
+    if (urlIssueFilter === "all") return urlIssues;
+    return urlIssues.filter(i => i.type === urlIssueFilter);
+  }, [urlIssues, urlIssueFilter]);
+
+  const urlIssueCounts = useMemo(() => {
+    const c = { all: urlIssues.length, NO_HTTPS: 0, MULTI_URL: 0, TEXT_ONLY: 0, NO_URL: 0 };
+    for (const i of urlIssues) c[i.type] = (c[i.type] ?? 0) + 1;
+    return c;
+  }, [urlIssues]);
+
+  const URL_ISSUE_PAGE_SIZE = 15;
+  const urlIssueTotalPages  = Math.max(1, Math.ceil(filteredUrlIssues.length / URL_ISSUE_PAGE_SIZE));
+  const urlIssueSlice       = filteredUrlIssues.slice(
+    (urlIssuePage - 1) * URL_ISSUE_PAGE_SIZE,
+    urlIssuePage * URL_ISSUE_PAGE_SIZE,
+  );
+  useEffect(() => { setUrlIssuePage(1); }, [urlIssueFilter, scopeFilter]);
+  useEffect(() => {
+    if (urlIssuePage > urlIssueTotalPages) setUrlIssuePage(urlIssueTotalPages);
+  }, [urlIssueTotalPages, urlIssuePage]);
+
+  // Fix handler — calls /api/patch-scheme-url directly (same endpoint used by
+  // dead link fixes, but without the Firestore queue since these are format
+  // corrections, not link replacements that need tracking).
+  const handleUrlIssueFix = useCallback(async (scheme, oldUrl, newUrl) => {
+    if (!scheme?.id || !oldUrl || !newUrl || newUrl === oldUrl) return;
+    const file = getUrlIssueFilePath(scheme);
+    setFixingUrlId(scheme.id);
+    try {
+      const res = await fetch("/api/patch-scheme-url", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ id: scheme.id, oldUrl, newUrl, file }),
+      });
+      const data = await res.json();
+      setUrlFixStatuses(prev => ({
+        ...prev,
+        [scheme.id]: data.success
+          ? { success: true, commitUrl: data.commitUrl }
+          : { error: data.error ?? "Patch failed" },
+      }));
+    } catch (err) {
+      setUrlFixStatuses(prev => ({ ...prev, [scheme.id]: { error: err.message } }));
+    } finally {
+      setFixingUrlId(null);
+    }
+  }, []);
+
   // ── "Apply All Fixes" queue ───────────────────────────────────────────────
   // Every scheme with status:"queued" in urlFixMap — ready for one batch
   // commit via /api/batch-patch-urls (grouped by file, one commit per file).
@@ -4620,6 +4763,15 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [applyResult,   setApplyResult]   = useState(null); // { committed, failed, commits } | null
   const [mdCopied,      setMdCopied]      = useState(false); // "Copy MD" flash state
   const [scheduleDismissed, setScheduleDismissed] = useState(false);
+
+  // ── URL Issues pre-scan state ─────────────────────────────────────────────
+  // Detects URL format problems from SCHEME_DB without running verification.
+  const [urlIssueFilter,   setUrlIssueFilter]   = useState("all");     // all | NO_HTTPS | MULTI_URL | TEXT_ONLY | NO_URL
+  const [urlIssuePage,     setUrlIssuePage]     = useState(1);
+  const [selectedUrls,     setSelectedUrls]     = useState({});         // schemeId → chosen URL string for MULTI_URL
+  const [fixingUrlId,      setFixingUrlId]      = useState(null);       // schemeId currently being patched
+  const [urlFixStatuses,   setUrlFixStatuses]   = useState({});         // schemeId → { success, commitUrl } | { error }
+  const [urlIssueCollapsed, setUrlIssueCollapsed] = useState(false);    // collapse the whole panel
 
   // ── Re-verify Dead state ──────────────────────────────────────────────────
   // Lets the user re-ping only the dead links post-run without starting a full
@@ -5427,6 +5579,343 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               >
                 →
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══ URL ISSUES PANEL — always visible, no scan needed ════════════════ */}
+      {urlIssues.length > 0 && (
+        <div style={{
+          background:   th.card,
+          border:       `1.5px solid ${th.border}`,
+          borderRadius: 16,
+          overflow:     "hidden",
+        }}>
+          {/* Header */}
+          <div
+            {...a11yClickable(() => setUrlIssueCollapsed(p => !p), {
+              style: {
+                display:        "flex",
+                alignItems:     "center",
+                justifyContent: "space-between",
+                padding:        "12px 14px",
+                cursor:         "pointer",
+                userSelect:     "none",
+                borderBottom:   urlIssueCollapsed ? "none" : `1px solid ${th.border}`,
+              }
+            })}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 14 }}>⚠️</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
+                URL Issues
+              </span>
+              <span style={{
+                fontSize:     10,
+                fontWeight:   700,
+                color:        "#f59e0b",
+                background:   "rgba(245,158,11,0.12)",
+                border:       "1px solid rgba(245,158,11,0.3)",
+                borderRadius: 99,
+                padding:      "1px 7px",
+              }}>
+                {urlIssueCounts.all} online schemes
+              </span>
+              <span style={{ fontSize: 10, color: th.textSub }}>
+                detected without running a scan
+              </span>
+            </div>
+            <span style={{ fontSize: 11, color: th.textSub }}>
+              {urlIssueCollapsed ? "▶" : "▼"}
+            </span>
+          </div>
+
+          {!urlIssueCollapsed && (
+            <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+
+              {/* Type explanation cards */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {[
+                  { type: "NO_HTTPS",  label: "Missing https://",  color: "#f59e0b", desc: "Bare domain — auto-fixable"      },
+                  { type: "MULTI_URL", label: "Multiple URLs",      color: "#8b5cf6", desc: "Pick the correct one"            },
+                  { type: "TEXT_ONLY", label: "Text Only",          color: "#6b7280", desc: "No URL — mark as Offline"        },
+                  { type: "NO_URL",    label: "No URL",             color: "#ef4444", desc: "apply.en is empty"               },
+                ].map(({ type, label, color, desc }) => urlIssueCounts[type] > 0 && (
+                  <div key={type} style={{
+                    background:   `${color}14`,
+                    border:       `1px solid ${color}40`,
+                    borderRadius: 8,
+                    padding:      "6px 10px",
+                    display:      "flex",
+                    alignItems:   "center",
+                    gap:          6,
+                    minWidth:     120,
+                  }}>
+                    <span style={{ fontSize: 16, fontWeight: 800, color }}>{urlIssueCounts[type]}</span>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color }}>{label}</div>
+                      <div style={{ fontSize: 9,  color: th.textSub }}>{desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Filter pills */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {[
+                  ["all",      `All (${urlIssueCounts.all})`],
+                  ["NO_HTTPS", `Missing https:// (${urlIssueCounts.NO_HTTPS})`],
+                  ["MULTI_URL",`Multiple URLs (${urlIssueCounts.MULTI_URL})`],
+                  ["TEXT_ONLY",`Text Only (${urlIssueCounts.TEXT_ONLY})`],
+                  ["NO_URL",   `No URL (${urlIssueCounts.NO_URL})`],
+                ].filter(([type]) => type === "all" || urlIssueCounts[type] > 0)
+                 .map(([val, label]) => {
+                  const active = urlIssueFilter === val;
+                  return (
+                    <div
+                      key={val}
+                      {...a11yClickable(() => setUrlIssueFilter(val), {
+                        style: {
+                          fontSize:     10,
+                          fontWeight:   700,
+                          padding:      "4px 10px",
+                          borderRadius: 99,
+                          cursor:       "pointer",
+                          userSelect:   "none",
+                          border:       `1px solid ${active ? "#f59e0b" : th.border}`,
+                          background:   active ? "rgba(245,158,11,0.15)" : "transparent",
+                          color:        active ? "#f59e0b" : th.textSub,
+                          transition:   "all 0.15s",
+                        }
+                      })}
+                    >
+                      {label}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Issue rows */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {urlIssueSlice.map(issue => {
+                  const { scheme, type, rawUrl, suggestedUrl, parts, urlParts } = issue;
+                  const sid        = scheme.id;
+                  const fixStatus  = urlFixStatuses[sid];
+                  const isFixing   = fixingUrlId === sid;
+                  const isFixed    = fixStatus?.success;
+                  const chosenUrl  = selectedUrls[sid];
+
+                  // colour per type
+                  const typeColor = {
+                    NO_HTTPS:  "#f59e0b",
+                    MULTI_URL: "#8b5cf6",
+                    TEXT_ONLY: "#6b7280",
+                    NO_URL:    "#ef4444",
+                  }[type] ?? "#6b7280";
+
+                  const typeLabel = {
+                    NO_HTTPS:  "Missing https://",
+                    MULTI_URL: "Multiple URLs",
+                    TEXT_ONLY: "Text Only",
+                    NO_URL:    "No URL",
+                  }[type] ?? type;
+
+                  return (
+                    <div key={sid} style={{
+                      background:   isFixed ? "rgba(16,185,129,0.06)" : th.rowBg ?? "rgba(255,255,255,0.02)",
+                      border:       `1px solid ${isFixed ? "#10b981" : typeColor}30`,
+                      borderLeft:   `3px solid ${isFixed ? "#10b981" : typeColor}`,
+                      borderRadius: 8,
+                      padding:      "8px 10px",
+                      display:      "flex",
+                      flexDirection:"column",
+                      gap:          5,
+                    }}>
+                      {/* Row header */}
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                            <span style={{
+                              fontSize: 10, fontWeight: 700,
+                              color: typeColor,
+                              background: `${typeColor}14`,
+                              border: `1px solid ${typeColor}40`,
+                              borderRadius: 99, padding: "1px 6px",
+                            }}>
+                              {typeLabel}
+                            </span>
+                            <span style={{ fontSize: 10, color: th.textSub }}>
+                              {scheme.scope === "national" ? "🇮🇳 National" : `📍 ${scheme.state}`}
+                            </span>
+                            <span style={{ fontSize: 9, color: th.textSub, fontFamily: "monospace" }}>
+                              {sid}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: th.text, marginTop: 3 }}>
+                            {scheme.name?.en}
+                          </div>
+                          {rawUrl && (
+                            <div style={{
+                              fontSize: 9, color: th.textSub, fontFamily: "monospace",
+                              marginTop: 2, wordBreak: "break-all",
+                              background: "rgba(255,255,255,0.04)",
+                              borderRadius: 4, padding: "2px 5px",
+                            }}>
+                              current: {rawUrl}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Fixed badge */}
+                        {isFixed && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                            <span style={{ fontSize: 10, color: "#10b981", fontWeight: 700 }}>✅ Fixed</span>
+                            {fixStatus.commitUrl && (
+                              <a
+                                href={fixStatus.commitUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ fontSize: 9, color: "#10b981", textDecoration: "underline" }}
+                              >
+                                view commit
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        {fixStatus?.error && (
+                          <span style={{ fontSize: 9, color: "#ef4444", fontWeight: 600, flexShrink: 0 }}>
+                            ❌ {fixStatus.error}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Fix controls per type */}
+                      {!isFixed && (
+                        <>
+                          {/* NO_HTTPS — one-click auto fix */}
+                          {type === "NO_HTTPS" && (
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{
+                                fontSize: 9, fontFamily: "monospace", color: "#10b981",
+                                background: "rgba(16,185,129,0.08)", borderRadius: 4, padding: "2px 6px",
+                              }}>
+                                → {suggestedUrl}
+                              </span>
+                              <div
+                                {...a11yClickable(() => handleUrlIssueFix(scheme, rawUrl, suggestedUrl), {
+                                  style: {
+                                    fontSize: 9, fontWeight: 700, padding: "3px 10px",
+                                    borderRadius: 99, cursor: isFixing ? "wait" : "pointer",
+                                    background: isFixing ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.15)",
+                                    border: "1px solid rgba(245,158,11,0.4)",
+                                    color: "#f59e0b", userSelect: "none",
+                                    opacity: isFixing ? 0.6 : 1,
+                                  }
+                                })}
+                              >
+                                {isFixing ? "Fixing…" : "Add https:// →"}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* MULTI_URL — show each URL part, pick one */}
+                          {type === "MULTI_URL" && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                              <div style={{ fontSize: 9, color: th.textSub }}>
+                                Pick the primary URL:
+                              </div>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                                {(urlParts?.length ? urlParts : parts).map((part, i) => {
+                                  const normalised = toHttpsUrl(part);
+                                  const isSelected = (chosenUrl ?? "") === normalised;
+                                  return (
+                                    <div
+                                      key={i}
+                                      {...a11yClickable(() =>
+                                        setSelectedUrls(prev => ({ ...prev, [sid]: normalised })), {
+                                        style: {
+                                          fontSize: 9, fontFamily: "monospace",
+                                          padding: "3px 8px", borderRadius: 6,
+                                          cursor: "pointer", userSelect: "none",
+                                          border: `1px solid ${isSelected ? "#8b5cf6" : th.border}`,
+                                          background: isSelected ? "rgba(139,92,246,0.15)" : "rgba(255,255,255,0.03)",
+                                          color: isSelected ? "#8b5cf6" : th.textSub,
+                                          wordBreak: "break-all",
+                                        }
+                                      })}
+                                    >
+                                      {normalised}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              {chosenUrl && (
+                                <div
+                                  {...a11yClickable(() => handleUrlIssueFix(scheme, rawUrl, chosenUrl), {
+                                    style: {
+                                      alignSelf: "flex-start",
+                                      fontSize: 9, fontWeight: 700, padding: "3px 12px",
+                                      borderRadius: 99, cursor: isFixing ? "wait" : "pointer",
+                                      background: isFixing ? "rgba(139,92,246,0.1)" : "rgba(139,92,246,0.15)",
+                                      border: "1px solid rgba(139,92,246,0.4)",
+                                      color: "#8b5cf6", userSelect: "none",
+                                      opacity: isFixing ? 0.6 : 1,
+                                    }
+                                  })}
+                                >
+                                  {isFixing ? "Patching…" : `Use this URL →`}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* TEXT_ONLY / NO_URL — info only, manual fix needed */}
+                          {(type === "TEXT_ONLY" || type === "NO_URL") && (
+                            <div style={{
+                              fontSize: 9, color: th.textSub,
+                              background: "rgba(255,255,255,0.03)",
+                              borderRadius: 5, padding: "4px 8px",
+                            }}>
+                              {type === "TEXT_ONLY"
+                                ? "⚠️ No valid URL found. Change applyType to \"offline\" in the source file, or add a real URL manually."
+                                : "⚠️ apply.en is empty. Add the official URL in the source file manually."}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pagination */}
+              {urlIssueTotalPages > 1 && (
+                <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 4 }}>
+                  {getPaginationRange(urlIssuePage, urlIssueTotalPages).map((p, i) =>
+                    p === "…" ? (
+                      <span key={`e${i}`} style={{ fontSize: 10, color: th.textSub, padding: "3px 5px" }}>…</span>
+                    ) : (
+                      <div
+                        key={p}
+                        {...a11yClickable(() => setUrlIssuePage(p), {
+                          style: {
+                            fontSize: 10, fontWeight: p === urlIssuePage ? 800 : 500,
+                            padding: "3px 9px", borderRadius: 6, cursor: "pointer",
+                            background: p === urlIssuePage ? "rgba(245,158,11,0.15)" : "transparent",
+                            border: `1px solid ${p === urlIssuePage ? "#f59e0b" : th.border}`,
+                            color: p === urlIssuePage ? "#f59e0b" : th.textSub,
+                            userSelect: "none",
+                          }
+                        })}
+                      >
+                        {p}
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+
             </div>
           )}
         </div>
