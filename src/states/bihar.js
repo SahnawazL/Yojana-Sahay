@@ -37,7 +37,7 @@ export const BIHAR_SCHEMES = [
                hi: "कक्षा 12 में प्रथम श्रेणी से उत्तीर्ण SC/ST छात्राओं को ₹15,000; द्वितीय श्रेणी के लिए ₹10,000 — उच्च शिक्षा प्रोत्साहन हेतु सीधे बैंक में" },
     tag:     { en: "Girl Student / SC-ST", hi: "छात्रा / SC-ST" },
     annual: 15000,
-    apply:   { en: "https://https://medhasoft.bih.nic.in", hi: "medhasoft.bih.nic.in" }, applyType: "online",
+    apply:   { en: "https://https://https://medhasoft.bih.nic.in", hi: "medhasoft.bih.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Marksheet (First / Second Division)","SC/ST Caste Certificate","Bank Account (girl's name, Aadhaar-linked)","School / Board Registration Certificate","Passport Photo","Domicile Certificate (Bihar)"],
                hi: ["आधार कार्ड","कक्षा 12 अंकसूची (प्रथम/द्वितीय श्रेणी)","SC/ST जाति प्रमाण पत्र","बैंक खाता (छात्रा के नाम, आधार-लिंक्ड)","स्कूल/बोर्ड पंजीकरण प्रमाण पत्र","पासपोर्ट फोटो","अधिवास प्रमाण पत्र (बिहार)"] },
     match: (a) => a.state === "Bihar" && a.who === "student" && ["sc","st"].includes(a.caste),
