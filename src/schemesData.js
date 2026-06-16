@@ -538,7 +538,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free soil testing + personalised crop & fertiliser recommendations", hi: "मुफ्त मिट्टी जांच + फसल और खाद की व्यक्तिगत सिफारिश" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "soilhealth.dac.gov.in", hi: "soilhealth.dac.gov.in" }, applyType: "online",
+    apply:   { en: "https://soilhealth.dac.gov.in", hi: "soilhealth.dac.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records","Soil Sample (collected by govt. officer)"],
                hi: ["आधार कार्ड","जमीन के कागज़","मिट्टी का नमूना (सरकारी अधिकारी द्वारा संग्रहित)"] },
     match: (a) => a.who === "farmer",
