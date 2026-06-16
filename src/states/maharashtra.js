@@ -101,7 +101,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹5,000–₹8,000/year scholarship for OBC students in higher education", hi: "OBC छात्रों को उच्च शिक्षा के लिए ₹5,000–₹8,000/वर्ष छात्रवृत्ति" },
     tag:     { en: "Student / OBC", hi: "छात्र / OBC" },
     annual: 8000,
-    apply:   { en: "mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahadbt.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate (≤₹8L/year)", "Previous Year Mark Sheet", "College Bonafide", "Bank Passbook"],
                hi: ["आधार कार्ड", "OBC जाति प्रमाण पत्र", "आय प्रमाण (≤₹8 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज बोनाफाइड", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
