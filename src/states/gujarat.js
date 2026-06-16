@@ -269,7 +269,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "70% subsidy on drip & sprinkler systems for small & marginal farmers", hi: "छोटे व सीमांत किसानों को ड्रिप व स्प्रिंकलर सिंचाई प्रणाली पर 70% सब्सिडी" },
     tag:     { en: "Farmer / Irrigation", hi: "किसान / सिंचाई" },
     annual: 70000,
-    apply:   { en: "https://ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://https://ikhedut.gujarat.gov.in", hi: "ikhedut.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (7/12 Utara)", "Bank Passbook", "Caste Certificate (if SC/ST)", "Photo"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (7/12 उतारा)", "बैंक पासबुक", "जाति प्रमाण (SC/ST के लिए)", "फोटो"] },
     match: (a) => a.state === "Gujarat" && a.who === "farmer" && ["below1", "1to3"].includes(a.income),
