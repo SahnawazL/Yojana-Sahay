@@ -171,7 +171,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Subsidised grain (35 kg/family/month) at ₹1–₹3/kg + free LPG connection eligibility", hi: "35 किलो अनाज/माह ₹1–₹3/किलो + मुफ्त LPG कनेक्शन पात्रता" },
     tag:     { en: "Food Security", hi: "खाद्य सुरक्षा" },
     annual: 5040,
-    apply:   { en: "rcms.mahafood.gov.in", hi: "rcms.mahafood.gov.in" }, applyType: "online",
+    apply:   { en: "https://rcms.mahafood.gov.in", hi: "rcms.mahafood.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (BPL / ≤₹15,000/month)", "Address Proof", "Family Photo"],
                hi: ["आधार कार्ड", "आय प्रमाण (BPL / ≤₹15,000/माह)", "पता प्रमाण", "पारिवारिक फोटो"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
