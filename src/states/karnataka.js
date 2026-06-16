@@ -1179,7 +1179,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "15%–25% capital investment subsidy (max ₹50 Lakh), 5-year power tariff subsidy & stamp duty exemption for new MSME units in Karnataka", hi: "कर्नाटक में नई MSME इकाइयों को 15%–25% पूंजी निवेश सब्सिडी (अधिकतम ₹50 लाख), 5 वर्ष बिजली शुल्क सब्सिडी और स्टाम्प ड्यूटी छूट" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "udyamimitra.in / Karnataka Udyog Mitra portal", hi: "udyamimitra.in / कर्नाटक उद्योग मित्र पोर्टल" }, applyType: "online",
+    apply:   { en: "https://udyamimitra.in", hi: "udyamimitra.in / कर्नाटक उद्योग मित्र पोर्टल" }, applyType: "online",
     docs:    { en: ["Aadhaar/PAN", "Udyam Registration Certificate", "Project Report", "Land/Factory Documents", "Bank Account"],
                hi: ["आधार/पैन", "उद्यम पंजीकरण प्रमाण पत्र", "परियोजना रिपोर्ट", "जमीन/कारखाना दस्तावेज़", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "business" && ["18to35", "35to60"].includes(a.age),
