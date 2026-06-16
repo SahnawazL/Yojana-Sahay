@@ -106,7 +106,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹5 Lakh/year free health coverage · Extends Ayushman Bharat to families earning ₹1.80–₹3 Lakh", hi: "₹5 लाख/वर्ष मुफ्त स्वास्थ्य बीमा · ₹1.80–₹3 लाख आय परिवारों तक आयुष्मान का विस्तार" },
     tag:     { en: "Health / Insurance", hi: "स्वास्थ्य / बीमा" },
     annual: 500000,
-    apply:   { en: "chirayuhry.com", hi: "chirayuhry.com" }, applyType: "online",
+    apply:   { en: "https://chirayuhry.com", hi: "chirayuhry.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parivar Pehchan Patra (PPP)","Income Certificate (₹1.80L–₹3L/year)","Ration Card"],
                hi: ["आधार कार्ड","परिवार पहचान पत्र (PPP)","आय प्रमाण (₹1.80–₹3 लाख/वर्ष)","राशन कार्ड"] },
     // Eligibility: Haryana resident, family income ₹1.80L–₹3L/year (above PMJAY cut-off)
