@@ -1165,7 +1165,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Subsidy up to ₹5 Lakh & interest-free loan for setting up rural homestays + branding & listing support via KarnataKa Tourism portal", hi: "ग्रामीण होमस्टे स्थापना हेतु ₹5 लाख तक सब्सिडी व ब्याज मुक्त ऋण + कर्नाटक पर्यटन पोर्टल पर ब्रांडिंग एवं लिस्टिंग सहायता" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "karnatakatourism.org / Nearest Tourism Office", hi: "karnatakatourism.org / नज़दीकी पर्यटन कार्यालय" }, applyType: "online",
+    apply:   { en: "https://karnatakatourism.org", hi: "karnatakatourism.org / नज़दीकी पर्यटन कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land/Property Ownership Proof", "Bank Account", "NOC from Gram Panchayat", "Project Plan"],
                hi: ["आधार कार्ड", "जमीन/संपत्ति स्वामित्व प्रमाण", "बैंक खाता", "ग्राम पंचायत NOC", "परियोजना योजना"] },
     match: (a) => a.state === "Karnataka" && a.who === "business" && a.area === "rural",
