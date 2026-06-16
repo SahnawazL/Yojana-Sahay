@@ -1209,7 +1209,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Crop insurance covering drought, flood, pest & disease; farmer premium just 1.5%–5% of sum insured; claim up to ₹50,000/hectare", hi: "सूखा, बाढ़, कीट और बीमारी से फसल बीमा; किसान प्रीमियम केवल 1.5%–5%; ₹50,000/हेक्टेयर तक दावा" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "pmfby.gov.in / Nearest Bank / CSC", hi: "pmfby.gov.in / नज़दीकी बैंक / CSC" }, applyType: "online",
+    apply:   { en: "https://pmfby.gov.in", hi: "pmfby.gov.in / नज़दीकी बैंक / CSC" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Bank Account", "Crop Sowing Certificate"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बैंक खाता", "फसल बुवाई प्रमाण"] },
     match: (a) => a.state === "Karnataka" && a.who === "farmer",
