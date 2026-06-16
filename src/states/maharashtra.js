@@ -157,7 +157,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹600/month state pension for senior citizens (65+) not covered by IGNOAPS", hi: "IGNOAPS से वंचित 65+ वरिष्ठ नागरिकों को ₹600/माह राज्य पेंशन" },
     tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
     annual: 7200,
-    apply:   { en: "aaplesarkar.mahaonline.gov.in", hi: "aaplesarkar.mahaonline.gov.in" }, applyType: "online",
+    apply:   { en: "https://aaplesarkar.mahaonline.gov.in", hi: "aaplesarkar.mahaonline.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof (65+)", "Income Certificate", "Bank Passbook", "Maharashtra Domicile (15+ years)"],
                hi: ["आधार कार्ड", "आयु प्रमाण (65+)", "आय प्रमाण पत्र", "बैंक पासबुक", "महाराष्ट्र अधिवास (15+ वर्ष)"] },
     match: (a) => a.state === "Maharashtra" && (a.who === "senior" || a.age === "above60") && ["below1","1to3"].includes(a.income),
