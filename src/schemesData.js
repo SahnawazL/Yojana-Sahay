@@ -1259,7 +1259,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹31,000/month (JRF) · ₹35,000/month (SRF) + HRA + contingency for OBC M.Phil/PhD students", hi: "OBC M.Phil/PhD छात्रों को ₹31,000/माह (JRF) · ₹35,000/माह (SRF) + HRA + आकस्मिक अनुदान" },
     tag:     { en: "Student / OBC", hi: "छात्र / OBC" },
     annual: 420000,
-    apply:   { en: "https://scholarships.gov.in", hi: "ugc.ac.in / scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in", hi: "https://scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC (Non-Creamy Layer) Certificate","Admission Letter for M.Phil / PhD","NET / JRF Score Card","Income Certificate (family income ≤₹8L/year)","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड","आय प्रमाण (परिवार आय ≤₹8 लाख/वर्ष)","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC (non-creamy layer) student admitted to M.Phil/PhD, income ≤ ₹8L
