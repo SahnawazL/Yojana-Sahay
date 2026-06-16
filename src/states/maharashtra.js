@@ -451,7 +451,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "Seed funding ₹25 Lakh + incubation & mentorship support for women-led startups in Maharashtra", hi: "महाराष्ट्र की महिला नेतृत्व वाली स्टार्टअप को ₹25 लाख सीड फंडिंग + इनक्यूबेशन व मार्गदर्शन" },
     tag:     { en: "Women / Startup / Business", hi: "महिला / स्टार्टअप / व्यापार" },
     annual: 0,
-    apply:   { en: "wcd.maharashtra.gov.in", hi: "wcd.maharashtra.gov.in" }, applyType: "online",
+    apply:   { en: "https://wcd.maharashtra.gov.in", hi: "wcd.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Business / Startup Registration Certificate", "Pitch Deck / Business Plan", "Bank Account", "Maharashtra Domicile", "Incorporation / GST Certificate (if applicable)"],
                hi: ["आधार कार्ड", "व्यापार/स्टार्टअप पंजीकरण प्रमाण पत्र", "पिच डेक/व्यापार योजना", "बैंक खाता", "महाराष्ट्र अधिवास", "निगमन/GST प्रमाण (यदि लागू)"] },
     match: (a) => a.state === "Maharashtra" && a.who === "women" && (a.who === "business" || ["18to35","35to60"].includes(a.age)),
