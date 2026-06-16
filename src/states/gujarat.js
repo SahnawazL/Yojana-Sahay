@@ -129,7 +129,7 @@ export const GUJARAT_SCHEMES = [
     benefit: { en: "₹1,250/month pension for widows with no fixed income source", hi: "बिना निश्चित आय स्रोत वाली विधवाओं को ₹1,250/माह पेंशन" },
     tag:     { en: "Women / Widow", hi: "महिला / विधवा" },
     annual: 15000,
-    apply:   { en: "esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
+    apply:   { en: "https://esamajkalyan.gujarat.gov.in", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Husband's Death Certificate", "Age Proof", "Income Certificate (no fixed income)", "Bank Account", "Domicile Certificate"],
                hi: ["आधार कार्ड", "पति का मृत्यु प्रमाण पत्र", "आयु प्रमाण", "आय प्रमाण (कोई निश्चित आय नहीं)", "बैंक खाता", "अधिवास प्रमाण"] },
     match: (a) => a.state === "Gujarat" && a.who === "women" && ["below1", "1to3"].includes(a.income),
