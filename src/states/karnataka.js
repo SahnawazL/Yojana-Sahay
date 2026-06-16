@@ -585,7 +585,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹1,000–₹12,000/year for Muslim, Christian, Jain, Sikh, Buddhist, Parsi minority students", hi: "मुस्लिम, ईसाई, जैन, सिख, बौद्ध, पारसी अल्पसंख्यक छात्रों को ₹1,000–₹12,000/वर्ष" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 12000,
-    apply:   { en: "minorityeducation.karnataka.gov.in", hi: "minorityeducation.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://minorityeducation.karnataka.gov.in", hi: "minorityeducation.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "Income Certificate (< ₹2L)", "Mark Sheets", "Bank Account"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण", "आय प्रमाण (< ₹2 लाख)", "मार्कशीट", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
