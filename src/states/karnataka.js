@@ -677,7 +677,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Affordable housing sites & apartments for EWS/LIG income groups in urban Karnataka", hi: "शहरी कर्नाटक में EWS/LIG आय वर्ग के लिए किफायती आवास प्लॉट और अपार्टमेंट" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 0,
-    apply:   { en: "khb.gov.in", hi: "khb.gov.in" }, applyType: "online",
+    apply:   { en: "https://khb.gov.in", hi: "khb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (EWS/LIG)", "No Property Ownership Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "आय प्रमाण (EWS/LIG)", "संपत्ति न होने का प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3"].includes(a.income) && ["urban", "semi"].includes(a.area),
