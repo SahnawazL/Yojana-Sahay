@@ -571,7 +571,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Free residential schooling (Class 1–12) with food, clothing & books for Scheduled Tribe students", hi: "अनुसूचित जनजाति के छात्रों को कक्षा 1–12 तक मुफ्त आवासीय शिक्षा + भोजन, वस्त्र और किताबें" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 0,
-    apply:   { en: "tribals.karnataka.gov.in", hi: "tribals.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://tribals.karnataka.gov.in", hi: "tribals.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Income Certificate", "Previous Mark Sheet"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण", "आय प्रमाण", "पिछली मार्कशीट"] },
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income) && a.area === "rural",
