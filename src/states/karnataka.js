@@ -725,7 +725,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹15,000 toolkit grant + loan ₹1–₹2 Lakh at 5% interest + free skill training for 18 traditional crafts (blacksmith, potter, carpenter, tailor etc.)", hi: "₹15,000 टूलकिट अनुदान + 5% ब्याज पर ₹1–₹2 लाख ऋण + 18 पारंपरिक शिल्पों (लोहार, कुम्हार, बढ़ई, दर्जी आदि) हेतु मुफ्त प्रशिक्षण" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "pmvishwakarma.gov.in", hi: "pmvishwakarma.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmvishwakarma.gov.in", hi: "pmvishwakarma.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Trade/Craft Proof", "Bank Account", "Mobile Number linked to Aadhaar"],
                hi: ["आधार कार्ड", "व्यापार/शिल्प प्रमाण", "बैंक खाता", "आधार से जुड़ा मोबाइल नंबर"] },
     match: (a) => a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income),
