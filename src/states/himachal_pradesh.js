@@ -647,7 +647,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "Collateral-free working capital loan: ₹10,000 (1st), ₹20,000 (2nd), ₹50,000 (3rd cycle) + 7% interest subsidy for street vendors in HP towns", hi: "HP के शहरों में स्ट्रीट वेंडरों को बिना गारंटी कार्यशील पूंजी ऋण: ₹10,000 (1st), ₹20,000 (2nd), ₹50,000 (3rd) + 7% ब्याज सब्सिडी" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "pmsvanidhi.mohua.gov.in", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmsvanidhi.mohua.gov.in", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Vending Certificate / Identity Card from ULB", "HP Domicile Certificate", "Bank Account", "Passport Size Photo", "Mobile Number linked to Aadhaar"],
                hi: ["आधार कार्ड", "ULB से वेंडिंग प्रमाण पत्र / पहचान पत्र", "हिमाचल अधिवास प्रमाण", "बैंक खाता", "पासपोर्ट साइज फोटो", "आधार से जुड़ा मोबाइल नंबर"] },
     match: (a) => a.state === "Himachal Pradesh" && a.who === "business" && ["below1","1to3"].includes(a.income),
