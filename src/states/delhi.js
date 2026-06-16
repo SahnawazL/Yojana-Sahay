@@ -77,7 +77,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "₹2,500/month pension for widows from low-income families", hi: "कम आय वाली विधवाओं को ₹2,500 प्रतिमाह पेंशन" },
     tag:     { en: "Women Welfare", hi: "महिला कल्याण" },
     annual: 30000,
-    apply:   { en: "edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
+    apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Husband's Death Certificate", "Income Certificate", "Delhi Address Proof", "Bank Passbook"],
                hi: ["आधार कार्ड", "पति का मृत्यु प्रमाण पत्र", "आय प्रमाण पत्र", "दिल्ली पता प्रमाण", "बैंक पासबुक"] },
     match: (a) => a.state === "Delhi" && a.who === "women" && (a.income === "below1" || a.income === "1to3"),
