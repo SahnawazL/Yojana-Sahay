@@ -552,7 +552,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹2 Lakh accident insurance + access to all labour welfare schemes", hi: "₹2 लाख दुर्घटना बीमा + सभी श्रम कल्याण योजनाओं तक पहुंच" },
     tag:     { en: "Labour / General", hi: "श्रमिक / सामान्य" },
     annual: 0,
-    apply:   { en: "eshram.gov.in", hi: "eshram.gov.in" }, applyType: "online",
+    apply:   { en: "https://eshram.gov.in", hi: "eshram.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (Aadhaar-linked mobile)","Bank Account"],
                hi: ["आधार कार्ड (आधार से लिंक मोबाइल)","बैंक खाता"] },
     match: (a) => ["below1","1to3"].includes(a.income) && a.who !== "student",
