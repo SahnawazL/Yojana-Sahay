@@ -1743,7 +1743,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "One-time ₹20,000 lump-sum assistance to BPL families upon death of the primary breadwinner (age 18–59) due to any cause — natural or accidental", hi: "किसी भी कारण से (प्राकृतिक या आकस्मिक) 18–59 वर्ष के मुख्य कमाऊ सदस्य की मृत्यु पर BPL परिवारों को ₹20,000 एकमुश्त सहायता" },
     tag:     { en: "Social Welfare", hi: "सामाजिक कल्याण" },
     annual: 20000,
-    apply:   { en: "edistrict.delhigovt.nic.in / Delhi Social Welfare Dept. office", hi: "edistrict.delhigovt.nic.in / दिल्ली समाज कल्याण विभाग कार्यालय" }, applyType: "online",
+    apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in / दिल्ली समाज कल्याण विभाग कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card of Applicant", "Death Certificate of Breadwinner", "BPL / Income Certificate", "Age Proof of Deceased (18–59)", "Delhi Address Proof (3+ years)", "Bank Passbook", "Relationship Proof"],
                hi: ["आवेदक का आधार कार्ड", "कमाऊ सदस्य का मृत्यु प्रमाण पत्र", "BPL / आय प्रमाण पत्र", "मृतक का आयु प्रमाण (18–59)", "दिल्ली पता प्रमाण (3+ वर्ष)", "बैंक पासबुक", "संबंध प्रमाण"] },
     match: (a) => a.state === "Delhi" && a.income === "below1",
