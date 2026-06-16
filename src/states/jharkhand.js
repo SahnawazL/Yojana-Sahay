@@ -148,7 +148,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹5 Lakh/year free hospital treatment · 740+ empanelled hospitals in Jharkhand",  hi: "₹5 लाख/वर्ष मुफ्त अस्पताल उपचार · 740+ सूचीबद्ध अस्पताल" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "abjkay.jharkhand.gov.in", hi: "abjkay.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://abjkay.jharkhand.gov.in", hi: "abjkay.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card / Family ID", "Income Certificate"],
                hi: ["आधार कार्ड", "राशन कार्ड / परिवार पहचान पत्र", "आय प्रमाण पत्र"] },
     match: (a) => a.state === "Jharkhand" && ["below1","1to3"].includes(a.income),
