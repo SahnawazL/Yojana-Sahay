@@ -979,7 +979,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹3,000/month guaranteed pension at age 60 for unorganised workers. Contribution ₹55–₹200/month (age 18–40); central govt contributes equal matching amount. Spouse also eligible at same contribution.", hi: "असंघटित कामगारांना 60 वर्षांनंतर ₹3,000/माह गॅरंटीड पेंशन। 18–40 वयोगटात ₹55–₹200/माह योगदान; केंद्र सरकार समान रक्कम योगदान देते। पती/पत्नी देखील पात्र।" },
     tag:     { en: "Labour / Pension / Unorganised Worker", hi: "श्रमिक / पेंशन / असंघटित कामगार" },
     annual: 36000,
-    apply:   { en: "maandhan.in / CSC / eshram.gov.in", hi: "maandhan.in / CSC / eshram.gov.in" }, applyType: "online",
+    apply:   { en: "https://maandhan.in", hi: "maandhan.in / CSC / eshram.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Savings Bank Account (Aadhaar-linked)", "Mobile Number", "Age Proof", "e-Shram UAN Card (recommended)", "Self-declaration of monthly income ≤₹15,000"],
                hi: ["आधार कार्ड", "बचत बैंक खाता (आधार लिंक)", "मोबाइल नंबर", "आयु प्रमाण", "e-Shram UAN कार्ड (अनुशंसित)", "मासिक आय ≤₹15,000 का स्व-घोषणापत्र"] },
     match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
