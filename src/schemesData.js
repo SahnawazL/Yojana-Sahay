@@ -384,7 +384,7 @@ export const SCHEME_DB = [
     benefit: { en: "5 kg grain/person/month at ₹1–₹3 · Free under PMGKAY", hi: "5 किलो अनाज/व्यक्ति/माह ₹1–₹3 में · PMGKAY के तहत मुफ्त" },
     tag:     { en: "Food Security", hi: "खाद्य सुरक्षा" },
     annual: 3600,
-    apply:   { en: "nfsa.gov.in", hi: "nfsa.gov.in" }, applyType: "online",
+    apply:   { en: "https://nfsa.gov.in", hi: "nfsa.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Existing Ration Card","Income Certificate","Address Proof"],
                hi: ["आधार कार्ड","राशन कार्ड","आय प्रमाण पत्र","पता प्रमाण"] },
     match: (a) => ["below1","1to3"].includes(a.income),
