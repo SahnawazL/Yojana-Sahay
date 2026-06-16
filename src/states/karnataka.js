@@ -375,7 +375,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Up to ₹1.5 Lakh financial aid for cancer, kidney failure, organ transplant & heart surgery", hi: "कैंसर, किडनी फेलियर, अंग प्रत्यारोपण और हृदय शल्य के लिए ₹1.5 लाख तक वित्तीय सहायता" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 150000,
-    apply:   { en: "karunadu.karnataka.gov.in", hi: "karunadu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://karunadu.karnataka.gov.in", hi: "karunadu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "BPL Certificate", "Doctor's Diagnosis Report", "Hospital Estimate", "Bank Account"],
                hi: ["आधार कार्ड", "BPL प्रमाण", "डॉक्टर रिपोर्ट", "अस्पताल अनुमान", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
