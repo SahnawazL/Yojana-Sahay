@@ -129,7 +129,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "₹10,000/year scholarship for meritorious students from low-income HP families pursuing higher education", hi: "उच्च शिक्षा प्राप्त कर रहे कम आय वाले HP परिवारों के मेधावी छात्रों को ₹10,000/वर्ष छात्रवृत्ति" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 10000,
-    apply:   { en: "scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Mark Sheets (Class 10 & 12)","Income Certificate (below ₹2 Lakh/year)","HP Domicile Certificate","College Admission Proof","Bank Account"],
                hi: ["आधार कार्ड","मार्कशीट (कक्षा 10 और 12)","आय प्रमाण पत्र (₹2 लाख/वर्ष से कम)","हिमाचल अधिवास प्रमाण","कॉलेज प्रवेश प्रमाण","बैंक खाता"] },
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income),
