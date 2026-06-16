@@ -473,7 +473,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Interest-free loan: ₹25 lakh (manufacturing) · ₹10 lakh (services) for SC/ST entrepreneurs",             hi: "SC/ST उद्यमियों को ब्याजमुक्त ऋण: विनिर्माण ₹25 लाख · सेवा क्षेत्र ₹10 लाख तक" },
     tag:     { en: "Business / SC-ST", hi: "व्यापार / SC-ST" },
     annual: 0,
-    apply:   { en: "industries.rajasthan.gov.in", hi: "industries.rajasthan.gov.in" }, applyType: "online",
+    apply:   { en: "https://industries.rajasthan.gov.in", hi: "industries.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "SC / ST Caste Certificate", "Business / Udyam Registration", "Project Report", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "SC / ST जाति प्रमाण पत्र", "व्यापार / उद्यम पंजीकरण", "प्रोजेक्ट रिपोर्ट", "आय प्रमाण पत्र", "बैंक खाता"] },
     match: (a) => a.state === "Rajasthan" && a.who === "business" && ["below1", "1to3", "3to6"].includes(a.income),
