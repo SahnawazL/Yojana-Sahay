@@ -291,7 +291,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "Multiple benefits: ₹5,000 child education grant + ₹2,000 medical aid + ₹20,000 death relief for registered workers", hi: "पंजीकृत श्रमिकों को: ₹5,000 बाल शिक्षा अनुदान + ₹2,000 चिकित्सा सहायता + ₹20,000 मृत्यु राहत" },
     tag:     { en: "Labour / Welfare", hi: "श्रम / कल्याण" },
     annual: 5000,
-    apply:   { en: "pblabour.gov.in", hi: "pblabour.gov.in" }, applyType: "online",
+    apply:   { en: "https://pblabour.gov.in", hi: "pblabour.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Labour Registration Card","Employer Certificate","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","श्रम पंजीकरण कार्ड","नियोक्ता प्रमाण पत्र","बैंक खाता","पंजाब अधिवास"] },
     match: (a) => a.state === "Punjab" && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age),
