@@ -403,7 +403,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹12,000/year merit scholarship for Class 9–12 students from low-income families (selected via state exam)", hi: "राज्य परीक्षा से चयनित कक्षा 9–12 के निम्न आय वर्ग के मेधावी छात्रों को ₹12,000/वर्ष" },
     tag:     { en: "Education / Merit", hi: "शिक्षा / मेधा" },
     annual: 12000,
-    apply:   { en: "jac.jharkhand.gov.in", hi: "jac.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://jac.jharkhand.gov.in", hi: "jac.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 8 Mark Sheet (60%+ marks)", "Income Certificate (below ₹1.5L/year)", "School Enrollment Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "कक्षा 8 अंकपत्र (60% या अधिक)", "आय प्रमाण पत्र (₹1.5 लाख/वर्ष से कम)", "विद्यालय नामांकन प्रमाण पत्र", "बैंक खाता"] },
     match: (a) => a.state === "Jharkhand" && a.who === "student" && a.age === "below18" && ["below1","1to3"].includes(a.income),
