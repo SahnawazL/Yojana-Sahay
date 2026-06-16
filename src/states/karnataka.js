@@ -227,7 +227,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "Free skill training (3–6 months) in IT, retail, healthcare & construction + placement support", hi: "IT, रिटेल, स्वास्थ्य और निर्माण में मुफ्त कौशल प्रशिक्षण (3–6 महीने) + नौकरी सहायता" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "kaushalkar.karnataka.gov.in", hi: "kaushalkar.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://kaushalkar.karnataka.gov.in", hi: "kaushalkar.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Qualification Proof", "Bank Account"],
                hi: ["आधार कार्ड", "शैक्षणिक योग्यता प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Karnataka" && ["18to35", "35to60"].includes(a.age) && ["below1", "1to3"].includes(a.income),
