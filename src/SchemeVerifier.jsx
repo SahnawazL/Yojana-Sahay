@@ -5223,138 +5223,36 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   };
 
   // ─────────────────────────────────────────────────────────────────────────
-  return (
-    <div style={{
-      padding:       isDesktop ? "24px 40px 40px" : "14px 14px 32px",
-      display:       "flex",
-      flexDirection: "column",
-      gap:           14,
-      maxWidth:      isDesktop ? 900 : "100%",
-      margin:        isDesktop ? "0 auto" : undefined,
-      width:         "100%",
-      boxSizing:     "border-box",
-    }}>
-
-      {/* ══ HEADER ═══════════════════════════════════════════════════════════ */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 800, color: th.text }}>
-            Scheme URL Verifier
-          </div>
-          <div style={{ fontSize: 11, color: th.textSub, marginTop: 3 }}>
-            Ping apply URLs · Detect dead links · Extract deadlines via AI
-          </div>
-        </div>
-        {/* Quick DB stat + state coverage */}
-        {!running && results.length === 0 && (
-          <div style={{
-            textAlign:  "right",
-            fontSize:   10,
-            color:      th.textSub,
-            lineHeight: 1.6,
-          }}>
-            <span style={{ fontWeight: 800, color: NAVY, fontSize: 13 }}>
-              {dbStats.verifiable}
-            </span>
-            {" "}verifiable<br />
-            <span style={{ fontSize: 9 }}>of {dbStats.total} total</span>
-            <br />
-            <span style={{ fontSize: 9 }}>
-              <span style={{ fontWeight: 700, color: SAFFRON }}>{availableStates.length}</span>
-              <span style={{ color: th.textSub }}> / 36 states</span>
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* ══ CHECKPOINT BANNER ════════════════════════════════════════════════ */}
-      {checkpointLoaded && checkpoint && !running && results.length === 0 && (
-        <div style={{
-          background:   dark ? "rgba(255,153,51,0.07)" : "rgba(255,153,51,0.09)",
-          border:       `1.5px solid ${SAFFRON}50`,
-          borderRadius: 12,
-          padding:      "12px 14px",
-          display:      "flex",
-          gap:          10,
-          alignItems:   "center",
-        }}>
-          <div style={{
-            width: 10, height: 10, borderRadius: "50%",
-            background: SAFFRON, flexShrink: 0,
-          }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: th.text }}>
-              Previous run paused
-            </div>
-            <div style={{ fontSize: 10, color: th.textMid, marginTop: 2 }}>
-              {checkpoint.completedIndex} / {checkpoint.total} done
-              {checkpoint.scopeFilter && ` · ${checkpoint.scopeFilter}`}
-              {checkpoint.priorityFilter && checkpoint.priorityFilter !== "all"
-                && ` · priority: ${checkpoint.priorityFilter}`}
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            <div
-              {...a11yClickable(() => handleStart(checkpoint.completedIndex))}
-              style={{
-                padding:      "6px 12px",
-                borderRadius: 8,
-                fontSize:     11,
-                fontWeight:   700,
-                background:   SAFFRON,
-                color:        "#fff",
-                cursor:       "pointer",
-              }}
-            >
-              Resume
-            </div>
-            <div
-              {...a11yClickable(async () => { await clearCheckpoint(); setCheckpoint(null); })}
-              style={{
-                padding:      "6px 12px",
-                borderRadius: 8,
-                fontSize:     11,
-                fontWeight:   700,
-                background:   th.border,
-                color:        th.textMid,
-                cursor:       "pointer",
-              }}
-            >
-              Dismiss
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ══ DB COVERAGE CARD — idle only ═════════════════════════════════════ */}
-      {!running && results.length === 0 && (
+  // ─── Desktop sidebar-grid layout: hoisted section elements ──────────────
+  // ══ DB COVERAGE CARD — idle only ═════════════════════════════════════
+  const dbCoverageEl = (!running && results.length === 0) ? (
         <DBCoverageCard stats={dbStats} dark={dark} />
-      )}
+  ) : null;
 
-      {/* ══ SAVED SCANS — idle only ══════════════════════════════════════════ */}
-      {!running && results.length === 0 && (
+  // ══ SAVED SCANS — idle only ══════════════════════════════════════════
+  const savedScansEl = (!running && results.length === 0) ? (
         <SavedScansSection
           dark={dark}
           savedScans={savedScans}
           onScanCleared={() => setSavedScans(loadAllSavedScans())}
         />
-      )}
+  ) : null;
 
-      {/* ══ FIX PROGRESS — idle only: shows pending dead-link fix count per scope ═ */}
-      {!running && results.length === 0 && savedScans.length > 0 && (
+  // ══ FIX PROGRESS — idle only: shows pending dead-link fix count per scope ═
+  const fixProgressIdleEl = (!running && results.length === 0 && savedScans.length > 0) ? (
         <FixProgressPanel
           dark={dark}
           savedScans={savedScans}
           urlFixMap={urlFixMap}
           queuedFixes={queuedFixes}
         />
-      )}
+  ) : null;
 
-      {/* ══ KNOWN DEAD LINKS — persisted, no re-scan needed ═══════════════════ */}
-      {/* Sourced from schemes-meta.json (written by the last verification run
-          and committed to the repo) — so "Find New URL" / "Queue Fix" stay
-          available for dead schemes from a previous session at any time. */}
-      {!running && results.length === 0 && knownDeadLinks.length > 0 && (
+  // ══ KNOWN DEAD LINKS — persisted, no re-scan needed ═══════════════════
+  // Sourced from schemes-meta.json (written by the last verification run
+  //     and committed to the repo) — so "Find New URL" / "Queue Fix" stay
+  //     available for dead schemes from a previous session at any time.
+  const knownDeadLinksEl = (!running && results.length === 0 && knownDeadLinks.length > 0) ? (
         <div style={{
           background:   th.card,
           border:       `1.5px solid ${th.border}`,
@@ -5591,10 +5489,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             </div>
           )}
         </div>
-      )}
+  ) : null;
 
-      {/* ══ URL ISSUES PANEL — always visible, no scan needed ════════════════ */}
-      {urlIssues.length > 0 && (
+  // ══ URL ISSUES PANEL — always visible, no scan needed ════════════════
+  const urlIssuesEl = (urlIssues.length > 0) ? (
         <div style={{
           background:   th.card,
           border:       `1.5px solid ${th.border}`,
@@ -5949,10 +5847,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             </div>
           )}
         </div>
-      )}
+  ) : null;
 
-      {/* ══ CONFIG PANEL — hidden once run has results ════════════════════════ */}
-      {!running && results.length === 0 && (
+  // ══ CONFIG PANEL — hidden once run has results ════════════════════════
+  const configPanelEl = (!running && results.length === 0) ? (
         <div style={{
           background:    th.card,
           border:        `1.5px solid ${th.border}`,
@@ -6147,6 +6045,453 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             )}
           </div>
         </div>
+  ) : null;
+
+  // ══ FIX PROGRESS — post-run: updated immediately after each scan ════════
+  const fixProgressDoneEl = (runDone && !running && results.length > 0 && savedScans.length > 0) ? (
+        <FixProgressPanel
+          dark={dark}
+          savedScans={savedScans}
+          urlFixMap={urlFixMap}
+          queuedFixes={queuedFixes}
+        />
+  ) : null;
+
+  // ══ SCHEDULE NEXT SCAN BANNER ════════════════════════════════════════
+  const scheduleBannerEl = (runDone && !running && results.length > 0 && !scheduleDismissed) ? (
+        <div style={{
+          background:   dark ? "rgba(255,153,51,0.06)" : "rgba(255,153,51,0.07)",
+          border:       `1.5px solid ${SAFFRON}40`,
+          borderRadius: 12,
+          padding:      "9px 14px",
+          display:      "flex",
+          alignItems:   "center",
+          gap:          10,
+          animation:    "sv-diff-in 0.4s 0.2s cubic-bezier(0.22,1,0.36,1) both",
+        }}>
+          <span style={{ fontSize: 14, flexShrink: 0 }}>📅</span>
+          <div style={{ flex: 1 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: th.text }}>
+              Schedule next scan in 30 days?
+            </span>
+            <span style={{ fontSize: 9, color: th.textSub, marginLeft: 6 }}>
+              Stay on top of link health
+            </span>
+          </div>
+          <div
+            {...a11yClickable(() => {
+              const d = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+              const ymd = d.toISOString().split("T")[0].replace(/-/g, "");
+              const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Yojana+Sahay+Scheme+Verification&dates=${ymd}/${ymd}&details=Run+Scheme+URL+Verifier+in+Admin+Dashboard`;
+              window.open(url, "_blank");
+              setScheduleDismissed(true);
+            })}
+            style={{
+              padding:      "5px 11px",
+              borderRadius: 8,
+              fontSize:     10,
+              fontWeight:   700,
+              background:   SAFFRON,
+              color:        "#fff",
+              cursor:       "pointer",
+              flexShrink:   0,
+              boxShadow:    `0 2px 8px ${SAFFRON}50`,
+            }}
+          >
+            Add to Calendar
+          </div>
+          <div
+            {...a11yClickable(() => setScheduleDismissed(true), { label: "Dismiss schedule reminder" })}
+            style={{
+              fontSize:   16,
+              color:      th.textSub,
+              cursor:     "pointer",
+              padding:    "0 2px",
+              flexShrink: 0,
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </div>
+        </div>
+  ) : null;
+
+  // ══ AI SMART INSIGHTS — post-run only ═══════════════════════════════
+  const smartInsightsEl = (runDone && !running && results.length > 0) ? (
+        <SmartInsightsPanel
+          results={results}
+          summary={summary}
+          scopeFilter={scopeFilter}
+          tier={tier}
+          dark={dark}
+        />
+  ) : null;
+
+  // ══ DOMAIN GROUP PANEL — post-run dead-link breakdown by domain ═══════
+  // Shows how many failing links share the same root domain — instantly
+  //     reveals systemic domain migrations vs individual broken pages.
+  //     "domain issue?" badge fires when 3+ dead links share one domain.
+  const domainGroupEl = (runDone && !running && (summary?.dead ?? 0) + (summary?.noResponse ?? 0) > 0) ? (
+        <DomainGroupPanel results={results} dark={dark} />
+  ) : null;
+
+  // ══ RUN REPORT — post-run only ═════════════════════════════════════════
+  const runSummaryEl = (summary && !running) ? (
+        <RunSummaryCard
+          summary={summary}
+          scopeFilter={scopeFilter}
+          priorityFilter={priorityFilter}
+          tier={tier}
+          wasAborted={wasAborted}
+          dark={dark}
+        />
+  ) : null;
+
+  // ══ RESULTS LIST ═════════════════════════════════════════════════════
+  const resultsListEl = (results.length > 0) ? (
+        <div style={{
+          background:   th.card,
+          border:       `1.5px solid ${th.border}`,
+          borderRadius: 16,
+          overflow:     "hidden",
+        }}>
+          {/* Header: title + search + filter pills */}
+          <div style={{
+            padding:      "10px 14px",
+            borderBottom: `1px solid ${th.border}`,
+            display:      "flex",
+            gap:          8,
+            flexWrap:     "wrap",
+            alignItems:   "center",
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
+              Results
+            </span>
+            <span style={{ fontSize: 10, color: th.textSub }}>
+              ({filteredResults.length}
+              {debouncedSearch && ` of ${results.length}`})
+            </span>
+
+            {/* Search input */}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              placeholder="Search name, ID, URL…"
+              style={{
+                flex:         "1 1 110px",
+                minWidth:     80,
+                maxWidth:     200,
+                padding:      "4px 9px",
+                borderRadius: 8,
+                border:       `1.5px solid ${searchQuery ? NAVY : th.border}`,
+                background:   th.inputBg,
+                color:        th.text,
+                fontSize:     10,
+                fontFamily:   "inherit",
+                outline:      "none",
+              }}
+            />
+
+            <div style={{ flex: 1 }} />
+
+            {/* Fix 7: Expand All toggle — only shown for dead/error filters */}
+            {(resultFilter === "dead" || resultFilter === "error") && filteredResults.length > 0 && (
+              <div
+                {...a11yClickable(() => setExpandAll(v => !v), {
+                  pressed: expandAll,
+                  label:   expandAll ? "Collapse all rows" : "Expand all rows",
+                })}
+                style={{
+                  padding:      "3px 9px",
+                  borderRadius: 10,
+                  fontSize:     9,
+                  fontWeight:   700,
+                  color:        expandAll ? NAVY : th.textMid,
+                  background:   expandAll ? `${NAVY}15` : "transparent",
+                  border:       `1.5px solid ${expandAll ? NAVY : th.border}`,
+                  cursor:       "pointer",
+                  whiteSpace:   "nowrap",
+                  transition:   "all 0.15s",
+                }}
+              >
+                {expandAll ? "Collapse All" : "Expand All"}
+              </div>
+            )}
+
+            {/* Fix 1 + animated counts: Status filter pills */}
+            {[
+              ["all",        "All",        filterCounts.all,        th.textMid, th.border],
+              ["active",     "Active",     filterCounts.active,     dark ? IND_GREEN_DARK : IND_GREEN,  `${dark ? IND_GREEN_DARK : IND_GREEN}40`],
+              ["dead",       "Dead",       filterCounts.dead,       RED,        `${RED}40`],
+              ["noResponse", "No Resp.",   filterCounts.noResponse, AMBER,      `${AMBER}40`],
+              ["error",      "Errors",     filterCounts.error,      VIOLET,     `${VIOLET}40`],
+            ].map(([key, label, count, color, bg]) => (
+              <FilterPill
+                key={key}
+                label={label}
+                count={count}
+                color={color}
+                bg={bg}
+                active={resultFilter === key}
+                th={th}
+                onClick={() => { setResultFilter(key); setExpandAll(false); setPage(1); }}
+              />
+            ))}
+          </div>
+
+          {/* Apply All Fixes — batch commit (Problem 2 fix): turns N queued
+              URL fixes into ~1-2 Vercel deploys instead of N */}
+          <ApplyAllFixesBar
+            queuedFixes={queuedFixes}
+            applyingFixes={applyingFixes}
+            applyResult={applyResult}
+            onApply={handleApplyAllFixes}
+            th={th}
+          />
+
+          {/* Rows */}
+          <div>
+            {pageSlice.length === 0 ? (
+              <EmptyState
+                message={searchQuery ? `No results for "${searchQuery}"` : "No results in this category"}
+                dark={dark}
+              />
+            ) : (
+              pageSlice.map((r, i) => (
+                <ResultRow
+                  key={`${r.scheme?.id ?? i}-${(page - 1) * PAGE_SIZE + i}`}
+                  result={r}
+                  dark={dark}
+                  expandAll={expandAll}
+                  savedFix={urlFixMap[r.scheme?.id] ?? null}
+                  onQueueChange={handleQueueChange}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Numbered pagination */}
+          {totalPages > 1 && (
+            <div style={{
+              padding:        "10px 14px",
+              borderTop:      `1px solid ${th.border}`,
+              display:        "flex",
+              justifyContent: "center",
+              alignItems:     "center",
+              gap:            4,
+              flexWrap:       "wrap",
+            }}>
+              {/* Prev */}
+              <div
+                {...a11yClickable(() => setPage(p => p - 1), {
+                  disabled: page <= 1,
+                  label: "Previous page",
+                })}
+                style={{
+                  padding:      "5px 10px",
+                  borderRadius: 7,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  background:   th.border,
+                  color:        page <= 1 ? th.textSub : th.text,
+                  cursor:       page <= 1 ? "default" : "pointer",
+                  userSelect:   "none",
+                }}
+              >
+                ←
+              </div>
+
+              {/* Numbered page buttons */}
+              {pageRange[0] > 1 && (
+                <>
+                  <div
+                    {...a11yClickable(() => setPage(1), { disabled: 1 === page, label: "Page 1" })}
+                    style={pageBtn(1 === page, th)}
+                  >
+                    1
+                  </div>
+                  {pageRange[0] > 2 && (
+                    <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
+                  )}
+                </>
+              )}
+              {pageRange.map(p => (
+                <div
+                  key={p}
+                  {...a11yClickable(() => setPage(p), { disabled: p === page, label: `Page ${p}` })}
+                  style={pageBtn(p === page, th, NAVY)}
+                >
+                  {p}
+                </div>
+              ))}
+              {pageRange[pageRange.length - 1] < totalPages && (
+                <>
+                  {pageRange[pageRange.length - 1] < totalPages - 1 && (
+                    <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
+                  )}
+                  <div
+                    {...a11yClickable(() => setPage(totalPages), { disabled: totalPages === page, label: `Page ${totalPages}` })}
+                    style={pageBtn(totalPages === page, th)}
+                  >
+                    {totalPages}
+                  </div>
+                </>
+              )}
+
+              {/* Next */}
+              <div
+                {...a11yClickable(() => setPage(p => p + 1), {
+                  disabled: page >= totalPages,
+                  label: "Next page",
+                })}
+                style={{
+                  padding:      "5px 10px",
+                  borderRadius: 7,
+                  fontSize:     11,
+                  fontWeight:   700,
+                  background:   th.border,
+                  color:        page >= totalPages ? th.textSub : th.text,
+                  cursor:       page >= totalPages ? "default" : "pointer",
+                  userSelect:   "none",
+                }}
+              >
+                →
+              </div>
+            </div>
+          )}
+        </div>
+  ) : null;
+
+  const isIdleState   = !running && results.length === 0;
+  const showIdleGrid  = isDesktop && isIdleState && (knownDeadLinks.length > 0 || urlIssues.length > 0);
+  const showDoneGrid  = isDesktop && runDone && !running && results.length > 0;
+
+  return (
+    <div style={{
+      padding:       isDesktop ? "24px 40px 40px" : "14px 14px 32px",
+      display:       "flex",
+      flexDirection: "column",
+      gap:           14,
+      maxWidth:      isDesktop ? ((showIdleGrid || showDoneGrid) ? 1180 : 900) : "100%",
+      margin:        isDesktop ? "0 auto" : undefined,
+      width:         "100%",
+      boxSizing:     "border-box",
+    }}>
+
+      {/* ══ HEADER ═══════════════════════════════════════════════════════════ */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: th.text }}>
+            Scheme URL Verifier
+          </div>
+          <div style={{ fontSize: 11, color: th.textSub, marginTop: 3 }}>
+            Ping apply URLs · Detect dead links · Extract deadlines via AI
+          </div>
+        </div>
+        {/* Quick DB stat + state coverage */}
+        {!running && results.length === 0 && (
+          <div style={{
+            textAlign:  "right",
+            fontSize:   10,
+            color:      th.textSub,
+            lineHeight: 1.6,
+          }}>
+            <span style={{ fontWeight: 800, color: NAVY, fontSize: 13 }}>
+              {dbStats.verifiable}
+            </span>
+            {" "}verifiable<br />
+            <span style={{ fontSize: 9 }}>of {dbStats.total} total</span>
+            <br />
+            <span style={{ fontSize: 9 }}>
+              <span style={{ fontWeight: 700, color: SAFFRON }}>{availableStates.length}</span>
+              <span style={{ color: th.textSub }}> / 36 states</span>
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ══ CHECKPOINT BANNER ════════════════════════════════════════════════ */}
+      {checkpointLoaded && checkpoint && !running && results.length === 0 && (
+        <div style={{
+          background:   dark ? "rgba(255,153,51,0.07)" : "rgba(255,153,51,0.09)",
+          border:       `1.5px solid ${SAFFRON}50`,
+          borderRadius: 12,
+          padding:      "12px 14px",
+          display:      "flex",
+          gap:          10,
+          alignItems:   "center",
+        }}>
+          <div style={{
+            width: 10, height: 10, borderRadius: "50%",
+            background: SAFFRON, flexShrink: 0,
+          }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: th.text }}>
+              Previous run paused
+            </div>
+            <div style={{ fontSize: 10, color: th.textMid, marginTop: 2 }}>
+              {checkpoint.completedIndex} / {checkpoint.total} done
+              {checkpoint.scopeFilter && ` · ${checkpoint.scopeFilter}`}
+              {checkpoint.priorityFilter && checkpoint.priorityFilter !== "all"
+                && ` · priority: ${checkpoint.priorityFilter}`}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            <div
+              {...a11yClickable(() => handleStart(checkpoint.completedIndex))}
+              style={{
+                padding:      "6px 12px",
+                borderRadius: 8,
+                fontSize:     11,
+                fontWeight:   700,
+                background:   SAFFRON,
+                color:        "#fff",
+                cursor:       "pointer",
+              }}
+            >
+              Resume
+            </div>
+            <div
+              {...a11yClickable(async () => { await clearCheckpoint(); setCheckpoint(null); })}
+              style={{
+                padding:      "6px 12px",
+                borderRadius: 8,
+                fontSize:     11,
+                fontWeight:   700,
+                background:   th.border,
+                color:        th.textMid,
+                cursor:       "pointer",
+              }}
+            >
+              Dismiss
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showIdleGrid ? (
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 380px)", gap: 16, alignItems: "start" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, minWidth: 0 }}>
+            {knownDeadLinksEl}
+            {urlIssuesEl}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, position: "sticky", top: 20 }}>
+            {configPanelEl}
+            {dbCoverageEl}
+            {savedScansEl}
+            {fixProgressIdleEl}
+          </div>
+        </div>
+      ) : (
+        <>
+          {dbCoverageEl}
+          {savedScansEl}
+          {fixProgressIdleEl}
+          {knownDeadLinksEl}
+          {urlIssuesEl}
+          {configPanelEl}
+        </>
       )}
 
       {/* ══ RUNNING PANEL ════════════════════════════════════════════════════ */}
@@ -6454,320 +6799,28 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         />
       )}
 
-      {/* ══ FIX PROGRESS — post-run: updated immediately after each scan ════════ */}
-      {runDone && !running && results.length > 0 && savedScans.length > 0 && (
-        <FixProgressPanel
-          dark={dark}
-          savedScans={savedScans}
-          urlFixMap={urlFixMap}
-          queuedFixes={queuedFixes}
-        />
-      )}
-
-      {/* ══ SCHEDULE NEXT SCAN BANNER ════════════════════════════════════════ */}
-      {runDone && !running && results.length > 0 && !scheduleDismissed && (
-        <div style={{
-          background:   dark ? "rgba(255,153,51,0.06)" : "rgba(255,153,51,0.07)",
-          border:       `1.5px solid ${SAFFRON}40`,
-          borderRadius: 12,
-          padding:      "9px 14px",
-          display:      "flex",
-          alignItems:   "center",
-          gap:          10,
-          animation:    "sv-diff-in 0.4s 0.2s cubic-bezier(0.22,1,0.36,1) both",
-        }}>
-          <span style={{ fontSize: 14, flexShrink: 0 }}>📅</span>
-          <div style={{ flex: 1 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: th.text }}>
-              Schedule next scan in 30 days?
-            </span>
-            <span style={{ fontSize: 9, color: th.textSub, marginLeft: 6 }}>
-              Stay on top of link health
-            </span>
+      {showDoneGrid ? (
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 380px)", gap: 16, alignItems: "start" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, minWidth: 0 }}>
+            {smartInsightsEl}
+            {domainGroupEl}
+            {resultsListEl}
           </div>
-          <div
-            {...a11yClickable(() => {
-              const d = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-              const ymd = d.toISOString().split("T")[0].replace(/-/g, "");
-              const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Yojana+Sahay+Scheme+Verification&dates=${ymd}/${ymd}&details=Run+Scheme+URL+Verifier+in+Admin+Dashboard`;
-              window.open(url, "_blank");
-              setScheduleDismissed(true);
-            })}
-            style={{
-              padding:      "5px 11px",
-              borderRadius: 8,
-              fontSize:     10,
-              fontWeight:   700,
-              background:   SAFFRON,
-              color:        "#fff",
-              cursor:       "pointer",
-              flexShrink:   0,
-              boxShadow:    `0 2px 8px ${SAFFRON}50`,
-            }}
-          >
-            Add to Calendar
-          </div>
-          <div
-            {...a11yClickable(() => setScheduleDismissed(true), { label: "Dismiss schedule reminder" })}
-            style={{
-              fontSize:   16,
-              color:      th.textSub,
-              cursor:     "pointer",
-              padding:    "0 2px",
-              flexShrink: 0,
-              lineHeight: 1,
-            }}
-          >
-            ×
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, position: "sticky", top: 20 }}>
+            {runSummaryEl}
+            {fixProgressDoneEl}
+            {scheduleBannerEl}
           </div>
         </div>
-      )}
-
-      {/* ══ AI SMART INSIGHTS — post-run only ═══════════════════════════════ */}
-      {runDone && !running && results.length > 0 && (
-        <SmartInsightsPanel
-          results={results}
-          summary={summary}
-          scopeFilter={scopeFilter}
-          tier={tier}
-          dark={dark}
-        />
-      )}
-
-      {/* ══ DOMAIN GROUP PANEL — post-run dead-link breakdown by domain ═══════ */}
-      {/* Shows how many failing links share the same root domain — instantly
-          reveals systemic domain migrations vs individual broken pages.
-          "domain issue?" badge fires when 3+ dead links share one domain.   */}
-      {runDone && !running && (summary?.dead ?? 0) + (summary?.noResponse ?? 0) > 0 && (
-        <DomainGroupPanel results={results} dark={dark} />
-      )}
-
-      {/* ══ RUN REPORT — post-run only ═════════════════════════════════════════ */}
-      {summary && !running && (
-        <RunSummaryCard
-          summary={summary}
-          scopeFilter={scopeFilter}
-          priorityFilter={priorityFilter}
-          tier={tier}
-          wasAborted={wasAborted}
-          dark={dark}
-        />
-      )}
-
-      {/* ══ RESULTS LIST ═════════════════════════════════════════════════════ */}
-      {results.length > 0 && (
-        <div style={{
-          background:   th.card,
-          border:       `1.5px solid ${th.border}`,
-          borderRadius: 16,
-          overflow:     "hidden",
-        }}>
-          {/* Header: title + search + filter pills */}
-          <div style={{
-            padding:      "10px 14px",
-            borderBottom: `1px solid ${th.border}`,
-            display:      "flex",
-            gap:          8,
-            flexWrap:     "wrap",
-            alignItems:   "center",
-          }}>
-            <span style={{ fontSize: 12, fontWeight: 800, color: th.text }}>
-              Results
-            </span>
-            <span style={{ fontSize: 10, color: th.textSub }}>
-              ({filteredResults.length}
-              {debouncedSearch && ` of ${results.length}`})
-            </span>
-
-            {/* Search input */}
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-              placeholder="Search name, ID, URL…"
-              style={{
-                flex:         "1 1 110px",
-                minWidth:     80,
-                maxWidth:     200,
-                padding:      "4px 9px",
-                borderRadius: 8,
-                border:       `1.5px solid ${searchQuery ? NAVY : th.border}`,
-                background:   th.inputBg,
-                color:        th.text,
-                fontSize:     10,
-                fontFamily:   "inherit",
-                outline:      "none",
-              }}
-            />
-
-            <div style={{ flex: 1 }} />
-
-            {/* Fix 7: Expand All toggle — only shown for dead/error filters */}
-            {(resultFilter === "dead" || resultFilter === "error") && filteredResults.length > 0 && (
-              <div
-                {...a11yClickable(() => setExpandAll(v => !v), {
-                  pressed: expandAll,
-                  label:   expandAll ? "Collapse all rows" : "Expand all rows",
-                })}
-                style={{
-                  padding:      "3px 9px",
-                  borderRadius: 10,
-                  fontSize:     9,
-                  fontWeight:   700,
-                  color:        expandAll ? NAVY : th.textMid,
-                  background:   expandAll ? `${NAVY}15` : "transparent",
-                  border:       `1.5px solid ${expandAll ? NAVY : th.border}`,
-                  cursor:       "pointer",
-                  whiteSpace:   "nowrap",
-                  transition:   "all 0.15s",
-                }}
-              >
-                {expandAll ? "Collapse All" : "Expand All"}
-              </div>
-            )}
-
-            {/* Fix 1 + animated counts: Status filter pills */}
-            {[
-              ["all",        "All",        filterCounts.all,        th.textMid, th.border],
-              ["active",     "Active",     filterCounts.active,     dark ? IND_GREEN_DARK : IND_GREEN,  `${dark ? IND_GREEN_DARK : IND_GREEN}40`],
-              ["dead",       "Dead",       filterCounts.dead,       RED,        `${RED}40`],
-              ["noResponse", "No Resp.",   filterCounts.noResponse, AMBER,      `${AMBER}40`],
-              ["error",      "Errors",     filterCounts.error,      VIOLET,     `${VIOLET}40`],
-            ].map(([key, label, count, color, bg]) => (
-              <FilterPill
-                key={key}
-                label={label}
-                count={count}
-                color={color}
-                bg={bg}
-                active={resultFilter === key}
-                th={th}
-                onClick={() => { setResultFilter(key); setExpandAll(false); setPage(1); }}
-              />
-            ))}
-          </div>
-
-          {/* Apply All Fixes — batch commit (Problem 2 fix): turns N queued
-              URL fixes into ~1-2 Vercel deploys instead of N */}
-          <ApplyAllFixesBar
-            queuedFixes={queuedFixes}
-            applyingFixes={applyingFixes}
-            applyResult={applyResult}
-            onApply={handleApplyAllFixes}
-            th={th}
-          />
-
-          {/* Rows */}
-          <div>
-            {pageSlice.length === 0 ? (
-              <EmptyState
-                message={searchQuery ? `No results for "${searchQuery}"` : "No results in this category"}
-                dark={dark}
-              />
-            ) : (
-              pageSlice.map((r, i) => (
-                <ResultRow
-                  key={`${r.scheme?.id ?? i}-${(page - 1) * PAGE_SIZE + i}`}
-                  result={r}
-                  dark={dark}
-                  expandAll={expandAll}
-                  savedFix={urlFixMap[r.scheme?.id] ?? null}
-                  onQueueChange={handleQueueChange}
-                />
-              ))
-            )}
-          </div>
-
-          {/* Numbered pagination */}
-          {totalPages > 1 && (
-            <div style={{
-              padding:        "10px 14px",
-              borderTop:      `1px solid ${th.border}`,
-              display:        "flex",
-              justifyContent: "center",
-              alignItems:     "center",
-              gap:            4,
-              flexWrap:       "wrap",
-            }}>
-              {/* Prev */}
-              <div
-                {...a11yClickable(() => setPage(p => p - 1), {
-                  disabled: page <= 1,
-                  label: "Previous page",
-                })}
-                style={{
-                  padding:      "5px 10px",
-                  borderRadius: 7,
-                  fontSize:     11,
-                  fontWeight:   700,
-                  background:   th.border,
-                  color:        page <= 1 ? th.textSub : th.text,
-                  cursor:       page <= 1 ? "default" : "pointer",
-                  userSelect:   "none",
-                }}
-              >
-                ←
-              </div>
-
-              {/* Numbered page buttons */}
-              {pageRange[0] > 1 && (
-                <>
-                  <div
-                    {...a11yClickable(() => setPage(1), { disabled: 1 === page, label: "Page 1" })}
-                    style={pageBtn(1 === page, th)}
-                  >
-                    1
-                  </div>
-                  {pageRange[0] > 2 && (
-                    <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
-                  )}
-                </>
-              )}
-              {pageRange.map(p => (
-                <div
-                  key={p}
-                  {...a11yClickable(() => setPage(p), { disabled: p === page, label: `Page ${p}` })}
-                  style={pageBtn(p === page, th, NAVY)}
-                >
-                  {p}
-                </div>
-              ))}
-              {pageRange[pageRange.length - 1] < totalPages && (
-                <>
-                  {pageRange[pageRange.length - 1] < totalPages - 1 && (
-                    <span style={{ fontSize: 10, color: th.textSub, padding: "0 2px" }}>…</span>
-                  )}
-                  <div
-                    {...a11yClickable(() => setPage(totalPages), { disabled: totalPages === page, label: `Page ${totalPages}` })}
-                    style={pageBtn(totalPages === page, th)}
-                  >
-                    {totalPages}
-                  </div>
-                </>
-              )}
-
-              {/* Next */}
-              <div
-                {...a11yClickable(() => setPage(p => p + 1), {
-                  disabled: page >= totalPages,
-                  label: "Next page",
-                })}
-                style={{
-                  padding:      "5px 10px",
-                  borderRadius: 7,
-                  fontSize:     11,
-                  fontWeight:   700,
-                  background:   th.border,
-                  color:        page >= totalPages ? th.textSub : th.text,
-                  cursor:       page >= totalPages ? "default" : "pointer",
-                  userSelect:   "none",
-                }}
-              >
-                →
-              </div>
-            </div>
-          )}
-        </div>
+      ) : (
+        <>
+          {fixProgressDoneEl}
+          {scheduleBannerEl}
+          {smartInsightsEl}
+          {domainGroupEl}
+          {runSummaryEl}
+          {resultsListEl}
+        </>
       )}
 
     </div>
