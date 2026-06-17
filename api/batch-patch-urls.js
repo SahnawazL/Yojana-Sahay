@@ -138,7 +138,20 @@ export default async function handler(req, res) {
         const beforeId = content.slice(0, idPos);
         const afterId  = content.slice(idPos);
 
-        if (!afterId.includes(oldUrl)) {
+        // ── EXACT-VALUE MATCHING ────────────────────────────────────────────
+        // BUG PREVENTION: String.replace(oldUrl, newUrl) does substring matching.
+        // If oldUrl = "udyami.bihar.gov.in" but file has "https://udyami.bihar.gov.in",
+        // replace finds the bare domain *inside* the https:// URL and turns it into
+        // "https://https://udyami.bihar.gov.in" — stacking https:// on every patch run.
+        //
+        // Fix: prefer matching the QUOTED exact value ("oldUrl") which won't
+        // substring-match inside a longer URL. Fall back to raw replace only if
+        // the quoted form isn't found (handles edge cases like unquoted values).
+        const quotedOld = `"${oldUrl}"`;
+        const quotedNew = `"${newUrl}"`;
+        const useQuoted = afterId.includes(quotedOld);
+
+        if (!useQuoted && !afterId.includes(oldUrl)) {
           results.push({
             id, file, success: false,
             error: `Old URL "${oldUrl}" not found near scheme "${id}" in ${file}. The file may have changed already, or the stored URL differs from what the verifier saw.`,
@@ -146,12 +159,15 @@ export default async function handler(req, res) {
           continue;
         }
 
-        // Non-regex replace — first pass updates apply.en (first occurrence),
-        // second pass updates apply.hi if it had the same oldUrl value.
-        // Both passes are safe: if hi differs from oldUrl, the second .replace()
-        // is a no-op (no match left). This is the fix for hi links not updating.
-        let patchedAfter = afterId.replace(oldUrl, newUrl); // → apply.en
-            patchedAfter = patchedAfter.replace(oldUrl, newUrl); // → apply.hi
+        // First pass → apply.en  |  Second pass → apply.hi (same-value match)
+        // Quoted form prevents partial-string corruption; raw is safe fallback.
+        let patchedAfter = useQuoted
+          ? afterId.replace(quotedOld, quotedNew)           // → apply.en (exact)
+          : afterId.replace(oldUrl, newUrl);                 // → apply.en (raw fallback)
+        // apply.hi pass: only needed when hi has the identical value as oldUrl.
+        // Always use raw here since hi values are often bare domains without quotes
+        // in a separate field, and the quoted en was already consumed above.
+        patchedAfter = patchedAfter.replace(quotedOld, quotedNew); // → apply.hi (exact)
         const patchedContent = beforeId + patchedAfter;
 
         if (patchedContent === content) {
