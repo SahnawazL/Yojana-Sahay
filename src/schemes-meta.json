@@ -1867,9 +1867,9 @@
     "confidence": 0
   },
   "karnataka_bhagyalakshmi": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T14:21:25.884Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_vidyasiri": {
@@ -1902,15 +1902,15 @@
     "confidence": 0
   },
   "karnataka_ashraya": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T14:21:25.884Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_arogya_karnataka": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T14:21:25.884Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_devaraj_urs_loan": {
@@ -2062,9 +2062,9 @@
     "confidence": 0
   },
   "karnataka_auto_driver_welfare": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T14:21:25.884Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_pm_svanidhi": {
@@ -2122,9 +2122,9 @@
     "confidence": 0
   },
   "karnataka_cold_storage_subsidy": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T14:21:25.884Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_digital_literacy": {
