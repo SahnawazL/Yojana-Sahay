@@ -904,6 +904,12 @@ export function getKnownDeadLinks() {
     const meta = schemesMeta[scheme.id];
     if (!meta || meta.linkAlive !== false) continue;
 
+    // Skip India-bound domains — Vercel's US IPs can't reach these, so any
+    // linkAlive:false written for them is a false positive. Filter immediately
+    // without needing a re-scan or schemes-meta.json redeploy cycle.
+    const url = normalizeUrl(scheme.apply?.en);
+    if (url && isIndiaBoundDomain(url)) continue;
+
     out.push({
       scheme,
       alive:        false,
