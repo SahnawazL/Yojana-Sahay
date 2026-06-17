@@ -151,7 +151,7 @@ export const KARNATAKA_SCHEMES = [
     benefit: { en: "₹1,000/month pension for BPL senior citizens (60+)",  hi: "BPL वरिष्ठ नागरिकों (60+) को ₹1,000/माह पेंशन" },
     tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
     annual: 12000,
-    apply:   { en: "https://cdnbbsr.s3waas.gov.in/s3ec027486cef2522ee03547cfb970a404/uploads/2023/09/2025070385.pdf", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
+    apply:   { en: "https://vijayanagara.nic.in/en/service/social-security-pensions", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof (60+)", "BPL Ration Card", "Bank Account", "Domicile Certificate (15 yrs)"],
                hi: ["आधार कार्ड", "आयु प्रमाण (60+)", "BPL राशन कार्ड", "बैंक खाता", "15 वर्ष का अधिवास प्रमाण"] },
     match: (a) => a.state === "Karnataka" && (a.who === "senior" || a.age === "above60") && ["below1", "1to3"].includes(a.income),
