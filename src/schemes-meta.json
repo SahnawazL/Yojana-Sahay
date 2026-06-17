@@ -2518,15 +2518,15 @@
     "confidence": 0
   },
   "cg_dr_khoobasuram": {
-    "lastVerified": "2026-06-17T19:38:12.590Z",
+    "lastVerified": "2026-06-17T19:39:23.974Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "cg_mahtari_vandan": {
-    "lastVerified": "2026-06-17T19:38:12.590Z",
+    "lastVerified": "2026-06-17T19:39:23.974Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
