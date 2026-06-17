@@ -14,6 +14,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDoc } from "firebase/firestore";
 import { db } from "./firebase.js";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
 import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
@@ -50,6 +51,10 @@ const EJS_PUBLIC_KEY  = "aV7SknFp6qPFayUkX";
 // Groq calls go through the Vercel serverless route /api/chat (same as groqClient.js)
 // — API keys live in Vercel env vars, never in frontend code.
 const GROQ_MODEL = "llama-3.3-70b-versatile";
+
+// ─── ADMIN BUILD INFO ─────────────────────────────────────────────────────────
+const ADMIN_BUILD_VERSION = "2.6.0";
+const ADMIN_BUILD_ENV     = "PROD";
 
 const OCC_LABELS = {
   farmer:"Farmer", student:"Student", women:"Homemaker",
@@ -3366,7 +3371,316 @@ function Icon({ name, size = 16, color = "currentColor", strokeWidth = 1.8, styl
   );
 }
 
-function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab, error, refreshing, sessionStart, lastSynced, onRefresh }) {
+// ── DecryptValue: scrambles through random digits before settling on the ──
+// ── real value — a "decrypting" reveal for KPI numbers as data loads ──
+const DECRYPT_CHARS = "0123456789";
+function DecryptValue({ value, duration = 480 }) {
+  const target = String(value);
+  const [display, setDisplay]   = React.useState(target);
+  const prevTarget               = React.useRef(target);
+  const skipAnim                 = !/\d/.test(target); // skip for "—", "…", non-numeric placeholders
+
+  React.useEffect(() => {
+    if (target === prevTarget.current || skipAnim) {
+      setDisplay(target);
+      prevTarget.current = target;
+      return;
+    }
+    let frame = 0;
+    const totalFrames = Math.max(6, Math.round(duration / 35));
+    const id = setInterval(() => {
+      frame++;
+      if (frame >= totalFrames) {
+        setDisplay(target);
+        clearInterval(id);
+        prevTarget.current = target;
+        return;
+      }
+      const revealCount = Math.floor((frame / totalFrames) * target.length);
+      let out = "";
+      for (let i = 0; i < target.length; i++) {
+        out += i < revealCount ? target[i] : DECRYPT_CHARS[Math.floor(Math.random() * DECRYPT_CHARS.length)];
+      }
+      setDisplay(out);
+    }, 35);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target, duration, skipAnim]);
+
+  return <>{display}</>;
+}
+
+// ── BootSequence: terminal-style boot intro, shown once per session ────────
+const BOOT_LINES = [
+  { t: `BOOT://yojanasahay-admin v${ADMIN_BUILD_VERSION}`,     tag: null    },
+  { t: "Verifying admin credentials",                          tag: "OK"    },
+  { t: "Mounting Firestore connection",                         tag: "OK"    },
+  { t: "Loading scheme database (1000+ entries)",               tag: "OK"    },
+  { t: "Decrypting analytics core",                             tag: "OK"    },
+  { t: "System ready.",                                         tag: "DONE"  },
+];
+
+function BootSequence({ onComplete }) {
+  const [lineCount, setLineCount] = React.useState(0);
+  const [progress,  setProgress]  = React.useState(0);
+  const [fading,    setFading]    = React.useState(false);
+  const [glitch,    setGlitch]    = React.useState(false);
+
+  React.useEffect(() => {
+    let i = 0;
+    const lineTimer = setInterval(() => {
+      i += 1;
+      setLineCount(i);
+      if (i >= BOOT_LINES.length) {
+        clearInterval(lineTimer);
+        setTimeout(() => setProgress(100), 140);
+      }
+    }, 210);
+    // brief glitch flicker on the logo line shortly after it appears
+    const glitchT = setTimeout(() => {
+      setGlitch(true);
+      setTimeout(() => setGlitch(false), 140);
+    }, 260);
+    return () => { clearInterval(lineTimer); clearTimeout(glitchT); };
+  }, []);
+
+  React.useEffect(() => {
+    if (progress !== 100) return;
+    const t1 = setTimeout(() => setFading(true), 600);
+    const t2 = setTimeout(() => onComplete?.(), 600 + 360);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress]);
+
+  const allDone = lineCount >= BOOT_LINES.length;
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:10050,
+      background:"radial-gradient(ellipse 90% 70% at 50% 30%, #0c1024 0%, #05060a 65%, #030305 100%)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:24, overflow:"hidden",
+      opacity: fading ? 0 : 1,
+      transform: fading ? "scale(1.02)" : "scale(1)",
+      transition:"opacity 0.36s ease, transform 0.36s ease",
+      pointerEvents: fading ? "none" : "auto",
+    }}>
+      <style>{`
+        @keyframes boot-line-in   { from{opacity:0;transform:translateX(-3px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes boot-blink     { 50%{opacity:0} }
+        @keyframes boot-scan      { 0%{transform:translateY(-100%)} 100%{transform:translateY(100%)} }
+        @keyframes boot-pulse     { 0%,100%{opacity:0.45} 50%{opacity:1} }
+        @keyframes boot-ring-spin { to{transform:rotate(360deg)} }
+        @keyframes boot-grid-fade { from{opacity:0} to{opacity:0.5} }
+      `}</style>
+
+      {/* faint circuit-grid backdrop */}
+      <div style={{
+        position:"absolute", inset:0, opacity:0.5,
+        backgroundImage:`linear-gradient(${NAVY}22 1px,transparent 1px),linear-gradient(90deg,${NAVY}22 1px,transparent 1px)`,
+        backgroundSize:"34px 34px",
+        animation:"boot-grid-fade 1.2s ease forwards",
+        maskImage:"radial-gradient(ellipse 70% 60% at 50% 35%, black 0%, transparent 75%)",
+        WebkitMaskImage:"radial-gradient(ellipse 70% 60% at 50% 35%, black 0%, transparent 75%)",
+      }} />
+
+      {/* terminal card */}
+      <div style={{
+        position:"relative", width:"100%", maxWidth:400,
+        background:"linear-gradient(160deg,#0a0d1c 0%,#070912 100%)",
+        border:`1px solid ${NAVY}80`,
+        borderRadius:16,
+        padding:"22px 22px 18px",
+        boxShadow:`0 0 0 1px rgba(255,255,255,0.03), 0 20px 60px -10px rgba(0,0,0,0.7), 0 0 40px -6px ${NAVY}55`,
+        overflow:"hidden",
+        fontFamily:MONO_FONT,
+      }}>
+        {/* scanline sweep */}
+        <div style={{
+          position:"absolute", left:0, right:0, height:"40%",
+          background:`linear-gradient(180deg,transparent,${SAFFRON}0d,transparent)`,
+          animation:"boot-scan 2.8s linear infinite",
+          pointerEvents:"none",
+        }} />
+
+        {/* header row: monogram + status dot */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:9 }}>
+            <div style={{
+              width:26, height:26, borderRadius:7, flexShrink:0,
+              background:`linear-gradient(135deg,${NAVY},${SAFFRON})`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:12, fontWeight:900, color:"#fff",
+              boxShadow:`0 0 14px ${SAFFRON}55`,
+              filter: glitch ? "hue-rotate(40deg) saturate(1.6)" : "none",
+              transform: glitch ? "translateX(1px)" : "none",
+            }}>YS</div>
+            <span style={{
+              fontSize:10.5, fontWeight:700, color:"#9aa3d6", letterSpacing:0.6,
+              filter: glitch ? "blur(0.4px)" : "none",
+            }}>YOJANA SAHAY <span style={{ color:"#444a6e" }}>· ADMIN CORE</span></span>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+            <span style={{
+              width:6, height:6, borderRadius:"50%",
+              background: allDone ? IND_GREEN : SAFFRON,
+              boxShadow:`0 0 8px ${allDone ? IND_GREEN : SAFFRON}`,
+              animation: allDone ? "none" : "boot-pulse 1s ease-in-out infinite",
+            }} />
+            <span style={{ fontSize:8.5, color:"#5a6190", letterSpacing:0.8 }}>
+              {allDone ? "LIVE" : "INIT"}
+            </span>
+          </div>
+        </div>
+
+        {/* boot log lines */}
+        <div style={{ display:"flex", flexDirection:"column", gap:7, marginBottom:18, minHeight:18*6 }}>
+          {BOOT_LINES.slice(0, lineCount).map((line, i) => {
+            const isLast = i === BOOT_LINES.length - 1;
+            return (
+              <div key={i} style={{
+                display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:10,
+                animation:"boot-line-in 0.24s ease",
+              }}>
+                <span style={{ fontSize:11, letterSpacing:0.2, color: isLast ? "#d7faea" : "#8891c4" }}>
+                  <span style={{ color: isLast ? IND_GREEN : "#4a5694" }}>{isLast ? "❯" : "›"}</span>{" "}{line.t}
+                </span>
+                {line.tag && (
+                  <span style={{
+                    fontSize:8.5, fontWeight:800, letterSpacing:0.5, flexShrink:0,
+                    color: isLast ? "#04130a" : IND_GREEN,
+                    background: isLast ? IND_GREEN : `${IND_GREEN}1a`,
+                    border: isLast ? "none" : `1px solid ${IND_GREEN}55`,
+                    borderRadius:4, padding: isLast ? "1px 7px" : "1px 6px",
+                  }}>{line.tag}</span>
+                )}
+              </div>
+            );
+          })}
+          {!allDone && (
+            <div style={{ display:"flex", alignItems:"baseline", gap:6 }}>
+              <span style={{ color:"#4a5694", fontSize:11 }}>›</span>
+              <span style={{ color:SAFFRON, fontSize:11, animation:"boot-blink 0.9s steps(2) infinite" }}>▌</span>
+            </div>
+          )}
+        </div>
+
+        {/* progress rail */}
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{ flex:1, height:4, borderRadius:3, background:"#12152a", overflow:"hidden", position:"relative" }}>
+            <div style={{
+              height:"100%", width:`${progress}%`, borderRadius:3,
+              background:`linear-gradient(90deg,${NAVY},${SAFFRON})`,
+              boxShadow: progress > 0 ? `0 0 10px ${SAFFRON}80` : "none",
+              transition:"width 0.6s cubic-bezier(0.22,1,0.36,1)",
+            }} />
+          </div>
+          <span style={{ fontSize:9.5, fontWeight:700, color:"#5a6190", letterSpacing:0.5, minWidth:32, textAlign:"right" }}>
+            {progress}%
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ModuleCard: Intelligence Module tile with cursor-tracked 3D tilt (desktop) ──
+function ModuleCard({ id, fullLabel, meta, isHov, isDesktop, dark, th, onClick, onMouseEnter, onMouseLeave }) {
+  const cardRef = React.useRef(null);
+  const [tilt, setTilt]   = React.useState({ rx: 0, ry: 0 });
+  const [pressed, setPressed] = React.useState(false);
+
+  function handleMouseMove(e) {
+    if (!isDesktop || !cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    setTilt({ rx: (0.5 - py) * 9, ry: (px - 0.5) * 9 });
+  }
+  function handleLeave() {
+    setTilt({ rx: 0, ry: 0 });
+    setPressed(false);
+    onMouseLeave?.();
+  }
+
+  const nameParts = fullLabel.trim().split(/\s+/);
+  const name = nameParts.filter((p, i) => i > 0 || !p.match(/\p{Emoji}/u)).join(" ") || id;
+
+  const tiltTransform = isDesktop
+    ? `perspective(700px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) translateY(${isHov ? -3 : 0}px) scale(${pressed ? 0.98 : isHov ? 1.012 : 1})`
+    : undefined;
+
+  return (
+    <div
+      ref={cardRef}
+      className={isDesktop ? undefined : "hs-module"}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleLeave}
+      onMouseDown={() => isDesktop && setPressed(true)}
+      onMouseUp={() => isDesktop && setPressed(false)}
+      style={{
+        cursor:"pointer", userSelect:"none", WebkitTapHighlightColor:"transparent",
+        transform: tiltTransform,
+        transformStyle: isDesktop ? "preserve-3d" : undefined,
+        transition: isDesktop
+          ? "transform 0.12s ease-out, background 0.22s cubic-bezier(0.22,1,0.36,1), border-color 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s cubic-bezier(0.22,1,0.36,1)"
+          : undefined,
+        background: isHov
+          ? (dark
+              ? `linear-gradient(150deg,${hsRgba(meta.accentColor,0.14)} 0%,${hsRgba(meta.accentColor,0.04)} 100%)`
+              : `linear-gradient(150deg,${hsRgba(meta.accentColor,0.07)} 0%,rgba(255,255,255,0.98) 100%)`)
+          : th.card,
+        border:`1.5px solid ${isHov ? hsRgba(meta.accentColor,0.48) : th.border}`,
+        borderRadius: isDesktop ? 16 : 13,
+        padding: isDesktop ? "17px 15px 13px" : "13px 12px 11px",
+        position:"relative", overflow:"hidden",
+        boxShadow: isHov
+          ? `0 8px 30px ${meta.glow}, 0 0 0 1px ${hsRgba(meta.accentColor,0.16)}`
+          : dark ? "0 2px 10px rgba(0,0,0,0.28)" : "0 1px 5px rgba(0,0,0,0.04)",
+      }}
+    >
+      {/* Vertical accent strip */}
+      <div style={{
+        position:"absolute", top:0, left:0, bottom:0,
+        width: isHov ? 4 : 3,
+        background: meta.accentColor,
+        boxShadow: dark&&isHov ? `0 0 10px ${meta.accentColor}` : "none",
+        transition:"all 0.2s ease",
+        borderRadius:"0 2px 2px 0",
+      }} />
+
+      {/* Corner glow on hover */}
+      {isHov && <div style={{ position:"absolute", top:-28, right:-28, width:100, height:100, borderRadius:"50%", background:`radial-gradient(circle,${hsRgba(meta.accentColor,dark?0.14:0.08)} 0%,transparent 70%)`, pointerEvents:"none" }} />}
+
+      <div style={{ paddingLeft: isDesktop?11:9, transform: isDesktop ? "translateZ(18px)" : undefined }}>
+        <div style={{
+          width: isDesktop?34:29, height: isDesktop?34:29, borderRadius:9,
+          marginBottom: isDesktop?10:8,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          background: hsRgba(meta.accentColor, dark?0.14:0.09),
+          border:`1px solid ${hsRgba(meta.accentColor, isHov?0.45:0.22)}`,
+          filter: dark&&isHov?`drop-shadow(0 0 6px ${hsRgba(meta.accentColor,0.7)})`:"none",
+          transition:"filter 0.2s, border-color 0.2s",
+        }}>
+          <Icon name={meta.icon} size={isDesktop?17:14} color={isHov?meta.accentColor:th.textSub} strokeWidth={1.7}/>
+        </div>
+        <div style={{ fontSize: isDesktop?13:11, fontWeight:800, letterSpacing:-0.2, lineHeight:1.2, color: isHov?meta.accentColor:th.text, marginBottom:4, transition:"color 0.18s" }}>{name}</div>
+        <div style={{ fontSize: isDesktop?10:9, color:th.textSub, lineHeight:1.5, marginBottom: isDesktop?10:8 }}>{meta.desc}</div>
+        {meta.badge && (
+          <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"2px 7px", background:hsRgba(meta.badge2Color,0.12), border:`1px solid ${hsRgba(meta.badge2Color,0.28)}`, borderRadius:20, fontSize:8.5, fontWeight:700, color:meta.badge2Color, fontFamily:MONO_FONT, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            <span style={{ display:"inline-block", width:4, height:4, borderRadius:"50%", background:meta.badge2Color, flexShrink:0 }} />
+            {meta.badge}
+          </div>
+        )}
+      </div>
+      <div style={{ position:"absolute", bottom: isDesktop?13:9, right: isDesktop?13:9, fontSize:15, fontWeight:700, color: isHov?meta.accentColor:(dark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.12)"), transform: isHov?"translateX(3px)":"translateX(0)", transition:"all 0.18s cubic-bezier(0.22,1,0.36,1)" }}>›</div>
+    </div>
+  );
+}
+
+function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab, error, refreshing, sessionStart, lastSynced, latencyMs, onRefresh }) {
   const th = THEME[dark ? "dark" : "light"];
   const [hovered, setHovered] = React.useState(null);
 
@@ -3464,6 +3778,11 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   const dbOnline = !error;
   const dbStateLabel = error ? "ERROR" : refreshing ? "SYNCING" : loading ? "CONNECTING" : "CONNECTED";
   const dbStateColor = error ? "#E53E3E" : (refreshing || loading) ? SAFFRON : IND_GREEN;
+  const latencyLabel = latencyMs == null ? "—" : `${latencyMs}ms`;
+  const latencyColor = latencyMs == null ? th.textSub
+    : latencyMs < 200 ? IND_GREEN
+    : latencyMs < 600 ? SAFFRON
+    : "#E53E3E";
 
   return (
     <div style={{
@@ -3481,6 +3800,8 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
         @keyframes hs-scan    { 0%{top:-2px} 100%{top:102%} }
         @keyframes hs-shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
         @keyframes hs-spin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes hs-cursor  { 0%,55%{opacity:1} 55.01%,100%{opacity:0} }
+        .hs-cursor { display:inline-block; animation:hs-cursor 1.05s steps(1) infinite; }
         .hs-module { transition:all 0.22s cubic-bezier(0.22,1,0.36,1); cursor:pointer; }
         .hs-module:hover { transform:translateY(-3px) scale(1.012); }
         .hs-module:active { transform:translateY(0) scale(0.98); }
@@ -3530,17 +3851,24 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
             <div style={{ position:"absolute", left:0, right:0, height:1, pointerEvents:"none", background:`linear-gradient(90deg,transparent,${hsRgba(SAFFRON,0.18)} 40%,${hsRgba(IND_GREEN,0.13)} 60%,transparent)`, animation:"hs-scan 8s linear infinite" }} />
           </>}
 
-          <div style={{ position:"relative" }}>
+            <div style={{ position:"relative" }}>
             {/* Status row */}
             <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:9 }}>
               <span style={{
                 display:"inline-block", width:6, height:6, borderRadius:"50%",
                 background: loading ? SAFFRON : "#00E87A",
-                boxShadow: loading ? `0 0 7px ${SAFFRON}99` : "0 0 7px #00E87A99",
+                boxShadow: loading
+                  ? `0 0 7px ${SAFFRON}cc, 0 0 16px ${SAFFRON}66`
+                  : `0 0 8px #00E87Add, 0 0 18px #00E87A77`,
                 animation:"hs-pulse 1.8s ease-in-out infinite",
               }} />
-              <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, letterSpacing:1.8, color: loading ? SAFFRON : "#00E87A", textTransform:"uppercase" }}>
+              <span style={{
+                fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, letterSpacing:1.8,
+                color: loading ? SAFFRON : "#00E87A", textTransform:"uppercase",
+                textShadow: dark ? (loading ? `0 0 10px ${SAFFRON}55` : `0 0 10px #00E87A55`) : "none",
+              }}>
                 {loading ? "CONNECTING…" : "SYSTEM ONLINE · AUTHORISED ACCESS ONLY"}
+                {!loading && <span className="hs-cursor" style={{ color:"#00E87A" }}>▌</span>}
               </span>
             </div>
 
@@ -3552,7 +3880,8 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
 
             <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:7, flexWrap:"wrap" }}>
               <span style={{ fontFamily:MONO_FONT, fontSize:8.5, color:th.textSub, letterSpacing:0.3 }}>Welfare scheme discovery · India · v2.0</span>
-              <span style={{ fontFamily:MONO_FONT, fontSize:8, fontWeight:700, color: dark?"#00E87A":IND_GREEN, background: dark?"rgba(0,232,122,0.09)":"rgba(19,136,8,0.07)", border:`1px solid ${dark?"rgba(0,232,122,0.2)":"rgba(19,136,8,0.16)"}`, borderRadius:5, padding:"2px 7px", letterSpacing:0.4 }}>✓ AUTHENTICATED</span>
+              <span style={{ fontFamily:MONO_FONT, fontSize:8, fontWeight:700, color: dark?"#00E87A":IND_GREEN, background: dark?"rgba(0,232,122,0.09)":"rgba(19,136,8,0.07)", border:`1px solid ${dark?"rgba(0,232,122,0.2)":"rgba(19,136,8,0.16)"}`, borderRadius:5, padding:"2px 7px", letterSpacing:0.4, boxShadow: dark?"0 0 10px rgba(0,232,122,0.18)":"none", textShadow: dark?"0 0 8px rgba(0,232,122,0.4)":"none" }}>✓ AUTHENTICATED</span>
+              <span style={{ fontFamily:MONO_FONT, fontSize:8, fontWeight:700, color: dark?"#9fb4e8":NAVY, background: dark?"rgba(0,53,128,0.18)":"rgba(0,53,128,0.06)", border:`1px solid ${dark?"rgba(0,53,128,0.4)":"rgba(0,53,128,0.14)"}`, borderRadius:5, padding:"2px 7px", letterSpacing:0.4 }}>BUILD {ADMIN_BUILD_VERSION} · {ADMIN_BUILD_ENV}</span>
             </div>
 
             {/* 4-KPI row */}
@@ -3580,7 +3909,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
                   <div style={{ paddingLeft:8 }}>
                     <div style={{ fontFamily:MONO_FONT, fontSize:7.5, fontWeight:700, color:th.textSub, letterSpacing:1.4, textTransform:"uppercase", marginBottom:4 }}>{label}</div>
                     <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:4 }}>
-                      <div style={{ fontFamily:MONO_FONT, fontSize: isDesktop?28:22, fontWeight:900, lineHeight:1, letterSpacing:-1, color: dark?"#eef3ff":"#091526" }}>{value}</div>
+                      <div style={{ fontFamily:MONO_FONT, fontSize: isDesktop?28:22, fontWeight:900, lineHeight:1, letterSpacing:-1, color: dark?"#eef3ff":"#091526" }}><DecryptValue value={value} /></div>
                       {spark && <MiniSpark points={spark} color={color} width={isDesktop?52:40} height={isDesktop?22:18} />}
                     </div>
                     {sub && <div style={{ fontFamily:MONO_FONT, fontSize:7.5, marginTop:4, color, opacity:0.8, letterSpacing:0.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{sub}</div>}
@@ -3623,7 +3952,13 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
             textAlign:"center", position:"relative", overflow:"hidden",
           }}>
             <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg,${NAVY},${SAFFRON},${IND_GREEN})` }} />
-            <div style={{ fontFamily:MONO_FONT, fontSize: isDesktop?30:26, fontWeight:900, color:SAFFRON, letterSpacing:3, lineHeight:1 }}>{TIME_STR}</div>
+            <div style={{
+              fontFamily:MONO_FONT, fontSize: isDesktop?30:26, fontWeight:900, color:SAFFRON,
+              letterSpacing:3, lineHeight:1,
+              textShadow: dark ? `0 0 16px ${SAFFRON}66, 0 0 32px ${SAFFRON}33` : "none",
+            }}>
+              {TIME_STR}<span className="hs-cursor" style={{ color:SAFFRON, marginLeft:2 }}>▌</span>
+            </div>
             <div style={{ fontFamily:MONO_FONT, fontSize:9, color:th.textSub, letterSpacing:0.5, marginTop:5 }}>{DATE_STR}</div>
             <div style={{ marginTop:10, display:"flex", gap:5, justifyContent:"center" }}>
               {[
@@ -3632,7 +3967,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
                 { label:"OPEN",    value: loading?"…":openR,            color: openR>0?"#E53E3E":IND_GREEN },
               ].map(({ label, value, color }) => (
                 <div key={label} style={{ flex:1, background:hsRgba(color,0.08), border:`1px solid ${hsRgba(color,0.2)}`, borderRadius:7, padding:"5px 4px", textAlign:"center" }}>
-                  <div style={{ fontFamily:MONO_FONT, fontSize:13, fontWeight:900, color, lineHeight:1 }}>{value}</div>
+                  <div style={{ fontFamily:MONO_FONT, fontSize:13, fontWeight:900, color, lineHeight:1 }}><DecryptValue value={value} /></div>
                   <div style={{ fontFamily:MONO_FONT, fontSize:6.5, color:th.textSub, letterSpacing:0.8, marginTop:2 }}>{label}</div>
                 </div>
               ))}
@@ -3701,9 +4036,10 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
         animation:"hs-fadein 0.4s ease both",
       }}>
         <div style={{ display:"flex", alignItems:"center", gap:7 }}>
-          <span style={{ display:"inline-block", width:6, height:6, borderRadius:"50%", background:dbStateColor, boxShadow:`0 0 6px ${dbStateColor}99`, animation: dbOnline ? "hs-pulse 1.8s ease-in-out infinite" : "none" }} />
-          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, letterSpacing:1.2, color:dbStateColor, textTransform:"uppercase" }}>
+          <span style={{ display:"inline-block", width:6, height:6, borderRadius:"50%", background:dbStateColor, boxShadow:`0 0 7px ${dbStateColor}cc, 0 0 15px ${dbStateColor}66`, animation: dbOnline ? "hs-pulse 1.8s ease-in-out infinite" : "none" }} />
+          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, letterSpacing:1.2, color:dbStateColor, textTransform:"uppercase", textShadow: dark ? `0 0 9px ${dbStateColor}55` : "none" }}>
             {error ? "DATABASE ERROR" : "ALL SYSTEMS OPERATIONAL"}
+            {dbOnline && <span className="hs-cursor" style={{ color:dbStateColor }}>▌</span>}
           </span>
         </div>
 
@@ -3712,6 +4048,13 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
         <div style={{ display:"flex", alignItems:"center", gap:6 }}>
           <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>FIRESTORE</span>
           <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:dbStateColor }}>{dbStateLabel}</span>
+        </div>
+
+        <div style={{ width:1, height:14, background:th.border, flexShrink:0 }} />
+
+        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+          <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>LATENCY</span>
+          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:latencyColor }}>{latencyLabel}</span>
         </div>
 
         <div style={{ width:1, height:14, background:th.border, flexShrink:0 }} />
@@ -3774,7 +4117,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
           }}>
             <div style={{ width:30, height:30, borderRadius:8, flexShrink:0, background:hsRgba(color,0.1), border:`1px solid ${hsRgba(color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name={icon} size={14} color={color} strokeWidth={1.8}/></div>
             <div style={{ minWidth:0, flex:1 }}>
-              <div style={{ fontFamily:MONO_FONT, fontSize: isDesktop?18:16, fontWeight:900, color:th.text, lineHeight:1, letterSpacing:-0.5 }}>{value}</div>
+              <div style={{ fontFamily:MONO_FONT, fontSize: isDesktop?18:16, fontWeight:900, color:th.text, lineHeight:1, letterSpacing:-0.5 }}><DecryptValue value={value} /></div>
               <div style={{ fontFamily:MONO_FONT, fontSize:7, color:th.textSub, marginTop:2, letterSpacing:0.7, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{label}</div>
             </div>
           </div>
@@ -3801,73 +4144,21 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
         gap: isDesktop ? 12 : 9,
         animation:"hs-fadein 0.55s ease both",
       }}>
-        {tabCards.map(([id, fullLabel]) => {
-          const meta  = TAB_META[id] || {};
-          const isHov = hovered === id;
-          const nameParts = fullLabel.trim().split(/\s+/);
-          const name  = nameParts.filter((p,i) => i>0||!p.match(/\p{Emoji}/u)).join(" ") || id;
-
-          return (
-            <div
-              key={id}
-              className="hs-module"
-              onClick={() => navigateTab(id)}
-              onMouseEnter={() => setHovered(id)}
-              onMouseLeave={() => setHovered(null)}
-              style={{
-                background: isHov
-                  ? (dark
-                      ? `linear-gradient(150deg,${hsRgba(meta.accentColor,0.14)} 0%,${hsRgba(meta.accentColor,0.04)} 100%)`
-                      : `linear-gradient(150deg,${hsRgba(meta.accentColor,0.07)} 0%,rgba(255,255,255,0.98) 100%)`)
-                  : th.card,
-                border:`1.5px solid ${isHov ? hsRgba(meta.accentColor,0.48) : th.border}`,
-                borderRadius: isDesktop ? 16 : 13,
-                padding: isDesktop ? "17px 15px 13px" : "13px 12px 11px",
-                position:"relative", overflow:"hidden",
-                userSelect:"none", WebkitTapHighlightColor:"transparent",
-                boxShadow: isHov
-                  ? `0 8px 30px ${meta.glow}, 0 0 0 1px ${hsRgba(meta.accentColor,0.16)}`
-                  : dark ? "0 2px 10px rgba(0,0,0,0.28)" : "0 1px 5px rgba(0,0,0,0.04)",
-              }}
-            >
-              {/* Vertical accent strip */}
-              <div style={{
-                position:"absolute", top:0, left:0, bottom:0,
-                width: isHov ? 4 : 3,
-                background: meta.accentColor,
-                boxShadow: dark&&isHov ? `0 0 10px ${meta.accentColor}` : "none",
-                transition:"all 0.2s ease",
-                borderRadius:"0 2px 2px 0",
-              }} />
-
-              {/* Corner glow on hover */}
-              {isHov && <div style={{ position:"absolute", top:-28, right:-28, width:100, height:100, borderRadius:"50%", background:`radial-gradient(circle,${hsRgba(meta.accentColor,dark?0.14:0.08)} 0%,transparent 70%)`, pointerEvents:"none" }} />}
-
-              <div style={{ paddingLeft: isDesktop?11:9 }}>
-                <div style={{
-                  width: isDesktop?34:29, height: isDesktop?34:29, borderRadius:9,
-                  marginBottom: isDesktop?10:8,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  background: hsRgba(meta.accentColor, dark?0.14:0.09),
-                  border:`1px solid ${hsRgba(meta.accentColor, isHov?0.45:0.22)}`,
-                  filter: dark&&isHov?`drop-shadow(0 0 6px ${hsRgba(meta.accentColor,0.7)})`:"none",
-                  transition:"filter 0.2s, border-color 0.2s",
-                }}>
-                  <Icon name={meta.icon} size={isDesktop?17:14} color={isHov?meta.accentColor:th.textSub} strokeWidth={1.7}/>
-                </div>
-                <div style={{ fontSize: isDesktop?13:11, fontWeight:800, letterSpacing:-0.2, lineHeight:1.2, color: isHov?meta.accentColor:th.text, marginBottom:4, transition:"color 0.18s" }}>{name}</div>
-                <div style={{ fontSize: isDesktop?10:9, color:th.textSub, lineHeight:1.5, marginBottom: isDesktop?10:8 }}>{meta.desc}</div>
-                {meta.badge && (
-                  <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"2px 7px", background:hsRgba(meta.badge2Color,0.12), border:`1px solid ${hsRgba(meta.badge2Color,0.28)}`, borderRadius:20, fontSize:8.5, fontWeight:700, color:meta.badge2Color, fontFamily:MONO_FONT, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                    <span style={{ display:"inline-block", width:4, height:4, borderRadius:"50%", background:meta.badge2Color, flexShrink:0 }} />
-                    {meta.badge}
-                  </div>
-                )}
-              </div>
-              <div style={{ position:"absolute", bottom: isDesktop?13:9, right: isDesktop?13:9, fontSize:15, fontWeight:700, color: isHov?meta.accentColor:(dark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.12)"), transform: isHov?"translateX(3px)":"translateX(0)", transition:"all 0.18s cubic-bezier(0.22,1,0.36,1)" }}>›</div>
-            </div>
-          );
-        })}
+        {tabCards.map(([id, fullLabel]) => (
+          <ModuleCard
+            key={id}
+            id={id}
+            fullLabel={fullLabel}
+            meta={TAB_META[id] || {}}
+            isHov={hovered === id}
+            isDesktop={isDesktop}
+            dark={dark}
+            th={th}
+            onClick={() => navigateTab(id)}
+            onMouseEnter={() => setHovered(id)}
+            onMouseLeave={() => setHovered(null)}
+          />
+        ))}
       </div>
 
 
@@ -3927,9 +4218,20 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
+  // ── Boot sequence intro — once per browser session ──────────────────────
+  const [showBoot, setShowBoot] = useState(() => {
+    try { return sessionStorage.getItem("ys_admin_booted") !== "true"; }
+    catch { return true; }
+  });
+  const finishBoot = useCallback(() => {
+    try { sessionStorage.setItem("ys_admin_booted", "true"); } catch {}
+    setShowBoot(false);
+  }, []);
+
   // ── System status telemetry (Home tab) ─────────────────────────────────────
   const [sessionStart]  = useState(() => Date.now());
   const [lastSynced,    setLastSynced]    = useState(null);
+  const [latencyMs,     setLatencyMs]     = useState(null);
 
   // ── Responsive: track window width ───────────────────────────────────────
   const [windowWidth, setWindowWidth] = useState(() =>
@@ -3942,6 +4244,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   }, []);
   const isDesktop = windowWidth >= 900;
 
+  // ── Session user (who is logged in to this admin session) ─────────────────
+  const [sessionUser, setSessionUser] = useState(null);
+  useEffect(() => {
+    const auth = getAuth();
+    const unsub = onAuthStateChanged(auth, (u) => setSessionUser(u));
+    return () => unsub();
+  }, []);
+
   // ── Smart tab navigation ──────────────────────────────────────────────────
   const tabsBarRef      = useRef(null);
   const swipeTouchStartX = useRef(null);
@@ -3952,13 +4262,16 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const fetchUsers = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true); else setLoading(true);
     setError("");
+    const t0 = performance.now();
     try {
       const snap = await getDocs(collection(db, "users"));
+      setLatencyMs(Math.round(performance.now() - t0));
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       data.sort((a, b) => (b.lastSeen?.seconds || 0) - (a.lastSeen?.seconds || 0));
       setUsers(data);
       setLastSynced(new Date());
     } catch (err) {
+      setLatencyMs(null);
       setError("Failed to load users. Check Firestore rules.");
       console.error(err);
     } finally {
@@ -5363,6 +5676,66 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   );
                 })()}
               </div>
+
+              {/* ── Session Chip ─────────────────────────────────────── */}
+              {sessionUser && (() => {
+                const uid         = sessionUser.uid || "";
+                const maskedUid   = uid.length >= 8
+                  ? `${uid.slice(0, 4)}…${uid.slice(-4)}`
+                  : uid;
+                const isFullAdmin = allowedTabs === null;
+                const roleLabel   = isFullAdmin ? "ADMIN" : "AGENT";
+                const roleColor   = isFullAdmin ? SAFFRON : IND_GREEN;
+                return (
+                  <div style={{
+                    marginLeft: "auto",
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                    background: "rgba(255,255,255,0.07)",
+                    border: `1px solid ${roleColor}45`,
+                    borderRadius: 20,
+                    padding: "3px 9px 3px 6px",
+                    backdropFilter: "blur(10px)",
+                  }}>
+                    {/* Role badge */}
+                    <span style={{
+                      fontFamily: "'JetBrains Mono','SF Mono',monospace",
+                      fontSize: 8,
+                      fontWeight: 800,
+                      color: roleColor,
+                      letterSpacing: 0.9,
+                      textTransform: "uppercase",
+                      flexShrink: 0,
+                    }}>
+                      {roleLabel}
+                    </span>
+                    {/* Separator */}
+                    <span style={{
+                      width: 1,
+                      height: 9,
+                      background: "rgba(255,255,255,0.18)",
+                      flexShrink: 0,
+                      borderRadius: 1,
+                    }} />
+                    {/* Masked UID */}
+                    <span style={{
+                      fontFamily: "'JetBrains Mono','SF Mono',monospace",
+                      fontSize: 8,
+                      fontWeight: 500,
+                      color: "rgba(255,255,255,0.5)",
+                      letterSpacing: 0.3,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      maxWidth: 68,
+                    }}>
+                      {maskedUid}
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
           {/* Dark/Light toggle */}
@@ -5573,6 +5946,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           refreshing={refreshing}
           sessionStart={sessionStart}
           lastSynced={lastSynced}
+          latencyMs={latencyMs}
           onRefresh={() => { fetchUsers(true); fetchReports(); }}
         />
       )}
@@ -6621,6 +6995,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           totalReports={reports.length}
         />
       )}
+
+      {/* Boot Sequence Intro (once per session) */}
+      {showBoot && <BootSequence onComplete={finishBoot} />}
 
       <div style={{ height:32, flexShrink:0 }} />
     </div>
