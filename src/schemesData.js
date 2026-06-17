@@ -1394,7 +1394,7 @@ export const SCHEME_DB = [
     benefit: { en: "Comprehensive welfare for transgender persons: ABHA / Aadhaar support, free education, PMKVY skill training, PM SVANidhi loan, Ayushman Bharat ₹5L health cover, shelter & livelihood rehabilitation", hi: "ट्रांसजेंडर व्यक्तियों के लिए व्यापक कल्याण: ABHA/आधार सहायता, मुफ्त शिक्षा, PMKVY प्रशिक्षण, PM स्वनिधि लोन, आयुष्मान ₹5 लाख स्वास्थ्य बीमा, आश्रय और आजीविका पुनर्वास" },
     tag:     { en: "General", hi: "सामान्य" },
     annual: 0,
-    apply:   { en: "https://smilecdo.dosje.gov.in", hi: "smilecdo.dosje.gov.in / जिला समाज कल्याण कार्यालय / राज्य ट्रांसजेंडर कल्याण बोर्ड" }, applyType: "online",
+    apply:   { en: "https://socialjustice.gov.in/schemes/99", hi: "smilecdo.dosje.gov.in / जिला समाज कल्याण कार्यालय / राज्य ट्रांसजेंडर कल्याण बोर्ड" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Self-identification as Transgender (or District Screening Committee Certificate)","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","ट्रांसजेंडर स्व-पहचान (या जिला स्क्रीनिंग समिति प्रमाण पत्र)","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: transgender persons and persons engaged in begging seeking rehabilitation
@@ -1471,7 +1471,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹50,000/year + ₹2,000 contingency for girl students in AICTE-approved diploma/degree programmes", hi: "AICTE-अनुमोदित डिप्लोमा/डिग्री में छात्राओं को ₹50,000/वर्ष + ₹2,000 आकस्मिक अनुदान" },
     tag:     { en: "Student / Women", hi: "छात्र / महिला" },
     annual: 50000,
-    apply:   { en: "https://scholarships.gov.in", hi: "https://scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/psgs-deg", hi: "https://www.myscheme.gov.in/schemes/psgs-deg" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Income Certificate (family income ≤₹8L/year)","AICTE-institution Admission Letter","Class 10 & 12 Mark Sheets","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","आय प्रमाण (पारिवारिक आय ≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","कक्षा 10 और 12 की मार्कशीट","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: girl student in AICTE-approved technical diploma/degree, family income ≤ ₹8L
@@ -1486,7 +1486,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹50,000/year + ₹2,000 contingency for differently-abled students (≥40% disability) in AICTE-approved technical diploma/degree programmes", hi: "AICTE-अनुमोदित तकनीकी पाठ्यक्रमों में दिव्यांग छात्रों (≥40% विकलांगता) को ₹50,000/वर्ष + ₹2,000 आकस्मिक अनुदान" },
     tag:     { en: "Student / Disability", hi: "छात्र / दिव्यांगता" },
     annual: 50000,
-    apply:   { en: "https://scholarships.gov.in", hi: "https://scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/sak-deg", hi: "https://www.myscheme.gov.in/schemes/sak-deg" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥40% disability)","Income Certificate (family income ≤₹8L/year)","AICTE-institution Admission Letter","Mark Sheets","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (≥40%)","आय प्रमाण (≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","मार्कशीट","बैंक खाता (आधार लिंक)"] },
     // Eligibility: student with ≥40% disability in AICTE-approved technical programme, income ≤ ₹8L
@@ -1501,7 +1501,7 @@ export const SCHEME_DB = [
     benefit: { en: "4-year defence service: ₹30,000–₹40,000/month · ₹11.71 Lakh Seva Nidhi corpus on exit · 25% retained permanently · Priority in central govt. jobs & entrepreneur support on exit", hi: "4 वर्ष की रक्षा सेवा: ₹30,000–₹40,000/माह · बाहर निकलने पर ₹11.71 लाख सेवा निधि · 25% स्थायी · केंद्र सरकार की नौकरियों में प्राथमिकता" },
     tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
     annual: 360000,
-    apply:   { en: "https://agnipathvayu.cdac.in", hi: "https://agnipathvayu.cdac.in" }, applyType: "online",
+    apply:   { en: "https://www.india.gov.in/category/defence-foreign-affairs/subcategory/defence/details/website-of-agniveer-recruitment-scheme", hi: "https://www.india.gov.in/category/defence-foreign-affairs/subcategory/defence/details/website-of-agniveer-recruitment-scheme" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 10 & 12 Mark Sheet + Certificate","Medical Fitness Certificate","Age Proof (17.5–21 years)","Physical Fitness Certificate","Character Certificate","Bank Account"],
                hi: ["आधार कार्ड","कक्षा 10/12 मार्कशीट और प्रमाण पत्र","चिकित्सा स्वास्थ्य प्रमाण पत्र","आयु प्रमाण (17.5–21 वर्ष)","शारीरिक फिटनेस प्रमाण पत्र","चरित्र प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: Indian youth aged 17.5–21 years, physically & medically fit, Class 10/12 pass
