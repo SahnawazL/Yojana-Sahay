@@ -613,7 +613,7 @@ export const TAMIL_NADU_SCHEMES = [
     benefit: { en: "Generic & essential medicines at significantly reduced rates through 1,000+ govt-run pharmacy outlets across TN; pharmacists & co-ops get ₹3 lakh subsidy to set up stores", hi: "TN भर में 1,000+ सरकारी फार्मेसी आउटलेट से जेनेरिक और जरूरी दवाएं काफी कम कीमत पर; फार्मासिस्ट और सहकारी समितियों को स्टोर स्थापित करने पर ₹3 लाख सब्सिडी" },
     tag:     { en: "Cheap Medicines", hi: "सस्ती दवाएं" },
     annual:  0,
-    apply:   { en: "mudhalvarmarundhagam.tn.gov.in — walk in to any outlet", hi: "mudhalvarmarundhagam.tn.gov.in — कोई भी आउटलेट पर जाएं" }, applyType: "online",
+    apply:   { en: "https://www.dtnext.in/news/tamilnadu/mudhalvar-marunthagams-how-to-apply-when-is-the-deadline-check-all-details-about-cms-pharmacy-scheme-here-810823", hi: "mudhalvarmarundhagam.tn.gov.in — कोई भी आउटलेट पर जाएं" }, applyType: "online",
     docs:    { en: ["Aadhaar Card or Govt. ID", "Doctor's Prescription (for prescription medicines)"],
                hi: ["आधार कार्ड या सरकारी पहचान पत्र", "डॉक्टर का नुस्खा (प्रिस्क्रिप्शन दवाओं के लिए)"] },
     match: (a) => a.state === "Tamil Nadu" && ["below1", "1to3"].includes(a.income),
