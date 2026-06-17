@@ -452,8 +452,11 @@ export async function runVerification({
       scheme,
       tier:       1,
       alive:      null,
-      linkAlive:  null,  // Fix 3: pure Tier-1 URL-liveness, kept separate from
-                          // Tier-2's "is the scheme accepting applications" verdict
+      linkAlive:  undefined, // Fix 5: undefined = "Tier 1 never ran" (T2-only mode)
+                              //         null     = "Tier 1 ran, India-bound domain (skip ping)"
+                              //         true/false = real Tier 1 result
+                              // writeSchemeResults writes linkAlive whenever it's !== undefined,
+                              // so India-bound null correctly clears a stale `false` in schemes-meta.json
       httpStatus: null,
       lastDate:   null,
       isActive:   null,
@@ -590,8 +593,11 @@ export async function writeSchemeResults(results) {
     }
 
     // linkAlive — Tier 1's pure URL-liveness (Fix 3: separate from isActive).
-    // Only meaningful if Tier 1 actually ran for this scheme.
-    if (r.linkAlive !== null) {
+    // Fix 5: write whenever Tier 1 actually ran (linkAlive !== undefined).
+    // Writing null for India-bound domains clears any stale `false` in
+    // schemes-meta.json so they stop appearing in "Known Dead Links".
+    // undefined means Tier 1 never ran (T2-only mode) — skip writing.
+    if (r.linkAlive !== undefined) {
       entry.linkAlive = r.linkAlive;
     }
 
