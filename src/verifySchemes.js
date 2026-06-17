@@ -93,9 +93,26 @@ const INDIA_ONLY_DOMAINS = [
 function normalizeUrl(raw) {
   if (!raw) return null;
   const trimmed = raw.trim();
-  // Reject plain-text descriptions (contain spaces or no dot)
-  if (trimmed.includes(" ") || !trimmed.includes(".")) return null;
+  // Already a full URL
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+
+  // Mixed text: domain followed by description, e.g.:
+  //   "mss.edu.in (Maharashtra State Skills University)"
+  //   "mahadbt.maharashtra.gov.in (Farmer portal)"
+  //   "mudhalvarmarundhagam.tn.gov.in — walk in to any outlet"
+  //   "tnreginet.gov.in — automatic at time of property registration"
+  // Extract just the first token (before any space/dash/parenthesis).
+  // If it looks like a domain (contains a dot), treat it as the URL.
+  if (trimmed.includes(" ")) {
+    const firstToken = trimmed.split(/[\s(—–,]/)[0].trim();
+    if (firstToken && firstToken.includes(".") && !firstToken.includes("/")) {
+      return `https://${firstToken}`;
+    }
+    return null; // genuine plain text like "Nearest bank branch" or "Nearest CSC center"
+  }
+
+  // No dot → plain text description, not a URL
+  if (!trimmed.includes(".")) return null;
   return `https://${trimmed}`;
 }
 
