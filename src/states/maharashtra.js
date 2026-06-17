@@ -381,7 +381,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "₹6,000/year additional state top-up (₹2,000 × 3 instalments) on top of PM Kisan — total ₹12,000/year for eligible farmers", hi: "PM किसान के ऊपर राज्य से अतिरिक्त ₹6,000/वर्ष (₹2,000 × 3 किस्तें) — कुल ₹12,000/वर्ष" },
     tag:     { en: "Farmer / Income Support", hi: "किसान / आय सहायता" },
     annual: 6000,
-    apply:   { en: "https://nsmny.mahait.org", hi: "nsmny.mahait.org" }, applyType: "online",
+    apply:   { en: "https://pmkisan.gov.in/rpt_beneficiaryStatus_pub.aspx/aspx", hi: "nsmny.mahait.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (Aadhaar-linked mobile)", "7/12 Land Extract", "PM Kisan Registration Number", "Bank Passbook"],
                hi: ["आधार कार्ड (मोबाइल लिंक)", "7/12 उतारा", "PM किसान पंजीकरण क्रमांक", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
