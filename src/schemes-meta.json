@@ -1817,29 +1817,29 @@
     "confidence": 0
   },
   "pm_smile": {
-    "lastVerified": "2026-06-17T13:17:11.694Z",
+    "lastVerified": "2026-06-17T13:19:15.178Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "aicte_pragati": {
-    "lastVerified": "2026-06-17T13:17:11.694Z",
+    "lastVerified": "2026-06-17T13:19:15.178Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "isActive": true,
     "confidence": 1
   },
   "aicte_saksham": {
-    "lastVerified": "2026-06-17T13:17:11.694Z",
+    "lastVerified": "2026-06-17T13:19:15.178Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "isActive": true,
     "confidence": 1
   },
   "agniveer": {
-    "lastVerified": "2026-06-17T13:17:11.694Z",
+    "lastVerified": "2026-06-17T13:19:15.178Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
