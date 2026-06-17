@@ -1758,15 +1758,15 @@
     "confidence": 0
   },
   "jk_super75_scholarship": {
-    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "lastVerified": "2026-06-17T09:40:52.851Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "jk_post_matric_sc_st": {
-    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "lastVerified": "2026-06-17T09:40:52.851Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
