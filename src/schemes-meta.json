@@ -1879,9 +1879,9 @@
     "confidence": 0
   },
   "karnataka_postmatric_scholarship": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:33:19.857Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_sanchi_hosahalli": {
@@ -2098,9 +2098,9 @@
     "confidence": 0
   },
   "karnataka_micro_irrigation": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:33:19.857Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_domestic_worker_welfare": {
@@ -2110,9 +2110,9 @@
     "confidence": 0
   },
   "karnataka_transgender_welfare": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:33:19.857Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_startup_policy": {
@@ -2152,9 +2152,9 @@
     "confidence": 0
   },
   "karnataka_obc_prematric": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:33:19.857Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_obc_hostel": {
