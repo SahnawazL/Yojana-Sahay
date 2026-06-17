@@ -201,10 +201,10 @@
     "lastDate": "2026-03-31"
   },
   "bihar_kanya_utthan": {
-    "lastVerified": "2026-06-17T06:47:44.119Z",
+    "lastVerified": "2026-06-17T06:50:22.020Z",
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "bihar_medhavritti": {
     "lastVerified": "2026-06-17T06:47:44.119Z",
@@ -213,17 +213,17 @@
     "linkAlive": false
   },
   "bihar_mahila_udyami": {
-    "lastVerified": "2026-06-17T06:47:44.119Z",
+    "lastVerified": "2026-06-17T06:50:22.020Z",
     "isActive": true,
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "bihar_sc_st_udyami": {
-    "lastVerified": "2026-06-17T06:47:44.119Z",
+    "lastVerified": "2026-06-17T06:50:22.020Z",
     "isActive": true,
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "bihar_yuva_udyami": {
@@ -241,11 +241,11 @@
     "confidence": 0
   },
   "bihar_student_credit_card": {
-    "lastVerified": "2026-06-17T06:47:44.119Z",
+    "lastVerified": "2026-06-17T06:50:22.020Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "bihar_swayam_bhatta": {
     "lastVerified": "2026-06-17T06:47:44.119Z",
@@ -255,17 +255,17 @@
     "linkAlive": false
   },
   "bihar_kushal_yuva": {
-    "lastVerified": "2026-06-17T06:47:44.119Z",
+    "lastVerified": "2026-06-17T06:50:22.020Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "bihar_fasal_sahayata": {
-    "lastVerified": "2026-06-17T06:47:44.119Z",
+    "lastVerified": "2026-06-17T06:50:22.020Z",
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "bihar_krishi_input": {
     "lastVerified": "2026-06-17T06:47:44.119Z",
