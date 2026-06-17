@@ -56,6 +56,8 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
+  deleteField,
   serverTimestamp,
 } from "firebase/firestore";
 import schemesMeta from "./schemes-meta.json";
@@ -801,6 +803,27 @@ export async function queueUrlFix(schemeId, { newUrl, oldUrl, file, candidates }
  */
 export async function unqueueUrlFix(schemeId, candidates) {
   return saveUrlFix(schemeId, candidates ?? []);
+}
+
+/**
+ * Permanently remove one or more scheme IDs from the urlFixes document.
+ * Use this to clear stale / corrupted queue entries that can never apply
+ * successfully (e.g. oldUrl has stacked https:// prefixes from a prior bug).
+ *
+ * After calling this, reload urlFixes (loadUrlFixes()) to sync the UI.
+ *
+ * @param {string[]} schemeIds  — array of scheme IDs to delete
+ */
+export async function deleteUrlFixes(schemeIds) {
+  if (!Array.isArray(schemeIds) || schemeIds.length === 0) return;
+  try {
+    const fields = {};
+    schemeIds.forEach(id => { fields[id] = deleteField(); });
+    await updateDoc(doc(db, ...URL_FIXES_PATH), fields);
+  } catch (err) {
+    console.warn("[deleteUrlFixes] Firestore write failed:", err.message);
+    throw err; // re-throw so the UI can show the error
+  }
 }
 
 /**

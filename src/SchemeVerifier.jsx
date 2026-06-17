@@ -55,6 +55,7 @@ import {
   unqueueUrlFix,
   commitQueuedFixes,
   getKnownDeadLinks,
+  deleteUrlFixes,
 } from "./verifySchemes.js";
 
 // ── SCHEME_DB — needed for URL Issues pre-scan (no verification run required) ─
@@ -1762,7 +1763,7 @@ function FilterPill({ label, count, color, bg, active, th, onClick }) {
 // Shared between the "RESULTS LIST" and "KNOWN DEAD LINKS" sections — both
 // read/write the SAME urlFixMap, so a fix queued from either panel shows up
 // here and "Apply All Fixes" batch-commits across both.
-function ApplyAllFixesBar({ queuedFixes, applyingFixes, applyResult, onApply, th }) {
+function ApplyAllFixesBar({ queuedFixes, applyingFixes, applyResult, onApply, onClearFailed, th }) {
   if (queuedFixes.length === 0 && !applyResult) return null;
 
   return (
@@ -1831,8 +1832,28 @@ function ApplyAllFixesBar({ queuedFixes, applyingFixes, applyResult, onApply, th
           )}
           {applyResult.failed.length > 0 && (
             <div style={{ marginTop: applyResult.committed > 0 ? 4 : 0 }}>
-              <div style={{ fontWeight: 700, color: RED }}>
-                ✕ {applyResult.failed.length} failed:
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ fontWeight: 700, color: RED }}>
+                  ✕ {applyResult.failed.length} failed:
+                </div>
+                {onClearFailed && (
+                  <button
+                    onClick={() => onClearFailed(applyResult.failed.map(f => f.id))}
+                    style={{
+                      fontSize:     9,
+                      fontWeight:   700,
+                      padding:      "2px 9px",
+                      borderRadius: 6,
+                      cursor:       "pointer",
+                      border:       `1px solid ${RED}55`,
+                      background:   `${RED}12`,
+                      color:        RED,
+                      fontFamily:   "inherit",
+                    }}
+                  >
+                    🗑 Clear {applyResult.failed.length} failed from queue
+                  </button>
+                )}
               </div>
               {applyResult.failed.map(f => (
                 <div key={f.id} style={{ color: RED, marginTop: 2, paddingLeft: 10 }}>
@@ -4862,7 +4883,26 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     }
   }, [queuedFixes, applyingFixes]);
 
-  // ── Timing (elapsed / speed / ETA) ───────────────────────────────────────
+  // Removes stale / corrupted queued fix entries from Firestore so they stop
+  // blocking "Apply All Fixes". Called from the "🗑 Clear N failed" button in
+  // ApplyAllFixesBar after a batch commit returns failures.
+  const handleClearFailed = useCallback(async (failedIds) => {
+    if (!failedIds?.length) return;
+    try {
+      await deleteUrlFixes(failedIds);
+      const fresh = await loadUrlFixes();
+      setUrlFixMap(fresh);
+      // Remove the cleared IDs from the applyResult failed list so the bar
+      // either hides or only shows the remaining uncleaned failures.
+      setApplyResult(prev => {
+        if (!prev) return null;
+        const remaining = prev.failed.filter(f => !failedIds.includes(f.id));
+        return { ...prev, failed: remaining };
+      });
+    } catch (err) {
+      console.error("[handleClearFailed] Failed to clear fixes:", err.message);
+    }
+  }, []);
   const startTimeRef = useRef(null);
   const [elapsed,    setElapsed]    = useState(0);  // ms since run started
 
@@ -5390,6 +5430,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             applyingFixes={applyingFixes}
             applyResult={applyResult}
             onApply={handleApplyAllFixes}
+            onClearFailed={handleClearFailed}
             th={th}
           />
 
@@ -5634,6 +5675,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 applyingFixes={applyingFixes}
                 applyResult={applyResult}
                 onApply={handleApplyAllFixes}
+                onClearFailed={handleClearFailed}
                 th={th}
               />
 
@@ -6272,6 +6314,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             applyingFixes={applyingFixes}
             applyResult={applyResult}
             onApply={handleApplyAllFixes}
+            onClearFailed={handleClearFailed}
             th={th}
           />
 
