@@ -198,6 +198,7 @@ function matchesSearch(result, query) {
   if (!query) return true;
   const q  = query.toLowerCase().trim();
   const s  = result.scheme;
+  if (!s) return false; // stale entry whose scheme was removed from SCHEME_DB
   return (
     s.name?.en?.toLowerCase().includes(q) ||
     s.name?.hi?.toLowerCase().includes(q) ||
@@ -1822,16 +1823,26 @@ function ApplyAllFixesBar({ queuedFixes, applyingFixes, applyResult, onApply, th
       )}
 
       {applyResult && (
-        <span style={{
-          fontSize:   9,
-          fontWeight: 700,
-          color:      applyResult.failed.length > 0 ? RED : IND_GREEN,
-        }}>
-          {applyResult.committed > 0 &&
-            `✓ ${applyResult.committed} committed across ${applyResult.commits.length} commit${applyResult.commits.length !== 1 ? "s" : ""}`}
-          {applyResult.failed.length > 0 &&
-            ` · ${applyResult.failed.length} failed: ${applyResult.failed.map(f => f.id).join(", ")}`}
-        </span>
+        <div style={{ width: "100%", fontSize: 9 }}>
+          {applyResult.committed > 0 && (
+            <div style={{ fontWeight: 700, color: IND_GREEN }}>
+              ✓ {applyResult.committed} committed across {applyResult.commits.length} commit{applyResult.commits.length !== 1 ? "s" : ""}
+            </div>
+          )}
+          {applyResult.failed.length > 0 && (
+            <div style={{ marginTop: applyResult.committed > 0 ? 4 : 0 }}>
+              <div style={{ fontWeight: 700, color: RED }}>
+                ✕ {applyResult.failed.length} failed:
+              </div>
+              {applyResult.failed.map(f => (
+                <div key={f.id} style={{ color: RED, marginTop: 2, paddingLeft: 10 }}>
+                  <span style={{ fontWeight: 700 }}>{f.id}</span>
+                  {f.error ? ` — ${f.error}` : " — no error message returned"}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -5055,6 +5066,20 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       saveScanResults(scopeFilter, priorityFilter, tier, finalSnap, finalSummary);
       appendTrendEntry(scopeFilter, finalSummary);
       setSavedScans(loadAllSavedScans());
+
+      // ── Sync "Known Dead Links" with this run's fresh findings ──────────
+      // knownDeadLinks otherwise only ever shrinks (on a successful fix) — it
+      // was never updated with NEW dead links this run just discovered, so
+      // clicking "New Run" would bring back the stale pre-scan snapshot.
+      // Drop every scheme this run actually re-checked, then add back only
+      // the ones that are still non-Active (Dead / No Response / Error) with
+      // their fresh result — schemes outside this run's scope are untouched.
+      setKnownDeadLinks(prev => {
+        const checkedIds = new Set(finalSnap.map(r => r.scheme?.id).filter(Boolean));
+        const untouched  = prev.filter(item => !checkedIds.has(item.scheme?.id));
+        const stillDead  = finalSnap.filter(r => getResultStatus(r) !== "Active");
+        return [...untouched, ...stillDead];
+      });
     }
   }, [running, scopeFilter, priorityFilter, tier]);
 
