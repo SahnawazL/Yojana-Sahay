@@ -2284,9 +2284,9 @@
     "confidence": 0
   },
   "maha_namo_shetkari": {
-    "lastVerified": "2026-06-17T19:24:49.581Z",
+    "lastVerified": "2026-06-17T19:25:55.919Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "maha_magel_tyala_solar_pump": {
