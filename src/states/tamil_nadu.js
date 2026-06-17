@@ -703,7 +703,7 @@ export const TAMIL_NADU_SCHEMES = [
     benefit: { en: "1% reduction in stamp duty for women registering property up to ₹10 Lakh value; encourages women's property ownership across Tamil Nadu", hi: "₹10 लाख तक की संपत्ति पंजीकृत कराने वाली महिलाओं के लिए स्टांप शुल्क में 1% कमी; तमिलनाडु में महिलाओं के संपत्ति स्वामित्व को प्रोत्साहन" },
     tag:     { en: "Women Property", hi: "महिला संपत्ति" },
     annual:  10000,
-    apply:   { en: "tnreginet.gov.in — automatic at time of property registration", hi: "tnreginet.gov.in — संपत्ति पंजीकरण के समय स्वतः लागू" }, applyType: "online",
+    apply:   { en: "https://cleartax.in/s/stamp-duty-and-registration-charges-in-tamil-nadu", hi: "tnreginet.gov.in — संपत्ति पंजीकरण के समय स्वतः लागू" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Sale Deed / Property Documents", "PAN Card", "Encumbrance Certificate", "Bank Account for payment"],
                hi: ["आधार कार्ड", "बिक्री विलेख / संपत्ति दस्तावेज", "PAN कार्ड", "एन्कम्ब्रेंस प्रमाण पत्र", "भुगतान के लिए बैंक खाता"] },
     match: (a) => a.state === "Tamil Nadu" && a.who === "women",
