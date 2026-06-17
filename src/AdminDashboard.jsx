@@ -3331,7 +3331,42 @@ function MiniSpark({ points, color, width = 52, height = 22 }) {
   );
 }
 
-function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab }) {
+// ── Line-icon system (replaces emoji glyphs for a more professional, ──
+// ── consistent look — single source of truth, no extra dependency) ──
+const ICON_PATHS = {
+  overview: <><line x1="6" y1="20" x2="6" y2="16"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/></>,
+  users: <><path d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="9" cy="8" r="3"/><path d="M20 19v-1.2a3 3 0 0 0-2.2-2.9"/><path d="M14.3 4.2a3 3 0 0 1 0 5.8"/></>,
+  analytics: <><rect x="3" y="3" width="7.5" height="7.5" rx="1.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.2"/></>,
+  activity: <polyline points="22 12 18 12 15 20 9 4 6 12 2 12"/>,
+  usage: <><polyline points="3 17 9.5 10.5 14 15 21 7"/><polyline points="15 7 21 7 21 13"/></>,
+  schemes: <><path d="M9 4 3 6.5v14L9 18l6 2.5 6-2.5v-14L15 6.5 9 4z"/><line x1="9" y1="4" x2="9" y2="18"/><line x1="15" y1="6.5" x2="15" y2="20.5"/></>,
+  reports: <><polyline points="21 11 15.5 11 13.7 13.7 10.3 13.7 8.5 11 3 11"/><path d="M5.2 5 3 11v6.5A1.8 1.8 0 0 0 4.8 19.3h14.4A1.8 1.8 0 0 0 21 17.5V11l-2.2-6a1.8 1.8 0 0 0-1.7-1.2H6.9A1.8 1.8 0 0 0 5.2 5z"/></>,
+  cleanup: <><polyline points="3.5 6 6 6 20 6"/><path d="M18.5 6 17.4 19.4a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8L5.5 6"/><line x1="9.5" y1="10.5" x2="9.5" y2="16"/><line x1="14.5" y1="10.5" x2="14.5" y2="16"/><path d="M8.5 6V4a1.5 1.5 0 0 1 1.5-1.5h4A1.5 1.5 0 0 1 15.5 4v2"/></>,
+  verify: <><path d="M12 2.5 4.5 5.5v6.3c0 5.2 4.6 8.2 7.5 9.7 2.9-1.5 7.5-4.5 7.5-9.7V5.5L12 2.5z"/><polyline points="8.7 12 11 14.3 15.3 9.5"/></>,
+  export: <><path d="M13.5 2.5h-7A1.8 1.8 0 0 0 4.7 4.3v15.4A1.8 1.8 0 0 0 6.5 21.5h11a1.8 1.8 0 0 0 1.8-1.8V8z"/><polyline points="13.5 2.5 13.5 8 19.3 8"/><line x1="12" y1="11.5" x2="12" y2="17.5"/><polyline points="9 14.5 12 17.5 15 14.5"/></>,
+  alert: <><path d="M10.6 4.1 2.8 18a1.8 1.8 0 0 0 1.6 2.7h15.2a1.8 1.8 0 0 0 1.6-2.7L13.4 4.1a1.8 1.8 0 0 0-2.8 0z"/><line x1="12" y1="9.5" x2="12" y2="13.5"/><circle cx="12" cy="16.7" r="0.15" fill="currentColor"/></>,
+  refresh: <><polyline points="22 4.5 22 10 16.5 10"/><polyline points="2 19.5 2 14 7.5 14"/><path d="M3.6 9a8.5 8.5 0 0 1 14-3.2L22 10M2 14l4.4 4.2A8.5 8.5 0 0 0 20.4 15"/></>,
+  moon: <path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5 7 7 0 0 0 20.5 14.2z"/>,
+  userplus: <><path d="M14.5 19.5v-1.3a3.5 3.5 0 0 0-3.5-3.5H5.5A3.5 3.5 0 0 0 2 18.2v1.3"/><circle cx="8" cy="7.5" r="3.2"/><line x1="18.5" y1="8" x2="18.5" y2="13"/><line x1="21" y1="10.5" x2="16" y2="10.5"/></>,
+  check: <><path d="M20.5 11v.9a9.5 9.5 0 1 1-5.6-8.7"/><polyline points="20.5 4.5 11 14 8 11"/></>,
+  login: <><path d="M14.5 3h4A1.8 1.8 0 0 1 20.3 4.8v14.4a1.8 1.8 0 0 1-1.8 1.8h-4"/><polyline points="9.5 16.5 14.5 12 9.5 7.5"/><line x1="14.5" y1="12" x2="2.5" y2="12"/></>,
+  phone: <path d="M20.5 16.8v2.5a1.7 1.7 0 0 1-1.85 1.7 16.6 16.6 0 0 1-7.24-2.58 16.4 16.4 0 0 1-5.05-5.05A16.6 16.6 0 0 1 3.78 5.6 1.7 1.7 0 0 1 5.46 3.75h2.5a1.7 1.7 0 0 1 1.7 1.46c.1.8.3 1.6.59 2.35a1.7 1.7 0 0 1-.38 1.79l-1.06 1.06a13.5 13.5 0 0 0 5.06 5.06l1.06-1.06a1.7 1.7 0 0 1 1.79-.38c.75.29 1.55.49 2.35.59a1.7 1.7 0 0 1 1.45 1.7z"/>,
+  card: <><rect x="2" y="5.5" width="20" height="13" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></>,
+};
+
+function Icon({ name, size = 16, color = "currentColor", strokeWidth = 1.8, style }) {
+  const content = ICON_PATHS[name];
+  if (!content) return null;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"
+      style={{ display:"block", flexShrink:0, ...style }}>
+      {content}
+    </svg>
+  );
+}
+
+function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab, error, refreshing, sessionStart, lastSynced, onRefresh }) {
   const th = THEME[dark ? "dark" : "light"];
   const [hovered, setHovered] = React.useState(null);
 
@@ -3372,16 +3407,16 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   const DATE_STR = tick.toLocaleDateString("en-IN",  { weekday:"short", day:"numeric", month:"short", year:"numeric" });
 
   const TAB_META = {
-    overview:  { desc:"Platform KPIs, welfare metrics & live insights",            badge: loading ? "loading…" : `${actDay} active today`,                                  badge2Color:IND_GREEN, accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"📊" },
-    users:     { desc:"Browse, filter, search & inspect all user profiles",        badge: loading ? "…" : `${newWk} new this week`,                                        badge2Color:GOOGLE_B,  accentColor:GOOGLE_B,  glow:"rgba(66,133,244,0.35)",   icon:"👥" },
-    analytics: { desc:"Demographics, donuts, charts & cross-tab matrices",         badge:"8 dimensions",                                                                    badge2Color:VIOLET,    accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"🧮" },
-    activity:  { desc:"Eligibility runs, logins & real-time usage feed",           badge: loading ? "…" : `${actDay} active today`,                                        badge2Color:SAFFRON,   accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"🕐" },
-    usage:     { desc:"Feature telemetry — AI chat, searches & checker runs",      badge:"live metrics",                                                                    badge2Color:PINK,      accentColor:PINK,      glow:"rgba(236,72,153,0.35)",   icon:"📈" },
-    schemes:   { desc:"State-wise scheme coverage, gaps & distribution map",       badge:"all India states",                                                                badge2Color:IND_GREEN, accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"🗺️" },
-    reports:   { desc:"User-reported issues, admin replies & status workflow",     badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badge2Color: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)", icon:"📬" },
-    cleanup:   { desc:"Purge resolved reports & flush stale usage data",           badge:"database hygiene",                                                                badge2Color:"#F59E0B", accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"🗑️" },
-    verify:    { desc:"Ping scheme URLs & extract deadlines via AI",               badge:"Tier 1 + Tier 2",                                                                 badge2Color:NAVY,      accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"🔍" },
-    export:    { desc:"Compile & download full-dashboard PDF intelligence report",  badge:"landscape A4 · PDF",                                                             badge2Color:"#10B981", accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"📄" },
+    overview:  { desc:"Platform KPIs, welfare metrics & live insights",            badge: loading ? "loading…" : `${actDay} active today`,                                  badge2Color:IND_GREEN, accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"overview" },
+    users:     { desc:"Browse, filter, search & inspect all user profiles",        badge: loading ? "…" : `${newWk} new this week`,                                        badge2Color:GOOGLE_B,  accentColor:GOOGLE_B,  glow:"rgba(66,133,244,0.35)",   icon:"users" },
+    analytics: { desc:"Demographics, donuts, charts & cross-tab matrices",         badge:"8 dimensions",                                                                    badge2Color:VIOLET,    accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"analytics" },
+    activity:  { desc:"Eligibility runs, logins & real-time usage feed",           badge: loading ? "…" : `${actDay} active today`,                                        badge2Color:SAFFRON,   accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"activity" },
+    usage:     { desc:"Feature telemetry — AI chat, searches & checker runs",      badge:"live metrics",                                                                    badge2Color:PINK,      accentColor:PINK,      glow:"rgba(236,72,153,0.35)",   icon:"usage" },
+    schemes:   { desc:"State-wise scheme coverage, gaps & distribution map",       badge:"all India states",                                                                badge2Color:IND_GREEN, accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"schemes" },
+    reports:   { desc:"User-reported issues, admin replies & status workflow",     badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badge2Color: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)", icon:"reports" },
+    cleanup:   { desc:"Purge resolved reports & flush stale usage data",           badge:"database hygiene",                                                                badge2Color:"#F59E0B", accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"cleanup" },
+    verify:    { desc:"Ping scheme URLs & extract deadlines via AI",               badge:"Tier 1 + Tier 2",                                                                 badge2Color:NAVY,      accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"verify" },
+    export:    { desc:"Compile & download full-dashboard PDF intelligence report",  badge:"landscape A4 · PDF",                                                             badge2Color:"#10B981", accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"export" },
   };
 
   const cols     = isDesktop ? 3 : 2;
@@ -3391,26 +3426,44 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   // ── Attention items for the priority feed ──
   const ALERTS = [
     unreplied > 0 && {
-      id:"unreplied", icon:"⚠️",
+      id:"unreplied", icon:"alert",
       text: `${unreplied} open report${unreplied>1?"s":""} need a reply`,
       color:"#E53E3E", action:"reports",
     },
     inProg > 0 && {
-      id:"inprog", icon:"⚙️",
+      id:"inprog", icon:"refresh",
       text: `${inProg} report${inProg>1?"s":""} in progress`,
       color:"#D97706", action:"reports",
     },
     dormantCnt > 0 && {
-      id:"dormant", icon:"😴",
+      id:"dormant", icon:"moon",
       text: `${dormantCnt} user${dormantCnt>1?"s":""} dormant 30+ days`,
       color:SAFFRON, action:"activity",
     },
     newToday > 0 && {
-      id:"new", icon:"🆕",
+      id:"new", icon:"userplus",
       text: `${newToday} new sign-up${newToday>1?"s":""} today`,
       color:IND_GREEN, action:"users",
     },
   ].filter(Boolean);
+
+  // ── System status telemetry (real, derived from actual fetch state) ──
+  const nowTick = tick.getTime();
+  const syncAgoSec = lastSynced ? Math.max(0, Math.floor((nowTick - lastSynced.getTime()) / 1000)) : null;
+  const syncLabel = lastSynced == null
+    ? "syncing…"
+    : syncAgoSec < 5 ? "just now"
+    : syncAgoSec < 60 ? `${syncAgoSec}s ago`
+    : syncAgoSec < 3600 ? `${Math.floor(syncAgoSec/60)}m ${syncAgoSec%60}s ago`
+    : `${Math.floor(syncAgoSec/3600)}h ${Math.floor((syncAgoSec%3600)/60)}m ago`;
+  const upSec = sessionStart ? Math.max(0, Math.floor((nowTick - sessionStart) / 1000)) : 0;
+  const upH = Math.floor(upSec/3600), upM = Math.floor((upSec%3600)/60), upS = upSec%60;
+  const uptimeLabel = upH > 0
+    ? `${upH}h ${String(upM).padStart(2,"0")}m`
+    : `${String(upM).padStart(2,"0")}m ${String(upS).padStart(2,"0")}s`;
+  const dbOnline = !error;
+  const dbStateLabel = error ? "ERROR" : refreshing ? "SYNCING" : loading ? "CONNECTING" : "CONNECTED";
+  const dbStateColor = error ? "#E53E3E" : (refreshing || loading) ? SAFFRON : IND_GREEN;
 
   return (
     <div style={{
@@ -3427,12 +3480,14 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
         @keyframes hs-fadein  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
         @keyframes hs-scan    { 0%{top:-2px} 100%{top:102%} }
         @keyframes hs-shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+        @keyframes hs-spin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         .hs-module { transition:all 0.22s cubic-bezier(0.22,1,0.36,1); cursor:pointer; }
         .hs-module:hover { transform:translateY(-3px) scale(1.012); }
         .hs-module:active { transform:translateY(0) scale(0.98); }
         @media (hover: none) { .hs-module:hover { transform:none; } }
         .hs-alert-row { transition:background 0.15s; cursor:pointer; }
         .hs-alert-row:hover { background: rgba(255,255,255,0.04) !important; }
+        .hs-refresh-btn:hover { border-color: ${hsRgba(NAVY,0.4)} !important; color: ${NAVY} !important; }
       `}</style>
 
       {/* ══════════════════════════════════════
@@ -3603,7 +3658,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
               <div style={{ padding:"20px 14px", fontFamily:MONO_FONT, fontSize:9, color:th.textSub, textAlign:"center" }}>// fetching…</div>
             ) : ALERTS.length === 0 ? (
               <div style={{ padding:"20px 14px", textAlign:"center" }}>
-                <div style={{ fontSize:22, marginBottom:6 }}>✅</div>
+                <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}><Icon name="check" size={22} color={IND_GREEN} strokeWidth={1.6}/></div>
                 <div style={{ fontFamily:MONO_FONT, fontSize:9, color:IND_GREEN, fontWeight:700, letterSpacing:0.5 }}>ALL CLEAR</div>
                 <div style={{ fontFamily:MONO_FONT, fontSize:8, color:th.textSub, marginTop:3 }}>No pending actions</div>
               </div>
@@ -3620,7 +3675,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
                   cursor:"pointer",
                 }}
               >
-                <div style={{ width:28, height:28, borderRadius:8, flexShrink:0, background:hsRgba(a.color,0.1), border:`1px solid ${hsRgba(a.color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13 }}>{a.icon}</div>
+                <div style={{ width:28, height:28, borderRadius:8, flexShrink:0, background:hsRgba(a.color,0.1), border:`1px solid ${hsRgba(a.color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name={a.icon} size={13} color={a.color} strokeWidth={1.9}/></div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:11, fontWeight:700, color:th.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.text}</div>
                 </div>
@@ -3630,6 +3685,69 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
           </div>
 
         </div>
+      </div>
+
+      {/* ══════════════════════════════════════
+          SYSTEM STATUS BAR
+      ══════════════════════════════════════ */}
+      <div style={{
+        display:"flex", alignItems:"center", flexWrap:"wrap",
+        gap: isDesktop ? 18 : 12,
+        background: dark ? "rgba(10,10,18,0.9)" : "rgba(255,255,255,0.96)",
+        border:`1px solid ${dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.08)"}`,
+        borderRadius:12, padding: isDesktop ? "10px 16px" : "9px 12px",
+        marginBottom: isDesktop ? 16 : 12,
+        boxShadow: dark?"0 4px 16px rgba(0,0,0,0.3)":"0 1px 8px rgba(0,0,0,0.04)",
+        animation:"hs-fadein 0.4s ease both",
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+          <span style={{ display:"inline-block", width:6, height:6, borderRadius:"50%", background:dbStateColor, boxShadow:`0 0 6px ${dbStateColor}99`, animation: dbOnline ? "hs-pulse 1.8s ease-in-out infinite" : "none" }} />
+          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, letterSpacing:1.2, color:dbStateColor, textTransform:"uppercase" }}>
+            {error ? "DATABASE ERROR" : "ALL SYSTEMS OPERATIONAL"}
+          </span>
+        </div>
+
+        <div style={{ width:1, height:14, background:th.border, flexShrink:0 }} />
+
+        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+          <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>FIRESTORE</span>
+          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:dbStateColor }}>{dbStateLabel}</span>
+        </div>
+
+        <div style={{ width:1, height:14, background:th.border, flexShrink:0 }} />
+
+        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+          <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>LAST SYNC</span>
+          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:th.text }}>{syncLabel}</span>
+        </div>
+
+        <div style={{ width:1, height:14, background:th.border, flexShrink:0 }} />
+
+        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+          <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>SESSION</span>
+          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:th.text }}>{uptimeLabel}</span>
+        </div>
+
+        <div style={{ flex:1 }} />
+
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            title="Refresh live data"
+            className="hs-refresh-btn"
+            style={{
+              display:"flex", alignItems:"center", gap:6,
+              background:"transparent", border:`1px solid ${th.border}`, borderRadius:7,
+              padding: isDesktop ? "5px 10px" : "4px 8px",
+              cursor:"pointer", color:th.textSub,
+              fontFamily:MONO_FONT, fontSize:7.5, fontWeight:700, letterSpacing:0.8, textTransform:"uppercase",
+            }}
+          >
+            <Icon name="refresh" size={11} color={th.textSub} strokeWidth={2}
+              style={{ animation: refreshing ? "hs-spin 0.8s linear infinite" : "none" }}/>
+            REFRESH
+          </button>
+        )}
       </div>
 
       {/* ══════════════════════════════════════
@@ -3643,18 +3761,18 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
         animation:"hs-fadein 0.45s ease both",
       }}>
         {[
-          { label:"GOOGLE AUTH",  value: loading?"—":googleUsers,                 color:GOOGLE_B, icon:"🔵" },
-          { label:"PHONE USERS",  value: loading?"—":withPhone,                   color:SAFFRON,  icon:"📱" },
-          { label:"WELFARE (BPL)",value: loading?"—":bplCount,                    color:VIOLET,   icon:"🪪" },
-          { label:"DORMANT 30D",  value: loading?"—":dormantCnt,                  color: dormantCnt>0?"#F59E0B":IND_GREEN, icon:"😴" },
-          { label:"IN PROGRESS",  value: loading?"—":inProg,                      color: inProg>0?"#D97706":IND_GREEN, icon:"⚙️" },
+          { label:"GOOGLE AUTH",  value: loading?"—":googleUsers,                 color:GOOGLE_B, icon:"login" },
+          { label:"PHONE USERS",  value: loading?"—":withPhone,                   color:SAFFRON,  icon:"phone" },
+          { label:"WELFARE (BPL)",value: loading?"—":bplCount,                    color:VIOLET,   icon:"card" },
+          { label:"DORMANT 30D",  value: loading?"—":dormantCnt,                  color: dormantCnt>0?"#F59E0B":IND_GREEN, icon:"moon" },
+          { label:"IN PROGRESS",  value: loading?"—":inProg,                      color: inProg>0?"#D97706":IND_GREEN, icon:"refresh" },
         ].map(({ label, value, color, icon }) => (
           <div key={label} style={{
             background:th.card, border:`1.5px solid ${th.border}`,
             borderRadius:11, padding: isDesktop ? "10px 12px" : "8px 10px",
             display:"flex", alignItems:"center", gap:8,
           }}>
-            <div style={{ width:30, height:30, borderRadius:8, flexShrink:0, background:hsRgba(color,0.1), border:`1px solid ${hsRgba(color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>{icon}</div>
+            <div style={{ width:30, height:30, borderRadius:8, flexShrink:0, background:hsRgba(color,0.1), border:`1px solid ${hsRgba(color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name={icon} size={14} color={color} strokeWidth={1.8}/></div>
             <div style={{ minWidth:0, flex:1 }}>
               <div style={{ fontFamily:MONO_FONT, fontSize: isDesktop?18:16, fontWeight:900, color:th.text, lineHeight:1, letterSpacing:-0.5 }}>{value}</div>
               <div style={{ fontFamily:MONO_FONT, fontSize:7, color:th.textSub, marginTop:2, letterSpacing:0.7, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{label}</div>
@@ -3687,7 +3805,6 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
           const meta  = TAB_META[id] || {};
           const isHov = hovered === id;
           const nameParts = fullLabel.trim().split(/\s+/);
-          const emoji = meta.icon || (nameParts[0].match(/\p{Emoji}/u) ? nameParts[0] : "•");
           const name  = nameParts.filter((p,i) => i>0||!p.match(/\p{Emoji}/u)).join(" ") || id;
 
           return (
@@ -3727,7 +3844,17 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
               {isHov && <div style={{ position:"absolute", top:-28, right:-28, width:100, height:100, borderRadius:"50%", background:`radial-gradient(circle,${hsRgba(meta.accentColor,dark?0.14:0.08)} 0%,transparent 70%)`, pointerEvents:"none" }} />}
 
               <div style={{ paddingLeft: isDesktop?11:9 }}>
-                <div style={{ fontSize: isDesktop?24:20, lineHeight:1, marginBottom: isDesktop?8:6, filter: dark&&isHov?`drop-shadow(0 0 6px ${hsRgba(meta.accentColor,0.7)})`:"none", transition:"filter 0.2s" }}>{emoji}</div>
+                <div style={{
+                  width: isDesktop?34:29, height: isDesktop?34:29, borderRadius:9,
+                  marginBottom: isDesktop?10:8,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  background: hsRgba(meta.accentColor, dark?0.14:0.09),
+                  border:`1px solid ${hsRgba(meta.accentColor, isHov?0.45:0.22)}`,
+                  filter: dark&&isHov?`drop-shadow(0 0 6px ${hsRgba(meta.accentColor,0.7)})`:"none",
+                  transition:"filter 0.2s, border-color 0.2s",
+                }}>
+                  <Icon name={meta.icon} size={isDesktop?17:14} color={isHov?meta.accentColor:th.textSub} strokeWidth={1.7}/>
+                </div>
                 <div style={{ fontSize: isDesktop?13:11, fontWeight:800, letterSpacing:-0.2, lineHeight:1.2, color: isHov?meta.accentColor:th.text, marginBottom:4, transition:"color 0.18s" }}>{name}</div>
                 <div style={{ fontSize: isDesktop?10:9, color:th.textSub, lineHeight:1.5, marginBottom: isDesktop?10:8 }}>{meta.desc}</div>
                 {meta.badge && (
@@ -3742,6 +3869,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
           );
         })}
       </div>
+
 
       {/* ── Footer ── */}
       <div style={{ marginTop: isDesktop ? 26 : 18, display:"flex", alignItems:"center", gap:10, animation:"hs-fadein 0.6s ease both" }}>
@@ -3799,6 +3927,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
+  // ── System status telemetry (Home tab) ─────────────────────────────────────
+  const [sessionStart]  = useState(() => Date.now());
+  const [lastSynced,    setLastSynced]    = useState(null);
+
   // ── Responsive: track window width ───────────────────────────────────────
   const [windowWidth, setWindowWidth] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 375
@@ -3825,6 +3957,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       data.sort((a, b) => (b.lastSeen?.seconds || 0) - (a.lastSeen?.seconds || 0));
       setUsers(data);
+      setLastSynced(new Date());
     } catch (err) {
       setError("Failed to load users. Check Firestore rules.");
       console.error(err);
@@ -3844,6 +3977,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
       setReports(data);
+      setLastSynced(new Date());
     } catch (err) {
       console.error("Failed to load reports:", err);
     } finally {
@@ -5435,6 +5569,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           isDesktop={isDesktop}
           TABS={TABS}
           navigateTab={navigateTab}
+          error={error}
+          refreshing={refreshing}
+          sessionStart={sessionStart}
+          lastSynced={lastSynced}
+          onRefresh={() => { fetchUsers(true); fetchReports(); }}
         />
       )}
 
