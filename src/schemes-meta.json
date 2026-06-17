@@ -1843,9 +1843,9 @@
     "confidence": 0
   },
   "karnataka_rythu": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:29:02.527Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_krishi_bhagya": {
@@ -1855,9 +1855,9 @@
     "confidence": 0
   },
   "karnataka_raitha_siri": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:29:02.527Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_gruha_lakshmi": {
@@ -1955,15 +1955,15 @@
     "confidence": 0
   },
   "karnataka_rajiv_gandhi_loan": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:29:02.527Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_yashasvini": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:29:02.527Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_jeevandayini": {
@@ -2027,9 +2027,9 @@
     "confidence": 0
   },
   "karnataka_minorities_scholarship": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:29:02.527Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_shaadi_bhagya": {
@@ -2056,9 +2056,9 @@
     "confidence": 0
   },
   "karnataka_rajiv_gandhi_svagriha": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:29:02.527Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_auto_driver_welfare": {
@@ -2074,9 +2074,9 @@
     "confidence": 0
   },
   "karnataka_pm_vishwakarma": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:29:02.527Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_divyangjan_scholarship": {
