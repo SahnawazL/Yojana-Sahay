@@ -5683,8 +5683,6 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   ? `${uid.slice(0, 4)}…${uid.slice(-4)}`
                   : uid;
                 const isFullAdmin = allowedTabs === null;
-                const roleLabel   = isFullAdmin ? "ADMIN" : "AGENT";
-                const roleColor   = isFullAdmin ? SAFFRON : IND_GREEN;
                 const dispName    = sessionUser.displayName?.split(" ")?.[0]
                                  || sessionUser.email?.split("@")?.[0]
                                  || "Admin";
@@ -5692,84 +5690,63 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   <div style={{
                     marginLeft: "auto",
                     flexShrink: 0,
-                    display: "flex",
-                    alignItems: "stretch",
-                    background: "rgba(0,0,0,0.30)",
-                    border: `1px solid ${roleColor}28`,
-                    borderRadius: 7,
-                    overflow: "hidden",
-                    backdropFilter: "blur(14px)",
-                    maxWidth: 110,
+                    background: "rgba(0,0,0,0.32)",
+                    border: "1px solid rgba(255,255,255,0.10)",
+                    borderTop: "1px solid rgba(255,255,255,0.17)",
+                    borderRadius: 8,
+                    padding: "5px 10px",
+                    backdropFilter: "blur(16px)",
+                    boxShadow: "0 2px 14px rgba(0,0,0,0.28)",
+                    minWidth: 0,
+                    maxWidth: 135,
                   }}>
-                    {/* Left accent bar */}
+                    {/* Role label + Name */}
                     <div style={{
-                      width: 2.5,
-                      background: `linear-gradient(180deg, ${roleColor} 0%, ${roleColor}55 100%)`,
-                      flexShrink: 0,
-                    }} />
-                    {/* Content */}
-                    <div style={{
-                      padding: "4px 8px 4px 6px",
                       display: "flex",
-                      flexDirection: "column",
-                      gap: 2.5,
-                      minWidth: 0,
+                      alignItems: "baseline",
+                      gap: 0,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
                     }}>
-                      {/* Display name */}
                       <span style={{
                         fontFamily: "'JetBrains Mono','SF Mono',monospace",
-                        fontSize: 9,
+                        fontSize: 7.5,
+                        fontWeight: 500,
+                        color: "rgba(255,255,255,0.38)",
+                        letterSpacing: 0.4,
+                        flexShrink: 0,
+                      }}>
+                        {isFullAdmin ? "Admin" : "Agent"}:{" "}
+                      </span>
+                      <span style={{
+                        fontFamily: "'JetBrains Mono','SF Mono',monospace",
+                        fontSize: 9.5,
                         fontWeight: 800,
-                        color: "rgba(255,255,255,0.92)",
-                        letterSpacing: 0.7,
+                        color: "rgba(255,255,255,0.93)",
+                        letterSpacing: 0.6,
                         textTransform: "uppercase",
-                        lineHeight: 1,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
                       }}>
                         {dispName}
                       </span>
-                      {/* Role · UID row */}
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        minWidth: 0,
-                      }}>
-                        <span style={{
-                          fontFamily: "'JetBrains Mono','SF Mono',monospace",
-                          fontSize: 7,
-                          fontWeight: 700,
-                          color: roleColor,
-                          letterSpacing: 0.9,
-                          textTransform: "uppercase",
-                          flexShrink: 0,
-                          lineHeight: 1,
-                        }}>
-                          {roleLabel}
-                        </span>
-                        <span style={{
-                          width: 1,
-                          height: 7,
-                          background: "rgba(255,255,255,0.15)",
-                          flexShrink: 0,
-                          borderRadius: 1,
-                        }} />
-                        <span style={{
-                          fontFamily: "'JetBrains Mono','SF Mono',monospace",
-                          fontSize: 7,
-                          fontWeight: 400,
-                          color: "rgba(255,255,255,0.35)",
-                          letterSpacing: 0.2,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          lineHeight: 1,
-                        }}>
-                          {maskedUid}
-                        </span>
-                      </div>
+                    </div>
+                    {/* Divider + UID */}
+                    <div style={{
+                      marginTop: 4,
+                      paddingTop: 4,
+                      borderTop: "1px solid rgba(255,255,255,0.07)",
+                      fontFamily: "'JetBrains Mono','SF Mono',monospace",
+                      fontSize: 7,
+                      fontWeight: 400,
+                      color: "rgba(255,255,255,0.22)",
+                      letterSpacing: 0.5,
+                      lineHeight: 1,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}>
+                      {maskedUid}
                     </div>
                   </div>
                 );
