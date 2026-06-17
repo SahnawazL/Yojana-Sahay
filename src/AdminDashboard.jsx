@@ -5611,174 +5611,289 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       <style>{`
         .ys-input::placeholder{color:#888;opacity:1}
         @keyframes ys-spin{to{transform:rotate(360deg)}}
+        @keyframes ys-pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.55;transform:scale(0.8)}}
+        .ys-ctrl-btn:active{background:rgba(255,255,255,0.08)!important}
       `}</style>
       <div style={{
-        background:`linear-gradient(135deg,${NAVY} 0%,rgba(0,53,128,0.92) 60%,rgba(255,153,51,0.85) 100%)`,
-        padding: isDesktop ? "20px 40px 0" : "18px 18px 0", flexShrink:0,
-        boxShadow:"0 4px 20px rgba(0,53,128,0.3)",
+        background:`linear-gradient(160deg,#001a4d 0%,${NAVY} 52%,rgba(160,70,0,0.72) 100%)`,
+        flexShrink:0,
+        boxShadow:"0 4px 32px rgba(0,0,0,0.42)",
         position:"sticky", top:0, zIndex:10,
       }}>
-        <div style={{ display:"flex", alignItems:"center", gap:12, maxWidth: isDesktop ? 1400 : "100%", margin: isDesktop ? "0 auto" : undefined }}>
+
+        {/* ══ Row 1 — Back · Title · Controls ══ */}
+        <div style={{
+          display:"flex", alignItems:"center", gap:10,
+          padding: isDesktop ? "16px 40px 10px" : "14px 16px 10px",
+          maxWidth: isDesktop ? 1400 : "100%",
+          margin: isDesktop ? "0 auto" : undefined,
+        }}>
+
+          {/* Back button */}
           <div onClick={onClose} style={{
-            width:36, height:36, borderRadius:10,
-            background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.25)",
+            width:34, height:34, borderRadius:10, flexShrink:0,
+            background:"rgba(255,255,255,0.10)",
+            border:"1px solid rgba(255,255,255,0.18)",
+            backdropFilter:"blur(10px)",
             display:"flex", alignItems:"center", justifyContent:"center",
-            cursor:"pointer", fontSize:16, flexShrink:0,
-          }}>←</div>
+            cursor:"pointer",
+            boxShadow:"inset 0 1px 0 rgba(255,255,255,0.12)",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(255,255,255,0.88)" strokeWidth="2.5"
+              strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </div>
+
+          {/* Title block */}
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ color:"#fff", fontSize:17, fontWeight:800 }}>
-              🛡️ Admin Dashboard
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <span style={{ fontSize:15, lineHeight:1, flexShrink:0 }}>🛡️</span>
+              <span style={{
+                color:"#fff", fontSize:16, fontWeight:800,
+                letterSpacing:0.1, lineHeight:1,
+              }}>Admin Dashboard</span>
             </div>
-            {/* Active-tab smart pill */}
-            <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:3 }}>
-              <div style={{ color:"rgba(255,255,255,0.6)", fontSize:10 }}>
-                {loading ? "Loading…" : `${users.length} users`}
-              </div>
-              <div style={{
-                display:"flex", alignItems:"center", gap:4,
-                background:"rgba(255,255,255,0.18)",
-                border:"1px solid rgba(255,255,255,0.28)",
-                borderRadius:20, padding:"2px 9px 2px 5px",
-                backdropFilter:"blur(8px)",
+            <div style={{
+              marginTop:4, display:"flex", alignItems:"center", gap:5, flexWrap:"nowrap",
+            }}>
+              <span style={{
+                fontFamily:"'JetBrains Mono','SF Mono',monospace",
+                fontSize:8, color:"rgba(255,255,255,0.35)", letterSpacing:0.9,
+                textTransform:"uppercase", flexShrink:0,
               }}>
-                {/* Prev arrow */}
-                {(() => {
-                  const tabIds = TABS.map(([id]) => id);
-                  const curr   = tabIds.indexOf(activeSection);
-                  return curr > 0 ? (
-                    <span
-                      onClick={(e) => { e.stopPropagation(); navigateTab(tabIds[curr - 1]); }}
-                      style={{ fontSize:11, color:"rgba(255,255,255,0.7)", cursor:"pointer", lineHeight:1, padding:"0 2px" }}
-                    >‹</span>
-                  ) : (
-                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.2)", lineHeight:1, padding:"0 2px" }}>‹</span>
-                  );
-                })()}
-                {/* Current tab label */}
-                <span style={{ fontSize:10, fontWeight:800, color:"#fff", letterSpacing:0.2 }}>
+                v{ADMIN_BUILD_VERSION} · {ADMIN_BUILD_ENV}
+              </span>
+              <span style={{
+                width:3, height:3, borderRadius:"50%",
+                background:"rgba(255,255,255,0.22)", flexShrink:0,
+              }}/>
+              <span style={{ fontSize:9, color:"rgba(255,255,255,0.42)", flexShrink:0 }}>
+                {loading ? "Loading…" : `${users.length} users`}
+              </span>
+            </div>
+          </div>
+
+          {/* ── Controls pill: theme toggle + refresh ── */}
+          <div style={{
+            display:"flex", alignItems:"center",
+            background:"rgba(0,0,0,0.32)",
+            border:"1px solid rgba(255,255,255,0.12)",
+            borderTop:"1px solid rgba(255,255,255,0.18)",
+            borderRadius:11, overflow:"hidden",
+            backdropFilter:"blur(16px)",
+            boxShadow:"0 2px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)",
+            flexShrink:0,
+          }}>
+            <div
+              className="ys-ctrl-btn"
+              onClick={toggleDark}
+              style={{
+                padding:"8px 12px", cursor:"pointer",
+                fontSize:14, lineHeight:1,
+                borderRight:"1px solid rgba(255,255,255,0.10)",
+                transition:"background 0.15s",
+              }}
+            >
+              {dark ? "☀️" : "🌙"}
+            </div>
+            <div
+              className="ys-ctrl-btn"
+              onClick={() => fetchUsers(true)}
+              style={{
+                padding:"8px 12px", cursor:"pointer",
+                opacity: refreshing ? 0.4 : 1,
+                transition:"opacity 0.2s, background 0.15s",
+                display:"flex", alignItems:"center", justifyContent:"center",
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24"
+                fill="none" stroke="rgba(255,255,255,0.82)" strokeWidth="2.3"
+                strokeLinecap="round" strokeLinejoin="round"
+                style={{ animation: refreshing ? "ys-spin 0.75s linear infinite" : "none" }}
+              >
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* ══ Row 2 — Identity card + tab navigator ══ */}
+        {sessionUser && (() => {
+          const uid         = sessionUser.uid || "";
+          const maskedUid   = uid.length >= 8
+            ? `${uid.slice(0,4)}…${uid.slice(-4)}`
+            : uid;
+          const isFullAdmin = allowedTabs === null;
+          const dispName    = sessionUser.displayName?.split(" ")?.[0]
+                           || sessionUser.email?.split("@")?.[0]
+                           || "Admin";
+          const photoURL    = sessionUser.photoURL || null;
+          const initial     = dispName.charAt(0).toUpperCase();
+          const tabIds      = TABS.map(([id]) => id);
+          const curr        = tabIds.indexOf(activeSection);
+
+          return (
+            <div style={{
+              display:"flex", alignItems:"center", gap:8,
+              padding: isDesktop ? "0 40px 12px" : "0 16px 12px",
+              maxWidth: isDesktop ? 1400 : "100%",
+              margin: isDesktop ? "0 auto" : undefined,
+            }}>
+
+              {/* Identity chip */}
+              <div style={{
+                display:"flex", alignItems:"center", gap:9,
+                background:"rgba(0,0,0,0.28)",
+                border:"1px solid rgba(255,255,255,0.10)",
+                borderTop:"1px solid rgba(255,255,255,0.20)",
+                borderRadius:12, padding:"8px 12px 8px 8px",
+                backdropFilter:"blur(16px)",
+                flex:1, minWidth:0,
+                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 12px rgba(0,0,0,0.22)",
+              }}>
+
+                {/* Avatar */}
+                {photoURL ? (
+                  <img src={photoURL} alt={initial} referrerPolicy="no-referrer" style={{
+                    width:32, height:32, borderRadius:9, objectFit:"cover", flexShrink:0,
+                    border:"1.5px solid rgba(255,255,255,0.22)",
+                    boxShadow:"0 2px 8px rgba(0,0,0,0.35)",
+                  }}/>
+                ) : (
+                  <div style={{
+                    width:32, height:32, borderRadius:9, flexShrink:0,
+                    background: isFullAdmin
+                      ? `linear-gradient(145deg,${SAFFRON} 0%,#d4600a 100%)`
+                      : `linear-gradient(145deg,${IND_GREEN} 0%,#0a6b05 100%)`,
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize:13, fontWeight:900, color:"#fff",
+                    boxShadow: isFullAdmin
+                      ? "0 3px 10px rgba(255,153,51,0.42)"
+                      : "0 3px 10px rgba(19,136,8,0.42)",
+                    letterSpacing:-0.5,
+                  }}>{initial}</div>
+                )}
+
+                {/* Name + role badge + UID */}
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <span style={{
+                      fontFamily:"'JetBrains Mono','SF Mono',monospace",
+                      fontSize:11.5, fontWeight:800,
+                      color:"rgba(255,255,255,0.96)",
+                      letterSpacing:0.6, textTransform:"uppercase",
+                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                    }}>
+                      {dispName}
+                    </span>
+                    <span style={{
+                      fontFamily:"'JetBrains Mono','SF Mono',monospace",
+                      fontSize:7, fontWeight:700, letterSpacing:1,
+                      color: isFullAdmin ? SAFFRON : IND_GREEN,
+                      background: isFullAdmin ? "rgba(255,153,51,0.14)" : "rgba(19,136,8,0.14)",
+                      border:`1px solid ${isFullAdmin ? SAFFRON : IND_GREEN}35`,
+                      borderRadius:5, padding:"2px 5px",
+                      flexShrink:0, lineHeight:"12px",
+                    }}>
+                      {isFullAdmin ? "ADMIN" : "AGENT"}
+                    </span>
+                  </div>
+                  <div style={{
+                    fontFamily:"'JetBrains Mono','SF Mono',monospace",
+                    fontSize:7.5, color:"rgba(255,255,255,0.20)",
+                    letterSpacing:0.5, marginTop:2.5,
+                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>
+                    {maskedUid}
+                  </div>
+                </div>
+
+                {/* Live status indicator */}
+                <div style={{
+                  display:"flex", flexDirection:"column", alignItems:"center",
+                  gap:3, flexShrink:0,
+                }}>
+                  <div style={{
+                    width:7, height:7, borderRadius:"50%",
+                    background:"#22c55e",
+                    boxShadow:"0 0 6px rgba(34,197,94,0.85)",
+                    animation:"ys-pulse-dot 2.2s ease-in-out infinite",
+                  }} />
+                  <span style={{
+                    fontFamily:"'JetBrains Mono','SF Mono',monospace",
+                    fontSize:6.5, color:"rgba(255,255,255,0.28)", letterSpacing:0.8,
+                  }}>LIVE</span>
+                </div>
+              </div>
+
+              {/* Tab navigator pill */}
+              <div style={{
+                display:"flex", alignItems:"center", gap:1,
+                background:"rgba(255,255,255,0.13)",
+                border:"1px solid rgba(255,255,255,0.22)",
+                borderRadius:22, padding:"6px 8px",
+                backdropFilter:"blur(10px)",
+                flexShrink:0,
+                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.12)",
+              }}>
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (activeSection === "home") return;
+                    const c2 = tabIds.indexOf(activeSection);
+                    if (c2 === 0) { navigateTab("home"); return; }
+                    if (c2 > 0) navigateTab(tabIds[c2 - 1]);
+                  }}
+                  style={{
+                    fontSize:16, color:"rgba(255,255,255,0.7)",
+                    cursor:"pointer", lineHeight:1, padding:"0 3px",
+                    opacity: activeSection !== "home" ? 1 : 0.2,
+                    userSelect:"none",
+                  }}
+                >‹</span>
+                <span style={{
+                  fontSize:10, fontWeight:800, color:"#fff",
+                  letterSpacing:0.2, whiteSpace:"nowrap",
+                  minWidth:52, textAlign:"center",
+                  padding:"0 2px",
+                }}>
                   {activeSection === "home"
                     ? "🏠 Home"
                     : (TABS.find(([id]) => id === activeSection)?.[1] || "")}
                 </span>
-                {/* Next arrow */}
-                {(() => {
-                  const tabIds = TABS.map(([id]) => id);
-                  const curr   = tabIds.indexOf(activeSection);
-                  // curr === -1 when on "home" — must be excluded explicitly
-                  return activeSection !== "home" && curr < tabIds.length - 1 ? (
-                    <span
-                      onClick={(e) => { e.stopPropagation(); navigateTab(tabIds[curr + 1]); }}
-                      style={{ fontSize:11, color:"rgba(255,255,255,0.7)", cursor:"pointer", lineHeight:1, padding:"0 2px" }}
-                    >›</span>
-                  ) : (
-                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.2)", lineHeight:1, padding:"0 2px" }}>›</span>
-                  );
-                })()}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (activeSection === "home") { navigateTab(tabIds[0]); return; }
+                    const c2 = tabIds.indexOf(activeSection);
+                    if (c2 < tabIds.length - 1) navigateTab(tabIds[c2 + 1]);
+                  }}
+                  style={{
+                    fontSize:16, color:"rgba(255,255,255,0.7)",
+                    cursor:"pointer", lineHeight:1, padding:"0 3px",
+                    opacity: (activeSection === "home" || (curr !== -1 && curr < tabIds.length - 1)) ? 1 : 0.2,
+                    userSelect:"none",
+                  }}
+                >›</span>
               </div>
-
-              {/* ── Session Chip ─────────────────────────────────────── */}
-              {sessionUser && (() => {
-                const uid         = sessionUser.uid || "";
-                const maskedUid   = uid.length >= 8
-                  ? `${uid.slice(0, 4)}…${uid.slice(-4)}`
-                  : uid;
-                const isFullAdmin = allowedTabs === null;
-                const dispName    = sessionUser.displayName?.split(" ")?.[0]
-                                 || sessionUser.email?.split("@")?.[0]
-                                 || "Admin";
-                return (
-                  <div style={{
-                    marginLeft: "auto",
-                    flexShrink: 0,
-                    background: "rgba(0,0,0,0.32)",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    borderTop: "1px solid rgba(255,255,255,0.17)",
-                    borderRadius: 8,
-                    padding: "5px 10px",
-                    backdropFilter: "blur(16px)",
-                    boxShadow: "0 2px 14px rgba(0,0,0,0.28)",
-                    minWidth: 0,
-                    maxWidth: 135,
-                  }}>
-                    {/* Role label + Name */}
-                    <div style={{
-                      display: "flex",
-                      alignItems: "baseline",
-                      gap: 0,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                    }}>
-                      <span style={{
-                        fontFamily: "'JetBrains Mono','SF Mono',monospace",
-                        fontSize: 7.5,
-                        fontWeight: 500,
-                        color: "rgba(255,255,255,0.38)",
-                        letterSpacing: 0.4,
-                        flexShrink: 0,
-                      }}>
-                        {isFullAdmin ? "Admin" : "Agent"}:{" "}
-                      </span>
-                      <span style={{
-                        fontFamily: "'JetBrains Mono','SF Mono',monospace",
-                        fontSize: 9.5,
-                        fontWeight: 800,
-                        color: "rgba(255,255,255,0.93)",
-                        letterSpacing: 0.6,
-                        textTransform: "uppercase",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}>
-                        {dispName}
-                      </span>
-                    </div>
-                    {/* Divider + UID */}
-                    <div style={{
-                      marginTop: 4,
-                      paddingTop: 4,
-                      borderTop: "1px solid rgba(255,255,255,0.07)",
-                      fontFamily: "'JetBrains Mono','SF Mono',monospace",
-                      fontSize: 7,
-                      fontWeight: 400,
-                      color: "rgba(255,255,255,0.22)",
-                      letterSpacing: 0.5,
-                      lineHeight: 1,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}>
-                      {maskedUid}
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
-          </div>
-          {/* Dark/Light toggle */}
-          <div onClick={toggleDark} style={{
-            background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.25)",
-            borderRadius:10, padding:"7px 10px",
-            color:"#fff", fontSize:14, cursor:"pointer",
-          }}>
-            {dark ? "☀️" : "🌙"}
-          </div>
-          {/* Refresh */}
-          <div onClick={() => fetchUsers(true)} style={{
-            background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.25)",
-            borderRadius:10, padding:"7px 10px",
-            color:"#fff", fontSize:12, cursor:"pointer",
-            opacity: refreshing ? 0.5 : 1,
-          }}>
-            {refreshing ? "…" : "↻"}
-          </div>
+          );
+        })()}
 
-        </div>
-
-        {/* Tabs */}
+        {/* ══ Tab bar ══ */}
         <div ref={tabsBarRef} style={{
-          display:"flex", gap: isDesktop ? 4 : 6,
-          overflowX:"auto", paddingBottom:1,
+          display:"flex", gap: isDesktop ? 4 : 4,
+          overflowX:"auto", paddingBottom:0,
+          scrollbarWidth:"none",
+          WebkitOverflowScrolling:"touch",
           maxWidth: isDesktop ? 1400 : "100%",
-          margin: isDesktop ? "14px auto 0" : "14px 0 0",
+          margin: isDesktop ? "6px auto 0" : "6px 0 0",
+          paddingLeft: isDesktop ? 40 : 16,
+          paddingRight: isDesktop ? 40 : 12,
         }}>
           {/* ─ HOME tab ─ */}
           <div
