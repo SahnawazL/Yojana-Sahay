@@ -77,8 +77,11 @@ const THIRTY_DAYS_MS   = 30 * 24 * 60 * 60 * 1000;
 // prevents valid scheme URLs from being falsely labelled "Dead" in the admin UI.
 // Tavily (Tier 2) can still reach these fine via its own crawler.
 const INDIA_ONLY_DOMAINS = [
-  "nic.in",       // National Informatics Centre — all subdomains (e.g. services.india.gov.in on nic infra)
-  "india.gov.in", // National Portal of India (NIC-hosted)
+  "nic.in",          // National Informatics Centre — all subdomains (e.g. services.india.gov.in on nic infra)
+  "india.gov.in",    // National Portal of India (NIC-hosted)
+  "nesdr.gov.in",    // NE Space & Disaster Research — blocks non-Indian IPs (e.g. mobileapp.nesdr.gov.in)
+  "assam.gov.in",    // Assam state portal — all subdomains (e.g. dids, aeda, cmcovidsupport, etc.)
+  "mygov.in",        // MyGov India — citizen engagement platform
 ];
 
 
