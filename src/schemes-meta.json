@@ -1701,28 +1701,40 @@
     "linkAlive": true
   },
   "jk_kisan_samman": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "linkAlive": true,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "jk_apple_mission": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "linkAlive": true,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "jk_crop_insurance": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "linkAlive": true,
+    "httpStatus": 200,
+    "confidence": 0
   },
   "jk_tejaswini": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "linkAlive": true,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "jk_sehat_health_insurance": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "jk_himayat": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "linkAlive": true,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "ladakh_himayat_skill": {
     "lastVerified": "2026-06-16T20:36:16.595Z",
@@ -1743,6 +1755,18 @@
   "bihar_minority_scholarship": {
     "lastVerified": "2026-06-17T08:54:45.813Z",
     "httpStatus": 200,
+    "confidence": 0
+  },
+  "jk_super75_scholarship": {
+    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "httpStatus": 200,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "jk_post_matric_sc_st": {
+    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "httpStatus": 200,
+    "linkAlive": false,
     "confidence": 0
   }
 }
