@@ -3957,7 +3957,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
               letterSpacing:3, lineHeight:1,
               textShadow: dark ? `0 0 16px ${SAFFRON}66, 0 0 32px ${SAFFRON}33` : "none",
             }}>
-              {TIME_STR}<span className="hs-cursor" style={{ color:SAFFRON, marginLeft:2 }}>▌</span>
+              {TIME_STR}
             </div>
             <div style={{ fontFamily:MONO_FONT, fontSize:9, color:th.textSub, letterSpacing:0.5, marginTop:5 }}>{DATE_STR}</div>
             <div style={{ marginTop:10, display:"flex", gap:5, justifyContent:"center" }}>
@@ -4039,7 +4039,6 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
           <span style={{ display:"inline-block", width:6, height:6, borderRadius:"50%", background:dbStateColor, boxShadow:`0 0 7px ${dbStateColor}cc, 0 0 15px ${dbStateColor}66`, animation: dbOnline ? "hs-pulse 1.8s ease-in-out infinite" : "none" }} />
           <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, letterSpacing:1.2, color:dbStateColor, textTransform:"uppercase", textShadow: dark ? `0 0 9px ${dbStateColor}55` : "none" }}>
             {error ? "DATABASE ERROR" : "ALL SYSTEMS OPERATIONAL"}
-            {dbOnline && <span className="hs-cursor" style={{ color:dbStateColor }}>▌</span>}
           </span>
         </div>
 
@@ -5686,53 +5685,92 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 const isFullAdmin = allowedTabs === null;
                 const roleLabel   = isFullAdmin ? "ADMIN" : "AGENT";
                 const roleColor   = isFullAdmin ? SAFFRON : IND_GREEN;
+                const dispName    = sessionUser.displayName?.split(" ")?.[0]
+                                 || sessionUser.email?.split("@")?.[0]
+                                 || "Admin";
                 return (
                   <div style={{
                     marginLeft: "auto",
                     flexShrink: 0,
                     display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    background: "rgba(255,255,255,0.07)",
-                    border: `1px solid ${roleColor}45`,
-                    borderRadius: 20,
-                    padding: "3px 9px 3px 6px",
-                    backdropFilter: "blur(10px)",
+                    alignItems: "stretch",
+                    background: "rgba(0,0,0,0.30)",
+                    border: `1px solid ${roleColor}28`,
+                    borderRadius: 7,
+                    overflow: "hidden",
+                    backdropFilter: "blur(14px)",
+                    maxWidth: 110,
                   }}>
-                    {/* Role badge */}
-                    <span style={{
-                      fontFamily: "'JetBrains Mono','SF Mono',monospace",
-                      fontSize: 8,
-                      fontWeight: 800,
-                      color: roleColor,
-                      letterSpacing: 0.9,
-                      textTransform: "uppercase",
+                    {/* Left accent bar */}
+                    <div style={{
+                      width: 2.5,
+                      background: `linear-gradient(180deg, ${roleColor} 0%, ${roleColor}55 100%)`,
                       flexShrink: 0,
-                    }}>
-                      {roleLabel}
-                    </span>
-                    {/* Separator */}
-                    <span style={{
-                      width: 1,
-                      height: 9,
-                      background: "rgba(255,255,255,0.18)",
-                      flexShrink: 0,
-                      borderRadius: 1,
                     }} />
-                    {/* Masked UID */}
-                    <span style={{
-                      fontFamily: "'JetBrains Mono','SF Mono',monospace",
-                      fontSize: 8,
-                      fontWeight: 500,
-                      color: "rgba(255,255,255,0.5)",
-                      letterSpacing: 0.3,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      maxWidth: 68,
+                    {/* Content */}
+                    <div style={{
+                      padding: "4px 8px 4px 6px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2.5,
+                      minWidth: 0,
                     }}>
-                      {maskedUid}
-                    </span>
+                      {/* Display name */}
+                      <span style={{
+                        fontFamily: "'JetBrains Mono','SF Mono',monospace",
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: "rgba(255,255,255,0.92)",
+                        letterSpacing: 0.7,
+                        textTransform: "uppercase",
+                        lineHeight: 1,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}>
+                        {dispName}
+                      </span>
+                      {/* Role · UID row */}
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        minWidth: 0,
+                      }}>
+                        <span style={{
+                          fontFamily: "'JetBrains Mono','SF Mono',monospace",
+                          fontSize: 7,
+                          fontWeight: 700,
+                          color: roleColor,
+                          letterSpacing: 0.9,
+                          textTransform: "uppercase",
+                          flexShrink: 0,
+                          lineHeight: 1,
+                        }}>
+                          {roleLabel}
+                        </span>
+                        <span style={{
+                          width: 1,
+                          height: 7,
+                          background: "rgba(255,255,255,0.15)",
+                          flexShrink: 0,
+                          borderRadius: 1,
+                        }} />
+                        <span style={{
+                          fontFamily: "'JetBrains Mono','SF Mono',monospace",
+                          fontSize: 7,
+                          fontWeight: 400,
+                          color: "rgba(255,255,255,0.35)",
+                          letterSpacing: 0.2,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          lineHeight: 1,
+                        }}>
+                          {maskedUid}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 );
               })()}
