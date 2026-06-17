@@ -1780,5 +1780,17 @@
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
+  },
+  "chandigarh_post_matric_scholarship": {
+    "lastVerified": "2026-06-17T09:49:22.655Z",
+    "httpStatus": 200,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "chandigarh_chb_ews_housing": {
+    "lastVerified": "2026-06-17T09:49:22.655Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
   }
 }
