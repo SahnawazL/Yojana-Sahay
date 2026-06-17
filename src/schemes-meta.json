@@ -1873,9 +1873,9 @@
     "confidence": 0
   },
   "karnataka_vidyasiri": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:25:27.883Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_postmatric_scholarship": {
@@ -1926,9 +1926,9 @@
     "confidence": 0
   },
   "karnataka_sericulture": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:25:27.883Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_horticulture_subsidy": {
@@ -1944,9 +1944,9 @@
     "confidence": 0
   },
   "karnataka_stree_shakti": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:25:27.883Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_morarji_desai": {
@@ -1985,9 +1985,9 @@
     "confidence": 0
   },
   "karnataka_sc_corporation_housing": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:25:27.883Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_yuva_nidhi": {
@@ -1997,15 +1997,15 @@
     "confidence": 0
   },
   "karnataka_udyogini": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:25:27.883Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_suvarna_arogya_suraksha": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:25:27.883Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_matsya_bhagya": {
@@ -2021,9 +2021,9 @@
     "confidence": 0
   },
   "karnataka_tribal_ashrama": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:25:27.883Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_minorities_scholarship": {
@@ -2033,9 +2033,9 @@
     "confidence": 0
   },
   "karnataka_shaadi_bhagya": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:25:27.883Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_solar_pump": {
@@ -2044,9 +2044,9 @@
     "confidence": 0
   },
   "karnataka_surya_raitha": {
-    "lastVerified": "2026-06-17T13:55:35.148Z",
+    "lastVerified": "2026-06-17T18:25:27.883Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_sports_scholarship": {
