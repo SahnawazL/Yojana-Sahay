@@ -20,6 +20,7 @@ import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
 import SchemeVerifier from "./SchemeVerifier.jsx";
+import AgentsTab, { useAgentPresence, logAdminActivity } from "./AgentsTab.jsx";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -155,6 +156,14 @@ const TAB_ICONS = {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
       <polyline points="7 10 12 15 17 10"/>
       <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  ),
+  agents: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>
   ),
 };
@@ -3866,6 +3875,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
     reports:   { desc:"User-reported issues, admin replies & status workflow",     badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badge2Color: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)", icon:"reports" },
     cleanup:   { desc:"Purge resolved reports & flush stale usage data",           badge:"database hygiene",                                                                badge2Color:"#F59E0B", accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"cleanup" },
     verify:    { desc:"Ping scheme URLs & extract deadlines via AI",               badge:"Tier 1 + Tier 2",                                                                 badge2Color:NAVY,      accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"verify" },
+    agents:    { desc:"Live presence, session tracking & activity feed for agents", badge:"live · auto-refresh",                                                             badge2Color:IND_GREEN, accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"agents" },
     export:    { desc:"Compile & download full-dashboard PDF intelligence report",  badge:"landscape A4 · PDF",                                                             badge2Color:"#10B981", accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"export" },
   };
 
@@ -4420,6 +4430,15 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     const unsub = onAuthStateChanged(auth, (u) => setSessionUser(u));
     return () => unsub();
   }, []);
+
+  // ── Agent presence heartbeat — writes this admin's online status to Firestore ──
+  useAgentPresence(
+    sessionUser?.uid,
+    sessionUser?.displayName || sessionUser?.email,
+    sessionUser?.email,
+    activeSection,
+    isDesktop,
+  );
 
   // ── Smart tab navigation ──────────────────────────────────────────────────
   const tabsBarRef      = useRef(null);
@@ -5707,6 +5726,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     ["reports",   "Reports"],
     ["cleanup",   "Cleanup"],
     ["verify",    "Verify"],
+    ["agents",    "Agents"],
     ["export",    "Export"],
   ];
   // allowedTabs=null means full admin (show all). Array means restricted — filter to those tabs only.
@@ -7476,6 +7496,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       {/* ══ VERIFY — Scheme URL Verifier ══ */}
       {!loading && !error && activeSection === "verify" && (
         <SchemeVerifier dark={dark} isDesktop={isDesktop} />
+      )}
+
+      {/* ══ AGENTS — Live Presence Monitor ══ */}
+      {!loading && !error && activeSection === "agents" && (
+        <AgentsTab dark={dark} isDesktop={isDesktop} />
       )}
 
       </div>{/* end animated tab content */}
