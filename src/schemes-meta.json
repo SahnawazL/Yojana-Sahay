@@ -2753,9 +2753,9 @@
     "confidence": 0
   },
   "haryana_saksham": {
-    "lastVerified": "2026-06-18T07:10:59.514Z",
+    "lastVerified": "2026-06-18T07:15:03.357Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_mmpsy": {
@@ -2789,9 +2789,9 @@
     "confidence": 0
   },
   "haryana_chirayu": {
-    "lastVerified": "2026-06-18T07:10:59.514Z",
+    "lastVerified": "2026-06-18T07:15:03.357Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_ambedkar_awas": {
@@ -2807,9 +2807,9 @@
     "confidence": 0
   },
   "haryana_antyodaya": {
-    "lastVerified": "2026-06-18T07:10:59.514Z",
+    "lastVerified": "2026-06-18T07:15:03.357Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_meri_fasal": {
@@ -2825,27 +2825,27 @@
     "confidence": 0
   },
   "haryana_e_karma": {
-    "lastVerified": "2026-06-18T07:10:59.514Z",
+    "lastVerified": "2026-06-18T07:15:03.357Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_solar_pump": {
-    "lastVerified": "2026-06-18T07:10:59.514Z",
+    "lastVerified": "2026-06-18T07:15:03.357Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_ladli": {
-    "lastVerified": "2026-06-18T07:10:59.514Z",
+    "lastVerified": "2026-06-18T07:15:03.357Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_farm_equipment": {
-    "lastVerified": "2026-06-18T07:10:59.514Z",
+    "lastVerified": "2026-06-18T07:15:03.357Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_micro_irrigation": {
@@ -2855,9 +2855,9 @@
     "confidence": 0
   },
   "haryana_bocw": {
-    "lastVerified": "2026-06-18T07:10:59.514Z",
+    "lastVerified": "2026-06-18T07:15:03.357Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_sc_postmatric": {
