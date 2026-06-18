@@ -3373,6 +3373,64 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 const MONO_FONT = "'SF Mono','Fira Code','Courier New',monospace";
 
+// ── LiveClock: isolated clock — only this tiny node re-renders every second ──
+function LiveClock({ dark, th, isDesktop }) {
+  const [tick, setTick] = React.useState(new Date());
+  React.useEffect(() => {
+    const id = setInterval(() => setTick(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const TIME_STR = tick.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false });
+  const DATE_STR = tick.toLocaleDateString("en-IN",  { weekday:"short", day:"numeric", month:"short", year:"numeric" });
+  return (
+    <>
+      <div style={{
+        fontFamily:MONO_FONT, fontSize: isDesktop?30:26, fontWeight:900, color:SAFFRON,
+        letterSpacing:3, lineHeight:1,
+        textShadow: dark ? `0 0 16px ${SAFFRON}66, 0 0 32px ${SAFFRON}33` : "none",
+      }}>
+        {TIME_STR}
+      </div>
+      <div style={{ fontFamily:MONO_FONT, fontSize:9, color:th.textSub, letterSpacing:0.5, marginTop:5 }}>{DATE_STR}</div>
+    </>
+  );
+}
+
+// ── LiveStatusMeta: isolated LAST SYNC + SESSION — only these cells tick ──
+function LiveStatusMeta({ lastSynced, sessionStart, th }) {
+  const [tick, setTick] = React.useState(Date.now());
+  React.useEffect(() => {
+    const id = setInterval(() => setTick(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const syncAgoSec = lastSynced ? Math.max(0, Math.floor((tick - lastSynced.getTime()) / 1000)) : null;
+  const syncLabel = lastSynced == null
+    ? "syncing…"
+    : syncAgoSec < 5  ? "just now"
+    : syncAgoSec < 60 ? `${syncAgoSec}s ago`
+    : syncAgoSec < 3600 ? `${Math.floor(syncAgoSec/60)}m ${syncAgoSec%60}s ago`
+    : `${Math.floor(syncAgoSec/3600)}h ${Math.floor((syncAgoSec%3600)/60)}m ago`;
+  const upSec = sessionStart ? Math.max(0, Math.floor((tick - sessionStart) / 1000)) : 0;
+  const upH = Math.floor(upSec/3600), upM = Math.floor((upSec%3600)/60), upS = upSec%60;
+  const uptimeLabel = upH > 0
+    ? `${upH}h ${String(upM).padStart(2,"0")}m`
+    : `${String(upM).padStart(2,"0")}m ${String(upS).padStart(2,"0")}s`;
+  return (
+    <>
+      <div style={{ width:1, height:14, background:th.border, flexShrink:0 }} />
+      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+        <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>LAST SYNC</span>
+        <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:th.text }}>{syncLabel}</span>
+      </div>
+      <div style={{ width:1, height:14, background:th.border, flexShrink:0 }} />
+      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+        <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>SESSION</span>
+        <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:th.text }}>{uptimeLabel}</span>
+      </div>
+    </>
+  );
+}
+
 // ── tiny helper: hex or existing rgba → rgba with new alpha ──
 function hsRgba(color, alpha) {
   if (!color) return `rgba(0,0,0,${alpha})`;
@@ -3759,6 +3817,7 @@ function ModuleCard({ id, fullLabel, meta, isHov, isDesktop, dark, th, onClick, 
 function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab, error, refreshing, sessionStart, lastSynced, latencyMs, onRefresh }) {
   const th = THEME[dark ? "dark" : "light"];
   const [hovered, setHovered] = React.useState(null);
+  const [newTodayDismissed, setNewTodayDismissed] = React.useState(false);
 
   const nowMs       = Date.now();
   const openR       = reports.filter(r => r.status === "open").length;
@@ -3787,14 +3846,15 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
       u.createdAt.seconds * 1000 < dayEnd).length;
   });
 
-  const [tick, setTick] = React.useState(new Date());
-  React.useEffect(() => {
-    const id = setInterval(() => setTick(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const TIME_STR = tick.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false });
-  const DATE_STR = tick.toLocaleDateString("en-IN",  { weekday:"short", day:"numeric", month:"short", year:"numeric" });
+  // ── Week-over-week delta for KPI cards ──
+  const prevWkUsers     = users.filter(u => u.createdAt?.seconds &&
+    (nowMs - u.createdAt.seconds * 1000) >= ONE_DAY * 7 &&
+    (nowMs - u.createdAt.seconds * 1000) <  ONE_DAY * 14).length;
+  const newWkDelta      = newWk - prevWkUsers;
+  const newWkDeltaStr   = newWkDelta > 0 ? `▲ +${newWkDelta} vs last wk`
+                        : newWkDelta < 0 ? `▼ ${Math.abs(newWkDelta)} vs last wk`
+                        : `= same as last wk`;
+  const newWkDeltaColor = newWkDelta > 0 ? IND_GREEN : newWkDelta < 0 ? "#E53E3E" : th.textSub;
 
   const TAB_META = {
     overview:  { desc:"Platform KPIs, welfare metrics & live insights",            badge: loading ? "loading…" : `${actDay} active today`,                                  badge2Color:IND_GREEN, accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"overview" },
@@ -3809,7 +3869,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
     export:    { desc:"Compile & download full-dashboard PDF intelligence report",  badge:"landscape A4 · PDF",                                                             badge2Color:"#10B981", accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"export" },
   };
 
-  const cols     = isDesktop ? 3 : 2;
+  const cols     = isDesktop ? 5 : 2;
   const tabCards = TABS.filter(([id]) => TAB_META[id]);
   const engColor = engPct >= 20 ? IND_GREEN : engPct >= 5 ? SAFFRON : "#E53E3E";
 
@@ -3830,27 +3890,18 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
       text: `${dormantCnt} user${dormantCnt>1?"s":""} dormant 30+ days`,
       color:SAFFRON, action:"activity",
     },
-    newToday > 0 && {
-      id:"new", icon:"userplus",
-      text: `${newToday} new sign-up${newToday>1?"s":""} today`,
-      color:IND_GREEN, action:"users",
-    },
   ].filter(Boolean);
 
+  // ── Digest data for "ALL CLEAR" empty priority feed state ──
+  const digestTopUser = users.length > 0
+    ? [...users].sort((a,b) => (b.lastSeen?.seconds||0) - (a.lastSeen?.seconds||0))[0]
+    : null;
+  const digestStateCounts = groupBy(users, "state");
+  const digestTopState = users.length > 0
+    ? Object.entries(digestStateCounts).sort((a,b) => b[1] - a[1])[0]
+    : null;
+
   // ── System status telemetry (real, derived from actual fetch state) ──
-  const nowTick = tick.getTime();
-  const syncAgoSec = lastSynced ? Math.max(0, Math.floor((nowTick - lastSynced.getTime()) / 1000)) : null;
-  const syncLabel = lastSynced == null
-    ? "syncing…"
-    : syncAgoSec < 5 ? "just now"
-    : syncAgoSec < 60 ? `${syncAgoSec}s ago`
-    : syncAgoSec < 3600 ? `${Math.floor(syncAgoSec/60)}m ${syncAgoSec%60}s ago`
-    : `${Math.floor(syncAgoSec/3600)}h ${Math.floor((syncAgoSec%3600)/60)}m ago`;
-  const upSec = sessionStart ? Math.max(0, Math.floor((nowTick - sessionStart) / 1000)) : 0;
-  const upH = Math.floor(upSec/3600), upM = Math.floor((upSec%3600)/60), upS = upSec%60;
-  const uptimeLabel = upH > 0
-    ? `${upH}h ${String(upM).padStart(2,"0")}m`
-    : `${String(upM).padStart(2,"0")}m ${String(upS).padStart(2,"0")}s`;
   const dbOnline = !error;
   const dbStateLabel = error ? "ERROR" : refreshing ? "SYNCING" : loading ? "CONNECTING" : "CONNECTED";
   const dbStateColor = error ? "#E53E3E" : (refreshing || loading) ? SAFFRON : IND_GREEN;
@@ -3968,11 +4019,11 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
               marginTop:14,
             }}>
               {[
-                { label:"TOTAL USERS",   value: loading?"—":users.length,       color:NAVY,     sub: loading?"":statesCount+" states",   spark: null },
-                { label:"ACTIVE TODAY",  value: loading?"—":actDay,             color:IND_GREEN, sub: loading?"":engPct+"% engagement",  spark: null },
-                { label:"OPEN REPORTS",  value: loading?"—":openR,              color: openR>0?"#E53E3E":IND_GREEN, sub: loading?"":resolvedR+" resolved", spark: null },
-                { label:"NEW THIS WEEK", value: loading?"—":newWk,              color:SAFFRON,  sub: loading?"":reports.length+" total rpts", spark: spark7 },
-              ].map(({ label, value, color, sub, spark }) => (
+                { label:"TOTAL USERS",   value: loading?"—":users.length,  color:NAVY,                        sub: loading?"":statesCount+" states",        spark:null,   delta: loading?"": newWk>0?`▲ +${newWk} this wk`:"— no new this wk",     deltaColor: newWk>0?IND_GREEN:th.textSub },
+                { label:"ACTIVE TODAY",  value: loading?"—":actDay,        color:IND_GREEN,                   sub: loading?"":engPct+"% engagement",        spark:null,   delta: loading?"": `${actWeek} active this wk`,                          deltaColor: IND_GREEN },
+                { label:"OPEN REPORTS",  value: loading?"—":openR,         color: openR>0?"#E53E3E":IND_GREEN, sub: loading?"":resolvedR+" resolved",       spark:null,   delta: loading?"": unreplied>0?`${unreplied} need reply`:"all replied ✓", deltaColor: unreplied>0?"#E53E3E":IND_GREEN },
+                { label:"NEW THIS WEEK", value: loading?"—":newWk,         color:SAFFRON,                     sub: loading?"":reports.length+" total rpts", spark:spark7, delta: loading?"":newWkDeltaStr,                                          deltaColor: newWkDeltaColor },
+              ].map(({ label, value, color, sub, spark, delta, deltaColor }) => (
                 <div key={label} style={{
                   background: dark ? "rgba(0,0,0,0.36)" : "rgba(255,255,255,0.86)",
                   border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(0,53,128,0.09)"}`,
@@ -3989,6 +4040,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
                       {spark && <MiniSpark points={spark} color={color} width={isDesktop?52:40} height={isDesktop?22:18} />}
                     </div>
                     {sub && <div style={{ fontFamily:MONO_FONT, fontSize:7.5, marginTop:4, color, opacity:0.8, letterSpacing:0.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{sub}</div>}
+                    {delta && <div style={{ fontFamily:MONO_FONT, fontSize:7, marginTop:2, color:deltaColor, fontWeight:700, letterSpacing:0.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{delta}</div>}
                   </div>
                   <div style={{ position:"absolute", right:-12, top:-12, width:48, height:48, borderRadius:"50%", background:hsRgba(color, dark?0.06:0.05), pointerEvents:"none" }} />
                 </div>
@@ -4028,14 +4080,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
             textAlign:"center", position:"relative", overflow:"hidden",
           }}>
             <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg,${NAVY},${SAFFRON},${IND_GREEN})` }} />
-            <div style={{
-              fontFamily:MONO_FONT, fontSize: isDesktop?30:26, fontWeight:900, color:SAFFRON,
-              letterSpacing:3, lineHeight:1,
-              textShadow: dark ? `0 0 16px ${SAFFRON}66, 0 0 32px ${SAFFRON}33` : "none",
-            }}>
-              {TIME_STR}
-            </div>
-            <div style={{ fontFamily:MONO_FONT, fontSize:9, color:th.textSub, letterSpacing:0.5, marginTop:5 }}>{DATE_STR}</div>
+            <LiveClock dark={dark} th={th} isDesktop={isDesktop} />
             <div style={{ marginTop:10, display:"flex", gap:5, justifyContent:"center" }}>
               {[
                 { label:"USERS",   value: loading?"…":users.length,    color:NAVY     },
@@ -4067,32 +4112,95 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
             </div>
             {loading ? (
               <div style={{ padding:"20px 14px", fontFamily:MONO_FONT, fontSize:9, color:th.textSub, textAlign:"center" }}>// fetching…</div>
-            ) : ALERTS.length === 0 ? (
-              <div style={{ padding:"20px 14px", textAlign:"center" }}>
-                <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}><Icon name="check" size={22} color={IND_GREEN} strokeWidth={1.6}/></div>
-                <div style={{ fontFamily:MONO_FONT, fontSize:9, color:IND_GREEN, fontWeight:700, letterSpacing:0.5 }}>ALL CLEAR</div>
-                <div style={{ fontFamily:MONO_FONT, fontSize:8, color:th.textSub, marginTop:3 }}>No pending actions</div>
-              </div>
-            ) : ALERTS.map((a, i) => (
-              <div
-                key={a.id}
-                className="hs-alert-row"
-                onClick={() => navigateTab(a.action)}
-                style={{
-                  display:"flex", alignItems:"center", gap:10,
-                  padding:"9px 14px",
-                  borderBottom: i < ALERTS.length - 1 ? `1px solid ${th.border}` : "none",
-                  background:"transparent",
-                  cursor:"pointer",
-                }}
-              >
-                <div style={{ width:28, height:28, borderRadius:8, flexShrink:0, background:hsRgba(a.color,0.1), border:`1px solid ${hsRgba(a.color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name={a.icon} size={13} color={a.color} strokeWidth={1.9}/></div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:th.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.text}</div>
-                </div>
-                <div style={{ fontSize:12, color:a.color, flexShrink:0, fontWeight:700 }}>›</div>
-              </div>
-            ))}
+            ) : (
+              <>
+                {/* ── Celebration banner — floats above the warning feed ── */}
+                {newToday > 0 && !newTodayDismissed && (
+                  <div style={{
+                    margin:"8px 8px 6px",
+                    padding:"7px 10px 7px 12px",
+                    background: dark ? "rgba(0,232,122,0.08)" : "rgba(19,136,8,0.06)",
+                    border:`1px solid ${dark?"rgba(0,232,122,0.22)":"rgba(19,136,8,0.18)"}`,
+                    borderRadius:9,
+                    display:"flex", alignItems:"center", gap:8,
+                    boxShadow: dark ? "0 0 12px rgba(0,232,122,0.1)" : "none",
+                  }}>
+                    <span style={{ fontSize:14, lineHeight:1, flexShrink:0 }}>🎉</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:IND_GREEN, letterSpacing:0.3 }}>
+                        {newToday} new sign-up{newToday>1?"s":""} today!
+                      </div>
+                      <div style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, marginTop:1 }}>
+                        → <span style={{ color:IND_GREEN, cursor:"pointer", textDecoration:"underline" }} onClick={() => navigateTab("users")}>view in Users</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setNewTodayDismissed(true)}
+                      style={{ background:"none", border:"none", cursor:"pointer", color:th.textSub, fontSize:16, padding:"0 3px", lineHeight:1, flexShrink:0 }}
+                    >×</button>
+                  </div>
+                )}
+                {ALERTS.length === 0 ? (
+                  <div style={{ padding:"12px 14px 10px" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:5, paddingBottom:8, borderBottom:`1px solid ${th.border}`, marginBottom:2 }}>
+                      <Icon name="check" size={13} color={IND_GREEN} strokeWidth={2}/>
+                      <span style={{ fontFamily:MONO_FONT, fontSize:8, color:IND_GREEN, fontWeight:700, letterSpacing:0.9 }}>ALL CLEAR · PLATFORM DIGEST</span>
+                    </div>
+                    {[
+                      {
+                        label: "LAST ACTIVE",
+                        value: digestTopUser?.name || "—",
+                        sub:   digestTopUser ? timeAgo(digestTopUser.lastSeen) : "—",
+                        color: NAVY,
+                      },
+                      {
+                        label: "TOP STATE",
+                        value: digestTopState ? (INDIA_STATES[digestTopState[0]] || digestTopState[0]) : "—",
+                        sub:   digestTopState ? `${digestTopState[1]} user${digestTopState[1]>1?"s":""}` : "—",
+                        color: VIOLET,
+                      },
+                      {
+                        label: "RESOLVED",
+                        value: resolvedR,
+                        sub:   `${actWeek} active this week`,
+                        color: IND_GREEN,
+                      },
+                    ].map(({ label, value, sub, color }, i, arr) => (
+                      <div key={label} style={{
+                        display:"flex", alignItems:"center", justifyContent:"space-between",
+                        padding:"7px 0",
+                        borderBottom: i < arr.length - 1 ? `1px solid ${th.border}` : "none",
+                      }}>
+                        <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>{label}</span>
+                        <div style={{ textAlign:"right", minWidth:0, maxWidth:"62%" }}>
+                          <div style={{ fontFamily:MONO_FONT, fontSize:9.5, fontWeight:700, color, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{value}</div>
+                          <div style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, marginTop:1 }}>{sub}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : ALERTS.map((a, i) => (
+                  <div
+                    key={a.id}
+                    className="hs-alert-row"
+                    onClick={() => navigateTab(a.action)}
+                    style={{
+                      display:"flex", alignItems:"center", gap:10,
+                      padding:"9px 14px",
+                      borderBottom: i < ALERTS.length - 1 ? `1px solid ${th.border}` : "none",
+                      background:"transparent",
+                      cursor:"pointer",
+                    }}
+                  >
+                    <div style={{ width:28, height:28, borderRadius:8, flexShrink:0, background:hsRgba(a.color,0.1), border:`1px solid ${hsRgba(a.color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name={a.icon} size={13} color={a.color} strokeWidth={1.9}/></div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:11, fontWeight:700, color:th.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.text}</div>
+                    </div>
+                    <div style={{ fontSize:12, color:a.color, flexShrink:0, fontWeight:700 }}>›</div>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
 
         </div>
@@ -4132,40 +4240,10 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
           <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:latencyColor }}>{latencyLabel}</span>
         </div>
 
-        <div style={{ width:1, height:14, background:th.border, flexShrink:0 }} />
-
-        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-          <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>LAST SYNC</span>
-          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:th.text }}>{syncLabel}</span>
-        </div>
-
-        <div style={{ width:1, height:14, background:th.border, flexShrink:0 }} />
-
-        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-          <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>SESSION</span>
-          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:th.text }}>{uptimeLabel}</span>
-        </div>
+        <LiveStatusMeta lastSynced={lastSynced} sessionStart={sessionStart} th={th} />
 
         <div style={{ flex:1 }} />
 
-        {onRefresh && (
-          <button
-            onClick={onRefresh}
-            title="Refresh live data"
-            className="hs-refresh-btn"
-            style={{
-              display:"flex", alignItems:"center", gap:6,
-              background:"transparent", border:`1px solid ${th.border}`, borderRadius:7,
-              padding: isDesktop ? "5px 10px" : "4px 8px",
-              cursor:"pointer", color:th.textSub,
-              fontFamily:MONO_FONT, fontSize:7.5, fontWeight:700, letterSpacing:0.8, textTransform:"uppercase",
-            }}
-          >
-            <Icon name="refresh" size={11} color={th.textSub} strokeWidth={2}
-              style={{ animation: refreshing ? "hs-spin 0.8s linear infinite" : "none" }}/>
-            REFRESH
-          </button>
-        )}
       </div>
 
       {/* ══════════════════════════════════════
@@ -4173,7 +4251,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
       ══════════════════════════════════════ */}
       <div style={{
         display:"grid",
-        gridTemplateColumns: isDesktop ? "repeat(5,1fr)" : "repeat(3,1fr)",
+        gridTemplateColumns: isDesktop ? "repeat(5,1fr)" : "repeat(2,1fr)",
         gap: isDesktop ? 9 : 7,
         marginBottom: isDesktop ? 16 : 12,
         animation:"hs-fadein 0.45s ease both",
@@ -4184,11 +4262,12 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
           { label:"WELFARE (BPL)",value: loading?"—":bplCount,                    color:VIOLET,   icon:"card" },
           { label:"DORMANT 30D",  value: loading?"—":dormantCnt,                  color: dormantCnt>0?"#F59E0B":IND_GREEN, icon:"moon" },
           { label:"IN PROGRESS",  value: loading?"—":inProg,                      color: inProg>0?"#D97706":IND_GREEN, icon:"refresh" },
-        ].map(({ label, value, color, icon }) => (
+        ].map(({ label, value, color, icon }, vIdx) => (
           <div key={label} style={{
             background:th.card, border:`1.5px solid ${th.border}`,
             borderRadius:11, padding: isDesktop ? "10px 12px" : "8px 10px",
             display:"flex", alignItems:"center", gap:8,
+            gridColumn: !isDesktop && vIdx === 4 ? "1 / -1" : undefined,
           }}>
             <div style={{ width:30, height:30, borderRadius:8, flexShrink:0, background:hsRgba(color,0.1), border:`1px solid ${hsRgba(color,0.2)}`, display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name={icon} size={14} color={color} strokeWidth={1.8}/></div>
             <div style={{ minWidth:0, flex:1 }}>
@@ -4343,13 +4422,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   }, []);
 
   // ── Smart tab navigation ──────────────────────────────────────────────────
-  const tabsBarRef         = useRef(null);
-  const swipeTouchStartX   = useRef(null);
-  const swipeTouchStartY   = useRef(null);
-  const scrollContainerRef = useRef(null);
-  const lastScrollY        = useRef(0);
+  const tabsBarRef      = useRef(null);
+  const swipeTouchStartX = useRef(null);
+  const swipeTouchStartY = useRef(null);
   const [tabTransition, setTabTransition] = useState(null); // "fwd-out" | "bwd-out" | "fwd-in" | "bwd-in" | null
-  const [tabBarVisible, setTabBarVisible] = useState(true); // auto-hides on scroll down
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchUsers = useCallback(async (isRefresh = false) => {
@@ -5698,31 +5774,8 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     bar.scrollBy({ left: offset, behavior: "smooth" });
   }, [activeSection]);
 
-  // ── Reset tab bar + scroll position on every tab change ────────────────
-  useEffect(() => {
-    setTabBarVisible(true);
-    lastScrollY.current = 0;
-    if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
-  }, [activeSection]);
-
-  // ── Auto-hide tab bar on scroll down, reveal on scroll up ──────────────
-  useEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    const onScroll = () => {
-      const y    = el.scrollTop;
-      const diff = y - lastScrollY.current;
-      if      (y < 8)         setTabBarVisible(true);
-      else if (diff >  6)     setTabBarVisible(false);
-      else if (diff < -4)     setTabBarVisible(true);
-      lastScrollY.current = y;
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
-    <div data-admin-scroll="true" ref={scrollContainerRef} style={{
+    <div data-admin-scroll="true" style={{
       position:"fixed", inset:0, zIndex:9999,
       background:th.bg,
       display:"flex", flexDirection:"column",
@@ -5989,7 +6042,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   </svg>
                 )}
               </div>
-              <div className="ys-ctrl-btn" onClick={() => fetchUsers(true)}
+              <div className="ys-ctrl-btn" onClick={() => { fetchUsers(true); fetchReports(); fetchUsage(); }}
                 style={{ padding:"7px 11px",cursor:"pointer",opacity:refreshing?0.4:1,transition:"opacity 0.2s,background 0.15s",display:"flex",alignItems:"center",justifyContent:"center" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                   stroke="rgba(255,255,255,0.78)" strokeWidth="2.3"
@@ -6101,7 +6154,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                     </svg>
                   )}
                 </div>
-                <div className="ys-ctrl-btn" onClick={() => fetchUsers(true)}
+                <div className="ys-ctrl-btn" onClick={() => { fetchUsers(true); fetchReports(); fetchUsage(); }}
                   style={{ padding:"7px 11px",cursor:"pointer",opacity:refreshing?0.4:1,transition:"opacity 0.2s,background 0.15s",display:"flex",alignItems:"center",justifyContent:"center" }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="rgba(255,255,255,0.78)" strokeWidth="2.3"
@@ -6224,15 +6277,6 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         )}
 
         {/* ══ Tab bar (shared mobile + desktop) ══ */}
-        <div style={{
-          overflow:"hidden",
-          maxHeight: tabBarVisible ? 60 : 0,
-          opacity:   tabBarVisible ? 1 : 0,
-          pointerEvents: tabBarVisible ? "auto" : "none",
-          transition: tabBarVisible
-            ? "max-height 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.22s ease"
-            : "max-height 0.24s cubic-bezier(0.4,0,1,1), opacity 0.16s ease",
-        }}>
         <div ref={tabsBarRef} style={{
           display:"flex", gap:4,
           overflowX:"auto", paddingBottom:0,
@@ -6264,6 +6308,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               <span>Home</span>
             </div>
           </div>
+
+          {/* ─ Separator: Home vs module tabs ─ */}
+          <div style={{
+            width:1, background:"rgba(255,255,255,0.14)",
+            alignSelf:"stretch", margin:"7px 3px", flexShrink:0,
+          }} />
 
           {TABS.map(([id, label]) => {
             const STATUS_HINTS = id === "reports" ? [
@@ -6313,7 +6363,23 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 position:"relative",
               }}>
                 <div style={{ display:"flex", alignItems:"center", gap:5, lineHeight:1 }}>
-                  {TAB_ICONS[id]?.(activeSection === id ? "#fff" : "rgba(255,255,255,0.52)")}
+                  <div style={{ position:"relative", flexShrink:0 }}>
+                    {TAB_ICONS[id]?.(activeSection === id ? "#fff" : "rgba(255,255,255,0.52)")}
+                    {id === "reports" && STATUS_HINTS[0]?.count > 0 && (
+                      <div style={{
+                        position:"absolute", top:-5, right:-5,
+                        minWidth:13, height:13, borderRadius:7, padding:"0 2px",
+                        background:"#DC2626",
+                        border:"1.5px solid #010a18",
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:7, fontWeight:900, color:"#fff", lineHeight:1,
+                        boxShadow:"0 0 7px rgba(220,38,38,0.75)",
+                        animation:"ys-pulse-dot 2.4s ease-in-out infinite",
+                      }}>
+                        {STATUS_HINTS[0].count > 9 ? "9+" : STATUS_HINTS[0].count}
+                      </div>
+                    )}
+                  </div>
                   <span>{label}</span>
                 </div>
                 {STATUS_HINTS.length > 0 && (
@@ -6342,7 +6408,6 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             );
           })}
         </div>
-        </div>{/* end tab bar collapsible wrapper */}
 
         {/* ── Bottom glow strip ── */}
         <div style={{
@@ -6439,7 +6504,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           sessionStart={sessionStart}
           lastSynced={lastSynced}
           latencyMs={latencyMs}
-          onRefresh={() => { fetchUsers(true); fetchReports(); }}
+          onRefresh={() => { fetchUsers(true); fetchReports(); fetchUsage(); }}
         />
       )}
 
