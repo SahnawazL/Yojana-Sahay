@@ -17,7 +17,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹9,000/month allowance for graduates", hi: "स्नातक युवाओं को ₹9,000/माह भत्ता" },
     tag:     { en: "Youth / Student", hi: "युवा / छात्र" },
     annual: 108000,
-    apply:   { en: "https://hreyahs.gov.in", hi: "hreyahs.gov.in" }, applyType: "online",
+    apply:   { en: "https://negd.gov.in/isl/Directory/statedata/30", hi: "hreyahs.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Graduation Certificate","Domicile Certificate","Bank Account"],
                hi: ["आधार कार्ड","स्नातक प्रमाण","निवास प्रमाण","बैंक खाता"] },
     match: (a) => a.state === "Haryana" && (a.who === "student" || a.who === "general") && ["below1","1to3"].includes(a.income),
@@ -106,7 +106,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹5 Lakh/year free health coverage · Extends Ayushman Bharat to families earning ₹1.80–₹3 Lakh", hi: "₹5 लाख/वर्ष मुफ्त स्वास्थ्य बीमा · ₹1.80–₹3 लाख आय परिवारों तक आयुष्मान का विस्तार" },
     tag:     { en: "Health / Insurance", hi: "स्वास्थ्य / बीमा" },
     annual: 500000,
-    apply:   { en: "https://chirayuhry.com", hi: "chirayuhry.com" }, applyType: "online",
+    apply:   { en: "https://ayushmanbharat.haryana.gov.in", hi: "chirayuhry.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parivar Pehchan Patra (PPP)","Income Certificate (₹1.80L–₹3L/year)","Ration Card"],
                hi: ["आधार कार्ड","परिवार पहचान पत्र (PPP)","आय प्रमाण (₹1.80–₹3 लाख/वर्ष)","राशन कार्ड"] },
     // Eligibility: Haryana resident, family income ₹1.80L–₹3L/year (above PMJAY cut-off)
@@ -166,7 +166,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Skill training + livelihood support targeting poorest 1 lakh families (income < ₹1 Lakh/year)", hi: "सबसे गरीब 1 लाख परिवारों को कौशल प्रशिक्षण + आजीविका सहायता (आय <₹1 लाख/वर्ष)" },
     tag:     { en: "Livelihood / Skill", hi: "आजीविका / कौशल" },
     annual: 0,
-    apply:   { en: "https://antyodaya.haryana.gov.in", hi: "antyodaya.haryana.gov.in" }, applyType: "online",
+    apply:   { en: "https://haryanait.gov.in/mukhya-mantri-antyodaya-parivar-utthan-yojana-mmapuy", hi: "antyodaya.haryana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parivar Pehchan Patra (PPP)","Income Certificate (< ₹1 Lakh/year)","Bank Account"],
                hi: ["आधार कार्ड","परिवार पहचान पत्र (PPP)","आय प्रमाण (<₹1 लाख/वर्ष)","बैंक खाता"] },
     // Eligibility: Haryana resident, identified as poorest family via PPP, income < ₹1 lakh/year
@@ -226,7 +226,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Free 4–6 week freelancing & IT skills training at college + ₹3,000/month stipend during training", hi: "कॉलेज में 4–6 सप्ताह मुफ्त फ्रीलांसिंग और IT कौशल प्रशिक्षण + ₹3,000/माह वजीफा" },
     tag:     { en: "Youth / IT Skills", hi: "युवा / IT कौशल" },
     annual: 9000,
-    apply:   { en: "https://ekarmaindia.com", hi: "ekarmaindia.com" }, applyType: "online",
+    apply:   { en: "https://www.haryana.gov.in/higher-education-haryana", hi: "ekarmaindia.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","College Enrollment Certificate","Bank Account","Domicile Certificate (Haryana)"],
                hi: ["आधार कार्ड","कॉलेज नामांकन प्रमाण पत्र","बैंक खाता","निवास प्रमाण पत्र (हरियाणा)"] },
     // Eligibility: Haryana college student (UG/PG), enrolled in affiliated college
@@ -241,7 +241,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "75% subsidy on solar water pump (90% for SC/ST farmers) under PM-KUSUM component-B", hi: "सोलर वाटर पंप पर 75% सब्सिडी (SC/ST किसानों को 90%) PM-KUSUM कंपोनेंट-B अंतर्गत" },
     tag:     { en: "Farmer / Solar Energy", hi: "किसान / सौर ऊर्जा" },
     annual: 0,
-    apply:   { en: "https://hareda.gov.in", hi: "hareda.gov.in" }, applyType: "online",
+    apply:   { en: "https://cdnbbsr.s3waas.gov.in/s3f80ff32e08a25270b5f252ce39522f72/uploads/2025/04/202504041617483265.pdf", hi: "hareda.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra)","Electricity Bill (existing pump connection)","Bank Account","Caste Certificate (SC/ST for higher subsidy)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा)","बिजली बिल (मौजूदा पंप कनेक्शन)","बैंक खाता","जाति प्रमाण पत्र (SC/ST अधिक सब्सिडी के लिए)"] },
     // Eligibility: Haryana farmer with agricultural land & existing pump connection
@@ -286,7 +286,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹3,000/month to women aged 45+ who have no son (to support girl child & women with daughters only)", hi: "बिना बेटे वाली 45+ वर्ष की महिलाओं को ₹3,000/माह (बालिका संरक्षण हेतु)" },
     tag:     { en: "Women / Girl Child Support", hi: "महिला / बालिका सहायता" },
     annual: 36000,
-    apply:   { en: "https://socialjusticehry.gov.in", hi: "socialjusticehry.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/lssas", hi: "socialjusticehry.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof","Parivar Pehchan Patra","Bank Account","Affidavit (no male child)","Income Certificate (≤₹2 Lakh/year)"],
                hi: ["आधार कार्ड","आयु प्रमाण","परिवार पहचान पत्र","बैंक खाता","शपथ पत्र (पुत्र न होने का)","आय प्रमाण (≤₹2 लाख/वर्ष)"] },
     // Eligibility: Haryana woman aged 45+, no male child, income ≤ ₹2 lakh/year
@@ -301,7 +301,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "40–50% subsidy on farm equipment (tractor, harvester, rotavator, seed drill, laser leveller & more)", hi: "कृषि यंत्रों पर 40–50% सब्सिडी (ट्रैक्टर, हार्वेस्टर, रोटावेटर, सीड ड्रिल, लेजर लेवलर आदि)" },
     tag:     { en: "Farmer / Equipment Subsidy", hi: "किसान / यंत्र अनुदान" },
     annual: 0,
-    apply:   { en: "https://agriharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://hortharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Jamabandi)","Tractor RC (for tractor-drawn implements)","Bank Account","Parivar Pehchan Patra","Caste Certificate (SC/ST for higher subsidy)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/जमाबंदी)","ट्रैक्टर RC (ट्रैक्टर चालित यंत्रों के लिए)","बैंक खाता","परिवार पहचान पत्र","जाति प्रमाण पत्र (SC/ST को अधिक सब्सिडी)"] },
     // Eligibility: Haryana farmer, priority to small/marginal farmers & SC/ST
@@ -316,7 +316,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "80–85% subsidy on drip & sprinkler irrigation systems (90% for SC/ST/small farmers)", hi: "ड्रिप और स्प्रिंकलर सिंचाई प्रणाली पर 80–85% सब्सिडी (SC/ST/लघु किसानों को 90%)" },
     tag:     { en: "Farmer / Irrigation Subsidy", hi: "किसान / सिंचाई सब्सिडी" },
     annual: 0,
-    apply:   { en: "https://agriharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://hortharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Jamabandi)","Water Source Proof (borewell/canal)","Bank Account","Parivar Pehchan Patra","Caste Certificate (if SC/ST)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/जमाबंदी)","जल स्रोत प्रमाण (बोरवेल/नहर)","बैंक खाता","परिवार पहचान पत्र","जाति प्रमाण पत्र (SC/ST के लिए)"] },
     // Eligibility: Haryana farmer with own land & irrigation source, priority to small/marginal
@@ -331,7 +331,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Multiple benefits for registered construction workers — maternity ₹36,000 · marriage ₹51,000 · education scholarship · medical aid · tool kit · pension", hi: "पंजीकृत निर्माण श्रमिकों के लिए — मातृत्व ₹36,000 · विवाह ₹51,000 · शिक्षा छात्रवृत्ति · चिकित्सा · औजार किट · पेंशन" },
     tag:     { en: "Labour / Construction Worker", hi: "श्रमिक / निर्माण मजदूर" },
     annual: 36000,
-    apply:   { en: "https://bocwharyana.gov.in", hi: "bocwharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://cdnbbsr.s3waas.gov.in/s37b7a53e239400a13bd6be6c91c4f6c4e/uploads/2022/02/2022021734.pdf", hi: "bocwharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","BOCW Registration Certificate","Employer Certificate (90 days work proof)","Bank Account","Parivar Pehchan Patra"],
                hi: ["आधार कार्ड","BOCW पंजीकरण प्रमाण पत्र","नियोक्ता प्रमाण पत्र (90 दिन कार्य प्रमाण)","बैंक खाता","परिवार पहचान पत्र"] },
     // Eligibility: Construction worker registered with BOCW Board, 90+ days worked/year
