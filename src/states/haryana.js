@@ -31,7 +31,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹6,000/year · Social security (insurance + pension) for EWS families", hi: "₹6,000/वर्ष · ईडब्ल्यूएस परिवारों को बीमा + पेंशन सुरक्षा" },
     tag:     { en: "Social Security / Insurance", hi: "सामाजिक सुरक्षा / बीमा" },
     annual: 6000,
-    apply:   { en: "https://cm-psy.haryana.gov.in", hi: "cm-psy.haryana.gov.in" }, applyType: "online",
+    apply:   { en: "https://cdnbbsr.s3waas.gov.in/s38b4224068a41c5d37f5e2d54f3995089/uploads/2024/07/202407121914095249.pdf", hi: "cm-psy.haryana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parivar Pehchan Patra (PPP)","Income Certificate (≤₹1.80 Lakh/year)","Bank Account"],
                hi: ["आधार कार्ड","परिवार पहचान पत्र (PPP)","आय प्रमाण (≤₹1.80 लाख/वर्ष)","बैंक खाता"] },
     // Eligibility: Haryana resident, family income ≤ ₹1.80 lakh/year, age 18–50
@@ -76,7 +76,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹71,000 marriage grant for SC/ST/BPL girls · ₹31,000 for general poor families", hi: "SC/ST/BPL लड़कियों को ₹71,000 विवाह अनुदान · सामान्य गरीब को ₹31,000" },
     tag:     { en: "Women / Marriage Grant", hi: "महिला / विवाह अनुदान" },
     annual: 71000,
-    apply:   { en: "https://haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
+    apply:   { en: "https://sewa.haryana.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST/OBC)","BPL Certificate (if applicable)","Age Proof of Bride (18+)","Marriage Certificate","Bank Account"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST/OBC)","बीपीएल प्रमाण (यदि लागू हो)","दुल्हन का आयु प्रमाण (18+)","विवाह प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: Haryana resident, girl from SC/ST/BPL/general poor family, bride age ≥ 18
@@ -91,7 +91,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Price deficiency compensation when market price falls below MSP for vegetables/fruits", hi: "सब्जी/फल का बाजार मूल्य MSP से कम होने पर मूल्य अंतर मुआवजा" },
     tag:     { en: "Farmer / Price Support", hi: "किसान / मूल्य समर्थन" },
     annual: 0,
-    apply:   { en: "https://ekharid.haryana.gov.in", hi: "ekharid.haryana.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/bvby", hi: "ekharid.haryana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Girdawari)","Parivar Pehchan Patra","Bank Account","Meri Fasal Mera Byora Registration"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/गिरदावरी)","परिवार पहचान पत्र","बैंक खाता","मेरी फसल मेरा ब्यौरा पंजीकरण"] },
     // Eligibility: Haryana farmer registered on Meri Fasal Mera Byora portal
@@ -121,7 +121,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹80,000 grant for house repair/renovation for SC families", hi: "SC परिवारों को घर की मरम्मत/नवीनीकरण के लिए ₹80,000 अनुदान" },
     tag:     { en: "Housing / SC Welfare", hi: "आवास / SC कल्याण" },
     annual: 80000,
-    apply:   { en: "https://haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
+    apply:   { en: "https://sewa.haryana.gov.in/dr-b-r-ambedkar-awas-navinikarn-yojna", hi: "haryanascbc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Land/House Ownership Proof","Parivar Pehchan Patra","Bank Account","Income Certificate (≤₹1.80 Lakh/year)"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","भूमि/घर का स्वामित्व प्रमाण","परिवार पहचान पत्र","बैंक खाता","आय प्रमाण (≤₹1.80 लाख/वर्ष)"] },
     // Eligibility: Haryana SC family, owns land/house but it needs repair, income ≤ ₹1.80 lakh
@@ -181,7 +181,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹10/quintal bonus on registered crop sale + eligibility for crop damage compensation & MSP procurement", hi: "पंजीकृत फसल बिक्री पर ₹10/क्विंटल बोनस + फसल नुकसान मुआवजे और MSP खरीद की पात्रता" },
     tag:     { en: "Farmer / Crop Registration", hi: "किसान / फसल पंजीकरण" },
     annual: 0,
-    apply:   { en: "https://fasal.haryana.gov.in", hi: "fasal.haryana.gov.in" }, applyType: "online",
+    apply:   { en: "https://ambala.gov.in/service/meri-fasal-mera-byora-portal", hi: "fasal.haryana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Jamabandi)","Bank Account","Mobile Number linked to Aadhaar"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/जमाबंदी)","बैंक खाता","आधार से जुड़ा मोबाइल नंबर"] },
     // Eligibility: Any Haryana farmer who wants to sell crop at MSP or claim crop damage compensation
@@ -211,7 +211,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "₹8,000 (Class 10) · ₹10,000 (Class 12) · Up to ₹1,00,000 for IIT/Medical admission — for SC/BC meritorious students", hi: "SC/BC मेधावी छात्रों को ₹8,000 (कक्षा 10) · ₹10,000 (कक्षा 12) · IIT/मेडिकल प्रवेश पर ₹1,00,000 तक" },
     tag:     { en: "Student / Merit Scholarship", hi: "छात्र / मेरिट छात्रवृत्ति" },
     annual: 10000,
-    apply:   { en: "https://haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
+    apply:   { en: "https://sewa.haryana.gov.in/dr-b-r-ambedkar-awas-navinikarn-yojna", hi: "haryanascbc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC/BC Caste Certificate","Mark Sheet (Class 10 / 12 Board)","Admission Letter (for IIT/Medical)","Bank Account","Domicile Certificate"],
                hi: ["आधार कार्ड","SC/BC जाति प्रमाण पत्र","मार्कशीट (कक्षा 10/12 बोर्ड)","प्रवेश पत्र (IIT/मेडिकल के लिए)","बैंक खाता","निवास प्रमाण पत्र"] },
     // Eligibility: Haryana SC/BC student with 60%+ in board exams or admitted to IIT/Medical college
@@ -316,7 +316,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "80–85% subsidy on drip & sprinkler irrigation systems (90% for SC/ST/small farmers)", hi: "ड्रिप और स्प्रिंकलर सिंचाई प्रणाली पर 80–85% सब्सिडी (SC/ST/लघु किसानों को 90%)" },
     tag:     { en: "Farmer / Irrigation Subsidy", hi: "किसान / सिंचाई सब्सिडी" },
     annual: 0,
-    apply:   { en: "https://hortharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
+    apply:   { en: "http://203.100.79.131/new-initiatives", hi: "agriharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Jamabandi)","Water Source Proof (borewell/canal)","Bank Account","Parivar Pehchan Patra","Caste Certificate (if SC/ST)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/जमाबंदी)","जल स्रोत प्रमाण (बोरवेल/नहर)","बैंक खाता","परिवार पहचान पत्र","जाति प्रमाण पत्र (SC/ST के लिए)"] },
     // Eligibility: Haryana farmer with own land & irrigation source, priority to small/marginal
@@ -346,7 +346,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Full tuition fee reimbursement + maintenance allowance ₹380–₹1,200/month for SC/BC students (Class 11 & above)", hi: "SC/BC छात्रों के लिए पूर्ण शुल्क प्रतिपूर्ति + ₹380–₹1,200/माह रखरखाव भत्ता (कक्षा 11 से ऊपर)" },
     tag:     { en: "Student / SC BC Scholarship", hi: "छात्र / SC BC छात्रवृत्ति" },
     annual: 14400,
-    apply:   { en: "https://haryanascbc.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
+    apply:   { en: "https://sewa.haryana.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC/BC Caste Certificate","Previous Year Mark Sheet","Institution Admission Letter","Income Certificate (≤₹2.5 Lakh/year for BC, no limit for SC)","Bank Account","Domicile Certificate"],
                hi: ["आधार कार्ड","SC/BC जाति प्रमाण पत्र","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","आय प्रमाण (BC के लिए ≤₹2.5 लाख, SC के लिए कोई सीमा नहीं)","बैंक खाता","निवास प्रमाण पत्र"] },
     // Eligibility: Haryana SC student (no income limit) / BC student (income ≤ ₹2.5 lakh), studying Class 11 or above
@@ -391,7 +391,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Affordable residential plots & flats for EWS/LIG urban families at subsidised rates in licensed colonies", hi: "लाइसेंस प्राप्त कॉलोनियों में EWS/LIG शहरी परिवारों को सब्सिडी दर पर आवासीय प्लॉट एवं फ्लैट" },
     tag:     { en: "Housing / Urban EWS", hi: "आवास / शहरी EWS" },
     annual: 0,
-    apply:   { en: "https://tcpharyana.gov.in", hi: "tcpharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://deendayaljanaawasyojna.org", hi: "tcpharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parivar Pehchan Patra","Income Certificate (EWS ≤₹3L / LIG ≤₹6L per year)","No Property Certificate","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","परिवार पहचान पत्र","आय प्रमाण (EWS ≤₹3 लाख / LIG ≤₹6 लाख)","संपत्ति न होने का प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: Haryana urban resident, no pucca house, income EWS or LIG category
