@@ -83,6 +83,82 @@ const INST_LABELS     = { government:"Government 🏛️", private:"Private 🏫
 
 const DONUT_COLORS = [NAVY, SAFFRON, IND_GREEN, VIOLET, PINK, GOOGLE_B, "#F59E0B", "#10B981"];
 
+// ─── TAB ICONS ────────────────────────────────────────────────────────────────
+const TAB_ICONS = {
+  home: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  ),
+  overview: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+  ),
+  users: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+  analytics: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+  ),
+  activity: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+  ),
+  usage: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+      <polyline points="17 6 23 6 23 12"/>
+    </svg>
+  ),
+  schemes: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+      <line x1="8" y1="2" x2="8" y2="18"/>
+      <line x1="16" y1="6" x2="16" y2="22"/>
+    </svg>
+  ),
+  reports: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+    </svg>
+  ),
+  cleanup: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      <line x1="10" y1="11" x2="10" y2="17"/>
+      <line x1="14" y1="11" x2="14" y2="17"/>
+    </svg>
+  ),
+  verify: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <polyline points="9 12 11 14 15 10"/>
+    </svg>
+  ),
+  export: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  ),
+};
+
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 function groupBy(arr, key) {
   return arr.reduce((acc, item) => {
@@ -4270,7 +4346,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const tabsBarRef      = useRef(null);
   const swipeTouchStartX = useRef(null);
   const swipeTouchStartY = useRef(null);
-  const [tabTransition, setTabTransition] = useState(null); // "left" | "right" | null
+  const [tabTransition, setTabTransition] = useState(null); // "fwd-out" | "bwd-out" | "fwd-in" | "bwd-in" | null
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchUsers = useCallback(async (isRefresh = false) => {
@@ -5543,16 +5619,16 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
   // ─────────────────────────────────────────────────────────────────────────
   const ALL_TABS = [
-    ["overview",  "📊 Overview"],
-    ["users",     "👥 Users"],
-    ["analytics", "🧮 Analytics"],
-    ["activity",  "🕐 Activity"],
-    ["usage",     "📈 Usage"],
-    ["schemes",   "🗺️ Schemes"],
-    ["reports",   "📬 Reports"],
-    ["cleanup",   "🗑️ Cleanup"],
-    ["verify",    "🔍 Verify"],
-    ["export",    "📄 Export"],
+    ["overview",  "Overview"],
+    ["users",     "Users"],
+    ["analytics", "Analytics"],
+    ["activity",  "Activity"],
+    ["usage",     "Usage"],
+    ["schemes",   "Schemes"],
+    ["reports",   "Reports"],
+    ["cleanup",   "Cleanup"],
+    ["verify",    "Verify"],
+    ["export",    "Export"],
   ];
   // allowedTabs=null means full admin (show all). Array means restricted — filter to those tabs only.
   const TABS = allowedTabs === null
@@ -5561,24 +5637,30 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
   // ── navigateTab — direction-aware, animated tab change ───────────────────
   const navigateTab = useCallback((targetId) => {
-    // "home" is not in TABS — handle separately with right-slide animation
-    if (targetId === "home") {
-      setTabTransition("right");
-      setTimeout(() => {
-        setActiveSection("home");
-        setTabTransition(null);
-      }, 160);
-      return;
-    }
-    const tabIds = TABS.map(([id]) => id);
-    const curr   = tabIds.indexOf(activeSection);
-    const next   = tabIds.indexOf(targetId);
-    if (next === curr || next === -1) return;
-    setTabTransition(next > curr ? "left" : "right");
+    if (targetId === activeSection) return;
+    // "home" lives at index 0, all TABS follow — use unified index for direction
+    const tabIds  = TABS.map(([id]) => id);
+    const allIds  = ["home", ...tabIds];
+    const currIdx = allIds.indexOf(activeSection);
+    const nextIdx = allIds.indexOf(targetId);
+    if (nextIdx === -1 || nextIdx === currIdx) return;
+    const goFwd = nextIdx > currIdx;
+
+    // Phase 1 — slide current content out
+    setTabTransition(goFwd ? "fwd-out" : "bwd-out");
+
     setTimeout(() => {
+      // Phase 2 — swap content + set incoming start offset (no CSS transition yet)
       setActiveSection(targetId);
-      setTabTransition(null);
-    }, 160);
+      setTabTransition(goFwd ? "fwd-in" : "bwd-in");
+
+      // Phase 3 — after browser paints phase 2, animate incoming to rest
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTabTransition(null);
+        });
+      });
+    }, 155);
   }, [activeSection]);
 
   // Keyboard ← → navigation
@@ -5629,8 +5711,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         @keyframes ys-pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.78)}}
         @keyframes ys-scan{0%{transform:translateX(-100%)}100%{transform:translateX(600%)}}
         @keyframes ys-badge-shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+        @keyframes exp-shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(1500%)}}
         .ys-ctrl-btn:active{background:rgba(255,255,255,0.09)!important}
         .ys-back-btn:hover{background:rgba(255,255,255,0.16)!important}
+        [data-active="false"]:hover{color:rgba(255,255,255,0.82)!important;border-bottom-color:rgba(255,153,51,0.4)!important}
       `}</style>
 
       {/* ── Outer header shell with dot-grid texture ── */}
@@ -5842,8 +5926,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 }}>
                   <span onClick={(e) => { e.stopPropagation(); if(activeSection==="home") return; const c2=tabIds.indexOf(activeSection); if(c2===0){navigateTab("home");return;} if(c2>0)navigateTab(tabIds[c2-1]); }}
                     style={{ fontSize:15,color:"rgba(255,255,255,0.65)",cursor:"pointer",lineHeight:1,padding:"0 3px",opacity:activeSection!=="home"?1:0.2,userSelect:"none" }}>‹</span>
-                  <span style={{ fontSize:10,fontWeight:800,color:"#fff",letterSpacing:0.2,whiteSpace:"nowrap",minWidth:56,textAlign:"center",padding:"0 2px" }}>
-                    {activeSection==="home" ? "🏠 Home" : (TABS.find(([id])=>id===activeSection)?.[1]||"")}
+                  <span style={{ fontSize:10,fontWeight:800,color:"#fff",letterSpacing:0.2,whiteSpace:"nowrap",minWidth:56,textAlign:"center",padding:"0 2px",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                    {TAB_ICONS[activeSection === "home" ? "home" : activeSection]?.("rgba(255,255,255,0.9)", 10)}
+                    {activeSection==="home" ? "Home" : (TABS.find(([id])=>id===activeSection)?.[1]||"")}
                   </span>
                   <span onClick={(e) => { e.stopPropagation(); if(activeSection==="home"){navigateTab(tabIds[0]);return;} const c2=tabIds.indexOf(activeSection); if(c2<tabIds.length-1)navigateTab(tabIds[c2+1]); }}
                     style={{ fontSize:15,color:"rgba(255,255,255,0.65)",cursor:"pointer",lineHeight:1,padding:"0 3px",opacity:(activeSection==="home"||(curr!==-1&&curr<tabIds.length-1))?1:0.2,userSelect:"none" }}>›</span>
@@ -6099,8 +6184,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   }}>
                     <span onClick={(e)=>{ e.stopPropagation(); if(activeSection==="home")return; const c2=tabIds.indexOf(activeSection); if(c2===0){navigateTab("home");return;} if(c2>0)navigateTab(tabIds[c2-1]); }}
                       style={{ fontSize:15,color:"rgba(255,255,255,0.65)",cursor:"pointer",lineHeight:1,padding:"0 2px",opacity:activeSection!=="home"?1:0.2,userSelect:"none" }}>‹</span>
-                    <span style={{ fontSize:10,fontWeight:800,color:"#fff",letterSpacing:0.2,whiteSpace:"nowrap",minWidth:50,textAlign:"center",padding:"0 1px" }}>
-                      {activeSection==="home" ? "🏠 Home" : (TABS.find(([id])=>id===activeSection)?.[1]||"")}
+                    <span style={{ fontSize:10,fontWeight:800,color:"#fff",letterSpacing:0.2,whiteSpace:"nowrap",minWidth:50,textAlign:"center",padding:"0 1px",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                      {TAB_ICONS[activeSection === "home" ? "home" : activeSection]?.("rgba(255,255,255,0.9)", 10)}
+                      {activeSection==="home" ? "Home" : (TABS.find(([id])=>id===activeSection)?.[1]||"")}
                     </span>
                     <span onClick={(e)=>{ e.stopPropagation(); if(activeSection==="home"){navigateTab(tabIds[0]);return;} const c2=tabIds.indexOf(activeSection); if(c2<tabIds.length-1)navigateTab(tabIds[c2+1]); }}
                       style={{ fontSize:15,color:"rgba(255,255,255,0.65)",cursor:"pointer",lineHeight:1,padding:"0 2px",opacity:(activeSection==="home"||(curr!==-1&&curr<tabIds.length-1))?1:0.2,userSelect:"none" }}>›</span>
@@ -6138,7 +6224,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               transition:"all 0.2s",
             }}
           >
-            🏠 Home
+            <div style={{ display:"flex", alignItems:"center", gap:5, lineHeight:1 }}>
+              {TAB_ICONS.home(activeSection === "home" ? "#fff" : "rgba(255,255,255,0.52)")}
+              <span>Home</span>
+            </div>
           </div>
 
           {TABS.map(([id, label]) => {
@@ -6188,7 +6277,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 transition:"all 0.2s",
                 position:"relative",
               }}>
-                {label}
+                <div style={{ display:"flex", alignItems:"center", gap:5, lineHeight:1 }}>
+                  {TAB_ICONS[id]?.(activeSection === id ? "#fff" : "rgba(255,255,255,0.52)")}
+                  <span>{label}</span>
+                </div>
                 {STATUS_HINTS.length > 0 && (
                   <div style={{
                     position:"absolute", bottom:3, left:"50%",
@@ -6231,7 +6323,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           margin: isDesktop ? "0 auto" : undefined,
           width:"100%", boxSizing:"border-box",
         }}>
-          <div style={{ fontSize:32, animation:"spin 1s linear infinite" }}>⏳</div>
+          <div style={{ fontSize:32, animation:"ys-spin 1s linear infinite" }}>⏳</div>
           <div style={{ color:th.textMid, fontSize:13 }}>Fetching user data…</div>
         </div>
       )}
@@ -6279,12 +6371,21 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         }}
         style={{
           flex:1, display:"flex", flexDirection:"column",
-          opacity:   tabTransition ? 0 : 1,
-          transform: tabTransition === "left"  ? "translateX(-18px)" :
-                     tabTransition === "right" ? "translateX(18px)"  : "translateX(0)",
-          transition: tabTransition
-            ? "opacity 0.16s ease, transform 0.16s ease"
-            : "opacity 0.2s ease, transform 0.2s cubic-bezier(0.22,1,0.36,1)",
+          willChange: tabTransition ? "opacity, transform" : "auto",
+          opacity: (tabTransition === "fwd-out" || tabTransition === "bwd-out" ||
+                    tabTransition === "fwd-in"  || tabTransition === "bwd-in") ? 0 : 1,
+          transform:
+            tabTransition === "fwd-out" ? "translateX(-22px)" :
+            tabTransition === "bwd-out" ? "translateX(22px)"  :
+            tabTransition === "fwd-in"  ? "translateX(22px)"  :
+            tabTransition === "bwd-in"  ? "translateX(-22px)" :
+            "translateX(0)",
+          transition:
+            (tabTransition === "fwd-out" || tabTransition === "bwd-out")
+              ? "opacity 0.15s ease, transform 0.15s ease"
+              : tabTransition === null
+                ? "opacity 0.22s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1)"
+                : "none",
         }}>
 
       {/* ══ HOME SCREEN ══ */}
@@ -7199,7 +7300,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   <div style={{
                     position:"absolute", inset:"0 auto 0 -60px", width:40,
                     background:"linear-gradient(90deg,transparent,rgba(79,142,247,0.12),transparent)",
-                    animation:"exp-scan 2.5s linear infinite",
+                    animation:"exp-shimmer 2.5s linear infinite",
                     pointerEvents:"none",
                   }} />
                 )}
