@@ -4232,6 +4232,21 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [lastSynced,    setLastSynced]    = useState(null);
   const [latencyMs,     setLatencyMs]     = useState(null);
 
+  // ── Live session uptime clock (header identity chip) ──────────────────────
+  const [sessionSecs, setSessionSecs] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setSessionSecs(s => s + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const fmtSession = (s) => {
+    const h   = Math.floor(s / 3600);
+    const m   = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return h
+      ? `${h}h ${String(m).padStart(2,"0")}m`
+      : `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  };
+
   // ── Responsive: track window width ───────────────────────────────────────
   const [windowWidth, setWindowWidth] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 375
@@ -5613,19 +5628,21 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         @keyframes ys-spin{to{transform:rotate(360deg)}}
         @keyframes ys-pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.78)}}
         @keyframes ys-scan{0%{transform:translateX(-100%)}100%{transform:translateX(600%)}}
+        @keyframes ys-badge-shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
         .ys-ctrl-btn:active{background:rgba(255,255,255,0.09)!important}
         .ys-back-btn:hover{background:rgba(255,255,255,0.16)!important}
       `}</style>
 
-      {/* ── Outer header shell with grid texture ── */}
+      {/* ── Outer header shell with dot-grid texture ── */}
       <div style={{
         background:`
-          repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(255,255,255,0.013) 27px,rgba(255,255,255,0.013) 28px),
-          repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(255,255,255,0.008) 60px,rgba(255,255,255,0.008) 61px),
-          linear-gradient(160deg,#001540 0%,${NAVY} 50%,#3a1400 100%)
+          radial-gradient(ellipse 55% 90% at 12% 50%, rgba(255,153,51,0.09) 0%, transparent 60%),
+          radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px),
+          linear-gradient(160deg, #020c20 0%, #001f5c 50%, #020c20 100%)
         `,
+        backgroundSize:"100% 100%, 28px 28px, 100% 100%",
         flexShrink:0,
-        boxShadow:"0 6px 36px rgba(0,0,0,0.48)",
+        boxShadow:"0 6px 36px rgba(0,0,0,0.52)",
         position:"sticky", top:0, zIndex:10,
         overflow:"hidden",
       }}>
@@ -5634,8 +5651,15 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         <div style={{
           position:"absolute", top:0, left:0, bottom:0,
           width:"18%", pointerEvents:"none", zIndex:0,
-          background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.028),transparent)",
+          background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.025),transparent)",
           animation:"ys-scan 7s linear infinite",
+        }}/>
+
+        {/* Bottom accent hairline */}
+        <div style={{
+          position:"absolute", bottom:0, left:0, right:0, height:1,
+          background:`linear-gradient(90deg, transparent 0%, ${SAFFRON}70 20%, rgba(0,53,128,0.55) 65%, transparent 100%)`,
+          zIndex:2, pointerEvents:"none",
         }}/>
 
         {/* ══ DESKTOP — single compact row ══ */}
@@ -5666,23 +5690,49 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
             {/* Title */}
             <div style={{ display:"flex", flexDirection:"column", gap:2, minWidth:0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ fontSize:14, lineHeight:1 }}>🛡️</span>
-                <span style={{
-                  color:"#fff", fontSize:15, fontWeight:800,
-                  letterSpacing:0.1, lineHeight:1, whiteSpace:"nowrap",
-                }}>Admin Dashboard</span>
+              <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                <svg width="18" height="20" viewBox="0 0 18 20" fill="none" style={{ flexShrink:0 }}>
+                  <path d="M9 1L1 4.5V9C1 13.4 4.4 17.5 9 19C13.6 17.5 17 13.4 17 9V4.5L9 1Z"
+                    stroke={SAFFRON} strokeWidth="1.5" fill="rgba(255,153,51,0.10)"/>
+                  <path d="M6 10L8 12L12 8" stroke={SAFFRON} strokeWidth="1.5"
+                    strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <div>
+                  <span style={{
+                    fontFamily:"'JetBrains Mono','SF Mono',monospace",
+                    fontSize:8, color:SAFFRON, letterSpacing:1.4, opacity:0.9,
+                  }}>YS-ADMIN // </span>
+                  <span style={{
+                    color:"#fff", fontSize:15, fontWeight:800,
+                    letterSpacing:0.2, lineHeight:1, whiteSpace:"nowrap",
+                  }}>Control Centre</span>
+                </div>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:5 }}>
                 <span style={{
                   fontFamily:"'JetBrains Mono','SF Mono',monospace",
-                  fontSize:8, color:"rgba(255,255,255,0.32)", letterSpacing:0.9,
-                  textTransform:"uppercase",
+                  fontSize:8, letterSpacing:0.9, textTransform:"uppercase",
+                  background:"linear-gradient(90deg, rgba(0,53,128,0.18) 0%, rgba(0,53,128,0.38) 50%, rgba(0,53,128,0.18) 100%)",
+                  backgroundSize:"200% auto",
+                  animation:"ys-badge-shimmer 4s linear infinite",
+                  color:"rgba(255,255,255,0.38)",
+                  border:"1px solid rgba(0,53,128,0.35)",
+                  borderRadius:4, padding:"1px 5px",
                 }}>v{ADMIN_BUILD_VERSION} · {ADMIN_BUILD_ENV}</span>
-                <span style={{ width:2, height:2, borderRadius:"50%", background:"rgba(255,255,255,0.2)", flexShrink:0 }}/>
+                <span style={{ width:2, height:2, borderRadius:"50%", background:SAFFRON, opacity:0.4, flexShrink:0 }}/>
                 <span style={{ fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8, color:"rgba(255,255,255,0.38)" }}>
-                  {loading ? "syncing…" : `${users.length} users`}
+                  {loading ? "SYNCING…" : `${users.length} USERS · ${SCHEME_DB.length} SCHEMES`}
                 </span>
+                {!loading && latencyMs && (
+                  <>
+                    <span style={{ width:2, height:2, borderRadius:"50%", background:"rgba(255,255,255,0.2)", flexShrink:0 }}/>
+                    <span style={{
+                      fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8,
+                      color: latencyMs < 300 ? "#22c55e" : latencyMs < 800 ? "#f59e0b" : "#ef4444",
+                      fontWeight:700,
+                    }}>{latencyMs}ms</span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -5746,9 +5796,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                     </div>
                     <div style={{
                       fontFamily:"'JetBrains Mono','SF Mono',monospace",
-                      fontSize:7, color:"rgba(255,255,255,0.18)", letterSpacing:0.4, marginTop:2,
+                      fontSize:7, color:"rgba(255,255,255,0.28)", letterSpacing:0.4, marginTop:2,
                       overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                    }}>{maskedUid}</div>
+                      display:"flex", alignItems:"center", gap:4,
+                    }}>
+                      <span>SESSION {fmtSession(sessionSecs)}</span>
+                      <span style={{ width:1, height:7, background:"rgba(255,255,255,0.13)", flexShrink:0 }}/>
+                      <span style={{
+                        color: error ? "#ef4444" : "#22c55e",
+                        fontSize:6, letterSpacing:0.9, fontWeight:700,
+                      }}>{error ? "ERR" : "SYS OK"}</span>
+                    </div>
                   </div>
                   <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, flexShrink:0 }}>
                     <div style={{
@@ -5805,8 +5863,20 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               flexShrink:0,
             }}>
               <div className="ys-ctrl-btn" onClick={toggleDark}
-                style={{ padding:"7px 11px",cursor:"pointer",fontSize:14,lineHeight:1,borderRight:"1px solid rgba(255,255,255,0.09)",transition:"background 0.15s" }}>
-                {dark ? "☀️" : "🌙"}
+                style={{ padding:"7px 11px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",borderRight:"1px solid rgba(255,255,255,0.09)",transition:"background 0.15s" }}>
+                {dark ? (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.78)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                  </svg>
+                ) : (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.78)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                  </svg>
+                )}
               </div>
               <div className="ys-ctrl-btn" onClick={() => fetchUsers(true)}
                 style={{ padding:"7px 11px",cursor:"pointer",opacity:refreshing?0.4:1,transition:"opacity 0.2s,background 0.15s",display:"flex",alignItems:"center",justifyContent:"center" }}>
@@ -5848,21 +5918,48 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
               {/* Title */}
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-                  <span style={{ fontSize:14, lineHeight:1 }}>🛡️</span>
-                  <span style={{ color:"#fff", fontSize:15, fontWeight:800, letterSpacing:0.1, lineHeight:1 }}>
-                    Admin Dashboard
-                  </span>
+                <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <svg width="15" height="17" viewBox="0 0 18 20" fill="none" style={{ flexShrink:0 }}>
+                    <path d="M9 1L1 4.5V9C1 13.4 4.4 17.5 9 19C13.6 17.5 17 13.4 17 9V4.5L9 1Z"
+                      stroke={SAFFRON} strokeWidth="1.5" fill="rgba(255,153,51,0.10)"/>
+                    <path d="M6 10L8 12L12 8" stroke={SAFFRON} strokeWidth="1.5"
+                      strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <div>
+                    <span style={{
+                      fontFamily:"'JetBrains Mono','SF Mono',monospace",
+                      fontSize:7, color:SAFFRON, letterSpacing:1.2, opacity:0.9,
+                    }}>YS-ADMIN // </span>
+                    <span style={{ color:"#fff", fontSize:14, fontWeight:800, letterSpacing:0.1, lineHeight:1 }}>
+                      Control Centre
+                    </span>
+                  </div>
                 </div>
                 <div style={{ marginTop:3, display:"flex", alignItems:"center", gap:5 }}>
                   <span style={{
                     fontFamily:"'JetBrains Mono','SF Mono',monospace",
-                    fontSize:8, color:"rgba(255,255,255,0.32)", letterSpacing:0.9, textTransform:"uppercase",
+                    fontSize:8, letterSpacing:0.9, textTransform:"uppercase",
+                    background:"linear-gradient(90deg, rgba(0,53,128,0.18) 0%, rgba(0,53,128,0.38) 50%, rgba(0,53,128,0.18) 100%)",
+                    backgroundSize:"200% auto",
+                    animation:"ys-badge-shimmer 4s linear infinite",
+                    color:"rgba(255,255,255,0.38)",
+                    border:"1px solid rgba(0,53,128,0.35)",
+                    borderRadius:4, padding:"1px 5px",
                   }}>v{ADMIN_BUILD_VERSION} · {ADMIN_BUILD_ENV}</span>
-                  <span style={{ width:2, height:2, borderRadius:"50%", background:"rgba(255,255,255,0.2)" }}/>
+                  <span style={{ width:2, height:2, borderRadius:"50%", background:SAFFRON, opacity:0.4 }}/>
                   <span style={{ fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8, color:"rgba(255,255,255,0.38)" }}>
-                    {loading ? "syncing…" : `${users.length} users`}
+                    {loading ? "SYNCING…" : `${users.length} USERS`}
                   </span>
+                  {!loading && latencyMs && (
+                    <>
+                      <span style={{ width:2, height:2, borderRadius:"50%", background:"rgba(255,255,255,0.2)", flexShrink:0 }}/>
+                      <span style={{
+                        fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8,
+                        color: latencyMs < 300 ? "#22c55e" : latencyMs < 800 ? "#f59e0b" : "#ef4444",
+                        fontWeight:700,
+                      }}>{latencyMs}ms</span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -5878,8 +5975,20 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 flexShrink:0,
               }}>
                 <div className="ys-ctrl-btn" onClick={toggleDark}
-                  style={{ padding:"7px 11px",cursor:"pointer",fontSize:14,lineHeight:1,borderRight:"1px solid rgba(255,255,255,0.09)",transition:"background 0.15s" }}>
-                  {dark ? "☀️" : "🌙"}
+                  style={{ padding:"7px 11px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",borderRight:"1px solid rgba(255,255,255,0.09)",transition:"background 0.15s" }}>
+                  {dark ? (
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.78)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="5"/>
+                      <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                  ) : (
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.78)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                  )}
                 </div>
                 <div className="ys-ctrl-btn" onClick={() => fetchUsers(true)}
                   style={{ padding:"7px 11px",cursor:"pointer",opacity:refreshing?0.4:1,transition:"opacity 0.2s,background 0.15s",display:"flex",alignItems:"center",justifyContent:"center" }}>
@@ -5953,9 +6062,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                       </div>
                       <div style={{
                         fontFamily:"'JetBrains Mono','SF Mono',monospace",
-                        fontSize:7, color:"rgba(255,255,255,0.18)", letterSpacing:0.4, marginTop:2.5,
+                        fontSize:7, color:"rgba(255,255,255,0.28)", letterSpacing:0.4, marginTop:2.5,
                         overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                      }}>{maskedUid}</div>
+                        display:"flex", alignItems:"center", gap:4,
+                      }}>
+                        <span>SESSION {fmtSession(sessionSecs)}</span>
+                        <span style={{ width:1, height:7, background:"rgba(255,255,255,0.13)", flexShrink:0 }}/>
+                        <span style={{
+                          color: error ? "#ef4444" : "#22c55e",
+                          fontSize:6, letterSpacing:0.9, fontWeight:700,
+                        }}>{error ? "ERR" : "SYS OK"}</span>
+                      </div>
                     </div>
                     <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, flexShrink:0 }}>
                       <div style={{
@@ -6011,18 +6128,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             onClick={() => navigateTab("home")}
             data-active={activeSection === "home" ? "true" : "false"}
             style={{
-              padding:"7px 13px",
-              borderRadius:"20px 20px 0 0",
+              padding:"8px 14px",
+              borderRadius:0,
               fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0,
-              background: activeSection === "home"
-                ? "rgba(255,255,255,0.22)"
-                : "rgba(255,255,255,0.08)",
-              borderTop:   activeSection === "home" ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
-              borderLeft:  activeSection === "home" ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
-              borderRight: activeSection === "home" ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
-              color: activeSection === "home" ? "#fff" : "rgba(255,255,255,0.6)",
+              background:"transparent",
+              border:"none",
+              borderBottom: activeSection === "home" ? `2px solid ${SAFFRON}` : "2px solid transparent",
+              color: activeSection === "home" ? "#fff" : "rgba(255,255,255,0.52)",
               transition:"all 0.2s",
-              marginBottom: activeSection === "home" ? -1 : 0,
             }}
           >
             🏠 Home
@@ -6065,18 +6178,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               <div key={id} onClick={() => navigateTab(id)}
                 data-active={activeSection === id ? "true" : "false"}
                 style={{
-                padding: STATUS_HINTS.length > 0 ? "7px 13px 20px" : "7px 13px",
-                borderRadius:"20px 20px 0 0",
+                padding: STATUS_HINTS.length > 0 ? "8px 14px 20px" : "8px 14px",
+                borderRadius:0,
                 fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0,
-                background: activeSection === id
-                  ? "rgba(255,255,255,0.22)"
-                  : "rgba(255,255,255,0.08)",
-                borderTop: activeSection === id ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
-                borderLeft: activeSection === id ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
-                borderRight: activeSection === id ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
-                color: activeSection === id ? "#fff" : "rgba(255,255,255,0.6)",
+                background:"transparent",
+                border:"none",
+                borderBottom: activeSection === id ? `2px solid ${SAFFRON}` : "2px solid transparent",
+                color: activeSection === id ? "#fff" : "rgba(255,255,255,0.52)",
                 transition:"all 0.2s",
-                marginBottom: activeSection === id ? -1 : 0,
                 position:"relative",
               }}>
                 {label}
@@ -6106,9 +6215,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             );
           })}
         </div>
-      </div>
 
-      {/* ── LOADING ── */}
+        {/* ── Bottom glow strip ── */}
+        <div style={{
+          position:"absolute", bottom:0, left:0, right:0, height:1,
+          background:`linear-gradient(90deg,transparent 0%,${SAFFRON}55 20%,#4f8ef7 50%,${SAFFRON}55 80%,transparent 100%)`,
+          pointerEvents:"none",
+        }}/>
+      </div>
       {loading && (
         <div style={{
           flex:1, display:"flex", flexDirection:"column",
