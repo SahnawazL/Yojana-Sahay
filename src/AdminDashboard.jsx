@@ -4343,10 +4343,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   }, []);
 
   // ── Smart tab navigation ──────────────────────────────────────────────────
-  const tabsBarRef      = useRef(null);
-  const swipeTouchStartX = useRef(null);
-  const swipeTouchStartY = useRef(null);
+  const tabsBarRef         = useRef(null);
+  const swipeTouchStartX   = useRef(null);
+  const swipeTouchStartY   = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const lastScrollY        = useRef(0);
   const [tabTransition, setTabTransition] = useState(null); // "fwd-out" | "bwd-out" | "fwd-in" | "bwd-in" | null
+  const [tabBarVisible, setTabBarVisible] = useState(true); // auto-hides on scroll down
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchUsers = useCallback(async (isRefresh = false) => {
@@ -5695,8 +5698,31 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     bar.scrollBy({ left: offset, behavior: "smooth" });
   }, [activeSection]);
 
+  // ── Reset tab bar + scroll position on every tab change ────────────────
+  useEffect(() => {
+    setTabBarVisible(true);
+    lastScrollY.current = 0;
+    if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+  }, [activeSection]);
+
+  // ── Auto-hide tab bar on scroll down, reveal on scroll up ──────────────
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const y    = el.scrollTop;
+      const diff = y - lastScrollY.current;
+      if      (y < 8)         setTabBarVisible(true);
+      else if (diff >  6)     setTabBarVisible(false);
+      else if (diff < -4)     setTabBarVisible(true);
+      lastScrollY.current = y;
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div data-admin-scroll="true" style={{
+    <div data-admin-scroll="true" ref={scrollContainerRef} style={{
       position:"fixed", inset:0, zIndex:9999,
       background:th.bg,
       display:"flex", flexDirection:"column",
@@ -6198,6 +6224,15 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         )}
 
         {/* ══ Tab bar (shared mobile + desktop) ══ */}
+        <div style={{
+          overflow:"hidden",
+          maxHeight: tabBarVisible ? 60 : 0,
+          opacity:   tabBarVisible ? 1 : 0,
+          pointerEvents: tabBarVisible ? "auto" : "none",
+          transition: tabBarVisible
+            ? "max-height 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.22s ease"
+            : "max-height 0.24s cubic-bezier(0.4,0,1,1), opacity 0.16s ease",
+        }}>
         <div ref={tabsBarRef} style={{
           display:"flex", gap:4,
           overflowX:"auto", paddingBottom:0,
@@ -6307,6 +6342,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             );
           })}
         </div>
+        </div>{/* end tab bar collapsible wrapper */}
 
         {/* ── Bottom glow strip ── */}
         <div style={{
