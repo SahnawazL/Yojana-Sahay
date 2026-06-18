@@ -2871,5 +2871,112 @@
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
+  },
+  "hp_sahara": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_himcare": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_widow_pension": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_old_age_pension": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_swavlamban": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "hp_indira_gandhi_scholarship": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 200,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_solar_pump": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_disabled_pension": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_sc_post_matric": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 200,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_kaushal_vikas": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_obc_scholarship": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 200,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_startup_policy": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_e_taxi": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 200,
+    "confidence": 0
+  },
+  "hp_fasal_bima": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "hp_bocw_welfare": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_minority_scholarship": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 200,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_free_coaching": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "hp_svanidhi": {
+    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
   }
 }
