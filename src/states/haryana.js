@@ -346,7 +346,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Full tuition fee reimbursement + maintenance allowance ₹380–₹1,200/month for SC/BC students (Class 11 & above)", hi: "SC/BC छात्रों के लिए पूर्ण शुल्क प्रतिपूर्ति + ₹380–₹1,200/माह रखरखाव भत्ता (कक्षा 11 से ऊपर)" },
     tag:     { en: "Student / SC BC Scholarship", hi: "छात्र / SC BC छात्रवृत्ति" },
     annual: 14400,
-    apply:   { en: "https://sewa.haryana.gov.in", hi: "haryanascbc.gov.in" }, applyType: "online",
+    apply:   { en: "https://sewa.haryana.gov.in/educational-schemes", hi: "haryanascbc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC/BC Caste Certificate","Previous Year Mark Sheet","Institution Admission Letter","Income Certificate (≤₹2.5 Lakh/year for BC, no limit for SC)","Bank Account","Domicile Certificate"],
                hi: ["आधार कार्ड","SC/BC जाति प्रमाण पत्र","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","आय प्रमाण (BC के लिए ≤₹2.5 लाख, SC के लिए कोई सीमा नहीं)","बैंक खाता","निवास प्रमाण पत्र"] },
     // Eligibility: Haryana SC student (no income limit) / BC student (income ≤ ₹2.5 lakh), studying Class 11 or above
