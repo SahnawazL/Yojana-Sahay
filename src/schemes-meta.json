@@ -2879,9 +2879,9 @@
     "confidence": 0
   },
   "hp_himcare": {
-    "lastVerified": "2026-06-18T07:29:31.118Z",
+    "lastVerified": "2026-06-18T22:00:25.725Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "hp_widow_pension": {
