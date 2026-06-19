@@ -896,64 +896,64 @@
     "confidence": 0
   },
   "kerala_karunya": {
-    "lastVerified": "2026-06-15T19:11:02.584Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-06-19T21:32:04.014Z",
+    "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_merit_scholarship": {
-    "lastVerified": "2026-06-15T19:11:02.584Z",
-    "httpStatus": 0,
-    "linkAlive": true,
+    "lastVerified": "2026-06-19T21:32:04.014Z",
+    "httpStatus": 200,
+    "linkAlive": false,
     "confidence": 0
   },
   "kerala_asap": {
-    "lastVerified": "2026-06-15T14:14:23.999Z",
-    "httpStatus": 0,
-    "linkAlive": true,
+    "lastVerified": "2026-06-19T21:32:04.014Z",
+    "httpStatus": 200,
+    "linkAlive": false,
     "confidence": 0
   },
   "kerala_unemployment_allowance": {
-    "lastVerified": "2026-06-14T06:31:46.096Z",
+    "lastVerified": "2026-06-19T21:32:04.014Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_startup_mission": {
-    "lastVerified": "2026-06-14T06:31:46.096Z",
+    "lastVerified": "2026-06-19T21:32:04.014Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_minority_scholarship": {
-    "lastVerified": "2026-06-15T19:11:02.584Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-06-19T21:32:04.014Z",
+    "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_cmss_abroad": {
-    "lastVerified": "2026-06-15T19:11:02.584Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-06-19T21:32:04.014Z",
+    "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_pratibha_scholarship": {
-    "lastVerified": "2026-06-14T06:31:46.096Z",
+    "lastVerified": "2026-06-19T21:32:04.014Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_norka_pravasi": {
-    "lastVerified": "2026-06-14T06:31:46.096Z",
+    "lastVerified": "2026-06-19T21:32:04.014Z",
     "httpStatus": 200,
     "linkAlive": true,
     "lastDate": "2025-11-20",
     "isActive": true,
-    "confidence": 1
+    "confidence": 0.5
   },
   "kerala_cm_distress_relief": {
-    "lastVerified": "2026-06-15T14:14:23.999Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-06-19T21:32:04.014Z",
+    "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
