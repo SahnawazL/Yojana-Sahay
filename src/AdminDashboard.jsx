@@ -1472,7 +1472,7 @@ function ConversationThread({ report, dark }) {
   );
 }
 
-function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isDesktop = false }) {
+function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onLogActivity, isDesktop = false }) {
   const th = THEME[dark ? "dark" : "light"];
   const [filter,      setFilter]      = useState("all"); // "all" | "open" | "in_progress" | "resolved"
   const [typeFilter,  setTypeFilter]  = useState("all");
@@ -1612,6 +1612,11 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, isD
         sentAt: new Date().toISOString(),
         status: statusToSave,
       });
+      onLogActivity?.(
+        `Replied to ${report.userName || "a user"}'s report — status: ${statusToSave}`,
+        "reports",
+        statusToSave === "resolved" ? "resolve" : "reply",
+      );
     } catch (err) {
       console.error("❌ Firestore write failed:", err);
       setReplyError(`Firestore error: ${err.message}`);
@@ -4441,6 +4446,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     allowedTabs,
   );
 
+  // ── Log a real admin action to the Agents-tab activity feed ────────────────
+  const logActivity = useCallback((action, tab, type = "view") => {
+    logAdminActivity(
+      sessionUser?.uid,
+      sessionUser?.displayName || sessionUser?.email,
+      action,
+      tab,
+      type,
+    );
+  }, [sessionUser]);
+
   // ── Smart tab navigation ──────────────────────────────────────────────────
   const tabsBarRef      = useRef(null);
   const swipeTouchStartX = useRef(null);
@@ -7092,6 +7108,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           dark={dark}
           isDesktop={isDesktop}
           onRefresh={fetchReports}
+          onLogActivity={logActivity}
           onStatusChange={async (reportId, newStatus, replyData) => {
             if (replyData) {
               // Called after reply already saved to Firestore — just sync local state
@@ -7114,6 +7131,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 setReports(prev =>
                   prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r)
                 );
+                logActivity(
+                  `Marked report #${reportId.slice(0, 6)} as ${newStatus}`,
+                  "reports",
+                  newStatus === "resolved" ? "resolve" : "update",
+                );
               } catch (err) {
                 console.error("Status update failed:", err);
               }
@@ -7127,7 +7149,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         <>
           <ResolvedReportsCleaner
             dark={dark}
-            onDeleteDone={fetchReports}
+            onDeleteDone={() => {
+              fetchReports();
+              logActivity("Purged old resolved reports", "cleanup", "cleanup");
+            }}
           />
           <div style={{ height: 20 }} />
         </>
