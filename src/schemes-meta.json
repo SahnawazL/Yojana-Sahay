@@ -1730,37 +1730,37 @@
     "linkAlive": true
   },
   "jk_kisan_samman": {
-    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "lastVerified": "2026-06-19T12:49:02.964Z",
     "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_apple_mission": {
-    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "lastVerified": "2026-06-19T12:49:02.964Z",
     "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_crop_insurance": {
-    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "lastVerified": "2026-06-19T12:49:02.964Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "jk_tejaswini": {
-    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "lastVerified": "2026-06-19T12:49:02.964Z",
     "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_sehat_health_insurance": {
-    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "lastVerified": "2026-06-19T12:49:02.964Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_himayat": {
-    "lastVerified": "2026-06-17T09:39:24.613Z",
+    "lastVerified": "2026-06-19T12:49:02.964Z",
     "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
@@ -1787,16 +1787,17 @@
     "confidence": 0
   },
   "jk_super75_scholarship": {
-    "lastVerified": "2026-06-17T09:40:52.851Z",
+    "lastVerified": "2026-06-19T12:49:02.964Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jk_post_matric_sc_st": {
-    "lastVerified": "2026-06-17T09:40:52.851Z",
+    "lastVerified": "2026-06-19T12:49:02.964Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 1,
+    "isActive": true
   },
   "tn_mudhalvar_marundhagam": {
     "lastVerified": "2026-06-17T09:57:36.838Z",
