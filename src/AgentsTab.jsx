@@ -161,9 +161,9 @@ export async function logAdminActivity(agentId, agentName, action, tab, type = "
 // ─── EXPORTED: PRESENCE HOOK ─────────────────────────────────────────────────
 // Add this to AdminDashboard:
 //   import AgentsTab, { useAgentPresence } from "./AgentsTab.jsx";
-//   // inside AdminDashboard function body:
-//   useAgentPresence(sessionUser?.uid, sessionUser?.displayName, sessionUser?.email, activeSection, isDesktop);
-export function useAgentPresence(uid, name, email, activeTab, isDesktop) {
+//   // inside AdminDashboard function body (allowedTabs is the existing login-gate prop):
+//   useAgentPresence(sessionUser?.uid, sessionUser?.displayName, sessionUser?.email, activeSection, isDesktop, allowedTabs);
+export function useAgentPresence(uid, name, email, activeTab, isDesktop, allowedTabs = null) {
   const mountedRef = useRef(false);
   const intervalRef = useRef(null);
 
@@ -175,7 +175,7 @@ export function useAgentPresence(uid, name, email, activeTab, isDesktop) {
         name:       name  || "Admin",
         email:      email || "",
         type:       "human",
-        allowedTabs: null,          // null = super admin (all tabs)
+        allowedTabs,                // null = full admin · array = restricted to those tabs
         isOnline:   true,
         lastSeen:   serverTimestamp(),
         activeTab:  activeTab || "home",
@@ -185,7 +185,7 @@ export function useAgentPresence(uid, name, email, activeTab, isDesktop) {
     } catch (e) {
       console.warn("[useAgentPresence] heartbeat failed:", e);
     }
-  }, [uid, name, email, activeTab, isDesktop]);
+  }, [uid, name, email, activeTab, isDesktop, allowedTabs]);
 
   // Mount: write sessionStart, kick off 30s heartbeat
   useEffect(() => {
@@ -198,7 +198,7 @@ export function useAgentPresence(uid, name, email, activeTab, isDesktop) {
         name:        name  || "Admin",
         email:       email || "",
         type:        "human",
-        allowedTabs: null,
+        allowedTabs,
         isOnline:    true,
         lastSeen:    serverTimestamp(),
         activeTab:   activeTab || "home",

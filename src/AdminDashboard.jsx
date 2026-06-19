@@ -4438,6 +4438,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     sessionUser?.email,
     activeSection,
     isDesktop,
+    allowedTabs,
   );
 
   // ── Smart tab navigation ──────────────────────────────────────────────────
