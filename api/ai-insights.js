@@ -19,6 +19,8 @@
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { markAiActive } from "./_lib/firebaseAdmin.js";
+
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL         = "llama-3.3-70b-versatile";
 const MAX_TOKENS    = 800;
@@ -139,6 +141,8 @@ export default async function handler(req, res) {
     if (!text) {
       return res.status(502).json({ error: "Groq returned an empty response." });
     }
+
+    await markAiActive("groqLastActive"); // Groq call above returned 200
 
     // Strip any accidental markdown fences before returning to the client
     const cleaned = text.replace(/```json|```/g, "").trim();

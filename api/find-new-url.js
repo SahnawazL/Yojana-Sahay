@@ -14,6 +14,8 @@
 // Reuses: TAVILY_API_KEY env var (already set for verify-scheme.js)
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { markAiActive } from "./_lib/firebaseAdmin.js";
+
 const TAVILY_SEARCH   = "https://api.tavily.com/search";
 const PING_TIMEOUT_MS = 8000;
 const MAX_CANDIDATES  = 5;
@@ -70,6 +72,7 @@ async function tavilySearch(query, tavilyKey, maxResults = 7) {
     }
 
     const data = await res.json();
+    await markAiActive("tavilyLastActive"); // Tavily search just succeeded
     return (data.results ?? []).map(r => ({
       url:   r.url?.trim() ?? "",
       title: r.title ?? "",

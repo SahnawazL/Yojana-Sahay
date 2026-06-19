@@ -22,6 +22,8 @@
 //         can handle them gracefully without crashing the run.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { markAiActive } from "./_lib/firebaseAdmin.js";
+
 const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_EXTRACT = "https://api.tavily.com/extract";
 const MODEL          = "llama-3.3-70b-versatile";
@@ -275,6 +277,8 @@ export default async function handler(req, res) {
   }
 
   // ── Step 2: AI extraction ─────────────────────────────────────────────────
+  await markAiActive("tavilyLastActive"); // Tavily Extract just succeeded above
+
   const { systemPrompt, userPrompt } = buildPrompt(name, state, text);
 
   const { status: groqStatus, data: groqData } = await callGroq(groqKeys, {
@@ -301,6 +305,8 @@ export default async function handler(req, res) {
   }
 
   // ── Step 3: Parse Groq's JSON reply ──────────────────────────────────────
+  await markAiActive("groqLastActive"); // Groq call above returned 200
+
   const raw = groqData?.choices?.[0]?.message?.content ?? "";
 
   let parsed = null;
