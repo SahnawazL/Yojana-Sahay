@@ -22,7 +22,7 @@
 //         can handle them gracefully without crashing the run.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { markAiActive } from "./_lib/firebaseAdmin.js";
+import { recordAiCall } from "./_lib/firebaseAdmin.js";
 
 const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_EXTRACT = "https://api.tavily.com/extract";
@@ -56,6 +56,7 @@ function loadGroqKeys() {
 
 async function callGroq(keys, bodyObject) {
   let lastError = null;
+  let count429  = 0; // how many keys 429'd before a success (or before exhaustion)
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
@@ -72,6 +73,7 @@ async function callGroq(keys, bodyObject) {
       if (res.status === 429) {
         const errData = await res.json().catch(() => ({}));
         lastError = errData;
+        count429++;
         console.warn(`[verify-scheme] Key #${i + 1} → 429. Trying next key…`);
         continue;
       }
@@ -85,7 +87,7 @@ async function callGroq(keys, bodyObject) {
           JSON.stringify(data).slice(0, 200)
         );
       }
-      return { status: res.status, data };
+      return { status: res.status, data, keyIdx: i, count429 };
 
     } catch (err) {
       console.error(`[verify-scheme] Network error on Key #${i + 1}:`, err.message);
@@ -98,7 +100,7 @@ async function callGroq(keys, bodyObject) {
     : "Groq key is rate-limited. Try again later.";
 
   console.error(`[verify-scheme] ✗ All ${keys.length} Groq key(s) exhausted.`);
-  return { status: 429, data: { error: { message: msg, details: lastError } } };
+  return { status: 429, data: { error: { message: msg, details: lastError } }, keyIdx: -1, count429 };
 }
 
 
@@ -277,11 +279,11 @@ export default async function handler(req, res) {
   }
 
   // ── Step 2: AI extraction ─────────────────────────────────────────────────
-  await markAiActive("tavilyLastActive"); // Tavily Extract just succeeded above
+  recordAiCall({ service: "tavily" }).catch(() => {}); // Tavily Extract just succeeded above
 
   const { systemPrompt, userPrompt } = buildPrompt(name, state, text);
 
-  const { status: groqStatus, data: groqData } = await callGroq(groqKeys, {
+  const { status: groqStatus, data: groqData, keyIdx, count429 } = await callGroq(groqKeys, {
     model:           MODEL,
     max_tokens:      80,   // full JSON response fits in ~25 tokens
     temperature:     0.1,  // near-deterministic — extraction, not generation
@@ -295,6 +297,7 @@ export default async function handler(req, res) {
   if (groqStatus !== 200) {
     const msg = groqData?.error?.message ?? `Groq error ${groqStatus}`;
     console.error(`[verify-scheme] Groq failed for "${name}":`, msg);
+    recordAiCall({ service: "groq", keyIdx: -1, count429 }).catch(() => {});
     return res.status(200).json({
       lastDate:   null,
       isActive:   null,
@@ -305,7 +308,7 @@ export default async function handler(req, res) {
   }
 
   // ── Step 3: Parse Groq's JSON reply ──────────────────────────────────────
-  await markAiActive("groqLastActive"); // Groq call above returned 200
+  recordAiCall({ service: "groq", keyIdx, count429 }).catch(() => {}); // Groq call above returned 200
 
   const raw = groqData?.choices?.[0]?.message?.content ?? "";
 

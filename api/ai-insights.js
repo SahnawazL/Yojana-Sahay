@@ -19,7 +19,7 @@
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { markAiActive } from "./_lib/firebaseAdmin.js";
+import { recordAiCall } from "./_lib/firebaseAdmin.js";
 
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL         = "llama-3.3-70b-versatile";
@@ -50,6 +50,7 @@ function loadGroqKeys() {
 // Tries each key in order; skips on 429. Returns { status, data }.
 async function callGroq(keys, bodyObject) {
   let lastError = null;
+  let count429  = 0;
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
@@ -66,6 +67,7 @@ async function callGroq(keys, bodyObject) {
       if (groqRes.status === 429) {
         const errData = await groqRes.json().catch(() => ({}));
         lastError = errData;
+        count429++;
         console.warn(`[ai-insights] Key #${i + 1} → 429 rate limited. Trying next key…`);
         continue;
       }
@@ -77,7 +79,7 @@ async function callGroq(keys, bodyObject) {
         console.error(`[ai-insights] Groq error ${groqRes.status} on Key #${i + 1}:`,
           JSON.stringify(data).slice(0, 200));
       }
-      return { status: groqRes.status, data };
+      return { status: groqRes.status, data, keyIdx: i, count429 };
 
     } catch (err) {
       console.error(`[ai-insights] Network error on Key #${i + 1}:`, err.message);
@@ -89,7 +91,7 @@ async function callGroq(keys, bodyObject) {
     ? `All ${keys.length} Groq keys are rate-limited. Try again in a moment.`
     : "Groq key is rate-limited. Try again in a moment.";
   console.error(`[ai-insights] ✗ All ${keys.length} key(s) exhausted.`);
-  return { status: 429, data: { error: { message: msg, details: lastError } } };
+  return { status: 429, data: { error: { message: msg, details: lastError } }, keyIdx: -1, count429 };
 }
 
 export default async function handler(req, res) {
@@ -114,7 +116,7 @@ export default async function handler(req, res) {
 
   // ── Call Groq with key rotation ────────────────────────────────────────────
   try {
-    const { status, data } = await callGroq(keys, {
+    const { status, data, keyIdx, count429 } = await callGroq(keys, {
       model:       MODEL,
       max_tokens:  MAX_TOKENS,
       temperature: TEMPERATURE,
@@ -133,16 +135,17 @@ export default async function handler(req, res) {
     if (status !== 200) {
       const msg = data?.error?.message || `Groq HTTP ${status}`;
       console.error("[ai-insights] Groq error:", msg);
+      recordAiCall({ service: "groq", keyIdx: -1, count429 }).catch(() => {});
       return res.status(status === 429 ? 429 : 502).json({ error: `Groq API error: ${msg}` });
     }
+
+    recordAiCall({ service: "groq", keyIdx, count429 }).catch(() => {}); // Groq call above returned 200
 
     const text = data?.choices?.[0]?.message?.content ?? "";
 
     if (!text) {
       return res.status(502).json({ error: "Groq returned an empty response." });
     }
-
-    await markAiActive("groqLastActive"); // Groq call above returned 200
 
     // Strip any accidental markdown fences before returning to the client
     const cleaned = text.replace(/```json|```/g, "").trim();
