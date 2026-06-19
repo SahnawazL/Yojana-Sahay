@@ -3074,9 +3074,9 @@
     "confidence": 0
   },
   "jharkhand_micro_irrigation": {
-    "lastVerified": "2026-06-19T17:24:31.661Z",
+    "lastVerified": "2026-06-19T22:08:26.625Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
