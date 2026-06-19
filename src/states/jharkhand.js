@@ -463,7 +463,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "90% subsidy for SC/ST · 75% for general farmers on drip & sprinkler irrigation systems", hi: "SC/ST किसानों को ड्रिप व स्प्रिंकलर सिंचाई पर 90% · सामान्य किसानों को 75% सब्सिडी" },
     tag:     { en: "Farmer / Irrigation", hi: "किसान / सिंचाई" },
     annual: 50000,
-    apply:   { en: "https://agri.jharkhand.gov.in", hi: "agri.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.switchon.org.in/empowering-jharkhand-farmers-through-micro-irrigation", hi: "agri.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (Khatiyan / Khasra)", "Caste Certificate (for SC/ST rate)", "Bank Account", "Geo-tagged Photo of Farm", "Quotation from Empanelled Vendor"],
                hi: ["आधार कार्ड", "भूमि अभिलेख (खतियान / खसरा)", "जाति प्रमाण पत्र (SC/ST दर हेतु)", "बैंक खाता", "खेत की जियो-टैग फोटो", "पंजीकृत विक्रेता से कोटेशन"] },
     match: (a) => a.state === "Jharkhand" && a.who === "farmer",
