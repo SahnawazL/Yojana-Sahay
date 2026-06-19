@@ -52,6 +52,14 @@ function loadGroqKeys() {
 }
 
 
+// ── Detect key/account-level failures (vs. request-specific failures) ───────
+// Same key is broken for ANY request — skip to the next one, same as a 429.
+function isKeyLevelFailure(status, errData) {
+  if (status === 401) return true;
+  const code = errData?.error?.code;
+  return code === "organization_restricted" || code === "invalid_api_key";
+}
+
 // ── Groq caller with key rotation (identical to chat.js) ─────────────────────
 
 async function callGroq(keys, bodyObject) {
@@ -79,6 +87,16 @@ async function callGroq(keys, bodyObject) {
       }
 
       const data = await res.json();
+
+      if (isKeyLevelFailure(res.status, data)) {
+        lastError = data;
+        console.warn(
+          `[verify-scheme] Key #${i + 1} → ${data?.error?.code || res.status} ` +
+          `(key-level failure). Trying next key…`
+        );
+        continue;
+      }
+
       if (res.status === 200) {
         console.log(`[verify-scheme] ✓ Groq Key #${i + 1} succeeded.`);
       } else {

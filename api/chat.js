@@ -119,6 +119,17 @@ async function searchWeb(query) {
   }
 }
 
+// ── Detect key/account-level failures (vs. request-specific failures) ───────
+// These mean THIS KEY is broken — every request through it will fail the same
+// way regardless of prompt. Should skip to the next key, same as a 429.
+// (Contrast: "tool_use_failed" is about THIS prompt, not the key — retrying
+// with a different key would just fail again. Handled separately below.)
+function isKeyLevelFailure(status, errData) {
+  if (status === 401) return true; // invalid/revoked key
+  const code = errData?.error?.code;
+  return code === "organization_restricted" || code === "invalid_api_key";
+}
+
 // ── Call Groq with key rotation ───────────────────────────────────────────────
 // Tries each key in order; skips on 429.
 // Returns { status, data, keyIdx, count429 }:
@@ -150,6 +161,19 @@ async function callGroq(keys, bodyObject) {
       }
 
       const data = await groqRes.json();
+
+      // Key/account-level failure — this key is dead for ANY request, not
+      // just this one. Skip it instead of surfacing a dead-key error to the
+      // user when other keys might be perfectly healthy.
+      if (isKeyLevelFailure(groqRes.status, data)) {
+        lastError = data;
+        console.warn(
+          `[Yojana Sahay] Key #${i + 1} → ${data?.error?.code || groqRes.status} ` +
+          `(key-level failure). Trying next key…`
+        );
+        continue;
+      }
+
       if (groqRes.status === 200) {
         console.log(`[Yojana Sahay] ✓ Key #${i + 1} succeeded.`);
       } else {
@@ -212,6 +236,21 @@ export default async function handler(req, res) {
     keyIdx: firstKeyIdx,
     count429: firstCount429,
   } = await callGroq(keys, firstCallBody);
+
+  // tool_use_failed isn't a key problem — the model failed to format a valid
+  // function call for THIS prompt, and would fail the same way on every key.
+  // Retry once without the web_search tool so the user still gets an answer
+  // instead of a raw "failed_generation" error.
+  if (firstStatus !== 200 && firstData?.error?.code === "tool_use_failed") {
+    console.warn("[Yojana Sahay] tool_use_failed — retrying without web_search tool.");
+    const retry = await callGroq(keys, requestBody); // no tools this round
+    recordAiCall({
+      service:  "groq",
+      keyIdx:   retry.status === 200 ? retry.keyIdx : -1,
+      count429: retry.count429,
+    }).catch(() => {});
+    return res.status(retry.status).json(retry.data);
+  }
 
   // If first call failed, record the failure and return
   if (firstStatus !== 200) {
