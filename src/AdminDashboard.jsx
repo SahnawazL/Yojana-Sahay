@@ -20,7 +20,7 @@ import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
 import SchemeVerifier from "./SchemeVerifier.jsx";
-import AgentsTab, { useAgentPresence, logAdminActivity } from "./AgentsTab.jsx";
+import AgentsTab, { useAgentPresence, useDailyTimeTracking, logAdminActivity } from "./AgentsTab.jsx";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -4444,6 +4444,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     activeSection,
     isDesktop,
     allowedTabs,
+  );
+
+  // ── Daily time tracking — credits real active seconds to agentTimeLogs ─────
+  useDailyTimeTracking(
+    sessionUser?.uid,
+    sessionUser?.displayName || sessionUser?.email,
+    sessionUser?.email,
   );
 
   // ── Log a real admin action to the Agents-tab activity feed ────────────────

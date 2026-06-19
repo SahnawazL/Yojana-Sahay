@@ -12,20 +12,22 @@
  *  - Timeline activity log (last 30 events)
  *
  * Firestore collections used:
- *  - adminPresence/{uid}  — human admin heartbeat docs
- *  - adminMeta/aiStatus   — { groqLastActive, tavilyLastActive } timestamps
- *  - adminActivity        — { agentId, agentName, action, tab, type, time }
+ *  - adminPresence/{uid}        — human admin heartbeat docs
+ *  - adminMeta/aiStatus         — { groqLastActive, tavilyLastActive } timestamps
+ *  - adminActivity              — { agentId, agentName, action, tab, type, time }
+ *  - agentTimeLogs/{uid}_{date} — daily worked-seconds per agent, for attendance/salary
  *
  * Exports:
  *  - default AgentsTab          (render in AdminDashboard for activeSection==="agents")
  *  - useAgentPresence(...)      (call inside AdminDashboard to write your own heartbeat)
+ *  - useDailyTimeTracking(...)  (call inside AdminDashboard to log daily active time)
  *  - logAdminActivity(...)      (call anywhere to record an action to the feed)
  */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
-  collection, doc, setDoc, onSnapshot,
-  query, orderBy, limit, serverTimestamp, addDoc,
+  collection, doc, setDoc, getDoc, onSnapshot,
+  query, where, orderBy, limit, serverTimestamp, addDoc, increment,
 } from "firebase/firestore";
 import { db } from "./firebase.js";
 
@@ -220,6 +222,115 @@ export function useAgentPresence(uid, name, email, activeTab, isDesktop, allowed
   useEffect(() => {
     beat();
   }, [activeTab]);
+}
+
+// ─── DAILY TIME TRACKING (attendance / salary — 8h target per calendar day) ──
+// "Active" = dashboard open AND the agent interacted (tap/click/scroll/key)
+// within the last IDLE_THRESHOLD_MS. Day boundary is IST (Asia/Kolkata),
+// matching where the team is based, regardless of each device's local clock.
+const IDLE_THRESHOLD_MS    = 3 * 60 * 1000;   // no interaction in 3 min → not counted
+const TICK_MS              = 30 * 1000;       // how often we check + credit time
+const MAX_CREDIT_MS        = 90 * 1000;       // cap per tick — guards against laptop
+                                               // sleep / backgrounded-tab time jumps
+export const DAILY_TARGET_SECONDS = 8 * 60 * 60; // 8h
+
+export function getISTDateStr(d = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(d); // → "YYYY-MM-DD"
+}
+
+export function timeLogId(uid, dateStr) {
+  return `${uid}_${dateStr}`;
+}
+
+// Call this once in AdminDashboard, alongside useAgentPresence:
+//   useDailyTimeTracking(sessionUser?.uid, sessionUser?.displayName || sessionUser?.email, sessionUser?.email);
+export function useDailyTimeTracking(uid, name, email) {
+  const lastInteractionRef = useRef(Date.now());
+  const lastTickRef        = useRef(Date.now());
+  const dateStrRef         = useRef(getISTDateStr());
+
+  // Track real interaction — ref only, no re-renders
+  useEffect(() => {
+    if (!uid) return;
+    const mark = () => { lastInteractionRef.current = Date.now(); };
+    const events = ["mousemove", "mousedown", "touchstart", "keydown", "scroll", "click"];
+    events.forEach(ev => window.addEventListener(ev, mark, { passive: true }));
+    mark(); // count the moment they land on the dashboard as activity
+    return () => events.forEach(ev => window.removeEventListener(ev, mark));
+  }, [uid]);
+
+  // Ensure today's log doc exists once (so firstActive is only ever set once)
+  useEffect(() => {
+    if (!uid) return;
+    const dateStr = getISTDateStr();
+    dateStrRef.current = dateStr;
+    (async () => {
+      try {
+        const ref  = doc(db, "agentTimeLogs", timeLogId(uid, dateStr));
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          await setDoc(ref, {
+            uid, name: name || "Agent", email: email || "",
+            date: dateStr,
+            secondsActive: 0,
+            firstActive: serverTimestamp(),
+            lastActive:  serverTimestamp(),
+          });
+        }
+      } catch (e) {
+        console.warn("[useDailyTimeTracking] init failed:", e);
+      }
+    })();
+  }, [uid]);
+
+  // Heartbeat: every TICK_MS, credit elapsed time only if recently active
+  useEffect(() => {
+    if (!uid) return;
+    lastTickRef.current = Date.now();
+
+    const tick = async () => {
+      const now       = Date.now();
+      const elapsedMs = now - lastTickRef.current;
+      lastTickRef.current = now;
+
+      const idle = (now - lastInteractionRef.current) > IDLE_THRESHOLD_MS;
+      if (idle) return; // dashboard open but untouched — don't count it
+
+      const creditSec = Math.max(0, Math.round(Math.min(elapsedMs, MAX_CREDIT_MS) / 1000));
+      if (creditSec <= 0) return;
+
+      const todayStr = getISTDateStr();
+      try {
+        // Midnight rollover mid-session — make sure the new day's doc exists first
+        if (todayStr !== dateStrRef.current) {
+          dateStrRef.current = todayStr;
+          const ref  = doc(db, "agentTimeLogs", timeLogId(uid, todayStr));
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            await setDoc(ref, {
+              uid, name: name || "Agent", email: email || "",
+              date: todayStr, secondsActive: 0,
+              firstActive: serverTimestamp(), lastActive: serverTimestamp(),
+            });
+          }
+        }
+
+        await setDoc(doc(db, "agentTimeLogs", timeLogId(uid, todayStr)), {
+          uid, name: name || "Agent", email: email || "",
+          date: todayStr,
+          secondsActive: increment(creditSec),
+          lastActive: serverTimestamp(),
+        }, { merge: true });
+      } catch (e) {
+        console.warn("[useDailyTimeTracking] tick failed:", e);
+      }
+    };
+
+    const t = setInterval(tick, TICK_MS);
+    return () => clearInterval(t);
+  }, [uid, name, email]);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -739,6 +850,160 @@ function ActivityRow({ act, dark, isLast }) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Daily Attendance (8h target — for salary calculation)
+// ═════════════════════════════════════════════════════════════════════════════
+function fmtHM(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  if (h <= 0 && m <= 0) return "0m";
+  return h ? `${h}h ${m}m` : `${m}m`;
+}
+
+function fmtClockIST(ts) {
+  const d = toDate(ts);
+  if (!d) return null;
+  return d.toLocaleTimeString("en-IN", {
+    timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit",
+  });
+}
+
+function navBtnStyle(th) {
+  return {
+    width: 22, height: 22, borderRadius: 6, border: `1px solid ${th.border}`,
+    background: "transparent", color: th.text, fontSize: 13, lineHeight: 1,
+    display: "flex", alignItems: "center", justifyContent: "center",
+  };
+}
+
+function AttendanceSection({ humanAgents, dark }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const todayStr = getISTDateStr();
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [logs, setLogs] = useState([]);
+
+  const isToday = selectedDate === todayStr;
+
+  useEffect(() => {
+    const q = query(collection(db, "agentTimeLogs"), where("date", "==", selectedDate));
+    const unsub = onSnapshot(q, snap => {
+      setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return unsub;
+  }, [selectedDate]);
+
+  const shiftDate = (deltaDays) => {
+    const d = new Date(`${selectedDate}T00:00:00+05:30`);
+    d.setDate(d.getDate() + deltaDays);
+    const next = getISTDateStr(d);
+    if (next > todayStr) return; // no peeking into the future
+    setSelectedDate(next);
+  };
+
+  // Every known human admin gets a row, even with 0 logged time that day
+  const rows = humanAgents.map(ag => {
+    const uid = ag.uid || ag.id;
+    const log = logs.find(l => l.uid === uid);
+    return {
+      uid,
+      name: ag.name || "Admin",
+      seconds: log?.secondsActive || 0,
+      firstActive: log?.firstActive || null,
+      lastActive: log?.lastActive || null,
+    };
+  });
+
+  const dateLabel = new Date(`${selectedDate}T00:00:00+05:30`).toLocaleDateString("en-IN", {
+    weekday: "short", day: "2-digit", month: "short", year: "numeric",
+  });
+
+  return (
+    <div style={{
+      marginTop: 14, background: th.card, border: `1px solid ${th.border}`,
+      borderRadius: 14, overflow: "hidden",
+    }}>
+      <div style={{
+        padding: "10px 14px", borderBottom: `1px solid ${th.border}`,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: dark ? "#252527" : "#f8f9fa",
+      }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: th.text }}>
+            Daily Attendance
+          </div>
+          <div style={{ fontSize: 9, color: th.textSub, marginTop: 1 }}>
+            Auto-tracked · 8h target · resets at midnight IST
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <button onClick={() => shiftDate(-1)} style={{ ...navBtnStyle(th), cursor: "pointer" }}>‹</button>
+          <div style={{
+            fontSize: 10, fontWeight: 700, color: th.text, fontFamily: "monospace",
+            minWidth: 92, textAlign: "center",
+          }}>
+            {isToday ? "Today" : dateLabel}
+          </div>
+          <button
+            onClick={() => shiftDate(1)}
+            disabled={isToday}
+            style={{ ...navBtnStyle(th), opacity: isToday ? 0.3 : 1, cursor: isToday ? "default" : "pointer" }}
+          >
+            ›
+          </button>
+        </div>
+      </div>
+
+      <div style={{ padding: "6px 14px 12px" }}>
+        {rows.length === 0 ? (
+          <div style={{ padding: "20px 0", textAlign: "center", color: th.textSub, fontSize: 11 }}>
+            No agents yet.
+          </div>
+        ) : rows.map(r => {
+          const pct = Math.min(100, Math.round((r.seconds / DAILY_TARGET_SECONDS) * 100));
+          const complete = r.seconds >= DAILY_TARGET_SECONDS;
+          const inAt  = fmtClockIST(r.firstActive);
+          const lastAt = fmtClockIST(r.lastActive);
+          return (
+            <div key={r.uid} style={{ padding: "9px 0", borderBottom: `1px solid ${th.border}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: th.text }}>{r.name}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 800, fontFamily: "monospace",
+                    color: complete ? IND_GREEN : th.text,
+                  }}>
+                    {fmtHM(r.seconds)}
+                  </span>
+                  <span style={{
+                    fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 5,
+                    background: complete ? `${IND_GREEN}18` : `${SAFFRON}18`,
+                    color: complete ? IND_GREEN : SAFFRON,
+                  }}>
+                    {complete ? "8H DONE" : `${pct}%`}
+                  </span>
+                </div>
+              </div>
+              <div style={{ height: 5, borderRadius: 3, background: dark ? "#2c2c2e" : "#eee", overflow: "hidden" }}>
+                <div style={{
+                  height: "100%", width: `${pct}%`,
+                  background: complete ? IND_GREEN : `linear-gradient(90deg, ${SAFFRON}, #ffb866)`,
+                  transition: "width 0.4s ease",
+                }} />
+              </div>
+              {(inAt || lastAt) && (
+                <div style={{ fontSize: 8.5, color: th.textSub, fontFamily: "monospace", marginTop: 4 }}>
+                  {inAt && <>in {inAt}{" "}</>}
+                  {lastAt && <>· last active {lastAt}</>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // MAIN EXPORT: AgentsTab
 // ═════════════════════════════════════════════════════════════════════════════
 export default function AgentsTab({ dark, isDesktop }) {
@@ -908,6 +1173,9 @@ export default function AgentsTab({ dark, isDesktop }) {
           ))}
         </div>
       )}
+
+      {/* ── Daily Attendance (8h target — salary tracking) ─────────────── */}
+      <AttendanceSection humanAgents={humanAgents} dark={dark} />
 
       {/* ── Government Notice Board ───────────────────────────────────── */}
       <NoticeBoard activities={activities} humanAgents={humanAgents} dark={dark} />
