@@ -819,6 +819,59 @@ function NoticeBoard({ activities, humanAgents, dark }) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Groq Key Health Grid
+// Shows K1–K5 pills: green+pulse = currently active, amber = 429'd today,
+// gray = untouched today. Data comes from enriched AI agent fields.
+// ═════════════════════════════════════════════════════════════════════════════
+function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark }) {
+  const th = THEME[dark ? "dark" : "light"];
+  return (
+    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 6 }}>
+      {Array.from({ length: keyCount }, (_, i) => {
+        const isActive = activeKeyIdx === i;
+        const was429   = (keys429Today || []).includes(i);
+        const col = isActive ? IND_GREEN : was429 ? IDLE_AMBER : th.textSub;
+        const bg  = isActive
+          ? `${IND_GREEN}1e`
+          : was429
+            ? `${IDLE_AMBER}18`
+            : (dark ? "#252527" : "#f2f2f2");
+        const bd = isActive
+          ? `${IND_GREEN}55`
+          : was429
+            ? `${IDLE_AMBER}55`
+            : th.border;
+        return (
+          <div key={i} title={
+            isActive ? `K${i+1} — currently active`
+            : was429  ? `K${i+1} — 429'd today`
+            : `K${i+1} — not used today`
+          } style={{
+            padding: "3px 9px", borderRadius: 6,
+            background: bg, border: `1px solid ${bd}`,
+            fontSize: 9, fontWeight: 800, fontFamily: "monospace",
+            color: col, display: "flex", alignItems: "center", gap: 4,
+            userSelect: "none", cursor: "default",
+          }}>
+            <div style={{
+              width: 5, height: 5, borderRadius: "50%", background: col, flexShrink: 0,
+              animation: isActive ? "agnt-pulse 2s ease-in-out infinite" : "none",
+            }} />
+            K{i + 1}
+            {isActive && (
+              <span style={{ fontSize: 6.5, letterSpacing: 0.5, opacity: 0.8 }}>ACTIVE</span>
+            )}
+            {!isActive && was429 && (
+              <span style={{ fontSize: 6.5, letterSpacing: 0.5, opacity: 0.8 }}>429</span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Agent Card
 // ═════════════════════════════════════════════════════════════════════════════
 function AgentCard({ agent, dark }) {
@@ -941,6 +994,141 @@ function AgentCard({ agent, dark }) {
           </div>
         ))}
       </div>
+
+      {/* ── AI Health Panel — Groq key grid + daily stats ── */}
+      {agent.type === "ai" && agent.id === "groq-ai" && (
+        <div style={{
+          marginTop: 10, padding: "10px 11px",
+          background: dark ? "#0d0d1a" : "#f4f5fb",
+          border: `1px solid ${VIOLET}2e`,
+          borderRadius: 10,
+        }}>
+          {/* Key grid header */}
+          <div style={{
+            fontSize: 8, fontFamily: "monospace", fontWeight: 700,
+            color: th.textSub, letterSpacing: 1.1, textTransform: "uppercase",
+          }}>
+            Key Health · {agent.keyCount} Keys Configured
+          </div>
+          <GroqKeyGrid
+            activeKeyIdx={agent.activeKeyIdx}
+            keys429Today={agent.keys429Today}
+            keyCount={agent.keyCount || 5}
+            dark={dark}
+          />
+
+          {/* Stats row */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
+            gap: 6, marginTop: 9,
+          }}>
+            {[
+              {
+                label: "CALLS TODAY",
+                value: agent.callsToday ?? "—",
+                color: VIOLET,
+              },
+              {
+                label: "429s TODAY",
+                value: agent.i429Today ?? 0,
+                color: (agent.i429Today || 0) > 0 ? "#EF4444" : th.textSub,
+              },
+              {
+                label: "WEB SEARCHES",
+                value: agent.webSearchesToday ?? 0,
+                color: CYAN,
+              },
+            ].map(s => (
+              <div key={s.label} style={{
+                background: dark ? "#1c1c1e" : "#fff",
+                borderRadius: 8, padding: "6px 7px", textAlign: "center",
+                border: `1px solid ${th.border}`,
+              }}>
+                <div style={{
+                  fontSize: 16, fontWeight: 800, color: s.color, fontFamily: "monospace",
+                  lineHeight: 1.1,
+                }}>
+                  {s.value}
+                </div>
+                <div style={{
+                  fontSize: 7, color: th.textSub, fontFamily: "monospace",
+                  fontWeight: 700, letterSpacing: 0.4, marginTop: 2,
+                }}>
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Last 429 row / health line */}
+          {agent.last429At ? (
+            <div style={{
+              marginTop: 8, fontSize: 9, color: th.textSub, fontFamily: "monospace",
+              display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap",
+            }}>
+              <IconAlert size={9} color={IDLE_AMBER} style={{ flexShrink: 0 }} />
+              <span>Last 429:</span>
+              <span style={{ color: IDLE_AMBER, fontWeight: 700 }}>
+                {timeAgo(agent.last429At)}
+              </span>
+              {agent.activeKeyIdx >= 0 && (
+                <span style={{ color: th.textSub }}>
+                  · now on K{agent.activeKeyIdx + 1}
+                </span>
+              )}
+            </div>
+          ) : agent.activeKeyIdx >= 0 ? (
+            <div style={{
+              marginTop: 7, fontSize: 9, color: IND_GREEN, fontFamily: "monospace",
+              display: "flex", alignItems: "center", gap: 5,
+            }}>
+              <div style={{
+                width: 5, height: 5, borderRadius: "50%", background: IND_GREEN, flexShrink: 0,
+              }} />
+              No 429s today · running on K{agent.activeKeyIdx + 1}
+            </div>
+          ) : (
+            <div style={{
+              marginTop: 7, fontSize: 9, color: th.textSub, fontFamily: "monospace",
+            }}>
+              No calls recorded yet today
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── AI Health Panel — Tavily daily stats ── */}
+      {agent.type === "ai" && agent.id === "tavily-api" && (
+        <div style={{
+          marginTop: 10, padding: "9px 11px",
+          background: dark ? "#061218" : "#f0faff",
+          border: `1px solid ${CYAN}2e`,
+          borderRadius: 10,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <div>
+            <div style={{
+              fontSize: 8, fontFamily: "monospace", fontWeight: 700,
+              color: th.textSub, letterSpacing: 1.1, textTransform: "uppercase",
+            }}>
+              Searches Today
+            </div>
+            <div style={{
+              fontSize: 20, fontWeight: 800, color: CYAN, fontFamily: "monospace", marginTop: 3,
+              lineHeight: 1,
+            }}>
+              {agent.callsToday ?? 0}
+            </div>
+          </div>
+          <div style={{
+            width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+            background: `${CYAN}18`, border: `1px solid ${CYAN}38`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <IconRadio size={15} color={CYAN} />
+          </div>
+        </div>
+      )}
 
       {/* ── Anomaly flag ── */}
       {agent.anomaly && (
@@ -1600,13 +1788,35 @@ export default function AgentsTab({ dark, isDesktop }) {
     return unsub;
   }, []);
 
-  // ── Enrich AI agents with live status ────────────────────────────────────
+  // ── Enrich AI agents with live status + health stats ─────────────────────
+  const todayStr  = getISTDateStr(); // stable within a day; 30s tick keeps renders fresh
   const enrichedAI = useMemo(() =>
-    AI_AGENTS.map(ag => ({
-      ...ag,
-      lastSeen: aiStatus[ag.firestoreKey] || null,
-    })),
-  [aiStatus]);
+    AI_AGENTS.map(ag => {
+      if (ag.id === "groq-ai") {
+        const sameDay = (field) => aiStatus[field] === todayStr;
+        return {
+          ...ag,
+          lastSeen:         aiStatus.groqLastActive              || null,
+          activeKeyIdx:     aiStatus.groqActiveKeyIdx            ?? -1,
+          callsToday:       sameDay("groqCallsDate")      ? (aiStatus.groqCallsToday        || 0) : 0,
+          i429Today:        sameDay("groq429Date")         ? (aiStatus.groq429Today          || 0) : 0,
+          keys429Today:     sameDay("groq429KeysDate")     ? (aiStatus.groq429KeysToday      || []) : [],
+          last429At:        aiStatus.groqLast429At                || null,
+          webSearchesToday: sameDay("groqWebSearchesDate") ? (aiStatus.groqWebSearchesToday  || 0) : 0,
+          keyCount:         5,   // GROQ_API_KEY_1 … GROQ_API_KEY_5
+        };
+      }
+      if (ag.id === "tavily-api") {
+        return {
+          ...ag,
+          lastSeen:   aiStatus.tavilyLastActive                           || null,
+          callsToday: aiStatus.tavilyCallsDate === todayStr ? (aiStatus.tavilyCallsToday || 0) : 0,
+        };
+      }
+      return { ...ag, lastSeen: aiStatus[ag.firestoreKey] || null };
+    }),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [aiStatus, todayStr]);
 
   // ── Merge all agents + attach anomaly flags ───────────────────────────────
   const allAgents = useMemo(() => [
