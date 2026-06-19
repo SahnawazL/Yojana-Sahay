@@ -9,7 +9,13 @@
 // KEY ROTATION: up to 6 Groq keys (GROQ_API_KEY … GROQ_API_KEY_5), round-robin,
 //               skip on 429.
 // TAVILY KEY:   add TAVILY_API_KEY in Vercel → Settings → Environment Variables.
+//
+// TELEMETRY: recordAiCall() writes per-key health stats (active key index,
+//            429 counts, web-search counts) to adminMeta/aiStatus in Firestore
+//            so the AgentsTab AI Health Panel can show live data.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import { recordAiCall } from "./_lib/firebaseAdmin.js";
 
 const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_URL = "https://api.tavily.com/search";
@@ -114,9 +120,13 @@ async function searchWeb(query) {
 }
 
 // ── Call Groq with key rotation ───────────────────────────────────────────────
-// Tries each key in order; skips on 429. Returns { status, data }.
+// Tries each key in order; skips on 429.
+// Returns { status, data, keyIdx, count429 }:
+//   keyIdx   — 0-based index of the key that succeeded (-1 if all exhausted)
+//   count429 — how many keys were 429'd before success (= keyIdx on success)
 async function callGroq(keys, bodyObject) {
   let lastError = null;
+  let count429  = 0; // number of keys that returned 429 before a success
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
@@ -134,6 +144,7 @@ async function callGroq(keys, bodyObject) {
       if (groqRes.status === 429) {
         const errData = await groqRes.json().catch(() => ({}));
         lastError = errData;
+        count429++;
         console.warn(`[Yojana Sahay] Key #${i + 1} → 429 rate limited. Trying next key…`);
         continue;
       }
@@ -147,7 +158,7 @@ async function callGroq(keys, bodyObject) {
           JSON.stringify(data).slice(0, 200)
         );
       }
-      return { status: groqRes.status, data };
+      return { status: groqRes.status, data, keyIdx: i, count429 };
 
     } catch (err) {
       console.error(`[Yojana Sahay] Network error on Key #${i + 1}:`, err.message);
@@ -164,6 +175,8 @@ async function callGroq(keys, bodyObject) {
   return {
     status: 429,
     data: { error: { message: msg, details: lastError } },
+    keyIdx: -1,
+    count429,
   };
 }
 
@@ -193,10 +206,17 @@ export default async function handler(req, res) {
     tool_choice: "auto", // Groq decides when to search — not every message
   };
 
-  const { status: firstStatus, data: firstData } = await callGroq(keys, firstCallBody);
+  const {
+    status: firstStatus,
+    data:   firstData,
+    keyIdx: firstKeyIdx,
+    count429: firstCount429,
+  } = await callGroq(keys, firstCallBody);
 
-  // If first call failed, return the error immediately
+  // If first call failed, record the failure and return
   if (firstStatus !== 200) {
+    // Fire-and-forget — telemetry must not delay the error response
+    recordAiCall({ service: "groq", keyIdx: -1, count429: firstCount429 }).catch(() => {});
     return res.status(firstStatus).json(firstData);
   }
 
@@ -209,7 +229,6 @@ export default async function handler(req, res) {
     if (toolCall?.function?.name === "web_search") {
 
       // Parse the search query Groq chose
-      // FIX: updated fallback query year to 2026
       let searchQuery = "Indian government scheme latest news 2026";
       try {
         searchQuery = JSON.parse(toolCall.function.arguments).query;
@@ -219,38 +238,46 @@ export default async function handler(req, res) {
 
       console.log(`[Yojana Sahay] 🔍 Web search triggered: "${searchQuery}"`);
 
+      // Record first Groq call (it decided to search but didn't return text yet)
+      recordAiCall({ service: "groq", keyIdx: firstKeyIdx, count429: firstCount429, triggeredSearch: false }).catch(() => {});
+
       // Call Tavily
       const searchResult = await searchWeb(searchQuery);
 
+      // Record the Tavily search
+      recordAiCall({ service: "tavily" }).catch(() => {});
+
       // ── STEP 3: Second Groq call — with Tavily results injected ─────────────
-      // FIXES:
-      //   1. tools OMITTED entirely — no point defining a tool we won't call;
-      //      also avoids the tool_choice:"none" + tools-defined edge-case warning
-      //      and saves ~120 tokens per Step-3 call.
-      //   2. max_tokens bumped to 1600 — web search path returns longer context
-      //      (original messages + tool call msg + Tavily results). The original
-      //      800/1200 budget from groqClient.js frequently caused mid-sentence
-      //      cutoffs on search-backed answers.
       const secondCallBody = {
         ...requestBody,
         // tools intentionally omitted — Groq won't attempt a second search
-        max_tokens: 1600, // Override: web-search answers need more room
+        max_tokens: 1600,
         messages: [
           ...requestBody.messages,
-          firstChoice.message,           // Groq's tool_call message (required by API)
+          firstChoice.message,
           {
             role:         "tool",
             tool_call_id: toolCall.id,
-            content:      searchResult,  // Tavily's results
+            content:      searchResult,
           },
         ],
       };
 
-      const { status: secondStatus, data: secondData } = await callGroq(keys, secondCallBody);
+      const {
+        status:   secondStatus,
+        data:     secondData,
+        keyIdx:   secondKeyIdx,
+        count429: secondCount429,
+      } = await callGroq(keys, secondCallBody);
+
+      // Record second Groq call — triggeredSearch:true increments groqWebSearchesToday
+      recordAiCall({ service: "groq", keyIdx: secondKeyIdx, count429: secondCount429, triggeredSearch: true }).catch(() => {});
+
       return res.status(secondStatus).json(secondData);
     }
   }
 
-  // ── No tool call → return first response directly ─────────────────────────
+  // ── No tool call → record first response and return directly ──────────────
+  recordAiCall({ service: "groq", keyIdx: firstKeyIdx, count429: firstCount429 }).catch(() => {});
   return res.status(firstStatus).json(firstData);
 }
