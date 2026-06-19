@@ -73,6 +73,117 @@ const ACT_COLORS = {
   update:  "#F97316",
 };
 
+// ─── ICONS (inline SVG, stroke-based, inherits color via currentColor) ───────
+function IconUsers({ size = 14, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="10" cy="7" r="3.5" stroke={color} strokeWidth="1.8"/>
+      <path d="M19.5 21v-2a3.5 3.5 0 0 0-2.4-3.3" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M15 4.1a3.5 3.5 0 0 1 0 6.8" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconPulse({ size = 14, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M3 12h4l2-7 4 14 2-9 2 2h4" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconUserCheck({ size = 14, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <circle cx="9" cy="7.5" r="3.5" stroke={color} strokeWidth="1.8"/>
+      <path d="M2.5 21v-1.5A4.5 4.5 0 0 1 7 15h4a4.5 4.5 0 0 1 4.5 4.5V21" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M16 11.5l1.7 1.7L21 9.5" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconCpu({ size = 14, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <rect x="6" y="6" width="12" height="12" rx="2" stroke={color} strokeWidth="1.8"/>
+      <rect x="9.5" y="9.5" width="5" height="5" rx="1" stroke={color} strokeWidth="1.8"/>
+      <path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconRadio({ size = 12, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <circle cx="12" cy="12" r="2" stroke={color} strokeWidth="1.8"/>
+      <path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M5.5 5.5a9 9 0 0 0 0 13M18.5 5.5a9 9 0 0 1 0 13" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconMegaphone({ size = 13, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1Z" stroke={color} strokeWidth="1.8" strokeLinejoin="round"/>
+      <path d="M16 8.5a4 4 0 0 1 0 7M19.5 5.5a8 8 0 0 1 0 13" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconClockHistory({ size = 13, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8"/>
+      <path d="M12 7v5l3.5 2" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconInfo({ size = 11, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8"/>
+      <path d="M12 11v5.5" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx="12" cy="7.7" r="0.9" fill={color}/>
+    </svg>
+  );
+}
+function IconChevronLeft({ size = 13, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M15 5l-7 7 7 7" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconChevronRight({ size = 13, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M9 5l7 7-7 7" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconSmartphone({ size = 10, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <rect x="6" y="2" width="12" height="20" rx="2.5" stroke={color} strokeWidth="1.8"/>
+      <path d="M11 18.5h2" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconMonitor({ size = 10, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <rect x="2.5" y="4" width="19" height="13" rx="2" stroke={color} strokeWidth="1.8"/>
+      <path d="M8.5 21h7M12 17v4" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconRadar({ size = 14, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.6"/>
+      <circle cx="12" cy="12" r="5" stroke={color} strokeWidth="1.6"/>
+      <path d="M12 12L12 4.5A7.5 7.5 0 0 1 19.5 12Z" fill={color} opacity="0.35"/>
+      <circle cx="12" cy="12" r="1.4" fill={color}/>
+    </svg>
+  );
+}
+
 // ─── STATIC AI AGENTS ─────────────────────────────────────────────────────────
 // Human admins are tracked dynamically via Firestore. AI agents are defined here.
 const AI_AGENTS = [
@@ -82,7 +193,6 @@ const AI_AGENTS = [
     role:        "Scheme Verifier · Chat Assistant",
     type:        "ai",
     allowedTabs: ["verify", "reports"],
-    avatar:      "🤖",
     model:       "llama-3.3-70b-versatile",
     firestoreKey:"groqLastActive",
     sessionStart: null,
@@ -93,7 +203,6 @@ const AI_AGENTS = [
     role:        "URL Health Inspector",
     type:        "ai",
     allowedTabs: ["verify"],
-    avatar:      "🕷️",
     model:       "tavily-extract-v2",
     firestoreKey:"tavilyLastActive",
     sessionStart: null,
@@ -364,6 +473,7 @@ function ActivityTicker({ activities, dark }) {
           width: 7, height: 7, borderRadius: "50%", background: SAFFRON,
           animation: "agnt-pulse 1.5s ease-in-out infinite", flexShrink: 0,
         }}/>
+        <IconRadio size={11} color={SAFFRON} style={{ flexShrink:0 }} />
         <span style={{
           fontFamily:"monospace", fontSize: 9, fontWeight: 800,
           color: SAFFRON, letterSpacing: 1.8, textTransform: "uppercase",
@@ -486,6 +596,7 @@ function NoticeBoard({ activities, humanAgents, dark }) {
             width:8, height:8, borderRadius:"50%", background:SAFFRON,
             animation:"agnt-pulse 1.5s ease-in-out infinite", flexShrink:0,
           }}/>
+          <IconMegaphone size={13} color="#fff" style={{ flexShrink:0, opacity:0.9 }} />
           <span style={{
             fontFamily:"monospace", fontSize: 10, fontWeight: 800,
             color:"#fff", letterSpacing: 2.5, textTransform:"uppercase",
@@ -745,7 +856,7 @@ function AgentCard({ agent, dark }) {
               background:`${SAFFRON}18`, color:SAFFRON,
               fontSize:8, fontWeight:700, fontFamily:"monospace",
             }}>
-              ⚡ ALL TABS
+              ALL TABS
             </span>
           )
           : (agent.allowedTabs || []).map(tab => (
@@ -767,7 +878,12 @@ function AgentCard({ agent, dark }) {
       }}>
         {agent.type === "human" && (
           <>
-            <span>{agent.deviceType === "mobile" ? "📱" : "🖥️"} {agent.deviceType || "unknown"}</span>
+            <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}>
+              {agent.deviceType === "mobile"
+                ? <IconSmartphone size={10} color={th.textSub} />
+                : <IconMonitor size={10} color={th.textSub} />}
+              {agent.deviceType ? (agent.deviceType === "mobile" ? "Mobile" : "Desktop") : "Unknown device"}
+            </span>
             {agent.email && (
               <span style={{ opacity:0.55, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>
                 {agent.email}
@@ -776,7 +892,7 @@ function AgentCard({ agent, dark }) {
           </>
         )}
         {agent.type === "ai" && agent.model && (
-          <span style={{ color:VIOLET, fontWeight:700 }}>⚡ {agent.model}</span>
+          <span style={{ color:VIOLET, fontWeight:700 }}>{agent.model}</span>
         )}
       </div>
     </div>
@@ -935,7 +1051,9 @@ function AttendanceSection({ humanAgents, dark }) {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <button onClick={() => shiftDate(-1)} style={{ ...navBtnStyle(th), cursor: "pointer" }}>‹</button>
+          <button onClick={() => shiftDate(-1)} style={{ ...navBtnStyle(th), cursor: "pointer" }}>
+            <IconChevronLeft size={12} color={th.text} />
+          </button>
           <div style={{
             fontSize: 10, fontWeight: 700, color: th.text, fontFamily: "monospace",
             minWidth: 92, textAlign: "center",
@@ -947,7 +1065,7 @@ function AttendanceSection({ humanAgents, dark }) {
             disabled={isToday}
             style={{ ...navBtnStyle(th), opacity: isToday ? 0.3 : 1, cursor: isToday ? "default" : "pointer" }}
           >
-            ›
+            <IconChevronRight size={12} color={th.text} />
           </button>
         </div>
       </div>
@@ -1080,12 +1198,20 @@ export default function AgentsTab({ dark, isDesktop }) {
       `}</style>
 
       {/* ── Page title ───────────────────────────────────────────────── */}
-      <div style={{ marginBottom:16 }}>
-        <div style={{ fontSize:15, fontWeight:800, color:th.text, letterSpacing:-0.2 }}>
-          Agent Monitor
+      <div style={{ marginBottom:16, display:"flex", alignItems:"flex-start", gap:9 }}>
+        <div style={{
+          width:30, height:30, borderRadius:9, flexShrink:0, marginTop:1,
+          background:`${NAVY}16`, display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <IconRadar size={16} color={dark ? "#6fa3ff" : NAVY} />
         </div>
-        <div style={{ fontSize:11, color:th.textSub, marginTop:3 }}>
-          Live presence · session tracking · activity feed · access control
+        <div>
+          <div style={{ fontSize:15, fontWeight:800, color:th.text, letterSpacing:-0.2 }}>
+            Agent Monitor
+          </div>
+          <div style={{ fontSize:11, color:th.textSub, marginTop:3 }}>
+            Live presence · session tracking · activity feed · access control
+          </div>
         </div>
       </div>
 
@@ -1096,10 +1222,10 @@ export default function AgentsTab({ dark, isDesktop }) {
         gap:8, marginBottom:14,
       }}>
         {[
-          { label:"Total Agents",  value:allAgents.length,    color:NAVY,      icon:"👥" },
-          { label:"Online Now",    value:onlineCount,          color:IND_GREEN, icon:"🟢" },
-          { label:"Human Admins",  value:humanAgents.length,  color:SAFFRON,   icon:"👤" },
-          { label:"AI Agents",     value:enrichedAI.length,   color:VIOLET,    icon:"🤖" },
+          { label:"Total Agents",  value:allAgents.length,    color:NAVY,      Icon:IconUsers },
+          { label:"Online Now",    value:onlineCount,          color:IND_GREEN, Icon:IconPulse },
+          { label:"Human Admins",  value:humanAgents.length,  color:SAFFRON,   Icon:IconUserCheck },
+          { label:"AI Agents",     value:enrichedAI.length,   color:VIOLET,    Icon:IconCpu },
         ].map(s => (
           <div key={s.label} style={{
             background:th.card,
@@ -1107,11 +1233,13 @@ export default function AgentsTab({ dark, isDesktop }) {
             borderTop:`2.5px solid ${s.color}`,
             borderRadius:11, padding:"10px 13px",
           }}>
-            <div style={{ fontSize:16 }}>{s.icon}</div>
-            <div style={{
-              fontSize:22, fontWeight:800, color:th.text, lineHeight:1.2, marginTop:4,
-            }}>
-              {s.value}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <div style={{
+                fontSize:22, fontWeight:800, color:th.text, lineHeight:1.2,
+              }}>
+                {s.value}
+              </div>
+              <s.Icon size={15} color={s.color} />
             </div>
             <div style={{ fontSize:9, color:th.textSub, marginTop:2, fontWeight:600 }}>
               {s.label}
@@ -1129,9 +1257,9 @@ export default function AgentsTab({ dark, isDesktop }) {
       }}>
         {[
           { key:"all",    label:"All" },
-          { key:"online", label:"🟢 Online" },
-          { key:"human",  label:"👤 Human" },
-          { key:"ai",     label:"🤖 AI" },
+          { key:"online", label:"Online" },
+          { key:"human",  label:"Human" },
+          { key:"ai",     label:"AI" },
         ].map(f => (
           <div key={f.key} onClick={() => setFilter(f.key)} style={{
             padding:"4px 12px", borderRadius:20, cursor:"pointer",
@@ -1192,7 +1320,8 @@ export default function AgentsTab({ dark, isDesktop }) {
           display:"flex", alignItems:"center", justifyContent:"space-between",
           background: dark ? "#252527" : "#f8f9fa",
         }}>
-          <div style={{ fontSize:12, fontWeight:700, color:th.text }}>
+          <div style={{ fontSize:12, fontWeight:700, color:th.text, display:"flex", alignItems:"center", gap:6 }}>
+            <IconClockHistory size={13} color={th.textMid} />
             Activity Log
           </div>
           <div style={{
@@ -1208,7 +1337,7 @@ export default function AgentsTab({ dark, isDesktop }) {
               padding:"24px 0", textAlign:"center",
               color:th.textSub, fontSize:12,
             }}>
-              // no activity recorded yet — activity will appear here as agents work
+              No activity recorded yet. Activity will appear here as agents work.
             </div>
           ) : (
             activities.slice(0, 15).map((act, i) => (
@@ -1230,12 +1359,16 @@ export default function AgentsTab({ dark, isDesktop }) {
         border:`1px solid ${th.border}`,
         borderRadius:10,
         fontFamily:"monospace", fontSize:9, color:th.textSub, lineHeight:1.7,
+        display:"flex", gap:7,
       }}>
-        <span style={{ color:NAVY === "#003580" ? (dark?"#6fa3ff":NAVY) : NAVY }}>ℹ</span>
-        {" "}Human admins appear automatically when they open the dashboard.
-        AI agents update via <span style={{ color:th.text }}>adminMeta/aiStatus</span> (written
-        by serverless routes). Log custom events with{" "}
-        <span style={{ color:VIOLET }}>logAdminActivity(uid, name, action, tab, type)</span>.
+        <IconInfo size={12} color={dark?"#6fa3ff":NAVY} style={{ flexShrink:0, marginTop:1 }} />
+        <span>
+          <span style={{ color: dark?"#6fa3ff":NAVY, fontWeight:800, letterSpacing:0.5 }}>NOTE:</span>
+          {" "}Human admins appear automatically when they open the dashboard.
+          AI agents update via <span style={{ color:th.text }}>adminMeta/aiStatus</span> (written
+          by serverless routes). Log custom events with{" "}
+          <span style={{ color:VIOLET }}>logAdminActivity(uid, name, action, tab, type)</span>.
+        </span>
       </div>
     </div>
   );
