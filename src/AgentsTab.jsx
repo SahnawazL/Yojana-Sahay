@@ -24,7 +24,7 @@
  *  - logAdminActivity(...)      (call anywhere to record an action to the feed)
  */
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   collection, doc, setDoc, getDoc, onSnapshot,
   query, where, orderBy, limit, serverTimestamp, addDoc, increment,
@@ -48,8 +48,9 @@ const THEME = {
 const SAFFRON   = "#FF9933";
 const NAVY      = "#003580";
 const IND_GREEN = "#138808";
-const VIOLET    = "#8B5CF6";
-const CYAN      = "#06B6D4";
+const VIOLET     = "#8B5CF6";
+const CYAN       = "#06B6D4";
+const IDLE_AMBER = "#F59E0B";   // three-state presence: idle = amber
 
 // ─── TAB LABELS ───────────────────────────────────────────────────────────────
 const TAB_LABELS = {
@@ -140,6 +141,16 @@ function IconInfo({ size = 11, color = "currentColor", style }) {
       <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8"/>
       <path d="M12 11v5.5" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
       <circle cx="12" cy="7.7" r="0.9" fill={color}/>
+    </svg>
+  );
+}
+function IconAlert({ size = 11, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+        stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M12 9v4" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx="12" cy="17" r="0.9" fill={color}/>
     </svg>
   );
 }
@@ -245,10 +256,98 @@ function isOnline(lastSeen, thresholdMins = 2) {
   return (Date.now() - d.getTime()) < thresholdMins * 60 * 1000;
 }
 
+// Three-state presence: "online" | "idle" | "offline"
+// Human : online = <2 min · idle = 2–5 min · offline = >5 min
+// AI    : online = <15 min                 · offline = >15 min
+function getPresenceState(lastSeen, type = "human") {
+  const d = toDate(lastSeen);
+  if (!d) return "offline";
+  const minsAgo = (Date.now() - d.getTime()) / 60000;
+  if (type === "ai") return minsAgo < 15 ? "online" : "offline";
+  if (minsAgo < 2)  return "online";
+  if (minsAgo < 5)  return "idle";
+  return "offline";
+}
+
+// ─── ANOMALY DETECTION ────────────────────────────────────────────────────────
+const ANOMALY_AI_SILENT_MINS = 120;        // AI silent for 2h+ → red flag
+const ANOMALY_OVERTIME_S     = 10 * 3600; // human >10h today  → amber flag
+const ANOMALY_UNDER_S        =  1 * 3600; // human <1h today (if logged in) → amber flag
+
+// Returns { label, detail, color } or null
+function getAnomalyFlag(agent, todayLog) {
+  if (agent.type === "ai") {
+    const d = toDate(agent.lastSeen);
+    if (!d) return null; // never pinged — not an anomaly, just unconfigured
+    const minsAgo = (Date.now() - d.getTime()) / 60000;
+    if (minsAgo > ANOMALY_AI_SILENT_MINS)
+      return { label: "Silent 2h+", detail: `No ping for ${Math.floor(minsAgo / 60)}h ${Math.floor(minsAgo % 60)}m`, color: "#EF4444" };
+    return null;
+  }
+  // Human — only flag if there is a log entry today
+  if (!todayLog?.firstActive) return null;
+  const secs = todayLog.secondsActive || 0;
+  if (secs > ANOMALY_OVERTIME_S)
+    return { label: "Overtime", detail: `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m logged today`, color: "#F59E0B" };
+  if (secs < ANOMALY_UNDER_S)
+    return { label: "Under 1h", detail: `Only ${Math.floor(secs / 60)}m logged today`, color: "#F59E0B" };
+  return null;
+}
+
 function isNew(ts, thresholdMins = 5) {
   const d = toDate(ts);
   if (!d) return false;
   return (Date.now() - d.getTime()) < thresholdMins * 60 * 1000;
+}
+
+// ─── A11Y: keyboard activation for div-as-button elements ────────────────────
+// Spreads role="button" + tabIndex + onKeyDown(Enter/Space) so plain <div onClick>
+// elements are reachable and operable via keyboard, not just mouse/touch.
+function activatable(onActivate, label) {
+  return {
+    role: "button",
+    tabIndex: 0,
+    "aria-label": label,
+    onKeyDown: (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onActivate();
+      }
+    },
+  };
+}
+
+// ─── Stable identity key for an agent (human doc id === uid; AI uses its id) ──
+function agentKey(ag) {
+  return ag.uid || ag.id;
+}
+
+// ─── ALERT CHIME — two-tone beep via Web Audio API, no external asset ────────
+let _alertAudioCtx = null;
+function playAlertChime() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    if (!_alertAudioCtx) _alertAudioCtx = new Ctx();
+    const ctx = _alertAudioCtx;
+    if (ctx.state === "suspended") ctx.resume();
+    const now = ctx.currentTime;
+    [880, 660].forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const t0 = now + i * 0.14;
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.18, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.13);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.14);
+    });
+  } catch (e) {
+    // Audio unavailable (autoplay policy / unsupported) — fail silently
+  }
 }
 
 // ─── EXPORTED: LOG ACTIVITY ───────────────────────────────────────────────────
@@ -541,7 +640,7 @@ function NoticeBoard({ activities, humanAgents, dark }) {
   // Build notice list: online agents first, then recent activities
   const notices = [
     ...humanAgents
-      .filter(a => isOnline(a.lastSeen, 2))
+      .filter(a => getPresenceState(a.lastSeen, "human") !== "offline")
       .map(a => ({
         id:    `presence-${a.uid || a.id}`,
         text:  `${a.name || "Admin"} is currently active`,
@@ -630,6 +729,8 @@ function NoticeBoard({ activities, humanAgents, dark }) {
             <div
               key={n.id}
               onClick={() => setActiveIdx(i)}
+              {...activatable(() => setActiveIdx(i), `Notice: ${n.text}`)}
+              aria-current={i === activeIdx}
               style={{
                 display:"flex", gap:10, alignItems:"flex-start",
                 padding: "6px 14px",
@@ -699,7 +800,12 @@ function NoticeBoard({ activities, humanAgents, dark }) {
           borderTop: `1px solid ${th.border}`,
         }}>
           {notices.map((_, i) => (
-            <div key={i} onClick={() => setActiveIdx(i)} style={{
+            <div
+              key={i}
+              onClick={() => setActiveIdx(i)}
+              {...activatable(() => setActiveIdx(i), `Go to notice ${i + 1}`)}
+              aria-current={i === activeIdx}
+              style={{
               width: i === activeIdx ? 18 : 5, height:5, borderRadius:3,
               background: i === activeIdx ? NAVY : th.border,
               transition:"all 0.3s cubic-bezier(0.22,1,0.36,1)",
@@ -716,27 +822,36 @@ function NoticeBoard({ activities, humanAgents, dark }) {
 // COMPONENT: Agent Card
 // ═════════════════════════════════════════════════════════════════════════════
 function AgentCard({ agent, dark }) {
-  const th    = THEME[dark ? "dark" : "light"];
-  const threshold = agent.type === "ai" ? 15 : 2;
-  const online    = isOnline(agent.lastSeen, threshold);
-  const SC        = online ? IND_GREEN : th.textSub;
+  const th      = THEME[dark ? "dark" : "light"];
+  const state   = getPresenceState(agent.lastSeen, agent.type);
+  const online  = state === "online";
+  const idle    = state === "idle";
+  const present = online || idle;           // border/shimmer shown for both
+  const SC      = online ? IND_GREEN : idle ? IDLE_AMBER : th.textSub;
+  const stateBg     = online ? `${IND_GREEN}18`
+                    : idle   ? `${IDLE_AMBER}15`
+                    : `${th.textSub}14`;
+  const stateBorder = online ? `${IND_GREEN}45`
+                    : idle   ? `${IDLE_AMBER}55`
+                    : th.border;
+  const stateLabel  = online ? "ONLINE" : idle ? "IDLE" : "OFFLINE";
 
   return (
     <div style={{
       background:  th.card,
-      border:      `1.5px solid ${online ? IND_GREEN + "40" : th.border}`,
-      borderTop:   `3px solid ${online ? IND_GREEN : th.border}`,
+      border:      `1.5px solid ${present ? SC + "40" : th.border}`,
+      borderTop:   `3px solid ${present ? SC : th.border}`,
       borderRadius:14,
       padding:     "14px",
       position:    "relative",
       overflow:    "hidden",
       transition:  "border-color 0.3s",
     }}>
-      {/* Online shimmer line */}
-      {online && (
+      {/* Online/idle shimmer line */}
+      {present && (
         <div style={{
           position:"absolute", top:0, left:0, right:0, height:1,
-          background:`linear-gradient(90deg,transparent,${IND_GREEN}55,transparent)`,
+          background:`linear-gradient(90deg,transparent,${SC}55,transparent)`,
           animation:"agnt-scan 3.5s linear infinite",
         }}/>
       )}
@@ -748,7 +863,7 @@ function AgentCard({ agent, dark }) {
           <div style={{
             width:42, height:42, borderRadius:12,
             background: dark ? "#252527" : "#f0f0f0",
-            border:`1.5px solid ${online ? IND_GREEN + "55" : th.border}`,
+            border:`1.5px solid ${present ? SC + "55" : th.border}`,
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:20,
           }}>
@@ -782,12 +897,12 @@ function AgentCard({ agent, dark }) {
         {/* Status badge */}
         <div style={{
           padding:"2px 8px", borderRadius:20, flexShrink:0,
-          background: online ? `${IND_GREEN}18` : `${th.textSub}14`,
-          border:`1px solid ${online ? IND_GREEN + "45" : th.border}`,
+          background: stateBg,
+          border:`1px solid ${stateBorder}`,
           fontFamily:"monospace", fontSize:8, fontWeight:800,
           color: SC, letterSpacing:1,
         }}>
-          {online ? "ONLINE" : "OFFLINE"}
+          {stateLabel}
         </div>
       </div>
 
@@ -827,7 +942,35 @@ function AgentCard({ agent, dark }) {
         ))}
       </div>
 
-      {/* ── Active tab pill ── */}
+      {/* ── Anomaly flag ── */}
+      {agent.anomaly && (
+        <div style={{
+          marginTop:8, padding:"5px 9px",
+          background:`${agent.anomaly.color}12`,
+          border:`1px solid ${agent.anomaly.color}45`,
+          borderRadius:7, display:"flex", alignItems:"center", gap:6,
+        }}>
+          <IconAlert size={10} color={agent.anomaly.color} style={{ flexShrink:0 }} />
+          <div style={{ minWidth:0 }}>
+            <span style={{
+              fontSize:9, color:agent.anomaly.color,
+              fontFamily:"monospace", fontWeight:800, letterSpacing:0.5,
+            }}>
+              {agent.anomaly.label}
+            </span>
+            {agent.anomaly.detail && (
+              <span style={{
+                fontSize:8.5, color:agent.anomaly.color, opacity:0.75,
+                fontFamily:"monospace", marginLeft:5,
+              }}>
+                · {agent.anomaly.detail}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Active tab pill (only when truly online) ── */}
       {online && agent.activeTab && (
         <div style={{
           marginTop:8, padding:"5px 9px",
@@ -843,6 +986,26 @@ function AgentCard({ agent, dark }) {
             fontFamily:"monospace", fontWeight:700, letterSpacing:0.5,
           }}>
             VIEWING: {TAB_LABELS[agent.activeTab] || agent.activeTab}
+          </span>
+        </div>
+      )}
+
+      {/* ── Idle notice pill ── */}
+      {idle && agent.type === "human" && (
+        <div style={{
+          marginTop:8, padding:"5px 9px",
+          background:`${IDLE_AMBER}12`, border:`1px solid ${IDLE_AMBER}35`,
+          borderRadius:7, display:"flex", alignItems:"center", gap:6,
+        }}>
+          <div style={{
+            width:5, height:5, borderRadius:"50%", background:IDLE_AMBER,
+            flexShrink:0,
+          }}/>
+          <span style={{
+            fontSize:9, color:IDLE_AMBER,
+            fontFamily:"monospace", fontWeight:700, letterSpacing:0.5,
+          }}>
+            IDLE — no interaction for 2+ min
           </span>
         </div>
       )}
@@ -895,6 +1058,69 @@ function AgentCard({ agent, dark }) {
           <span style={{ color:VIOLET, fontWeight:700 }}>{agent.model}</span>
         )}
       </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Stat Card (with tap/hover tooltip)
+// ═════════════════════════════════════════════════════════════════════════════
+function StatCard({ label, value, color, Icon, tooltip, dark }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [tipOpen, setTipOpen] = useState(false);
+  return (
+    <div
+      style={{
+        background: th.card,
+        border: `1px solid ${th.border}`,
+        borderTop: `2.5px solid ${color}`,
+        borderRadius: 11, padding: "10px 13px",
+        position: "relative", cursor: "pointer",
+        userSelect: "none",
+      }}
+      onClick={() => setTipOpen(v => !v)}
+      onMouseEnter={() => setTipOpen(true)}
+      onMouseLeave={() => setTipOpen(false)}
+    >
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ fontSize:22, fontWeight:800, color:th.text, lineHeight:1.2 }}>
+          {value}
+        </div>
+        <Icon size={15} color={color} />
+      </div>
+      <div style={{ fontSize:9, color:th.textSub, marginTop:2, fontWeight:600 }}>
+        {label}
+      </div>
+      {/* Tooltip — appears below the card so it's never clipped on mobile */}
+      {tipOpen && tooltip && (
+        <div style={{
+          position: "absolute",
+          top: "calc(100% + 7px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: dark ? "#18181b" : "#1a1a1a",
+          color: "#f0f0f0",
+          padding: "5px 11px",
+          borderRadius: 7,
+          fontSize: 10, lineHeight: 1.5, fontWeight: 500,
+          whiteSpace: "nowrap",
+          zIndex: 60,
+          boxShadow: "0 4px 18px rgba(0,0,0,0.4)",
+          border: `1px solid ${color}40`,
+          pointerEvents: "none",
+        }}>
+          {/* Caret pointing up */}
+          <div style={{
+            position: "absolute", bottom: "100%", left: "50%",
+            transform: "translateX(-50%)",
+            width: 0, height: 0,
+            borderLeft: "5px solid transparent",
+            borderRight: "5px solid transparent",
+            borderBottom: `5px solid ${dark ? "#18181b" : "#1a1a1a"}`,
+          }}/>
+          {tooltip}
+        </div>
+      )}
     </div>
   );
 }
@@ -1121,6 +1347,168 @@ function AttendanceSection({ humanAgents, dark }) {
   );
 }
 
+// ─── PRESENCE SORT RANK (module-level constant, not re-created per render) ────
+const STATE_RANK = { online: 0, idle: 1, offline: 2 };
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Anomaly Toast — auto-dismissing pop-up for a newly-detected issue
+// ═════════════════════════════════════════════════════════════════════════════
+function AnomalyToast({ toast, onDismiss, dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [shrink, setShrink] = useState(false);
+
+  useEffect(() => {
+    const startT    = setTimeout(() => setShrink(true), 50); // next tick → CSS transition fires
+    const dismissT  = setTimeout(() => onDismiss(toast.id), 8000);
+    return () => { clearTimeout(startT); clearTimeout(dismissT); };
+  }, [toast.id, onDismiss]);
+
+  return (
+    <div style={{
+      width: isDesktop ? 280 : "100%",
+      maxWidth: isDesktop ? 280 : 420,
+      background: dark ? "#1c1c1e" : "#fff",
+      border: `1px solid ${toast.color}55`,
+      borderLeft: `3px solid ${toast.color}`,
+      borderRadius: 10,
+      padding: "10px 11px 8px",
+      boxShadow: dark ? "0 6px 20px rgba(0,0,0,0.5)" : "0 6px 20px rgba(0,0,0,0.15)",
+      animation: "agnt-toast-in 0.25s cubic-bezier(0.22,1,0.36,1) both",
+      pointerEvents: "auto",
+      boxSizing: "border-box",
+    }}>
+      <div style={{ display:"flex", alignItems:"flex-start", gap:7 }}>
+        <IconAlert size={12} color={toast.color} style={{ flexShrink:0, marginTop:1 }} />
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:10.5, fontWeight:800, color:toast.color, fontFamily:"monospace" }}>
+            {toast.agentName} — {toast.label}
+          </div>
+          {toast.detail && (
+            <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>
+              {toast.detail}
+            </div>
+          )}
+        </div>
+        <div
+          onClick={() => onDismiss(toast.id)}
+          {...activatable(() => onDismiss(toast.id), "Dismiss alert")}
+          style={{ cursor:"pointer", color:th.textSub, fontSize:13, lineHeight:1, padding:2, flexShrink:0 }}
+        >
+          ×
+        </div>
+      </div>
+      <div style={{ height:2, marginTop:8, borderRadius:1, background: dark?"#2c2c2e":"#eee", overflow:"hidden" }}>
+        <div style={{
+          height:"100%", background:toast.color,
+          width: shrink ? "0%" : "100%",
+          transition: "width 7.8s linear",
+        }}/>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Anomaly Banner — persistent summary of currently-active issues
+// ═════════════════════════════════════════════════════════════════════════════
+function AnomalyBanner({ anomalies, dark, muted, onToggleMute, notifPermission, onRequestDesktop, onJump }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [expanded, setExpanded] = useState(false);
+  if (anomalies.length === 0) return null;
+
+  const hasCritical = anomalies.some(a => a.anomaly.color === "#EF4444");
+  const headColor   = hasCritical ? "#EF4444" : SAFFRON;
+
+  return (
+    <div style={{
+      marginBottom: 14,
+      border: `1.5px solid ${headColor}55`,
+      borderRadius: 12,
+      overflow: "hidden",
+      background: dark ? `${headColor}10` : `${headColor}0a`,
+    }}>
+      <div
+        onClick={() => setExpanded(e => !e)}
+        {...activatable(() => setExpanded(e => !e), `${anomalies.length} active alerts, ${expanded ? "collapse" : "expand"}`)}
+        style={{ display:"flex", alignItems:"center", gap:8, padding:"9px 12px", cursor:"pointer" }}
+      >
+        <IconAlert size={14} color={headColor} style={{ flexShrink:0 }} />
+        <div style={{ fontSize:11.5, fontWeight:800, color:headColor, flex:1 }}>
+          {anomalies.length} active alert{anomalies.length > 1 ? "s" : ""}
+        </div>
+        <div
+          onClick={(e) => { e.stopPropagation(); onToggleMute(); }}
+          {...activatable(onToggleMute, muted ? "Unmute alert sound" : "Mute alert sound")}
+          style={{
+            fontSize:9, color:th.textSub, fontFamily:"monospace",
+            padding:"3px 7px", borderRadius:6, border:`1px solid ${th.border}`,
+            cursor:"pointer", flexShrink:0,
+          }}
+        >
+          {muted ? "🔇 muted" : "🔔 sound on"}
+        </div>
+        <div style={{
+          fontSize:13, color:headColor, flexShrink:0,
+          transform: expanded ? "rotate(180deg)" : "none", transition:"transform 0.2s",
+        }}>
+          ▾
+        </div>
+      </div>
+
+      {expanded && (
+        <div style={{ borderTop:`1px solid ${headColor}30` }}>
+          {anomalies.map(ag => {
+            const key = agentKey(ag);
+            return (
+              <div
+                key={key}
+                onClick={() => onJump(key)}
+                {...activatable(() => onJump(key), `Jump to ${ag.name}`)}
+                style={{
+                  display:"flex", alignItems:"center", gap:8,
+                  padding:"7px 12px", borderBottom:`1px solid ${th.border}`,
+                  cursor:"pointer",
+                }}
+              >
+                <div style={{ width:6, height:6, borderRadius:"50%", background:ag.anomaly.color, flexShrink:0 }}/>
+                <div style={{ flex:1, minWidth:0, overflow:"hidden" }}>
+                  <span style={{ fontSize:10.5, fontWeight:700, color:th.text }}>{ag.name}</span>
+                  <span style={{ fontSize:9, color:ag.anomaly.color, fontFamily:"monospace", marginLeft:6, fontWeight:700 }}>
+                    {ag.anomaly.label}
+                  </span>
+                </div>
+                <span style={{
+                  fontSize:8.5, color:th.textSub, fontFamily:"monospace", flexShrink:0,
+                  maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                }}>
+                  {ag.anomaly.detail}
+                </span>
+              </div>
+            );
+          })}
+          {notifPermission === "default" && (
+            <div
+              onClick={onRequestDesktop}
+              {...activatable(onRequestDesktop, "Enable desktop notifications")}
+              style={{
+                padding:"7px 12px", fontSize:9.5, color: dark?"#6fa3ff":NAVY,
+                fontFamily:"monospace", cursor:"pointer", textDecoration:"underline",
+              }}
+            >
+              → enable desktop notifications for alerts outside this tab
+            </div>
+          )}
+          {notifPermission === "denied" && (
+            <div style={{ padding:"7px 12px", fontSize:9, color:th.textSub, fontFamily:"monospace" }}>
+              Desktop notifications blocked — enable in browser site settings.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // MAIN EXPORT: AgentsTab
 // ═════════════════════════════════════════════════════════════════════════════
@@ -1130,8 +1518,46 @@ export default function AgentsTab({ dark, isDesktop }) {
   const [humanAgents, setHumanAgents] = useState([]);
   const [aiStatus,    setAiStatus]    = useState({});
   const [activities,  setActivities]  = useState([]);
+  const [todayLogs,   setTodayLogs]   = useState([]);
   const [filter,      setFilter]      = useState("all");
+  const [search,      setSearch]      = useState("");
   const [, forceRender]               = useState(0); // 30-s tick
+
+  // ── Proactive anomaly alerts: toast queue, mute pref, desktop-notif perm ──
+  const [toasts,          setToasts]          = useState([]);
+  const [muted,           setMuted]           = useState(() => {
+    try { return localStorage.getItem("agt_alert_muted") === "true"; } catch { return false; }
+  });
+  const [notifPermission, setNotifPermission] = useState(() =>
+    (typeof Notification !== "undefined") ? Notification.permission : "unsupported"
+  );
+  const [highlightedId,   setHighlightedId]   = useState(null);
+  const prevAnomalyMapRef = useRef(null); // null = baseline not yet captured
+  const originalTitleRef  = useRef(typeof document !== "undefined" ? document.title : "");
+
+  const toggleMuted = useCallback(() => {
+    setMuted(m => {
+      const next = !m;
+      try { localStorage.setItem("agt_alert_muted", String(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  const requestDesktopAlerts = useCallback(() => {
+    if (typeof Notification === "undefined") return;
+    Notification.requestPermission().then(perm => setNotifPermission(perm));
+  }, []);
+
+  const dismissToast = useCallback((id) => {
+    setToasts(ts => ts.filter(t => t.id !== id));
+  }, []);
+
+  const jumpToAgent = useCallback((key) => {
+    const el = typeof document !== "undefined" ? document.getElementById(`agent-card-${key}`) : null;
+    if (el) el.scrollIntoView({ behavior:"smooth", block:"center" });
+    setHighlightedId(key);
+    setTimeout(() => setHighlightedId(h => (h === key ? null : h)), 1800);
+  }, []);
 
   // ── 30-second re-render tick (keeps "X m ago" and online status fresh) ────
   useEffect(() => {
@@ -1164,27 +1590,132 @@ export default function AgentsTab({ dark, isDesktop }) {
     return unsub;
   }, []);
 
-  // ── Enrich AI agents with live status ────────────────────────────────────
-  const enrichedAI = AI_AGENTS.map(ag => ({
-    ...ag,
-    lastSeen: aiStatus[ag.firestoreKey] || null,
-  }));
+  // ── Listen: today's time logs (for anomaly detection) ────────────────────
+  useEffect(() => {
+    const todayStr = getISTDateStr();
+    const q = query(collection(db, "agentTimeLogs"), where("date", "==", todayStr));
+    const unsub = onSnapshot(q, snap => {
+      setTodayLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return unsub;
+  }, []);
 
-  // ── Merge all agents ──────────────────────────────────────────────────────
-  const allAgents = [...humanAgents, ...enrichedAI];
+  // ── Enrich AI agents with live status ────────────────────────────────────
+  const enrichedAI = useMemo(() =>
+    AI_AGENTS.map(ag => ({
+      ...ag,
+      lastSeen: aiStatus[ag.firestoreKey] || null,
+    })),
+  [aiStatus]);
+
+  // ── Merge all agents + attach anomaly flags ───────────────────────────────
+  const allAgents = useMemo(() => [
+    ...humanAgents.map(ag => {
+      const uid      = ag.uid || ag.id;
+      const todayLog = todayLogs.find(l => l.uid === uid) || null;
+      return { ...ag, anomaly: getAnomalyFlag(ag, todayLog) };
+    }),
+    ...enrichedAI.map(ag => ({ ...ag, anomaly: getAnomalyFlag(ag, null) })),
+  ], [humanAgents, enrichedAI, todayLogs]);
+
+  // ── Currently-active anomalies (for the persistent banner) ───────────────
+  const activeAnomalies = useMemo(() => allAgents.filter(a => a.anomaly), [allAgents]);
+
+  // ── Proactive alerts: diff against last snapshot, toast + chime + notify
+  //    only for NEW or CHANGED anomalies — never re-fires for steady-state
+  //    issues that were already there before this session opened the tab. ──
+  useEffect(() => {
+    const currentMap = {};
+    allAgents.forEach(ag => {
+      const key = agentKey(ag);
+      if (key) currentMap[key] = ag.anomaly ? ag.anomaly.label : null;
+    });
+
+    // First run after mount — capture baseline only, don't toast pre-existing issues
+    if (prevAnomalyMapRef.current === null) {
+      prevAnomalyMapRef.current = currentMap;
+      return;
+    }
+
+    const prevMap = prevAnomalyMapRef.current;
+    const fresh = [];
+    allAgents.forEach(ag => {
+      const key = agentKey(ag);
+      if (!key || !ag.anomaly) return;
+      if (prevMap[key] !== ag.anomaly.label) {
+        fresh.push({
+          id: `${key}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          agentKey: key,
+          agentName: ag.name || "Agent",
+          label: ag.anomaly.label,
+          detail: ag.anomaly.detail,
+          color: ag.anomaly.color,
+        });
+      }
+    });
+
+    if (fresh.length > 0) {
+      setToasts(ts => [...ts, ...fresh].slice(-5)); // cap visible stack
+      if (!muted) playAlertChime();
+      if (notifPermission === "granted" && typeof document !== "undefined" && document.hidden) {
+        fresh.forEach(t => {
+          try {
+            new Notification(`⚠ ${t.agentName}: ${t.label}`, {
+              body: t.detail || "Agent Monitor — YojanaSahay Admin",
+              tag: t.agentKey, // collapses repeat notifications per agent
+            });
+          } catch {}
+        });
+      }
+    }
+
+    prevAnomalyMapRef.current = currentMap;
+  }, [allAgents, muted, notifPermission]);
+
+  // ── Background-tab title flash — catches attention if admin alt-tabbed ───
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const updateTitle = () => {
+      document.title = (document.hidden && activeAnomalies.length > 0)
+        ? `(${activeAnomalies.length}) ⚠ ${originalTitleRef.current}`
+        : originalTitleRef.current;
+    };
+    updateTitle();
+    document.addEventListener("visibilitychange", updateTitle);
+    return () => {
+      document.removeEventListener("visibilitychange", updateTitle);
+      document.title = originalTitleRef.current;
+    };
+  }, [activeAnomalies.length]);
 
   // ── Summary counts ────────────────────────────────────────────────────────
-  const onlineCount = allAgents.filter(a =>
-    isOnline(a.lastSeen, a.type === "ai" ? 15 : 2)
-  ).length;
+  const onlineCount = useMemo(() =>
+    allAgents.filter(a => getPresenceState(a.lastSeen, a.type) !== "offline").length,
+  [allAgents]);
 
-  // ── Filter ────────────────────────────────────────────────────────────────
-  const displayAgents = allAgents.filter(ag => {
-    if (filter === "online") return isOnline(ag.lastSeen, ag.type === "ai" ? 15 : 2);
-    if (filter === "human")  return ag.type === "human";
-    if (filter === "ai")     return ag.type === "ai";
-    return true;
-  });
+  // ── Filter + Sort (online → idle → offline, then by lastSeen desc) ──────
+  // Also applies name search; STATE_RANK is hoisted to module scope above.
+  const displayAgents = useMemo(() =>
+    allAgents
+      .filter(ag => {
+        if (filter === "online") return getPresenceState(ag.lastSeen, ag.type) !== "offline";
+        if (filter === "human")  return ag.type === "human";
+        if (filter === "ai")     return ag.type === "ai";
+        return true;
+      })
+      .filter(ag =>
+        !search.trim() ||
+        (ag.name || "").toLowerCase().includes(search.trim().toLowerCase())
+      )
+      .sort((a, b) => {
+        const rankA = STATE_RANK[getPresenceState(a.lastSeen, a.type)];
+        const rankB = STATE_RANK[getPresenceState(b.lastSeen, b.type)];
+        if (rankA !== rankB) return rankA - rankB;
+        const tA = toDate(a.lastSeen)?.getTime() || 0;
+        const tB = toDate(b.lastSeen)?.getTime() || 0;
+        return tB - tA;
+      }),
+  [allAgents, filter, search]);
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -1192,10 +1723,29 @@ export default function AgentsTab({ dark, isDesktop }) {
 
       {/* ── Keyframes ──────────────────────────────────────────────────── */}
       <style>{`
-        @keyframes agnt-pulse  { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.72)} }
-        @keyframes agnt-scan   { 0%{transform:translateX(-100%)} 100%{transform:translateX(600%)} }
-        @keyframes agnt-ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        @keyframes agnt-pulse    { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.72)} }
+        @keyframes agnt-scan     { 0%{transform:translateX(-100%)} 100%{transform:translateX(600%)} }
+        @keyframes agnt-ticker   { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        @keyframes agnt-toast-in { 0%{opacity:0;transform:translateY(-8px) scale(0.97)} 100%{opacity:1;transform:translateY(0) scale(1)} }
       `}</style>
+
+      {/* ── Proactive alert toasts — fixed overlay, newest at bottom of stack ── */}
+      {toasts.length > 0 && (
+        <div style={{
+          position:"fixed",
+          top: isDesktop ? 16 : 54,
+          right: isDesktop ? 16 : 10,
+          left: isDesktop ? "auto" : 10,
+          zIndex:9999,
+          display:"flex", flexDirection:"column", gap:8,
+          alignItems: isDesktop ? "flex-end" : "stretch",
+          pointerEvents:"none",
+        }}>
+          {toasts.map(t => (
+            <AnomalyToast key={t.id} toast={t} onDismiss={dismissToast} dark={dark} isDesktop={isDesktop} />
+          ))}
+        </div>
+      )}
 
       {/* ── Page title ───────────────────────────────────────────────── */}
       <div style={{ marginBottom:16, display:"flex", alignItems:"flex-start", gap:9 }}>
@@ -1215,6 +1765,17 @@ export default function AgentsTab({ dark, isDesktop }) {
         </div>
       </div>
 
+      {/* ── Active anomaly banner — persistent, not just a toast ────────── */}
+      <AnomalyBanner
+        anomalies={activeAnomalies}
+        dark={dark}
+        muted={muted}
+        onToggleMute={toggleMuted}
+        notifPermission={notifPermission}
+        onRequestDesktop={requestDesktopAlerts}
+        onJump={jumpToAgent}
+      />
+
       {/* ── Summary stat row ─────────────────────────────────────────── */}
       <div style={{
         display:"grid",
@@ -1222,34 +1783,65 @@ export default function AgentsTab({ dark, isDesktop }) {
         gap:8, marginBottom:14,
       }}>
         {[
-          { label:"Total Agents",  value:allAgents.length,    color:NAVY,      Icon:IconUsers },
-          { label:"Online Now",    value:onlineCount,          color:IND_GREEN, Icon:IconPulse },
-          { label:"Human Admins",  value:humanAgents.length,  color:SAFFRON,   Icon:IconUserCheck },
-          { label:"AI Agents",     value:enrichedAI.length,   color:VIOLET,    Icon:IconCpu },
+          { label:"Total Agents",  value:allAgents.length,    color:NAVY,      Icon:IconUsers,     tooltip:"All agents (human + AI) tracked by this dashboard" },
+          { label:"Online Now",    value:onlineCount,          color:IND_GREEN, Icon:IconPulse,     tooltip:"Active in last 2 min (humans) or 15 min (AI agents)" },
+          { label:"Human Admins",  value:humanAgents.length,  color:SAFFRON,   Icon:IconUserCheck, tooltip:"Sub-admins connected via Firestore heartbeat" },
+          { label:"AI Agents",     value:enrichedAI.length,   color:VIOLET,    Icon:IconCpu,       tooltip:"Groq & Tavily — updated per API call" },
         ].map(s => (
-          <div key={s.label} style={{
-            background:th.card,
-            border:`1px solid ${th.border}`,
-            borderTop:`2.5px solid ${s.color}`,
-            borderRadius:11, padding:"10px 13px",
-          }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <div style={{
-                fontSize:22, fontWeight:800, color:th.text, lineHeight:1.2,
-              }}>
-                {s.value}
-              </div>
-              <s.Icon size={15} color={s.color} />
-            </div>
-            <div style={{ fontSize:9, color:th.textSub, marginTop:2, fontWeight:600 }}>
-              {s.label}
-            </div>
-          </div>
+          <StatCard key={s.label} {...s} dark={dark} />
         ))}
       </div>
 
       {/* ── NIC-style scrolling ticker ───────────────────────────────── */}
       <ActivityTicker activities={activities} dark={dark} />
+
+      {/* ── Search + Filter row ──────────────────────────────────────── */}
+      {/* Search input */}
+      <div style={{
+        position: "relative", marginBottom: 8,
+      }}>
+        <svg
+          width={13} height={13} viewBox="0 0 24 24" fill="none"
+          style={{
+            position: "absolute", left: 10, top: "50%",
+            transform: "translateY(-50%)", pointerEvents: "none",
+            color: th.textSub,
+          }}
+        >
+          <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8"/>
+          <path d="M16.5 16.5l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search agents by name…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            width: "100%", boxSizing: "border-box",
+            padding: "7px 32px 7px 30px",
+            background: th.inputBg,
+            border: `1px solid ${search ? NAVY + "70" : th.border}`,
+            borderRadius: 9,
+            color: th.text, fontSize: 12,
+            outline: "none",
+            transition: "border-color 0.2s",
+          }}
+        />
+        {search && (
+          <div
+            onClick={() => setSearch("")}
+            style={{
+              position: "absolute", right: 9, top: "50%",
+              transform: "translateY(-50%)",
+              cursor: "pointer", color: th.textSub,
+              fontSize: 14, lineHeight: 1, padding: 2,
+              userSelect: "none",
+            }}
+          >
+            ✕
+          </div>
+        )}
+      </div>
 
       {/* ── Filter chips ─────────────────────────────────────────────── */}
       <div style={{
@@ -1261,7 +1853,12 @@ export default function AgentsTab({ dark, isDesktop }) {
           { key:"human",  label:"Human" },
           { key:"ai",     label:"AI" },
         ].map(f => (
-          <div key={f.key} onClick={() => setFilter(f.key)} style={{
+          <div
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            {...activatable(() => setFilter(f.key), `Filter: ${f.label}`)}
+            aria-pressed={filter === f.key}
+            style={{
             padding:"4px 12px", borderRadius:20, cursor:"pointer",
             background:filter===f.key ? NAVY : (dark?"#252527":"#f0f0f0"),
             color:filter===f.key ? "#fff" : th.textMid,
@@ -1288,7 +1885,9 @@ export default function AgentsTab({ dark, isDesktop }) {
           borderRadius:12, padding:"28px",
           textAlign:"center", color:th.textSub, fontSize:12,
         }}>
-          No agents match this filter.
+          {search
+            ? `No agents named "${search}" — try a different search.`
+            : "No agents match this filter."}
         </div>
       ) : (
         <div style={{
@@ -1296,9 +1895,23 @@ export default function AgentsTab({ dark, isDesktop }) {
           gridTemplateColumns: isDesktop ? "repeat(3,1fr)" : "1fr",
           gap:10, marginBottom:16,
         }}>
-          {displayAgents.map(ag => (
-            <AgentCard key={ag.id || ag.uid} agent={ag} dark={dark} />
-          ))}
+          {displayAgents.map(ag => {
+            const key = agentKey(ag);
+            return (
+              <div
+                key={key}
+                id={`agent-card-${key}`}
+                style={{
+                  borderRadius:14,
+                  transition:"box-shadow 0.3s, transform 0.3s",
+                  boxShadow: highlightedId === key ? `0 0 0 3px ${ag.anomaly?.color || NAVY}66` : "none",
+                  transform: highlightedId === key ? "scale(1.015)" : "scale(1)",
+                }}
+              >
+                <AgentCard agent={ag} dark={dark} />
+              </div>
+            );
+          })}
         </div>
       )}
 
