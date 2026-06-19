@@ -1765,12 +1765,16 @@
     "confidence": 0
   },
   "ladakh_himayat_skill": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-19T22:36:05.236Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "ladakh_sehat_health_insurance": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-19T22:36:05.236Z",
+    "linkAlive": true,
+    "httpStatus": 200,
+    "confidence": 0
   },
   "an_youth_skill_ddet": {
     "lastVerified": "2026-06-16T20:36:16.595Z",
@@ -3077,6 +3081,12 @@
     "lastVerified": "2026-06-19T22:08:26.625Z",
     "httpStatus": 0,
     "linkAlive": true,
+    "confidence": 0
+  },
+  "ladakh_sc_st_scholarship": {
+    "lastVerified": "2026-06-19T22:36:05.236Z",
+    "httpStatus": 200,
+    "linkAlive": false,
     "confidence": 0
   }
 }
