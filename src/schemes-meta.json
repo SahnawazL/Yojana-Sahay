@@ -3091,9 +3091,9 @@
     "confidence": 0
   },
   "mp_prasuti": {
-    "lastVerified": "2026-06-20T14:25:30.142Z",
+    "lastVerified": "2026-06-20T14:26:52.039Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "mp_ladli_behna_awas": {
