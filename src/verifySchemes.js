@@ -72,11 +72,11 @@ const THIRTY_DAYS_MS   = 30 * 24 * 60 * 60 * 1000;
 
 // ── Rate-guard delays ──────────────────────────────────────────────────────
 // Tier 1 (URL ping) never hits Groq — no delay needed.
-// Tier 2 (AI extract) hits Groq every call — 800ms pause between calls
-// spreads 100 schemes over ~3 min instead of ~90s, reducing peak TPM by ~65%.
-// This prevents organization_restricted restrictions on free-tier Groq accounts.
+// Tier 2 (AI extract) hits Groq every call — 3500ms pause between calls
+// spreads 100 schemes over ~7 min, keeping rate well under 30 RPM
+// for a single dedicated GROQ_VERIFY_KEY on Groq free tier.
 const TIER1_DELAY_MS   = 0;    // ping-only: no Groq involved
-const TIER2_DELAY_MS   = 800;  // AI calls: 800ms between each scheme
+const TIER2_DELAY_MS   = 3500; // AI calls: 3500ms between each scheme — keeps rate well under 30 RPM for a single dedicated GROQ_VERIFY_KEY
 
 // Domains known to block direct pings from Vercel's server IPs.
 // Pinging these always returns a timeout or connection error, NOT because
