@@ -343,7 +343,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹3,500/acre compensation to farmers for crop loss due to drought or flood", hi: "सूखा या बाढ़ से फसल नष्ट होने पर किसानों को ₹3,500/एकड़ मुआवज़ा" },
     tag:     { en: "Farmer / Disaster Relief", hi: "किसान / आपदा राहत" },
     annual: 3500,
-    apply:   { en: "https://msry.jharkhand.gov.in", hi: "msry.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/jrfry", hi: "msry.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (Khatiyan / Khasra)", "Bank Account (Aadhaar-linked)", "Ration Card", "Crop Loss Verification by Patwari"],
                hi: ["आधार कार्ड", "भूमि अभिलेख (खतियान / खसरा)", "बैंक खाता (आधार से लिंक)", "राशन कार्ड", "पटवारी द्वारा फसल नुकसान सत्यापन"] },
     match: (a) => a.state === "Jharkhand" && a.who === "farmer",
