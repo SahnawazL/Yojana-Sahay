@@ -1388,6 +1388,14 @@ async function copyResultsMarkdown(results, summary, scopeFilter, priorityFilter
       0%,100% { opacity: 1; }
       50%      { opacity: 0; }
     }
+    @keyframes sv-rate-guard-pulse {
+      0%,100% { opacity: 1; transform: scale(1);    box-shadow: 0 0 0 0   rgba(139,92,246,0.6); }
+      50%     { opacity: 0.7; transform: scale(1.3); box-shadow: 0 0 0 5px rgba(139,92,246,0);   }
+    }
+    @keyframes sv-rate-guard-bar {
+      0%   { width: 100%; }
+      100% { width: 0%; }
+    }
   `;
   document.head.appendChild(s);
 }());
@@ -4603,6 +4611,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [runDone,       setRunDone]       = useState(false);
   const [wasAborted,    setWasAborted]    = useState(false);
   const [saveStatus,    setSaveStatus]    = useState(null); // null | "saving" | "saved" | "error"
+  const [throttle,      setThrottle]      = useState(null);  // null | { delayMs, index, total } — rate-guard between AI calls
 
   // ── Saved scans (localStorage) ────────────────────────────────────────────
   const [savedScans, setSavedScans] = useState(() => loadAllSavedScans());
@@ -5055,6 +5064,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         onBatchSaved: (cp) => {
           setCheckpoint(cp);
         },
+        onThrottle: (info) => setThrottle(info), // fires during 800ms rate-guard sleep between AI calls
       });
     } catch (err) {
       console.error("[SchemeVerifier] Unexpected run error:", err);
@@ -5070,6 +5080,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     setSummary(finalSummary);
     setRunning(false);
     setCurrentScheme(null);
+    setThrottle(null);     // clear rate-guard indicator
     setRunDone(true);
 
     // ── Browser notification — fires even when tab is in background ───────────
@@ -6579,6 +6590,51 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             speed={speed}
             eta={eta}
           />
+
+          {/* Rate Guard indicator — shown during 800ms cooldown between AI calls */}
+          {throttle && (
+            <div style={{
+              display:      "flex",
+              flexDirection:"column",
+              gap:           4,
+              padding:      "8px 14px",
+              borderRadius:  10,
+              background:    dark ? "rgba(139,92,246,0.08)" : "rgba(139,92,246,0.06)",
+              border:        "1px solid rgba(139,92,246,0.25)",
+              animation:     "sv-done-pop 0.25s cubic-bezier(0.22,1,0.36,1) both",
+            }}>
+              {/* Header row */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {/* Pulsing dot */}
+                <span style={{
+                  width: 7, height: 7, borderRadius: "50%",
+                  background: "#8B5CF6", flexShrink: 0,
+                  animation: "sv-rate-guard-pulse 0.8s ease-in-out infinite",
+                }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", letterSpacing: "0.04em" }}>
+                  RATE GUARD
+                </span>
+                <span style={{ fontSize: 10, color: dark ? "#9ca3af" : "#6b7280", marginLeft: "auto" }}>
+                  {throttle.delayMs}ms cooldown · scheme {throttle.index}/{throttle.total}
+                </span>
+              </div>
+              {/* Countdown bar */}
+              <div style={{
+                height: 3, borderRadius: 99,
+                background: dark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.1)",
+                overflow: "hidden",
+              }}>
+                <div style={{
+                  height: "100%", borderRadius: 99,
+                  background: "linear-gradient(90deg, #8B5CF6, #a78bfa)",
+                  animation: `sv-rate-guard-bar ${throttle.delayMs}ms linear forwards`,
+                }} />
+              </div>
+              <span style={{ fontSize: 9, color: dark ? "#6b7280" : "#9ca3af" }}>
+                Protecting Groq API from rate limits — next scheme loading…
+              </span>
+            </div>
+          )}
 
           {/* Pause + Stop buttons */}
           <div style={{ display: "flex", gap: 8 }}>

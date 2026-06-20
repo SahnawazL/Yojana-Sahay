@@ -70,6 +70,14 @@ const PING_TIMEOUT_MS  = 12000;  // 12 s — Vercel function makes direct reques
 const CHECKPOINT_PATH  = ["adminMeta", "verifyCheckpoint"];  // Firestore path
 const THIRTY_DAYS_MS   = 30 * 24 * 60 * 60 * 1000;
 
+// ── Rate-guard delays ──────────────────────────────────────────────────────
+// Tier 1 (URL ping) never hits Groq — no delay needed.
+// Tier 2 (AI extract) hits Groq every call — 800ms pause between calls
+// spreads 100 schemes over ~3 min instead of ~90s, reducing peak TPM by ~65%.
+// This prevents organization_restricted restrictions on free-tier Groq accounts.
+const TIER1_DELAY_MS   = 0;    // ping-only: no Groq involved
+const TIER2_DELAY_MS   = 800;  // AI calls: 800ms between each scheme
+
 // Domains known to block direct pings from Vercel's server IPs.
 // Pinging these always returns a timeout or connection error, NOT because
 // the site is dead — but because NIC/government infrastructure firewalls
@@ -83,6 +91,20 @@ const INDIA_ONLY_DOMAINS = [
   "assam.gov.in",    // Assam state portal — all subdomains (e.g. dids, aeda, cmcovidsupport, etc.)
   "mygov.in",        // MyGov India — citizen engagement platform
 ];
+
+
+// ─── SLEEP UTILITY ───────────────────────────────────────────────────────────
+// Resolves after `ms` milliseconds. Respects AbortSignal — if the run is
+// stopped/paused mid-delay it resolves immediately so the abort check in
+// the main loop fires on the very next iteration, not after the full delay.
+
+function sleep(ms, signal) {
+  return new Promise((resolve) => {
+    if (!ms || ms <= 0 || signal?.aborted) { resolve(); return; }
+    const id = setTimeout(resolve, ms);
+    signal?.addEventListener("abort", () => { clearTimeout(id); resolve(); }, { once: true });
+  });
+}
 
 
 // ─── URL NORMALISER ───────────────────────────────────────────────────────────
@@ -440,6 +462,7 @@ export async function runVerification({
   resumeFrom     = 0,
   onProgress     = () => {},
   onBatchSaved   = () => {},
+  onThrottle     = () => {},   // ({ delayMs, index, total }) → void  fired during rate-guard sleep
   signal,
 } = {}) {
 
@@ -543,6 +566,21 @@ export async function runVerification({
       };
       await saveCheckpoint(checkpoint);
       onBatchSaved(checkpoint);
+    }
+
+    // ── Rate-guard delay ──────────────────────────────────────────────────────
+    // Pauses between schemes to avoid triggering Groq's organization_restricted
+    // flag. Only applied when there are more schemes to process (skip on final).
+    // onThrottle fires so SchemeVerifier.jsx can show a visual countdown.
+    // sleep() resolves immediately if the AbortSignal fires during the delay,
+    // so Stop/Pause still responds instantly.
+    if (i + 1 < total && !signal?.aborted) {
+      const delayMs = needsAI(scheme) ? TIER2_DELAY_MS : TIER1_DELAY_MS;
+      if (delayMs > 0) {
+        onThrottle({ delayMs, index: i + 1, total });
+        await sleep(delayMs, signal);
+        onThrottle(null); // clear — next scheme is starting
+      }
     }
   }
 
