@@ -3083,9 +3083,9 @@
     "confidence": 0
   },
   "ladakh_sc_st_scholarship": {
-    "lastVerified": "2026-06-19T22:36:05.236Z",
+    "lastVerified": "2026-06-20T08:18:54.890Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
