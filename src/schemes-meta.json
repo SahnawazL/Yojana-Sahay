@@ -1764,13 +1764,13 @@
     "confidence": 0
   },
   "ladakh_himayat_skill": {
-    "lastVerified": "2026-06-19T22:36:05.236Z",
+    "lastVerified": "2026-06-20T08:21:26.868Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "ladakh_sehat_health_insurance": {
-    "lastVerified": "2026-06-19T22:36:05.236Z",
+    "lastVerified": "2026-06-20T08:21:26.868Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -3083,7 +3083,7 @@
     "confidence": 0
   },
   "ladakh_sc_st_scholarship": {
-    "lastVerified": "2026-06-20T08:18:54.890Z",
+    "lastVerified": "2026-06-20T08:21:26.868Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
