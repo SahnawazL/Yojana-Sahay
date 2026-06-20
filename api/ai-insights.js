@@ -176,11 +176,11 @@ export default async function handler(req, res) {
     if (status !== 200) {
       const msg = data?.error?.message || `Groq HTTP ${status}`;
       console.error("[ai-insights] Groq error:", msg);
-      recordAiCall({ service: "groq", keyIdx: -1, count429 }).catch(() => {});
+      recordAiCall({ service: "groq-verify", keyIdx: -1, count429 }).catch(() => {});
       return res.status(status === 429 ? 429 : 502).json({ error: `Groq API error: ${msg}` });
     }
 
-    recordAiCall({ service: "groq", keyIdx, count429 }).catch(() => {}); // Groq call above returned 200
+    recordAiCall({ service: "groq-verify", keyIdx, count429 }).catch(() => {}); // Groq call above returned 200
 
     const text = data?.choices?.[0]?.message?.content ?? "";
 

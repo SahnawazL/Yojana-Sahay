@@ -329,7 +329,7 @@ export default async function handler(req, res) {
   }
 
   // ── Step 2: AI extraction ─────────────────────────────────────────────────
-  recordAiCall({ service: "tavily" }).catch(() => {}); // Tavily Extract just succeeded above
+  recordAiCall({ service: "tavily-verify" }).catch(() => {}); // Tavily Extract just succeeded above
 
   const { systemPrompt, userPrompt } = buildPrompt(name, state, text);
 
@@ -347,7 +347,7 @@ export default async function handler(req, res) {
   if (groqStatus !== 200) {
     const msg = groqData?.error?.message ?? `Groq error ${groqStatus}`;
     console.error(`[verify-scheme] Groq failed for "${name}":`, msg);
-    recordAiCall({ service: "groq", keyIdx: -1, count429 }).catch(() => {});
+    recordAiCall({ service: "groq-verify", keyIdx: -1, count429 }).catch(() => {});
     return res.status(200).json({
       lastDate:   null,
       isActive:   null,
@@ -358,7 +358,7 @@ export default async function handler(req, res) {
   }
 
   // ── Step 3: Parse Groq's JSON reply ──────────────────────────────────────
-  recordAiCall({ service: "groq", keyIdx, count429 }).catch(() => {}); // Groq call above returned 200
+  recordAiCall({ service: "groq-verify", keyIdx, count429 }).catch(() => {}); // Groq call above returned 200
 
   const raw = groqData?.choices?.[0]?.message?.content ?? "";
 
