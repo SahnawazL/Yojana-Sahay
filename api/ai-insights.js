@@ -10,8 +10,8 @@
 // → 400 { error: string }       ← missing prompt
 // → 500 { error: string }       ← Groq failure or env var missing
 //
-// Uses the same GROQ_API_KEY env var (and numbered fallbacks GROQ_API_KEY_1,
-// GROQ_API_KEY_2, ...) as chat.js and verify-scheme.js.
+// Uses the dedicated GROQ_VERIFY_KEY (same as verify-scheme.js) so insights
+// runs never consume the main chat pool's daily quota.
 //
 // Model: llama-3.3-70b-versatile — best JSON adherence in Groq's lineup.
 // Temperature 0.2 — low randomness for deterministic structured output.
@@ -27,23 +27,41 @@ const MODEL         = "llama-3.3-70b-versatile";
 const MAX_TOKENS    = 800;
 const TEMPERATURE   = 0.2;
 
-// ── Load ALL Groq keys (identical to chat.js) ────────────────────────────────
-// Deduplicates, preserves order. Returns empty array if none configured.
+// ── Load Groq keys — dedicated verify pool (same as verify-scheme.js) ──────
+// Reads GROQ_VERIFY_KEY_* first so AI insights never hit the chat pool.
+// Falls back to shared chat pool if no verify keys configured.
 function loadGroqKeys() {
   const seen = new Set();
   const keys = [];
-  const candidates = [
-    process.env.GROQ_API_KEY,
-    process.env.GROQ_API_KEY_1,
-    process.env.GROQ_API_KEY_2,
-    process.env.GROQ_API_KEY_3,
-    process.env.GROQ_API_KEY_4,
-    process.env.GROQ_API_KEY_5,
+
+  // Dedicated verify keys — checked first
+  const verifyCandidates = [
+    process.env.GROQ_VERIFY_KEY,
+    process.env.GROQ_VERIFY_KEY_1,
+    process.env.GROQ_VERIFY_KEY_2,
   ];
-  for (const k of candidates) {
+  for (const k of verifyCandidates) {
     const t = k && k.trim();
     if (t && !seen.has(t)) { seen.add(t); keys.push(t); }
   }
+
+  // Fallback to shared chat pool if no verify keys configured yet
+  if (keys.length === 0) {
+    console.warn("[ai-insights] No GROQ_VERIFY_KEY found — falling back to shared GROQ_API_KEY pool.");
+    const fallback = [
+      process.env.GROQ_API_KEY,
+      process.env.GROQ_API_KEY_1,
+      process.env.GROQ_API_KEY_2,
+      process.env.GROQ_API_KEY_3,
+      process.env.GROQ_API_KEY_4,
+      process.env.GROQ_API_KEY_5,
+    ];
+    for (const k of fallback) {
+      const t = k && k.trim();
+      if (t && !seen.has(t)) { seen.add(t); keys.push(t); }
+    }
+  }
+
   return keys;
 }
 
