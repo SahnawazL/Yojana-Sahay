@@ -1670,20 +1670,28 @@
     "linkAlive": true
   },
   "manipur_cm_kisan_samman": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-20T15:31:11.781Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "manipur_cm_health_insurance": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-20T15:31:11.781Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "manipur_cm_scholarship": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-20T15:31:11.781Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "manipur_startup_manipur": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-20T15:31:11.781Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "meghalaya_cm_kisan_samman": {
     "lastVerified": "2026-06-16T20:36:16.595Z",
