@@ -895,62 +895,62 @@
     "confidence": 0
   },
   "kerala_karunya": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
+    "lastVerified": "2026-06-20T08:17:39.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_merit_scholarship": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
-    "httpStatus": 200,
-    "linkAlive": false,
-    "confidence": 0
-  },
-  "kerala_asap": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
+    "lastVerified": "2026-06-20T08:17:39.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
+  "kerala_asap": {
+    "lastVerified": "2026-06-20T08:17:39.191Z",
+    "httpStatus": 200,
+    "linkAlive": false,
+    "confidence": 0
+  },
   "kerala_unemployment_allowance": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
+    "lastVerified": "2026-06-20T08:17:39.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_startup_mission": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
+    "lastVerified": "2026-06-20T08:17:39.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_minority_scholarship": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
+    "lastVerified": "2026-06-20T08:17:39.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_cmss_abroad": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
+    "lastVerified": "2026-06-20T08:17:39.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_pratibha_scholarship": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
+    "lastVerified": "2026-06-20T08:17:39.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_norka_pravasi": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
+    "lastVerified": "2026-06-20T08:17:39.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "kerala_cm_distress_relief": {
-    "lastVerified": "2026-06-19T22:07:23.744Z",
+    "lastVerified": "2026-06-20T08:17:39.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
