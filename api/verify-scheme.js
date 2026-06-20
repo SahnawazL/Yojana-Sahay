@@ -60,13 +60,21 @@ function isKeyLevelFailure(status, errData) {
   return code === "organization_restricted" || code === "invalid_api_key";
 }
 
+// ── Round-robin starting point ───────────────────────────────────────────────
+// In-memory across warm invocations — without this, every request starts at
+// key #1, so it alone absorbs sustained traffic and hits its per-minute cap
+// while the other keys sit idle. Rotating the start spreads load evenly.
+let rrStartIdx = 0;
+
 // ── Groq caller with key rotation (identical to chat.js) ─────────────────────
 
 async function callGroq(keys, bodyObject) {
   let lastError = null;
   let count429  = 0; // how many keys 429'd before a success (or before exhaustion)
+  const n = keys.length;
 
-  for (let i = 0; i < keys.length; i++) {
+  for (let offset = 0; offset < n; offset++) {
+    const i   = (rrStartIdx + offset) % n;
     const key = keys[i];
     try {
       const res = await fetch(GROQ_URL, {
@@ -99,6 +107,7 @@ async function callGroq(keys, bodyObject) {
 
       if (res.status === 200) {
         console.log(`[verify-scheme] ✓ Groq Key #${i + 1} succeeded.`);
+        rrStartIdx = (i + 1) % n; // next call starts after this one
       } else {
         console.error(
           `[verify-scheme] Groq error ${res.status} on Key #${i + 1}:`,
