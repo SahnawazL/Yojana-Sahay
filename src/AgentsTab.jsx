@@ -218,7 +218,33 @@ const AI_AGENTS = [
     firestoreKey:"tavilyLastActive",
     sessionStart: null,
   },
+  {
+    id:          "groq-verify",
+    name:        "Groq Verify",
+    role:        "SchemeVerifier · AI Insights",
+    type:        "ai",
+    allowedTabs: ["verify"],
+    model:       "8b-instant + 70b-versatile",
+    firestoreKey:"groqVerifyLastActive",
+    sessionStart: null,
+  },
+  {
+    id:          "tavily-verify",
+    name:        "Tavily Verify",
+    role:        "SchemeVerifier · Page Extractor",
+    type:        "ai",
+    allowedTabs: ["verify"],
+    model:       "tavily-extract-v2",
+    firestoreKey:"tavilyVerifyLastActive",
+    sessionStart: null,
+  },
 ];
+
+// Which AI_AGENTS ids belong to which agent-grid section. Two separate Groq
+// pools (different keys, different Firestore fields) means two separate
+// sections — otherwise it's easy to misread one pool's health as the other's.
+const CHAT_AI_IDS   = new Set(["groq-ai", "tavily-api"]);       // main app — chat.js, GROQ_API_KEY_1..5
+const VERIFY_AI_IDS = new Set(["groq-verify", "tavily-verify"]); // admin SchemeVerifier — GROQ_VERIFY_KEY*
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 function toDate(ts) {
@@ -872,6 +898,36 @@ function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark }) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Section Label
+// Small header used to group the agent grid into Team / AI Chat / Verify
+// Pipeline sections so the two separate Groq+Tavily key pools never read as
+// one blended thing.
+// ═════════════════════════════════════════════════════════════════════════════
+function SectionLabel({ label, sublabel, color, dark }) {
+  const th = THEME[dark ? "dark" : "light"];
+  return (
+    <div style={{
+      display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap",
+      margin:"2px 2px 10px",
+    }}>
+      <div style={{
+        display:"flex", alignItems:"center", gap:6,
+        fontSize:12, fontWeight:800, color:th.text,
+        letterSpacing:0.3, textTransform:"uppercase",
+      }}>
+        <span style={{ width:6, height:6, borderRadius:2, background:color, flexShrink:0 }} />
+        {label}
+      </div>
+      {sublabel && (
+        <div style={{ fontSize:9.5, color:th.textSub, fontFamily:"monospace" }}>
+          {sublabel}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Agent Card
 // ═════════════════════════════════════════════════════════════════════════════
 function AgentCard({ agent, dark }) {
@@ -996,7 +1052,7 @@ function AgentCard({ agent, dark }) {
       </div>
 
       {/* ── AI Health Panel — Groq key grid + daily stats ── */}
-      {agent.type === "ai" && agent.id === "groq-ai" && (
+      {agent.type === "ai" && (agent.id === "groq-ai" || agent.id === "groq-verify") && (
         <div style={{
           marginTop: 10, padding: "10px 11px",
           background: dark ? "#0d0d1a" : "#f4f5fb",
@@ -1017,9 +1073,11 @@ function AgentCard({ agent, dark }) {
             dark={dark}
           />
 
-          {/* Stats row */}
+          {/* Stats row — groq-verify has no "web search trigger" concept (Tavily
+              always runs first there, deterministically), so it gets 2 boxes */}
           <div style={{
-            display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
+            display: "grid",
+            gridTemplateColumns: agent.id === "groq-ai" ? "1fr 1fr 1fr" : "1fr 1fr",
             gap: 6, marginTop: 9,
           }}>
             {[
@@ -1033,11 +1091,11 @@ function AgentCard({ agent, dark }) {
                 value: agent.i429Today ?? 0,
                 color: (agent.i429Today || 0) > 0 ? "#EF4444" : th.textSub,
               },
-              {
+              ...(agent.id === "groq-ai" ? [{
                 label: "WEB SEARCHES",
                 value: agent.webSearchesToday ?? 0,
                 color: CYAN,
-              },
+              }] : []),
             ].map(s => (
               <div key={s.label} style={{
                 background: dark ? "#1c1c1e" : "#fff",
@@ -1098,7 +1156,7 @@ function AgentCard({ agent, dark }) {
       )}
 
       {/* ── AI Health Panel — Tavily daily stats ── */}
-      {agent.type === "ai" && agent.id === "tavily-api" && (
+      {agent.type === "ai" && (agent.id === "tavily-api" || agent.id === "tavily-verify") && (
         <div style={{
           marginTop: 10, padding: "9px 11px",
           background: dark ? "#061218" : "#f0faff",
@@ -1813,6 +1871,26 @@ export default function AgentsTab({ dark, isDesktop }) {
           callsToday: aiStatus.tavilyCallsDate === todayStr ? (aiStatus.tavilyCallsToday || 0) : 0,
         };
       }
+      if (ag.id === "groq-verify") {
+        const sameDay = (field) => aiStatus[field] === todayStr;
+        return {
+          ...ag,
+          lastSeen:     aiStatus.groqVerifyLastActive          || null,
+          activeKeyIdx: aiStatus.groqVerifyActiveKeyIdx         ?? -1,
+          callsToday:   sameDay("groqVerifyCallsDate")  ? (aiStatus.groqVerifyCallsToday   || 0) : 0,
+          i429Today:    sameDay("groqVerify429Date")     ? (aiStatus.groqVerify429Today     || 0) : 0,
+          keys429Today: sameDay("groqVerify429KeysDate") ? (aiStatus.groqVerify429KeysToday || []) : [],
+          last429At:    aiStatus.groqVerifyLast429At           || null,
+          keyCount:     3,   // GROQ_VERIFY_KEY, GROQ_VERIFY_KEY_1, GROQ_VERIFY_KEY_2
+        };
+      }
+      if (ag.id === "tavily-verify") {
+        return {
+          ...ag,
+          lastSeen:   aiStatus.tavilyVerifyLastActive                                  || null,
+          callsToday: aiStatus.tavilyVerifyCallsDate === todayStr ? (aiStatus.tavilyVerifyCallsToday || 0) : 0,
+        };
+      }
       return { ...ag, lastSeen: aiStatus[ag.firestoreKey] || null };
     }),
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1926,6 +2004,40 @@ export default function AgentsTab({ dark, isDesktop }) {
         return tB - tA;
       }),
   [allAgents, filter, search]);
+
+  // ── Split into sections: Team (humans) / AI Chat (main app pool) /
+  //    Verify Pipeline (admin SchemeVerifier pool) — keeps the two separate
+  //    Groq+Tavily key pools visually distinct instead of one blended grid.
+  const teamAgents   = useMemo(() => displayAgents.filter(a => a.type === "human"), [displayAgents]);
+  const chatAgents   = useMemo(() => displayAgents.filter(a => CHAT_AI_IDS.has(a.id)),   [displayAgents]);
+  const verifyAgents = useMemo(() => displayAgents.filter(a => VERIFY_AI_IDS.has(a.id)), [displayAgents]);
+
+  // Renders one section's grid of cards — shared by all three sections below.
+  const renderAgentGrid = (list) => (
+    <div style={{
+      display:"grid",
+      gridTemplateColumns: isDesktop ? "repeat(3,1fr)" : "1fr",
+      gap:10,
+    }}>
+      {list.map(ag => {
+        const key = agentKey(ag);
+        return (
+          <div
+            key={key}
+            id={`agent-card-${key}`}
+            style={{
+              borderRadius:14,
+              transition:"box-shadow 0.3s, transform 0.3s",
+              boxShadow: highlightedId === key ? `0 0 0 3px ${ag.anomaly?.color || NAVY}66` : "none",
+              transform: highlightedId === key ? "scale(1.015)" : "scale(1)",
+            }}
+          >
+            <AgentCard agent={ag} dark={dark} />
+          </div>
+        );
+      })}
+    </div>
+  );
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -2087,7 +2199,7 @@ export default function AgentsTab({ dark, isDesktop }) {
         </div>
       </div>
 
-      {/* ── Agent Cards ──────────────────────────────────────────────── */}
+      {/* ── Agent Cards — sectioned: Team / AI Chat / Verify Pipeline ──── */}
       {displayAgents.length === 0 ? (
         <div style={{
           background:th.card,
@@ -2100,29 +2212,43 @@ export default function AgentsTab({ dark, isDesktop }) {
             : "No agents match this filter."}
         </div>
       ) : (
-        <div style={{
-          display:"grid",
-          gridTemplateColumns: isDesktop ? "repeat(3,1fr)" : "1fr",
-          gap:10, marginBottom:16,
-        }}>
-          {displayAgents.map(ag => {
-            const key = agentKey(ag);
-            return (
-              <div
-                key={key}
-                id={`agent-card-${key}`}
-                style={{
-                  borderRadius:14,
-                  transition:"box-shadow 0.3s, transform 0.3s",
-                  boxShadow: highlightedId === key ? `0 0 0 3px ${ag.anomaly?.color || NAVY}66` : "none",
-                  transform: highlightedId === key ? "scale(1.015)" : "scale(1)",
-                }}
-              >
-                <AgentCard agent={ag} dark={dark} />
-              </div>
-            );
-          })}
-        </div>
+        <>
+          {teamAgents.length > 0 && (
+            <div style={{ marginBottom:18 }}>
+              <SectionLabel
+                label="Team"
+                sublabel="Human sub-admins · Firestore heartbeat"
+                color={SAFFRON}
+                dark={dark}
+              />
+              {renderAgentGrid(teamAgents)}
+            </div>
+          )}
+
+          {chatAgents.length > 0 && (
+            <div style={{ marginBottom:18 }}>
+              <SectionLabel
+                label="AI Chat"
+                sublabel="Groq K1–K5 · Tavily — in-app assistant pool"
+                color={VIOLET}
+                dark={dark}
+              />
+              {renderAgentGrid(chatAgents)}
+            </div>
+          )}
+
+          {verifyAgents.length > 0 && (
+            <div style={{ marginBottom:18 }}>
+              <SectionLabel
+                label="Verify Pipeline"
+                sublabel="Dedicated GROQ_VERIFY_KEY · TAVILY_VERIFY_KEY — admin SchemeVerifier + AI Insights"
+                color={IND_GREEN}
+                dark={dark}
+              />
+              {renderAgentGrid(verifyAgents)}
+            </div>
+          )}
+        </>
       )}
 
       {/* ── Daily Attendance (8h target — salary tracking) ─────────────── */}
