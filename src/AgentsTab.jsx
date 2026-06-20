@@ -201,7 +201,7 @@ const AI_AGENTS = [
   {
     id:          "groq-ai",
     name:        "Groq AI",
-    role:        "Scheme Verifier · Chat Assistant",
+    role:        "YojanaSahay AI Chat",
     type:        "ai",
     allowedTabs: ["verify", "reports"],
     model:       "llama-3.3-70b-versatile",
@@ -211,7 +211,7 @@ const AI_AGENTS = [
   {
     id:          "tavily-api",
     name:        "Tavily Extract",
-    role:        "URL Health Inspector",
+    role:        "YojanaSahay AI Chat · Search",
     type:        "ai",
     allowedTabs: ["verify"],
     model:       "tavily-extract-v2",
