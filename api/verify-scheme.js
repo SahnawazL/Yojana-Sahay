@@ -27,7 +27,7 @@ import { getNextStartIdx } from "./_lib/groqRotation.js";
 
 const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_EXTRACT = "https://api.tavily.com/extract";
-const MODEL          = "llama-3.3-70b-versatile";
+const MODEL          = "llama-3.1-8b-instant"; // 8b is sufficient for JSON extraction — ~80% fewer tokens than 70b
 const FETCH_TIMEOUT  = 10000;   // 10 s — Tavily is fast but allow some headroom
 const MAX_PAGE_CHARS = 4000;    // truncate stripped text to keep tokens low
 
@@ -61,13 +61,13 @@ function isKeyLevelFailure(status, errData) {
   return code === "organization_restricted" || code === "invalid_api_key";
 }
 
-// ── Groq caller with key rotation (identical to chat.js) ─────────────────────
+// ── Groq caller with key rotation (now uses shared KV counter via getNextStartIdx) ──
 
 async function callGroq(keys, bodyObject) {
   let lastError = null;
   let count429  = 0; // how many keys 429'd before a success (or before exhaustion)
   const n = keys.length;
-  const startIdx = await getNextStartIdx(n);
+  const startIdx = await getNextStartIdx(n); // shared KV counter — spreads load across all Vercel instances
 
   for (let offset = 0; offset < n; offset++) {
     const i   = (startIdx + offset) % n;
