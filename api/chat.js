@@ -16,6 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { recordAiCall } from "./_lib/firebaseAdmin.js";
+import { getNextStartIdx } from "./_lib/groqRotation.js";
 
 const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_URL = "https://api.tavily.com/search";
@@ -130,16 +131,9 @@ function isKeyLevelFailure(status, errData) {
   return code === "organization_restricted" || code === "invalid_api_key";
 }
 
-// ── Round-robin starting point ───────────────────────────────────────────────
-// Persists in-memory across warm invocations of this function (resets on cold
-// start, which is fine — cold starts mean traffic is low anyway). Without
-// this, every single request starts at key #1, so under sustained traffic
-// key #1 alone absorbs the load and hits its per-minute cap while the other
-// 4 keys sit idle. Rotating the start point spreads load evenly instead.
-let rrStartIdx = 0;
-
 // ── Call Groq with key rotation ───────────────────────────────────────────────
-// Tries each key starting from rrStartIdx (wrapping around); skips on 429.
+// Tries each key starting from a shared, cross-instance counter (wrapping
+// around); skips on 429.
 // Returns { status, data, keyIdx, count429 }:
 //   keyIdx   — 0-based index of the key that succeeded (-1 if all exhausted)
 //   count429 — how many keys were 429'd before success
@@ -147,9 +141,10 @@ async function callGroq(keys, bodyObject) {
   let lastError = null;
   let count429  = 0; // number of keys that returned 429 before a success
   const n = keys.length;
+  const startIdx = await getNextStartIdx(n);
 
   for (let offset = 0; offset < n; offset++) {
-    const i   = (rrStartIdx + offset) % n;
+    const i   = (startIdx + offset) % n;
     const key = keys[i];
     try {
       const groqRes = await fetch(GROQ_URL, {
@@ -186,7 +181,6 @@ async function callGroq(keys, bodyObject) {
 
       if (groqRes.status === 200) {
         console.log(`[Yojana Sahay] ✓ Key #${i + 1} succeeded.`);
-        rrStartIdx = (i + 1) % n; // next call starts after this one
       } else {
         console.error(
           `[Yojana Sahay] Groq error ${groqRes.status} on Key #${i + 1}:`,
