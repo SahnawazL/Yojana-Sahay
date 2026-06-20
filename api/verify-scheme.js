@@ -32,23 +32,51 @@ const FETCH_TIMEOUT  = 10000;   // 10 s — Tavily is fast but allow some headro
 const MAX_PAGE_CHARS = 4000;    // truncate stripped text to keep tokens low
 
 
-// ── Key loader — Groq (identical to chat.js) ──────────────────────────────────
+// ── Key loader — dedicated Verify keys (separate from chat pool) ─────────────
+// Uses GROQ_VERIFY_KEY_* env vars so SchemeVerifier batch runs never consume
+// the chat pool's daily quota. Add these in Vercel → Settings → Environment
+// Variables alongside the existing GROQ_API_KEY_* chat keys.
+//
+// Vercel env vars to add:
+//   GROQ_VERIFY_KEY    — primary verify key  (required)
+//   GROQ_VERIFY_KEY_1  — second verify key   (optional, recommended)
+//
+// Falls back to the shared GROQ_API_KEY pool only if no verify-specific
+// keys are configured — so the app degrades gracefully during initial setup.
 
 function loadGroqKeys() {
   const seen = new Set();
   const keys = [];
-  const candidates = [
-    process.env.GROQ_API_KEY,
-    process.env.GROQ_API_KEY_1,
-    process.env.GROQ_API_KEY_2,
-    process.env.GROQ_API_KEY_3,
-    process.env.GROQ_API_KEY_4,
-    process.env.GROQ_API_KEY_5,
+
+  // Dedicated verify keys — checked first
+  const verifyCandidates = [
+    process.env.GROQ_VERIFY_KEY,
+    process.env.GROQ_VERIFY_KEY_1,
+    process.env.GROQ_VERIFY_KEY_2,
   ];
-  for (const k of candidates) {
+
+  for (const k of verifyCandidates) {
     const t = k && k.trim();
     if (t && !seen.has(t)) { seen.add(t); keys.push(t); }
   }
+
+  // Fallback to shared chat pool if no verify keys configured yet
+  if (keys.length === 0) {
+    console.warn("[verify-scheme] No GROQ_VERIFY_KEY found — falling back to shared GROQ_API_KEY pool.");
+    const fallback = [
+      process.env.GROQ_API_KEY,
+      process.env.GROQ_API_KEY_1,
+      process.env.GROQ_API_KEY_2,
+      process.env.GROQ_API_KEY_3,
+      process.env.GROQ_API_KEY_4,
+      process.env.GROQ_API_KEY_5,
+    ];
+    for (const k of fallback) {
+      const t = k && k.trim();
+      if (t && !seen.has(t)) { seen.add(t); keys.push(t); }
+    }
+  }
+
   return keys;
 }
 
@@ -266,13 +294,13 @@ export default async function handler(req, res) {
     });
   }
 
-  // Tavily key
-  const tavilyKey = process.env.TAVILY_API_KEY?.trim();
+  // Tavily key — dedicated TAVILY_VERIFY_KEY takes priority over shared chat key
+  const tavilyKey = (process.env.TAVILY_VERIFY_KEY ?? process.env.TAVILY_API_KEY)?.trim();
   if (!tavilyKey) {
     return res.status(500).json({
       error:
         "No Tavily API key configured. " +
-        "Add TAVILY_API_KEY in Vercel → Settings → Environment Variables, then redeploy.",
+        "Add TAVILY_VERIFY_KEY (or TAVILY_API_KEY) in Vercel → Settings → Environment Variables, then redeploy.",
     });
   }
 
