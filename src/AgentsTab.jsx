@@ -227,6 +227,14 @@ function IconX({ size = 13, color = "currentColor", style }) {
     </svg>
   );
 }
+function IconDownload({ size = 13, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
 
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Skeleton — shimmering loading placeholder
@@ -1783,6 +1791,7 @@ function AttendanceSection({ humanAgents, dark, isDesktop, loading }) {
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [logs, setLogs] = useState([]);
   const [logsError, setLogsError] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   const isToday = selectedDate === todayStr;
 
@@ -1935,6 +1944,696 @@ function AttendanceSection({ humanAgents, dark, isDesktop, loading }) {
             </div>
           );
         })}
+      </div>
+
+      {/* Export — payroll-style PDF/print report, separate from the live
+          single-day view above (this fetches its own date range on demand). */}
+      <div style={{ padding: "10px 14px 12px", borderTop: `1px solid ${th.border}` }}>
+        <button
+          onClick={() => setShowExport(true)}
+          disabled={loading || rows.length === 0}
+          style={{
+            width: "100%", padding: "9px 12px", borderRadius: 9,
+            border: `1px solid ${th.border}`, background: "transparent",
+            color: th.text, fontSize: fs(11, isDesktop), fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+            cursor: (loading || rows.length === 0) ? "default" : "pointer",
+            opacity: (loading || rows.length === 0) ? 0.5 : 1,
+          }}
+        >
+          <IconDownload size={12} color={dark ? "#6fa3ff" : NAVY} />
+          Export Attendance Report
+        </button>
+      </div>
+
+      {showExport && (
+        <AttendanceExportModal
+          humanAgents={humanAgents}
+          dark={dark}
+          isDesktop={isDesktop}
+          onClose={() => setShowExport(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Attendance Report Export — payroll-style PDF (salary calculation)
+// ═════════════════════════════════════════════════════════════════════════════
+// Builds a printable, payroll-register-style report straight from the same
+// `agentTimeLogs` data the live Daily Attendance view above reads from, then
+// hands off to the browser's native print → "Save as PDF" flow. Deliberately
+// no PDF library/dependency — the report is just styled HTML opened in a new
+// tab, so there's nothing extra to install or keep in sync, and it behaves
+// identically on phone and desktop.
+const FULL_DAY_HOURS = DAILY_TARGET_SECONDS / 3600; // 8 — same target as the live view
+const HALF_DAY_HOURS  = FULL_DAY_HOURS / 2;          // 4
+
+function shiftISTDateStr(dateStr, deltaDays) {
+  const d = new Date(`${dateStr}T00:00:00+05:30`);
+  d.setDate(d.getDate() + deltaDays);
+  return getISTDateStr(d);
+}
+
+function firstOfMonthISTStr(dateStr) {
+  return `${dateStr.slice(0, 7)}-01`;
+}
+
+// "Day-0 of next month" trick: new Date's month param is 0-indexed, so
+// passing the 1-indexed target month `pm` as that param means day 0 of it
+// resolves to the last day of the *previous* (target) month.
+function prevMonthRangeISTStr(dateStr) {
+  const [y, m] = dateStr.split("-").map(Number);
+  let py = y, pm = m - 1;
+  if (pm === 0) { pm = 12; py -= 1; }
+  const start = `${py}-${String(pm).padStart(2, "0")}-01`;
+  const lastDay = new Date(py, pm, 0).getDate();
+  const end = `${py}-${String(pm).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  return { start, end };
+}
+
+function fmtReportDate(dateStr) {
+  return new Date(`${dateStr}T00:00:00+05:30`).toLocaleDateString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+  });
+}
+
+// Inclusive array of "YYYY-MM-DD" strings from start to end (IST calendar days).
+function dateRangeArray(startStr, endStr) {
+  const out = [];
+  let cur = startStr;
+  let guard = 0;
+  while (cur <= endStr && guard < 1000) {
+    out.push(cur);
+    cur = shiftISTDateStr(cur, 1);
+    guard += 1;
+  }
+  return out;
+}
+
+// One-off fetch (not a listener) for a date range — `date` is a plain string
+// field, so both inequalities resolve to a single-field range query; no extra
+// Firestore composite index is needed beyond what already exists for `date`.
+async function fetchAttendanceLogsRange(startStr, endStr) {
+  const q = query(
+    collection(db, "agentTimeLogs"),
+    where("date", ">=", startStr),
+    where("date", "<=", endStr),
+    orderBy("date", "asc"),
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+function escHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, c => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
+function fmtINR(n) {
+  return `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function effectiveDays(row) {
+  return row.totalHours / FULL_DAY_HOURS;
+}
+
+// perHour: straight hours × rate.
+// perDay:  pro-rated against the daily target, so e.g. 4h logged pays half a
+//          day instead of either a full day or nothing — fairer for partial
+//          days than a flat "present = full day's pay" rule.
+function computePay(row, payMode, payRate) {
+  if (!payMode || payMode === "none" || !payRate || payRate <= 0) return 0;
+  if (payMode === "perHour") return row.totalHours * payRate;
+  return effectiveDays(row) * payRate;
+}
+
+// Aggregates raw `agentTimeLogs` docs into one payroll-ready row per agent
+// (plus the full daily breakdown each row needs for its register page).
+//
+// Rows come from the UNION of currently-known admins and any uid that has
+// logs in this period but isn't (or no longer is) in `humanAgents` — e.g.
+// someone whose admin access was later revoked. Without this, running a
+// report for a past period could silently drop someone who actually worked
+// those days.
+function buildAttendanceReport(humanAgents, logs, startStr, endStr) {
+  const days = dateRangeArray(startStr, endStr);
+  const totalCalendarDays = days.length;
+  const logMap = new Map(logs.map(l => [timeLogId(l.uid, l.date), l]));
+
+  const agentMap = new Map();
+  humanAgents.forEach(ag => {
+    const uid = ag.uid || ag.id;
+    agentMap.set(uid, { uid, name: ag.name || "Admin", email: ag.email || "" });
+  });
+  logs.forEach(l => {
+    if (!agentMap.has(l.uid)) agentMap.set(l.uid, { uid: l.uid, name: l.name || "Admin", email: l.email || "" });
+  });
+
+  const rows = Array.from(agentMap.values()).map(ag => {
+    const dayRows = days.map(dateStr => {
+      const log = logMap.get(timeLogId(ag.uid, dateStr));
+      const seconds = log?.secondsActive || 0;
+      const hours = seconds / 3600;
+      const status = seconds === 0 ? "Absent"
+        : hours >= FULL_DAY_HOURS ? "Full Day"
+        : hours >= HALF_DAY_HOURS ? "Half Day"
+        : "Short";
+      return {
+        date: dateStr, seconds, hours, status,
+        inTime: fmtClockIST(log?.firstActive) || "—",
+        lastTime: fmtClockIST(log?.lastActive) || "—",
+      };
+    });
+
+    const totalSeconds   = dayRows.reduce((s, d) => s + d.seconds, 0);
+    const totalHours     = totalSeconds / 3600;
+    const daysPresent    = dayRows.filter(d => d.seconds > 0).length;
+    const daysFull       = dayRows.filter(d => d.hours >= FULL_DAY_HOURS).length;
+    const daysHalf       = daysPresent - daysFull;
+    const daysAbsent     = totalCalendarDays - daysPresent;
+    const overtimeHours  = dayRows.reduce((s, d) => s + Math.max(0, d.hours - FULL_DAY_HOURS), 0);
+    const shortfallHours = dayRows.reduce((s, d) => s + (d.seconds > 0 ? Math.max(0, FULL_DAY_HOURS - d.hours) : 0), 0);
+    const attendancePct  = totalCalendarDays > 0 ? (daysPresent / totalCalendarDays) * 100 : 0;
+    const avgHoursPerDay = daysPresent > 0 ? totalHours / daysPresent : 0;
+
+    return {
+      uid: ag.uid, name: ag.name, email: ag.email, days: dayRows,
+      totalSeconds, totalHours, daysPresent, daysFull, daysHalf, daysAbsent,
+      attendancePct, overtimeHours, shortfallHours, avgHoursPerDay,
+    };
+  }).sort((a, b) => a.name.localeCompare(b.name));
+
+  return { rows, totalCalendarDays, startStr, endStr };
+}
+
+// Builds the full printable HTML document — letterhead, a summary table (the
+// salary calculation sheet) and a per-agent daily register, each starting on
+// its own page. Returned as a string; the modal below turns it into a blob
+// URL so it can be opened as a real page in a new tab.
+function buildAttendanceReportHTML({ report, payMode, payRate }) {
+  const { rows, totalCalendarDays, startStr, endStr } = report;
+  const showPay = payMode !== "none" && payRate > 0;
+
+  const generatedAt = new Date().toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+  const periodLabel = `${fmtReportDate(startStr)} – ${fmtReportDate(endStr)}`;
+  const reportRef = `ATT-${startStr.replace(/-/g, "")}-${endStr.replace(/-/g, "")}`;
+
+  const totalHoursAll    = rows.reduce((s, r) => s + r.totalHours, 0);
+  const totalPresentAll  = rows.reduce((s, r) => s + r.daysPresent, 0);
+  const totalFullAll     = rows.reduce((s, r) => s + r.daysFull, 0);
+  const totalOTAll       = rows.reduce((s, r) => s + r.overtimeHours, 0);
+  const totalShortAll    = rows.reduce((s, r) => s + r.shortfallHours, 0);
+  const avgAttendanceAll = rows.length ? rows.reduce((s, r) => s + r.attendancePct, 0) / rows.length : 0;
+  const totalEffDaysAll  = rows.reduce((s, r) => s + effectiveDays(r), 0);
+  const totalPayAll      = showPay ? rows.reduce((s, r) => s + computePay(r, payMode, payRate), 0) : 0;
+
+  const payCaption = showPay
+    ? `Salary calculated at ₹${Number(payRate).toLocaleString("en-IN")} per ${payMode === "perDay" ? "day" : "hour"}`
+      + (payMode === "perDay" ? `, pro-rated by hours logged against the ${FULL_DAY_HOURS}h daily target.` : ".")
+    : null;
+
+  const summaryRows = rows.map((r, i) => `<tr>
+      <td class="num">${i + 1}</td>
+      <td class="name">${escHtml(r.name)}</td>
+      <td class="num">${r.daysPresent}/${totalCalendarDays}</td>
+      <td class="num">${r.attendancePct.toFixed(1)}%</td>
+      <td class="num">${r.totalHours.toFixed(1)}</td>
+      <td class="num">${r.avgHoursPerDay.toFixed(1)}</td>
+      <td class="num">${r.daysFull}</td>
+      <td class="num">${r.overtimeHours.toFixed(1)}</td>
+      <td class="num">${r.shortfallHours.toFixed(1)}</td>
+      ${showPay ? `<td class="num">${effectiveDays(r).toFixed(2)}</td><td class="num strong">${fmtINR(computePay(r, payMode, payRate))}</td>` : ""}
+    </tr>`).join("");
+
+  const summaryFoot = `<tr>
+      <td colspan="2">TOTAL / AVERAGE</td>
+      <td class="num">${totalPresentAll}/${totalCalendarDays * rows.length}</td>
+      <td class="num">${avgAttendanceAll.toFixed(1)}%</td>
+      <td class="num">${totalHoursAll.toFixed(1)}</td>
+      <td class="num">—</td>
+      <td class="num">${totalFullAll}</td>
+      <td class="num">${totalOTAll.toFixed(1)}</td>
+      <td class="num">${totalShortAll.toFixed(1)}</td>
+      ${showPay ? `<td class="num">${totalEffDaysAll.toFixed(2)}</td><td class="num strong">${fmtINR(totalPayAll)}</td>` : ""}
+    </tr>`;
+
+  const registerSections = rows.map(r => {
+    const dayRows = r.days.map(d => {
+      const weekday = new Date(`${d.date}T00:00:00+05:30`).toLocaleDateString("en-IN", { weekday: "short" });
+      return `<tr class="${d.status === "Absent" ? "absent-row" : ""}">
+        <td>${fmtReportDate(d.date)}</td>
+        <td>${weekday}</td>
+        <td class="num">${d.inTime}</td>
+        <td class="num">${d.lastTime}</td>
+        <td class="num">${d.hours.toFixed(2)}</td>
+        <td><span class="status-badge status-${d.status.replace(" ", "")}">${d.status}</span></td>
+      </tr>`;
+    }).join("");
+
+    return `<section class="agent-page">
+      <div class="agent-header">
+        <div>
+          <div class="agent-name">${escHtml(r.name)}</div>
+          ${r.email ? `<div class="agent-email">${escHtml(r.email)}</div>` : ""}
+        </div>
+        <div class="agent-quickstats">
+          <div><span>Days Present</span><b>${r.daysPresent}/${totalCalendarDays}</b></div>
+          <div><span>Total Hours</span><b>${r.totalHours.toFixed(1)}h</b></div>
+          ${showPay ? `<div><span>Gross Pay</span><b>${fmtINR(computePay(r, payMode, payRate))}</b></div>` : ""}
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Date</th><th>Day</th><th>Time In</th><th>Last Active</th><th>Hours</th><th>Status</th></tr></thead>
+        <tbody>${dayRows}</tbody>
+      </table>
+    </section>`;
+  }).join("");
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Attendance Report — ${periodLabel}</title>
+<style>
+  * { box-sizing: border-box; }
+  @page { size: A4; margin: 16mm 14mm; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#1a1a1a; margin:0; background:#eee; font-size:11px; line-height:1.45; }
+  .toolbar { position: sticky; top:0; background:#003580; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:11px 16px; z-index:10; gap:10px; }
+  .toolbar-title { font-size:13px; font-weight:700; }
+  .toolbar button { background:#fff; color:#003580; border:none; border-radius:7px; padding:8px 16px; font-weight:700; font-size:12.5px; cursor:pointer; flex-shrink:0; }
+  .doc { max-width:800px; margin:0 auto; background:#fff; padding:26px 26px 36px; }
+  .letterhead { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2.5px solid #003580; padding-bottom:12px; margin-bottom:16px; gap:10px; flex-wrap:wrap; }
+  .brand-name { font-size:18px; font-weight:800; color:#003580; letter-spacing:0.3px; }
+  .brand-sub { font-size:9.5px; color:#666; margin-top:2px; }
+  .report-meta { text-align:right; }
+  .report-title { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; }
+  .report-period { font-size:10.5px; color:#333; margin-top:3px; font-weight:700; }
+  .report-gen { font-size:8.5px; color:#999; margin-top:2px; }
+  .stat-strip { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .stat-box { flex:1; min-width:110px; border:1px solid #ddd; border-radius:7px; padding:8px 10px; background:#fafafa; }
+  .stat-box .lbl { font-size:8px; color:#888; text-transform:uppercase; letter-spacing:0.4px; }
+  .stat-box .val { font-size:15px; font-weight:800; color:#003580; margin-top:2px; }
+  .section-title { font-size:10.5px; font-weight:800; color:#003580; text-transform:uppercase; letter-spacing:0.4px; margin:18px 0 4px; padding-bottom:4px; border-bottom:1px solid #ddd; }
+  .caption { font-size:9px; color:#777; margin-bottom:8px; font-style:italic; }
+  table { width:100%; border-collapse:collapse; font-size:9.5px; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  tr { break-inside: avoid; }
+  th { background:#003580; color:#fff; font-weight:700; text-align:left; padding:6px 7px; font-size:8.5px; letter-spacing:0.2px; white-space:nowrap; }
+  td { padding:5px 7px; border-bottom:1px solid #eee; white-space:nowrap; }
+  td.num { text-align:right; font-family:'SF Mono',Consolas,monospace; }
+  td.name { font-weight:700; white-space:normal; }
+  td.strong { font-weight:800; color:#003580; }
+  tbody tr:nth-child(even) { background:#fafafa; }
+  tfoot td { border-top:2px solid #003580; border-bottom:none; font-weight:800; padding-top:7px; background:#fff; font-size:9px; }
+  .status-badge { display:inline-block; padding:1.5px 7px; border-radius:4px; font-size:8px; font-weight:700; white-space:nowrap; }
+  .status-FullDay { background:#DCFCE7; color:#138808; }
+  .status-HalfDay { background:#FEF3C7; color:#B45309; }
+  .status-Short   { background:#FFEDD5; color:#C2410C; }
+  .status-Absent  { background:#FEE2E2; color:#DC2626; }
+  .absent-row td  { color:#aaa; }
+  .agent-page { page-break-before: always; padding-top:4px; }
+  .agent-header { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1.5px solid #003580; padding-bottom:8px; margin-bottom:10px; flex-wrap:wrap; gap:8px; }
+  .agent-name { font-size:13px; font-weight:800; }
+  .agent-email { font-size:8.5px; color:#888; margin-top:1px; }
+  .agent-quickstats { display:flex; gap:16px; }
+  .agent-quickstats div { text-align:right; }
+  .agent-quickstats span { display:block; font-size:7.5px; color:#888; text-transform:uppercase; }
+  .agent-quickstats b { font-size:11px; color:#003580; }
+  .disclaimer { margin-top:22px; padding:10px 12px; background:#f7f7f7; border-left:3px solid #003580; font-size:8.5px; color:#555; line-height:1.6; }
+  .signoff { display:flex; justify-content:space-between; margin-top:40px; }
+  .signoff .line { width:42%; }
+  .signoff .blank { border-bottom:1px solid #999; height:30px; }
+  .signoff .label { font-size:8.5px; color:#666; margin-top:4px; }
+  .footer-note { text-align:center; font-size:7.5px; color:#aaa; margin-top:18px; }
+  @media print {
+    .no-print { display:none !important; }
+    body { background:#fff; }
+    .doc { padding:0; max-width:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <div class="toolbar-title">Attendance &amp; Salary Report</div>
+    <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+  </div>
+
+  <div class="doc">
+    <div class="letterhead">
+      <div>
+        <div class="brand-name">YOJANA SAHAY</div>
+        <div class="brand-sub">Government Scheme Discovery Platform · Admin Office</div>
+      </div>
+      <div class="report-meta">
+        <div class="report-title">Agent Attendance &amp; Salary Report</div>
+        <div class="report-period">${periodLabel}</div>
+        <div class="report-gen">Generated ${generatedAt} IST · Ref ${reportRef}</div>
+      </div>
+    </div>
+
+    <div class="stat-strip">
+      <div class="stat-box"><div class="lbl">Agents</div><div class="val">${rows.length}</div></div>
+      <div class="stat-box"><div class="lbl">Period Days</div><div class="val">${totalCalendarDays}</div></div>
+      <div class="stat-box"><div class="lbl">Total Hours Logged</div><div class="val">${totalHoursAll.toFixed(1)}h</div></div>
+      ${showPay
+        ? `<div class="stat-box"><div class="lbl">Total Gross Pay</div><div class="val">${fmtINR(totalPayAll)}</div></div>`
+        : `<div class="stat-box"><div class="lbl">Avg. Attendance</div><div class="val">${avgAttendanceAll.toFixed(1)}%</div></div>`}
+    </div>
+
+    <div class="section-title">Attendance &amp; Salary Summary</div>
+    ${payCaption ? `<div class="caption">${escHtml(payCaption)}</div>` : ""}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Agent</th><th>Days Present</th><th>Attend. %</th><th>Hours</th><th>Avg Hrs/Day</th>
+          <th>Full Days</th><th>O.T. (hrs)</th><th>Short (hrs)</th>
+          ${showPay ? `<th>Eff. Days</th><th>Gross Pay</th>` : ""}
+        </tr>
+      </thead>
+      <tbody>${summaryRows}</tbody>
+      <tfoot>${summaryFoot}</tfoot>
+    </table>
+
+    <div class="section-title">Daily Attendance Register</div>
+    <div class="caption">Per-agent day-by-day log. Each agent's register starts on a new page for clean filing.</div>
+    ${registerSections}
+
+    <div class="disclaimer">
+      <b>Note:</b> This report is generated automatically from system-tracked active dashboard time
+      (<code>agentTimeLogs</code>) and reflects time the agent was actively interacting with the dashboard only.
+      It does not account for approved leave, manual time corrections, or work done outside the dashboard.
+      Attendance % is measured against total calendar days in the selected period and is not adjusted for
+      weekly offs or holidays. Please verify against manual records before finalizing payroll.
+    </div>
+
+    <div class="signoff">
+      <div class="line"><div class="blank"></div><div class="label">Prepared by (Admin)</div></div>
+      <div class="line"><div class="blank"></div><div class="label">Verified / Approved by</div></div>
+    </div>
+
+    <div class="footer-note">YojanaSahay Admin Dashboard · Auto-generated on ${generatedAt} IST</div>
+  </div>
+
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () { window.print(); }, 500);
+    });
+  </script>
+</body>
+</html>`;
+}
+
+function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const todayStr = getISTDateStr();
+
+  const [rangeMode, setRangeMode]     = useState("thisMonth"); // thisMonth | lastMonth | last7 | custom
+  const [customStart, setCustomStart] = useState(todayStr);
+  const [customEnd, setCustomEnd]     = useState(todayStr);
+  const [payMode, setPayMode]         = useState("none"); // none | perDay | perHour
+  const [payRate, setPayRate]         = useState("");
+
+  const [stage, setStage]   = useState("config"); // config | generating | ready | error
+  const [report, setReport] = useState(null);
+  const [error, setError]   = useState(null);
+  const [reportUrl, setReportUrl] = useState(null);
+
+  // Revoke the previous blob URL whenever a new one replaces it / on unmount
+  // — these aren't huge, but no reason to leak them across repeated exports.
+  useEffect(() => {
+    return () => { if (reportUrl) URL.revokeObjectURL(reportUrl); };
+  }, [reportUrl]);
+
+  const canClose = stage !== "generating";
+  useEffect(() => {
+    if (!canClose) return;
+    const onKey = e => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [canClose, onClose]);
+
+  const resolvedRange = rangeMode === "thisMonth" ? { start: firstOfMonthISTStr(todayStr), end: todayStr }
+    : rangeMode === "lastMonth" ? prevMonthRangeISTStr(todayStr)
+    : rangeMode === "last7"     ? { start: shiftISTDateStr(todayStr, -6), end: todayStr }
+    : { start: customStart, end: customEnd };
+
+  const rangeValid = !!resolvedRange.start && !!resolvedRange.end
+    && resolvedRange.start <= resolvedRange.end
+    && resolvedRange.end <= todayStr;
+  const rateValid = payMode === "none" || Number(payRate) > 0;
+  const periodLabel = rangeValid ? `${fmtReportDate(resolvedRange.start)} – ${fmtReportDate(resolvedRange.end)}` : "—";
+
+  const generate = async () => {
+    if (!rangeValid || !rateValid) return;
+    setStage("generating");
+    setError(null);
+    try {
+      const logs = await fetchAttendanceLogsRange(resolvedRange.start, resolvedRange.end);
+      const rpt  = buildAttendanceReport(humanAgents, logs, resolvedRange.start, resolvedRange.end);
+      const html = buildAttendanceReportHTML({ report: rpt, payMode, payRate: Number(payRate) || 0 });
+      const url  = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+      setReport(rpt);
+      setReportUrl(url);
+      setStage("ready");
+    } catch (e) {
+      console.warn("[AttendanceExportModal] generate failed:", e);
+      setError(e.message || "Couldn't fetch attendance logs — check your connection.");
+      setStage("error");
+    }
+  };
+
+  const backToConfig = () => {
+    if (reportUrl) URL.revokeObjectURL(reportUrl);
+    setReportUrl(null);
+    setReport(null);
+    setStage("config");
+  };
+
+  const totalHoursAll = report ? report.rows.reduce((s, r) => s + r.totalHours, 0) : 0;
+  const showPay = payMode !== "none" && Number(payRate) > 0;
+  const totalPayAll = report && showPay
+    ? report.rows.reduce((s, r) => s + computePay(r, payMode, Number(payRate)), 0)
+    : 0;
+
+  return (
+    <div className="agnt-export-overlay" onClick={() => canClose && onClose()}>
+      <div
+        className="agnt-export-panel"
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: dark ? "#151517" : "#fff",
+          border: `1px solid ${NAVY}40`,
+          boxShadow: `0 0 0 1px ${NAVY}20, 0 24px 60px -12px ${NAVY}30`,
+        }}
+      >
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${NAVY}, ${NAVY}00 85%)` }} />
+
+        {/* Header */}
+        <div style={{ padding: "16px 18px 14px", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${th.border}`, flexShrink: 0 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: `${NAVY}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <IconDownload size={14} color={dark ? "#6fa3ff" : NAVY} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: fs(12, isDesktop), fontWeight: 800, color: th.text }}>Export Attendance Report</div>
+            <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, marginTop: 1 }}>
+              {stage === "config"     && "Pick a period — add a pay rate for salary calculation"}
+              {stage === "generating" && "Fetching logs…"}
+              {stage === "ready"      && "Report ready"}
+              {stage === "error"      && "Something went wrong"}
+            </div>
+          </div>
+          {canClose && (
+            <button onClick={onClose} style={{ width: 24, height: 24, borderRadius: 7, border: `1px solid ${th.border}`, background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+              <IconX size={11} color={th.textSub} />
+            </button>
+          )}
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "16px 18px", overflowY: "auto", flex: 1 }}>
+
+          {stage === "config" && (
+            <div>
+              <div style={{ fontSize: fs(9.5, isDesktop), fontWeight: 700, color: th.textSub, marginBottom: 8, letterSpacing: 0.3 }}>PERIOD</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                {[
+                  { id: "thisMonth", label: "This Month" },
+                  { id: "lastMonth", label: "Last Month" },
+                  { id: "last7",     label: "Last 7 Days" },
+                  { id: "custom",    label: "Custom" },
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setRangeMode(opt.id)}
+                    style={{
+                      padding: "7px 12px", borderRadius: 8,
+                      border: `1px solid ${rangeMode === opt.id ? NAVY : th.border}`,
+                      background: rangeMode === opt.id ? `${NAVY}14` : "transparent",
+                      color: rangeMode === opt.id ? (dark ? "#6fa3ff" : NAVY) : th.text,
+                      fontSize: fs(10.5, isDesktop), fontWeight: 700, cursor: "pointer",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {rangeMode === "custom" && (
+                <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                  <input
+                    type="date" value={customStart} max={todayStr}
+                    onChange={e => setCustomStart(e.target.value)}
+                    style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: `1px solid ${th.border}`, background: th.inputBg, color: th.text, fontSize: fs(10.5, isDesktop) }}
+                  />
+                  <input
+                    type="date" value={customEnd} max={todayStr}
+                    onChange={e => setCustomEnd(e.target.value)}
+                    style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: `1px solid ${th.border}`, background: th.inputBg, color: th.text, fontSize: fs(10.5, isDesktop) }}
+                  />
+                </div>
+              )}
+
+              <div style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, fontFamily: "monospace", marginBottom: 16 }}>
+                {rangeValid ? periodLabel : "Pick a valid date range"}
+              </div>
+
+              <div style={{ fontSize: fs(9.5, isDesktop), fontWeight: 700, color: th.textSub, marginBottom: 8, letterSpacing: 0.3 }}>SALARY CALCULATION (OPTIONAL)</div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                {[
+                  { id: "none",    label: "No Pay Calc" },
+                  { id: "perDay",  label: "₹ / Day" },
+                  { id: "perHour", label: "₹ / Hour" },
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setPayMode(opt.id)}
+                    style={{
+                      flex: 1, padding: "7px 8px", borderRadius: 8,
+                      border: `1px solid ${payMode === opt.id ? NAVY : th.border}`,
+                      background: payMode === opt.id ? `${NAVY}14` : "transparent",
+                      color: payMode === opt.id ? (dark ? "#6fa3ff" : NAVY) : th.text,
+                      fontSize: fs(10, isDesktop), fontWeight: 700, cursor: "pointer",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {payMode !== "none" && (
+                <input
+                  type="number" inputMode="decimal" min="0" step="0.01"
+                  value={payRate} onChange={e => setPayRate(e.target.value)}
+                  placeholder={payMode === "perDay" ? "Rate per day, e.g. 500" : "Rate per hour, e.g. 65"}
+                  style={{ width: "100%", boxSizing: "border-box", padding: "9px 12px", borderRadius: 8, border: `1px solid ${th.border}`, background: th.inputBg, color: th.text, fontSize: fs(11, isDesktop), marginBottom: 4 }}
+                />
+              )}
+              {payMode === "perDay" && (
+                <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, lineHeight: 1.5 }}>
+                  Pro-rated against the {FULL_DAY_HOURS}h target — e.g. 4h logged pays half a day.
+                </div>
+              )}
+            </div>
+          )}
+
+          {stage === "generating" && (
+            <div style={{ textAlign: "center", padding: "30px 0" }}>
+              <IconCpu size={20} color={NAVY} style={{ animation: "agnt-spin 2s linear infinite" }} />
+              <div style={{ fontSize: fs(10.5, isDesktop), color: th.textSub, marginTop: 10 }}>
+                Fetching {periodLabel}…
+              </div>
+            </div>
+          )}
+
+          {stage === "ready" && report && (
+            <div>
+              <div style={{ border: `1px solid ${th.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 14 }}>
+                <StatRow label="Period" value={periodLabel} th={th} isDesktop={isDesktop} />
+                <StatRow label="Agents" value={report.rows.length} th={th} isDesktop={isDesktop} />
+                <StatRow label="Total Hours Logged" value={`${totalHoursAll.toFixed(1)} h`} th={th} isDesktop={isDesktop} last={!showPay} />
+                {showPay && <StatRow label="Total Gross Pay" value={fmtINR(totalPayAll)} th={th} isDesktop={isDesktop} last />}
+              </div>
+
+              <div style={{ fontSize: fs(9.5, isDesktop), fontWeight: 700, color: th.textSub, marginBottom: 6, letterSpacing: 0.3 }}>PER AGENT</div>
+              <div style={{ border: `1px solid ${th.border}`, borderRadius: 10, overflow: "hidden", maxHeight: 180, overflowY: "auto" }}>
+                {report.rows.map((r, i) => (
+                  <div
+                    key={r.uid}
+                    style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      padding: "8px 12px", borderBottom: i === report.rows.length - 1 ? "none" : `1px solid ${th.border}`,
+                    }}
+                  >
+                    <div style={{ fontSize: fs(10.5, isDesktop), fontWeight: 700, color: th.text }}>{r.name}</div>
+                    <div style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, fontFamily: "monospace", textAlign: "right" }}>
+                      {r.daysPresent}/{report.totalCalendarDays}d · {r.totalHours.toFixed(1)}h
+                      {showPay && (
+                        <span style={{ color: th.text, fontWeight: 700 }}> · {fmtINR(computePay(r, payMode, Number(payRate)))}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {stage === "error" && (
+            <div style={{ padding: "10px 12px", borderRadius: 10, background: dark ? `${IDLE_AMBER}14` : `${IDLE_AMBER}0c`, border: `1px solid ${IDLE_AMBER}40`, fontSize: fs(10.5, isDesktop), color: th.text, lineHeight: 1.6 }}>
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "12px 18px 16px", display: "flex", gap: 8, flexShrink: 0, borderTop: `1px solid ${th.border}` }}>
+          {stage === "config" && (
+            <>
+              <ModalButton onClick={onClose} th={th} isDesktop={isDesktop}>Cancel</ModalButton>
+              <ModalButton onClick={generate} disabled={!rangeValid || !rateValid} primary color={NAVY} th={th} isDesktop={isDesktop} style={{ flex: 1 }}>
+                Generate Report
+              </ModalButton>
+            </>
+          )}
+          {stage === "generating" && (
+            <div style={{ fontSize: fs(9, isDesktop), color: th.textSub, textAlign: "center", width: "100%" }}>
+              Don't close this window…
+            </div>
+          )}
+          {stage === "ready" && (
+            <>
+              <ModalButton onClick={backToConfig} th={th} isDesktop={isDesktop}>Back</ModalButton>
+              <a
+                href={reportUrl} target="_blank" rel="noopener noreferrer"
+                style={{
+                  flex: 1, padding: "10px 16px", borderRadius: 9, fontWeight: 700,
+                  fontSize: fs(11, isDesktop), textAlign: "center", textDecoration: "none",
+                  background: NAVY, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                }}
+              >
+                <IconDownload size={12} color="#fff" /> Open Report
+              </a>
+            </>
+          )}
+          {stage === "error" && (
+            <ModalButton onClick={backToConfig} primary color={IDLE_AMBER} th={th} isDesktop={isDesktop} style={{ flex: 1 }}>
+              Try Again
+            </ModalButton>
+          )}
+        </div>
+
+        {stage === "ready" && (
+          <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, textAlign: "center", padding: "0 18px 14px" }}>
+            Opens in a new tab — tap "Print / Save as PDF" there to save it.
+          </div>
+        )}
       </div>
     </div>
   );
@@ -3349,6 +4048,25 @@ export default function AgentsTab({ dark, isDesktop }) {
           animation: agnt-modal-in 0.28s cubic-bezier(0.22,1,0.36,1) both;
         }
         .agnt-purge-cursor { animation: agnt-cursor 1s steps(1) infinite; }
+
+        /* Attendance export modal — same structural pattern as the purge
+           modal above, kept as its own class so the two stay conceptually
+           separate (navy "official report" vs violet "control room"). */
+        .agnt-export-overlay {
+          position: fixed; inset: 0; z-index: 10000;
+          background: rgba(0,0,0,0.72);
+          backdrop-filter: blur(6px) saturate(140%);
+          display: flex; align-items: center; justify-content: center;
+          padding: 16px;
+          animation: agnt-fade-in 0.18s ease both;
+        }
+        .agnt-export-panel {
+          position: relative;
+          width: 100%; max-width: 420px; max-height: 88vh;
+          border-radius: 18px; overflow: hidden;
+          display: flex; flex-direction: column;
+          animation: agnt-modal-in 0.28s cubic-bezier(0.22,1,0.36,1) both;
+        }
 
         /* Toast wrap: width is CSS-driven (not the isDesktop JS flag) so it stays
            compact on desktop even if that flag is stale during resize/hydration. */
