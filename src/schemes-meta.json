@@ -3159,9 +3159,9 @@
     "confidence": 0
   },
   "uk_post_matric_scholarship": {
-    "lastVerified": "2026-06-21T15:04:21.895Z",
+    "lastVerified": "2026-06-21T15:04:52.610Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
