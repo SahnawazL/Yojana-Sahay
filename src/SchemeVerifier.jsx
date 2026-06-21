@@ -50,6 +50,7 @@ import {
   writeSchemeResults,
   saveUrlFix,
   markUrlFixCommitted,
+  verifyCommittedFix,
   loadUrlFixes,
   queueUrlFix,
   unqueueUrlFix,
@@ -1906,9 +1907,28 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
     if (!savedFix) return;
 
     if (savedFix.status === "committed") {
-      if (!urlSearch?.done) {
-        setUrlSearch({ done: true, sha: savedFix.commitSha, commitUrl: savedFix.commitUrl ?? null });
-      }
+      // Re-sync every time urlFixMap refreshes (not just once) — this is how
+      // a later "Re-check" or the post-commit auto-verify updates the badge
+      // from "checking" to "Verified live" / "Still unreachable" without a
+      // full page reload. Previously this only ever ran once per mount and
+      // then froze on a static "Vercel deploying" message forever.
+      setUrlSearch(prev => {
+        if (
+          prev?.done &&
+          prev.verified === savedFix.verified &&
+          prev.sha === savedFix.commitSha
+        ) {
+          return prev; // nothing changed — skip the re-render
+        }
+        return {
+          done:       true,
+          sha:        savedFix.commitSha,
+          commitUrl:  savedFix.commitUrl ?? null,
+          newUrl:     savedFix.newUrl ?? null,
+          verified:   savedFix.verified,    // true | false | undefined (not checked yet)
+          verifiedAt: savedFix.verifiedAt ?? null,
+        };
+      });
       return;
     }
 
@@ -2019,6 +2039,30 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
     e.stopPropagation();
     setUrlSearch(null);
     setSelectedUrl(null);
+  };
+
+  // Manual re-check for a committed fix — lets the user confirm a fix
+  // themselves instead of staring at a static "deploying" message that
+  // never changes. Pings the new URL directly; if alive, also corrects
+  // schemes-meta.json so "Known Dead Links" stops showing this scheme.
+  const [rechecking, setRechecking] = useState(false);
+  const handleRecheckFix = async (e) => {
+    e.stopPropagation();
+    const checkUrl = urlSearch?.newUrl ?? scheme.apply?.en;
+    if (rechecking || !checkUrl) return;
+    setRechecking(true);
+    try {
+      const { alive } = await verifyCommittedFix(scheme.id, checkUrl);
+      setUrlSearch(prev => ({ ...prev, verified: alive, verifiedAt: new Date().toISOString() }));
+      if (alive) {
+        await writeSchemeResults([{ scheme: { id: scheme.id }, httpStatus: null, linkAlive: true, tier: 1 }]);
+        onQueueChange?.(scheme.id, { status: "committed", verified: true });
+      }
+    } catch (err) {
+      console.warn("[handleRecheckFix] failed:", err.message);
+    } finally {
+      setRechecking(false);
+    }
   };
 
   return (
@@ -2554,42 +2598,88 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
               )}
 
               {/* ── Committed ── */}
-              {urlSearch?.done && (
+              {/* THE BUG THIS FIXES: this used to be one static block that
+                  always said "Vercel deploying (~1-2 min)" forever, with no
+                  way to ever know if the fix actually worked. Now it shows
+                  the real outcome of pinging the new URL — verified live,
+                  still unreachable, or not checked yet — with a manual
+                  re-check option so it never gets stuck. */}
+              {urlSearch?.done && urlSearch.verified === true && (
                 <div style={{
-                  padding:      "8px 10px",
-                  borderRadius: 7,
-                  background:   `${IND_GREEN}10`,
-                  border:       `1px solid ${IND_GREEN}40`,
-                  fontSize:     9,
+                  padding: "8px 10px", borderRadius: 7,
+                  background: `${IND_GREEN}10`, border: `1px solid ${IND_GREEN}40`, fontSize: 9,
                 }}>
-                  <div style={{
-                    fontWeight:   700,
-                    color:        IND_GREEN,
-                    marginBottom: 3,
-                  }}>
-                    ✓ Committed — Vercel deploying (~1–2 min)
+                  <div style={{ fontWeight: 700, color: IND_GREEN, marginBottom: 3 }}>
+                    ✓ Fixed — verified live
                   </div>
-                  <div style={{
-                    fontFamily:   "monospace",
-                    color:        th.textSub,
-                    fontSize:     8,
-                    marginBottom: 4,
-                  }}>
+                  <div style={{ fontFamily: "monospace", color: th.textSub, fontSize: 8, marginBottom: 4 }}>
                     {urlSearch.sha?.slice(0, 7)}
                   </div>
                   {urlSearch.commitUrl && (
-                    <a
-                      href={urlSearch.commitUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={e => e.stopPropagation()}
-                      style={{
-                        fontSize:       8,
-                        color:          NAVY,
-                        textDecoration: "none",
-                      }}
-                    >
+                    <a href={urlSearch.commitUrl} target="_blank" rel="noreferrer"
+                       onClick={e => e.stopPropagation()}
+                       style={{ fontSize: 8, color: NAVY, textDecoration: "none" }}>
                       View commit on GitHub ↗
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {urlSearch?.done && urlSearch.verified === false && (
+                <div style={{
+                  padding: "8px 10px", borderRadius: 7,
+                  background: `${RED}08`, border: `1px solid ${RED}30`, fontSize: 9,
+                }}>
+                  <div style={{ fontWeight: 700, color: RED, marginBottom: 3 }}>
+                    ⚠ Committed, but URL still unreachable
+                  </div>
+                  <div style={{ color: th.textSub, marginBottom: 5 }}>
+                    The commit succeeded, but the new URL didn't respond on the last check.
+                    It may need another fix, or the site may be temporarily down.
+                  </div>
+                  <button
+                    onClick={handleRecheckFix}
+                    disabled={rechecking}
+                    style={{
+                      padding: "4px 9px", borderRadius: 6, fontSize: 8.5, fontWeight: 700,
+                      cursor: rechecking ? "default" : "pointer",
+                      border: `1.5px solid ${RED}`, background: `${RED}12`, color: RED,
+                      fontFamily: "inherit", opacity: rechecking ? 0.6 : 1,
+                    }}
+                  >
+                    {rechecking ? "Checking…" : "↻ Re-check now"}
+                  </button>
+                </div>
+              )}
+
+              {urlSearch?.done && urlSearch.verified !== true && urlSearch.verified !== false && (
+                <div style={{
+                  padding: "8px 10px", borderRadius: 7,
+                  background: `${AMBER}10`, border: `1px solid ${AMBER}40`, fontSize: 9,
+                }}>
+                  <div style={{ fontWeight: 700, color: AMBER, marginBottom: 3 }}>
+                    ✓ Committed — not yet checked
+                  </div>
+                  <div style={{ fontFamily: "monospace", color: th.textSub, fontSize: 8, marginBottom: 4 }}>
+                    {urlSearch.sha?.slice(0, 7)}
+                  </div>
+                  <button
+                    onClick={handleRecheckFix}
+                    disabled={rechecking}
+                    style={{
+                      padding: "4px 9px", borderRadius: 6, fontSize: 8.5, fontWeight: 700,
+                      cursor: rechecking ? "default" : "pointer",
+                      border: `1.5px solid ${AMBER}`, background: `${AMBER}15`, color: AMBER,
+                      fontFamily: "inherit", opacity: rechecking ? 0.6 : 1, marginRight: 6,
+                    }}
+                  >
+                    {rechecking ? "Checking…" : "↻ Check now"}
+                  </button>
+                  {urlSearch.commitUrl && (
+                    <a href={urlSearch.commitUrl} target="_blank" rel="noreferrer"
+                       onClick={e => e.stopPropagation()}
+                       style={{ fontSize: 8, color: NAVY, textDecoration: "none" }}>
+                      View commit ↗
                     </a>
                   )}
                 </div>
@@ -4861,32 +4951,61 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         }
       }
 
-      // Remove fixed schemes from "Known Dead Links" right away — the URL has
-      // been replaced, so they're no longer dead. (Doesn't wait for redeploy.)
+      // ── Real re-verification — don't just trust the commit succeeded ──────
+      // THE BUG THIS FIXES: the old code marked every committed fix as
+      // linkAlive:true on faith, with no actual check that the new URL works.
+      // It also relied entirely on a schemes-meta.json redeploy to clear
+      // "Known Dead Links" — if that commit silently failed, or the redeploy
+      // hadn't landed yet on reload, the scheme stayed "Dead" forever even
+      // though the GitHub commit succeeded. Now we ping the new URL directly
+      // right after committing, so the dashboard reflects reality instead of
+      // assuming it.
+      let verifyFailedIds = [];
       if (successIds.length > 0) {
-        const successSet = new Set(successIds);
-        setKnownDeadLinks(prev => prev.filter(item => !successSet.has(item.scheme?.id)));
+        const pingChecks = await Promise.all(
+          successIds.map(async id => {
+            const q = queuedFixes.find(item => item.id === id);
+            const { alive } = await verifyCommittedFix(id, q?.newUrl);
+            return { id, alive };
+          })
+        );
 
-        // Correct schemes-meta.json too — otherwise it would keep reporting
-        // linkAlive:false for these schemes (only a full re-scan would clear
-        // it), and "Known Dead Links" would show them again after the next
-        // deploy. One extra commit covers the whole batch.
-        try {
-          await writeSchemeResults(
-            successIds.map(id => ({ scheme: { id }, httpStatus: null, linkAlive: true, tier: 1 }))
-          );
-        } catch (err) {
-          console.warn("[handleApplyAllFixes] schemes-meta.json update failed:", err.message);
+        const reallyAliveIds = pingChecks.filter(c => c.alive === true).map(c => c.id);
+        verifyFailedIds      = pingChecks.filter(c => c.alive !== true).map(c => c.id);
+
+        // Only remove from "Known Dead Links" the ones that actually ping
+        // live now — a fix whose new URL still doesn't respond should stay
+        // visible, not silently disappear.
+        if (reallyAliveIds.length > 0) {
+          const aliveSet = new Set(reallyAliveIds);
+          setKnownDeadLinks(prev => prev.filter(item => !aliveSet.has(item.scheme?.id)));
+
+          // Correct schemes-meta.json too — otherwise it would keep reporting
+          // linkAlive:false for these schemes (only a full re-scan would clear
+          // it, or this), and "Known Dead Links" would show them again after
+          // the next bundle load. Only written for URLs we just confirmed live.
+          try {
+            await writeSchemeResults(
+              reallyAliveIds.map(id => ({ scheme: { id }, httpStatus: null, linkAlive: true, tier: 1 }))
+            );
+          } catch (err) {
+            // Surfaced in applyResult below instead of swallowed — a silent
+            // failure here is exactly what left schemes stuck as "Dead"
+            // forever in earlier versions.
+            verifyFailedIds.push(...reallyAliveIds.filter(id => !verifyFailedIds.includes(id)));
+            console.warn("[handleApplyAllFixes] schemes-meta.json update failed:", err.message);
+          }
         }
       }
 
       // Refresh from Firestore so every ResultRow's savedFix prop updates and
-      // each row's restore effect fires the "queued" → "committed" transition.
+      // each row's restore effect fires the "queued" → "committed" transition,
+      // now carrying the real verified/not-verified outcome too.
       const fresh = await loadUrlFixes();
       setUrlFixMap(fresh);
-      setApplyResult({ committed, failed, commits: commits ?? [] });
+      setApplyResult({ committed, failed, commits: commits ?? [], verifyFailedIds });
     } catch (err) {
-      setApplyResult({ committed: 0, failed: [{ id: "—", error: err.message }], commits: [] });
+      setApplyResult({ committed: 0, failed: [{ id: "—", error: err.message }], commits: [], verifyFailedIds: [] });
     } finally {
       setApplyingFixes(false);
     }

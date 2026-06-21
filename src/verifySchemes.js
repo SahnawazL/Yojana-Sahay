@@ -835,6 +835,53 @@ export async function markUrlFixCommitted(schemeId, newUrl, commitSha, commitUrl
 }
 
 /**
+ * Re-ping a fix's new URL directly and record whether it's actually live —
+ * a real check, not just trust in the GitHub commit having succeeded.
+ *
+ * THE BUG THIS FIXES: previously, once a fix hit status:"committed", the
+ * UI showed a permanent "✓ Committed — Vercel deploying (~1-2 min)" badge
+ * with zero follow-up — no timer, no expiry, no actual re-check. Reloading
+ * the page also re-read the OLD bundled schemes-meta.json (a static import,
+ * only refreshed by a full redeploy), so the scheme kept reappearing in
+ * "Known Dead Links" forever even after a successful fix. Two disconnected,
+ * never-reconciled "truths" shown at once, indefinitely.
+ *
+ * This writes `verified` + `verifiedAt` + `lastCheckedStatus` onto the same
+ * urlFixes/<schemeId> doc so the UI can show a real outcome — "Verified
+ * live" or "Still unreachable" — instead of a static message that never
+ * changes. Safe to call multiple times (e.g. a manual "Re-check" button).
+ */
+export async function verifyCommittedFix(schemeId, url) {
+  if (!schemeId || !url) return { alive: null, httpStatus: 0 };
+  try {
+    const res  = await fetch("/api/ping-url", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ url }),
+    });
+    const data = await res.json().catch(() => ({}));
+    const alive = !!data.alive;
+
+    await setDoc(
+      doc(db, ...URL_FIXES_PATH),
+      {
+        [schemeId]: {
+          verified:          alive,
+          verifiedAt:        new Date().toISOString(),
+          lastCheckedStatus: data.httpStatus ?? 0,
+        },
+      },
+      { merge: true }
+    );
+
+    return { alive, httpStatus: data.httpStatus ?? 0 };
+  } catch (err) {
+    console.warn("[verifyCommittedFix] check failed:", err.message);
+    return { alive: null, httpStatus: 0 };
+  }
+}
+
+/**
  * Add a confirmed replacement URL to the local "Apply All Fixes" queue.
  * Persists status:"queued" plus the exact payload /api/batch-patch-urls needs
  * (oldUrl, newUrl, file) — so the queue survives tab switches and page
