@@ -2209,10 +2209,12 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
           ${showPay ? `<div><span>Gross Pay</span><b>${fmtINR(computePay(r, payMode, payRate))}</b></div>` : ""}
         </div>
       </div>
+      <div class="table-wrap">
       <table>
         <thead><tr><th>Date</th><th>Day</th><th>Time In</th><th>Last Active</th><th>Hours</th><th>Status</th></tr></thead>
         <tbody>${dayRows}</tbody>
       </table>
+      </div>
     </section>`;
   }).join("");
 
@@ -2224,12 +2226,13 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
 <title>Attendance Report — ${periodLabel}</title>
 <style>
   * { box-sizing: border-box; }
-  @page { size: A4; margin: 16mm 14mm; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#1a1a1a; margin:0; background:#eee; font-size:11px; line-height:1.45; }
+  @page { margin: 10mm 8mm; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#1a1a1a; margin:0; background:#eee; font-size:11px; line-height:1.45; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .toolbar { position: sticky; top:0; background:#003580; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:11px 16px; z-index:10; gap:10px; }
   .toolbar-title { font-size:13px; font-weight:700; }
   .toolbar button { background:#fff; color:#003580; border:none; border-radius:7px; padding:8px 16px; font-weight:700; font-size:12.5px; cursor:pointer; flex-shrink:0; }
   .doc { max-width:800px; margin:0 auto; background:#fff; padding:26px 26px 36px; }
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:4px; }
   .letterhead { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2.5px solid #003580; padding-bottom:12px; margin-bottom:16px; gap:10px; flex-wrap:wrap; }
   .brand-name { font-size:18px; font-weight:800; color:#003580; letter-spacing:0.3px; }
   .brand-sub { font-size:9.5px; color:#666; margin-top:2px; }
@@ -2311,6 +2314,7 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
 
     <div class="section-title">Attendance &amp; Salary Summary</div>
     ${payCaption ? `<div class="caption">${escHtml(payCaption)}</div>` : ""}
+    <div class="table-wrap">
     <table>
       <thead>
         <tr>
@@ -2322,6 +2326,7 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
       <tbody>${summaryRows}</tbody>
       <tfoot>${summaryFoot}</tfoot>
     </table>
+    </div>
 
     <div class="section-title">Daily Attendance Register</div>
     <div class="caption">Per-agent day-by-day log. Each agent's register starts on a new page for clean filing.</div>
@@ -2343,11 +2348,6 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
     <div class="footer-note">YojanaSahay Admin Dashboard · Auto-generated on ${generatedAt} IST</div>
   </div>
 
-  <script>
-    window.addEventListener('load', function () {
-      setTimeout(function () { window.print(); }, 500);
-    });
-  </script>
 </body>
 </html>`;
 }
@@ -2365,13 +2365,7 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
   const [stage, setStage]   = useState("config"); // config | generating | ready | error
   const [report, setReport] = useState(null);
   const [error, setError]   = useState(null);
-  const [reportUrl, setReportUrl] = useState(null);
-
-  // Revoke the previous blob URL whenever a new one replaces it / on unmount
-  // — these aren't huge, but no reason to leak them across repeated exports.
-  useEffect(() => {
-    return () => { if (reportUrl) URL.revokeObjectURL(reportUrl); };
-  }, [reportUrl]);
+  const [reportHtml, setReportHtml] = useState(null);
 
   const canClose = stage !== "generating";
   useEffect(() => {
@@ -2400,9 +2394,8 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
       const logs = await fetchAttendanceLogsRange(resolvedRange.start, resolvedRange.end);
       const rpt  = buildAttendanceReport(humanAgents, logs, resolvedRange.start, resolvedRange.end);
       const html = buildAttendanceReportHTML({ report: rpt, payMode, payRate: Number(payRate) || 0 });
-      const url  = URL.createObjectURL(new Blob([html], { type: "text/html" }));
       setReport(rpt);
-      setReportUrl(url);
+      setReportHtml(html);
       setStage("ready");
     } catch (e) {
       console.warn("[AttendanceExportModal] generate failed:", e);
@@ -2412,8 +2405,7 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
   };
 
   const backToConfig = () => {
-    if (reportUrl) URL.revokeObjectURL(reportUrl);
-    setReportUrl(null);
+    setReportHtml(null);
     setReport(null);
     setStage("config");
   };
@@ -2611,16 +2603,23 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
           {stage === "ready" && (
             <>
               <ModalButton onClick={backToConfig} th={th} isDesktop={isDesktop}>Back</ModalButton>
-              <a
-                href={reportUrl} target="_blank" rel="noopener noreferrer"
+              <button
+                onClick={() => {
+                  const w = window.open("", "_blank");
+                  if (!w) return;
+                  w.document.open();
+                  w.document.write(reportHtml);
+                  w.document.close();
+                }}
                 style={{
                   flex: 1, padding: "10px 16px", borderRadius: 9, fontWeight: 700,
                   fontSize: fs(11, isDesktop), textAlign: "center", textDecoration: "none",
-                  background: NAVY, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  background: NAVY, color: "#fff", display: "flex", alignItems: "center",
+                  justifyContent: "center", gap: 6, border: "none", cursor: "pointer",
                 }}
               >
                 <IconDownload size={12} color="#fff" /> Open Report
-              </a>
+              </button>
             </>
           )}
           {stage === "error" && (
