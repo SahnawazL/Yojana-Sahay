@@ -1726,12 +1726,16 @@
     "linkAlive": true
   },
   "nagaland_health_scheme": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-21T10:32:34.653Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "nagaland_cm_scholarship": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-21T10:32:34.653Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "tripura_cm_krishak_samridhi": {
     "lastVerified": "2026-06-16T20:36:16.595Z",
