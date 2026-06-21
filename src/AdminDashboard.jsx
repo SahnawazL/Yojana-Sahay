@@ -4526,7 +4526,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         if (!cancelled) setLatencyMs(null);
       }
     };
-    const id = setInterval(pingLatency, 20000);
+    const id = setInterval(pingLatency, 2500);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
