@@ -213,6 +213,20 @@ function IconTrash({ size = 13, color = "currentColor", style }) {
     </svg>
   );
 }
+function IconCheck({ size = 13, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M5 12.5l4.5 4.5L19 7" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconX({ size = 13, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M5 5l14 14M19 5L5 19" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
 
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Skeleton — shimmering loading placeholder
@@ -615,8 +629,13 @@ async function countOlderThan(collectionName, field, cutoffValue) {
 // cap) and keeps paging until nothing older than the cutoff remains, so this
 // works correctly even for collections with thousands of stale docs instead
 // of silently only deleting the first page.
-async function deleteOlderThan(collectionName, field, cutoffValue) {
+// opts.onBatch, if provided, fires after every committed batch with
+// { collectionName, batchIndex, totalBatches, deletedInBatch, totalDeleted } —
+// this is what powers the live terminal log + progress bar in the purge modal.
+async function deleteOlderThan(collectionName, field, cutoffValue, opts = {}) {
+  const { estimatedBatches = null, onBatch } = opts;
   let totalDeleted = 0;
+  let batchIndex = 0;
   for (;;) {
     const q = query(
       collection(db, collectionName),
@@ -626,10 +645,16 @@ async function deleteOlderThan(collectionName, field, cutoffValue) {
     );
     const snap = await getDocs(q);
     if (snap.empty) break;
+    batchIndex += 1;
     const batch = writeBatch(db);
     snap.docs.forEach(d => batch.delete(d.ref));
     await batch.commit();
     totalDeleted += snap.docs.length;
+    onBatch?.({
+      collectionName, batchIndex,
+      totalBatches: estimatedBatches || batchIndex,
+      deletedInBatch: snap.docs.length, totalDeleted,
+    });
     if (snap.docs.length < 400) break;
   }
   return totalDeleted;
@@ -2061,78 +2086,486 @@ function ActivityLogSection({ dark, isDesktop }) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+// PURGE PROTOCOL — premium multi-stage data-deletion modal
+// ═════════════════════════════════════════════════════════════════════════════
+// A deliberately distinct "control room" surface, not a reuse of the
+// dashboard's tricolor identity (SAFFRON/NAVY/IND_GREEN/RED). Four stages:
+//   scan        — aggregation-only count query, no documents touched yet
+//   confirm     — irreversibility warning + typed "DELETE" authorization
+//   processing  — real per-batch terminal log + progress bar (deleteOlderThan
+//                 reports actual batches as they commit — nothing here is a
+//                 fake animation)
+//   complete    — final stats; or `error` if a batch commit throws
+// ─────────────────────────────────────────────────────────────────────────────
+const PURGE_VIOLET  = VIOLET;     // primary accent — header glow, primary action
+const PURGE_CYAN    = CYAN;       // scan-stage accent, terminal/progress accent
+const PURGE_AMBER   = IDLE_AMBER; // caution copy on the confirm + error stages
+const PURGE_EMERALD = "#10B981";  // success state on the complete stage
+const PURGE_BATCH_SIZE = 400;
+
+// rAF count-up — the numbers it lands on are always the real fetched counts;
+// only the *reveal* is animated, so the scan/confirm stages feel alive
+// without ever showing a fabricated number.
+function animateCountTo(setter, target, duration = 650) {
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    setter(Math.round(target * eased));
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function ReadoutRow({ label, value, th, isDesktop }) {
+  return (
+    <div style={{
+      display: "flex", justifyContent: "space-between", gap: 10, padding: "5px 0",
+      borderBottom: `1px dashed ${th.border}`,
+    }}>
+      <span style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, fontFamily: "monospace", letterSpacing: 0.4, flexShrink: 0 }}>
+        {label}
+      </span>
+      <span style={{ fontSize: fs(9.5, isDesktop), color: th.text, fontFamily: "monospace", textAlign: "right" }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function SummaryRow({ label, sub, count, color, th, isDesktop, last }) {
+  return (
+    <div style={{
+      display: "flex", justifyContent: "space-between", alignItems: "center",
+      padding: "10px 12px", borderBottom: last ? "none" : `1px solid ${th.border}`,
+    }}>
+      <div>
+        <div style={{ fontSize: fs(10.5, isDesktop), fontWeight: 700, color: th.text }}>{label}</div>
+        <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, fontFamily: "monospace", marginTop: 1 }}>{sub}</div>
+      </div>
+      <div style={{ fontSize: fs(15, isDesktop), fontWeight: 800, color, fontFamily: "monospace" }}>
+        {count.toLocaleString("en-IN")}
+      </div>
+    </div>
+  );
+}
+
+function StatRow({ label, value, th, isDesktop, last }) {
+  return (
+    <div style={{
+      display: "flex", justifyContent: "space-between", padding: "8px 12px",
+      borderBottom: last ? "none" : `1px solid ${th.border}`, fontSize: fs(10.5, isDesktop),
+    }}>
+      <span style={{ color: th.textSub }}>{label}</span>
+      <span style={{ color: th.text, fontWeight: 700, fontFamily: "monospace" }}>
+        {typeof value === "number" ? value.toLocaleString("en-IN") : value}
+      </span>
+    </div>
+  );
+}
+
+function ModalButton({ children, onClick, disabled, primary, color, th, isDesktop, style }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        padding: "10px 16px", borderRadius: 9, fontWeight: 700,
+        fontSize: fs(11, isDesktop), cursor: disabled ? "default" : "pointer",
+        border: primary ? "none" : `1px solid ${th.border}`,
+        background: primary ? (disabled ? `${color}55` : color) : "transparent",
+        color: primary ? "#fff" : th.text,
+        opacity: disabled ? 0.7 : 1,
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function PurgeModal({
+  dark, isDesktop, stage, cutoffLabel,
+  includeActivity, includeAttendance,
+  animCounts, confirmText, setConfirmText,
+  logLines, progressPct, deletedSoFar, totalToDelete,
+  result, error, onCancel, onConfirm, onClose, logBoxRef,
+}) {
+  const th = THEME[dark ? "dark" : "light"];
+  const canClose = stage !== "processing";
+  const canConfirm = confirmText.trim().toUpperCase() === "DELETE";
+
+  useEffect(() => {
+    if (!canClose) return;
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [canClose, onClose]);
+
+  const stageMeta = {
+    scan:       { label: "SCANNING",       color: PURGE_CYAN },
+    confirm:    { label: "CONFIRM PURGE",  color: PURGE_AMBER },
+    processing: { label: "PURGING DATA",   color: PURGE_VIOLET },
+    complete:   { label: "PURGE COMPLETE", color: PURGE_EMERALD },
+    error:      { label: "PURGE FAILED",   color: PURGE_AMBER },
+  }[stage];
+
+  return (
+    <div className="agnt-purge-overlay" onClick={() => canClose && onClose()}>
+      <div
+        className="agnt-purge-panel"
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: dark ? "#151517" : "#fff",
+          border: `1px solid ${stageMeta.color}40`,
+          boxShadow: `0 0 0 1px ${stageMeta.color}20, 0 24px 60px -12px ${stageMeta.color}30, 0 0 40px ${stageMeta.color}14`,
+        }}
+      >
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 2,
+          background: `linear-gradient(90deg, ${stageMeta.color}, ${stageMeta.color}00 85%)`,
+          boxShadow: `0 0 10px ${stageMeta.color}90`,
+        }}/>
+
+        {/* Header */}
+        <div style={{
+          padding: "16px 18px 14px", display: "flex", alignItems: "center", gap: 10,
+          borderBottom: `1px solid ${th.border}`, flexShrink: 0,
+        }}>
+          <div style={{
+            width: 30, height: 30, borderRadius: 9, flexShrink: 0, position: "relative",
+            background: `${stageMeta.color}18`, display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            {stage === "scan"       && <IconRadar size={15} color={stageMeta.color} style={{ animation: "agnt-spin 1.4s linear infinite" }} />}
+            {stage === "confirm"    && <IconAlert size={14} color={stageMeta.color} />}
+            {stage === "processing" && <IconCpu   size={14} color={stageMeta.color} style={{ animation: "agnt-spin 2s linear infinite" }} />}
+            {stage === "complete"   && <IconCheck size={14} color={stageMeta.color} />}
+            {stage === "error"      && <IconAlert size={14} color={stageMeta.color} />}
+            <div style={{ position: "absolute", inset: -3, borderRadius: "50%", background: `${stageMeta.color}22`, animation: "agnt-pulse 1.8s ease-in-out infinite" }}/>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: fs(12, isDesktop), fontWeight: 800, color: stageMeta.color, fontFamily: "monospace", letterSpacing: 0.6 }}>
+              {stageMeta.label}
+            </div>
+            <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, marginTop: 1, fontFamily: "monospace" }}>
+              cutoff &lt; {cutoffLabel}
+            </div>
+          </div>
+          {canClose && (
+            <button onClick={onClose} style={{
+              width: 24, height: 24, borderRadius: 7, border: `1px solid ${th.border}`,
+              background: "transparent", display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", flexShrink: 0,
+            }}>
+              <IconX size={11} color={th.textSub} />
+            </button>
+          )}
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "16px 18px", overflowY: "auto", flex: 1 }}>
+
+          {stage === "scan" && (
+            <div>
+              <div style={{ fontSize: fs(10.5, isDesktop), color: th.textMid, lineHeight: 1.6, marginBottom: 12 }}>
+                Running an aggregation query for records older than the cutoff. No documents are touched at this stage — this only counts.
+              </div>
+              <ReadoutRow
+                label="TARGET COLLECTIONS"
+                value={[includeActivity && "adminActivity", includeAttendance && "agentTimeLogs"].filter(Boolean).join(", ") || "none"}
+                th={th} isDesktop={isDesktop}
+              />
+              <ReadoutRow
+                label="QUERY"
+                value={[includeActivity && "time < cutoff", includeAttendance && "date < cutoff"].filter(Boolean).join("   ")}
+                th={th} isDesktop={isDesktop}
+              />
+              <ReadoutRow label="BATCH SIZE" value={`${PURGE_BATCH_SIZE} writes / commit`} th={th} isDesktop={isDesktop} />
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8, marginTop: 14,
+                color: PURGE_CYAN, fontFamily: "monospace", fontSize: fs(10, isDesktop), fontWeight: 700,
+              }}>
+                <span className="agnt-purge-cursor">█</span> scanning…
+              </div>
+            </div>
+          )}
+
+          {stage === "confirm" && (
+            <div>
+              <div style={{
+                display: "flex", gap: 8, padding: "10px 12px", borderRadius: 10, marginBottom: 12,
+                background: dark ? `${PURGE_AMBER}14` : `${PURGE_AMBER}0c`, border: `1px solid ${PURGE_AMBER}40`,
+              }}>
+                <IconAlert size={13} color={PURGE_AMBER} style={{ flexShrink: 0, marginTop: 1 }} />
+                <div style={{ fontSize: fs(10.5, isDesktop), color: th.text, lineHeight: 1.55 }}>
+                  This action is <b style={{ color: PURGE_AMBER }}>irreversible</b>. Records are permanently removed from Firestore — there's no undo.
+                </div>
+              </div>
+
+              <div style={{ border: `1px solid ${th.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 14 }}>
+                {includeActivity && (
+                  <SummaryRow label="Activity Log" sub="adminActivity · time field" count={animCounts.activity} color={PURGE_CYAN} th={th} isDesktop={isDesktop} />
+                )}
+                {includeAttendance && (
+                  <SummaryRow label="Daily Attendance" sub="agentTimeLogs · date field" count={animCounts.attendance} color={PURGE_VIOLET} th={th} isDesktop={isDesktop} last />
+                )}
+                <div style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "baseline",
+                  padding: "10px 12px", background: dark ? "#1f1f22" : "#f4f4f6",
+                }}>
+                  <span style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, fontWeight: 700, letterSpacing: 0.4 }}>TOTAL</span>
+                  <span style={{ fontSize: fs(15, isDesktop), fontWeight: 800, color: th.text, fontFamily: "monospace" }}>
+                    {(animCounts.activity + animCounts.attendance).toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, marginBottom: 6, fontFamily: "monospace" }}>
+                Type <b style={{ color: th.text }}>DELETE</b> to authorize
+              </div>
+              <input
+                value={confirmText}
+                onChange={e => setConfirmText(e.target.value)}
+                placeholder="DELETE"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                autoComplete="off"
+                style={{
+                  width: "100%", padding: "9px 12px", borderRadius: 9, boxSizing: "border-box",
+                  border: `1px solid ${canConfirm ? PURGE_EMERALD : th.border}`,
+                  background: th.inputBg, color: th.text,
+                  fontFamily: "monospace", fontSize: fs(12, isDesktop), fontWeight: 700,
+                  letterSpacing: 1.5, outline: "none",
+                }}
+              />
+            </div>
+          )}
+
+          {stage === "processing" && (
+            <div>
+              <div
+                ref={logBoxRef}
+                style={{
+                  background: "#0b0b0d", borderRadius: 10, padding: "10px 12px",
+                  fontFamily: "monospace", fontSize: fs(9.5, isDesktop), color: "#9be9a8",
+                  height: 150, overflowY: "auto", lineHeight: 1.7,
+                }}
+              >
+                {logLines.length === 0 ? (
+                  <div style={{ color: "#666" }}>&gt; initializing…</div>
+                ) : logLines.map((line, i) => (
+                  <div key={i} style={{ animation: "agnt-fade-in 0.25s ease both", wordBreak: "break-all" }}>{line}</div>
+                ))}
+                <span className="agnt-purge-cursor" style={{ color: "#9be9a8" }}>█</span>
+              </div>
+
+              <div style={{ marginTop: 14 }}>
+                <div style={{
+                  display: "flex", justifyContent: "space-between", fontSize: fs(9.5, isDesktop),
+                  color: th.textSub, fontFamily: "monospace", marginBottom: 6,
+                }}>
+                  <span>{deletedSoFar.toLocaleString("en-IN")} / {totalToDelete.toLocaleString("en-IN")} deleted</span>
+                  <span>{Math.round(progressPct)}%</span>
+                </div>
+                <div style={{ height: 7, borderRadius: 4, background: th.border, overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%", width: `${progressPct}%`, borderRadius: 4,
+                    background: `linear-gradient(90deg, ${PURGE_VIOLET}, ${PURGE_CYAN})`,
+                    transition: "width 0.3s ease",
+                  }}/>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {stage === "complete" && result && (
+            <div>
+              <div style={{ textAlign: "center", padding: "6px 0 16px" }}>
+                <div style={{
+                  width: 46, height: 46, borderRadius: "50%", margin: "0 auto 10px",
+                  background: `${PURGE_EMERALD}18`, display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <IconCheck size={20} color={PURGE_EMERALD} />
+                </div>
+                <div style={{ fontSize: fs(18, isDesktop), fontWeight: 800, color: th.text, fontFamily: "monospace" }}>
+                  {(result.activity + result.attendance).toLocaleString("en-IN")}
+                </div>
+                <div style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, marginTop: 2 }}>records permanently removed</div>
+              </div>
+              <div style={{ border: `1px solid ${th.border}`, borderRadius: 10, overflow: "hidden" }}>
+                {result.includeActivity   && <StatRow label="Activity Log"     value={result.activity}    th={th} isDesktop={isDesktop} />}
+                {result.includeAttendance && <StatRow label="Daily Attendance" value={result.attendance}  th={th} isDesktop={isDesktop} />}
+                <StatRow label="Cutoff"     value={cutoffLabel}                          th={th} isDesktop={isDesktop} />
+                <StatRow label="Time taken" value={`${(result.timeMs / 1000).toFixed(1)}s`} th={th} isDesktop={isDesktop} last />
+              </div>
+            </div>
+          )}
+
+          {stage === "error" && (
+            <div style={{
+              padding: "10px 12px", borderRadius: 10,
+              background: dark ? `${PURGE_AMBER}14` : `${PURGE_AMBER}0c`, border: `1px solid ${PURGE_AMBER}40`,
+              fontSize: fs(10.5, isDesktop), color: th.text, lineHeight: 1.6,
+            }}>
+              {error || "Something went wrong. Check the console / Firestore rules."}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: "12px 18px 16px", display: "flex", gap: 8, flexShrink: 0,
+          borderTop: stage === "processing" ? "none" : `1px solid ${th.border}`,
+        }}>
+          {stage === "scan" && (
+            <ModalButton onClick={onCancel} th={th} isDesktop={isDesktop} style={{ flex: 1 }}>Cancel</ModalButton>
+          )}
+          {stage === "confirm" && (
+            <>
+              <ModalButton onClick={onCancel} th={th} isDesktop={isDesktop}>Cancel</ModalButton>
+              <ModalButton onClick={onConfirm} disabled={!canConfirm} primary color={PURGE_VIOLET} th={th} isDesktop={isDesktop} style={{ flex: 1 }}>
+                Confirm &amp; Purge
+              </ModalButton>
+            </>
+          )}
+          {stage === "processing" && (
+            <div style={{ fontSize: fs(9, isDesktop), color: th.textSub, textAlign: "center", width: "100%" }}>
+              Don't close this window while purging…
+            </div>
+          )}
+          {(stage === "complete" || stage === "error") && (
+            <ModalButton
+              onClick={onClose} primary
+              color={stage === "complete" ? PURGE_EMERALD : PURGE_AMBER}
+              th={th} isDesktop={isDesktop} style={{ flex: 1 }}
+            >
+              Close
+            </ModalButton>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Data Retention — manual cleanup for Activity Log + Attendance
 // ═════════════════════════════════════════════════════════════════════════════
 // Neither adminActivity nor agentTimeLogs has any TTL — both just grow
-// forever. This gives a deliberate, two-step-confirmed way to prune old
-// records on demand. Counts are fetched via an aggregation query
-// (getCountFromServer — no per-document reads billed) so the confirmation
-// step can say exactly what's about to be deleted before it happens, instead
-// of asking for a blind "are you sure?".
+// forever. This gives a deliberate, multi-stage-confirmed way to prune old
+// records on demand via the PurgeModal above: scan (count via aggregation
+// query — no per-document reads billed) → confirm (typed authorization) →
+// processing (real batch-by-batch terminal log) → complete.
 function DataRetentionPanel({ dark, isDesktop }) {
-  const th  = THEME[dark ? "dark" : "light"];
-  const RED = "#EF4444";
+  const th = THEME[dark ? "dark" : "light"];
 
   const [includeActivity,   setIncludeActivity]   = useState(true);
   const [includeAttendance, setIncludeAttendance] = useState(true);
-  const [armedMonths,    setArmedMonths]    = useState(null); // null | 3 | 6 — confirm step
-  const [counts,         setCounts]         = useState(null); // { activity, attendance } | null
-  const [countsLoading,  setCountsLoading]  = useState(false);
-  const [busy,   setBusy]   = useState(false);
+
+  const [stage,  setStage]  = useState(null); // null | scan | confirm | processing | complete | error
+  const [months, setMonths] = useState(null);
+  const [counts, setCounts] = useState({ activity: 0, attendance: 0 });
+  const [animActivity,   setAnimActivity]   = useState(0);
+  const [animAttendance, setAnimAttendance] = useState(0);
+  const [confirmText, setConfirmText] = useState("");
+  const [logLines,    setLogLines]    = useState([]);
+  const [deletedSoFar, setDeletedSoFar] = useState(0);
   const [result, setResult] = useState(null);
   const [error,  setError]  = useState(null);
 
+  const logBoxRef = useRef(null);
+  useEffect(() => {
+    if (logBoxRef.current) logBoxRef.current.scrollTop = logBoxRef.current.scrollHeight;
+  }, [logLines]);
+
   const noneSelected = !includeActivity && !includeAttendance;
 
-  const arm = async (months) => {
+  const cutoffLabel = (m = months) => monthsAgoDate(m).toLocaleDateString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+  });
+
+  const openPurge = async (m) => {
+    setMonths(m);
+    setStage("scan");
+    setConfirmText("");
     setResult(null);
     setError(null);
-    setArmedMonths(months);
-    setCounts(null);
-    setCountsLoading(true);
-    const cutoffDate    = monthsAgoDate(months);
+    setCounts({ activity: 0, attendance: 0 });
+    setAnimActivity(0);
+    setAnimAttendance(0);
+
+    const cutoffDate    = monthsAgoDate(m);
     const cutoffDateStr = getISTDateStr(cutoffDate);
+    const startedAt = Date.now();
     const [activityCount, attendanceCount] = await Promise.all([
-      includeActivity   ? countOlderThan("adminActivity", "time", cutoffDate)    : Promise.resolve(0),
+      includeActivity   ? countOlderThan("adminActivity", "time", cutoffDate)     : Promise.resolve(0),
       includeAttendance ? countOlderThan("agentTimeLogs",  "date", cutoffDateStr) : Promise.resolve(0),
     ]);
-    setCounts({ activity: activityCount, attendance: attendanceCount });
-    setCountsLoading(false);
+
+    // Floor the scan stage at ~850ms so it always reads as a deliberate
+    // pass over the data rather than a flash — the numbers themselves are
+    // never delayed beyond what Firestore actually took to answer.
+    const MIN_SCAN_MS = 850;
+    const elapsed = Date.now() - startedAt;
+    if (elapsed < MIN_SCAN_MS) await new Promise(r => setTimeout(r, MIN_SCAN_MS - elapsed));
+
+    const finalCounts = { activity: activityCount ?? 0, attendance: attendanceCount ?? 0 };
+    setCounts(finalCounts);
+    animateCountTo(setAnimActivity, finalCounts.activity);
+    animateCountTo(setAnimAttendance, finalCounts.attendance);
+    setStage("confirm");
   };
 
-  const cancel = () => {
-    setArmedMonths(null);
-    setCounts(null);
-    setCountsLoading(false);
+  const closeModal = () => {
+    setStage(null);
+    setMonths(null);
+    setConfirmText("");
+    setLogLines([]);
+    setDeletedSoFar(0);
   };
 
-  const confirmDelete = async () => {
-    setBusy(true);
-    setError(null);
-    const cutoffDate    = monthsAgoDate(armedMonths);
+  const runPurge = async () => {
+    setStage("processing");
+    setLogLines([`> cutoff ${cutoffLabel()} — starting purge`]);
+    setDeletedSoFar(0);
+    const startedAt     = Date.now();
+    const cutoffDate    = monthsAgoDate(months);
     const cutoffDateStr = getISTDateStr(cutoffDate);
+
+    let running = 0;
+    const onBatch = ({ collectionName, batchIndex, totalBatches, deletedInBatch }) => {
+      running += deletedInBatch;
+      setDeletedSoFar(running);
+      setLogLines(prev => [...prev, `> Batch ${batchIndex}/${totalBatches} — deleting ${deletedInBatch} docs from ${collectionName}`]);
+    };
+
     try {
-      const [activityDeleted, attendanceDeleted] = await Promise.all([
-        includeActivity   ? deleteOlderThan("adminActivity", "time", cutoffDate)    : Promise.resolve(0),
-        includeAttendance ? deleteOlderThan("agentTimeLogs",  "date", cutoffDateStr) : Promise.resolve(0),
-      ]);
+      let activityDeleted = 0, attendanceDeleted = 0;
+      if (includeActivity && counts.activity > 0) {
+        activityDeleted = await deleteOlderThan("adminActivity", "time", cutoffDate, {
+          estimatedBatches: Math.max(1, Math.ceil(counts.activity / 400)), onBatch,
+        });
+      }
+      if (includeAttendance && counts.attendance > 0) {
+        attendanceDeleted = await deleteOlderThan("agentTimeLogs", "date", cutoffDateStr, {
+          estimatedBatches: Math.max(1, Math.ceil(counts.attendance / 400)), onBatch,
+        });
+      }
+      setLogLines(prev => [...prev, `> done — ${activityDeleted + attendanceDeleted} records purged`]);
       setResult({
-        activity: activityDeleted, attendance: attendanceDeleted, months: armedMonths,
-        includeActivity, includeAttendance,
+        activity: activityDeleted, attendance: attendanceDeleted, months,
+        includeActivity, includeAttendance, timeMs: Date.now() - startedAt,
       });
-      setArmedMonths(null);
-      setCounts(null);
+      setStage("complete");
     } catch (e) {
-      console.warn("[DataRetentionPanel] delete failed:", e);
-      setError(e.message || "Delete failed — check console / Firestore rules.");
-    } finally {
-      setBusy(false);
+      console.warn("[DataRetentionPanel] purge failed:", e);
+      setError(e.message || "Purge failed — check console / Firestore rules.");
+      setStage("error");
     }
   };
 
-  const cutoffLabel = (months) => monthsAgoDate(months).toLocaleDateString("en-IN", {
-    day: "2-digit", month: "short", year: "numeric",
-  });
+  const totalToDelete = (includeActivity ? counts.activity : 0) + (includeAttendance ? counts.attendance : 0);
+  const progressPct   = totalToDelete > 0 ? Math.min(100, (deletedSoFar / totalToDelete) * 100) : 100;
 
   return (
     <div style={{
@@ -2157,113 +2590,56 @@ function DataRetentionPanel({ dark, isDesktop }) {
         <div style={{ display: "flex", gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
           <label style={{
             display: "flex", alignItems: "center", gap: 6, fontSize: fs(11, isDesktop),
-            color: th.text, cursor: armedMonths === null ? "pointer" : "default",
-            opacity: armedMonths === null ? 1 : 0.6,
+            color: th.text, cursor: stage === null ? "pointer" : "default",
+            opacity: stage === null ? 1 : 0.6,
           }}>
             <input
-              type="checkbox" checked={includeActivity} disabled={armedMonths !== null}
-              onChange={e => setIncludeActivity(e.target.checked)} style={{ accentColor: SAFFRON }}
+              type="checkbox" checked={includeActivity} disabled={stage !== null}
+              onChange={e => setIncludeActivity(e.target.checked)} style={{ accentColor: PURGE_VIOLET }}
             />
             Activity Log
           </label>
           <label style={{
             display: "flex", alignItems: "center", gap: 6, fontSize: fs(11, isDesktop),
-            color: th.text, cursor: armedMonths === null ? "pointer" : "default",
-            opacity: armedMonths === null ? 1 : 0.6,
+            color: th.text, cursor: stage === null ? "pointer" : "default",
+            opacity: stage === null ? 1 : 0.6,
           }}>
             <input
-              type="checkbox" checked={includeAttendance} disabled={armedMonths !== null}
-              onChange={e => setIncludeAttendance(e.target.checked)} style={{ accentColor: SAFFRON }}
+              type="checkbox" checked={includeAttendance} disabled={stage !== null}
+              onChange={e => setIncludeAttendance(e.target.checked)} style={{ accentColor: PURGE_VIOLET }}
             />
             Daily Attendance
           </label>
         </div>
 
-        {/* Threshold buttons */}
-        {armedMonths === null && (
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {[3, 6].map(months => (
-              <button
-                key={months}
-                onClick={() => arm(months)}
-                disabled={noneSelected}
-                style={{
-                  padding: "7px 12px", borderRadius: 8,
-                  border: `1px solid ${th.border}`,
-                  background: "transparent", color: noneSelected ? th.textSub : th.text,
-                  fontSize: fs(11, isDesktop), fontWeight: 700,
-                  cursor: noneSelected ? "default" : "pointer",
-                  opacity: noneSelected ? 0.5 : 1,
-                  display: "flex", alignItems: "center", gap: 6,
-                }}
-              >
-                <IconTrash size={11} color={noneSelected ? th.textSub : RED} />
-                Older than {months} months
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Threshold triggers */}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {[3, 6].map(m => (
+            <button
+              key={m}
+              onClick={() => openPurge(m)}
+              disabled={noneSelected || stage !== null}
+              style={{
+                padding: "7px 12px", borderRadius: 8,
+                border: `1px solid ${th.border}`,
+                background: "transparent", color: (noneSelected || stage !== null) ? th.textSub : th.text,
+                fontSize: fs(11, isDesktop), fontWeight: 700,
+                cursor: (noneSelected || stage !== null) ? "default" : "pointer",
+                opacity: (noneSelected || stage !== null) ? 0.5 : 1,
+                display: "flex", alignItems: "center", gap: 6,
+              }}
+            >
+              <IconTrash size={11} color={(noneSelected || stage !== null) ? th.textSub : PURGE_VIOLET} />
+              Older than {m} months
+            </button>
+          ))}
+        </div>
 
-        {/* Confirmation step */}
-        {armedMonths !== null && (
-          <div style={{
-            border: `1px solid ${RED}40`, borderRadius: 10, padding: "10px 12px",
-            background: dark ? `${RED}0f` : `${RED}08`,
-          }}>
-            <div style={{ fontSize: fs(11.5, isDesktop), color: th.text, lineHeight: 1.6 }}>
-              {countsLoading ? (
-                "Checking how many records this will affect…"
-              ) : (
-                <>
-                  This will permanently delete{" "}
-                  {includeActivity && (
-                    <b style={{ color: RED }}>
-                      {counts?.activity ?? "—"} activity event{counts?.activity === 1 ? "" : "s"}
-                    </b>
-                  )}
-                  {includeActivity && includeAttendance && " and "}
-                  {includeAttendance && (
-                    <b style={{ color: RED }}>
-                      {counts?.attendance ?? "—"} attendance day{counts?.attendance === 1 ? "" : "s"}
-                    </b>
-                  )}
-                  {" "}older than {cutoffLabel(armedMonths)}. This can't be undone.
-                </>
-              )}
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <button
-                onClick={cancel}
-                disabled={busy}
-                style={{
-                  padding: "7px 14px", borderRadius: 8, border: `1px solid ${th.border}`,
-                  background: "transparent", color: th.text, fontSize: fs(11, isDesktop), fontWeight: 700,
-                  cursor: busy ? "default" : "pointer",
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={busy || countsLoading}
-                style={{
-                  padding: "7px 14px", borderRadius: 8, border: "none",
-                  background: RED, color: "#fff", fontSize: fs(11, isDesktop), fontWeight: 700,
-                  cursor: (busy || countsLoading) ? "default" : "pointer",
-                  opacity: (busy || countsLoading) ? 0.6 : 1,
-                }}
-              >
-                {busy ? "Deleting…" : "Delete Permanently"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Result / error */}
-        {result && (
+        {/* Persisted summary after the modal is closed */}
+        {stage === null && result && (
           <div style={{
             marginTop: 10, padding: "8px 12px", borderRadius: 8,
-            background: `${IND_GREEN}14`, border: `1px solid ${IND_GREEN}40`,
+            background: `${PURGE_EMERALD}14`, border: `1px solid ${PURGE_EMERALD}40`,
             fontSize: fs(11, isDesktop), color: th.text,
           }}>
             Deleted
@@ -2273,16 +2649,30 @@ function DataRetentionPanel({ dark, isDesktop }) {
             {" "}older than {result.months} months.
           </div>
         )}
-        {error && (
+        {stage === null && error && (
           <div style={{
             marginTop: 10, padding: "8px 12px", borderRadius: 8,
-            background: `${RED}14`, border: `1px solid ${RED}40`,
-            fontSize: fs(11, isDesktop), color: RED,
+            background: `${PURGE_AMBER}14`, border: `1px solid ${PURGE_AMBER}40`,
+            fontSize: fs(11, isDesktop), color: th.text,
           }}>
             {error}
           </div>
         )}
       </div>
+
+      {stage && (
+        <PurgeModal
+          dark={dark} isDesktop={isDesktop} stage={stage}
+          cutoffLabel={cutoffLabel()}
+          includeActivity={includeActivity} includeAttendance={includeAttendance}
+          animCounts={{ activity: animActivity, attendance: animAttendance }}
+          confirmText={confirmText} setConfirmText={setConfirmText}
+          logLines={logLines} progressPct={progressPct} deletedSoFar={deletedSoFar} totalToDelete={totalToDelete}
+          result={result} error={error}
+          onCancel={closeModal} onConfirm={runPurge} onClose={closeModal}
+          logBoxRef={logBoxRef}
+        />
+      )}
     </div>
   );
 }
@@ -2936,6 +3326,29 @@ export default function AgentsTab({ dark, isDesktop }) {
         @keyframes agnt-fade-in  { 0%{opacity:0;transform:translateY(3px)} 100%{opacity:1;transform:translateY(0)} }
         @keyframes agnt-toast-in { 0%{opacity:0;transform:translateY(-8px) scale(0.97)} 100%{opacity:1;transform:translateY(0) scale(1)} }
         @keyframes agnt-shimmer  { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        @keyframes agnt-spin     { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        @keyframes agnt-modal-in { 0%{opacity:0;transform:scale(0.94) translateY(10px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
+        @keyframes agnt-cursor   { 0%,50%{opacity:1} 51%,100%{opacity:0} }
+
+        /* Purge modal — fixed full-screen overlay, deliberately its own
+           "control room" surface (violet/cyan/amber/emerald) rather than
+           a reuse of the dashboard's tricolor identity. */
+        .agnt-purge-overlay {
+          position: fixed; inset: 0; z-index: 10000;
+          background: rgba(0,0,0,0.72);
+          backdrop-filter: blur(6px) saturate(140%);
+          display: flex; align-items: center; justify-content: center;
+          padding: 16px;
+          animation: agnt-fade-in 0.18s ease both;
+        }
+        .agnt-purge-panel {
+          position: relative;
+          width: 100%; max-width: 420px; max-height: 88vh;
+          border-radius: 18px; overflow: hidden;
+          display: flex; flex-direction: column;
+          animation: agnt-modal-in 0.28s cubic-bezier(0.22,1,0.36,1) both;
+        }
+        .agnt-purge-cursor { animation: agnt-cursor 1s steps(1) infinite; }
 
         /* Toast wrap: width is CSS-driven (not the isDesktop JS flag) so it stays
            compact on desktop even if that flag is stale during resize/hydration. */
