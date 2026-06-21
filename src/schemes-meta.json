@@ -1118,13 +1118,13 @@
     "confidence": 0
   },
   "uk_vatsalya": {
-    "lastVerified": "2026-06-21T15:56:26.721Z",
+    "lastVerified": "2026-06-21T15:59:44.292Z",
     "httpStatus": 0,
-    "linkAlive": true,
+    "linkAlive": false,
     "confidence": 0
   },
   "uk_medhavi_chhatravriti": {
-    "lastVerified": "2026-06-21T15:04:21.895Z",
+    "lastVerified": "2026-06-21T15:59:44.292Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0.5
@@ -1596,27 +1596,27 @@
     "confidence": 0
   },
   "uk_nanda_gaura": {
-    "lastVerified": "2026-06-21T15:57:06.162Z",
+    "lastVerified": "2026-06-21T15:59:44.292Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "uk_atal_ayushman": {
-    "lastVerified": "2026-06-21T15:04:21.895Z",
+    "lastVerified": "2026-06-21T15:59:44.292Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "uk_saur_swarojgar": {
-    "lastVerified": "2026-06-21T15:04:21.895Z",
+    "lastVerified": "2026-06-21T15:59:44.292Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "uk_swarozgar_yojana": {
-    "lastVerified": "2026-06-21T15:57:06.162Z",
+    "lastVerified": "2026-06-21T15:59:44.292Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "delhi_svnidhi": {
@@ -3159,9 +3159,9 @@
     "confidence": 0
   },
   "uk_post_matric_scholarship": {
-    "lastVerified": "2026-06-21T15:04:52.610Z",
+    "lastVerified": "2026-06-21T15:59:44.292Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 0.5
   }
 }
