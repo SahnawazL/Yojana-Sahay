@@ -569,89 +569,106 @@ export function useDailyTimeTracking(uid, name, email) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// COMPONENT: NIC-style scrolling ticker
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Live Feed — stable, crossfading single-event rotator
+// (previously a horizontally-scrolling marquee — replaced because continuous
+// scrolling text reads as dated/low-trust; a fixed-position rotator gives the
+// same "live, real-time" signal with a calmer, more premium feel.)
 // ═════════════════════════════════════════════════════════════════════════════
 function ActivityTicker({ activities, dark }) {
   const th = THEME[dark ? "dark" : "light"];
   const [paused, setPaused] = useState(false);
+  const [idx,    setIdx]    = useState(0);
+
+  useEffect(() => {
+    if (paused || activities.length <= 1) return;
+    const t = setInterval(() => {
+      setIdx(i => (i + 1) % activities.length);
+    }, 3800);
+    return () => clearInterval(t);
+  }, [paused, activities.length]);
+
+  // Clamp index if the activities list shrinks (e.g. after a refresh)
+  useEffect(() => {
+    if (idx >= activities.length) setIdx(0);
+  }, [activities.length, idx]);
+
   if (!activities.length) return null;
-  // Duplicate list so the scroll loops seamlessly
-  const items = [...activities, ...activities];
-  const speed = Math.max(activities.length * 5, 28);
+  const act = activities[idx];
 
   return (
     <div style={{
-      border:       `1px solid ${SAFFRON}50`,
-      borderLeft:   `3px solid ${SAFFRON}`,
+      border:       `1px solid ${th.border}`,
       borderRadius: 10,
       overflow:     "hidden",
-      background:   dark ? "#120d00" : "#fffbf0",
+      background:   th.card,
       marginBottom: 14,
     }}>
-      {/* Ticker header bar */}
+      {/* Header bar — neutral, no accent color, no pulse */}
       <div style={{
-        background: `linear-gradient(90deg, ${SAFFRON}22, transparent)`,
         padding:    "5px 12px",
         display:    "flex", alignItems: "center", gap: 8,
-        borderBottom: `1px solid ${SAFFRON}20`,
+        borderBottom: `1px solid ${th.border}`,
       }}>
-        <div style={{
-          width: 7, height: 7, borderRadius: "50%", background: SAFFRON,
-          animation: "agnt-pulse 1.5s ease-in-out infinite", flexShrink: 0,
-        }}/>
-        <IconRadio size={11} color={SAFFRON} style={{ flexShrink:0 }} />
+        <IconRadio size={11} color={th.textSub} style={{ flexShrink:0 }} />
         <span style={{
           fontFamily:"monospace", fontSize: 9, fontWeight: 800,
-          color: SAFFRON, letterSpacing: 1.8, textTransform: "uppercase",
+          color: th.textMid, letterSpacing: 1.8, textTransform: "uppercase",
         }}>
           LIVE FEED
         </span>
         <span style={{ marginLeft:"auto", fontSize: 9, color: th.textSub, fontFamily:"monospace" }}>
-          {activities.length} events · hover to pause
+          {idx + 1}/{activities.length} · hover to pause
         </span>
       </div>
 
-      {/* Scrolling track */}
+      {/* Stable single-event display — crossfades on rotation, no horizontal motion */}
       <div
-        style={{ overflow:"hidden", position:"relative", height: 38 }}
+        style={{ position:"relative", height: 38, padding: "0 14px" }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={() => setPaused(p => !p)}
       >
-        <div style={{
-          display:    "flex",
-          alignItems: "center",
-          whiteSpace: "nowrap",
-          paddingLeft:"100%",
-          animation:  paused ? "none" : `agnt-ticker ${speed}s linear infinite`,
-        }}>
-          {items.map((act, i) => (
-            <span key={i} style={{
-              display:"inline-flex", alignItems:"center", gap: 7,
-              padding:"0 26px", fontSize: 11,
-            }}>
-              <span style={{
-                width: 6, height: 6, borderRadius:"50%", flexShrink: 0,
-                background: ACT_COLORS[act.type] || "#aaa",
-              }}/>
-              <span style={{ fontWeight: 700, color: th.text }}>{act.agentName}</span>
-              <span style={{ color: th.textSub }}>·</span>
-              <span style={{ color: th.textMid }}>{act.action}</span>
-              <span style={{
-                padding:"1px 5px", borderRadius: 4, fontSize: 8,
-                background: `${ACT_COLORS[act.type] || "#aaa"}18`,
-                color: ACT_COLORS[act.type] || "#aaa",
-                fontFamily:"monospace", fontWeight: 700,
-              }}>
-                {TAB_LABELS[act.tab] || act.tab}
-              </span>
-              <span style={{ color: th.textSub, fontSize: 9, fontFamily:"monospace" }}>
-                {timeAgo(act.time)}
-              </span>
-              <span style={{ color: th.border, fontSize: 16, marginLeft: 4 }}>|</span>
-            </span>
-          ))}
+        <div
+          key={act.id ?? idx}
+          style={{
+            display:"flex", alignItems:"center", gap: 7,
+            height: "100%", whiteSpace:"nowrap", overflow:"hidden",
+            animation: "agnt-fade-in 0.4s ease both",
+          }}
+        >
+          <span style={{
+            width: 6, height: 6, borderRadius:"50%", flexShrink: 0,
+            background: ACT_COLORS[act.type] || "#aaa",
+          }}/>
+          <span style={{ fontWeight: 700, color: th.text, fontSize: 12 }}>{act.agentName}</span>
+          <span style={{ color: th.textSub }}>·</span>
+          <span style={{ color: th.textMid, fontSize: 12, overflow:"hidden", textOverflow:"ellipsis" }}>{act.action}</span>
+          <span style={{
+            padding:"1px 5px", borderRadius: 4, fontSize: 8,
+            background: `${ACT_COLORS[act.type] || "#aaa"}18`,
+            color: ACT_COLORS[act.type] || "#aaa",
+            fontFamily:"monospace", fontWeight: 700, flexShrink: 0,
+          }}>
+            {TAB_LABELS[act.tab] || act.tab}
+          </span>
+          <span style={{ color: th.textSub, fontSize: 9, fontFamily:"monospace", marginLeft:"auto", flexShrink: 0 }}>
+            {timeAgo(act.time)}
+          </span>
         </div>
+
+        {/* Progress dots — replaces scroll motion as the "things are moving" cue */}
+        {activities.length > 1 && (
+          <div style={{ position:"absolute", bottom: 3, left: 14, display:"flex", gap: 3 }}>
+            {activities.slice(0, 8).map((_, i) => (
+              <div key={i} style={{
+                width: i === idx ? 10 : 4, height: 3, borderRadius: 2,
+                background: i === idx ? th.textMid : th.border,
+                transition: "width 0.3s ease, background 0.3s ease",
+              }}/>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -700,47 +717,35 @@ function NoticeBoard({ activities, humanAgents, dark }) {
   return (
     <div style={{
       marginTop: 14,
-      border:    `1.5px solid ${NAVY}45`,
+      border:    `1px solid ${th.border}`,
       borderRadius: 13,
       overflow:  "hidden",
+      background: th.card,
     }}>
-      {/* Board header — tri-color stripe, navy body */}
+      {/* Board header — neutral instrument-panel bar, no gradient/tricolor/pulse */}
       <div style={{
-        position: "relative", overflow: "hidden",
-        background: `linear-gradient(135deg, #001f5c 0%, #002f80 100%)`,
-        padding: "9px 14px",
+        display:    "flex", alignItems: "center", gap: 8,
+        padding:    "8px 14px",
+        borderBottom: `1px solid ${th.border}`,
+        background: dark ? "#252527" : "#f8f9fa",
       }}>
-        {/* Tricolour top strip */}
-        <div style={{
-          position:"absolute", top:0, left:0, right:0, height:3,
-          background:`linear-gradient(90deg, ${SAFFRON} 33%, #fff 33% 66%, ${IND_GREEN} 66%)`,
-        }}/>
-        <div style={{
-          display:"flex", alignItems:"center", gap:8, paddingTop: 4,
+        <IconMegaphone size={12} color={th.textSub} style={{ flexShrink:0 }} />
+        <span style={{
+          fontFamily:"monospace", fontSize: 9, fontWeight: 800,
+          color: th.textMid, letterSpacing: 1.8, textTransform: "uppercase",
         }}>
-          <div style={{
-            width:8, height:8, borderRadius:"50%", background:SAFFRON,
-            animation:"agnt-pulse 1.5s ease-in-out infinite", flexShrink:0,
-          }}/>
-          <IconMegaphone size={13} color="#fff" style={{ flexShrink:0, opacity:0.9 }} />
-          <span style={{
-            fontFamily:"monospace", fontSize: 10, fontWeight: 800,
-            color:"#fff", letterSpacing: 2.5, textTransform:"uppercase",
-          }}>
-            Notice Board
-          </span>
-          <span style={{
-            marginLeft:"auto", fontSize:8.5, color:"rgba(255,255,255,0.45)",
-            fontFamily:"monospace",
-          }}>
-            Yojana Sahay Admin
-          </span>
-        </div>
+          [ NOTICE_BOARD ]
+        </span>
+        <span style={{
+          marginLeft:"auto", fontSize:9, color: th.textSub, fontFamily:"monospace",
+        }}>
+          {notices.length} active
+        </span>
       </div>
 
       {/* Notice rows */}
       <div style={{
-        background: dark ? "#08100a" : "#f0f9f1",
+        background: th.card,
         padding: "8px 0",
         minHeight: 80,
       }}>
@@ -769,11 +774,10 @@ function NoticeBoard({ activities, humanAgents, dark }) {
                 borderLeft: `3px solid ${i === activeIdx ? n.color : "transparent"}`,
               }}
             >
-              {/* Dot */}
+              {/* Type chip — squared, static (functional color, not decorative) */}
               <div style={{
-                width:6, height:6, borderRadius:"50%", flexShrink:0,
+                width:6, height:6, borderRadius:1.5, flexShrink:0,
                 background: n.color, marginTop: 5,
-                animation: i === activeIdx ? "agnt-pulse 1.5s ease-in-out infinite" : "none",
               }}/>
 
               {/* Content */}
@@ -801,12 +805,12 @@ function NoticeBoard({ activities, humanAgents, dark }) {
               <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", flexShrink:0, gap:2 }}>
                 {n.fresh && (
                   <span style={{
-                    padding:"1px 5px", borderRadius:4,
-                    background: `${n.color}22`, color:n.color,
+                    padding:"1px 5px", borderRadius:3,
+                    background: `${n.color}1f`, color:n.color,
                     fontSize:8, fontWeight:800, fontFamily:"monospace",
-                    letterSpacing:0.8, animation:"agnt-pulse 1.5s ease-in-out infinite",
+                    letterSpacing:0.5,
                   }}>
-                    NEW
+                    [NEW]
                   </span>
                 )}
                 <span style={{ fontSize:9, color:th.textSub, fontFamily:"monospace" }}>
@@ -823,7 +827,7 @@ function NoticeBoard({ activities, humanAgents, dark }) {
         <div style={{
           display:"flex", gap:4, justifyContent:"center",
           padding:"6px 0 10px",
-          background: dark ? "#08100a" : "#f0f9f1",
+          background: dark ? "#252527" : "#f8f9fa",
           borderTop: `1px solid ${th.border}`,
         }}>
           {notices.map((_, i) => (
@@ -833,8 +837,8 @@ function NoticeBoard({ activities, humanAgents, dark }) {
               {...activatable(() => setActiveIdx(i), `Go to notice ${i + 1}`)}
               aria-current={i === activeIdx}
               style={{
-              width: i === activeIdx ? 18 : 5, height:5, borderRadius:3,
-              background: i === activeIdx ? NAVY : th.border,
+              width: i === activeIdx ? 18 : 5, height:5, borderRadius:2,
+              background: i === activeIdx ? th.textMid : th.border,
               transition:"all 0.3s cubic-bezier(0.22,1,0.36,1)",
               cursor:"pointer",
             }}/>
@@ -2048,7 +2052,7 @@ export default function AgentsTab({ dark, isDesktop }) {
       <style>{`
         @keyframes agnt-pulse    { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.72)} }
         @keyframes agnt-scan     { 0%{transform:translateX(-100%)} 100%{transform:translateX(600%)} }
-        @keyframes agnt-ticker   { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        @keyframes agnt-fade-in  { 0%{opacity:0;transform:translateY(3px)} 100%{opacity:1;transform:translateY(0)} }
         @keyframes agnt-toast-in { 0%{opacity:0;transform:translateY(-8px) scale(0.97)} 100%{opacity:1;transform:translateY(0) scale(1)} }
       `}</style>
 
