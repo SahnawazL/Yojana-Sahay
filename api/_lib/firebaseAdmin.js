@@ -78,10 +78,7 @@ export async function markAiActive(field) {
 // ── Record a completed AI API call with full telemetry ───────────────────────
 //
 // options:
-//   service          "groq" | "tavily" | "groq-verify" | "tavily-verify"
-//                    "groq" / "tavily"               — main app pool (chat.js, GROQ_API_KEY_1..5)
-//                    "groq-verify" / "tavily-verify"  — dedicated SchemeVerifier/AI-Insights pool
-//                                                        (verify-scheme.js, ai-insights.js, GROQ_VERIFY_KEY*)
+//   service          "groq" | "tavily"
 //   keyIdx           0-based index of the Groq key that ultimately succeeded.
 //                    Pass -1 if ALL keys were exhausted (total failure).
 //   count429         How many keys were 429'd before the successful key.
@@ -110,20 +107,6 @@ export async function markAiActive(field) {
 //   tavilyLastActive        Timestamp  — updated on every Tavily call
 //   tavilyCallsToday        number     — resets at midnight IST
 //   tavilyCallsDate         string     — IST date for Tavily reset
-//
-//   ── Dedicated SchemeVerifier / AI-Insights pool (separate keys, separate fields) ──
-//   groqVerifyLastActive    Timestamp  — updated on every groq-verify call
-//   groqVerifyActiveKeyIdx  number     — index (0-based) of the currently active verify key
-//   groqVerifyCallsToday    number     — resets at midnight IST
-//   groqVerifyCallsDate     string     — IST date string
-//   groqVerify429Today      number     — total 429s today (verify pool)
-//   groqVerify429Date       string     — IST date for 429 reset
-//   groqVerify429KeysToday  number[]   — which verify key indices got 429'd today
-//   groqVerify429KeysDate   string     — IST date for key-429 array reset
-//   groqVerifyLast429At     Timestamp  — when the last verify-pool 429 happened
-//   tavilyVerifyLastActive  Timestamp  — updated on every tavily-verify call
-//   tavilyVerifyCallsToday  number     — resets at midnight IST
-//   tavilyVerifyCallsDate   string     — IST date for reset
 export async function recordAiCall({
   service         = "groq",
   keyIdx          = 0,
@@ -189,14 +172,24 @@ export async function recordAiCall({
         }
       }
 
-      // ── GROQ VERIFY (dedicated SchemeVerifier / AI Insights pool) ───────────
+      // ── TAVILY ────────────────────────────────────────────────────────────
+      if (service === "tavily") {
+        upd.tavilyLastActive = FieldValue.serverTimestamp();
+
+        if (d.tavilyCallsDate === today) {
+          upd.tavilyCallsToday = (d.tavilyCallsToday || 0) + 1;
+        } else {
+          upd.tavilyCallsDate  = today;
+          upd.tavilyCallsToday = 1;
+        }
+      }
+
+      // ── GROQ VERIFY (SchemeVerifier pool — separate keys/fields) ───────────
       if (service === "groq-verify") {
         upd.groqVerifyLastActive = FieldValue.serverTimestamp();
 
-        // Active key — only update if a key actually succeeded
         if (keyIdx >= 0) upd.groqVerifyActiveKeyIdx = keyIdx;
 
-        // Calls today (day-reset if IST date rolled over)
         if (d.groqVerifyCallsDate === today) {
           upd.groqVerifyCallsToday = (d.groqVerifyCallsToday || 0) + 1;
         } else {
@@ -204,11 +197,9 @@ export async function recordAiCall({
           upd.groqVerifyCallsToday = 1;
         }
 
-        // 429s today
         if (count429 > 0) {
           upd.groqVerifyLast429At = FieldValue.serverTimestamp();
 
-          // Which key INDICES got 429'd: keys 0 … count429-1 all failed
           const freshKeys = Array.from({ length: count429 }, (_, i) => i);
 
           if (d.groqVerify429Date === today) {
@@ -225,19 +216,7 @@ export async function recordAiCall({
         }
       }
 
-      // ── TAVILY ────────────────────────────────────────────────────────────
-      if (service === "tavily") {
-        upd.tavilyLastActive = FieldValue.serverTimestamp();
-
-        if (d.tavilyCallsDate === today) {
-          upd.tavilyCallsToday = (d.tavilyCallsToday || 0) + 1;
-        } else {
-          upd.tavilyCallsDate  = today;
-          upd.tavilyCallsToday = 1;
-        }
-      }
-
-      // ── TAVILY VERIFY (dedicated SchemeVerifier pool) ────────────────────────
+      // ── TAVILY VERIFY (SchemeVerifier pool) ─────────────────────────────────
       if (service === "tavily-verify") {
         upd.tavilyVerifyLastActive = FieldValue.serverTimestamp();
 
