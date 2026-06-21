@@ -956,33 +956,33 @@
     "confidence": 0
   },
   "odisha_cm_kisan": {
-    "lastVerified": "2026-06-14T18:55:12.447Z",
+    "lastVerified": "2026-06-21T11:04:58.166Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_kalia": {
-    "lastVerified": "2026-06-14T18:55:12.447Z",
+    "lastVerified": "2026-06-21T11:04:58.166Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_subhadra": {
-    "lastVerified": "2026-06-14T18:55:12.447Z",
+    "lastVerified": "2026-06-21T11:04:58.166Z",
     "httpStatus": 403,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_mission_shakti": {
-    "lastVerified": "2026-06-14T18:55:12.447Z",
+    "lastVerified": "2026-06-21T11:04:58.166Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
-    "confidence": 1
+    "confidence": 0
   },
   "odisha_godabarisha_laptop": {
-    "lastVerified": "2026-06-15T19:13:11.487Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-06-21T11:04:58.166Z",
+    "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
@@ -1658,12 +1658,16 @@
     "linkAlive": true
   },
   "odisha_samrudha_krushak": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-21T11:04:58.166Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "odisha_gjay": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-21T11:04:58.166Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "punjab_minority_scholarship": {
     "lastVerified": "2026-06-16T20:36:16.595Z",
