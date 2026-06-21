@@ -953,107 +953,74 @@ function AgentCard({ agent, dark }) {
   return (
     <div style={{
       background:  th.card,
-      border:      `1.5px solid ${present ? SC + "40" : th.border}`,
-      borderTop:   `3px solid ${present ? SC : th.border}`,
-      borderRadius:14,
-      padding:     "14px",
+      border:      `1px solid ${th.border}`,
+      borderLeft:  `2px solid ${present ? SC : th.border}`,
+      borderRadius: 8,
+      padding:     "10px 12px",
       position:    "relative",
-      overflow:    "hidden",
-      transition:  "border-color 0.3s",
     }}>
-      {/* Online/idle shimmer line */}
-      {present && (
-        <div style={{
-          position:"absolute", top:0, left:0, right:0, height:1,
-          background:`linear-gradient(90deg,transparent,${SC}55,transparent)`,
-          animation:"agnt-scan 3.5s linear infinite",
-        }}/>
-      )}
-
       {/* ── Header ── */}
-      <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
-        {/* Avatar + status dot */}
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        {/* Avatar + status dot — small square, static */}
         <div style={{ position:"relative", flexShrink:0 }}>
           <div style={{
-            width:42, height:42, borderRadius:12,
+            width:26, height:26, borderRadius:5,
             background: dark ? "#252527" : "#f0f0f0",
-            border:`1.5px solid ${present ? SC + "55" : th.border}`,
+            border:`1px solid ${th.border}`,
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:20,
+            fontSize:11, fontWeight:700, fontFamily:"monospace", color:th.textMid,
           }}>
             {agent.avatar || (agent.name||"?").charAt(0).toUpperCase()}
           </div>
           <div style={{
-            position:"absolute", bottom:-2, right:-2,
-            width:11, height:11, borderRadius:"50%",
+            position:"absolute", bottom:-1, right:-1,
+            width:7, height:7, borderRadius:"50%",
             background: SC,
-            border:`2px solid ${th.card}`,
-            animation: online ? "agnt-pulse 2s ease-in-out infinite" : "none",
+            border:`1.5px solid ${th.card}`,
           }}/>
         </div>
 
-        {/* Name / role */}
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{
-            fontSize:13, fontWeight:700, color:th.text,
+        {/* Name / role — single line */}
+        <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"baseline", gap:6 }}>
+          <span style={{
+            fontSize:12.5, fontWeight:700, color:th.text,
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
           }}>
             {agent.name}
-          </div>
-          <div style={{
-            fontSize:10, color:th.textSub, marginTop:1,
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+          </span>
+          <span style={{
+            fontSize:9.5, color:th.textSub,
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flexShrink:1,
           }}>
             {agent.role}
-          </div>
+          </span>
         </div>
 
-        {/* Status badge */}
+        {/* Status badge — square chip, not a pill */}
         <div style={{
-          padding:"2px 8px", borderRadius:20, flexShrink:0,
+          padding:"2px 6px", borderRadius:3, flexShrink:0,
           background: stateBg,
           border:`1px solid ${stateBorder}`,
-          fontFamily:"monospace", fontSize:8, fontWeight:800,
-          color: SC, letterSpacing:1,
+          fontFamily:"monospace", fontSize:7.5, fontWeight:800,
+          color: SC, letterSpacing:0.8,
         }}>
           {stateLabel}
         </div>
       </div>
 
-      {/* ── Stats grid ── */}
+      {/* ── Stats line — inline, terminal-style, no boxes ── */}
       <div style={{
-        display:"grid", gridTemplateColumns:"1fr 1fr",
-        gap:6, marginTop:12,
+        marginTop:7, paddingTop:7, borderTop:`1px solid ${th.border}`,
+        display:"flex", alignItems:"center", gap:5,
+        fontFamily:"monospace", fontSize:9.5, flexWrap:"wrap",
       }}>
-        {[
-          {
-            label:"LAST SEEN",
-            value: timeAgo(agent.lastSeen),
-          },
-          {
-            label: online ? "SESSION TIME" : "LAST SESSION",
-            value: online
-              ? sessionDuration(agent.sessionStart, null)
-              : (agent.lastSessionDuration || "—"),
-          },
-        ].map(s => (
-          <div key={s.label} style={{
-            background: dark ? "#252527" : "#f8f9fa",
-            borderRadius:8, padding:"7px 9px",
-          }}>
-            <div style={{
-              fontSize:7.5, color:th.textSub,
-              fontFamily:"monospace", letterSpacing:0.6, textTransform:"uppercase",
-            }}>
-              {s.label}
-            </div>
-            <div style={{
-              fontSize:12, fontWeight:700, color:th.text, marginTop:2,
-            }}>
-              {s.value}
-            </div>
-          </div>
-        ))}
+        <span style={{ color:th.textSub }}>LAST_SEEN</span>
+        <span style={{ color:th.text, fontWeight:700 }}>{timeAgo(agent.lastSeen)}</span>
+        <span style={{ color:th.border }}>│</span>
+        <span style={{ color:th.textSub }}>{online ? "SESSION" : "LAST_SESSION"}</span>
+        <span style={{ color:th.text, fontWeight:700 }}>
+          {online ? sessionDuration(agent.sessionStart, null) : (agent.lastSessionDuration || "—")}
+        </span>
       </div>
 
       {/* ── AI Health Panel — Groq key grid + daily stats ── */}
@@ -1193,91 +1160,68 @@ function AgentCard({ agent, dark }) {
         </div>
       )}
 
-      {/* ── Anomaly flag ── */}
+      {/* ── Anomaly flag — slim line, not a boxed banner ── */}
       {agent.anomaly && (
         <div style={{
-          marginTop:8, padding:"5px 9px",
-          background:`${agent.anomaly.color}12`,
-          border:`1px solid ${agent.anomaly.color}45`,
-          borderRadius:7, display:"flex", alignItems:"center", gap:6,
+          marginTop:6, display:"flex", alignItems:"center", gap:5,
+          fontFamily:"monospace", fontSize:9,
         }}>
-          <IconAlert size={10} color={agent.anomaly.color} style={{ flexShrink:0 }} />
-          <div style={{ minWidth:0 }}>
-            <span style={{
-              fontSize:9, color:agent.anomaly.color,
-              fontFamily:"monospace", fontWeight:800, letterSpacing:0.5,
-            }}>
-              {agent.anomaly.label}
+          <IconAlert size={9} color={agent.anomaly.color} style={{ flexShrink:0 }} />
+          <span style={{ color:agent.anomaly.color, fontWeight:700 }}>
+            {agent.anomaly.label}
+          </span>
+          {agent.anomaly.detail && (
+            <span style={{ color:agent.anomaly.color, opacity:0.7 }}>
+              · {agent.anomaly.detail}
             </span>
-            {agent.anomaly.detail && (
-              <span style={{
-                fontSize:8.5, color:agent.anomaly.color, opacity:0.75,
-                fontFamily:"monospace", marginLeft:5,
-              }}>
-                · {agent.anomaly.detail}
-              </span>
-            )}
-          </div>
+          )}
         </div>
       )}
 
-      {/* ── Active tab pill (only when truly online) ── */}
+      {/* ── Active tab (only when truly online) — slim line, static dot ── */}
       {online && agent.activeTab && (
         <div style={{
-          marginTop:8, padding:"5px 9px",
-          background:`${NAVY}1a`, border:`1px solid ${NAVY}35`,
-          borderRadius:7, display:"flex", alignItems:"center", gap:6,
+          marginTop:5, display:"flex", alignItems:"center", gap:5,
+          fontFamily:"monospace", fontSize:9,
         }}>
-          <div style={{
-            width:5, height:5, borderRadius:"50%", background:"#6fa3ff",
-            flexShrink:0, animation:"agnt-pulse 1.5s ease-in-out infinite",
-          }}/>
-          <span style={{
-            fontSize:9, color:"#6fa3ff",
-            fontFamily:"monospace", fontWeight:700, letterSpacing:0.5,
-          }}>
-            VIEWING: {TAB_LABELS[agent.activeTab] || agent.activeTab}
+          <span style={{ color: dark ? "#6fa3ff" : NAVY }}>›</span>
+          <span style={{ color: th.textSub }}>viewing:</span>
+          <span style={{ color: dark ? "#6fa3ff" : NAVY, fontWeight:700 }}>
+            {TAB_LABELS[agent.activeTab] || agent.activeTab}
           </span>
         </div>
       )}
 
-      {/* ── Idle notice pill ── */}
+      {/* ── Idle notice — slim line, static dot ── */}
       {idle && agent.type === "human" && (
         <div style={{
-          marginTop:8, padding:"5px 9px",
-          background:`${IDLE_AMBER}12`, border:`1px solid ${IDLE_AMBER}35`,
-          borderRadius:7, display:"flex", alignItems:"center", gap:6,
+          marginTop:5, display:"flex", alignItems:"center", gap:5,
+          fontFamily:"monospace", fontSize:9,
         }}>
-          <div style={{
-            width:5, height:5, borderRadius:"50%", background:IDLE_AMBER,
-            flexShrink:0,
-          }}/>
-          <span style={{
-            fontSize:9, color:IDLE_AMBER,
-            fontFamily:"monospace", fontWeight:700, letterSpacing:0.5,
-          }}>
-            IDLE — no interaction for 2+ min
+          <span style={{ color:IDLE_AMBER }}>›</span>
+          <span style={{ color:IDLE_AMBER, fontWeight:700 }}>
+            idle — no interaction for 2+ min
           </span>
         </div>
       )}
 
       {/* ── Allowed tabs ── */}
-      <div style={{ marginTop:8, display:"flex", flexWrap:"wrap", gap:4 }}>
+      <div style={{ marginTop:6, display:"flex", flexWrap:"wrap", gap:3 }}>
         {agent.allowedTabs === null
           ? (
             <span style={{
-              padding:"2px 7px", borderRadius:5,
-              background:`${SAFFRON}18`, color:SAFFRON,
-              fontSize:8, fontWeight:700, fontFamily:"monospace",
+              padding:"1.5px 5px", borderRadius:3,
+              background:`${SAFFRON}14`, color:SAFFRON,
+              fontSize:7.5, fontWeight:700, fontFamily:"monospace",
             }}>
-              ALL TABS
+              ALL_TABS
             </span>
           )
           : (agent.allowedTabs || []).map(tab => (
             <span key={tab} style={{
-              padding:"2px 6px", borderRadius:5,
-              background: dark ? "#2c2c2e" : "#f0f0f0",
-              fontSize:8, color:th.textSub, fontWeight:600, fontFamily:"monospace",
+              padding:"1.5px 5px", borderRadius:3,
+              background: dark ? "#252527" : "#f0f0f0",
+              fontSize:7.5, color:th.textSub, fontWeight:600, fontFamily:"monospace",
             }}>
               {TAB_LABELS[tab] || tab}
             </span>
@@ -1287,7 +1231,8 @@ function AgentCard({ agent, dark }) {
 
       {/* ── Metadata footer ── */}
       <div style={{
-        marginTop:7, display:"flex", gap:8, alignItems:"center",
+        marginTop:6, paddingTop:6, borderTop:`1px solid ${th.border}`,
+        display:"flex", gap:7, alignItems:"center",
         fontSize:9, color:th.textSub, fontFamily:"monospace",
       }}>
         {agent.type === "human" && (
