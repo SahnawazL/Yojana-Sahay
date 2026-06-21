@@ -377,7 +377,7 @@ export const CHHATTISGARH_SCHEMES = [
     benefit: { en: "Registered workers get ₹5,000 accident aid, tool kit, scholarship for children & maternity benefit", hi: "पंजीकृत मजदूरों को ₹5,000 दुर्घटना सहायता, टूल किट, बच्चों की छात्रवृत्ति व प्रसूति लाभ" },
     tag:     { en: "General", hi: "सामान्य" },
     annual: 10000,
-    apply:   { en: "https://https://cglabour.nic.in", hi: "cglabour.nic.in" }, applyType: "online",
+    apply:   { en: "https://shramevjayate.cg.gov.in/EngPages/sitemap.aspx", hi: "cglabour.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Labour Card / Registration","90-day Work Certificate","Bank Passbook"],
                hi: ["आधार कार्ड","श्रमिक कार्ड/पंजीयन","90 दिवस कार्य प्रमाण पत्र","बैंक पासबुक"] },
     match: (a) => a.state === "Chhattisgarh" && ["below1","1to3"].includes(a.income) && (a.who === "general" || a.area === "rural"),
