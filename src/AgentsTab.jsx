@@ -9,7 +9,7 @@
  *  - NIC-style scrolling activity ticker
  *  - Government notice board with auto-cycling highlights + "NEW" badges
  *  - Session duration, active tab, device type, allowed tabs
- *  - Timeline activity log (last 30 events)
+ *  - Timeline activity log (day-browsable, own per-day query — not capped at 30 all-time)
  *
  * Firestore collections used:
  *  - adminPresence/{uid}        — human admin heartbeat docs
@@ -26,8 +26,9 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
-  collection, doc, setDoc, getDoc, onSnapshot,
+  collection, doc, setDoc, getDoc, getDocs, onSnapshot,
   query, where, orderBy, limit, serverTimestamp, addDoc, increment,
+  writeBatch, getCountFromServer,
 } from "firebase/firestore";
 import { db } from "./firebase.js";
 
@@ -198,6 +199,17 @@ function IconRadar({ size = 14, color = "currentColor", style }) {
       <circle cx="12" cy="12" r="5" stroke={color} strokeWidth="1.6"/>
       <path d="M12 12L12 4.5A7.5 7.5 0 0 1 19.5 12Z" fill={color} opacity="0.35"/>
       <circle cx="12" cy="12" r="1.4" fill={color}/>
+    </svg>
+  );
+}
+function IconTrash({ size = 13, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M4 7h16M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"
+        stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M6 7l1 13.5A1.5 1.5 0 0 0 8.5 22h7a1.5 1.5 0 0 0 1.5-1.5L18 7"
+        stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M10 11v6M14 11v6" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -573,6 +585,56 @@ export function timeLogId(uid, dateStr) {
   return `${uid}_${dateStr}`;
 }
 
+// ─── DATA RETENTION (manual cleanup — Activity Log / Attendance history) ─────
+// `adminActivity` keys off the `time` Timestamp field; `agentTimeLogs` keys
+// off the `date` string field ("YYYY-MM-DD", IST) — lexicographic comparison
+// on that format sorts chronologically, so a plain string range query works
+// without needing a Timestamp on that collection.
+function monthsAgoDate(n) {
+  const d = new Date();
+  d.setMonth(d.getMonth() - n);
+  return d;
+}
+
+// Best-effort count for the confirmation prompt. getCountFromServer is an
+// aggregation query (no document reads billed for the matched docs), so it's
+// cheap to call even for large ranges. Returns null on failure so the UI can
+// fall back to a count-less confirmation instead of blocking the action.
+async function countOlderThan(collectionName, field, cutoffValue) {
+  try {
+    const q = query(collection(db, collectionName), where(field, "<", cutoffValue));
+    const snap = await getCountFromServer(q);
+    return snap.data().count;
+  } catch (e) {
+    console.warn(`[retention] count failed for ${collectionName}:`, e);
+    return null;
+  }
+}
+
+// Deletes in pages of 400 (safely under Firestore's 500-writes-per-batch
+// cap) and keeps paging until nothing older than the cutoff remains, so this
+// works correctly even for collections with thousands of stale docs instead
+// of silently only deleting the first page.
+async function deleteOlderThan(collectionName, field, cutoffValue) {
+  let totalDeleted = 0;
+  for (;;) {
+    const q = query(
+      collection(db, collectionName),
+      where(field, "<", cutoffValue),
+      orderBy(field, "asc"),
+      limit(400),
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) break;
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    totalDeleted += snap.docs.length;
+    if (snap.docs.length < 400) break;
+  }
+  return totalDeleted;
+}
+
 // Call this once in AdminDashboard, alongside useAgentPresence:
 //   useDailyTimeTracking(sessionUser?.uid, sessionUser?.displayName || sessionUser?.email, sessionUser?.email);
 export function useDailyTimeTracking(uid, name, email) {
@@ -669,27 +731,36 @@ export function useDailyTimeTracking(uid, name, email) {
 // scrolling text reads as dated/low-trust; a fixed-position rotator gives the
 // same "live, real-time" signal with a calmer, more premium feel.)
 // ═════════════════════════════════════════════════════════════════════════════
-function ActivityTicker({ activities, dark, isDesktop }) {
+function ActivityTicker({ activities, todayStr, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const [paused, setPaused] = useState(false);
   const [idx,    setIdx]    = useState(0);
 
+  // LIVE FEED should mean "happening today," not just "most recent 30 ever
+  // logged." On a quiet day that all-time cap can leave a day-old event
+  // pinned here looking like it's still live. Filtering to today's IST date
+  // keeps that honest — anything older belongs in Activity Log's
+  // day-browsable history instead.
+  const todayActivities = useMemo(
+    () => activities.filter(a => getISTDateStr(toDate(a.time)) === todayStr),
+    [activities, todayStr]
+  );
+
   useEffect(() => {
-    if (paused || activities.length <= 1) return;
+    if (paused || todayActivities.length <= 1) return;
     const t = setInterval(() => {
-      setIdx(i => (i + 1) % activities.length);
+      setIdx(i => (i + 1) % todayActivities.length);
     }, 3800);
     return () => clearInterval(t);
-  }, [paused, activities.length]);
+  }, [paused, todayActivities.length]);
 
   // Clamp index if the activities list shrinks (e.g. after a refresh)
   useEffect(() => {
-    if (idx >= activities.length) setIdx(0);
-  }, [activities.length, idx]);
+    if (idx >= todayActivities.length) setIdx(0);
+  }, [todayActivities.length, idx]);
 
-  if (!activities.length) return null;
-  const act = activities[idx];
-  const accent = ACT_COLORS[act.type] || "#aaa";
+  const act    = todayActivities[idx];
+  const accent = act ? (ACT_COLORS[act.type] || "#aaa") : th.textSub;
 
   return (
     <div style={{
@@ -729,7 +800,7 @@ function ActivityTicker({ activities, dark, isDesktop }) {
           <div style={{ width:6, height:6, borderRadius:"50%", background:IND_GREEN, position:"relative" }}/>
         </div>
         <span style={{ marginLeft:"auto", fontSize: fs(9, isDesktop), color: th.textSub, fontFamily:"monospace" }}>
-          {idx + 1}/{activities.length} · hover to pause
+          {act ? `${idx + 1}/${todayActivities.length} · hover to pause` : "today"}
         </span>
       </div>
 
@@ -740,40 +811,49 @@ function ActivityTicker({ activities, dark, isDesktop }) {
         onMouseLeave={() => setPaused(false)}
         onTouchStart={() => setPaused(p => !p)}
       >
-        <div
-          key={act.id ?? idx}
-          style={{
-            display:"flex", alignItems:"center", gap: 7,
-            height: "100%", whiteSpace:"nowrap", overflow:"hidden",
-            animation: "agnt-fade-in 0.4s ease both",
-          }}
-        >
-          <span style={{
-            width: 6, height: 6, borderRadius:"50%", flexShrink: 0,
-            background: accent,
-            boxShadow: `0 0 6px ${accent}aa`,
-          }}/>
-          <span style={{ fontWeight: 700, color: th.text, fontSize: fs(12, isDesktop) }}>{act.agentName}</span>
-          <span style={{ color: th.textSub }}>·</span>
-          <span style={{ color: th.textMid, fontSize: fs(12, isDesktop), overflow:"hidden", textOverflow:"ellipsis" }}>{act.action}</span>
-          <span style={{
-            padding:"1px 5px", borderRadius: 4, fontSize: fs(8, isDesktop),
-            background: `${accent}18`,
-            border: `1px solid ${accent}30`,
-            color: accent,
-            fontFamily:"monospace", fontWeight: 700, flexShrink: 0,
+        {act ? (
+          <div
+            key={act.id ?? idx}
+            style={{
+              display:"flex", alignItems:"center", gap: 7,
+              height: "100%", whiteSpace:"nowrap", overflow:"hidden",
+              animation: "agnt-fade-in 0.4s ease both",
+            }}
+          >
+            <span style={{
+              width: 6, height: 6, borderRadius:"50%", flexShrink: 0,
+              background: accent,
+              boxShadow: `0 0 6px ${accent}aa`,
+            }}/>
+            <span style={{ fontWeight: 700, color: th.text, fontSize: fs(12, isDesktop) }}>{act.agentName}</span>
+            <span style={{ color: th.textSub }}>·</span>
+            <span style={{ color: th.textMid, fontSize: fs(12, isDesktop), overflow:"hidden", textOverflow:"ellipsis" }}>{act.action}</span>
+            <span style={{
+              padding:"1px 5px", borderRadius: 4, fontSize: fs(8, isDesktop),
+              background: `${accent}18`,
+              border: `1px solid ${accent}30`,
+              color: accent,
+              fontFamily:"monospace", fontWeight: 700, flexShrink: 0,
+            }}>
+              {TAB_LABELS[act.tab] || act.tab}
+            </span>
+            <span style={{ color: th.textSub, fontSize: fs(9, isDesktop), fontFamily:"monospace", marginLeft:"auto", flexShrink: 0 }}>
+              {timeAgo(act.time)}
+            </span>
+          </div>
+        ) : (
+          <div style={{
+            display:"flex", alignItems:"center", height:"100%",
+            color: th.textSub, fontSize: fs(11.5, isDesktop),
           }}>
-            {TAB_LABELS[act.tab] || act.tab}
-          </span>
-          <span style={{ color: th.textSub, fontSize: fs(9, isDesktop), fontFamily:"monospace", marginLeft:"auto", flexShrink: 0 }}>
-            {timeAgo(act.time)}
-          </span>
-        </div>
+            Quiet so far today — activity will show up here live.
+          </div>
+        )}
 
         {/* Progress dots — replaces scroll motion as the "things are moving" cue */}
-        {activities.length > 1 && (
+        {todayActivities.length > 1 && (
           <div style={{ position:"absolute", bottom: 3, left: 14, display:"flex", gap: 3 }}>
-            {activities.slice(0, 8).map((_, i) => (
+            {todayActivities.slice(0, 8).map((_, i) => (
               <div key={i} style={{
                 width: i === idx ? 10 : 4, height: 3, borderRadius: 2,
                 background: i === idx ? accent : th.border,
@@ -1835,6 +1915,378 @@ function AttendanceSection({ humanAgents, dark, isDesktop, loading }) {
   );
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Activity Log — day-browsable history (own listener, own date nav)
+// ═════════════════════════════════════════════════════════════════════════════
+// Previously this rendered straight from the shared `activities` state, which
+// is just "the most recent 30 adminActivity docs ever logged" — no concept of
+// "today" at all. On a quiet day that left a day-old event pinned at the top
+// looking current, and there was no way to reach anything past that 30-doc
+// cap. This runs its own per-day range query instead — Today by default,
+// Prev/Next to browse — same pattern as Daily Attendance, so "today" always
+// starts clean and older history is always reachable instead of silently
+// falling off the end of a fixed-size cap.
+function istDayRange(dateStr) {
+  const start = new Date(`${dateStr}T00:00:00+05:30`);
+  const end   = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start, end };
+}
+
+function ActivityLogSection({ dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const todayStr = getISTDateStr();
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [dayActivities, setDayActivities] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [logError, setLogError] = useState(false);
+
+  const isToday = selectedDate === todayStr;
+
+  useEffect(() => {
+    setLoaded(false);
+    const { start, end } = istDayRange(selectedDate);
+    const q = query(
+      collection(db, "adminActivity"),
+      where("time", ">=", start),
+      where("time", "<", end),
+      orderBy("time", "desc"),
+      limit(50),
+    );
+    const unsub = onSnapshot(
+      q,
+      snap => {
+        setDayActivities(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLoaded(true);
+        setLogError(false);
+      },
+      err => {
+        console.warn("[ActivityLogSection] adminActivity listener failed:", err);
+        setLoaded(true);
+        setLogError(true);
+      }
+    );
+    return unsub;
+  }, [selectedDate]);
+
+  const shiftDate = (deltaDays) => {
+    const d = new Date(`${selectedDate}T00:00:00+05:30`);
+    d.setDate(d.getDate() + deltaDays);
+    const next = getISTDateStr(d);
+    if (next > todayStr) return; // no peeking into the future
+    setSelectedDate(next);
+  };
+
+  const dateLabel = new Date(`${selectedDate}T00:00:00+05:30`).toLocaleDateString("en-IN", {
+    weekday: "short", day: "2-digit", month: "short", year: "numeric",
+  });
+
+  return (
+    <div style={{
+      background:th.card, border:`1px solid ${th.border}`,
+      borderRadius:14, overflow:"hidden", marginTop:14,
+    }}>
+      {/* Header */}
+      <div style={{
+        padding:"10px 14px",
+        borderBottom:`1px solid ${th.border}`,
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        background: dark ? "#252527" : "#f8f9fa",
+      }}>
+        <div>
+          <div style={{ fontSize:fs(12, isDesktop), fontWeight:700, color:th.text, display:"flex", alignItems:"center", gap:6 }}>
+            <IconClockHistory size={13} color={th.textMid} />
+            Activity Log
+          </div>
+          <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:1, fontFamily:"monospace" }}>
+            {loaded ? `${dayActivities.length} event${dayActivities.length === 1 ? "" : "s"}` : "loading…"}
+            {logError && <span style={{ color: "#EF4444", fontWeight: 700 }}> · live data unavailable</span>}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <button onClick={() => shiftDate(-1)} style={{ ...navBtnStyle(th), cursor: "pointer" }}>
+            <IconChevronLeft size={12} color={th.text} />
+          </button>
+          <div style={{
+            fontSize: fs(10, isDesktop), fontWeight: 700, color: th.text, fontFamily: "monospace",
+            minWidth: 92, textAlign: "center",
+          }}>
+            {isToday ? "Today" : dateLabel}
+          </div>
+          <button
+            onClick={() => shiftDate(1)}
+            disabled={isToday}
+            style={{ ...navBtnStyle(th), opacity: isToday ? 0.3 : 1, cursor: isToday ? "default" : "pointer" }}
+          >
+            <IconChevronRight size={12} color={th.text} />
+          </button>
+        </div>
+      </div>
+
+      <div style={{ padding:"0 14px" }}>
+        {!loaded ? (
+          <div style={{ padding: "9px 0" }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{ display:"flex", gap:10, padding:"9px 0", borderBottom: i < 2 ? `1px solid ${th.border}` : "none" }}>
+                <Skeleton width={8} height={8} radius={4} dark={dark} style={{ marginTop:3, flexShrink:0 }} />
+                <div style={{ flex:1 }}>
+                  <Skeleton width={`${60 - i * 10}%`} height={11} dark={dark} style={{ marginBottom:6 }} />
+                  <Skeleton width={`${40 - i * 6}%`} height={9} dark={dark} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : dayActivities.length === 0 ? (
+          <div style={{
+            padding:"24px 0", textAlign:"center",
+            color:th.textSub, fontSize:fs(12, isDesktop),
+          }}>
+            {isToday
+              ? "No activity recorded yet. Activity will appear here as agents work."
+              : "No activity recorded on this day."}
+          </div>
+        ) : (
+          dayActivities.slice(0, 30).map((act, i) => (
+            <ActivityRow
+              key={act.id}
+              act={act}
+              dark={dark}
+              isLast={i === Math.min(dayActivities.length, 30) - 1}
+              isDesktop={isDesktop}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Data Retention — manual cleanup for Activity Log + Attendance
+// ═════════════════════════════════════════════════════════════════════════════
+// Neither adminActivity nor agentTimeLogs has any TTL — both just grow
+// forever. This gives a deliberate, two-step-confirmed way to prune old
+// records on demand. Counts are fetched via an aggregation query
+// (getCountFromServer — no per-document reads billed) so the confirmation
+// step can say exactly what's about to be deleted before it happens, instead
+// of asking for a blind "are you sure?".
+function DataRetentionPanel({ dark, isDesktop }) {
+  const th  = THEME[dark ? "dark" : "light"];
+  const RED = "#EF4444";
+
+  const [includeActivity,   setIncludeActivity]   = useState(true);
+  const [includeAttendance, setIncludeAttendance] = useState(true);
+  const [armedMonths,    setArmedMonths]    = useState(null); // null | 3 | 6 — confirm step
+  const [counts,         setCounts]         = useState(null); // { activity, attendance } | null
+  const [countsLoading,  setCountsLoading]  = useState(false);
+  const [busy,   setBusy]   = useState(false);
+  const [result, setResult] = useState(null);
+  const [error,  setError]  = useState(null);
+
+  const noneSelected = !includeActivity && !includeAttendance;
+
+  const arm = async (months) => {
+    setResult(null);
+    setError(null);
+    setArmedMonths(months);
+    setCounts(null);
+    setCountsLoading(true);
+    const cutoffDate    = monthsAgoDate(months);
+    const cutoffDateStr = getISTDateStr(cutoffDate);
+    const [activityCount, attendanceCount] = await Promise.all([
+      includeActivity   ? countOlderThan("adminActivity", "time", cutoffDate)    : Promise.resolve(0),
+      includeAttendance ? countOlderThan("agentTimeLogs",  "date", cutoffDateStr) : Promise.resolve(0),
+    ]);
+    setCounts({ activity: activityCount, attendance: attendanceCount });
+    setCountsLoading(false);
+  };
+
+  const cancel = () => {
+    setArmedMonths(null);
+    setCounts(null);
+    setCountsLoading(false);
+  };
+
+  const confirmDelete = async () => {
+    setBusy(true);
+    setError(null);
+    const cutoffDate    = monthsAgoDate(armedMonths);
+    const cutoffDateStr = getISTDateStr(cutoffDate);
+    try {
+      const [activityDeleted, attendanceDeleted] = await Promise.all([
+        includeActivity   ? deleteOlderThan("adminActivity", "time", cutoffDate)    : Promise.resolve(0),
+        includeAttendance ? deleteOlderThan("agentTimeLogs",  "date", cutoffDateStr) : Promise.resolve(0),
+      ]);
+      setResult({
+        activity: activityDeleted, attendance: attendanceDeleted, months: armedMonths,
+        includeActivity, includeAttendance,
+      });
+      setArmedMonths(null);
+      setCounts(null);
+    } catch (e) {
+      console.warn("[DataRetentionPanel] delete failed:", e);
+      setError(e.message || "Delete failed — check console / Firestore rules.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const cutoffLabel = (months) => monthsAgoDate(months).toLocaleDateString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+  });
+
+  return (
+    <div style={{
+      background: th.card, border: `1px solid ${th.border}`,
+      borderRadius: 14, overflow: "hidden", marginTop: 14,
+    }}>
+      <div style={{
+        padding: "10px 14px", borderBottom: `1px solid ${th.border}`,
+        background: dark ? "#252527" : "#f8f9fa",
+      }}>
+        <div style={{ fontSize: fs(12, isDesktop), fontWeight: 700, color: th.text, display: "flex", alignItems: "center", gap: 6 }}>
+          <IconTrash size={13} color={th.textMid} />
+          Data Retention
+        </div>
+        <div style={{ fontSize: fs(9, isDesktop), color: th.textSub, marginTop: 1 }}>
+          Permanently remove old records — this can't be undone.
+        </div>
+      </div>
+
+      <div style={{ padding: "12px 14px" }}>
+        {/* Which collections */}
+        <div style={{ display: "flex", gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
+          <label style={{
+            display: "flex", alignItems: "center", gap: 6, fontSize: fs(11, isDesktop),
+            color: th.text, cursor: armedMonths === null ? "pointer" : "default",
+            opacity: armedMonths === null ? 1 : 0.6,
+          }}>
+            <input
+              type="checkbox" checked={includeActivity} disabled={armedMonths !== null}
+              onChange={e => setIncludeActivity(e.target.checked)} style={{ accentColor: SAFFRON }}
+            />
+            Activity Log
+          </label>
+          <label style={{
+            display: "flex", alignItems: "center", gap: 6, fontSize: fs(11, isDesktop),
+            color: th.text, cursor: armedMonths === null ? "pointer" : "default",
+            opacity: armedMonths === null ? 1 : 0.6,
+          }}>
+            <input
+              type="checkbox" checked={includeAttendance} disabled={armedMonths !== null}
+              onChange={e => setIncludeAttendance(e.target.checked)} style={{ accentColor: SAFFRON }}
+            />
+            Daily Attendance
+          </label>
+        </div>
+
+        {/* Threshold buttons */}
+        {armedMonths === null && (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[3, 6].map(months => (
+              <button
+                key={months}
+                onClick={() => arm(months)}
+                disabled={noneSelected}
+                style={{
+                  padding: "7px 12px", borderRadius: 8,
+                  border: `1px solid ${th.border}`,
+                  background: "transparent", color: noneSelected ? th.textSub : th.text,
+                  fontSize: fs(11, isDesktop), fontWeight: 700,
+                  cursor: noneSelected ? "default" : "pointer",
+                  opacity: noneSelected ? 0.5 : 1,
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
+                <IconTrash size={11} color={noneSelected ? th.textSub : RED} />
+                Older than {months} months
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Confirmation step */}
+        {armedMonths !== null && (
+          <div style={{
+            border: `1px solid ${RED}40`, borderRadius: 10, padding: "10px 12px",
+            background: dark ? `${RED}0f` : `${RED}08`,
+          }}>
+            <div style={{ fontSize: fs(11.5, isDesktop), color: th.text, lineHeight: 1.6 }}>
+              {countsLoading ? (
+                "Checking how many records this will affect…"
+              ) : (
+                <>
+                  This will permanently delete{" "}
+                  {includeActivity && (
+                    <b style={{ color: RED }}>
+                      {counts?.activity ?? "—"} activity event{counts?.activity === 1 ? "" : "s"}
+                    </b>
+                  )}
+                  {includeActivity && includeAttendance && " and "}
+                  {includeAttendance && (
+                    <b style={{ color: RED }}>
+                      {counts?.attendance ?? "—"} attendance day{counts?.attendance === 1 ? "" : "s"}
+                    </b>
+                  )}
+                  {" "}older than {cutoffLabel(armedMonths)}. This can't be undone.
+                </>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <button
+                onClick={cancel}
+                disabled={busy}
+                style={{
+                  padding: "7px 14px", borderRadius: 8, border: `1px solid ${th.border}`,
+                  background: "transparent", color: th.text, fontSize: fs(11, isDesktop), fontWeight: 700,
+                  cursor: busy ? "default" : "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={busy || countsLoading}
+                style={{
+                  padding: "7px 14px", borderRadius: 8, border: "none",
+                  background: RED, color: "#fff", fontSize: fs(11, isDesktop), fontWeight: 700,
+                  cursor: (busy || countsLoading) ? "default" : "pointer",
+                  opacity: (busy || countsLoading) ? 0.6 : 1,
+                }}
+              >
+                {busy ? "Deleting…" : "Delete Permanently"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Result / error */}
+        {result && (
+          <div style={{
+            marginTop: 10, padding: "8px 12px", borderRadius: 8,
+            background: `${IND_GREEN}14`, border: `1px solid ${IND_GREEN}40`,
+            fontSize: fs(11, isDesktop), color: th.text,
+          }}>
+            Deleted
+            {result.includeActivity ? ` ${result.activity} activity event${result.activity === 1 ? "" : "s"}` : ""}
+            {result.includeActivity && result.includeAttendance ? " and" : ""}
+            {result.includeAttendance ? ` ${result.attendance} attendance day${result.attendance === 1 ? "" : "s"}` : ""}
+            {" "}older than {result.months} months.
+          </div>
+        )}
+        {error && (
+          <div style={{
+            marginTop: 10, padding: "8px 12px", borderRadius: 8,
+            background: `${RED}14`, border: `1px solid ${RED}40`,
+            fontSize: fs(11, isDesktop), color: RED,
+          }}>
+            {error}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── PRESENCE SORT RANK (module-level constant, not re-created per render) ────
 const STATE_RANK = { online: 0, idle: 1, offline: 2 };
 
@@ -2571,7 +3023,7 @@ export default function AgentsTab({ dark, isDesktop }) {
       </div>
 
       {/* ── NIC-style scrolling ticker ───────────────────────────────── */}
-      <ActivityTicker activities={activities} dark={dark} isDesktop={isDesktop} />
+      <ActivityTicker activities={activities} todayStr={todayStr} dark={dark} isDesktop={isDesktop} />
 
       {/* ── Search + Filter row ──────────────────────────────────────── */}
       {/* Search input */}
@@ -2718,61 +3170,10 @@ export default function AgentsTab({ dark, isDesktop }) {
       </div>
 
       {/* ── Activity Log ─────────────────────────────────────────────── */}
-      <div style={{
-        background:th.card, border:`1px solid ${th.border}`,
-        borderRadius:14, overflow:"hidden", marginTop:14,
-      }}>
-        {/* Header */}
-        <div style={{
-          padding:"10px 14px",
-          borderBottom:`1px solid ${th.border}`,
-          display:"flex", alignItems:"center", justifyContent:"space-between",
-          background: dark ? "#252527" : "#f8f9fa",
-        }}>
-          <div style={{ fontSize:fs(12, isDesktop), fontWeight:700, color:th.text, display:"flex", alignItems:"center", gap:6 }}>
-            <IconClockHistory size={13} color={th.textMid} />
-            Activity Log
-          </div>
-          <div style={{
-            fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace",
-          }}>
-            last {activities.length} events
-          </div>
-        </div>
+      <ActivityLogSection dark={dark} isDesktop={isDesktop} />
 
-        <div style={{ padding:"0 14px" }}>
-          {!activityLoaded ? (
-            <div style={{ padding: "9px 0" }}>
-              {[0, 1, 2].map(i => (
-                <div key={i} style={{ display:"flex", gap:10, padding:"9px 0", borderBottom: i < 2 ? `1px solid ${th.border}` : "none" }}>
-                  <Skeleton width={8} height={8} radius={4} dark={dark} style={{ marginTop:3, flexShrink:0 }} />
-                  <div style={{ flex:1 }}>
-                    <Skeleton width={`${60 - i * 10}%`} height={11} dark={dark} style={{ marginBottom:6 }} />
-                    <Skeleton width={`${40 - i * 6}%`} height={9} dark={dark} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : activities.length === 0 ? (
-            <div style={{
-              padding:"24px 0", textAlign:"center",
-              color:th.textSub, fontSize:fs(12, isDesktop),
-            }}>
-              No activity recorded yet. Activity will appear here as agents work.
-            </div>
-          ) : (
-            activities.slice(0, 15).map((act, i) => (
-              <ActivityRow
-                key={act.id}
-                act={act}
-                dark={dark}
-                isLast={i === Math.min(activities.length, 15) - 1}
-                isDesktop={isDesktop}
-              />
-            ))
-          )}
-        </div>
-      </div>
+      {/* ── Data Retention ───────────────────────────────────────────── */}
+      <DataRetentionPanel dark={dark} isDesktop={isDesktop} />
 
       {/* ── Firestore info footer ─────────────────────────────────────── */}
       <div style={{
