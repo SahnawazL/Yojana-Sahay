@@ -20,12 +20,48 @@
 //   · newUrl must differ from oldUrl
 //   · patched content must differ from original (confirms replacement happened)
 //
-// Patch strategy: String.replace (non-regex) on content after first id match.
-//   → replaces only the first occurrence of oldUrl past the scheme's id line.
+// Patch strategy: safeReplaceUrl() below replaces only a FULL quoted value,
+//   never a raw substring — see the function for why that matters.
 //   → safe even if the same URL appears in another scheme further down.
 //
 // Uses GITHUB_TOKEN + GITHUB_REPO env vars (same as update-schemes-meta.js).
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ── Safe, drift-tolerant, non-substring URL replacement ──────────────────────
+// See batch-patch-urls.js for the full writeup. In short: a raw
+// `.replace(oldUrl, newUrl)` substring search can find a bare domain
+// *inside* an already-fixed "https://domain" value and stack another
+// "https://" on top. This only ever replaces a FULL quoted value.
+function safeReplaceUrl(text, oldUrl, newUrl) {
+  const bare = oldUrl.replace(/^https?:\/\//, "");
+  const candidates = [...new Set([
+    `"${oldUrl}"`,
+    `"https://${bare}"`,
+    `"http://${bare}"`,
+  ])];
+
+  for (const quotedOld of candidates) {
+    const idx = text.indexOf(quotedOld);
+    if (idx !== -1) {
+      const quotedNew = `"${newUrl}"`;
+      if (quotedOld === quotedNew) {
+        return { text, changed: false, alreadyCorrect: true };
+      }
+      return {
+        text: text.slice(0, idx) + quotedNew + text.slice(idx + quotedOld.length),
+        changed: true,
+        alreadyCorrect: false,
+      };
+    }
+  }
+
+  if (text.includes(`"${newUrl}"`)) {
+    return { text, changed: false, alreadyCorrect: true };
+  }
+
+  return { text, changed: false, alreadyCorrect: false };
+}
+
 
 export default async function handler(req, res) {
 
@@ -96,24 +132,31 @@ export default async function handler(req, res) {
       });
     }
 
-    // ── Step 3: Verify oldUrl appears after the scheme id ─────────────────
+    // ── Step 3+4: Locate the current value near the scheme id and patch ────
+    // Never a raw substring replace — see safeReplaceUrl() above.
     const afterId = content.slice(idPos);
+    const pass = safeReplaceUrl(afterId, oldUrl, newUrl);
 
-    if (!afterId.includes(oldUrl)) {
+    if (!pass.changed) {
+      if (pass.alreadyCorrect) {
+        // A previous commit already applied this exact fix — the caller
+        // just sent a stale oldUrl. Nothing to do, and nothing broken.
+        return res.status(200).json({
+          success: true,
+          sha: null,
+          commitUrl: null,
+          note: "Already up to date — no commit needed.",
+        });
+      }
       return res.status(422).json({
         error:
-          `Old URL "${oldUrl}" not found near scheme "${id}" in ${file}. ` +
-          `The file may have been updated already, or the stored URL differs from what the verifier saw.`,
+          `Old URL "${oldUrl}" not found near scheme "${id}" in ${file}, and the file doesn't already ` +
+          `contain the new URL either. The stored value has drifted from what was reported — re-scan this scheme and try again.`,
       });
     }
 
-    // ── Step 4: Patch ─────────────────────────────────────────────────────
-    // String.replace (non-regex) replaces only the FIRST match — which is the
-    // apply.en value for this scheme, not any other scheme further down the file
-    // that might share the same URL.
-    const beforeId      = content.slice(0, idPos);
-    const patchedAfter  = afterId.replace(oldUrl, newUrl);
-    const patchedContent = beforeId + patchedAfter;
+    const beforeId       = content.slice(0, idPos);
+    const patchedContent = beforeId + pass.text;
 
     // Sanity check: confirm something actually changed
     if (patchedContent === content) {

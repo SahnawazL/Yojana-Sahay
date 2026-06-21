@@ -27,15 +27,73 @@
 //   · oldUrl must appear in the file after the scheme id
 //   · patched content must differ from original
 //
-// Patch strategy: identical to patch-scheme-url.js — String.replace
-// (non-regex) on content after the scheme's id, replacing only the first
-// occurrence past that point. Patches for the same file are applied
-// SEQUENTIALLY against the running `content` string, so each patch sees the
-// result of the previous one (positions naturally shift, but indexOf() is
-// re-run fresh each time so this is safe).
+// Patch strategy: safeReplaceUrl() below replaces only a FULL quoted value
+// — never a raw substring — so a bare oldUrl can never get matched *inside*
+// an already-https:// value and stack another "https://" on top (the
+// "https://https://" corruption bug). If the file has already drifted past
+// what the client thinks oldUrl is (e.g. a stale tab re-sending a fix that
+// already landed), and the file already contains newUrl, the patch is
+// reported as an already-correct success instead of being forced through.
+// Patches for the same file are applied SEQUENTIALLY against the running
+// `content` string, so each patch sees the result of the previous one.
 //
 // Uses GITHUB_TOKEN + GITHUB_REPO env vars (same as patch-scheme-url.js).
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ── Safe, drift-tolerant, non-substring URL replacement ──────────────────────
+// THE BUG THIS FIXES:
+//   The old code tried an exact `"oldUrl"` match first, but if the file's
+//   value had already drifted (e.g. a previous successful patch already
+//   turned bare "dkbssy.cg.gov.in" into "https://dkbssy.cg.gov.in", but the
+//   browser tab was stale and re-sent the original bare oldUrl), the exact
+//   match failed and the code fell back to `afterId.replace(oldUrl, newUrl)`
+//   — a raw SUBSTRING search. Since "dkbssy.cg.gov.in" is literally a
+//   substring of "https://dkbssy.cg.gov.in", that fallback found it INSIDE
+//   the already-correct value and replaced it in place, stacking another
+//   "https://" in front: "https://https://dkbssy.cg.gov.in". Every repeated
+//   "fix" on a stale page added one more.
+//
+// THE FIX:
+//   Only ever replace a FULL quoted value, never a substring. We try the
+//   value exactly as given, then the same bare domain wrapped in https:// /
+//   http:// (covers protocol drift). If none of those match but the file
+//   ALREADY contains the new URL, this scheme was already fixed by an
+//   earlier commit — report it as already-correct instead of corrupting it.
+//   If nothing matches at all, we fail loudly instead of guessing.
+function safeReplaceUrl(text, oldUrl, newUrl) {
+  const bare = oldUrl.replace(/^https?:\/\//, "");
+  const candidates = [...new Set([
+    `"${oldUrl}"`,
+    `"https://${bare}"`,
+    `"http://${bare}"`,
+  ])];
+
+  for (const quotedOld of candidates) {
+    const idx = text.indexOf(quotedOld);
+    if (idx !== -1) {
+      const quotedNew = `"${newUrl}"`;
+      if (quotedOld === quotedNew) {
+        // The matched value is already byte-identical to the target — a
+        // stale duplicate click, not a real fix. Report as already-correct
+        // instead of doing a same-value "replace" that the caller's
+        // no-real-diff check would otherwise misreport as an error.
+        return { text, changed: false, alreadyCorrect: true };
+      }
+      return {
+        text: text.slice(0, idx) + quotedNew + text.slice(idx + quotedOld.length),
+        changed: true,
+        alreadyCorrect: false,
+      };
+    }
+  }
+
+  if (text.includes(`"${newUrl}"`)) {
+    return { text, changed: false, alreadyCorrect: true };
+  }
+
+  return { text, changed: false, alreadyCorrect: false };
+}
+
 
 export default async function handler(req, res) {
 
@@ -120,7 +178,8 @@ export default async function handler(req, res) {
       const sha      = fileInfo.sha;
       let content    = Buffer.from(fileInfo.content, "base64").toString("utf8");
 
-      const applied = []; // patches that actually changed `content`
+      const applied = []; // patches that actually changed `content` (real diffs)
+      const noops   = [];  // patches already correct in the file — stale re-fix
 
       // Apply every patch for this file sequentially against the running content.
       for (const { id, oldUrl, newUrl } of filePatches) {
@@ -138,37 +197,30 @@ export default async function handler(req, res) {
         const beforeId = content.slice(0, idPos);
         const afterId  = content.slice(idPos);
 
-        // ── EXACT-VALUE MATCHING ────────────────────────────────────────────
-        // BUG PREVENTION: String.replace(oldUrl, newUrl) does substring matching.
-        // If oldUrl = "udyami.bihar.gov.in" but file has "https://udyami.bihar.gov.in",
-        // replace finds the bare domain *inside* the https:// URL and turns it into
-        // "https://https://udyami.bihar.gov.in" — stacking https:// on every patch run.
-        //
-        // Fix: prefer matching the QUOTED exact value ("oldUrl") which won't
-        // substring-match inside a longer URL. Fall back to raw replace only if
-        // the quoted form isn't found (handles edge cases like unquoted values).
-        const quotedOld = `"${oldUrl}"`;
-        const quotedNew = `"${newUrl}"`;
-        const useQuoted = afterId.includes(quotedOld);
+        // Pass 1 → apply.en. Never does a raw substring replace — see
+        // safeReplaceUrl() above for why that corrupted URLs.
+        const pass1 = safeReplaceUrl(afterId, oldUrl, newUrl);
 
-        if (!useQuoted && !afterId.includes(oldUrl)) {
-          results.push({
-            id, file, success: false,
-            error: `Old URL "${oldUrl}" not found near scheme "${id}" in ${file}. The file may have changed already, or the stored URL differs from what the verifier saw.`,
-          });
+        if (!pass1.changed) {
+          if (pass1.alreadyCorrect) {
+            // A previous commit already fixed this — the client just sent a
+            // stale oldUrl. Nothing to patch, but it's not a failure.
+            noops.push({ id, oldUrl, newUrl });
+          } else {
+            results.push({
+              id, file, success: false,
+              error: `Old URL "${oldUrl}" not found near scheme "${id}" in ${file}, and the file doesn't already contain the new URL either. The stored value has drifted from what the verifier saw — re-scan this scheme and try again.`,
+            });
+          }
           continue;
         }
 
-        // First pass → apply.en  |  Second pass → apply.hi (same-value match)
-        // Quoted form prevents partial-string corruption; raw is safe fallback.
-        let patchedAfter = useQuoted
-          ? afterId.replace(quotedOld, quotedNew)           // → apply.en (exact)
-          : afterId.replace(oldUrl, newUrl);                 // → apply.en (raw fallback)
-        // apply.hi pass: only needed when hi has the identical value as oldUrl.
-        // Always use raw here since hi values are often bare domains without quotes
-        // in a separate field, and the quoted en was already consumed above.
-        patchedAfter = patchedAfter.replace(quotedOld, quotedNew); // → apply.hi (exact)
-        const patchedContent = beforeId + patchedAfter;
+        // Pass 2 → apply.hi, only if it still holds the old value too
+        // (most schemes mirror the same URL in en/hi). Same safe matching.
+        const pass2 = safeReplaceUrl(pass1.text, oldUrl, newUrl);
+        const finalAfter = pass2.changed ? pass2.text : pass1.text;
+
+        const patchedContent = beforeId + finalAfter;
 
         if (patchedContent === content) {
           results.push({
@@ -181,6 +233,13 @@ export default async function handler(req, res) {
         content = patchedContent;
         applied.push({ id, oldUrl, newUrl });
       }
+
+      // Stale re-fixes that were already correct: report as success so the
+      // frontend clears them from "Known Dead Links" too, but they don't
+      // need a commit since nothing in the file actually changed for them.
+      noops.forEach(n =>
+        results.push({ id: n.id, file, success: true, sha: null, commitUrl: null })
+      );
 
       // Nothing in this file actually changed → skip the commit entirely.
       if (applied.length === 0) continue;
