@@ -58,6 +58,7 @@ const TAB_LABELS = {
   analytics:"Analytics", activity:"Activity", usage:"Usage",
   schemes:"Schemes", reports:"Reports", cleanup:"Cleanup",
   verify:"Verify", export:"Export", agents:"Agents",
+  aichat:"AI Chat",
 };
 
 // ─── ACTIVITY TYPE → COLOR ────────────────────────────────────────────────────
@@ -203,7 +204,7 @@ const AI_AGENTS = [
     name:        "Groq AI",
     role:        "YojanaSahay AI Chat",
     type:        "ai",
-    allowedTabs: ["verify", "reports"],
+    allowedTabs: ["aichat"],
     model:       "llama-3.3-70b-versatile",
     firestoreKey:"groqLastActive",
     sessionStart: null,
@@ -213,7 +214,7 @@ const AI_AGENTS = [
     name:        "Tavily Extract",
     role:        "YojanaSahay AI Chat · Search",
     type:        "ai",
-    allowedTabs: ["verify"],
+    allowedTabs: ["aichat"],
     model:       "tavily-extract-v2",
     firestoreKey:"tavilyLastActive",
     sessionStart: null,
