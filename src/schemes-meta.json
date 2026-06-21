@@ -1760,16 +1760,22 @@
     "confidence": 0
   },
   "tripura_cm_krishak_samridhi": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-21T14:59:42.332Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "tripura_mukhyamantri_swasthya": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-21T14:59:42.332Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "tripura_cm_scholarship": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-21T14:59:42.332Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "jk_kisan_samman": {
     "lastVerified": "2026-06-19T12:49:02.964Z",
