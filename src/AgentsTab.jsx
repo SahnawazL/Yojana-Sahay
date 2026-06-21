@@ -75,6 +75,12 @@ const ACT_COLORS = {
   update:  "#F97316",
 };
 
+// ─── AGENT IDENTITY PALETTE ───────────────────────────────────────────────────
+// Curated, not random hue-from-hash — reuses the same accent colors already
+// used for activity types elsewhere in this file, so an agent's avatar tint
+// always reads as "one of ours" rather than an arbitrary rainbow.
+const AVATAR_PALETTE = [SAFFRON, NAVY, IND_GREEN, VIOLET, CYAN, "#EC4899", "#F97316", "#3B82F6"];
+
 // ─── ICONS (inline SVG, stroke-based, inherits color via currentColor) ───────
 function IconUsers({ size = 14, color = "currentColor", style }) {
   return (
@@ -196,6 +202,26 @@ function IconRadar({ size = 14, color = "currentColor", style }) {
   );
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Skeleton — shimmering loading placeholder
+// Used wherever an empty Firestore listener result is ambiguous ("zero docs"
+// vs "haven't heard back yet"), so the first paint doesn't flash a false
+// "No agents yet" / "No notices" before the real snapshot arrives.
+// ═════════════════════════════════════════════════════════════════════════════
+function Skeleton({ width = "100%", height = 12, radius = 4, dark, style }) {
+  return (
+    <div style={{
+      width, height, borderRadius: radius,
+      background: dark
+        ? "linear-gradient(90deg, #232325 25%, #2e2e31 37%, #232325 63%)"
+        : "linear-gradient(90deg, #ececec 25%, #f6f6f6 37%, #ececec 63%)",
+      backgroundSize: "400% 100%",
+      animation: "agnt-shimmer 1.4s ease-in-out infinite",
+      ...style,
+    }}/>
+  );
+}
+
 // ─── STATIC AI AGENTS ─────────────────────────────────────────────────────────
 // Human admins are tracked dynamically via Firestore. AI agents are defined here.
 const AI_AGENTS = [
@@ -296,6 +322,15 @@ function getPresenceState(lastSeen, type = "human") {
   return "offline";
 }
 
+// ─── DESKTOP TYPE SCALE ───────────────────────────────────────────────────────
+// Mobile font sizes were tuned for a ~375px viewport; on a desktop monitor the
+// same px values read as cramped. fs() nudges sizes up ~12% on desktop only,
+// rounded to the nearest 0.5px so the existing fractional scale (9.5, 11.5...)
+// stays tidy. Pass the mobile-first size as authored everywhere else in the file.
+function fs(px, isDesktop) {
+  return isDesktop ? Math.round(px * 1.125 * 2) / 2 : px;
+}
+
 // ─── ANOMALY DETECTION ────────────────────────────────────────────────────────
 const ANOMALY_AI_SILENT_MINS = 120;        // AI silent for 2h+ → red flag
 const ANOMALY_OVERTIME_S     = 10 * 3600; // human >10h today  → amber flag
@@ -347,6 +382,22 @@ function activatable(onActivate, label) {
 // ─── Stable identity key for an agent (human doc id === uid; AI uses its id) ──
 function agentKey(ag) {
   return ag.uid || ag.id;
+}
+
+// ─── Deterministic avatar color — same agent always gets the same palette
+// slot (keyed on uid/id, falling back to name), so the roster reads as a set
+// of distinct identities at a glance instead of identical gray squares. ──────
+function hashStr(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h << 5) - h + str.charCodeAt(i);
+    h |= 0; // force 32-bit int
+  }
+  return Math.abs(h);
+}
+function avatarColorFor(agent) {
+  const key = agentKey(agent) || agent.name || "?";
+  return AVATAR_PALETTE[hashStr(String(key)) % AVATAR_PALETTE.length];
 }
 
 // ─── ALERT CHIME — two-tone beep via Web Audio API, no external asset ────────
@@ -677,7 +728,7 @@ function ActivityTicker({ activities, dark }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Government/College-style Notice Board
 // ═════════════════════════════════════════════════════════════════════════════
-function NoticeBoard({ activities, humanAgents, dark }) {
+function NoticeBoard({ activities, humanAgents, dark, isDesktop, loading }) {
   const th = THEME[dark ? "dark" : "light"];
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -716,11 +767,11 @@ function NoticeBoard({ activities, humanAgents, dark }) {
 
   return (
     <div style={{
-      marginTop: 14,
       border:    `1px solid ${th.border}`,
       borderRadius: 13,
       overflow:  "hidden",
       background: th.card,
+      height: "100%",
     }}>
       {/* Board header — neutral instrument-panel bar, no gradient/tricolor/pulse */}
       <div style={{
@@ -731,13 +782,13 @@ function NoticeBoard({ activities, humanAgents, dark }) {
       }}>
         <IconMegaphone size={12} color={th.textSub} style={{ flexShrink:0 }} />
         <span style={{
-          fontFamily:"monospace", fontSize: 9, fontWeight: 800,
+          fontFamily:"monospace", fontSize: fs(9, isDesktop), fontWeight: 800,
           color: th.textMid, letterSpacing: 1.8, textTransform: "uppercase",
         }}>
           [ NOTICE_BOARD ]
         </span>
         <span style={{
-          marginLeft:"auto", fontSize:9, color: th.textSub, fontFamily:"monospace",
+          marginLeft:"auto", fontSize:fs(9, isDesktop), color: th.textSub, fontFamily:"monospace",
         }}>
           {notices.length} active
         </span>
@@ -747,12 +798,21 @@ function NoticeBoard({ activities, humanAgents, dark }) {
       <div style={{
         background: th.card,
         padding: "8px 0",
-        minHeight: 80,
+        minHeight: isDesktop ? 100 : 80,
       }}>
-        {notices.length === 0 ? (
+        {loading ? (
+          <div style={{ padding: "2px 14px" }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{ display:"flex", gap:10, padding:"6px 0" }}>
+                <Skeleton width={6} height={6} radius={1.5} dark={dark} style={{ marginTop:5, flexShrink:0 }} />
+                <Skeleton width={`${78 - i * 14}%`} height={11} dark={dark} />
+              </div>
+            ))}
+          </div>
+        ) : notices.length === 0 ? (
           <div style={{
             padding:"20px 14px", textAlign:"center",
-            color: th.textSub, fontSize: 11,
+            color: th.textSub, fontSize: fs(11, isDesktop),
           }}>
             No notices at this time. Activity will appear here as agents work.
           </div>
@@ -783,7 +843,7 @@ function NoticeBoard({ activities, humanAgents, dark }) {
               {/* Content */}
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{
-                  fontSize: 11,
+                  fontSize: fs(11, isDesktop),
                   fontWeight: i === activeIdx ? 700 : 400,
                   color: i === activeIdx ? th.text : th.textMid,
                   lineHeight: 1.45,
@@ -794,7 +854,7 @@ function NoticeBoard({ activities, humanAgents, dark }) {
                 </div>
                 {n.sub && (
                   <div style={{
-                    fontSize:9, color: th.textSub, fontFamily:"monospace", marginTop:1,
+                    fontSize:fs(9, isDesktop), color: th.textSub, fontFamily:"monospace", marginTop:1,
                   }}>
                     {n.sub}
                   </div>
@@ -807,13 +867,13 @@ function NoticeBoard({ activities, humanAgents, dark }) {
                   <span style={{
                     padding:"1px 5px", borderRadius:3,
                     background: `${n.color}1f`, color:n.color,
-                    fontSize:8, fontWeight:800, fontFamily:"monospace",
+                    fontSize:fs(8, isDesktop), fontWeight:800, fontFamily:"monospace",
                     letterSpacing:0.5,
                   }}>
                     [NEW]
                   </span>
                 )}
-                <span style={{ fontSize:9, color:th.textSub, fontFamily:"monospace" }}>
+                <span style={{ fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace" }}>
                   {timeAgo(n.time)}
                 </span>
               </div>
@@ -991,6 +1051,7 @@ function SectionFrame({ label, sublabel, color, dark, children }) {
 // ═════════════════════════════════════════════════════════════════════════════
 function AgentCard({ agent, dark }) {
   const th      = THEME[dark ? "dark" : "light"];
+  const [hovered, setHovered] = useState(false);
   const state   = getPresenceState(agent.lastSeen, agent.type);
   const online  = state === "online";
   const idle    = state === "idle";
@@ -1003,27 +1064,41 @@ function AgentCard({ agent, dark }) {
                     : idle   ? `${IDLE_AMBER}55`
                     : th.border;
   const stateLabel  = online ? "ONLINE" : idle ? "IDLE" : "OFFLINE";
+  const AVC         = avatarColorFor(agent); // deterministic per-agent identity color
+
+  // Presence glow (left edge) and hover lift (drop shadow) are independent
+  // and can stack — a present + hovered card shows both at once.
+  const liftShadow = hovered
+    ? (dark ? "0 10px 22px -10px rgba(0,0,0,0.55)" : "0 10px 22px -12px rgba(0,0,0,0.22)")
+    : null;
+  const glowShadow = present ? `-6px 0 14px -10px ${SC}` : null;
+  const combinedShadow = [liftShadow, glowShadow].filter(Boolean).join(", ") || "none";
 
   return (
-    <div style={{
-      background:  th.card,
-      border:      `1px solid ${th.border}`,
-      borderLeft:  `2px solid ${present ? SC : th.border}`,
-      borderRadius: 8,
-      padding:     "10px 12px",
-      position:    "relative",
-      boxShadow:   present ? `-6px 0 14px -10px ${SC}` : "none",
-    }}>
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background:  th.card,
+        border:      `1px solid ${th.border}`,
+        borderLeft:  `2px solid ${present ? SC : th.border}`,
+        borderRadius: 8,
+        padding:     "10px 12px",
+        position:    "relative",
+        boxShadow:   combinedShadow,
+        transform:   hovered ? "translateY(-3px)" : "translateY(0)",
+        transition:  "transform 0.18s ease, box-shadow 0.18s ease",
+      }}>
       {/* ── Header ── */}
       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-        {/* Avatar + status dot — small square, static */}
+        {/* Avatar + status dot — tinted with the agent's identity color */}
         <div style={{ position:"relative", flexShrink:0 }}>
           <div style={{
             width:26, height:26, borderRadius:5,
-            background: dark ? "#252527" : "#f0f0f0",
-            border:`1px solid ${th.border}`,
+            background: `${AVC}1f`,
+            border:`1px solid ${AVC}55`,
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:11, fontWeight:700, fontFamily:"monospace", color:th.textMid,
+            fontSize:11, fontWeight:700, fontFamily:"monospace", color:AVC,
           }}>
             {agent.avatar || (agent.name||"?").charAt(0).toUpperCase()}
           </div>
@@ -1308,6 +1383,7 @@ function StatCard({ label, value, color, Icon, tooltip, dark }) {
   const [tipOpen, setTipOpen] = useState(false);
   return (
     <div
+      {...activatable(() => setTipOpen(v => !v), tooltip ? `${label}: ${value} — ${tooltip}` : `${label}: ${value}`)}
       style={{
         background: th.card,
         border: `1px solid ${th.border}`,
@@ -1319,6 +1395,8 @@ function StatCard({ label, value, color, Icon, tooltip, dark }) {
       onClick={() => setTipOpen(v => !v)}
       onMouseEnter={() => setTipOpen(true)}
       onMouseLeave={() => setTipOpen(false)}
+      onFocus={() => setTipOpen(true)}
+      onBlur={() => setTipOpen(false)}
     >
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ fontSize:22, fontWeight:800, color:th.text, lineHeight:1.2 }}>
@@ -1455,19 +1533,28 @@ function navBtnStyle(th) {
   };
 }
 
-function AttendanceSection({ humanAgents, dark }) {
+function AttendanceSection({ humanAgents, dark, isDesktop, loading }) {
   const th = THEME[dark ? "dark" : "light"];
   const todayStr = getISTDateStr();
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [logs, setLogs] = useState([]);
+  const [logsError, setLogsError] = useState(false);
 
   const isToday = selectedDate === todayStr;
 
   useEffect(() => {
     const q = query(collection(db, "agentTimeLogs"), where("date", "==", selectedDate));
-    const unsub = onSnapshot(q, snap => {
-      setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    const unsub = onSnapshot(
+      q,
+      snap => {
+        setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLogsError(false);
+      },
+      err => {
+        console.warn("[AttendanceSection] agentTimeLogs listener failed:", err);
+        setLogsError(true);
+      }
+    );
     return unsub;
   }, [selectedDate]);
 
@@ -1498,8 +1585,8 @@ function AttendanceSection({ humanAgents, dark }) {
 
   return (
     <div style={{
-      marginTop: 14, background: th.card, border: `1px solid ${th.border}`,
-      borderRadius: 14, overflow: "hidden",
+      background: th.card, border: `1px solid ${th.border}`,
+      borderRadius: 14, overflow: "hidden", height: "100%",
     }}>
       <div style={{
         padding: "10px 14px", borderBottom: `1px solid ${th.border}`,
@@ -1507,11 +1594,12 @@ function AttendanceSection({ humanAgents, dark }) {
         background: dark ? "#252527" : "#f8f9fa",
       }}>
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: th.text }}>
+          <div style={{ fontSize: fs(12, isDesktop), fontWeight: 700, color: th.text }}>
             Daily Attendance
           </div>
-          <div style={{ fontSize: 9, color: th.textSub, marginTop: 1 }}>
+          <div style={{ fontSize: fs(9, isDesktop), color: th.textSub, marginTop: 1 }}>
             Auto-tracked · 8h target · resets at midnight IST
+            {logsError && <span style={{ color: "#EF4444", fontWeight: 700 }}> · live data unavailable</span>}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -1519,7 +1607,7 @@ function AttendanceSection({ humanAgents, dark }) {
             <IconChevronLeft size={12} color={th.text} />
           </button>
           <div style={{
-            fontSize: 10, fontWeight: 700, color: th.text, fontFamily: "monospace",
+            fontSize: fs(10, isDesktop), fontWeight: 700, color: th.text, fontFamily: "monospace",
             minWidth: 92, textAlign: "center",
           }}>
             {isToday ? "Today" : dateLabel}
@@ -1535,8 +1623,20 @@ function AttendanceSection({ humanAgents, dark }) {
       </div>
 
       <div style={{ padding: "6px 14px 12px" }}>
-        {rows.length === 0 ? (
-          <div style={{ padding: "20px 0", textAlign: "center", color: th.textSub, fontSize: 11 }}>
+        {loading ? (
+          <div>
+            {[0, 1].map(i => (
+              <div key={i} style={{ padding: "9px 0", borderBottom: `1px solid ${th.border}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <Skeleton width={90} height={11} dark={dark} />
+                  <Skeleton width={50} height={11} dark={dark} />
+                </div>
+                <Skeleton width="100%" height={5} radius={3} dark={dark} />
+              </div>
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <div style={{ padding: "20px 0", textAlign: "center", color: th.textSub, fontSize: fs(11, isDesktop) }}>
             No agents yet.
           </div>
         ) : rows.map(r => {
@@ -1547,16 +1647,16 @@ function AttendanceSection({ humanAgents, dark }) {
           return (
             <div key={r.uid} style={{ padding: "9px 0", borderBottom: `1px solid ${th.border}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: th.text }}>{r.name}</div>
+                <div style={{ fontSize: fs(11.5, isDesktop), fontWeight: 700, color: th.text }}>{r.name}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{
-                    fontSize: 11, fontWeight: 800, fontFamily: "monospace",
+                    fontSize: fs(11, isDesktop), fontWeight: 800, fontFamily: "monospace",
                     color: complete ? IND_GREEN : th.text,
                   }}>
                     {fmtHM(r.seconds)}
                   </span>
                   <span style={{
-                    fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 5,
+                    fontSize: fs(8, isDesktop), fontWeight: 700, padding: "2px 6px", borderRadius: 5,
                     background: complete ? `${IND_GREEN}18` : `${SAFFRON}18`,
                     color: complete ? IND_GREEN : SAFFRON,
                   }}>
@@ -1572,7 +1672,7 @@ function AttendanceSection({ humanAgents, dark }) {
                 }} />
               </div>
               {(inAt || lastAt) && (
-                <div style={{ fontSize: 8.5, color: th.textSub, fontFamily: "monospace", marginTop: 4 }}>
+                <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, fontFamily: "monospace", marginTop: 4 }}>
                   {inAt && <>in {inAt}{" "}</>}
                   {lastAt && <>· last active {lastAt}</>}
                 </div>
@@ -1641,6 +1741,39 @@ function AnomalyToast({ toast, onDismiss, dark, isDesktop }) {
           width: shrink ? "0%" : "100%",
           transition: "width 7.8s linear",
         }}/>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Connection Error Banner — surfaces Firestore listener failures
+// (permission errors, dropped connections) instead of letting them fail
+// silently into what looks like "everyone's offline". onSnapshot retries
+// automatically in the background, so this is informational, not actionable.
+// ═════════════════════════════════════════════════════════════════════════════
+function ConnErrorBanner({ errors, dark }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const count = Object.keys(errors).length;
+  if (count === 0) return null;
+  const RED = "#EF4444";
+  return (
+    <div style={{
+      marginBottom: 14,
+      border: `1.5px solid ${RED}55`,
+      borderRadius: 12,
+      padding: "9px 12px",
+      display: "flex", alignItems: "center", gap: 8,
+      background: dark ? `${RED}10` : `${RED}0a`,
+    }}>
+      <IconAlert size={14} color={RED} style={{ flexShrink:0 }} />
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:11.5, fontWeight:800, color:RED }}>
+          Live data unavailable
+        </div>
+        <div style={{ fontSize:9, color:th.textSub, fontFamily:"monospace", marginTop:1 }}>
+          {count} feed{count > 1 ? "s" : ""} disconnected · reconnecting automatically
+        </div>
       </div>
     </div>
   );
@@ -1761,6 +1894,28 @@ export default function AgentsTab({ dark, isDesktop }) {
   const [search,      setSearch]      = useState("");
   const [, forceRender]               = useState(0); // 30-s tick
 
+  // ── Live-data health: per-listener errors + first-payload flags ──────────
+  // Firestore's onSnapshot fails silently by default (no error callback means
+  // a permissions/network drop just looks like "zero data"). connErrors keys
+  // a listener name to its latest error so the banner can say *something* is
+  // wrong without claiming to know which; *Loaded flags gate the "no X yet"
+  // empty states so a slow first payload doesn't flash a false-empty message.
+  const [connErrors,     setConnErrors]     = useState({});
+  const [presenceLoaded, setPresenceLoaded] = useState(false);
+  const [activityLoaded, setActivityLoaded] = useState(false);
+
+  const setListenerError = useCallback((source, err) => {
+    setConnErrors(prev => {
+      if (!err) {
+        if (!(source in prev)) return prev; // no-op, avoids an extra render
+        const next = { ...prev };
+        delete next[source];
+        return next;
+      }
+      return { ...prev, [source]: err.message || String(err) };
+    });
+  }, []);
+
   // ── Proactive anomaly alerts: toast queue, mute pref, desktop-notif perm ──
   const [toasts,          setToasts]          = useState([]);
   const [muted,           setMuted]           = useState(() => {
@@ -1805,38 +1960,74 @@ export default function AgentsTab({ dark, isDesktop }) {
 
   // ── Listen: adminPresence → human agents ──────────────────────────────────
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "adminPresence"), snap => {
-      setHumanAgents(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    const unsub = onSnapshot(
+      collection(db, "adminPresence"),
+      snap => {
+        setHumanAgents(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setPresenceLoaded(true);
+        setListenerError("presence", null);
+      },
+      err => {
+        console.warn("[AgentsTab] adminPresence listener failed:", err);
+        setPresenceLoaded(true); // stop showing skeletons — show the error banner instead
+        setListenerError("presence", err);
+      }
+    );
     return unsub;
-  }, []);
+  }, [setListenerError]);
 
   // ── Listen: adminMeta/aiStatus → AI agent last-active timestamps ──────────
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "adminMeta", "aiStatus"), snap => {
-      if (snap.exists()) setAiStatus(snap.data());
-    });
+    const unsub = onSnapshot(
+      doc(db, "adminMeta", "aiStatus"),
+      snap => {
+        if (snap.exists()) setAiStatus(snap.data());
+        setListenerError("aiStatus", null);
+      },
+      err => {
+        console.warn("[AgentsTab] aiStatus listener failed:", err);
+        setListenerError("aiStatus", err);
+      }
+    );
     return unsub;
-  }, []);
+  }, [setListenerError]);
 
   // ── Listen: adminActivity (last 30 events) ────────────────────────────────
   useEffect(() => {
     const q    = query(collection(db, "adminActivity"), orderBy("time","desc"), limit(30));
-    const unsub = onSnapshot(q, snap => {
-      setActivities(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    const unsub = onSnapshot(
+      q,
+      snap => {
+        setActivities(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setActivityLoaded(true);
+        setListenerError("activity", null);
+      },
+      err => {
+        console.warn("[AgentsTab] adminActivity listener failed:", err);
+        setActivityLoaded(true);
+        setListenerError("activity", err);
+      }
+    );
     return unsub;
-  }, []);
+  }, [setListenerError]);
 
   // ── Listen: today's time logs (for anomaly detection) ────────────────────
   useEffect(() => {
     const todayStr = getISTDateStr();
     const q = query(collection(db, "agentTimeLogs"), where("date", "==", todayStr));
-    const unsub = onSnapshot(q, snap => {
-      setTodayLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    const unsub = onSnapshot(
+      q,
+      snap => {
+        setTodayLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setListenerError("timeLogs", null);
+      },
+      err => {
+        console.warn("[AgentsTab] agentTimeLogs listener failed:", err);
+        setListenerError("timeLogs", err);
+      }
+    );
     return unsub;
-  }, []);
+  }, [setListenerError]);
 
   // ── Enrich AI agents with live status + health stats ─────────────────────
   const todayStr  = getISTDateStr(); // stable within a day; 30s tick keeps renders fresh
@@ -2008,7 +2199,7 @@ export default function AgentsTab({ dark, isDesktop }) {
   const renderAgentGrid = (list) => (
     <div style={{
       display:"grid",
-      gridTemplateColumns: isDesktop ? "repeat(3,1fr)" : "1fr",
+      gridTemplateColumns: isDesktop ? "repeat(auto-fill, minmax(280px, 1fr))" : "1fr",
       gap:10,
     }}>
       {list.map(ag => {
@@ -2041,6 +2232,7 @@ export default function AgentsTab({ dark, isDesktop }) {
         @keyframes agnt-scan     { 0%{transform:translateX(-100%)} 100%{transform:translateX(600%)} }
         @keyframes agnt-fade-in  { 0%{opacity:0;transform:translateY(3px)} 100%{opacity:1;transform:translateY(0)} }
         @keyframes agnt-toast-in { 0%{opacity:0;transform:translateY(-8px) scale(0.97)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes agnt-shimmer  { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
       `}</style>
 
       {/* ── Proactive alert toasts — fixed overlay, newest at bottom of stack ── */}
@@ -2078,6 +2270,9 @@ export default function AgentsTab({ dark, isDesktop }) {
           </div>
         </div>
       </div>
+
+      {/* ── Live-data connection banner — surfaces listener failures ────── */}
+      <ConnErrorBanner errors={connErrors} dark={dark} />
 
       {/* ── Active anomaly banner — persistent, not just a toast ────────── */}
       <AnomalyBanner
@@ -2240,11 +2435,15 @@ export default function AgentsTab({ dark, isDesktop }) {
         </>
       )}
 
-      {/* ── Daily Attendance (8h target — salary tracking) ─────────────── */}
-      <AttendanceSection humanAgents={humanAgents} dark={dark} />
-
-      {/* ── Government Notice Board ───────────────────────────────────── */}
-      <NoticeBoard activities={activities} humanAgents={humanAgents} dark={dark} />
+      {/* ── Attendance + Notice Board — two-column row on desktop ───────── */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isDesktop ? "1fr 1fr" : "1fr",
+        gap: 14, marginTop: 14,
+      }}>
+        <AttendanceSection humanAgents={humanAgents} dark={dark} isDesktop={isDesktop} loading={!presenceLoaded} />
+        <NoticeBoard activities={activities} humanAgents={humanAgents} dark={dark} isDesktop={isDesktop} loading={!presenceLoaded || !activityLoaded} />
+      </div>
 
       {/* ── Activity Log ─────────────────────────────────────────────── */}
       <div style={{
@@ -2270,7 +2469,19 @@ export default function AgentsTab({ dark, isDesktop }) {
         </div>
 
         <div style={{ padding:"0 14px" }}>
-          {activities.length === 0 ? (
+          {!activityLoaded ? (
+            <div style={{ padding: "9px 0" }}>
+              {[0, 1, 2].map(i => (
+                <div key={i} style={{ display:"flex", gap:10, padding:"9px 0", borderBottom: i < 2 ? `1px solid ${th.border}` : "none" }}>
+                  <Skeleton width={8} height={8} radius={4} dark={dark} style={{ marginTop:3, flexShrink:0 }} />
+                  <div style={{ flex:1 }}>
+                    <Skeleton width={`${60 - i * 10}%`} height={11} dark={dark} style={{ marginBottom:6 }} />
+                    <Skeleton width={`${40 - i * 6}%`} height={9} dark={dark} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : activities.length === 0 ? (
             <div style={{
               padding:"24px 0", textAlign:"center",
               color:th.textSub, fontSize:12,
