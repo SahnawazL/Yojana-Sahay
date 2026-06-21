@@ -296,11 +296,28 @@ function sessionDuration(start, end) {
   const s = toDate(start);
   if (!s) return "—";
   const e = end ? (toDate(end) || new Date()) : new Date();
-  const mins = Math.floor((e - s) / 60000);
-  if (mins < 1)  return "< 1m";
-  if (mins < 60) return `${mins}m`;
-  const h = Math.floor(mins / 60), r = mins % 60;
-  return r > 0 ? `${h}h ${r}m` : `${h}h`;
+  const totalSec = Math.max(0, Math.floor((e - s) / 1000));
+  const h   = Math.floor(totalSec / 3600);
+  const m   = Math.floor((totalSec % 3600) / 60);
+  const sec = totalSec % 60;
+  if (h > 0) return `${h}h ${m}m ${sec}s`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+// Renders a live, self-ticking session duration without forcing the whole
+// AgentsTab to re-render every second (that tab already re-renders on its
+// own 30s presence tick — piggybacking a 1s tick onto it would re-run every
+// listener/effect up the tree). This component owns its own 1s interval and
+// only re-renders itself, so per-second precision stays cheap even with
+// several online agents on screen at once.
+function LiveSessionDuration({ start }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => tick(n => n + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return sessionDuration(start, null);
 }
 
 // ─── PRESENCE TIMING CONSTANTS ────────────────────────────────────────────────
@@ -1215,7 +1232,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark, isDesktop }) {
         <span style={{ color:th.border }}>│</span>
         <span style={{ color:th.textSub }}>{online ? "SESSION" : "LAST_SESSION"}</span>
         <span style={{ color:th.text, fontWeight:700 }}>
-          {online ? sessionDuration(agent.sessionStart, null) : (agent.lastSessionDuration || "—")}
+          {online ? <LiveSessionDuration start={agent.sessionStart} /> : (agent.lastSessionDuration || "—")}
         </span>
       </div>
 
@@ -1599,11 +1616,44 @@ const ActivityRow = React.memo(function ActivityRow({ act, dark, isLast, isDeskt
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Daily Attendance (8h target — for salary calculation)
 // ═════════════════════════════════════════════════════════════════════════════
-function fmtHM(totalSeconds) {
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  if (h <= 0 && m <= 0) return "0m";
-  return h ? `${h}h ${m}m` : `${m}m`;
+function fmtClock(totalSeconds) {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  const pad = n => String(n).padStart(2, "0");
+  return `${pad(h)}:${pad(m)}:${pad(sec)}`;
+}
+
+// Stopwatch-style live seconds for today's attendance row. The Firestore
+// `secondsActive` value only advances in ~30s heartbeat credits (see
+// useDailyTimeTracking above), so displaying it raw would visibly "jump"
+// every 30s instead of counting up — not premium. This re-anchors to the
+// synced value every time it changes, then ticks locally once a second in
+// between syncs so the readout counts up smoothly, and freezes the instant
+// the agent goes offline/idle (via the `live` flag) instead of drifting
+// ahead of what's actually been credited.
+function LiveAttendanceClock({ seconds, live }) {
+  const [display, setDisplay]   = useState(seconds);
+  const baseSecRef              = useRef(seconds);
+  const baseAtRef                = useRef(Date.now());
+
+  useEffect(() => {
+    baseSecRef.current = seconds;
+    baseAtRef.current  = Date.now();
+    setDisplay(seconds);
+  }, [seconds]);
+
+  useEffect(() => {
+    if (!live) return;
+    const t = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - baseAtRef.current) / 1000);
+      setDisplay(baseSecRef.current + elapsed);
+    }, 1000);
+    return () => clearInterval(t);
+  }, [live]);
+
+  return fmtClock(display);
 }
 
 function fmtClockIST(ts) {
@@ -1665,6 +1715,7 @@ function AttendanceSection({ humanAgents, dark, isDesktop, loading }) {
       seconds: log?.secondsActive || 0,
       firstActive: log?.firstActive || null,
       lastActive: log?.lastActive || null,
+      lastSeen: ag.lastSeen || null,
     };
   });
 
@@ -1733,16 +1784,26 @@ function AttendanceSection({ humanAgents, dark, isDesktop, loading }) {
           const complete = r.seconds >= DAILY_TARGET_SECONDS;
           const inAt  = fmtClockIST(r.firstActive);
           const lastAt = fmtClockIST(r.lastActive);
+          const live = isToday && isOnline(r.lastSeen);
           return (
             <div key={r.uid} style={{ padding: "9px 0", borderBottom: `1px solid ${th.border}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
                 <div style={{ fontSize: fs(11.5, isDesktop), fontWeight: 700, color: th.text }}>{r.name}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  {live && (
+                    <span style={{
+                      width: 5, height: 5, borderRadius: "50%",
+                      background: IND_GREEN, boxShadow: `0 0 5px ${IND_GREEN}99`,
+                      animation: "agnt-pulse 1.5s ease-in-out infinite",
+                      flexShrink: 0,
+                    }}/>
+                  )}
                   <span style={{
                     fontSize: fs(11, isDesktop), fontWeight: 800, fontFamily: "monospace",
+                    letterSpacing: 0.4, fontVariantNumeric: "tabular-nums",
                     color: complete ? IND_GREEN : th.text,
                   }}>
-                    {fmtHM(r.seconds)}
+                    <LiveAttendanceClock seconds={r.seconds} live={live} />
                   </span>
                   <span style={{
                     fontSize: fs(8, isDesktop), fontWeight: 700, padding: "2px 6px", borderRadius: 5,
