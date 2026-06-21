@@ -672,19 +672,32 @@ function ActivityTicker({ activities, dark, isDesktop }) {
 
   if (!activities.length) return null;
   const act = activities[idx];
+  const accent = ACT_COLORS[act.type] || "#aaa";
 
   return (
     <div style={{
+      position:     "relative",
       border:       `1px solid ${th.border}`,
-      borderRadius: 10,
+      borderRadius: 12,
       overflow:     "hidden",
-      background:   th.card,
+      background:   dark ? "rgba(28,28,30,0.75)" : "rgba(255,255,255,0.8)",
+      backdropFilter: "blur(10px)",
+      WebkitBackdropFilter: "blur(10px)",
       marginBottom: 14,
+      boxShadow:    dark ? "0 4px 16px rgba(0,0,0,0.3)" : "0 4px 16px rgba(0,0,0,0.06)",
     }}>
-      {/* Header bar — neutral, no accent color, no pulse */}
+      {/* top accent — tints to the live event's color, fading off to the right */}
+      <div style={{
+        height: 2,
+        background: `linear-gradient(90deg, ${accent}, ${accent}00 85%)`,
+        boxShadow: `0 0 8px ${accent}80`,
+        transition: "background 0.4s ease",
+      }}/>
+
+      {/* Header bar */}
       <div style={{
         padding:    "5px 12px",
-        display:    "flex", alignItems: "center", gap: 8,
+        display:    "flex", alignItems: "center", gap: 7,
         borderBottom: `1px solid ${th.border}`,
       }}>
         <IconRadio size={11} color={th.textSub} style={{ flexShrink:0 }} />
@@ -694,6 +707,10 @@ function ActivityTicker({ activities, dark, isDesktop }) {
         }}>
           LIVE FEED
         </span>
+        <div style={{ position:"relative", width:6, height:6, flexShrink:0 }}>
+          <div style={{ position:"absolute", inset:-3, borderRadius:"50%", background:`${IND_GREEN}35`, animation:"agnt-pulse 1.6s ease-in-out infinite" }}/>
+          <div style={{ width:6, height:6, borderRadius:"50%", background:IND_GREEN, position:"relative" }}/>
+        </div>
         <span style={{ marginLeft:"auto", fontSize: fs(9, isDesktop), color: th.textSub, fontFamily:"monospace" }}>
           {idx + 1}/{activities.length} · hover to pause
         </span>
@@ -716,15 +733,17 @@ function ActivityTicker({ activities, dark, isDesktop }) {
         >
           <span style={{
             width: 6, height: 6, borderRadius:"50%", flexShrink: 0,
-            background: ACT_COLORS[act.type] || "#aaa",
+            background: accent,
+            boxShadow: `0 0 6px ${accent}aa`,
           }}/>
           <span style={{ fontWeight: 700, color: th.text, fontSize: fs(12, isDesktop) }}>{act.agentName}</span>
           <span style={{ color: th.textSub }}>·</span>
           <span style={{ color: th.textMid, fontSize: fs(12, isDesktop), overflow:"hidden", textOverflow:"ellipsis" }}>{act.action}</span>
           <span style={{
             padding:"1px 5px", borderRadius: 4, fontSize: fs(8, isDesktop),
-            background: `${ACT_COLORS[act.type] || "#aaa"}18`,
-            color: ACT_COLORS[act.type] || "#aaa",
+            background: `${accent}18`,
+            border: `1px solid ${accent}30`,
+            color: accent,
             fontFamily:"monospace", fontWeight: 700, flexShrink: 0,
           }}>
             {TAB_LABELS[act.tab] || act.tab}
@@ -740,8 +759,9 @@ function ActivityTicker({ activities, dark, isDesktop }) {
             {activities.slice(0, 8).map((_, i) => (
               <div key={i} style={{
                 width: i === idx ? 10 : 4, height: 3, borderRadius: 2,
-                background: i === idx ? th.textMid : th.border,
-                transition: "width 0.3s ease, background 0.3s ease",
+                background: i === idx ? accent : th.border,
+                boxShadow: i === idx ? `0 0 5px ${accent}99` : "none",
+                transition: "width 0.3s ease, background 0.3s ease, box-shadow 0.3s ease",
               }}/>
             ))}
           </div>
@@ -1110,21 +1130,21 @@ const AgentCard = React.memo(function AgentCard({ agent, dark, isDesktop }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         background:  th.card,
-        border:      `1px solid ${th.border}`,
+        border:      `1px solid ${hovered && present ? `${SC}50` : th.border}`,
         borderLeft:  `2px solid ${present ? SC : th.border}`,
-        borderRadius: 8,
+        borderRadius: 10,
         padding:     "10px 12px",
         position:    "relative",
         boxShadow:   combinedShadow,
         transform:   hovered ? "translateY(-3px)" : "translateY(0)",
-        transition:  "transform 0.18s ease, box-shadow 0.18s ease",
+        transition:  "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
       }}>
       {/* ── Header ── */}
       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
         {/* Avatar + status dot — tinted with the agent's identity color */}
         <div style={{ position:"relative", flexShrink:0 }}>
           <div style={{
-            width:26, height:26, borderRadius:5,
+            width:26, height:26, borderRadius:6,
             background: `${AVC}1f`,
             border:`1px solid ${AVC}55`,
             display:"flex", alignItems:"center", justifyContent:"center",
@@ -1132,6 +1152,14 @@ const AgentCard = React.memo(function AgentCard({ agent, dark, isDesktop }) {
           }}>
             {agent.avatar || (agent.name||"?").charAt(0).toUpperCase()}
           </div>
+          {online && (
+            <div style={{
+              position:"absolute", bottom:-1, right:-1,
+              width:7, height:7, borderRadius:"50%",
+              background: `${SC}40`,
+              animation:"agnt-pulse 1.6s ease-in-out infinite",
+            }}/>
+          )}
           <div style={{
             position:"absolute", bottom:-1, right:-1,
             width:7, height:7, borderRadius:"50%",
@@ -1156,15 +1184,23 @@ const AgentCard = React.memo(function AgentCard({ agent, dark, isDesktop }) {
           </span>
         </div>
 
-        {/* Status badge — square chip, not a pill */}
+        {/* Status badge — pill with a small glow dot */}
         <div style={{
-          padding:"2px 6px", borderRadius:3, flexShrink:0,
+          display:"flex", alignItems:"center", gap:4,
+          padding:"2px 7px", borderRadius:20, flexShrink:0,
           background: stateBg,
           border:`1px solid ${stateBorder}`,
-          fontFamily:"monospace", fontSize:fs(7.5, isDesktop), fontWeight:800,
-          color: SC, letterSpacing:0.8,
         }}>
-          {stateLabel}
+          <span style={{
+            width:5, height:5, borderRadius:"50%", background:SC, flexShrink:0,
+            boxShadow: present ? `0 0 5px ${SC}99` : "none",
+          }}/>
+          <span style={{
+            fontFamily:"monospace", fontSize:fs(7.5, isDesktop), fontWeight:800,
+            color: SC, letterSpacing:0.8,
+          }}>
+            {stateLabel}
+          </span>
         </div>
       </div>
 
@@ -1412,30 +1448,52 @@ const AgentCard = React.memo(function AgentCard({ agent, dark, isDesktop }) {
 const StatCard = React.memo(function StatCard({ label, value, color, Icon, tooltip, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const [tipOpen, setTipOpen] = useState(false);
+  const [hover, setHover] = useState(false);
   return (
     <div
       {...activatable(() => setTipOpen(v => !v), tooltip ? `${label}: ${value} — ${tooltip}` : `${label}: ${value}`)}
       style={{
+        position: "relative",
         background: th.card,
-        border: `1px solid ${th.border}`,
-        borderTop: `2.5px solid ${color}`,
-        borderRadius: 11, padding: "10px 13px",
-        position: "relative", cursor: "pointer",
+        border: `1px solid ${hover ? color + "55" : th.border}`,
+        borderRadius: 12, padding: "11px 13px",
+        cursor: "pointer",
         userSelect: "none",
+        overflow: "hidden",
+        transform: hover ? "translateY(-1px)" : "none",
+        boxShadow: hover
+          ? (dark ? `0 8px 20px rgba(0,0,0,0.45), 0 0 16px ${color}22` : `0 8px 20px rgba(0,0,0,0.10), 0 0 16px ${color}1a`)
+          : "none",
+        transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
       }}
       onClick={() => setTipOpen(v => !v)}
-      onMouseEnter={() => setTipOpen(true)}
-      onMouseLeave={() => setTipOpen(false)}
+      onMouseEnter={() => { setTipOpen(true); setHover(true); }}
+      onMouseLeave={() => { setTipOpen(false); setHover(false); }}
       onFocus={() => setTipOpen(true)}
       onBlur={() => setTipOpen(false)}
     >
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <div style={{ fontSize:fs(22, isDesktop), fontWeight:800, color:th.text, lineHeight:1.2 }}>
+      {/* gradient glow top accent — replaces the flat 2.5px border */}
+      <div style={{
+        position:"absolute", top:0, left:0, right:0, height:2.5,
+        background:`linear-gradient(90deg, ${color}, ${color}40)`,
+        boxShadow:`0 0 8px ${color}80`,
+      }}/>
+
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
+        <div style={{
+          fontSize:fs(22, isDesktop), fontWeight:800, color:th.text, lineHeight:1.2,
+          fontFamily:"monospace", fontVariantNumeric:"tabular-nums", letterSpacing:-0.5,
+        }}>
           {value}
         </div>
-        <Icon size={15} color={color} />
+        <div style={{
+          width:24, height:24, borderRadius:7, flexShrink:0,
+          background:`${color}18`, display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <Icon size={13} color={color} />
+        </div>
       </div>
-      <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:2, fontWeight:600 }}>
+      <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:3, fontWeight:700, letterSpacing:0.3, textTransform:"uppercase" }}>
         {label}
       </div>
       {/* Tooltip — appears below the card so it's never clipped on mobile */}
@@ -1452,7 +1510,7 @@ const StatCard = React.memo(function StatCard({ label, value, color, Icon, toolt
           fontSize: fs(10, isDesktop), lineHeight: 1.5, fontWeight: 500,
           whiteSpace: "nowrap",
           zIndex: 60,
-          boxShadow: "0 4px 18px rgba(0,0,0,0.4)",
+          boxShadow: `0 4px 18px rgba(0,0,0,0.4), 0 0 14px ${color}33`,
           border: `1px solid ${color}40`,
           pointerEvents: "none",
         }}>
@@ -1724,36 +1782,92 @@ const STATE_RANK = { online: 0, idle: 1, offline: 2 };
 // ═════════════════════════════════════════════════════════════════════════════
 function AnomalyToast({ toast, onDismiss, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
-  const [shrink, setShrink] = useState(false);
+  const DURATION = 8000;
+  const [progress, setProgress] = useState(100); // 100 → 0, drives the bar width
+  const [paused, setPaused] = useState(false);
+  const rafRef       = useRef(null);
+  const startRef     = useRef(null);
+  const remainingRef = useRef(DURATION);
+  const progressRef  = useRef(100);
 
   useEffect(() => {
-    const startT    = setTimeout(() => setShrink(true), 50); // next tick → CSS transition fires
-    const dismissT  = setTimeout(() => onDismiss(toast.id), 8000);
-    return () => { clearTimeout(startT); clearTimeout(dismissT); };
-  }, [toast.id, onDismiss]);
+    if (paused) return;
+    function tick(now) {
+      if (startRef.current == null) startRef.current = now;
+      const elapsed = now - startRef.current;
+      const left = Math.max(0, remainingRef.current - elapsed);
+      const pct = (left / DURATION) * 100;
+      progressRef.current = pct;
+      setProgress(pct);
+      if (left <= 0) { onDismiss(toast.id); return; }
+      rafRef.current = requestAnimationFrame(tick);
+    }
+    startRef.current = null;
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [paused, toast.id, onDismiss]);
+
+  function handlePause() {
+    remainingRef.current = (progressRef.current / 100) * DURATION;
+    setPaused(true);
+  }
 
   return (
-    <div style={{
-      width: "100%",
-      maxWidth: 320,
-      background: dark ? "#1c1c1e" : "#fff",
-      border: `1px solid ${toast.color}55`,
-      borderLeft: `3px solid ${toast.color}`,
-      borderRadius: 10,
-      padding: "10px 11px 8px",
-      boxShadow: dark ? "0 6px 20px rgba(0,0,0,0.5)" : "0 6px 20px rgba(0,0,0,0.15)",
-      animation: "agnt-toast-in 0.25s cubic-bezier(0.22,1,0.36,1) both",
-      pointerEvents: "auto",
-      boxSizing: "border-box",
-    }}>
-      <div style={{ display:"flex", alignItems:"flex-start", gap:7 }}>
-        <IconAlert size={12} color={toast.color} style={{ flexShrink:0, marginTop:1 }} />
+    <div
+      onMouseEnter={handlePause}
+      onMouseLeave={() => setPaused(false)}
+      style={{
+        position: "relative",
+        width: "100%",
+        maxWidth: 320,
+        background: dark ? "rgba(28,28,30,0.86)" : "rgba(255,255,255,0.88)",
+        backdropFilter: "blur(14px) saturate(160%)",
+        WebkitBackdropFilter: "blur(14px) saturate(160%)",
+        border: `1px solid ${toast.color}40`,
+        borderRadius: 12,
+        padding: "11px 12px 9px",
+        boxShadow: dark
+          ? `0 10px 28px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset, 0 0 18px ${toast.color}22`
+          : `0 10px 28px rgba(0,0,0,0.14), 0 0 0 1px rgba(255,255,255,0.6) inset, 0 0 18px ${toast.color}1a`,
+        animation: "agnt-toast-in 0.25s cubic-bezier(0.22,1,0.36,1) both",
+        pointerEvents: "auto",
+        boxSizing: "border-box",
+        overflow: "hidden",
+      }}
+    >
+      {/* corner brackets — HUD framing accent */}
+      <div style={{ position:"absolute", top:0, left:0, width:10, height:10, borderTop:`1.5px solid ${toast.color}99`, borderLeft:`1.5px solid ${toast.color}99`, borderTopLeftRadius:12 }} />
+      <div style={{ position:"absolute", bottom:0, right:0, width:10, height:10, borderBottom:`1.5px solid ${toast.color}55`, borderRight:`1.5px solid ${toast.color}55`, borderBottomRightRadius:12 }} />
+
+      {/* scanline sweep — reuses the dashboard's agnt-scan beam for a techy pulse */}
+      <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none" }}>
+        <div style={{
+          position:"absolute", top:0, left:0, width:"40%", height:"100%",
+          background:`linear-gradient(90deg, transparent, ${toast.color}14, transparent)`,
+          animation: "agnt-scan 3.2s ease-in-out infinite",
+        }}/>
+      </div>
+
+      <div style={{ display:"flex", alignItems:"flex-start", gap:8, position:"relative" }}>
+        <div style={{ position:"relative", width:18, height:18, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{
+            position:"absolute", width:18, height:18, borderRadius:"50%",
+            background: `${toast.color}22`, animation: "agnt-pulse 1.6s ease-in-out infinite",
+          }}/>
+          <IconAlert size={11} color={toast.color} style={{ position:"relative" }} />
+        </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:800, color:toast.color, fontFamily:"monospace" }}>
-            {toast.agentName} — {toast.label}
+          <div style={{
+            fontSize:fs(8, isDesktop), fontWeight:800, color:toast.color, fontFamily:"monospace",
+            letterSpacing:1, textTransform:"uppercase", opacity:0.85, marginBottom:2,
+          }}>
+            Anomaly · Live
+          </div>
+          <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:800, color:th.text, fontFamily:"monospace", letterSpacing:-0.1 }}>
+            {toast.agentName} <span style={{ color:toast.color }}>— {toast.label}</span>
           </div>
           {toast.detail && (
-            <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:2 }}>
+            <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:2, fontFamily:"monospace" }}>
               {toast.detail}
             </div>
           )}
@@ -1766,11 +1880,13 @@ function AnomalyToast({ toast, onDismiss, dark, isDesktop }) {
           ×
         </div>
       </div>
-      <div style={{ height:2, marginTop:8, borderRadius:1, background: dark?"#2c2c2e":"#eee", overflow:"hidden" }}>
+
+      <div style={{ height:2.5, marginTop:8, borderRadius:1, background: dark?"#2c2c2e":"#eee", overflow:"hidden", position:"relative" }}>
         <div style={{
-          height:"100%", background:toast.color,
-          width: shrink ? "0%" : "100%",
-          transition: "width 7.8s linear",
+          height:"100%",
+          background: `linear-gradient(90deg, ${toast.color}99, ${toast.color})`,
+          boxShadow: `0 0 6px ${toast.color}99`,
+          width: `${progress}%`,
         }}/>
       </div>
     </div>
@@ -1790,20 +1906,32 @@ function ConnErrorBanner({ errors, dark, isDesktop }) {
   const RED = "#EF4444";
   return (
     <div style={{
+      position: "relative",
       marginBottom: 14,
-      border: `1.5px solid ${RED}55`,
+      border: `1px solid ${RED}40`,
       borderRadius: 12,
-      padding: "9px 12px",
-      display: "flex", alignItems: "center", gap: 8,
-      background: dark ? `${RED}10` : `${RED}0a`,
+      overflow: "hidden",
+      padding: "10px 12px",
+      display: "flex", alignItems: "center", gap: 9,
+      background: dark ? "rgba(28,28,30,0.8)" : "rgba(255,255,255,0.85)",
+      backdropFilter: "blur(10px)",
+      WebkitBackdropFilter: "blur(10px)",
+      boxShadow: dark ? `0 6px 18px rgba(0,0,0,0.3), 0 0 16px ${RED}1a` : `0 6px 18px rgba(0,0,0,0.06), 0 0 16px ${RED}14`,
     }}>
-      <IconAlert size={14} color={RED} style={{ flexShrink:0 }} />
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg, ${RED}, ${RED}00 85%)`, boxShadow:`0 0 8px ${RED}80` }}/>
+
+      <div style={{ position:"relative", width:18, height:18, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <div style={{ position:"absolute", width:18, height:18, borderRadius:"50%", background:`${RED}22`, animation:"agnt-pulse 1.6s ease-in-out infinite" }}/>
+        <IconAlert size={12} color={RED} style={{ position:"relative" }} />
+      </div>
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:fs(11.5, isDesktop), fontWeight:800, color:RED }}>
+        <div style={{ fontSize:fs(11.5, isDesktop), fontWeight:800, color:RED, fontFamily:"monospace", letterSpacing:0.2 }}>
           Live data unavailable
         </div>
-        <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace", marginTop:1 }}>
-          {count} feed{count > 1 ? "s" : ""} disconnected · reconnecting automatically
+        <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace", marginTop:1, display:"flex", alignItems:"center", gap:5 }}>
+          <span>{count} feed{count > 1 ? "s" : ""} disconnected</span>
+          <span style={{ width:4, height:4, borderRadius:"50%", background:RED, animation:"agnt-pulse 1s ease-in-out infinite", flexShrink:0 }}/>
+          <span>reconnecting automatically</span>
         </div>
       </div>
     </div>
@@ -1823,19 +1951,28 @@ function AnomalyBanner({ anomalies, dark, isDesktop, muted, onToggleMute, notifP
 
   return (
     <div style={{
+      position: "relative",
       marginBottom: 14,
-      border: `1.5px solid ${headColor}55`,
+      border: `1px solid ${headColor}40`,
       borderRadius: 12,
       overflow: "hidden",
-      background: dark ? `${headColor}10` : `${headColor}0a`,
+      background: dark ? "rgba(28,28,30,0.8)" : "rgba(255,255,255,0.85)",
+      backdropFilter: "blur(10px)",
+      WebkitBackdropFilter: "blur(10px)",
+      boxShadow: dark ? `0 6px 18px rgba(0,0,0,0.3), 0 0 16px ${headColor}1a` : `0 6px 18px rgba(0,0,0,0.06), 0 0 16px ${headColor}14`,
     }}>
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg, ${headColor}, ${headColor}00 85%)`, boxShadow:`0 0 8px ${headColor}80`, zIndex:1 }}/>
+
       <div
         onClick={() => setExpanded(e => !e)}
         {...activatable(() => setExpanded(e => !e), `${anomalies.length} active alerts, ${expanded ? "collapse" : "expand"}`)}
         style={{ display:"flex", alignItems:"center", gap:8, padding:"9px 12px", cursor:"pointer" }}
       >
-        <IconAlert size={14} color={headColor} style={{ flexShrink:0 }} />
-        <div style={{ fontSize:fs(11.5, isDesktop), fontWeight:800, color:headColor, flex:1 }}>
+        <div style={{ position:"relative", width:18, height:18, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ position:"absolute", width:18, height:18, borderRadius:"50%", background:`${headColor}22`, animation:"agnt-pulse 1.6s ease-in-out infinite" }}/>
+          <IconAlert size={12} color={headColor} style={{ position:"relative" }} />
+        </div>
+        <div style={{ fontSize:fs(11.5, isDesktop), fontWeight:800, color:headColor, fontFamily:"monospace", flex:1 }}>
           {anomalies.length} active alert{anomalies.length > 1 ? "s" : ""}
         </div>
         <div
@@ -1843,7 +1980,7 @@ function AnomalyBanner({ anomalies, dark, isDesktop, muted, onToggleMute, notifP
           {...activatable(onToggleMute, muted ? "Unmute alert sound" : "Mute alert sound")}
           style={{
             fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace",
-            padding:"3px 7px", borderRadius:6, border:`1px solid ${th.border}`,
+            padding:"3px 8px", borderRadius:20, border:`1px solid ${th.border}`,
             cursor:"pointer", flexShrink:0,
           }}
         >
@@ -1872,7 +2009,7 @@ function AnomalyBanner({ anomalies, dark, isDesktop, muted, onToggleMute, notifP
                   cursor:"pointer",
                 }}
               >
-                <div style={{ width:6, height:6, borderRadius:"50%", background:ag.anomaly.color, flexShrink:0 }}/>
+                <div style={{ width:6, height:6, borderRadius:"50%", background:ag.anomaly.color, boxShadow:`0 0 5px ${ag.anomaly.color}99`, flexShrink:0 }}/>
                 <div style={{ flex:1, minWidth:0, overflow:"hidden" }}>
                   <span style={{ fontSize:fs(10.5, isDesktop), fontWeight:700, color:th.text }}>{ag.name}</span>
                   <span style={{ fontSize:fs(9, isDesktop), color:ag.anomaly.color, fontFamily:"monospace", marginLeft:6, fontWeight:700 }}>
