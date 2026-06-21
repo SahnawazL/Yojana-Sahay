@@ -72,7 +72,7 @@ async function tavilySearch(query, tavilyKey, maxResults = 7) {
     }
 
     const data = await res.json();
-    recordAiCall({ service: "tavily" }).catch(() => {}); // Tavily search just succeeded
+    recordAiCall({ service: "tavily-verify" }).catch(() => {}); // Tavily search just succeeded — Verify Pipeline pool, not AI Chat
     return (data.results ?? []).map(r => ({
       url:   r.url?.trim() ?? "",
       title: r.title ?? "",
