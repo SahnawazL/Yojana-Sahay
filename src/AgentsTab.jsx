@@ -857,20 +857,20 @@ function NoticeBoard({ activities, humanAgents, dark }) {
 function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark }) {
   const th = THEME[dark ? "dark" : "light"];
   return (
-    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 6 }}>
+    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 7 }}>
       {Array.from({ length: keyCount }, (_, i) => {
         const isActive = activeKeyIdx === i;
         const was429   = (keys429Today || []).includes(i);
         const col = isActive ? IND_GREEN : was429 ? IDLE_AMBER : th.textSub;
         const bg  = isActive
-          ? `${IND_GREEN}1e`
+          ? `${IND_GREEN}16`
           : was429
-            ? `${IDLE_AMBER}18`
-            : (dark ? "#252527" : "#f2f2f2");
+            ? `${IDLE_AMBER}14`
+            : "transparent";
         const bd = isActive
-          ? `${IND_GREEN}55`
+          ? `${IND_GREEN}50`
           : was429
-            ? `${IDLE_AMBER}55`
+            ? `${IDLE_AMBER}50`
             : th.border;
         return (
           <div key={i} title={
@@ -878,22 +878,19 @@ function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark }) {
             : was429  ? `K${i+1} — 429'd today`
             : `K${i+1} — not used today`
           } style={{
-            padding: "3px 9px", borderRadius: 6,
+            padding: "3px 8px", borderRadius: 4,
             background: bg, border: `1px solid ${bd}`,
-            fontSize: 9, fontWeight: 800, fontFamily: "monospace",
-            color: col, display: "flex", alignItems: "center", gap: 4,
+            fontSize: 9, fontWeight: 700, fontFamily: "monospace",
+            color: col, display: "flex", alignItems: "center", gap: 5,
             userSelect: "none", cursor: "default",
           }}>
-            <div style={{
-              width: 5, height: 5, borderRadius: "50%", background: col, flexShrink: 0,
-              animation: isActive ? "agnt-pulse 2s ease-in-out infinite" : "none",
-            }} />
+            <span style={{ width: 4, height: 4, borderRadius: "50%", background: col, flexShrink: 0 }} />
             K{i + 1}
             {isActive && (
-              <span style={{ fontSize: 6.5, letterSpacing: 0.5, opacity: 0.8 }}>ACTIVE</span>
+              <span style={{ fontSize: 6.5, letterSpacing: 0.5, opacity: 0.75 }}>ACTIVE</span>
             )}
             {!isActive && was429 && (
-              <span style={{ fontSize: 6.5, letterSpacing: 0.5, opacity: 0.8 }}>429</span>
+              <span style={{ fontSize: 6.5, letterSpacing: 0.5, opacity: 0.75 }}>429</span>
             )}
           </div>
         );
@@ -911,20 +908,17 @@ function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark }) {
 function SectionLabel({ label, sublabel, color, dark }) {
   const th = THEME[dark ? "dark" : "light"];
   return (
-    <div style={{
-      display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap",
-      margin:"2px 2px 10px",
-    }}>
+    <div style={{ display:"flex", alignItems:"baseline", gap:9, flexWrap:"wrap" }}>
       <div style={{
-        display:"flex", alignItems:"center", gap:6,
-        fontSize:12, fontWeight:800, color:th.text,
-        letterSpacing:0.3, textTransform:"uppercase",
+        display:"flex", alignItems:"center", gap:7,
+        fontSize:11, fontWeight:800, color:th.text,
+        letterSpacing:1.4, textTransform:"uppercase", fontFamily:"monospace",
       }}>
-        <span style={{ width:6, height:6, borderRadius:2, background:color, flexShrink:0 }} />
+        <span style={{ width:3, height:11, background:color, flexShrink:0, borderRadius:1 }} />
         {label}
       </div>
       {sublabel && (
-        <div style={{ fontSize:9.5, color:th.textSub, fontFamily:"monospace" }}>
+        <div style={{ fontSize:9, color:th.textSub, fontFamily:"monospace" }}>
           {sublabel}
         </div>
       )}
@@ -1026,10 +1020,11 @@ function AgentCard({ agent, dark }) {
       {/* ── AI Health Panel — Groq key grid + daily stats ── */}
       {agent.type === "ai" && (agent.id === "groq-ai" || agent.id === "groq-verify") && (
         <div style={{
-          marginTop: 10, padding: "10px 11px",
-          background: dark ? "#0d0d1a" : "#f4f5fb",
-          border: `1px solid ${VIOLET}2e`,
-          borderRadius: 10,
+          marginTop: 9, padding: "10px 11px",
+          background: dark ? "#161618" : "#f7f7f9",
+          border: `1px solid ${th.border}`,
+          borderLeft: `2px solid ${VIOLET}60`,
+          borderRadius: 8,
         }}>
           {/* Key grid header */}
           <div style={{
@@ -1071,17 +1066,17 @@ function AgentCard({ agent, dark }) {
             ].map(s => (
               <div key={s.label} style={{
                 background: dark ? "#1c1c1e" : "#fff",
-                borderRadius: 8, padding: "6px 7px", textAlign: "center",
+                borderRadius: 6, padding: "6px 7px", textAlign: "center",
                 border: `1px solid ${th.border}`,
               }}>
                 <div style={{
-                  fontSize: 16, fontWeight: 800, color: s.color, fontFamily: "monospace",
+                  fontSize: 15, fontWeight: 800, color: s.color, fontFamily: "monospace",
                   lineHeight: 1.1,
                 }}>
                   {s.value}
                 </div>
                 <div style={{
-                  fontSize: 7, color: th.textSub, fontFamily: "monospace",
+                  fontSize: 6.5, color: th.textSub, fontFamily: "monospace",
                   fontWeight: 700, letterSpacing: 0.4, marginTop: 2,
                 }}>
                   {s.label}
@@ -1090,14 +1085,13 @@ function AgentCard({ agent, dark }) {
             ))}
           </div>
 
-          {/* Last 429 row / health line */}
+          {/* Last 429 row / health line — text only, no icons */}
           {agent.last429At ? (
             <div style={{
               marginTop: 8, fontSize: 9, color: th.textSub, fontFamily: "monospace",
               display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap",
             }}>
-              <IconAlert size={9} color={IDLE_AMBER} style={{ flexShrink: 0 }} />
-              <span>Last 429:</span>
+              <span style={{ color: IDLE_AMBER }}>last_429</span>
               <span style={{ color: IDLE_AMBER, fontWeight: 700 }}>
                 {timeAgo(agent.last429At)}
               </span>
@@ -1110,18 +1104,14 @@ function AgentCard({ agent, dark }) {
           ) : agent.activeKeyIdx >= 0 ? (
             <div style={{
               marginTop: 7, fontSize: 9, color: IND_GREEN, fontFamily: "monospace",
-              display: "flex", alignItems: "center", gap: 5,
             }}>
-              <div style={{
-                width: 5, height: 5, borderRadius: "50%", background: IND_GREEN, flexShrink: 0,
-              }} />
-              No 429s today · running on K{agent.activeKeyIdx + 1}
+              no_429s_today · running on K{agent.activeKeyIdx + 1}
             </div>
           ) : (
             <div style={{
               marginTop: 7, fontSize: 9, color: th.textSub, fontFamily: "monospace",
             }}>
-              No calls recorded yet today
+              no calls recorded yet today
             </div>
           )}
         </div>
@@ -1130,32 +1120,23 @@ function AgentCard({ agent, dark }) {
       {/* ── AI Health Panel — Tavily daily stats ── */}
       {agent.type === "ai" && (agent.id === "tavily-api" || agent.id === "tavily-verify") && (
         <div style={{
-          marginTop: 10, padding: "9px 11px",
-          background: dark ? "#061218" : "#f0faff",
-          border: `1px solid ${CYAN}2e`,
-          borderRadius: 10,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
+          marginTop: 9, padding: "10px 11px",
+          background: dark ? "#161618" : "#f7f7f9",
+          border: `1px solid ${th.border}`,
+          borderLeft: `2px solid ${CYAN}60`,
+          borderRadius: 8,
         }}>
-          <div>
-            <div style={{
-              fontSize: 8, fontFamily: "monospace", fontWeight: 700,
-              color: th.textSub, letterSpacing: 1.1, textTransform: "uppercase",
-            }}>
-              Searches Today
-            </div>
-            <div style={{
-              fontSize: 20, fontWeight: 800, color: CYAN, fontFamily: "monospace", marginTop: 3,
-              lineHeight: 1,
-            }}>
-              {agent.callsToday ?? 0}
-            </div>
+          <div style={{
+            fontSize: 8, fontFamily: "monospace", fontWeight: 700,
+            color: th.textSub, letterSpacing: 1.1, textTransform: "uppercase",
+          }}>
+            Searches Today
           </div>
           <div style={{
-            width: 34, height: 34, borderRadius: 9, flexShrink: 0,
-            background: `${CYAN}18`, border: `1px solid ${CYAN}38`,
-            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 19, fontWeight: 800, color: CYAN, fontFamily: "monospace", marginTop: 3,
+            lineHeight: 1,
           }}>
-            <IconRadio size={15} color={CYAN} />
+            {agent.callsToday ?? 0}
           </div>
         </div>
       )}
@@ -2164,38 +2145,83 @@ export default function AgentsTab({ dark, isDesktop }) {
       ) : (
         <>
           {teamAgents.length > 0 && (
-            <div style={{ marginBottom:18 }}>
-              <SectionLabel
-                label="Team"
-                sublabel="Human sub-admins · Firestore heartbeat"
-                color={SAFFRON}
-                dark={dark}
-              />
-              {renderAgentGrid(teamAgents)}
+            <div style={{
+              marginBottom:16,
+              border:`1px solid ${th.border}`,
+              borderTop:`2px solid ${SAFFRON}`,
+              borderRadius:11,
+              overflow:"hidden",
+              background: th.card,
+            }}>
+              <div style={{
+                padding:"11px 14px",
+                borderBottom:`1px solid ${th.border}`,
+                background: dark ? "#252527" : "#f8f9fa",
+              }}>
+                <SectionLabel
+                  label="Team"
+                  sublabel="Human sub-admins · Firestore heartbeat"
+                  color={SAFFRON}
+                  dark={dark}
+                />
+              </div>
+              <div style={{ padding:"14px" }}>
+                {renderAgentGrid(teamAgents)}
+              </div>
             </div>
           )}
 
           {chatAgents.length > 0 && (
-            <div style={{ marginBottom:18 }}>
-              <SectionLabel
-                label="AI Chat"
-                sublabel="Groq K1–K5 · Tavily — in-app assistant pool"
-                color={VIOLET}
-                dark={dark}
-              />
-              {renderAgentGrid(chatAgents)}
+            <div style={{
+              marginBottom:16,
+              border:`1px solid ${th.border}`,
+              borderTop:`2px solid ${VIOLET}`,
+              borderRadius:11,
+              overflow:"hidden",
+              background: th.card,
+            }}>
+              <div style={{
+                padding:"11px 14px",
+                borderBottom:`1px solid ${th.border}`,
+                background: dark ? "#252527" : "#f8f9fa",
+              }}>
+                <SectionLabel
+                  label="AI Chat"
+                  sublabel="Groq K1–K5 · Tavily — in-app assistant pool"
+                  color={VIOLET}
+                  dark={dark}
+                />
+              </div>
+              <div style={{ padding:"14px" }}>
+                {renderAgentGrid(chatAgents)}
+              </div>
             </div>
           )}
 
           {verifyAgents.length > 0 && (
-            <div style={{ marginBottom:18 }}>
-              <SectionLabel
-                label="Verify Pipeline"
-                sublabel="Dedicated GROQ_VERIFY_KEY · TAVILY_VERIFY_KEY — admin SchemeVerifier + AI Insights"
-                color={IND_GREEN}
-                dark={dark}
-              />
-              {renderAgentGrid(verifyAgents)}
+            <div style={{
+              marginBottom:16,
+              border:`1px solid ${th.border}`,
+              borderTop:`2px solid ${IND_GREEN}`,
+              borderRadius:11,
+              overflow:"hidden",
+              background: th.card,
+            }}>
+              <div style={{
+                padding:"11px 14px",
+                borderBottom:`1px solid ${th.border}`,
+                background: dark ? "#252527" : "#f8f9fa",
+              }}>
+                <SectionLabel
+                  label="Verify Pipeline"
+                  sublabel="Dedicated GROQ_VERIFY_KEY · TAVILY_VERIFY_KEY — admin SchemeVerifier + AI Insights"
+                  color={IND_GREEN}
+                  dark={dark}
+                />
+              </div>
+              <div style={{ padding:"14px" }}>
+                {renderAgentGrid(verifyAgents)}
+              </div>
             </div>
           )}
         </>
