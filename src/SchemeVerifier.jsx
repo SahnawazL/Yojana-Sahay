@@ -2065,6 +2065,23 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
     }
   };
 
+  // For a fix that's stuck permanently failing the re-check (e.g. the URL
+  // that got committed is itself broken — like a leftover "https://https://"
+  // corruption from before the patcher's substring-replace bug was fixed).
+  // Re-checking the same bad URL forever never helps — this clears the
+  // dead-end Firestore record and starts a genuinely fresh search instead.
+  const handleStartOverFix = async (e) => {
+    e.stopPropagation();
+    try {
+      await deleteUrlFixes([scheme.id]);
+    } catch (err) {
+      console.warn("[handleStartOverFix] failed to clear stale fix:", err.message);
+    }
+    setUrlSearch(null);
+    setSelectedUrl(null);
+    await handleFindNewUrl(e);
+  };
+
   return (
     <div
       {...a11yClickable(() => setLocalExpanded(e => !e), {
@@ -2644,10 +2661,21 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
                       padding: "4px 9px", borderRadius: 6, fontSize: 8.5, fontWeight: 700,
                       cursor: rechecking ? "default" : "pointer",
                       border: `1.5px solid ${RED}`, background: `${RED}12`, color: RED,
-                      fontFamily: "inherit", opacity: rechecking ? 0.6 : 1,
+                      fontFamily: "inherit", opacity: rechecking ? 0.6 : 1, marginRight: 6,
                     }}
                   >
                     {rechecking ? "Checking…" : "↻ Re-check now"}
+                  </button>
+                  <button
+                    onClick={handleStartOverFix}
+                    style={{
+                      padding: "4px 9px", borderRadius: 6, fontSize: 8.5, fontWeight: 700,
+                      cursor: "pointer",
+                      border: `1.5px solid ${th.border}`, background: "transparent", color: th.textSub,
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    🔍 Find a different URL
                   </button>
                 </div>
               )}
