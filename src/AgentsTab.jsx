@@ -652,7 +652,7 @@ export function useDailyTimeTracking(uid, name, email) {
 // scrolling text reads as dated/low-trust; a fixed-position rotator gives the
 // same "live, real-time" signal with a calmer, more premium feel.)
 // ═════════════════════════════════════════════════════════════════════════════
-function ActivityTicker({ activities, dark }) {
+function ActivityTicker({ activities, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const [paused, setPaused] = useState(false);
   const [idx,    setIdx]    = useState(0);
@@ -689,12 +689,12 @@ function ActivityTicker({ activities, dark }) {
       }}>
         <IconRadio size={11} color={th.textSub} style={{ flexShrink:0 }} />
         <span style={{
-          fontFamily:"monospace", fontSize: 9, fontWeight: 800,
+          fontFamily:"monospace", fontSize: fs(9, isDesktop), fontWeight: 800,
           color: th.textMid, letterSpacing: 1.8, textTransform: "uppercase",
         }}>
           LIVE FEED
         </span>
-        <span style={{ marginLeft:"auto", fontSize: 9, color: th.textSub, fontFamily:"monospace" }}>
+        <span style={{ marginLeft:"auto", fontSize: fs(9, isDesktop), color: th.textSub, fontFamily:"monospace" }}>
           {idx + 1}/{activities.length} · hover to pause
         </span>
       </div>
@@ -718,18 +718,18 @@ function ActivityTicker({ activities, dark }) {
             width: 6, height: 6, borderRadius:"50%", flexShrink: 0,
             background: ACT_COLORS[act.type] || "#aaa",
           }}/>
-          <span style={{ fontWeight: 700, color: th.text, fontSize: 12 }}>{act.agentName}</span>
+          <span style={{ fontWeight: 700, color: th.text, fontSize: fs(12, isDesktop) }}>{act.agentName}</span>
           <span style={{ color: th.textSub }}>·</span>
-          <span style={{ color: th.textMid, fontSize: 12, overflow:"hidden", textOverflow:"ellipsis" }}>{act.action}</span>
+          <span style={{ color: th.textMid, fontSize: fs(12, isDesktop), overflow:"hidden", textOverflow:"ellipsis" }}>{act.action}</span>
           <span style={{
-            padding:"1px 5px", borderRadius: 4, fontSize: 8,
+            padding:"1px 5px", borderRadius: 4, fontSize: fs(8, isDesktop),
             background: `${ACT_COLORS[act.type] || "#aaa"}18`,
             color: ACT_COLORS[act.type] || "#aaa",
             fontFamily:"monospace", fontWeight: 700, flexShrink: 0,
           }}>
             {TAB_LABELS[act.tab] || act.tab}
           </span>
-          <span style={{ color: th.textSub, fontSize: 9, fontFamily:"monospace", marginLeft:"auto", flexShrink: 0 }}>
+          <span style={{ color: th.textSub, fontSize: fs(9, isDesktop), fontFamily:"monospace", marginLeft:"auto", flexShrink: 0 }}>
             {timeAgo(act.time)}
           </span>
         </div>
@@ -940,7 +940,7 @@ function NoticeBoard({ activities, humanAgents, dark, isDesktop, loading }) {
 // Shows K1–K5 pills: green+pulse = currently active, amber = 429'd today,
 // gray = untouched today. Data comes from enriched AI agent fields.
 // ═════════════════════════════════════════════════════════════════════════════
-function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark }) {
+function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   return (
     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 7 }}>
@@ -966,17 +966,17 @@ function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark }) {
           } style={{
             padding: "3px 8px", borderRadius: 4,
             background: bg, border: `1px solid ${bd}`,
-            fontSize: 9, fontWeight: 700, fontFamily: "monospace",
+            fontSize: fs(9, isDesktop), fontWeight: 700, fontFamily: "monospace",
             color: col, display: "flex", alignItems: "center", gap: 5,
             userSelect: "none", cursor: "default",
           }}>
             <span style={{ width: 4, height: 4, borderRadius: "50%", background: col, flexShrink: 0 }} />
             K{i + 1}
             {isActive && (
-              <span style={{ fontSize: 6.5, letterSpacing: 0.5, opacity: 0.75 }}>ACTIVE</span>
+              <span style={{ fontSize: fs(6.5, isDesktop), letterSpacing: 0.5, opacity: 0.75 }}>ACTIVE</span>
             )}
             {!isActive && was429 && (
-              <span style={{ fontSize: 6.5, letterSpacing: 0.5, opacity: 0.75 }}>429</span>
+              <span style={{ fontSize: fs(6.5, isDesktop), letterSpacing: 0.5, opacity: 0.75 }}>429</span>
             )}
           </div>
         );
@@ -991,20 +991,20 @@ function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark }) {
 // Pipeline sections so the two separate Groq+Tavily key pools never read as
 // one blended thing.
 // ═════════════════════════════════════════════════════════════════════════════
-function SectionLabel({ label, sublabel, color, dark }) {
+function SectionLabel({ label, sublabel, color, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   return (
     <div style={{ display:"flex", alignItems:"baseline", gap:9, flexWrap:"wrap" }}>
       <div style={{
         display:"flex", alignItems:"center", gap:7,
-        fontSize:11, fontWeight:800, color:th.text,
+        fontSize:fs(11, isDesktop), fontWeight:800, color:th.text,
         letterSpacing:1.4, textTransform:"uppercase", fontFamily:"monospace",
       }}>
         <span style={{ width:3, height:11, background:color, flexShrink:0, borderRadius:1 }} />
         {label}
       </div>
       {sublabel && (
-        <div style={{ fontSize:9, color:th.textSub, fontFamily:"monospace" }}>
+        <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace" }}>
           {sublabel}
         </div>
       )}
@@ -1018,7 +1018,7 @@ function SectionLabel({ label, sublabel, color, dark }) {
 // brackets, faint schematic grid texture in the header. Used for Team / AI
 // Chat / Verify Pipeline so each pool reads as one bordered instrument panel.
 // ═════════════════════════════════════════════════════════════════════════════
-function SectionFrame({ label, sublabel, color, dark, children }) {
+function SectionFrame({ label, sublabel, color, dark, isDesktop, children }) {
   const th = THEME[dark ? "dark" : "light"];
   const corner = (pos) => (
     <div style={{
@@ -1062,6 +1062,7 @@ function SectionFrame({ label, sublabel, color, dark, children }) {
           sublabel={sublabel ? `// ${sublabel}` : null}
           color={color}
           dark={dark}
+          isDesktop={isDesktop}
         />
       </div>
 
@@ -1078,7 +1079,7 @@ function SectionFrame({ label, sublabel, color, dark, children }) {
 // AgentCard is rendered per-agent across three grids and the whole tree
 // re-renders on every Firestore snapshot + the 30s tick — memo it so a card
 // only re-renders when its own `agent` object or `dark` actually changes.
-const AgentCard = React.memo(function AgentCard({ agent, dark }) {
+const AgentCard = React.memo(function AgentCard({ agent, dark, isDesktop }) {
   const th      = THEME[dark ? "dark" : "light"];
   const [hovered, setHovered] = useState(false);
   const state   = getPresenceState(agent.lastSeen, agent.type);
@@ -1142,13 +1143,13 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
         {/* Name / role — single line */}
         <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"baseline", gap:6 }}>
           <span style={{
-            fontSize:12.5, fontWeight:700, color:th.text,
+            fontSize:fs(12.5, isDesktop), fontWeight:700, color:th.text,
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
           }}>
             {agent.name}
           </span>
           <span style={{
-            fontSize:9.5, color:th.textSub,
+            fontSize:fs(9.5, isDesktop), color:th.textSub,
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flexShrink:1,
           }}>
             {agent.role}
@@ -1160,7 +1161,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
           padding:"2px 6px", borderRadius:3, flexShrink:0,
           background: stateBg,
           border:`1px solid ${stateBorder}`,
-          fontFamily:"monospace", fontSize:7.5, fontWeight:800,
+          fontFamily:"monospace", fontSize:fs(7.5, isDesktop), fontWeight:800,
           color: SC, letterSpacing:0.8,
         }}>
           {stateLabel}
@@ -1171,7 +1172,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
       <div style={{
         marginTop:7, paddingTop:7, borderTop:`1px solid ${th.border}`,
         display:"flex", alignItems:"center", gap:5,
-        fontFamily:"monospace", fontSize:9.5, flexWrap:"wrap",
+        fontFamily:"monospace", fontSize:fs(9.5, isDesktop), flexWrap:"wrap",
       }}>
         <span style={{ color:th.textSub }}>LAST_SEEN</span>
         <span style={{ color:th.text, fontWeight:700 }}>{timeAgo(agent.lastSeen)}</span>
@@ -1193,7 +1194,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
         }}>
           {/* Key grid header */}
           <div style={{
-            fontSize: 8, fontFamily: "monospace", fontWeight: 700,
+            fontSize: fs(8, isDesktop), fontFamily: "monospace", fontWeight: 700,
             color: th.textSub, letterSpacing: 1.1,
           }}>
             [ KEY_HEALTH ] · {agent.keyCount} keys configured
@@ -1203,6 +1204,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
             keys429Today={agent.keys429Today}
             keyCount={agent.keyCount || 5}
             dark={dark}
+            isDesktop={isDesktop}
           />
 
           {/* Stats row — groq-verify has no "web search trigger" concept (Tavily
@@ -1235,13 +1237,13 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
                 border: `1px solid ${th.border}`,
               }}>
                 <div style={{
-                  fontSize: 15, fontWeight: 800, color: s.color, fontFamily: "monospace",
+                  fontSize: fs(15, isDesktop), fontWeight: 800, color: s.color, fontFamily: "monospace",
                   lineHeight: 1.1,
                 }}>
                   {s.value}
                 </div>
                 <div style={{
-                  fontSize: 6.5, color: th.textSub, fontFamily: "monospace",
+                  fontSize: fs(6.5, isDesktop), color: th.textSub, fontFamily: "monospace",
                   fontWeight: 700, letterSpacing: 0.4, marginTop: 2,
                 }}>
                   {s.label}
@@ -1253,7 +1255,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
           {/* Last 429 row / health line — text only, no icons */}
           {agent.last429At ? (
             <div style={{
-              marginTop: 8, fontSize: 9, color: th.textSub, fontFamily: "monospace",
+              marginTop: 8, fontSize: fs(9, isDesktop), color: th.textSub, fontFamily: "monospace",
               display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap",
             }}>
               <span style={{ color: IDLE_AMBER }}>last_429</span>
@@ -1268,13 +1270,13 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
             </div>
           ) : agent.activeKeyIdx >= 0 ? (
             <div style={{
-              marginTop: 7, fontSize: 9, color: IND_GREEN, fontFamily: "monospace",
+              marginTop: 7, fontSize: fs(9, isDesktop), color: IND_GREEN, fontFamily: "monospace",
             }}>
               no_429s_today · running on K{agent.activeKeyIdx + 1}
             </div>
           ) : (
             <div style={{
-              marginTop: 7, fontSize: 9, color: th.textSub, fontFamily: "monospace",
+              marginTop: 7, fontSize: fs(9, isDesktop), color: th.textSub, fontFamily: "monospace",
             }}>
               no calls recorded yet today
             </div>
@@ -1292,13 +1294,13 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
           borderRadius: 8,
         }}>
           <div style={{
-            fontSize: 8, fontFamily: "monospace", fontWeight: 700,
+            fontSize: fs(8, isDesktop), fontFamily: "monospace", fontWeight: 700,
             color: th.textSub, letterSpacing: 1.1,
           }}>
             [ SEARCHES_TODAY ]
           </div>
           <div style={{
-            fontSize: 19, fontWeight: 800, color: CYAN, fontFamily: "monospace", marginTop: 3,
+            fontSize: fs(19, isDesktop), fontWeight: 800, color: CYAN, fontFamily: "monospace", marginTop: 3,
             lineHeight: 1,
           }}>
             {agent.callsToday ?? 0}
@@ -1310,7 +1312,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
       {agent.anomaly && (
         <div style={{
           marginTop:6, display:"flex", alignItems:"center", gap:5,
-          fontFamily:"monospace", fontSize:9,
+          fontFamily:"monospace", fontSize:fs(9, isDesktop),
         }}>
           <IconAlert size={9} color={agent.anomaly.color} style={{ flexShrink:0 }} />
           <span style={{ color:agent.anomaly.color, fontWeight:700 }}>
@@ -1328,7 +1330,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
       {online && agent.activeTab && (
         <div style={{
           marginTop:5, display:"flex", alignItems:"center", gap:5,
-          fontFamily:"monospace", fontSize:9,
+          fontFamily:"monospace", fontSize:fs(9, isDesktop),
         }}>
           <span style={{ color: dark ? "#6fa3ff" : NAVY }}>›</span>
           <span style={{ color: th.textSub }}>viewing:</span>
@@ -1342,7 +1344,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
       {idle && agent.type === "human" && (
         <div style={{
           marginTop:5, display:"flex", alignItems:"center", gap:5,
-          fontFamily:"monospace", fontSize:9,
+          fontFamily:"monospace", fontSize:fs(9, isDesktop),
         }}>
           <span style={{ color:IDLE_AMBER }}>›</span>
           <span style={{ color:IDLE_AMBER, fontWeight:700 }}>
@@ -1358,7 +1360,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
             <span style={{
               padding:"1.5px 5px", borderRadius:3,
               background:`${SAFFRON}14`, color:SAFFRON,
-              fontSize:7.5, fontWeight:700, fontFamily:"monospace",
+              fontSize:fs(7.5, isDesktop), fontWeight:700, fontFamily:"monospace",
             }}>
               ALL_TABS
             </span>
@@ -1367,7 +1369,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
             <span key={tab} style={{
               padding:"1.5px 5px", borderRadius:3,
               background: dark ? "#252527" : "#f0f0f0",
-              fontSize:7.5, color:th.textSub, fontWeight:600, fontFamily:"monospace",
+              fontSize:fs(7.5, isDesktop), color:th.textSub, fontWeight:600, fontFamily:"monospace",
             }}>
               {TAB_LABELS[tab] || tab}
             </span>
@@ -1379,7 +1381,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
       <div style={{
         marginTop:6, paddingTop:6, borderTop:`1px solid ${th.border}`,
         display:"flex", gap:7, alignItems:"center",
-        fontSize:9, color:th.textSub, fontFamily:"monospace",
+        fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace",
       }}>
         {agent.type === "human" && (
           <>
@@ -1407,7 +1409,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Stat Card (with tap/hover tooltip)
 // ═════════════════════════════════════════════════════════════════════════════
-const StatCard = React.memo(function StatCard({ label, value, color, Icon, tooltip, dark }) {
+const StatCard = React.memo(function StatCard({ label, value, color, Icon, tooltip, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const [tipOpen, setTipOpen] = useState(false);
   return (
@@ -1428,12 +1430,12 @@ const StatCard = React.memo(function StatCard({ label, value, color, Icon, toolt
       onBlur={() => setTipOpen(false)}
     >
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <div style={{ fontSize:22, fontWeight:800, color:th.text, lineHeight:1.2 }}>
+        <div style={{ fontSize:fs(22, isDesktop), fontWeight:800, color:th.text, lineHeight:1.2 }}>
           {value}
         </div>
         <Icon size={15} color={color} />
       </div>
-      <div style={{ fontSize:9, color:th.textSub, marginTop:2, fontWeight:600 }}>
+      <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:2, fontWeight:600 }}>
         {label}
       </div>
       {/* Tooltip — appears below the card so it's never clipped on mobile */}
@@ -1447,7 +1449,7 @@ const StatCard = React.memo(function StatCard({ label, value, color, Icon, toolt
           color: "#f0f0f0",
           padding: "5px 11px",
           borderRadius: 7,
-          fontSize: 10, lineHeight: 1.5, fontWeight: 500,
+          fontSize: fs(10, isDesktop), lineHeight: 1.5, fontWeight: 500,
           whiteSpace: "nowrap",
           zIndex: 60,
           boxShadow: "0 4px 18px rgba(0,0,0,0.4)",
@@ -1473,7 +1475,7 @@ const StatCard = React.memo(function StatCard({ label, value, color, Icon, toolt
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Activity Timeline Row
 // ═════════════════════════════════════════════════════════════════════════════
-const ActivityRow = React.memo(function ActivityRow({ act, dark, isLast }) {
+const ActivityRow = React.memo(function ActivityRow({ act, dark, isLast, isDesktop }) {
   const th    = THEME[dark ? "dark" : "light"];
   const color = ACT_COLORS[act.type] || "#4285F4";
   return (
@@ -1498,18 +1500,18 @@ const ActivityRow = React.memo(function ActivityRow({ act, dark, isLast }) {
       {/* Content */}
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
-          <span style={{ fontSize:11, fontWeight:700, color:th.text }}>
+          <span style={{ fontSize:fs(11, isDesktop), fontWeight:700, color:th.text }}>
             {act.agentName}
           </span>
           <span style={{
-            padding:"1px 5px", borderRadius:4, fontSize:8,
+            padding:"1px 5px", borderRadius:4, fontSize:fs(8, isDesktop),
             background:`${color}18`, color, fontWeight:700, fontFamily:"monospace",
           }}>
             {(act.type || "action").toUpperCase()}
           </span>
           {isNew(act.time) && (
             <span style={{
-              padding:"1px 5px", borderRadius:4, fontSize:8,
+              padding:"1px 5px", borderRadius:4, fontSize:fs(8, isDesktop),
               background:`${IND_GREEN}18`, color:IND_GREEN,
               fontWeight:800, fontFamily:"monospace",
               animation:"agnt-pulse 1.5s ease-in-out infinite",
@@ -1518,16 +1520,16 @@ const ActivityRow = React.memo(function ActivityRow({ act, dark, isLast }) {
             </span>
           )}
           <span style={{
-            marginLeft:"auto", fontSize:9, color:th.textSub, fontFamily:"monospace",
+            marginLeft:"auto", fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace",
           }}>
             {timeAgo(act.time)}
           </span>
         </div>
-        <div style={{ fontSize:11, color:th.textMid, marginTop:2, lineHeight:1.5 }}>
+        <div style={{ fontSize:fs(11, isDesktop), color:th.textMid, marginTop:2, lineHeight:1.5 }}>
           {act.action}
         </div>
         {act.tab && (
-          <div style={{ fontSize:9, color:th.textSub, fontFamily:"monospace", marginTop:1 }}>
+          <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace", marginTop:1 }}>
             @ {TAB_LABELS[act.tab] || act.tab}
           </div>
         )}
@@ -1747,11 +1749,11 @@ function AnomalyToast({ toast, onDismiss, dark, isDesktop }) {
       <div style={{ display:"flex", alignItems:"flex-start", gap:7 }}>
         <IconAlert size={12} color={toast.color} style={{ flexShrink:0, marginTop:1 }} />
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:10.5, fontWeight:800, color:toast.color, fontFamily:"monospace" }}>
+          <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:800, color:toast.color, fontFamily:"monospace" }}>
             {toast.agentName} — {toast.label}
           </div>
           {toast.detail && (
-            <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>
+            <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:2 }}>
               {toast.detail}
             </div>
           )}
@@ -1781,7 +1783,7 @@ function AnomalyToast({ toast, onDismiss, dark, isDesktop }) {
 // silently into what looks like "everyone's offline". onSnapshot retries
 // automatically in the background, so this is informational, not actionable.
 // ═════════════════════════════════════════════════════════════════════════════
-function ConnErrorBanner({ errors, dark }) {
+function ConnErrorBanner({ errors, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const count = Object.keys(errors).length;
   if (count === 0) return null;
@@ -1797,10 +1799,10 @@ function ConnErrorBanner({ errors, dark }) {
     }}>
       <IconAlert size={14} color={RED} style={{ flexShrink:0 }} />
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:11.5, fontWeight:800, color:RED }}>
+        <div style={{ fontSize:fs(11.5, isDesktop), fontWeight:800, color:RED }}>
           Live data unavailable
         </div>
-        <div style={{ fontSize:9, color:th.textSub, fontFamily:"monospace", marginTop:1 }}>
+        <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace", marginTop:1 }}>
           {count} feed{count > 1 ? "s" : ""} disconnected · reconnecting automatically
         </div>
       </div>
@@ -1811,7 +1813,7 @@ function ConnErrorBanner({ errors, dark }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Anomaly Banner — persistent summary of currently-active issues
 // ═════════════════════════════════════════════════════════════════════════════
-function AnomalyBanner({ anomalies, dark, muted, onToggleMute, notifPermission, onRequestDesktop, onJump }) {
+function AnomalyBanner({ anomalies, dark, isDesktop, muted, onToggleMute, notifPermission, onRequestDesktop, onJump }) {
   const th = THEME[dark ? "dark" : "light"];
   const [expanded, setExpanded] = useState(false);
   if (anomalies.length === 0) return null;
@@ -1833,14 +1835,14 @@ function AnomalyBanner({ anomalies, dark, muted, onToggleMute, notifPermission, 
         style={{ display:"flex", alignItems:"center", gap:8, padding:"9px 12px", cursor:"pointer" }}
       >
         <IconAlert size={14} color={headColor} style={{ flexShrink:0 }} />
-        <div style={{ fontSize:11.5, fontWeight:800, color:headColor, flex:1 }}>
+        <div style={{ fontSize:fs(11.5, isDesktop), fontWeight:800, color:headColor, flex:1 }}>
           {anomalies.length} active alert{anomalies.length > 1 ? "s" : ""}
         </div>
         <div
           onClick={(e) => { e.stopPropagation(); onToggleMute(); }}
           {...activatable(onToggleMute, muted ? "Unmute alert sound" : "Mute alert sound")}
           style={{
-            fontSize:9, color:th.textSub, fontFamily:"monospace",
+            fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace",
             padding:"3px 7px", borderRadius:6, border:`1px solid ${th.border}`,
             cursor:"pointer", flexShrink:0,
           }}
@@ -1872,13 +1874,13 @@ function AnomalyBanner({ anomalies, dark, muted, onToggleMute, notifPermission, 
               >
                 <div style={{ width:6, height:6, borderRadius:"50%", background:ag.anomaly.color, flexShrink:0 }}/>
                 <div style={{ flex:1, minWidth:0, overflow:"hidden" }}>
-                  <span style={{ fontSize:10.5, fontWeight:700, color:th.text }}>{ag.name}</span>
-                  <span style={{ fontSize:9, color:ag.anomaly.color, fontFamily:"monospace", marginLeft:6, fontWeight:700 }}>
+                  <span style={{ fontSize:fs(10.5, isDesktop), fontWeight:700, color:th.text }}>{ag.name}</span>
+                  <span style={{ fontSize:fs(9, isDesktop), color:ag.anomaly.color, fontFamily:"monospace", marginLeft:6, fontWeight:700 }}>
                     {ag.anomaly.label}
                   </span>
                 </div>
                 <span style={{
-                  fontSize:8.5, color:th.textSub, fontFamily:"monospace", flexShrink:0,
+                  fontSize:fs(8.5, isDesktop), color:th.textSub, fontFamily:"monospace", flexShrink:0,
                   maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                 }}>
                   {ag.anomaly.detail}
@@ -1891,7 +1893,7 @@ function AnomalyBanner({ anomalies, dark, muted, onToggleMute, notifPermission, 
               onClick={onRequestDesktop}
               {...activatable(onRequestDesktop, "Enable desktop notifications")}
               style={{
-                padding:"7px 12px", fontSize:9.5, color: dark?"#6fa3ff":NAVY,
+                padding:"7px 12px", fontSize:fs(9.5, isDesktop), color: dark?"#6fa3ff":NAVY,
                 fontFamily:"monospace", cursor:"pointer", textDecoration:"underline",
               }}
             >
@@ -1899,7 +1901,7 @@ function AnomalyBanner({ anomalies, dark, muted, onToggleMute, notifPermission, 
             </div>
           )}
           {notifPermission === "denied" && (
-            <div style={{ padding:"7px 12px", fontSize:9, color:th.textSub, fontFamily:"monospace" }}>
+            <div style={{ padding:"7px 12px", fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace" }}>
               Desktop notifications blocked — enable in browser site settings.
             </div>
           )}
@@ -2266,7 +2268,7 @@ export default function AgentsTab({ dark, isDesktop }) {
               transform: highlightedId === key ? "scale(1.015)" : "scale(1)",
             }}
           >
-            <AgentCard agent={ag} dark={dark} />
+            <AgentCard agent={ag} dark={dark} isDesktop={isDesktop} />
           </div>
         );
       })}
@@ -2313,22 +2315,23 @@ export default function AgentsTab({ dark, isDesktop }) {
           <IconRadar size={16} color={dark ? "#6fa3ff" : NAVY} />
         </div>
         <div>
-          <div style={{ fontSize:15, fontWeight:800, color:th.text, letterSpacing:-0.2 }}>
+          <div style={{ fontSize:fs(15, isDesktop), fontWeight:800, color:th.text, letterSpacing:-0.2 }}>
             Agent Monitor
           </div>
-          <div style={{ fontSize:11, color:th.textSub, marginTop:3 }}>
+          <div style={{ fontSize:fs(11, isDesktop), color:th.textSub, marginTop:3 }}>
             Live presence · session tracking · activity feed · access control
           </div>
         </div>
       </div>
 
       {/* ── Live-data connection banner — surfaces listener failures ────── */}
-      <ConnErrorBanner errors={connErrors} dark={dark} />
+      <ConnErrorBanner errors={connErrors} dark={dark} isDesktop={isDesktop} />
 
       {/* ── Active anomaly banner — persistent, not just a toast ────────── */}
       <AnomalyBanner
         anomalies={activeAnomalies}
         dark={dark}
+        isDesktop={isDesktop}
         muted={muted}
         onToggleMute={toggleMuted}
         notifPermission={notifPermission}
@@ -2348,12 +2351,12 @@ export default function AgentsTab({ dark, isDesktop }) {
           { label:"Human Admins",  value:humanAgents.length,  color:SAFFRON,   Icon:IconUserCheck, tooltip:"Sub-admins connected via Firestore heartbeat" },
           { label:"AI Agents",     value:enrichedAI.length,   color:VIOLET,    Icon:IconCpu,       tooltip:"Groq & Tavily — updated per API call" },
         ].map(s => (
-          <StatCard key={s.label} {...s} dark={dark} />
+          <StatCard key={s.label} {...s} dark={dark} isDesktop={isDesktop} />
         ))}
       </div>
 
       {/* ── NIC-style scrolling ticker ───────────────────────────────── */}
-      <ActivityTicker activities={activities} dark={dark} />
+      <ActivityTicker activities={activities} dark={dark} isDesktop={isDesktop} />
 
       {/* ── Search + Filter row ──────────────────────────────────────── */}
       {/* Search input */}
@@ -2382,7 +2385,7 @@ export default function AgentsTab({ dark, isDesktop }) {
             background: th.inputBg,
             border: `1px solid ${search ? NAVY + "70" : th.border}`,
             borderRadius: 9,
-            color: th.text, fontSize: 12,
+            color: th.text, fontSize: fs(12, isDesktop),
             outline: "none",
             transition: "border-color 0.2s",
           }}
@@ -2422,7 +2425,7 @@ export default function AgentsTab({ dark, isDesktop }) {
             padding:"4px 12px", borderRadius:20, cursor:"pointer",
             background:filter===f.key ? NAVY : (dark?"#252527":"#f0f0f0"),
             color:filter===f.key ? "#fff" : th.textMid,
-            fontSize:11, fontWeight:700,
+            fontSize:fs(11, isDesktop), fontWeight:700,
             border:`1px solid ${filter===f.key ? NAVY : th.border}`,
             transition:"all 0.15s",
             userSelect:"none",
@@ -2431,7 +2434,7 @@ export default function AgentsTab({ dark, isDesktop }) {
           </div>
         ))}
         <div style={{
-          marginLeft:"auto", fontSize:9, color:th.textSub, fontFamily:"monospace",
+          marginLeft:"auto", fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace",
         }}>
           auto-refresh 30s
         </div>
@@ -2443,7 +2446,7 @@ export default function AgentsTab({ dark, isDesktop }) {
           background:th.card,
           border:`1px dashed ${th.border}`,
           borderRadius:12, padding:"28px",
-          textAlign:"center", color:th.textSub, fontSize:12,
+          textAlign:"center", color:th.textSub, fontSize:fs(12, isDesktop),
         }}>
           {search
             ? `No agents named "${search}" — try a different search.`
@@ -2457,6 +2460,7 @@ export default function AgentsTab({ dark, isDesktop }) {
               sublabel="human sub-admins · firestore heartbeat"
               color={SAFFRON}
               dark={dark}
+              isDesktop={isDesktop}
             >
               {renderAgentGrid(teamAgents)}
             </SectionFrame>
@@ -2468,6 +2472,7 @@ export default function AgentsTab({ dark, isDesktop }) {
               sublabel="groq k1–k5 · tavily — in-app assistant pool"
               color={VIOLET}
               dark={dark}
+              isDesktop={isDesktop}
             >
               {renderAgentGrid(chatAgents)}
             </SectionFrame>
@@ -2479,6 +2484,7 @@ export default function AgentsTab({ dark, isDesktop }) {
               sublabel="dedicated groq_verify_key · tavily_verify_key — admin schemeverifier + ai insights"
               color={IND_GREEN}
               dark={dark}
+              isDesktop={isDesktop}
             >
               {renderAgentGrid(verifyAgents)}
             </SectionFrame>
@@ -2508,12 +2514,12 @@ export default function AgentsTab({ dark, isDesktop }) {
           display:"flex", alignItems:"center", justifyContent:"space-between",
           background: dark ? "#252527" : "#f8f9fa",
         }}>
-          <div style={{ fontSize:12, fontWeight:700, color:th.text, display:"flex", alignItems:"center", gap:6 }}>
+          <div style={{ fontSize:fs(12, isDesktop), fontWeight:700, color:th.text, display:"flex", alignItems:"center", gap:6 }}>
             <IconClockHistory size={13} color={th.textMid} />
             Activity Log
           </div>
           <div style={{
-            fontSize:9, color:th.textSub, fontFamily:"monospace",
+            fontSize:fs(9, isDesktop), color:th.textSub, fontFamily:"monospace",
           }}>
             last {activities.length} events
           </div>
@@ -2535,7 +2541,7 @@ export default function AgentsTab({ dark, isDesktop }) {
           ) : activities.length === 0 ? (
             <div style={{
               padding:"24px 0", textAlign:"center",
-              color:th.textSub, fontSize:12,
+              color:th.textSub, fontSize:fs(12, isDesktop),
             }}>
               No activity recorded yet. Activity will appear here as agents work.
             </div>
@@ -2546,6 +2552,7 @@ export default function AgentsTab({ dark, isDesktop }) {
                 act={act}
                 dark={dark}
                 isLast={i === Math.min(activities.length, 15) - 1}
+                isDesktop={isDesktop}
               />
             ))
           )}
@@ -2558,7 +2565,7 @@ export default function AgentsTab({ dark, isDesktop }) {
         background: dark ? "#0a0c14" : "#f4f5fb",
         border:`1px solid ${th.border}`,
         borderRadius:10,
-        fontFamily:"monospace", fontSize:9, color:th.textSub, lineHeight:1.7,
+        fontFamily:"monospace", fontSize:fs(9, isDesktop), color:th.textSub, lineHeight:1.7,
         display:"flex", gap:7,
       }}>
         <IconInfo size={12} color={dark?"#6fa3ff":NAVY} style={{ flexShrink:0, marginTop:1 }} />
