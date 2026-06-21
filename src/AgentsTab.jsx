@@ -25,6 +25,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   collection, doc, setDoc, getDoc, getDocs, onSnapshot,
   query, where, orderBy, limit, serverTimestamp, addDoc, increment,
@@ -2423,7 +2424,7 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
     ? report.rows.reduce((s, r) => s + computePay(r, payMode, Number(payRate)), 0)
     : 0;
 
-  return (
+  return createPortal(
     <div className="agnt-export-overlay" onClick={() => canClose && onClose()}>
       <div
         className="agnt-export-panel"
@@ -2635,7 +2636,8 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -2909,7 +2911,7 @@ function PurgeModal({
     error:      { label: "PURGE FAILED",   color: PURGE_AMBER },
   }[stage];
 
-  return (
+  return createPortal(
     <div className="agnt-purge-overlay" onClick={() => canClose && onClose()}>
       <div
         className="agnt-purge-panel"
@@ -3143,7 +3145,8 @@ function PurgeModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
