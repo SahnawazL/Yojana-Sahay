@@ -1734,8 +1734,8 @@ function AnomalyToast({ toast, onDismiss, dark, isDesktop }) {
 
   return (
     <div style={{
-      width: isDesktop ? 280 : "100%",
-      maxWidth: isDesktop ? 280 : 420,
+      width: "100%",
+      maxWidth: 320,
       background: dark ? "#1c1c1e" : "#fff",
       border: `1px solid ${toast.color}55`,
       borderLeft: `3px solid ${toast.color}`,
@@ -2286,20 +2286,37 @@ export default function AgentsTab({ dark, isDesktop }) {
         @keyframes agnt-fade-in  { 0%{opacity:0;transform:translateY(3px)} 100%{opacity:1;transform:translateY(0)} }
         @keyframes agnt-toast-in { 0%{opacity:0;transform:translateY(-8px) scale(0.97)} 100%{opacity:1;transform:translateY(0) scale(1)} }
         @keyframes agnt-shimmer  { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+
+        /* Toast wrap: width is CSS-driven (not the isDesktop JS flag) so it stays
+           compact on desktop even if that flag is stale during resize/hydration. */
+        .agnt-toast-wrap {
+          position: fixed;
+          top: 16px;
+          right: 16px;
+          left: auto;
+          z-index: 9999;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          align-items: flex-end;
+          pointer-events: none;
+          width: 320px;
+          max-width: calc(100vw - 32px);
+        }
+        @media (max-width: 640px) {
+          .agnt-toast-wrap {
+            top: 54px;
+            right: 10px;
+            left: 10px;
+            width: auto;
+            align-items: stretch;
+          }
+        }
       `}</style>
 
       {/* ── Proactive alert toasts — fixed overlay, newest at bottom of stack ── */}
       {toasts.length > 0 && (
-        <div style={{
-          position:"fixed",
-          top: isDesktop ? 16 : 54,
-          right: isDesktop ? 16 : 10,
-          left: isDesktop ? "auto" : 10,
-          zIndex:9999,
-          display:"flex", flexDirection:"column", gap:8,
-          alignItems: isDesktop ? "flex-end" : "stretch",
-          pointerEvents:"none",
-        }}>
+        <div className="agnt-toast-wrap">
           {toasts.map(t => (
             <AnomalyToast key={t.id} toast={t} onDismiss={dismissToast} dark={dark} isDesktop={isDesktop} />
           ))}
