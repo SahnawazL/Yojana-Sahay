@@ -45,6 +45,13 @@ const VIOLET    = "#8B5CF6";
 const PINK      = "#EC4899";
 const GOOGLE_B  = "#4285F4";
 
+// ── Shared latency → color ramp — single source of truth so every ping
+// readout in the dashboard (Home telemetry card + both Control Centre bars)
+// agrees on what counts as fast/slow instead of each using its own thresholds.
+function latencyColorFor(ms) {
+  return ms < 200 ? IND_GREEN : ms < 600 ? SAFFRON : "#E53E3E";
+}
+
 // ─── EMAILJS + AI CONFIG ──────────────────────────────────────────────────────
 const EJS_SERVICE_ID  = "service_j0cvqgf";
 const EJS_REPLY_TID   = "template_xvl9ir3";   // Admin → User reply template
@@ -3921,10 +3928,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   const dbStateLabel = error ? "ERROR" : refreshing ? "SYNCING" : loading ? "CONNECTING" : "CONNECTED";
   const dbStateColor = error ? "#E53E3E" : (refreshing || loading) ? SAFFRON : IND_GREEN;
   const latencyLabel = latencyMs == null ? "—" : `${latencyMs}ms`;
-  const latencyColor = latencyMs == null ? th.textSub
-    : latencyMs < 200 ? IND_GREEN
-    : latencyMs < 600 ? SAFFRON
-    : "#E53E3E";
+  const latencyColor = latencyMs == null ? th.textSub : latencyColorFor(latencyMs);
 
   return (
     <div style={{
@@ -3943,6 +3947,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
         @keyframes hs-shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
         @keyframes hs-spin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes hs-cursor  { 0%,55%{opacity:1} 55.01%,100%{opacity:0} }
+        @keyframes hs-latency-flash { 0%{opacity:0.35;transform:scale(0.92)} 55%{opacity:1;transform:scale(1.07)} 100%{opacity:1;transform:scale(1)} }
         .hs-cursor { display:inline-block; animation:hs-cursor 1.05s steps(1) infinite; }
         .hs-module { transition:all 0.22s cubic-bezier(0.22,1,0.36,1); cursor:pointer; }
         .hs-module:hover { transform:translateY(-3px) scale(1.012); }
@@ -4252,7 +4257,16 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
 
         <div style={{ display:"flex", alignItems:"center", gap:6 }}>
           <span style={{ fontFamily:MONO_FONT, fontSize:7.5, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>LATENCY</span>
-          <span style={{ fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:latencyColor }}>{latencyLabel}</span>
+          <span
+            key={latencyMs}
+            style={{
+              fontFamily:MONO_FONT, fontSize:8.5, fontWeight:700, color:latencyColor,
+              textShadow: dark && latencyMs != null ? `0 0 8px ${latencyColor}66` : "none",
+              transition: "color 0.5s ease, text-shadow 0.5s ease",
+              animation: latencyMs != null ? "hs-latency-flash 0.5s ease" : "none",
+              display:"inline-block",
+            }}
+          >{latencyLabel}</span>
         </div>
 
         <LiveStatusMeta lastSynced={lastSynced} sessionStart={sessionStart} th={th} />
@@ -4493,6 +4507,28 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   }, []);
 
   useEffect(() => { fetchUsers(); }, []);
+
+  // ── Latency auto-refresh — keeps the LATENCY readout live between manual
+  // refreshes. fetchUsers() (the source of latencyMs) only runs on mount and
+  // on manual refresh, so without this the number on screen goes stale the
+  // moment you stop clicking refresh. Pings a single small doc (cheap — one
+  // read) instead of re-fetching the whole users collection, and skips while
+  // the tab is backgrounded to avoid burning reads for no reason.
+  useEffect(() => {
+    let cancelled = false;
+    const pingLatency = async () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      const t0 = performance.now();
+      try {
+        await getDoc(doc(db, "appStats", "usage"));
+        if (!cancelled) setLatencyMs(Math.round(performance.now() - t0));
+      } catch {
+        if (!cancelled) setLatencyMs(null);
+      }
+    };
+    const id = setInterval(pingLatency, 20000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
 
   // ── Fetch Reports ─────────────────────────────────────────────────────────
   const fetchReports = useCallback(async () => {
@@ -5933,11 +5969,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 {!loading && latencyMs && (
                   <>
                     <span style={{ width:2, height:2, borderRadius:"50%", background:"rgba(255,255,255,0.2)", flexShrink:0 }}/>
-                    <span style={{
-                      fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8,
-                      color: latencyMs < 300 ? "#22c55e" : latencyMs < 800 ? "#f59e0b" : "#ef4444",
-                      fontWeight:700,
-                    }}>{latencyMs}ms</span>
+                    <span
+                      key={latencyMs}
+                      style={{
+                        fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8,
+                        color: latencyColorFor(latencyMs),
+                        textShadow: `0 0 7px ${latencyColorFor(latencyMs)}77`,
+                        transition: "color 0.5s ease, text-shadow 0.5s ease",
+                        animation: "hs-latency-flash 0.5s ease",
+                        fontWeight:700, display:"inline-block",
+                      }}
+                    >{latencyMs}ms</span>
                   </>
                 )}
               </div>
@@ -6161,11 +6203,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   {!loading && latencyMs && (
                     <>
                       <span style={{ width:2, height:2, borderRadius:"50%", background:"rgba(255,255,255,0.2)", flexShrink:0 }}/>
-                      <span style={{
-                        fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8,
-                        color: latencyMs < 300 ? "#22c55e" : latencyMs < 800 ? "#f59e0b" : "#ef4444",
-                        fontWeight:700,
-                      }}>{latencyMs}ms</span>
+                      <span
+                        key={latencyMs}
+                        style={{
+                          fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8,
+                          color: latencyColorFor(latencyMs),
+                          textShadow: `0 0 7px ${latencyColorFor(latencyMs)}77`,
+                          transition: "color 0.5s ease, text-shadow 0.5s ease",
+                          animation: "hs-latency-flash 0.5s ease",
+                          fontWeight:700, display:"inline-block",
+                        }}
+                      >{latencyMs}ms</span>
                     </>
                   )}
                 </div>
