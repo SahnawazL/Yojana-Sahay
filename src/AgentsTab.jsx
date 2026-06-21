@@ -303,22 +303,30 @@ function sessionDuration(start, end) {
   return r > 0 ? `${h}h ${r}m` : `${h}h`;
 }
 
-function isOnline(lastSeen, thresholdMins = 2) {
+// ─── PRESENCE TIMING CONSTANTS ────────────────────────────────────────────────
+// Single source of truth for the thresholds documented below, and for the
+// re-render cadence used by both the live-tick effect and the heartbeat writer.
+const PRESENCE_TICK_MS  = 30000; // re-render cadence: keeps "Xm ago" / online-state fresh
+const HUMAN_ONLINE_MINS = 2;
+const HUMAN_IDLE_MINS   = 5;
+const AI_ONLINE_MINS    = 15;
+
+function isOnline(lastSeen, thresholdMins = HUMAN_ONLINE_MINS) {
   const d = toDate(lastSeen);
   if (!d) return false;
   return (Date.now() - d.getTime()) < thresholdMins * 60 * 1000;
 }
 
 // Three-state presence: "online" | "idle" | "offline"
-// Human : online = <2 min · idle = 2–5 min · offline = >5 min
-// AI    : online = <15 min                 · offline = >15 min
+// Human : online = <HUMAN_ONLINE_MINS · idle = HUMAN_ONLINE_MINS–HUMAN_IDLE_MINS · offline = beyond
+// AI    : online = <AI_ONLINE_MINS    · offline = beyond
 function getPresenceState(lastSeen, type = "human") {
   const d = toDate(lastSeen);
   if (!d) return "offline";
   const minsAgo = (Date.now() - d.getTime()) / 60000;
-  if (type === "ai") return minsAgo < 15 ? "online" : "offline";
-  if (minsAgo < 2)  return "online";
-  if (minsAgo < 5)  return "idle";
+  if (type === "ai") return minsAgo < AI_ONLINE_MINS ? "online" : "offline";
+  if (minsAgo < HUMAN_ONLINE_MINS) return "online";
+  if (minsAgo < HUMAN_IDLE_MINS)   return "idle";
   return "offline";
 }
 
@@ -454,6 +462,12 @@ export async function logAdminActivity(agentId, agentName, action, tab, type = "
 export function useAgentPresence(uid, name, email, activeTab, isDesktop, allowedTabs = null) {
   const mountedRef = useRef(false);
   const intervalRef = useRef(null);
+  // Local mirror of this session's start time. serverTimestamp() resolves
+  // asynchronously server-side and can't be read back client-side, so we
+  // can't use the Firestore `sessionStart` field to compute a duration when
+  // the session ends — this ref is what lets the offline write below include
+  // an actual lastSessionDuration instead of leaving it unset forever.
+  const sessionStartRef = useRef(null);
 
   const beat = useCallback(async (data = {}) => {
     if (!uid) return;
@@ -475,9 +489,18 @@ export function useAgentPresence(uid, name, email, activeTab, isDesktop, allowed
     }
   }, [uid, name, email, activeTab, isDesktop, allowedTabs]);
 
+  // The setup effect below only re-runs when `uid` changes, so the interval
+  // it creates would otherwise close over this one render's `beat` forever —
+  // permanently frozen with whatever activeTab/isDesktop/allowedTabs were at
+  // mount. Routing every tick through this ref means the periodic heartbeat
+  // always calls the *latest* beat, not a stale one from setup time.
+  const beatRef = useRef(beat);
+  useEffect(() => { beatRef.current = beat; }, [beat]);
+
   // Mount: write sessionStart, kick off 30s heartbeat
   useEffect(() => {
     if (!uid) return;
+    sessionStartRef.current = new Date(); // local clock for this session, see note above
     if (!mountedRef.current) {
       mountedRef.current = true;
       // First write — also sets sessionStart
@@ -494,12 +517,15 @@ export function useAgentPresence(uid, name, email, activeTab, isDesktop, allowed
         sessionStart: serverTimestamp(),
       }, { merge: false }).catch(() => {});
     }
-    intervalRef.current = setInterval(() => beat(), 30000);
+    intervalRef.current = setInterval(() => beatRef.current(), PRESENCE_TICK_MS);
     return () => {
       clearInterval(intervalRef.current);
-      // Mark offline on unmount (best-effort)
+      // Mark offline + record how long this session lasted (best-effort —
+      // won't fire on a hard browser close/crash, same as isOnline below).
       setDoc(doc(db, "adminPresence", uid), {
-        isOnline: false, lastSeen: serverTimestamp(),
+        isOnline: false,
+        lastSeen: serverTimestamp(),
+        lastSessionDuration: sessionDuration(sessionStartRef.current, null),
       }, { merge: true }).catch(() => {});
     };
   }, [uid]); // only on uid change
@@ -1049,7 +1075,10 @@ function SectionFrame({ label, sublabel, color, dark, children }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Agent Card
 // ═════════════════════════════════════════════════════════════════════════════
-function AgentCard({ agent, dark }) {
+// AgentCard is rendered per-agent across three grids and the whole tree
+// re-renders on every Firestore snapshot + the 30s tick — memo it so a card
+// only re-renders when its own `agent` object or `dark` actually changes.
+const AgentCard = React.memo(function AgentCard({ agent, dark }) {
   const th      = THEME[dark ? "dark" : "light"];
   const [hovered, setHovered] = useState(false);
   const state   = getPresenceState(agent.lastSeen, agent.type);
@@ -1373,12 +1402,12 @@ function AgentCard({ agent, dark }) {
       </div>
     </div>
   );
-}
+});
 
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Stat Card (with tap/hover tooltip)
 // ═════════════════════════════════════════════════════════════════════════════
-function StatCard({ label, value, color, Icon, tooltip, dark }) {
+const StatCard = React.memo(function StatCard({ label, value, color, Icon, tooltip, dark }) {
   const th = THEME[dark ? "dark" : "light"];
   const [tipOpen, setTipOpen] = useState(false);
   return (
@@ -1439,12 +1468,12 @@ function StatCard({ label, value, color, Icon, tooltip, dark }) {
       )}
     </div>
   );
-}
+});
 
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Activity Timeline Row
 // ═════════════════════════════════════════════════════════════════════════════
-function ActivityRow({ act, dark, isLast }) {
+const ActivityRow = React.memo(function ActivityRow({ act, dark, isLast }) {
   const th    = THEME[dark ? "dark" : "light"];
   const color = ACT_COLORS[act.type] || "#4285F4";
   return (
@@ -1505,7 +1534,7 @@ function ActivityRow({ act, dark, isLast }) {
       </div>
     </div>
   );
-}
+});
 
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Daily Attendance (8h target — for salary calculation)
@@ -1893,6 +1922,11 @@ export default function AgentsTab({ dark, isDesktop }) {
   const [filter,      setFilter]      = useState("all");
   const [search,      setSearch]      = useState("");
   const [, forceRender]               = useState(0); // 30-s tick
+  // IST date string as state (not a plain render-time variable) so the
+  // agentTimeLogs listener below can resubscribe when the day rolls over —
+  // otherwise a dashboard left open past midnight keeps querying yesterday's
+  // date forever and anomaly detection silently goes stale.
+  const [todayStr, setTodayStr] = useState(() => getISTDateStr());
 
   // ── Live-data health: per-listener errors + first-payload flags ──────────
   // Firestore's onSnapshot fails silently by default (no error callback means
@@ -1953,8 +1987,16 @@ export default function AgentsTab({ dark, isDesktop }) {
   }, []);
 
   // ── 30-second re-render tick (keeps "X m ago" and online status fresh) ────
+  // Also re-derives todayStr so a day rollover propagates to the time-logs
+  // listener below without needing a page reload.
   useEffect(() => {
-    const t = setInterval(() => forceRender(n => n + 1), 30000);
+    const t = setInterval(() => {
+      forceRender(n => n + 1);
+      setTodayStr(prev => {
+        const now = getISTDateStr();
+        return now !== prev ? now : prev;
+      });
+    }, PRESENCE_TICK_MS);
     return () => clearInterval(t);
   }, []);
 
@@ -2012,8 +2054,10 @@ export default function AgentsTab({ dark, isDesktop }) {
   }, [setListenerError]);
 
   // ── Listen: today's time logs (for anomaly detection) ────────────────────
+  // Depends on todayStr (state, refreshed by the 30s tick above) so this
+  // resubscribes with the new date automatically at midnight IST instead of
+  // silently querying a stale date until the page is reloaded.
   useEffect(() => {
-    const todayStr = getISTDateStr();
     const q = query(collection(db, "agentTimeLogs"), where("date", "==", todayStr));
     const unsub = onSnapshot(
       q,
@@ -2027,10 +2071,11 @@ export default function AgentsTab({ dark, isDesktop }) {
       }
     );
     return unsub;
-  }, [setListenerError]);
+  }, [todayStr, setListenerError]);
 
   // ── Enrich AI agents with live status + health stats ─────────────────────
-  const todayStr  = getISTDateStr(); // stable within a day; 30s tick keeps renders fresh
+  // todayStr is state now (see above) — refreshed by the 30s tick, so this
+  // memo and the listener above both pick up a midnight rollover automatically.
   const enrichedAI = useMemo(() =>
     AI_AGENTS.map(ag => {
       if (ag.id === "groq-ai") {
@@ -2196,10 +2241,16 @@ export default function AgentsTab({ dark, isDesktop }) {
   const verifyAgents = useMemo(() => displayAgents.filter(a => VERIFY_AI_IDS.has(a.id)), [displayAgents]);
 
   // Renders one section's grid of cards — shared by all three sections below.
+  // auto-fit (not auto-fill): auto-fill reserves empty 280px+ column tracks
+  // even when a section has fewer cards than fit in a row (e.g. AI Chat and
+  // Verify Pipeline only have 2 each), which starves the real cards down to
+  // minimum width and truncates names while leaving dead space on the right.
+  // auto-fit collapses those empty tracks so the real cards' 1fr can stretch
+  // to fill the row.
   const renderAgentGrid = (list) => (
     <div style={{
       display:"grid",
-      gridTemplateColumns: isDesktop ? "repeat(auto-fill, minmax(280px, 1fr))" : "1fr",
+      gridTemplateColumns: isDesktop ? "repeat(auto-fit, minmax(280px, 1fr))" : "1fr",
       gap:10,
     }}>
       {list.map(ag => {
