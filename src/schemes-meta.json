@@ -1524,76 +1524,76 @@
     "confidence": 0
   },
   "cg_dr_khoobasuram_health": {
-    "lastVerified": "2026-06-21T16:19:07.823Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_higher_ed_scholarship": {
-    "lastVerified": "2026-06-21T16:19:07.823Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_solar_suryashakti": {
-    "lastVerified": "2026-06-21T16:15:15.701Z",
-    "linkAlive": true,
+    "lastVerified": "2026-06-21T16:27:25.051Z",
+    "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_shauchalay_nirman": {
-    "lastVerified": "2026-06-21T16:19:07.823Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_kaushal_vikas": {
-    "lastVerified": "2026-06-21T16:19:07.823Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_labour_card": {
-    "lastVerified": "2026-06-21T15:46:14.235Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_pre_matric_tribal": {
-    "lastVerified": "2026-06-21T16:23:55.727Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
-    "confidence": 0
+    "httpStatus": 200,
+    "confidence": 0.5
   },
   "cg_saur_sujala": {
-    "lastVerified": "2026-06-21T16:18:39.623Z",
-    "linkAlive": true,
+    "lastVerified": "2026-06-21T16:27:25.051Z",
+    "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_organic_farming": {
-    "lastVerified": "2026-06-21T16:19:07.823Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_drip_sprinkler": {
-    "lastVerified": "2026-06-21T16:23:55.727Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_msme_subsidy": {
-    "lastVerified": "2026-06-21T16:19:07.823Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_startup_niti": {
-    "lastVerified": "2026-06-21T16:19:07.823Z",
+    "lastVerified": "2026-06-21T16:27:25.051Z",
     "linkAlive": true,
-    "httpStatus": 0,
-    "confidence": 0
+    "httpStatus": 200,
+    "confidence": 0.5
   },
   "uk_nanda_gaura": {
     "lastVerified": "2026-06-21T16:06:20.964Z",
@@ -2579,14 +2579,15 @@
     "confidence": 0
   },
   "cg_dr_khoobasuram": {
-    "lastVerified": "2026-06-21T16:18:35.229Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-06-21T16:27:25.051Z",
+    "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 1,
+    "lastDate": "2021-11-30"
   },
   "cg_mahtari_vandan": {
-    "lastVerified": "2026-06-21T16:16:06.119Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-06-21T16:27:25.051Z",
+    "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
