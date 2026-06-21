@@ -927,6 +927,66 @@ function SectionLabel({ label, sublabel, color, dark }) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Section Frame
+// Wraps a card grid in a HUD-style group-box: glowing top accent rule, corner
+// brackets, faint schematic grid texture in the header. Used for Team / AI
+// Chat / Verify Pipeline so each pool reads as one bordered instrument panel.
+// ═════════════════════════════════════════════════════════════════════════════
+function SectionFrame({ label, sublabel, color, dark, children }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const corner = (pos) => (
+    <div style={{
+      position:"absolute", width:9, height:9,
+      [pos.includes("top") ? "top" : "bottom"]: -1,
+      [pos.includes("left") ? "left" : "right"]: -1,
+      borderTop:    pos.includes("top")    ? `1.5px solid ${color}90` : "none",
+      borderBottom: pos.includes("bottom") ? `1.5px solid ${color}90` : "none",
+      borderLeft:   pos.includes("left")   ? `1.5px solid ${color}90` : "none",
+      borderRight:  pos.includes("right")  ? `1.5px solid ${color}90` : "none",
+      pointerEvents:"none",
+    }}/>
+  );
+  return (
+    <div style={{
+      position:"relative",
+      marginBottom:16,
+      border:`1px solid ${th.border}`,
+      borderRadius:11,
+      overflow:"hidden",
+      background: th.card,
+      boxShadow:`0 0 24px ${color}0c`,
+    }}>
+      {/* top accent rule — static glow, no animation */}
+      <div style={{ height:2, background:color, boxShadow:`0 0 9px ${color}90` }}/>
+
+      {/* header — faint grid texture + HUD corner brackets */}
+      <div style={{
+        position:"relative",
+        padding:"11px 14px",
+        borderBottom:`1px solid ${th.border}`,
+        background: dark ? "#1a1a1c" : "#f8f9fa",
+        backgroundImage:
+          `linear-gradient(${dark?"#ffffff09":"#00000007"} 1px, transparent 1px),` +
+          `linear-gradient(90deg, ${dark?"#ffffff09":"#00000007"} 1px, transparent 1px)`,
+        backgroundSize:"13px 13px",
+      }}>
+        {corner("topleft")}{corner("topright")}
+        <SectionLabel
+          label={`[ ${label.toUpperCase().replace(/ /g, "_")} ]`}
+          sublabel={sublabel ? `// ${sublabel}` : null}
+          color={color}
+          dark={dark}
+        />
+      </div>
+
+      <div style={{ padding:"14px" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Agent Card
 // ═════════════════════════════════════════════════════════════════════════════
 function AgentCard({ agent, dark }) {
@@ -952,6 +1012,7 @@ function AgentCard({ agent, dark }) {
       borderRadius: 8,
       padding:     "10px 12px",
       position:    "relative",
+      boxShadow:   present ? `-6px 0 14px -10px ${SC}` : "none",
     }}>
       {/* ── Header ── */}
       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -1029,9 +1090,9 @@ function AgentCard({ agent, dark }) {
           {/* Key grid header */}
           <div style={{
             fontSize: 8, fontFamily: "monospace", fontWeight: 700,
-            color: th.textSub, letterSpacing: 1.1, textTransform: "uppercase",
+            color: th.textSub, letterSpacing: 1.1,
           }}>
-            Key Health · {agent.keyCount} Keys Configured
+            [ KEY_HEALTH ] · {agent.keyCount} keys configured
           </div>
           <GroqKeyGrid
             activeKeyIdx={agent.activeKeyIdx}
@@ -1128,9 +1189,9 @@ function AgentCard({ agent, dark }) {
         }}>
           <div style={{
             fontSize: 8, fontFamily: "monospace", fontWeight: 700,
-            color: th.textSub, letterSpacing: 1.1, textTransform: "uppercase",
+            color: th.textSub, letterSpacing: 1.1,
           }}>
-            Searches Today
+            [ SEARCHES_TODAY ]
           </div>
           <div style={{
             fontSize: 19, fontWeight: 800, color: CYAN, fontFamily: "monospace", marginTop: 3,
@@ -2145,84 +2206,36 @@ export default function AgentsTab({ dark, isDesktop }) {
       ) : (
         <>
           {teamAgents.length > 0 && (
-            <div style={{
-              marginBottom:16,
-              border:`1px solid ${th.border}`,
-              borderTop:`2px solid ${SAFFRON}`,
-              borderRadius:11,
-              overflow:"hidden",
-              background: th.card,
-            }}>
-              <div style={{
-                padding:"11px 14px",
-                borderBottom:`1px solid ${th.border}`,
-                background: dark ? "#252527" : "#f8f9fa",
-              }}>
-                <SectionLabel
-                  label="Team"
-                  sublabel="Human sub-admins · Firestore heartbeat"
-                  color={SAFFRON}
-                  dark={dark}
-                />
-              </div>
-              <div style={{ padding:"14px" }}>
-                {renderAgentGrid(teamAgents)}
-              </div>
-            </div>
+            <SectionFrame
+              label="Team"
+              sublabel="human sub-admins · firestore heartbeat"
+              color={SAFFRON}
+              dark={dark}
+            >
+              {renderAgentGrid(teamAgents)}
+            </SectionFrame>
           )}
 
           {chatAgents.length > 0 && (
-            <div style={{
-              marginBottom:16,
-              border:`1px solid ${th.border}`,
-              borderTop:`2px solid ${VIOLET}`,
-              borderRadius:11,
-              overflow:"hidden",
-              background: th.card,
-            }}>
-              <div style={{
-                padding:"11px 14px",
-                borderBottom:`1px solid ${th.border}`,
-                background: dark ? "#252527" : "#f8f9fa",
-              }}>
-                <SectionLabel
-                  label="AI Chat"
-                  sublabel="Groq K1–K5 · Tavily — in-app assistant pool"
-                  color={VIOLET}
-                  dark={dark}
-                />
-              </div>
-              <div style={{ padding:"14px" }}>
-                {renderAgentGrid(chatAgents)}
-              </div>
-            </div>
+            <SectionFrame
+              label="AI Chat"
+              sublabel="groq k1–k5 · tavily — in-app assistant pool"
+              color={VIOLET}
+              dark={dark}
+            >
+              {renderAgentGrid(chatAgents)}
+            </SectionFrame>
           )}
 
           {verifyAgents.length > 0 && (
-            <div style={{
-              marginBottom:16,
-              border:`1px solid ${th.border}`,
-              borderTop:`2px solid ${IND_GREEN}`,
-              borderRadius:11,
-              overflow:"hidden",
-              background: th.card,
-            }}>
-              <div style={{
-                padding:"11px 14px",
-                borderBottom:`1px solid ${th.border}`,
-                background: dark ? "#252527" : "#f8f9fa",
-              }}>
-                <SectionLabel
-                  label="Verify Pipeline"
-                  sublabel="Dedicated GROQ_VERIFY_KEY · TAVILY_VERIFY_KEY — admin SchemeVerifier + AI Insights"
-                  color={IND_GREEN}
-                  dark={dark}
-                />
-              </div>
-              <div style={{ padding:"14px" }}>
-                {renderAgentGrid(verifyAgents)}
-              </div>
-            </div>
+            <SectionFrame
+              label="Verify Pipeline"
+              sublabel="dedicated groq_verify_key · tavily_verify_key — admin schemeverifier + ai insights"
+              color={IND_GREEN}
+              dark={dark}
+            >
+              {renderAgentGrid(verifyAgents)}
+            </SectionFrame>
           )}
         </>
       )}
