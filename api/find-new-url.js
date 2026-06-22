@@ -11,7 +11,7 @@
 //   5. Score: domain quality × liveness
 //   6. Return top 5 sorted: [{ url, title, domain, alive, httpStatus, confidence }]
 //
-// Reuses: TAVILY_API_KEY env var (already set for verify-scheme.js)
+// Keys: TAVILY_VERIFY_KEY (preferred) → TAVILY_API_KEY fallback (same priority as verify-scheme.js)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { recordAiCall } from "./_lib/firebaseAdmin.js";
@@ -152,10 +152,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const tavilyKey = process.env.TAVILY_API_KEY?.trim();
+  const tavilyKey = (process.env.TAVILY_VERIFY_KEY ?? process.env.TAVILY_API_KEY)?.trim();
   if (!tavilyKey) {
     return res.status(500).json({
-      error: "TAVILY_API_KEY not configured. Add it in Vercel → Settings → Environment Variables.",
+      error: "No Tavily key configured. Add TAVILY_VERIFY_KEY (or TAVILY_API_KEY) in Vercel → Settings → Environment Variables.",
     });
   }
 
