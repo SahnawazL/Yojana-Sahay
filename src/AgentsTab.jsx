@@ -2474,27 +2474,37 @@ function buildAttendanceReportHTML({ report, payConfigs }) {
   .status-Absent  { background:var(--bad-bg); color:var(--bad); } .status-Absent i { background:var(--bad); }
   .absent-row td  { color:#a8adb8; }
 
-  /* ── Attendance heatmap (per agent, above the daily table) ───────── */
-  .heatmap-wrap { margin:4px 0 14px; break-inside:avoid; }
-  .heatmap-dow, .heatmap-grid { display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; }
-  .heatmap-dow span { font-size:6.5px; font-weight:600; color:var(--mute); text-transform:uppercase;
-    letter-spacing:0.3px; text-align:center; padding-bottom:3px; }
-  .hm-cell { aspect-ratio:1; border-radius:3px; display:flex; align-items:center; justify-content:center;
-    font-family:var(--mono); font-size:6.5px; font-weight:600; font-variant-numeric:tabular-nums; }
-  .hm-empty { background:transparent; }
-  .hm-full   { background:var(--ok);    color:#fff; }
-  .hm-half   { background:var(--warn);  color:#fff; }
-  .hm-short  { background:var(--short); color:#fff; }
-  .hm-absent { background:var(--bad);   color:#fff; }
-  .hm-off    { background:var(--tint);  color:var(--mute); border:1px solid var(--line); }
-  .heatmap-legend { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
-  .hl-item { display:flex; align-items:center; gap:4px; font-size:7px; color:var(--mute); }
-  .hl-dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; display:inline-block; }
-  .hl-dot.hl-full   { background:var(--ok); }
-  .hl-dot.hl-half   { background:var(--warn); }
-  .hl-dot.hl-short  { background:var(--short); }
-  .hl-dot.hl-absent { background:var(--bad); }
-  .hl-dot.hl-off    { background:var(--tint); border:1px solid var(--line); }
+  /* ── Attendance heatmap ─────────────────────────────────────────────
+     Compact GitHub-style 16 × 16 px fixed cells — the grid is ~128 px
+     wide so it sits as a focused widget, not a page-wide bar.
+     Four perceptually distinct colors span the full green→red arc:
+       Full = forest-green · Half = amber · Short = orange · Absent = red
+     Status-badge variables (--warn / --short / --bad) are left untouched;
+     the heatmap uses its own hardcoded values for maximum separation.
+     ─────────────────────────────────────────────────────────────────── */
+  .heatmap-wrap { margin:6px 0 16px; break-inside:avoid; display:inline-block;
+    background:#F6F7FA; border:1px solid var(--line); border-radius:8px; padding:10px 13px; }
+  .heatmap-dow, .heatmap-grid { display:grid; grid-template-columns:repeat(7, 16px); gap:2px; }
+  .heatmap-dow span { width:16px; display:block; font-size:6px; font-weight:700; color:var(--mute);
+    text-transform:uppercase; letter-spacing:0.2px; text-align:center; padding-bottom:3px; }
+  .hm-cell { width:16px; height:16px; border-radius:3px; display:flex; align-items:center;
+    justify-content:center; font-family:var(--mono); font-size:6px; font-weight:700;
+    font-variant-numeric:tabular-nums; }
+  .hm-empty  { background:transparent; }
+  .hm-full   { background:#16A34A; color:#fff; }
+  .hm-half   { background:#D97706; color:#fff; }
+  .hm-short  { background:#EA580C; color:#fff; }
+  .hm-absent { background:#DC2626; color:#fff; }
+  .hm-off    { background:#E3E6EC; color:#9CA3AF; }
+  .heatmap-legend { display:flex; gap:10px; flex-wrap:wrap; margin-top:9px;
+    border-top:1px solid var(--line); padding-top:8px; }
+  .hl-item { display:flex; align-items:center; gap:4px; font-size:6.5px; color:var(--mute); }
+  .hl-dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; display:inline-block; }
+  .hl-dot.hl-full   { background:#16A34A; }
+  .hl-dot.hl-half   { background:#D97706; }
+  .hl-dot.hl-short  { background:#EA580C; }
+  .hl-dot.hl-absent { background:#DC2626; }
+  .hl-dot.hl-off    { background:#E3E6EC; border:1px solid #CBD0D9; }
 
   /* ── Annexures — first one stays bound to the Part B heading; the rest
        each get their own page via the adjacent-sibling rule below, so no
