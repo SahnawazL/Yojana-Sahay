@@ -2138,9 +2138,14 @@ function buildAttendanceReport(humanAgents, logs, startStr, endStr) {
 // writes it straight into a new blank tab via document.write() and leaves
 // "Save as PDF" to the browser's native print flow — no PDF library, nothing
 // extra to keep in sync.
-function buildAttendanceReportHTML({ report, payMode, payRate }) {
+function buildAttendanceReportHTML({ report, payConfigs }) {
   const { rows, totalCalendarDays, startStr, endStr } = report;
-  const showPay = payMode !== "none" && payRate > 0;
+  // Per-agent pay helpers — fall back to no-pay if uid not in payConfigs
+  const agentCfg   = uid => payConfigs?.[uid] || { mode: "none", rate: 0 };
+  const agentPay   = r   => computePay(r, agentCfg(r.uid).mode, Number(agentCfg(r.uid).rate));
+  const agentHasPay = r  => agentCfg(r.uid).mode !== "none" && Number(agentCfg(r.uid).rate) > 0;
+  // Show pay columns if at least one agent has a rate configured
+  const showPayCol = rows.some(r => agentHasPay(r));
 
   const generatedAt = new Date().toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric",
@@ -2156,11 +2161,10 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
   const totalShortAll    = rows.reduce((s, r) => s + r.shortfallHours, 0);
   const avgAttendanceAll = rows.length ? rows.reduce((s, r) => s + r.attendancePct, 0) / rows.length : 0;
   const totalEffDaysAll  = rows.reduce((s, r) => s + effectiveDays(r), 0);
-  const totalPayAll      = showPay ? rows.reduce((s, r) => s + computePay(r, payMode, payRate), 0) : 0;
+  const totalPayAll      = showPayCol ? rows.reduce((s, r) => s + agentPay(r), 0) : 0;
 
-  const payCaption = showPay
-    ? `Salary calculated at ₹${Number(payRate).toLocaleString("en-IN")} per ${payMode === "perDay" ? "day" : "hour"}`
-      + (payMode === "perDay" ? `, pro-rated by hours logged against the ${FULL_DAY_HOURS}h daily target.` : ".")
+  const payCaption = showPayCol
+    ? `Salary calculated per agent at individually configured rates, pro-rated against the ${FULL_DAY_HOURS}h daily target where applicable.`
     : null;
 
   // Each agent gets a stable annexure code (A1, A2…) that ties their Part A
@@ -2178,7 +2182,7 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
       <td class="num mono">${r.daysFull}</td>
       <td class="num mono">${r.overtimeHours.toFixed(1)}</td>
       <td class="num mono">${r.shortfallHours.toFixed(1)}</td>
-      ${showPay ? `<td class="num mono">${effectiveDays(r).toFixed(2)}</td><td class="num mono strong">${fmtINR(computePay(r, payMode, payRate))}</td>` : ""}
+      ${showPayCol ? `<td class="num mono">${effectiveDays(r).toFixed(2)}</td><td class="num mono strong">${agentHasPay(r) ? fmtINR(agentPay(r)) : "—"}</td>` : ""}
       <td class="num"><span class="ref-tag">${annexureCode(i)}</span></td>
     </tr>`).join("");
 
@@ -2191,7 +2195,7 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
       <td class="num mono">${totalFullAll}</td>
       <td class="num mono">${totalOTAll.toFixed(1)}</td>
       <td class="num mono">${totalShortAll.toFixed(1)}</td>
-      ${showPay ? `<td class="num mono">${totalEffDaysAll.toFixed(2)}</td><td class="num mono strong">${fmtINR(totalPayAll)}</td>` : ""}
+      ${showPayCol ? `<td class="num mono">${totalEffDaysAll.toFixed(2)}</td><td class="num mono strong">${fmtINR(totalPayAll)}</td>` : ""}
       <td class="num">—</td>
     </tr>`;
 
@@ -2218,7 +2222,7 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
         <div class="chip-row">
           <div class="chip"><span>Days Present</span><b>${r.daysPresent}/${totalCalendarDays}</b></div>
           <div class="chip"><span>Total Hours</span><b>${r.totalHours.toFixed(1)}h</b></div>
-          ${showPay ? `<div class="chip"><span>Gross Pay</span><b>${fmtINR(computePay(r, payMode, payRate))}</b></div>` : ""}
+          ${agentHasPay(r) ? `<div class="chip"><span>Gross Pay</span><b>${fmtINR(agentPay(r))}</b></div>` : ""}
         </div>
       </div>
       <div class="table-wrap">
@@ -2394,7 +2398,7 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
       <div class="glance-card"><div class="lbl">Agents</div><div class="val">${rows.length}</div></div>
       <div class="glance-card"><div class="lbl">Period Days</div><div class="val">${totalCalendarDays}</div></div>
       <div class="glance-card"><div class="lbl">Hours Logged</div><div class="val">${totalHoursAll.toFixed(1)}h</div></div>
-      ${showPay
+      ${showPayCol
         ? `<div class="glance-card"><div class="lbl">Total Gross Pay</div><div class="val">${fmtINR(totalPayAll)}</div></div>`
         : `<div class="glance-card"><div class="lbl">Avg. Attendance</div><div class="val">${avgAttendanceAll.toFixed(1)}%</div></div>`}
     </div>
@@ -2410,7 +2414,7 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
         <tr>
           <th>#</th><th>Agent</th><th>Days Present</th><th>Attend. %</th><th>Hours</th><th>Avg Hrs/Day</th>
           <th>Full Days</th><th>O.T. (hrs)</th><th>Short (hrs)</th>
-          ${showPay ? `<th>Eff. Days</th><th>Gross Pay</th>` : ""}<th>Ref</th>
+          ${showPayCol ? `<th>Eff. Days</th><th>Gross Pay</th>` : ""}<th>Ref</th>
         </tr>
       </thead>
       <tbody>${summaryRows}</tbody>
@@ -2460,8 +2464,11 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
   const [rangeMode, setRangeMode]     = useState("thisMonth"); // thisMonth | lastMonth | last7 | custom
   const [customStart, setCustomStart] = useState(todayStr);
   const [customEnd, setCustomEnd]     = useState(todayStr);
-  const [payMode, setPayMode]         = useState("none"); // none | perDay | perHour
-  const [payRate, setPayRate]         = useState("");
+  const [payConfigs, setPayConfigs] = useState(() =>
+    Object.fromEntries((humanAgents || []).map(a => [a.id, { mode: "none", rate: "" }]))
+  );
+  const updatePayCfg = (uid, key, val) =>
+    setPayConfigs(prev => ({ ...prev, [uid]: { ...(prev[uid] || { mode: "none", rate: "" }), [key]: val } }));
 
   const [stage, setStage]   = useState("config"); // config | generating | ready | error
   const [report, setReport] = useState(null);
@@ -2484,7 +2491,10 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
   const rangeValid = !!resolvedRange.start && !!resolvedRange.end
     && resolvedRange.start <= resolvedRange.end
     && resolvedRange.end <= todayStr;
-  const rateValid = payMode === "none" || Number(payRate) > 0;
+  const rateValid = (humanAgents || []).every(a => {
+    const cfg = payConfigs[a.id] || { mode: "none", rate: "" };
+    return cfg.mode === "none" || Number(cfg.rate) > 0;
+  });
   const periodLabel = rangeValid ? `${fmtReportDate(resolvedRange.start)} – ${fmtReportDate(resolvedRange.end)}` : "—";
 
   const generate = async () => {
@@ -2494,7 +2504,7 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
     try {
       const logs = await fetchAttendanceLogsRange(resolvedRange.start, resolvedRange.end);
       const rpt  = buildAttendanceReport(humanAgents, logs, resolvedRange.start, resolvedRange.end);
-      const html = buildAttendanceReportHTML({ report: rpt, payMode, payRate: Number(payRate) || 0 });
+      const html = buildAttendanceReportHTML({ report: rpt, payConfigs });
       setReport(rpt);
       setReportHtml(html);
       setStage("ready");
@@ -2512,9 +2522,12 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
   };
 
   const totalHoursAll = report ? report.rows.reduce((s, r) => s + r.totalHours, 0) : 0;
-  const showPay = payMode !== "none" && Number(payRate) > 0;
+  const showPay = Object.values(payConfigs).some(c => c.mode !== "none" && Number(c.rate) > 0);
   const totalPayAll = report && showPay
-    ? report.rows.reduce((s, r) => s + computePay(r, payMode, Number(payRate)), 0)
+    ? report.rows.reduce((s, r) => {
+        const cfg = payConfigs[r.uid] || { mode: "none", rate: 0 };
+        return s + computePay(r, cfg.mode, Number(cfg.rate));
+      }, 0)
     : 0;
 
   return createPortal(
@@ -2538,7 +2551,7 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: fs(12, isDesktop), fontWeight: 800, color: th.text }}>Export Attendance Report</div>
             <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, marginTop: 1 }}>
-              {stage === "config"     && "Pick a period — add a pay rate for salary calculation"}
+              {stage === "config"     && "Pick a period — set pay rates per agent (optional)"}
               {stage === "generating" && "Fetching logs…"}
               {stage === "ready"      && "Report ready"}
               {stage === "error"      && "Something went wrong"}
@@ -2600,39 +2613,52 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
               </div>
 
               <div style={{ fontSize: fs(9.5, isDesktop), fontWeight: 700, color: th.textSub, marginBottom: 8, letterSpacing: 0.3 }}>SALARY CALCULATION (OPTIONAL)</div>
-              <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-                {[
-                  { id: "none",    label: "No Pay Calc" },
-                  { id: "perDay",  label: "₹ / Day" },
-                  { id: "perHour", label: "₹ / Hour" },
-                ].map(opt => (
-                  <button
-                    key={opt.id}
-                    onClick={() => setPayMode(opt.id)}
-                    style={{
-                      flex: 1, padding: "7px 8px", borderRadius: 8,
-                      border: `1px solid ${payMode === opt.id ? NAVY : th.border}`,
-                      background: payMode === opt.id ? `${NAVY}14` : "transparent",
-                      color: payMode === opt.id ? (dark ? "#6fa3ff" : NAVY) : th.text,
-                      fontSize: fs(10, isDesktop), fontWeight: 700, cursor: "pointer",
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+              <div style={{ border: `1px solid ${th.border}`, borderRadius: 10, overflow: "hidden" }}>
+                {(humanAgents || []).map((agent, i) => {
+                  const cfg = payConfigs[agent.id] || { mode: "none", rate: "" };
+                  const isLast = i === (humanAgents || []).length - 1;
+                  return (
+                    <div key={agent.id} style={{ borderBottom: isLast ? "none" : `1px solid ${th.border}`, padding: "10px 12px" }}>
+                      {/* Agent name row + mode buttons */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: cfg.mode !== "none" ? 8 : 0 }}>
+                        <div style={{ fontSize: fs(10.5, isDesktop), fontWeight: 700, color: th.text, minWidth: 0, flex: 1 }}>{agent.displayName || agent.email || agent.id}</div>
+                        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                          {[
+                            { id: "none",    label: "None" },
+                            { id: "perDay",  label: "₹/Day" },
+                            { id: "perHour", label: "₹/Hr" },
+                          ].map(opt => (
+                            <button
+                              key={opt.id}
+                              onClick={() => updatePayCfg(agent.id, "mode", opt.id)}
+                              style={{
+                                padding: "5px 9px", borderRadius: 7,
+                                border: `1px solid ${cfg.mode === opt.id ? NAVY : th.border}`,
+                                background: cfg.mode === opt.id ? `${NAVY}14` : "transparent",
+                                color: cfg.mode === opt.id ? (dark ? "#6fa3ff" : NAVY) : th.text,
+                                fontSize: fs(9.5, isDesktop), fontWeight: 700, cursor: "pointer",
+                              }}
+                            >{opt.label}</button>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Rate input — only shown when a pay mode is selected */}
+                      {cfg.mode !== "none" && (
+                        <input
+                          type="number" inputMode="decimal" min="0" step="0.01"
+                          value={cfg.rate}
+                          onChange={e => updatePayCfg(agent.id, "rate", e.target.value)}
+                          placeholder={cfg.mode === "perDay" ? "Rate per day e.g. 500" : "Rate per hour e.g. 65"}
+                          style={{ width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 7, border: `1px solid ${Number(cfg.rate) > 0 ? th.border : "#f97316"}`, background: th.inputBg, color: th.text, fontSize: fs(10.5, isDesktop) }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-
-              {payMode !== "none" && (
-                <input
-                  type="number" inputMode="decimal" min="0" step="0.01"
-                  value={payRate} onChange={e => setPayRate(e.target.value)}
-                  placeholder={payMode === "perDay" ? "Rate per day, e.g. 500" : "Rate per hour, e.g. 65"}
-                  style={{ width: "100%", boxSizing: "border-box", padding: "9px 12px", borderRadius: 8, border: `1px solid ${th.border}`, background: th.inputBg, color: th.text, fontSize: fs(11, isDesktop), marginBottom: 4 }}
-                />
-              )}
-              {payMode === "perDay" && (
-                <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, lineHeight: 1.5 }}>
-                  Pro-rated against the {FULL_DAY_HOURS}h target — e.g. 4h logged pays half a day.
+              {showPay && (
+                <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, marginTop: 6, lineHeight: 1.5 }}>
+                  ₹/Day rates are pro-rated against the {FULL_DAY_HOURS}h target.
                 </div>
               )}
             </div>
@@ -2669,9 +2695,12 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
                     <div style={{ fontSize: fs(10.5, isDesktop), fontWeight: 700, color: th.text }}>{r.name}</div>
                     <div style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, fontFamily: "monospace", textAlign: "right" }}>
                       {r.daysPresent}/{report.totalCalendarDays}d · {r.totalHours.toFixed(1)}h
-                      {showPay && (
-                        <span style={{ color: th.text, fontWeight: 700 }}> · {fmtINR(computePay(r, payMode, Number(payRate)))}</span>
-                      )}
+                      {(() => {
+                        const cfg = payConfigs[r.uid];
+                        return cfg && cfg.mode !== "none" && Number(cfg.rate) > 0
+                          ? <span style={{ color: th.text, fontWeight: 700 }}> · {fmtINR(computePay(r, cfg.mode, Number(cfg.rate)))}</span>
+                          : null;
+                      })()}
                     </div>
                   </div>
                 ))}
