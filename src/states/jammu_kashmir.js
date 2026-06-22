@@ -155,7 +155,7 @@ export const JAMMU_KASHMIR_SCHEMES = [
                hi: "सभी J&K अधिवास धारकों के लिए प्रति परिवार प्रति वर्ष ₹5 लाख कैशलेस स्वास्थ्य बीमा — यह सार्वभौमिक होने में अनोखा है (BPL तक सीमित नहीं); पूरे भारत में सूचीबद्ध सरकारी और निजी अस्पतालों में अस्पताल भर्ती, सर्जरी, कैंसर, हृदय देखभाल, डायलिसिस, आर्थोपेडिक प्रक्रियाएं और 1,500+ चिकित्सा पैकेज; प्रति अस्पताल भर्ती ₹1,500 परिवहन भत्ता; पहले दिन से पूर्व-मौजूदा बीमारियां कवर; 2020 में PM मोदी द्वारा आयुष्मान भारत के विस्तार के रूप में शुरू" },
     tag:     { en: "Health / Universal Insurance", hi: "स्वास्थ्य / सार्वभौमिक बीमा" },
     annual: 500000,
-    apply:   { en: "https://sehatjk.gov.in", hi: "sehatjk.gov.in / निकटतम आयुष्मान भारत सूचीबद्ध अस्पताल या जन सेवा केंद्र (CSC)" }, applyType: "online",
+    apply:   { en: "https://indbiz.gov.in/sehat-insurance-and-healthcare-scheme-to-be-rolled-out-for-jk", hi: "sehatjk.gov.in / निकटतम आयुष्मान भारत सूचीबद्ध अस्पताल या जन सेवा केंद्र (CSC)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (mandatory — scheme is Aadhaar-seeded)", "Domicile Certificate (J&K)", "SEHAT / Ayushman Card (generated on portal)", "Family composition details (Aadhaar of all members)"],
                hi: ["आधार कार्ड (अनिवार्य — योजना आधार-सीडेड है)", "अधिवास प्रमाण पत्र (J&K)", "SEHAT / आयुष्मान कार्ड (पोर्टल पर बना)", "परिवार संरचना विवरण (सभी सदस्यों का आधार)"] },
     match: (a) => a.state === "Jammu & Kashmir",
