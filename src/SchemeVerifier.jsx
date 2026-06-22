@@ -1995,7 +1995,7 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setUrlSearch({ candidates: data.candidates ?? [] });
+      setUrlSearch({ candidates: data.candidates ?? [], searchError: data.searchError ?? null });
       if (data.candidates?.length > 0) setSelectedUrl(data.candidates[0].url);
       // Persist candidates to Firestore so Fix button survives tab close / refresh
       await saveUrlFix(scheme.id, data.candidates ?? []);
@@ -2402,15 +2402,17 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
                     borderBottom:   `1px solid ${th.border}`,
                     fontSize:       9,
                     fontWeight:     700,
-                    color:          th.textMid,
+                    color:          urlSearch.searchError ? RED : th.textMid,
                     display:        "flex",
                     justifyContent: "space-between",
                     alignItems:     "center",
                   }}>
                     <span>
-                      {urlSearch.candidates.length === 0
-                        ? "No candidates found"
-                        : `${urlSearch.candidates.length} candidate${urlSearch.candidates.length !== 1 ? "s" : ""} found`}
+                      {urlSearch.searchError
+                        ? "⚠ Search failed"
+                        : urlSearch.candidates.length === 0
+                          ? "No candidates found"
+                          : `${urlSearch.candidates.length} candidate${urlSearch.candidates.length !== 1 ? "s" : ""} found`}
                     </span>
                     <button
                       onClick={handleCancelSearch}
@@ -2427,6 +2429,35 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
                       ✕
                     </button>
                   </div>
+
+                  {/* THE BUG THIS FIXES: a failed Tavily call (bad key, quota
+                      exceeded, outage) used to look identical to a genuine
+                      zero-result search — both just said "No candidates
+                      found" with no way to tell them apart. searchError
+                      carries the real reason from find-new-url.js so it's
+                      diagnosable without digging through Vercel logs. */}
+                  {urlSearch.searchError && (
+                    <div style={{
+                      padding:    "8px 10px",
+                      fontSize:   9,
+                      color:      th.textMid,
+                      background: `${RED}08`,
+                      borderBottom: `1px solid ${th.border}`,
+                    }}>
+                      <div style={{ marginBottom: 6 }}>{urlSearch.searchError}</div>
+                      <button
+                        onClick={handleFindNewUrl}
+                        style={{
+                          padding: "4px 9px", borderRadius: 6, fontSize: 8.5, fontWeight: 700,
+                          cursor: "pointer",
+                          border: `1.5px solid ${RED}`, background: `${RED}12`, color: RED,
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        ↻ Retry search
+                      </button>
+                    </div>
+                  )}
 
                   {/* Candidate rows */}
                   {urlSearch.candidates.map((c, idx) => {
