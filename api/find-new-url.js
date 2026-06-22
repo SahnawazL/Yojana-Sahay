@@ -67,20 +67,36 @@ async function tavilySearch(query, tavilyKey, maxResults = 7) {
     });
 
     if (!res.ok) {
+      // THE BUG THIS FIXES: this used to return [] here, indistinguishable
+      // from "Tavily searched fine and genuinely found nothing." A revoked
+      // key (401), exhausted quota (429), or a Tavily outage (5xx) all look
+      // identical to the user — every scheme just shows "No candidates
+      // found" forever, with the real reason sitting only in a server log
+      // nobody's looking at. Returning the status/detail lets the caller
+      // tell a real failure apart from a real empty result.
+      let detail = `HTTP ${res.status}`;
+      try {
+        const body = await res.json();
+        if (body?.detail) detail = `HTTP ${res.status}: ${body.detail}`;
+      } catch { /* body wasn't JSON — keep the bare status */ }
+
       console.warn(`[find-new-url] Tavily HTTP ${res.status} for query: ${query}`);
-      return [];
+      return { results: [], error: { status: res.status, message: detail } };
     }
 
     const data = await res.json();
     recordAiCall({ service: "tavily-verify" }).catch(() => {}); // Tavily search just succeeded — Verify Pipeline pool, not AI Chat
-    return (data.results ?? []).map(r => ({
-      url:   r.url?.trim() ?? "",
-      title: r.title ?? "",
-    })).filter(r => r.url);
+    return {
+      results: (data.results ?? []).map(r => ({
+        url:   r.url?.trim() ?? "",
+        title: r.title ?? "",
+      })).filter(r => r.url),
+      error: null,
+    };
 
   } catch (err) {
     console.warn("[find-new-url] Tavily search error:", err.message);
-    return [];
+    return { results: [], error: { status: 0, message: err.message } };
   }
 }
 
@@ -165,7 +181,7 @@ export default async function handler(req, res) {
   const seen = new Set();
   const raw  = [];
 
-  for (const r of [...q1, ...q2]) {
+  for (const r of [...q1.results, ...q2.results]) {
     if (!r.url || seen.has(r.url)) continue;
     if (r.url === oldUrl)          continue;   // never suggest the dead URL back
     seen.add(r.url);
@@ -173,6 +189,22 @@ export default async function handler(req, res) {
   }
 
   if (raw.length === 0) {
+    // Both queries actually failed (not just "found nothing") — surface the
+    // real reason instead of a misleading "No candidates found".
+    const errors = [q1.error, q2.error].filter(Boolean);
+    if (errors.length === 2) {
+      const e = errors[0];
+      let searchError;
+      if      (e.status === 401) searchError = "Tavily API key invalid or revoked — check TAVILY_API_KEY in Vercel.";
+      else if (e.status === 429) searchError = "Tavily quota exceeded or rate-limited — check usage on your Tavily dashboard.";
+      else if (e.status >= 500)  searchError = "Tavily service is currently unavailable (server error).";
+      else if (e.status === 0)   searchError = `Tavily request failed: ${e.message}`;
+      else                       searchError = `Tavily error: ${e.message}`;
+
+      console.warn(`[find-new-url] Search failed for "${name}": ${searchError}`);
+      return res.status(200).json({ candidates: [], searchError });
+    }
+
     console.warn(`[find-new-url] No results for "${name}"`);
     return res.status(200).json({ candidates: [] });
   }
