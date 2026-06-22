@@ -325,7 +325,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     benefit: { en: "₹2 Lakh one-time incentive for marriage where one or both partners have 40%+ disability", hi: "विवाह पर ₹2 लाख एकमुश्त प्रोत्साहन जहाँ एक या दोनों पक्षों को 40%+ विकलांगता हो" },
     tag:     { en: "Disability / Marriage", hi: "विकलांगता / विवाह" },
     annual: 200000,
-    apply:   { en: "https://socialsecurity.mp.gov.in", hi: "socialsecurity.mp.gov.in / नजदीकी जिला सामाजिक न्याय कार्यालय" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/mkvymp", hi: "socialsecurity.mp.gov.in / नजदीकी जिला सामाजिक न्याय कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Samagra ID", "Disability Certificate (40%+, from CMO)", "Age Proof (both partners 18+ / 21+)", "Marriage Registration Certificate", "BPL / Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "समग्र ID", "विकलांगता प्रमाण पत्र (CMO से 40%+)", "आयु प्रमाण (18+/21+)", "विवाह पंजीकरण प्रमाण पत्र", "BPL/आय प्रमाण", "बैंक खाता"] },
     match: (a) => a.state === "Madhya Pradesh" && ["below1", "1to3"].includes(a.income),
