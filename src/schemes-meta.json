@@ -845,51 +845,51 @@
     "confidence": 0
   },
   "wb_kanyashree": {
-    "lastVerified": "2026-06-14T18:18:16.038Z",
+    "lastVerified": "2026-06-22T13:35:47.946Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_rupashree": {
-    "lastVerified": "2026-06-14T18:18:16.038Z",
+    "lastVerified": "2026-06-22T13:35:47.946Z",
     "httpStatus": 200,
-    "linkAlive": true,
+    "linkAlive": false,
     "confidence": 0
   },
   "wb_student_credit_card": {
-    "lastVerified": "2026-06-14T18:18:16.038Z",
+    "lastVerified": "2026-06-22T13:35:47.946Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_shikshashree": {
-    "lastVerified": "2026-06-14T18:18:16.038Z",
+    "lastVerified": "2026-06-22T13:35:47.946Z",
     "httpStatus": 200,
-    "linkAlive": true,
+    "linkAlive": false,
     "isActive": true,
     "confidence": 1
   },
   "wb_aikyashree": {
-    "lastVerified": "2026-06-14T18:18:16.038Z",
+    "lastVerified": "2026-06-22T13:35:47.946Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_yuvashree": {
-    "lastVerified": "2026-06-14T18:18:16.038Z",
+    "lastVerified": "2026-06-22T13:35:47.946Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_utkarsh_bangla": {
-    "lastVerified": "2026-06-14T18:18:16.038Z",
+    "lastVerified": "2026-06-22T13:35:47.946Z",
     "httpStatus": 200,
-    "linkAlive": true,
-    "confidence": 0.5,
+    "linkAlive": false,
+    "confidence": 0,
     "isActive": true
   },
   "wb_krishak_bandhu": {
-    "lastVerified": "2026-06-14T18:18:16.038Z",
+    "lastVerified": "2026-06-22T13:35:47.946Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3165,5 +3165,23 @@
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0.5
+  },
+  "wb_lakshmir_bhandar": {
+    "lastVerified": "2026-06-22T13:35:47.946Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
+  },
+  "wb_swasthya_sathi": {
+    "lastVerified": "2026-06-22T13:35:47.946Z",
+    "httpStatus": 403,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "wb_jai_bangla_pension": {
+    "lastVerified": "2026-06-22T13:35:47.946Z",
+    "httpStatus": 0,
+    "linkAlive": false,
+    "confidence": 0
   }
 }
