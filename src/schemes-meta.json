@@ -3339,10 +3339,10 @@
     "confidence": 0
   },
   "puducherry_cm_scholarship": {
-    "lastVerified": "2026-06-22T19:36:54.172Z",
+    "lastVerified": "2026-06-22T19:38:01.944Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
-    "confidence": 1
+    "confidence": 0
   }
 }
