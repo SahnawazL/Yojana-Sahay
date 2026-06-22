@@ -2016,7 +2016,7 @@ function prevMonthRangeISTStr(dateStr) {
 
 function fmtReportDate(dateStr) {
   return new Date(`${dateStr}T00:00:00+05:30`).toLocaleDateString("en-IN", {
-    day: "2-digit", month: "short", year: "numeric",
+    timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric",
   });
 }
 
@@ -2130,10 +2130,14 @@ function buildAttendanceReport(humanAgents, logs, startStr, endStr) {
   return { rows, totalCalendarDays, startStr, endStr };
 }
 
-// Builds the full printable HTML document — letterhead, a summary table (the
-// salary calculation sheet) and a per-agent daily register, each starting on
-// its own page. Returned as a string; the modal below turns it into a blob
-// URL so it can be opened as a real page in a new tab.
+// Builds the full printable HTML document for the official Attendance &
+// Salary Report — a masthead, an "At a Glance" strip, a Part A summary
+// ledger, and a Part B daily register with one Annexure per agent (each
+// cross-referenced back to its Part A row by a short ref code, like a real
+// payroll audit trail). Returned as a plain HTML string; the modal below
+// writes it straight into a new blank tab via document.write() and leaves
+// "Save as PDF" to the browser's native print flow — no PDF library, nothing
+// extra to keep in sync.
 function buildAttendanceReportHTML({ report, payMode, payRate }) {
   const { rows, totalCalendarDays, startStr, endStr } = report;
   const showPay = payMode !== "none" && payRate > 0;
@@ -2159,54 +2163,62 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
       + (payMode === "perDay" ? `, pro-rated by hours logged against the ${FULL_DAY_HOURS}h daily target.` : ".")
     : null;
 
+  // Each agent gets a stable annexure code (A1, A2…) that ties their Part A
+  // summary row to their Part B daily register — the same short-reference
+  // convention used for the report ref and the document-control footer.
+  const annexureCode = i => `A${i + 1}`;
+
   const summaryRows = rows.map((r, i) => `<tr>
-      <td class="num">${i + 1}</td>
+      <td class="num mono">${i + 1}</td>
       <td class="name">${escHtml(r.name)}</td>
-      <td class="num">${r.daysPresent}/${totalCalendarDays}</td>
-      <td class="num">${r.attendancePct.toFixed(1)}%</td>
-      <td class="num">${r.totalHours.toFixed(1)}</td>
-      <td class="num">${r.avgHoursPerDay.toFixed(1)}</td>
-      <td class="num">${r.daysFull}</td>
-      <td class="num">${r.overtimeHours.toFixed(1)}</td>
-      <td class="num">${r.shortfallHours.toFixed(1)}</td>
-      ${showPay ? `<td class="num">${effectiveDays(r).toFixed(2)}</td><td class="num strong">${fmtINR(computePay(r, payMode, payRate))}</td>` : ""}
+      <td class="num mono">${r.daysPresent}/${totalCalendarDays}</td>
+      <td class="num mono">${r.attendancePct.toFixed(1)}%</td>
+      <td class="num mono">${r.totalHours.toFixed(1)}</td>
+      <td class="num mono">${r.avgHoursPerDay.toFixed(1)}</td>
+      <td class="num mono">${r.daysFull}</td>
+      <td class="num mono">${r.overtimeHours.toFixed(1)}</td>
+      <td class="num mono">${r.shortfallHours.toFixed(1)}</td>
+      ${showPay ? `<td class="num mono">${effectiveDays(r).toFixed(2)}</td><td class="num mono strong">${fmtINR(computePay(r, payMode, payRate))}</td>` : ""}
+      <td class="num"><span class="ref-tag">${annexureCode(i)}</span></td>
     </tr>`).join("");
 
   const summaryFoot = `<tr>
-      <td colspan="2">TOTAL / AVERAGE</td>
-      <td class="num">${totalPresentAll}/${totalCalendarDays * rows.length}</td>
-      <td class="num">${avgAttendanceAll.toFixed(1)}%</td>
-      <td class="num">${totalHoursAll.toFixed(1)}</td>
+      <td colspan="2">Total / Average</td>
+      <td class="num mono">${totalPresentAll}/${totalCalendarDays * rows.length}</td>
+      <td class="num mono">${avgAttendanceAll.toFixed(1)}%</td>
+      <td class="num mono">${totalHoursAll.toFixed(1)}</td>
+      <td class="num mono">—</td>
+      <td class="num mono">${totalFullAll}</td>
+      <td class="num mono">${totalOTAll.toFixed(1)}</td>
+      <td class="num mono">${totalShortAll.toFixed(1)}</td>
+      ${showPay ? `<td class="num mono">${totalEffDaysAll.toFixed(2)}</td><td class="num mono strong">${fmtINR(totalPayAll)}</td>` : ""}
       <td class="num">—</td>
-      <td class="num">${totalFullAll}</td>
-      <td class="num">${totalOTAll.toFixed(1)}</td>
-      <td class="num">${totalShortAll.toFixed(1)}</td>
-      ${showPay ? `<td class="num">${totalEffDaysAll.toFixed(2)}</td><td class="num strong">${fmtINR(totalPayAll)}</td>` : ""}
     </tr>`;
 
-  const registerSections = rows.map(r => {
+  const annexureSections = rows.map((r, i) => {
     const dayRows = r.days.map(d => {
-      const weekday = new Date(`${d.date}T00:00:00+05:30`).toLocaleDateString("en-IN", { weekday: "short" });
+      const weekday = new Date(`${d.date}T00:00:00+05:30`).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short" });
       return `<tr class="${d.status === "Absent" ? "absent-row" : ""}">
         <td>${fmtReportDate(d.date)}</td>
         <td>${weekday}</td>
-        <td class="num">${d.inTime}</td>
-        <td class="num">${d.lastTime}</td>
-        <td class="num">${d.hours.toFixed(2)}</td>
-        <td><span class="status-badge status-${d.status.replace(" ", "")}">${d.status}</span></td>
+        <td class="num mono">${d.inTime}</td>
+        <td class="num mono">${d.lastTime}</td>
+        <td class="num mono">${d.hours.toFixed(2)}</td>
+        <td><span class="status-badge status-${d.status.replace(" ", "")}"><i></i>${d.status}</span></td>
       </tr>`;
     }).join("");
 
-    return `<section class="agent-page">
-      <div class="agent-header">
+    return `<section class="annexure">
+      <div class="annexure-head">
         <div>
+          <div class="annexure-kicker">Annexure ${annexureCode(i)} · ${reportRef}-${annexureCode(i)}</div>
           <div class="agent-name">${escHtml(r.name)}</div>
           ${r.email ? `<div class="agent-email">${escHtml(r.email)}</div>` : ""}
         </div>
-        <div class="agent-quickstats">
-          <div><span>Days Present</span><b>${r.daysPresent}/${totalCalendarDays}</b></div>
-          <div><span>Total Hours</span><b>${r.totalHours.toFixed(1)}h</b></div>
-          ${showPay ? `<div><span>Gross Pay</span><b>${fmtINR(computePay(r, payMode, payRate))}</b></div>` : ""}
+        <div class="chip-row">
+          <div class="chip"><span>Days Present</span><b>${r.daysPresent}/${totalCalendarDays}</b></div>
+          <div class="chip"><span>Total Hours</span><b>${r.totalHours.toFixed(1)}h</b></div>
+          ${showPay ? `<div class="chip"><span>Gross Pay</span><b>${fmtINR(computePay(r, payMode, payRate))}</b></div>` : ""}
         </div>
       </div>
       <div class="table-wrap">
@@ -2224,63 +2236,127 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Attendance Report — ${periodLabel}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --navy:#003580; --navy-deep:#081B3D; --ink:#161B26; --mute:#69707E;
+    --line:#E1E4EA; --tint:#F6F7FA; --gold:#8A5A12; --gold-bg:#FBF0DC;
+    --ok:#0F9D58; --ok-bg:#E6F7EE; --warn:#B45309; --warn-bg:#FEF3E2;
+    --short:#C2410C; --short-bg:#FFEEE2; --bad:#DC2626; --bad-bg:#FDEAEA;
+    --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+    --mono:'IBM Plex Mono','SF Mono',Consolas,monospace;
+  }
   * { box-sizing: border-box; }
-  @page { margin: 10mm 8mm; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#1a1a1a; margin:0; background:#eee; font-size:11px; line-height:1.45; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .toolbar { position: sticky; top:0; background:#003580; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:11px 16px; z-index:10; gap:10px; }
-  .toolbar-title { font-size:13px; font-weight:700; }
-  .toolbar button { background:#fff; color:#003580; border:none; border-radius:7px; padding:8px 16px; font-weight:700; font-size:12.5px; cursor:pointer; flex-shrink:0; }
-  .doc { max-width:800px; margin:0 auto; background:#fff; padding:26px 26px 36px; }
+  @page { margin: 14mm 12mm; }
+  body { font-family:var(--sans); color:var(--ink); margin:0; background:#dfe2e8; font-size:11px; line-height:1.5; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .toolbar { position: sticky; top:0; background:var(--navy-deep); color:#fff; display:flex; justify-content:space-between; align-items:center; padding:11px 16px; z-index:10; gap:10px; }
+  .toolbar-title { font-size:12.5px; font-weight:600; letter-spacing:0.2px; }
+  .toolbar button { background:#fff; color:var(--navy-deep); border:none; border-radius:7px; padding:8px 16px; font-weight:700; font-size:12.5px; cursor:pointer; flex-shrink:0; }
+  .doc { max-width:840px; margin:0 auto; background:#fff; }
+  .topbar { height:5px; background:linear-gradient(90deg,var(--navy-deep),var(--navy) 65%,var(--gold)); }
+  .doc-body { padding:26px 28px 40px; }
   .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:4px; }
-  .letterhead { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2.5px solid #003580; padding-bottom:12px; margin-bottom:16px; gap:10px; flex-wrap:wrap; }
-  .brand-name { font-size:18px; font-weight:800; color:#003580; letter-spacing:0.3px; }
-  .brand-sub { font-size:9.5px; color:#666; margin-top:2px; }
+
+  /* ── Masthead ──────────────────────────────────────────────── */
+  .masthead { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap;
+    padding-bottom:14px; margin-bottom:6px; border-bottom:2px solid var(--navy-deep); }
+  .brand-row { display:flex; align-items:center; gap:11px; }
+  .monogram { width:42px; height:42px; flex-shrink:0; border-radius:10px; background:linear-gradient(155deg,var(--navy-deep),var(--navy));
+    color:#fff; font-family:var(--mono); font-weight:700; font-size:14px; letter-spacing:-0.5px;
+    display:flex; align-items:center; justify-content:center; }
+  .brand-name { font-size:17px; font-weight:700; color:var(--navy-deep); letter-spacing:0.2px; }
+  .brand-sub { font-size:9px; color:var(--mute); margin-top:2px; }
+  .classification { display:inline-flex; align-items:center; gap:5px; margin-top:6px; padding:2px 8px;
+    border-radius:20px; background:var(--gold-bg); color:var(--gold); font-size:7.5px; font-weight:700;
+    letter-spacing:0.5px; text-transform:uppercase; }
+  .classification i { width:5px; height:5px; border-radius:50%; background:var(--gold); display:inline-block; }
   .report-meta { text-align:right; }
-  .report-title { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; }
-  .report-period { font-size:10.5px; color:#333; margin-top:3px; font-weight:700; }
-  .report-gen { font-size:8.5px; color:#999; margin-top:2px; }
-  .stat-strip { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
-  .stat-box { flex:1; min-width:110px; border:1px solid #ddd; border-radius:7px; padding:8px 10px; background:#fafafa; }
-  .stat-box .lbl { font-size:8px; color:#888; text-transform:uppercase; letter-spacing:0.4px; }
-  .stat-box .val { font-size:15px; font-weight:800; color:#003580; margin-top:2px; }
-  .section-title { font-size:10.5px; font-weight:800; color:#003580; text-transform:uppercase; letter-spacing:0.4px; margin:18px 0 4px; padding-bottom:4px; border-bottom:1px solid #ddd; }
-  .caption { font-size:9px; color:#777; margin-bottom:8px; font-style:italic; }
+  .report-title { font-size:9.5px; font-weight:700; color:var(--navy); text-transform:uppercase; letter-spacing:0.8px; }
+  .report-period { font-size:13.5px; color:var(--navy-deep); margin-top:4px; font-weight:700; }
+  .report-ref { display:inline-block; margin-top:6px; padding:3px 9px; border-radius:5px; background:var(--tint);
+    border:1px solid var(--line); font-family:var(--mono); font-size:8.5px; color:var(--ink); letter-spacing:0.2px; }
+  .report-gen { font-size:8px; color:var(--mute); margin-top:5px; }
+
+  /* ── At a glance ───────────────────────────────────────────── */
+  .glance-label { font-size:8px; font-weight:700; color:var(--mute); letter-spacing:1px; text-transform:uppercase;
+    margin:18px 0 7px; }
+  .glance { display:flex; gap:9px; margin-bottom:6px; flex-wrap:wrap; }
+  .glance-card { flex:1; min-width:115px; border:1px solid var(--line); border-radius:9px; padding:10px 12px;
+    background:#fff; border-top:2.5px solid var(--navy); }
+  .glance-card .lbl { font-size:7.5px; color:var(--mute); text-transform:uppercase; letter-spacing:0.5px; }
+  .glance-card .val { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--navy-deep); margin-top:3px;
+    font-variant-numeric:tabular-nums; }
+
+  /* ── Part headings ─────────────────────────────────────────── */
+  .part-head { margin:24px 0 4px; }
+  .part-kicker { font-family:var(--mono); font-size:8px; font-weight:600; color:var(--gold); letter-spacing:1px;
+    text-transform:uppercase; }
+  .part-title { font-size:12.5px; font-weight:700; color:var(--navy-deep); margin-top:2px; padding-bottom:6px;
+    border-bottom:1px solid var(--line); }
+  .caption { font-size:8.5px; color:var(--mute); margin:7px 0 9px; }
+
+  /* ── Tables ────────────────────────────────────────────────── */
   table { width:100%; border-collapse:collapse; font-size:9.5px; }
   thead { display: table-header-group; }
   tfoot { display: table-footer-group; }
   tr { break-inside: avoid; }
-  th { background:#003580; color:#fff; font-weight:700; text-align:left; padding:6px 7px; font-size:8.5px; letter-spacing:0.2px; white-space:nowrap; }
-  td { padding:5px 7px; border-bottom:1px solid #eee; white-space:nowrap; }
-  td.num { text-align:right; font-family:'SF Mono',Consolas,monospace; }
-  td.name { font-weight:700; white-space:normal; }
-  td.strong { font-weight:800; color:#003580; }
-  tbody tr:nth-child(even) { background:#fafafa; }
-  tfoot td { border-top:2px solid #003580; border-bottom:none; font-weight:800; padding-top:7px; background:#fff; font-size:9px; }
-  .status-badge { display:inline-block; padding:1.5px 7px; border-radius:4px; font-size:8px; font-weight:700; white-space:nowrap; }
-  .status-FullDay { background:#DCFCE7; color:#138808; }
-  .status-HalfDay { background:#FEF3C7; color:#B45309; }
-  .status-Short   { background:#FFEDD5; color:#C2410C; }
-  .status-Absent  { background:#FEE2E2; color:#DC2626; }
-  .absent-row td  { color:#aaa; }
-  .agent-page { page-break-before: always; padding-top:4px; }
-  .agent-header { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1.5px solid #003580; padding-bottom:8px; margin-bottom:10px; flex-wrap:wrap; gap:8px; }
-  .agent-name { font-size:13px; font-weight:800; }
-  .agent-email { font-size:8.5px; color:#888; margin-top:1px; }
-  .agent-quickstats { display:flex; gap:16px; }
-  .agent-quickstats div { text-align:right; }
-  .agent-quickstats span { display:block; font-size:7.5px; color:#888; text-transform:uppercase; }
-  .agent-quickstats b { font-size:11px; color:#003580; }
-  .disclaimer { margin-top:22px; padding:10px 12px; background:#f7f7f7; border-left:3px solid #003580; font-size:8.5px; color:#555; line-height:1.6; }
-  .signoff { display:flex; justify-content:space-between; margin-top:40px; }
-  .signoff .line { width:42%; }
-  .signoff .blank { border-bottom:1px solid #999; height:30px; }
-  .signoff .label { font-size:8.5px; color:#666; margin-top:4px; }
-  .footer-note { text-align:center; font-size:7.5px; color:#aaa; margin-top:18px; }
+  th { background:var(--navy-deep); color:#fff; font-weight:600; text-align:left; padding:7px 8px; font-size:8px;
+    letter-spacing:0.4px; text-transform:uppercase; white-space:nowrap; }
+  td { padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td.num { text-align:right; }
+  td.mono { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  td.name { font-weight:600; white-space:normal; }
+  td.strong { font-weight:700; color:var(--navy-deep); }
+  tbody tr:nth-child(even) { background:var(--tint); }
+  tfoot td { border-top:1.5px solid var(--navy-deep); border-bottom:none; font-weight:700; padding-top:8px; background:#fff; font-size:9px; }
+  .ref-tag { font-family:var(--mono); font-size:8px; font-weight:600; color:var(--gold); background:var(--gold-bg);
+    padding:1.5px 6px; border-radius:4px; }
+  .status-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:20px; font-size:7.5px; font-weight:700; white-space:nowrap; }
+  .status-badge i { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+  .status-FullDay { background:var(--ok-bg); color:var(--ok); } .status-FullDay i { background:var(--ok); }
+  .status-HalfDay { background:var(--warn-bg); color:var(--warn); } .status-HalfDay i { background:var(--warn); }
+  .status-Short   { background:var(--short-bg); color:var(--short); } .status-Short i { background:var(--short); }
+  .status-Absent  { background:var(--bad-bg); color:var(--bad); } .status-Absent i { background:var(--bad); }
+  .absent-row td  { color:#a8adb8; }
+
+  /* ── Annexures — first one stays bound to the Part B heading; the rest
+       each get their own page via the adjacent-sibling rule below, so no
+       Annexure (including #1) is ever orphaned from its own heading ──── */
+  .part-b-head { page-break-before:always; page-break-after:avoid; padding-top:6px; }
+  .annexure { padding-top:6px; }
+  .annexure + .annexure { page-break-before:always; }
+  .annexure-head { display:flex; justify-content:space-between; align-items:flex-end; gap:10px; flex-wrap:wrap;
+    border-bottom:1.5px solid var(--navy-deep); padding-bottom:9px; margin-bottom:11px; }
+  .annexure-kicker { font-family:var(--mono); font-size:7.5px; font-weight:600; color:var(--gold); letter-spacing:0.6px; text-transform:uppercase; margin-bottom:3px; }
+  .agent-name { font-size:13.5px; font-weight:700; color:var(--ink); }
+  .agent-email { font-family:var(--mono); font-size:8px; color:var(--mute); margin-top:2px; }
+  .chip-row { display:flex; gap:8px; }
+  .chip { text-align:right; border:1px solid var(--line); border-radius:7px; padding:5px 10px; background:var(--tint); }
+  .chip span { display:block; font-size:7px; color:var(--mute); text-transform:uppercase; letter-spacing:0.4px; }
+  .chip b { font-family:var(--mono); font-size:10.5px; color:var(--navy-deep); }
+
+  /* ── Declaration / signoff / document control ─────────────────── */
+  .declaration { margin-top:22px; padding:11px 13px; background:var(--tint); border-left:3px solid var(--navy);
+    border-radius:0 6px 6px 0; font-size:8.5px; color:var(--mute); line-height:1.65; }
+  .declaration b { color:var(--ink); }
+  .signoff { display:flex; justify-content:space-between; margin-top:36px; gap:20px; }
+  .signoff .line { width:44%; }
+  .signoff .blank { border-bottom:1px solid #b8bcc6; height:30px; }
+  .signoff .label { font-size:8px; color:var(--mute); margin-top:5px; text-transform:uppercase; letter-spacing:0.4px; }
+  .doc-control { display:flex; flex-wrap:wrap; margin-top:26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; font-family:var(--mono); font-size:7.5px; }
+  .doc-control div { flex:1; min-width:130px; padding:8px 11px; border-left:1px solid var(--line); }
+  .doc-control div:first-child { border-left:none; }
+  .doc-control span { display:block; color:var(--mute); text-transform:uppercase; letter-spacing:0.4px; font-size:6.5px; margin-bottom:2px; }
+  .doc-control b { color:var(--ink); font-weight:600; }
+  .footer-note { text-align:center; font-size:7.5px; color:#b3b8c2; margin-top:14px; }
+
   @media print {
     .no-print { display:none !important; }
     body { background:#fff; }
-    .doc { padding:0; max-width:none; }
+    .doc { max-width:none; }
+    .doc-body { padding:0; }
   }
 </style>
 </head>
@@ -2291,28 +2367,42 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
   </div>
 
   <div class="doc">
-    <div class="letterhead">
+    <div class="topbar"></div>
+    <div class="doc-body">
+
+    <div class="masthead">
       <div>
-        <div class="brand-name">YOJANA SAHAY</div>
-        <div class="brand-sub">Government Scheme Discovery Platform · Admin Office</div>
+        <div class="brand-row">
+          <div class="monogram">YS</div>
+          <div>
+            <div class="brand-name">Yojana Sahay</div>
+            <div class="brand-sub">Government Scheme Discovery Platform · Admin Office</div>
+          </div>
+        </div>
+        <div class="classification"><i></i>Internal · Payroll Document</div>
       </div>
       <div class="report-meta">
-        <div class="report-title">Agent Attendance &amp; Salary Report</div>
+        <div class="report-title">Attendance &amp; Salary Report</div>
         <div class="report-period">${periodLabel}</div>
-        <div class="report-gen">Generated ${generatedAt} IST · Ref ${reportRef}</div>
+        <div class="report-ref">REF ${reportRef}</div>
+        <div class="report-gen">Generated ${generatedAt} IST</div>
       </div>
     </div>
 
-    <div class="stat-strip">
-      <div class="stat-box"><div class="lbl">Agents</div><div class="val">${rows.length}</div></div>
-      <div class="stat-box"><div class="lbl">Period Days</div><div class="val">${totalCalendarDays}</div></div>
-      <div class="stat-box"><div class="lbl">Total Hours Logged</div><div class="val">${totalHoursAll.toFixed(1)}h</div></div>
+    <div class="glance-label">At a Glance</div>
+    <div class="glance">
+      <div class="glance-card"><div class="lbl">Agents</div><div class="val">${rows.length}</div></div>
+      <div class="glance-card"><div class="lbl">Period Days</div><div class="val">${totalCalendarDays}</div></div>
+      <div class="glance-card"><div class="lbl">Hours Logged</div><div class="val">${totalHoursAll.toFixed(1)}h</div></div>
       ${showPay
-        ? `<div class="stat-box"><div class="lbl">Total Gross Pay</div><div class="val">${fmtINR(totalPayAll)}</div></div>`
-        : `<div class="stat-box"><div class="lbl">Avg. Attendance</div><div class="val">${avgAttendanceAll.toFixed(1)}%</div></div>`}
+        ? `<div class="glance-card"><div class="lbl">Total Gross Pay</div><div class="val">${fmtINR(totalPayAll)}</div></div>`
+        : `<div class="glance-card"><div class="lbl">Avg. Attendance</div><div class="val">${avgAttendanceAll.toFixed(1)}%</div></div>`}
     </div>
 
-    <div class="section-title">Attendance &amp; Salary Summary</div>
+    <div class="part-head">
+      <div class="part-kicker">Part A</div>
+      <div class="part-title">Attendance &amp; Salary Summary</div>
+    </div>
     ${payCaption ? `<div class="caption">${escHtml(payCaption)}</div>` : ""}
     <div class="table-wrap">
     <table>
@@ -2320,7 +2410,7 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
         <tr>
           <th>#</th><th>Agent</th><th>Days Present</th><th>Attend. %</th><th>Hours</th><th>Avg Hrs/Day</th>
           <th>Full Days</th><th>O.T. (hrs)</th><th>Short (hrs)</th>
-          ${showPay ? `<th>Eff. Days</th><th>Gross Pay</th>` : ""}
+          ${showPay ? `<th>Eff. Days</th><th>Gross Pay</th>` : ""}<th>Ref</th>
         </tr>
       </thead>
       <tbody>${summaryRows}</tbody>
@@ -2328,12 +2418,15 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
     </table>
     </div>
 
-    <div class="section-title">Daily Attendance Register</div>
-    <div class="caption">Per-agent day-by-day log. Each agent's register starts on a new page for clean filing.</div>
-    ${registerSections}
+    <div class="part-head part-b-head">
+      <div class="part-kicker">Part B</div>
+      <div class="part-title">Daily Attendance Register</div>
+    </div>
+    <div class="caption">One annexure per agent, referenced from Part A — each starts on a fresh page for clean filing.</div>
+    ${annexureSections}
 
-    <div class="disclaimer">
-      <b>Note:</b> This report is generated automatically from system-tracked active dashboard time
+    <div class="declaration">
+      <b>Declaration.</b> This report is generated automatically from system-tracked active dashboard time
       (<code>agentTimeLogs</code>) and reflects time the agent was actively interacting with the dashboard only.
       It does not account for approved leave, manual time corrections, or work done outside the dashboard.
       Attendance % is measured against total calendar days in the selected period and is not adjusted for
@@ -2345,7 +2438,15 @@ function buildAttendanceReportHTML({ report, payMode, payRate }) {
       <div class="line"><div class="blank"></div><div class="label">Verified / Approved by</div></div>
     </div>
 
-    <div class="footer-note">YojanaSahay Admin Dashboard · Auto-generated on ${generatedAt} IST</div>
+    <div class="doc-control">
+      <div><span>Document ID</span><b>${reportRef}</b></div>
+      <div><span>Classification</span><b>Internal — Payroll</b></div>
+      <div><span>Generated</span><b>${generatedAt} IST</b></div>
+      <div><span>System</span><b>YojanaSahay Admin</b></div>
+    </div>
+
+    <div class="footer-note">YojanaSahay Admin Dashboard · Auto-generated, not a digitally signed document.</div>
+    </div>
   </div>
 
 </body>
