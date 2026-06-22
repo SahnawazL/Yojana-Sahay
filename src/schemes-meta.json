@@ -1624,8 +1624,8 @@
     "linkAlive": true
   },
   "mp_nishakt_vivah": {
-    "lastVerified": "2026-06-20T14:25:30.142Z",
-    "linkAlive": false,
+    "lastVerified": "2026-06-22T12:56:15.131Z",
+    "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
@@ -1700,8 +1700,8 @@
     "linkAlive": true
   },
   "manipur_cm_kisan_samman": {
-    "lastVerified": "2026-06-20T15:31:11.781Z",
-    "linkAlive": false,
+    "lastVerified": "2026-06-22T12:56:15.131Z",
+    "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
@@ -1712,20 +1712,20 @@
     "confidence": 0
   },
   "manipur_cm_scholarship": {
-    "lastVerified": "2026-06-20T15:31:11.781Z",
-    "linkAlive": false,
+    "lastVerified": "2026-06-22T12:56:15.131Z",
+    "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
   "manipur_startup_manipur": {
-    "lastVerified": "2026-06-20T15:31:11.781Z",
-    "linkAlive": false,
+    "lastVerified": "2026-06-22T12:56:15.131Z",
+    "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
   "meghalaya_cm_kisan_samman": {
-    "lastVerified": "2026-06-20T17:22:15.619Z",
-    "linkAlive": false,
+    "lastVerified": "2026-06-22T12:56:15.131Z",
+    "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
@@ -1736,8 +1736,8 @@
     "confidence": 0
   },
   "meghalaya_cm_scholarship": {
-    "lastVerified": "2026-06-20T17:22:15.619Z",
-    "linkAlive": false,
+    "lastVerified": "2026-06-22T12:56:15.131Z",
+    "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
@@ -1822,8 +1822,8 @@
     "confidence": 0
   },
   "ladakh_himayat_skill": {
-    "lastVerified": "2026-06-20T08:21:26.868Z",
-    "linkAlive": false,
+    "lastVerified": "2026-06-22T12:56:15.131Z",
+    "linkAlive": true,
     "httpStatus": 0,
     "confidence": 0
   },
@@ -3130,9 +3130,9 @@
     "confidence": 0
   },
   "jharkhand_obc_scholarship": {
-    "lastVerified": "2026-06-19T17:24:31.661Z",
+    "lastVerified": "2026-06-22T12:56:15.131Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_micro_irrigation": {
