@@ -2373,6 +2373,28 @@ function buildAttendanceReportHTML({ report, payConfigs, preparedBy = "" }) {
     </section>`;
   }).join("");
 
+  // ── Watermark SVGs — URI-encoded so they embed directly as CSS data-uri ──
+  // Zone 1 (tile): one row of the repeating micro-signature. background-repeat
+  // tiles it; the oversized rotated container covers the full page seamlessly.
+  // Zone 2 (anchor): giant YS monogram + subtitle, no-repeat, dead center.
+  // String concatenation avoids escaping issues with nested template literals.
+  const tileSvg = encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='660' height='68'>" +
+    "<text x='8' y='48' font-family='IBM Plex Sans,Arial,sans-serif' " +
+    "font-size='11' font-weight='600' fill='rgba(0,53,128,0.038)' letter-spacing='2.5'>" +
+    "YS \u00B7 YOJANA SAHAY \u00B7 ADMIN OFFICE \u00B7 SAHNAWAZ HYPER ZENITH \u00B7 PAYROLL \u00B7 INTERNAL \u00B7 " +
+    "</text></svg>"
+  );
+  const centerSvg = encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='660' height='350' viewBox='0 0 660 350'>" +
+    "<text x='330' y='274' text-anchor='middle' font-family='IBM Plex Mono,monospace' " +
+    "font-size='282' font-weight='900' fill='rgba(0,53,128,0.042)' letter-spacing='-14'>YS</text>" +
+    "<text x='330' y='324' text-anchor='middle' font-family='IBM Plex Sans,Arial,sans-serif' " +
+    "font-size='14.5' font-weight='700' fill='rgba(0,53,128,0.065)' letter-spacing='9'>" +
+    "YOJANA SAHAY  ADMIN OFFICE" +
+    "</text></svg>"
+  );
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2559,20 +2581,39 @@ function buildAttendanceReportHTML({ report, payConfigs, preparedBy = "" }) {
   .doc-control b { color:var(--ink); font-weight:600; }
   .footer-note { text-align:center; font-size:7.5px; color:#b3b8c2; margin-top:14px; }
 
-  /* ── Diagonal watermark — body::before, fixed so it tiles every print page ── */
+  /* ── Zone 1 — repeating micro-signature tile (body::before) ────────────
+     An oversized div (300% × 300%) rotated –25° and tiled with the SVG row
+     covers the entire page with no gap at any corner. Fixed positioning
+     makes it repeat on every print page, same as Zone 2 below. ─────── */
   body::before {
-    content: "INTERNAL DOCUMENT";
+    content: "";
+    position: fixed;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background-image: url("data:image/svg+xml,${tileSvg}");
+    background-repeat: repeat;
+    transform: rotate(-25deg);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Zone 2 — YS monogram + subtitle anchor (body::after) ───────────────
+     No-repeat, dead center. The SVG viewBox keeps both text elements in
+     a single coordinate space so their alignment is pixel-perfect. ─── */
+  body::after {
+    content: "";
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    font-family: var(--sans);
-    font-size: 62px;
-    font-weight: 900;
-    letter-spacing: 10px;
-    text-transform: uppercase;
-    color: rgba(0, 53, 128, 0.055);
-    white-space: nowrap;
+    transform: translate(-50%, -50%);
+    width: 820px;
+    height: 430px;
+    background-image: url("data:image/svg+xml,${centerSvg}");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
     pointer-events: none;
     z-index: 0;
   }
