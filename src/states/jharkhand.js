@@ -448,7 +448,7 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹8,000–₹20,000/year covering tuition & maintenance for OBC/BC students (Class 11 to PG)", hi: "कक्षा 11 से स्नातकोत्तर तक OBC/BC छात्रों को ₹8,000–₹20,000/वर्ष शुल्क व रख-रखाव सहायता" },
     tag:     { en: "Education / OBC", hi: "शिक्षा / OBC" },
     annual: 12000,
-    apply:   { en: "https://cuj.ac.in/welfare%20schemes.php", hi: "ekalyan.jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.jharkhand.gov.in/welfare", hi: "ekalyan.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "OBC / BC Caste Certificate", "10th Mark Sheet", "College Admission Proof", "Income Certificate (below ₹1.5L/year)", "Bank Account"],
                hi: ["आधार कार्ड", "OBC / BC जाति प्रमाण पत्र", "10वीं अंकपत्र", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण पत्र (₹1.5 लाख/वर्ष से कम)", "बैंक खाता"] },
     match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
