@@ -3199,9 +3199,9 @@
     "confidence": 0
   },
   "up_khet_suraksha": {
-    "lastVerified": "2026-06-22T17:27:54.153Z",
+    "lastVerified": "2026-06-22T17:31:24.337Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
