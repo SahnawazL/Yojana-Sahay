@@ -1359,9 +1359,9 @@
     "confidence": 0
   },
   "raj_wfh_mahila": {
-    "lastVerified": "2026-06-22T13:10:39.072Z",
+    "lastVerified": "2026-06-22T13:16:22.115Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "lastDate": "2026-06-30",
     "isActive": true,
     "confidence": 0.5
@@ -1426,9 +1426,9 @@
     "confidence": 0
   },
   "raj_jan_awas": {
-    "lastVerified": "2026-06-22T13:10:39.072Z",
+    "lastVerified": "2026-06-22T13:16:22.115Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "raj_sinchai_pipeline": {
