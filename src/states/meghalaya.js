@@ -89,7 +89,7 @@ export const MEGHALAYA_SCHEMES = [
                hi: "BPL और कम आय वाले परिवारों को सूचीबद्ध सरकारी व निजी अस्पतालों में ₹5 लाख/परिवार/वर्ष नकद-रहित स्वास्थ्य कवर; 1,500+ चिकित्सा पैकेज — सर्जरी, अस्पताल भर्ती, कैंसर उपचार, डायलिसिस, नवजात देखभाल सहित; आयुष्मान भारत PM-JAY का पूरक; नकद-रहित पहुंच के लिए राज्य स्वास्थ्य कार्ड; आश्रित माता-पिता सहित परिवार के सदस्यों तक विस्तारित" },
     tag:     { en: "Health / Insurance / BPL", hi: "स्वास्थ्य / बीमा / BPL" },
     annual: 500000,
-    apply:   { en: "https://meghalayahealthinsurance.gov.in", hi: "meghalayahealthinsurance.gov.in / निकटतम सूचीबद्ध अस्पताल" }, applyType: "online",
+    apply:   { en: "https://www.meghealth.gov.in", hi: "meghalayahealthinsurance.gov.in / निकटतम सूचीबद्ध अस्पताल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "NFSA / BPL Ration Card", "State Health / MHIS Card (if issued)", "Residence Proof (Meghalaya)", "Family composition certificate", "Passport Photo"],
                hi: ["आधार कार्ड", "NFSA / BPL राशन कार्ड", "राज्य स्वास्थ्य / MHIS कार्ड (यदि जारी हो)", "निवास प्रमाण (मेघालय)", "परिवार संरचना प्रमाण पत्र", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Meghalaya" && ["below1","1to3","3to6"].includes(a.income),
