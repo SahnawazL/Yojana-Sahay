@@ -1701,8 +1701,8 @@
     "confidence": 0
   },
   "punjab_minority_scholarship": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
-    "linkAlive": false,
+    "lastVerified": "2026-06-22T19:27:12.354Z",
+    "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
@@ -3231,15 +3231,15 @@
     "confidence": 0
   },
   "punjab_kisan_karj_mafi": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_medhavi_scholarship": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_gharkari_yojana": {
@@ -3267,15 +3267,15 @@
     "confidence": 0
   },
   "punjab_widow_pension": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_solar_pump": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_sc_postmatric_scholarship": {
@@ -3285,21 +3285,21 @@
     "confidence": 0
   },
   "punjab_labour_welfare": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_street_vendor_loan": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_khel_khilaadi": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_bocw_welfare": {
@@ -3309,9 +3309,9 @@
     "confidence": 0
   },
   "punjab_organic_farming": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_disability_scholarship": {
@@ -3321,21 +3321,21 @@
     "confidence": 0
   },
   "punjab_himmat_scheme": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_nursing_scholarship": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_startup_punjab": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:27:12.354Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
