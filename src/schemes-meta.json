@@ -989,39 +989,39 @@
     "confidence": 0
   },
   "ts_rythu_bandhu": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_aarogyasri": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_kalyana_lakshmi": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_shaadi_mubarak": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_epass_fee": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_task_skill": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "httpStatus": 200,
-    "linkAlive": true,
+    "linkAlive": false,
     "confidence": 0
   },
   "goa_housing_board_affordable": {
@@ -1633,57 +1633,58 @@
     "confidence": 0
   },
   "ts_t_pride": {
-    "lastVerified": "2026-06-22T13:02:22.303Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "linkAlive": true,
-    "httpStatus": 0,
-    "confidence": 0
+    "httpStatus": 200,
+    "confidence": 0.5
   },
   "ts_prematric_scholarship": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_dalit_bandhu": {
-    "lastVerified": "2026-06-22T13:02:22.303Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "ts_stree_nidhi": {
-    "lastVerified": "2026-06-22T13:02:22.303Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "linkAlive": true,
-    "httpStatus": 0,
-    "confidence": 0
+    "httpStatus": 200,
+    "confidence": 1,
+    "lastDate": "2026-05-29"
   },
   "ts_micro_irrigation": {
-    "lastVerified": "2026-06-22T13:02:22.303Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "ts_overseas_scholarship": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_minority_scholarship": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_t_fiber": {
-    "lastVerified": "2026-06-21T14:57:32.024Z",
-    "linkAlive": true,
+    "lastVerified": "2026-06-22T17:38:54.446Z",
+    "linkAlive": false,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_rajiv_yuva_vikasam": {
-    "lastVerified": "2026-06-22T13:02:22.303Z",
+    "lastVerified": "2026-06-22T17:38:54.446Z",
     "linkAlive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0
   },
   "odisha_samrudha_krushak": {
