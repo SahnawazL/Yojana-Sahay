@@ -93,7 +93,7 @@ export const LADAKH_SCHEMES = [
                hi: "15–35 वर्ष के युवाओं के लिए पर्यटन, आतिथ्य, निर्माण, IT, स्वास्थ्य, और खुदरा क्षेत्रों में 3–12 माह का निःशुल्क आवासीय कौशल प्रशिक्षण; प्रशिक्षण के दौरान ₹1,500–₹3,000/माह वजीफा; आवासीय बैचों में निःशुल्क आवास और भोजन; प्रशिक्षण के बाद 70%+ नियोजन गारंटी; 2 साल तक नियुक्ति के बाद सहायता; स्कूल छोड़ने वाले और बेरोजगार स्नातकों पर लागू" },
     tag:     { en: "Youth / Skill / Placement", hi: "युवा / कौशल / रोजगार" },
     annual: 36000,
-    apply:   { en: "https://himayat.gov.in", hi: "himayat.gov.in / LAHDC कौशल विकास केंद्र, लेह या कारगिल" }, applyType: "online",
+    apply:   { en: "https://ladakh.gov.in/technical-education-and-skill-development", hi: "himayat.gov.in / LAHDC कौशल विकास केंद्र, लेह या कारगिल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Domicile Certificate (Ladakh UT)", "Educational Qualification Certificate (Class 8 minimum)", "Age Proof (15–35 years)", "Bank Account (Aadhaar-linked)", "Passport Photo", "Mobile Number", "Caste/PwD Certificate (if applicable for priority)"],
                hi: ["आधार कार्ड", "अधिवास प्रमाण पत्र (लद्दाख UT)", "शैक्षिक योग्यता प्रमाण पत्र (न्यूनतम कक्षा 8)", "आयु प्रमाण (15–35 वर्ष)", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "मोबाइल नंबर", "जाति/दिव्यांग प्रमाण पत्र (यदि प्राथमिकता के लिए लागू हो)"] },
     match: (a) => a.state === "Ladakh" && (a.who === "student" || ["18to35"].includes(a.age)),
