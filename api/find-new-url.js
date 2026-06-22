@@ -69,15 +69,22 @@ async function tavilySearch(query, tavilyKey, maxResults = 7) {
     if (!res.ok) {
       // THE BUG THIS FIXES: this used to return [] here, indistinguishable
       // from "Tavily searched fine and genuinely found nothing." A revoked
-      // key (401), exhausted quota (429), or a Tavily outage (5xx) all look
-      // identical to the user — every scheme just shows "No candidates
-      // found" forever, with the real reason sitting only in a server log
-      // nobody's looking at. Returning the status/detail lets the caller
-      // tell a real failure apart from a real empty result.
+      // key (401), exhausted quota (432/433), rate limit (429), or a Tavily
+      // outage (5xx) all look identical to the user — every scheme just
+      // shows "No candidates found" forever, with the real reason sitting
+      // only in a server log nobody's looking at. Returning the status/
+      // detail lets the caller tell a real failure apart from a real empty
+      // result.
       let detail = `HTTP ${res.status}`;
       try {
         const body = await res.json();
-        if (body?.detail) detail = `HTTP ${res.status}: ${body.detail}`;
+        // Tavily's `detail` field can be a plain string OR a nested object
+        // like { error: "..." } — stringifying the object directly produces
+        // the literal text "[object Object]", so dig out a real message first.
+        const raw = body?.detail;
+        const msg = typeof raw === "string" ? raw
+                  : (raw?.error ?? raw?.message ?? (raw ? JSON.stringify(raw) : null));
+        if (msg) detail = `HTTP ${res.status}: ${msg}`;
       } catch { /* body wasn't JSON — keep the bare status */ }
 
       console.warn(`[find-new-url] Tavily HTTP ${res.status} for query: ${query}`);
@@ -196,7 +203,9 @@ export default async function handler(req, res) {
       const e = errors[0];
       let searchError;
       if      (e.status === 401) searchError = "Tavily API key invalid or revoked — check TAVILY_API_KEY in Vercel.";
-      else if (e.status === 429) searchError = "Tavily quota exceeded or rate-limited — check usage on your Tavily dashboard.";
+      else if (e.status === 429) searchError = "Tavily is rate-limiting requests — wait a bit and retry.";
+      else if (e.status === 432) searchError = "Tavily plan limit exceeded — upgrade your plan or wait for it to reset (Tavily dashboard → Usage).";
+      else if (e.status === 433) searchError = "Tavily pay-as-you-go limit exceeded — raise your limit on the Tavily dashboard.";
       else if (e.status >= 500)  searchError = "Tavily service is currently unavailable (server error).";
       else if (e.status === 0)   searchError = `Tavily request failed: ${e.message}`;
       else                       searchError = `Tavily error: ${e.message}`;
