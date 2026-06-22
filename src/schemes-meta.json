@@ -3219,9 +3219,9 @@
     "confidence": 0
   },
   "punjab_atta_dal": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:04:19.577Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_crop_insurance": {
@@ -3303,9 +3303,9 @@
     "confidence": 0
   },
   "punjab_bocw_welfare": {
-    "lastVerified": "2026-06-22T17:56:42.588Z",
+    "lastVerified": "2026-06-22T19:04:19.577Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_organic_farming": {
