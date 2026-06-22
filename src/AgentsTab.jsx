@@ -2379,9 +2379,9 @@ function buildAttendanceReportHTML({ report, payConfigs, preparedBy = "" }) {
   // Zone 2 (anchor): giant YS monogram + subtitle, no-repeat, dead center.
   // String concatenation avoids escaping issues with nested template literals.
   const tileSvg = encodeURIComponent(
-    "<svg xmlns='http://www.w3.org/2000/svg' width='660' height='68'>" +
-    "<text x='8' y='48' font-family='IBM Plex Sans,Arial,sans-serif' " +
-    "font-size='11' font-weight='600' fill='rgba(0,53,128,0.038)' letter-spacing='2.5'>" +
+    "<svg xmlns='http://www.w3.org/2000/svg' width='660' height='120'>" +
+    "<text x='8' y='74' font-family='IBM Plex Sans,Arial,sans-serif' " +
+    "font-size='13.5' font-weight='600' fill='rgba(0,53,128,0.078)' letter-spacing='3'>" +
     "YS \u00B7 YOJANA SAHAY \u00B7 ADMIN OFFICE \u00B7 SAHNAWAZ HYPER ZENITH \u00B7 PAYROLL \u00B7 INTERNAL \u00B7 " +
     "</text></svg>"
   );
