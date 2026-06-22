@@ -2377,40 +2377,9 @@ function buildAttendanceReportHTML({ report, payConfigs, preparedBy = "" }) {
   // body::after uses grayscale(100%) + opacity(0.08) for a B&W ghost-seal.
   const LOGO_DATA_URI = "data:image/webp;base64,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";
 
-  // ── Corporate seal watermark SVG — official embossed-seal style.
-  // Replaces the 2-line classification band. Contains: 36 radial tick marks
-  // forming the outer ring, a dotted inner border circle, curved arc text
-  // at top ("YOJANA SAHAY · ADMIN OFFICE") and bottom ("SAHNAWAZ HYPER
-  // ZENITH · PAYROLL · INTERNAL"), large YS monogram at centre, year + divider.
-  // Built at runtime via encodeURIComponent so the source stays readable.
-  const _na    = 'rgba(0,53,128,'; // navy-alpha prefix — keeps SVG attrs short
-  const _ticks = Array.from({ length: 36 }, (_, i) => {
-    const a = i * Math.PI / 18, s = Math.sin(a), c = Math.cos(a);
-    return `<line x1="${(200+172*s).toFixed(1)}" y1="${(200-172*c).toFixed(1)}" `
-         + `x2="${(200+186*s).toFixed(1)}" y2="${(200-186*c).toFixed(1)}" `
-         + `stroke="${_na}0.09)" stroke-width="1.2"/>`;
-  }).join('');
-  const sealSvg = 'data:image/svg+xml,' + encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">`
-  + `<defs>`
-  +   `<path id="YSta" d="M 32,200 A 168,168 0 0,1 368,200"/>`
-  +   `<path id="YSba" d="M 32,200 A 168,168 0 0,0 368,200"/>`
-  + `</defs>`
-  + _ticks
-  + `<circle cx="200" cy="200" r="186" fill="none" stroke="${_na}0.07)" stroke-width="1"/>`
-  + `<circle cx="200" cy="200" r="172" fill="none" stroke="${_na}0.07)" stroke-width="0.5"/>`
-  + `<circle cx="200" cy="200" r="155" fill="none" stroke="${_na}0.09)" stroke-width="1" stroke-dasharray="2.5 5"/>`
-  + `<text font-family="Georgia,serif" font-size="15" font-weight="700" fill="${_na}0.10)" letter-spacing="2.5">`
-  +   `<textPath href="#YSta" startOffset="50%" text-anchor="middle">YOJANA SAHAY \u00B7 ADMIN OFFICE</textPath>`
-  + `</text>`
-  + `<text x="200" y="196" text-anchor="middle" font-family="Georgia,serif" font-size="58" font-weight="700" fill="${_na}0.09)" letter-spacing="-1">YS</text>`
-  + `<line x1="135" y1="216" x2="265" y2="216" stroke="${_na}0.08)" stroke-width="0.75"/>`
-  + `<text x="200" y="234" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="${_na}0.09)" letter-spacing="1">2026</text>`
-  + `<text font-family="Georgia,serif" font-size="12" font-weight="600" fill="${_na}0.10)" letter-spacing="1">`
-  +   `<textPath href="#YSba" startOffset="50%" text-anchor="middle">SAHNAWAZ HYPER ZENITH \u00B7 PAYROLL \u00B7 INTERNAL</textPath>`
-  + `</text>`
-  + `</svg>`
-  );
+  // ── Classification text SVG — 2 signature lines in monospace,
+  // bracketed by thin rules. Sits below the logo seal at 62% page height.
+  const textSvg = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27680%27%20height%3D%2772%27%3E%3Cline%20x1%3D%2720%27%20y1%3D%271%27%20x2%3D%27660%27%20y2%3D%271%27%20stroke%3D%27rgba%280%2C53%2C128%2C0.09%29%27%20stroke-width%3D%270.75%27%2F%3E%3Ctext%20x%3D%27340%27%20y%3D%2723%27%20text-anchor%3D%27middle%27%20font-family%3D%27IBM%20Plex%20Mono%2Cmonospace%27%20font-size%3D%279.5%27%20font-weight%3D%27600%27%20fill%3D%27rgba%280%2C53%2C128%2C0.10%29%27%20letter-spacing%3D%272%27%3EYS%20%C2%B7%20YOJANA%20SAHAY%20%C2%B7%20ADMIN%20OFFICE%20%C2%B7%20SAHNAWAZ%20HYPER%20ZENITH%20%C2%B7%20PAYROLL%20%C2%B7%20INTERNAL%3C%2Ftext%3E%3Ctext%20x%3D%27340%27%20y%3D%2747%27%20text-anchor%3D%27middle%27%20font-family%3D%27IBM%20Plex%20Mono%2Cmonospace%27%20font-size%3D%279.5%27%20font-weight%3D%27600%27%20fill%3D%27rgba%280%2C53%2C128%2C0.10%29%27%20letter-spacing%3D%272%27%3EYS%20%C2%B7%20YOJANA%20SAHAY%20%C2%B7%20ADMIN%20OFFICE%20%C2%B7%20SAHNAWAZ%20HYPER%20ZENITH%20%C2%B7%20PAYROLL%20%C2%B7%20INTERNAL%3C%2Ftext%3E%3Cline%20x1%3D%2720%27%20y1%3D%2759%27%20x2%3D%27660%27%20y2%3D%2759%27%20stroke%3D%27rgba%280%2C53%2C128%2C0.09%29%27%20stroke-width%3D%270.75%27%2F%3E%3C%2Fsvg%3E";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -2619,20 +2588,19 @@ function buildAttendanceReportHTML({ report, payConfigs, preparedBy = "" }) {
     z-index: 0;
   }
 
-  /* ── Corporate seal (body::before) ─────────────────────────────────────
-     Embossed-style circular seal: curved text arcs (top + bottom),
-     36 radial tick marks, dotted inner ring, YS monogram, year, divider.
-     Fixed overlay on every page at 62% height (below the ghost logo).
-     Same print behaviour as body::after. ─────────────────────────── */
+  /* ── Classification band (body::before) ────────────────────────────────
+     Two signature lines in IBM Plex Mono, with a thin rule above and below,
+     positioned just below the logo seal. Reads as an official security band
+     on every page — same fixed/print behaviour as body::after. ─────── */
   body::before {
     content: "";
     position: fixed;
     top: 62%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 280px;
-    height: 280px;
-    background-image: url("${sealSvg}");
+    width: 680px;
+    height: 72px;
+    background-image: url("${textSvg}");
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
