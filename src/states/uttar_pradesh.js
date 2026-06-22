@@ -221,7 +221,7 @@ export const UTTAR_PRADESH_SCHEMES = [
                hi: "कृषि भूमि के चारों ओर सौर ऊर्जा चालित विद्युत बाड़ लगाने के लिए 60% अनुदान ₹1.43 लाख प्रति हेक्टेयर तक; 12-वोल्ट सौर बाड़ आवारा पशुओं (नीलगाय, बंदर, जंगली सूअर आदि) को हल्का, हानिरहित झटका देती है और सायरन बजाती है — पशु को बिना नुकसान पहुंचाए फसल की रक्षा; ₹50 करोड़ बजट; छोटे व सीमांत किसानों के लिए" },
     tag:     { en: "Farmer / Crop Protection", hi: "किसान / फसल सुरक्षा" },
     annual: 143000,
-    apply:   { en: "https://agriculture.up.gov.in", hi: "agriculture.up.gov.in / निकटतम कृषि विभाग कार्यालय" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/hi/schemes/mkusy", hi: "agriculture.up.gov.in / निकटतम कृषि विभाग कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records / Khatauni (UP)", "Bank Account (Aadhaar-linked)", "UP Residence Proof", "Farmer Registration on UP Agriculture Portal", "Passport Photo"],
                hi: ["आधार कार्ड", "भूमि अभिलेख / खतौनी (UP)", "बैंक खाता (आधार-लिंक्ड)", "UP निवास प्रमाण", "UP कृषि पोर्टल पर किसान पंजीकरण", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Uttar Pradesh" && a.who === "farmer",
