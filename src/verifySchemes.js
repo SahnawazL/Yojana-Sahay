@@ -470,6 +470,28 @@ export async function runVerification({
   const total   = queue.length;
   const results = [];
 
+  // ── Overlay committed URL fixes onto the queue ──────────────────────────────
+  // THE BUG THIS FIXES: a full scan always pinged scheme.apply.en straight from
+  // the bundled SCHEME_DB — which is a static import, only refreshed by a full
+  // redeploy. If a fix had already been committed (and even verified live by the
+  // per-row "Re-check"), but the redeploy carrying that fix into the bundle
+  // hadn't landed yet, a full re-scan would still ping the OLD pre-fix URL and
+  // report it dead again — directly contradicting the per-row "Fixed — verified
+  // live" badge sitting right above it. Loading the same Firestore record the
+  // per-row check uses keeps both surfaces consistent regardless of redeploy
+  // timing. Falls back to {} if Firestore is unreachable — a full scan should
+  // never hard-fail just because this overlay couldn't load.
+  let urlFixes = {};
+  try {
+    urlFixes = await loadUrlFixes();
+  } catch (err) {
+    console.warn("[runVerification] couldn't load urlFixes overlay:", err.message);
+  }
+  const effectiveUrlFor = (scheme) => {
+    const fix = urlFixes[scheme.id];
+    return (fix?.status === "committed" && fix?.newUrl) ? fix.newUrl : scheme.apply?.en;
+  };
+
   // Which schemes also need Tier 2 AI extraction?
   // Fix 1: previously "both" only ran AI on priority schemes (had a deadline,
   // or never verified) to save Groq credits — but that left ~70-80% of
@@ -487,7 +509,17 @@ export async function runVerification({
       break;
     }
 
-    const scheme = queue[i];
+    const rawScheme = queue[i];
+
+    // Use the committed-fix URL (if any) for the actual check AND for what
+    // gets displayed — so "Known Dead Links" and the Results list show the
+    // corrected URL too, instead of a stale corrupted one sitting next to a
+    // "Fixed — verified live" badge.
+    const fixedUrl = effectiveUrlFor(rawScheme);
+    const scheme = (fixedUrl !== rawScheme.apply?.en)
+      ? { ...rawScheme, apply: { ...rawScheme.apply, en: fixedUrl } }
+      : rawScheme;
+
     const result = {
       scheme,
       tier:       1,
