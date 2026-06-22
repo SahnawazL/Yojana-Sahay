@@ -53,7 +53,7 @@ export const ODISHA_SCHEMES = [
                hi: "सरकार किसानों से सीधे ₹3,100 प्रति क्विंटल पर धान खरीदती है — MSP ₹2,300/क्विंटल से अधिक — बिचौलिए समाप्त; ₹5,000 करोड़ आवंटित; भुगतान सीधे किसानों के बैंक खाते में" },
     tag:     { en: "Farmer / Paddy MSP", hi: "किसान / धान MSP" },
     annual: 0,
-    apply:   { en: "https://agriodisha.gov.in", hi: "agriodisha.gov.in / निकटतम मो सेवा केंद्र" }, applyType: "online",
+    apply:   { en: "https://krushak.odisha.gov.in", hi: "agriodisha.gov.in / निकटतम मो सेवा केंद्र" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records / Khatian", "Farmer Registration Certificate", "Bank Account (Aadhaar-linked)", "Paddy cultivation proof / Crop registration"],
                hi: ["आधार कार्ड", "भूमि अभिलेख / खतियान", "किसान पंजीकरण प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड)", "धान खेती प्रमाण / फसल पंजीकरण"] },
     match: (a) => a.state === "Odisha" && a.who === "farmer",
