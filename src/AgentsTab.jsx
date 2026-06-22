@@ -2219,7 +2219,7 @@ function buildHeatmapHTML(dayRows) {
 // writes it straight into a new blank tab via document.write() and leaves
 // "Save as PDF" to the browser's native print flow — no PDF library, nothing
 // extra to keep in sync.
-function buildAttendanceReportHTML({ report, payConfigs }) {
+function buildAttendanceReportHTML({ report, payConfigs, preparedBy = "" }) {
   const { rows, totalCalendarDays, totalWorkingDays = totalCalendarDays, workingDaysMode = "all", startStr, endStr } = report;
   // Per-agent pay helpers — fall back to no-pay if uid not in payConfigs
   const agentCfg   = uid => payConfigs?.[uid] || { mode: "none", rate: 0 };
@@ -2260,9 +2260,18 @@ function buildAttendanceReportHTML({ report, payConfigs }) {
   // convention used for the report ref and the document-control footer.
   const annexureCode = i => `A${i + 1}`;
 
-  const summaryRows = rows.map((r, i) => `<tr>
+  const summaryRows = rows.map((r, i) => {
+    const pct      = r.attendancePct;
+    const rowCls   = pct < 50 ? "row-critical" : pct < 75 ? "row-warn" : "";
+    const trAttrs  = rowCls ? ` class="${rowCls}"` : "";
+    const flagBadge = pct < 50
+      ? ` <span class="flag-badge flag-critical">&#9660;&nbsp;CRITICAL</span>`
+      : pct < 75
+      ? ` <span class="flag-badge flag-warn">&#9650;&nbsp;LOW</span>`
+      : "";
+    return `<tr${trAttrs}>
       <td class="num mono">${i + 1}</td>
-      <td class="name">${escHtml(r.name)}</td>
+      <td class="name">${escHtml(r.name)}${flagBadge}</td>
       <td class="num mono">${r.daysPresent}/${totalCalendarDays}</td>
       <td class="num mono">${r.attendancePct.toFixed(1)}%</td>
       <td class="num mono">${r.totalHours.toFixed(1)}</td>
@@ -2272,7 +2281,8 @@ function buildAttendanceReportHTML({ report, payConfigs }) {
       <td class="num mono">${r.shortfallHours.toFixed(1)}</td>
       ${showPayCol ? `<td class="num mono">${effectiveDays(r).toFixed(2)}</td><td class="num mono strong">${agentHasPay(r) ? fmtINR(agentPay(r)) : "—"}</td>` : ""}
       <td class="num"><span class="ref-tag">${annexureCode(i)}</span></td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 
   const summaryFoot = `<tr>
       <td colspan="2">Total / Average</td>
@@ -2474,6 +2484,17 @@ function buildAttendanceReportHTML({ report, payConfigs }) {
   .status-Absent  { background:var(--bad-bg); color:var(--bad); } .status-Absent i { background:var(--bad); }
   .absent-row td  { color:#a8adb8; }
 
+  /* ── Outlier row flags — attendance < 50% = red · 50–75% = amber ── */
+  .row-critical td { background:#FEF2F2 !important; }
+  .row-critical td:first-child { border-left:3px solid #EF4444; padding-left:5px; }
+  .row-warn td     { background:#FFFBEB !important; }
+  .row-warn td:first-child { border-left:3px solid #F59E0B; padding-left:5px; }
+  .flag-badge { display:inline-block; margin-left:6px; padding:1.5px 6px; border-radius:10px;
+    font-size:6.5px; font-weight:800; letter-spacing:0.3px; vertical-align:middle;
+    white-space:nowrap; font-family:var(--sans); }
+  .flag-critical { background:#FECACA; color:#991B1B; }
+  .flag-warn     { background:#FDE68A; color:#92400E; }
+
   /* ── Attendance heatmap ─────────────────────────────────────────────
      Compact GitHub-style 16 × 16 px fixed cells — the grid is ~128 px
      wide so it sits as a focused widget, not a page-wide bar.
@@ -2529,6 +2550,7 @@ function buildAttendanceReportHTML({ report, payConfigs }) {
   .signoff { display:flex; justify-content:space-between; margin-top:36px; gap:20px; }
   .signoff .line { width:44%; }
   .signoff .blank { border-bottom:1px solid #b8bcc6; height:30px; }
+  .signoff .signed-name { height:30px; display:flex; align-items:flex-end; padding-bottom:5px; font-size:11px; font-weight:700; color:var(--ink); border-bottom:1px solid #b8bcc6; font-family:var(--sans); }
   .signoff .label { font-size:8px; color:var(--mute); margin-top:5px; text-transform:uppercase; letter-spacing:0.4px; }
   .doc-control { display:flex; flex-wrap:wrap; margin-top:26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; font-family:var(--mono); font-size:7.5px; }
   .doc-control div { flex:1; min-width:130px; padding:8px 11px; border-left:1px solid var(--line); }
@@ -2536,6 +2558,24 @@ function buildAttendanceReportHTML({ report, payConfigs }) {
   .doc-control span { display:block; color:var(--mute); text-transform:uppercase; letter-spacing:0.4px; font-size:6.5px; margin-bottom:2px; }
   .doc-control b { color:var(--ink); font-weight:600; }
   .footer-note { text-align:center; font-size:7.5px; color:#b3b8c2; margin-top:14px; }
+
+  /* ── Diagonal watermark — body::before, fixed so it tiles every print page ── */
+  body::before {
+    content: "INTERNAL DOCUMENT";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-family: var(--sans);
+    font-size: 62px;
+    font-weight: 900;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+    color: rgba(0, 53, 128, 0.055);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+  }
 
   @media print {
     .no-print { display:none !important; }
@@ -2630,7 +2670,12 @@ function buildAttendanceReportHTML({ report, payConfigs }) {
     </div>
 
     <div class="signoff">
-      <div class="line"><div class="blank"></div><div class="label">Prepared by (Admin)</div></div>
+      <div class="line">
+        ${preparedBy
+          ? `<div class="signed-name">${escHtml(preparedBy)}</div>`
+          : `<div class="blank"></div>`}
+        <div class="label">Prepared by (Admin)</div>
+      </div>
       <div class="line"><div class="blank"></div><div class="label">Verified / Approved by</div></div>
     </div>
 
@@ -2667,6 +2712,12 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
   const [report, setReport] = useState(null);
   const [error, setError]   = useState(null);
   const [reportHtml, setReportHtml] = useState(null);
+
+  // "Prepared by" — persisted in localStorage so the admin's name is
+  // remembered between export sessions and doesn't need re-typing each time.
+  const [preparedBy, setPreparedBy] = useState(() => {
+    try { return localStorage.getItem("agt_prepared_by") || ""; } catch { return ""; }
+  });
 
   // ── Agent selection — all pre-checked, user can unmark individuals ──────
   const [selectedAgentIds, setSelectedAgentIds] = useState(
@@ -2720,7 +2771,7 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
       const selectedUids = new Set(selectedAgents.map(a => a.uid || a.id));
       const filteredLogs = logs.filter(l => selectedUids.has(l.uid));
       const rpt  = buildAttendanceReport(selectedAgents, filteredLogs, resolvedRange.start, resolvedRange.end, workingDaysMode);
-      const html = buildAttendanceReportHTML({ report: rpt, payConfigs });
+      const html = buildAttendanceReportHTML({ report: rpt, payConfigs, preparedBy });
       setReport(rpt);
       setReportHtml(html);
       setStage("ready");
@@ -3004,6 +3055,33 @@ function AttendanceExportModal({ humanAgents, dark, isDesktop, onClose }) {
                 </div>
               )}
               </>}
+
+              {/* ── PREPARED BY ──────────────────────────────────────────── */}
+              <div style={{ marginTop: 18 }}>
+                <div style={{ fontSize: fs(9.5, isDesktop), fontWeight: 700, color: th.textSub, marginBottom: 7, letterSpacing: 0.3 }}>PREPARED BY</div>
+                <input
+                  type="text"
+                  placeholder="Admin name for signature line…"
+                  value={preparedBy}
+                  onChange={e => {
+                    const v = e.target.value;
+                    setPreparedBy(v);
+                    try { localStorage.setItem("agt_prepared_by", v); } catch {}
+                  }}
+                  style={{
+                    width: "100%", boxSizing: "border-box",
+                    padding: "8px 10px", borderRadius: 8,
+                    border: `1px solid ${preparedBy ? NAVY + "70" : th.border}`,
+                    background: th.inputBg,
+                    color: th.text, fontSize: fs(10.5, isDesktop),
+                    outline: "none",
+                    transition: "border-color 0.2s",
+                  }}
+                />
+                <div style={{ fontSize: fs(8.5, isDesktop), color: th.textSub, marginTop: 5 }}>
+                  Printed on the "Prepared by" signature line — saved for next export.
+                </div>
+              </div>
             </div>
           )}
 
