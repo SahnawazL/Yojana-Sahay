@@ -105,7 +105,7 @@ export const PUDUCHERRY_SCHEMES = [
                hi: "पुदुच्चेरी के संस्थानों में कक्षा 11 से स्नातकोत्तर तक पढ़ने वाले मेधावी छात्रों को छात्रवृत्ति — पाठ्यक्रम के आधार पर ₹500–₹1,500/माह; SC/ST/OBC छात्रों के लिए पूर्ण ट्यूशन शुल्क प्रतिपूर्ति; कक्षा 10 और 12 में 85% से अधिक अंक प्राप्त करने वाले छात्रों को ₹15,000 एकमुश्त लैपटॉप/टैबलेट अनुदान; ₹3 लाख/वर्ष से कम पारिवारिक आय वाले छात्रों के लिए" },
     tag:     { en: "Student / Scholarship", hi: "छात्र / छात्रवृत्ति" },
     annual: 18000,
-    apply:   { en: "scholarships.gov.in (National Scholarship Portal) / Dept. of School Education, Puducherry", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल) / स्कूल शिक्षा विभाग, पुदुच्चेरी" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/asdaps", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल) / स्कूल शिक्षा विभाग, पुदुच्चेरी" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Previous Marksheet (10th / last qualifying exam)", "Income Certificate (family income < ₹3 lakh/year)", "Caste Certificate (if SC/ST/OBC)", "Bonafide Certificate from institution", "Bank Account (Aadhaar-linked, student's name)", "Residence Proof (Puducherry domicile)", "Passport Photo"],
                hi: ["आधार कार्ड", "पिछली अंकसूची (10वीं / अंतिम योग्यता परीक्षा)", "आय प्रमाण पत्र (पारिवारिक आय ₹3 लाख/वर्ष से कम)", "जाति प्रमाण पत्र (SC/ST/OBC के लिए)", "संस्थान से बोनाफाइड प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "निवास प्रमाण (पुदुच्चेरी)", "पासपोर्ट फोटो"] },
     match: (a) => a.state === "Puducherry" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
