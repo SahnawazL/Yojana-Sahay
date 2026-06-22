@@ -916,9 +916,9 @@
     "confidence": 0
   },
   "kerala_unemployment_allowance": {
-    "lastVerified": "2026-06-22T20:06:42.874Z",
+    "lastVerified": "2026-06-22T20:09:05.328Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "kerala_startup_mission": {
