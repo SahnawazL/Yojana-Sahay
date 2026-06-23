@@ -4300,6 +4300,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
   const [error,      setError]      = useState(null);
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [view,       setView]       = useState("chart"); // "chart" | "table"
+  const chartScrollRef = useRef(null);
 
   // 30-day window — anchored to IST so it matches the serverless date key
   const thirtyDaysAgo = useMemo(() => {
@@ -4391,6 +4392,17 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
   const maxDayTotal  = useMemo(() => Math.max(1, ...fullGrid.map(d => d.dayTotal)), [fullGrid]);
   const peakDay      = useMemo(() => fullGrid.find(d => d.dayTotal === maxDayTotal), [fullGrid, maxDayTotal]);
   const daysWithData = useMemo(() => fullGrid.filter(d => d.dayTotal > 0).length, [fullGrid]);
+
+  // Bring "today" into view on load, with a little breathing room past the edge
+  // instead of leaving the user to scroll all the way to a flush, cramped edge.
+  useEffect(() => {
+    if (!loading && view === "chart" && chartScrollRef.current) {
+      const el = chartScrollRef.current;
+      requestAnimationFrame(() => {
+        el.scrollLeft = el.scrollWidth - el.clientWidth;
+      });
+    }
+  }, [loading, view, fullGrid.length]);
   const hovered      = hoveredIdx !== null ? fullGrid[hoveredIdx] : null;
   const CHART_H      = isDesktop ? 100 : 72; // px
 
@@ -4533,9 +4545,11 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
 
             {/* Stacked bar chart */}
             <div
+              ref={chartScrollRef}
               style={{
                 overflowX: isDesktop ? "hidden" : "auto",
                 touchAction: isDesktop ? undefined : "pan-x pan-y",
+                paddingRight: isDesktop ? 0 : 14,
               }}
               onTouchStart={(e) => e.stopPropagation()}
               onTouchMove={(e) => e.stopPropagation()}
@@ -4621,6 +4635,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
               }}>
                 {fullGrid.map((d, i) => {
                   const show = i === 0 || i === 14 || i === 29 || d.isToday;
+                  const isLast = i === fullGrid.length - 1;
                   return (
                     <div
                       key={d.date}
@@ -4630,9 +4645,9 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                         fontFamily: "monospace",
                         color: d.isToday ? SAFFRON : th.textSub,
                         fontWeight: d.isToday ? 800 : 600,
-                        textAlign: "center",
+                        textAlign: isLast ? "right" : "center",
                         whiteSpace: "nowrap",
-                        overflow: "hidden",
+                        overflow: "visible",
                         opacity: show ? 1 : 0,
                         pointerEvents: "none",
                       }}
