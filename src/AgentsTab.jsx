@@ -4390,6 +4390,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
 
   const maxDayTotal  = useMemo(() => Math.max(1, ...fullGrid.map(d => d.dayTotal)), [fullGrid]);
   const peakDay      = useMemo(() => fullGrid.find(d => d.dayTotal === maxDayTotal), [fullGrid, maxDayTotal]);
+  const daysWithData = useMemo(() => fullGrid.filter(d => d.dayTotal > 0).length, [fullGrid]);
   const hovered      = hoveredIdx !== null ? fullGrid[hoveredIdx] : null;
   const CHART_H      = isDesktop ? 100 : 72; // px
 
@@ -4548,7 +4549,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                 {fullGrid.map((d, i) => {
                   const groqH   = d.dayTotal > 0 ? Math.round((d.groqTotal   / maxDayTotal) * CHART_H) : 0;
                   const tavilyH = d.dayTotal > 0 ? Math.round((d.tavilyTotal / maxDayTotal) * CHART_H) : 0;
-                  const emptyH  = 3; // placeholder for zero days
+                  const emptyH  = 6; // placeholder for zero days — kept visible, not just a sliver
                   return (
                     <div
                       key={d.date}
@@ -4564,8 +4565,9 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                       {d.dayTotal === 0 ? (
                         <div style={{
                           width: "100%", height: emptyH, borderRadius: 2,
-                          background: dark ? "#2c2c2e" : "#e8e8e8",
-                          opacity: 0.5,
+                          background: "transparent",
+                          border: `1px dashed ${dark ? "#55555c" : "#c4c4cc"}`,
+                          opacity: hoveredIdx === i ? 1 : 0.8,
                         }} />
                       ) : (
                         <>
@@ -4664,6 +4666,19 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                 stacked · Groq top · Tavily base
               </div>
             </div>
+
+            {daysWithData <= 2 && (
+              <div style={{
+                marginTop: 8, padding: "7px 10px",
+                background: dark ? "#0a0c14" : "#f4f5fb",
+                border: `1px dashed ${th.border}`,
+                borderRadius: 7, fontFamily: "monospace",
+                fontSize: fs(8, isDesktop), color: th.textSub, lineHeight: 1.6,
+              }}>
+                Dashed bars = no calls logged that day yet. History tracking just started,
+                so the chart fills in day by day from here.
+              </div>
+            )}
           </div>
 
         ) : !loading ? (
