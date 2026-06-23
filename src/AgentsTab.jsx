@@ -4660,7 +4660,12 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
 
         ) : !loading ? (
           /* ═══════════ TABLE VIEW ═══════════ */
-          <div style={{ overflowX: "auto" }}>
+          <div
+            style={{ overflowX: "auto", touchAction: "pan-x" }}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
             <table style={{
               width: "100%", borderCollapse: "collapse",
               fontSize: fs(9.5, isDesktop), fontFamily: "monospace",
