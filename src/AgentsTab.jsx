@@ -236,6 +236,14 @@ function IconDownload({ size = 13, color = "currentColor", style }) {
     </svg>
   );
 }
+function IconBarChart({ size = 14, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <path d="M18 20V10M12 20V4M6 20v-6"
+        stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
 
 // ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Skeleton — shimmering loading placeholder
@@ -4234,6 +4242,535 @@ function AnomalyBanner({ anomalies, dark, isDesktop, muted, onToggleMute, notifP
   );
 }
 
+// ── MiniStat — stat card used by ApiCallHistoryPanel ─────────────────────────
+// Defined at module level (NOT inside ApiCallHistoryPanel) so React sees a
+// stable component identity between renders and never unmounts/remounts it.
+function MiniStat({ label, value, sub, color, dark, th, isDesktop, loading }) {
+  return (
+    <div style={{
+      background: dark ? "#1c1c1e" : "#fff",
+      border: `1px solid ${th.border}`,
+      borderTop: `2px solid ${color}55`,
+      borderRadius: 10, padding: "9px 11px",
+    }}>
+      <div style={{
+        fontSize: fs(6.5, isDesktop), fontFamily: "monospace", fontWeight: 700,
+        color: th.textSub, letterSpacing: 1.1, marginBottom: 3,
+      }}>
+        {label}
+      </div>
+      <div style={{
+        fontSize: fs(18, isDesktop), fontWeight: 800, color,
+        fontFamily: "monospace", lineHeight: 1,
+      }}>
+        {loading ? "—" : value}
+      </div>
+      <div style={{
+        fontSize: fs(7.5, isDesktop), color: th.textSub,
+        fontFamily: "monospace", marginTop: 3,
+      }}>
+        {sub}
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: ApiCallHistoryPanel
+//
+// Reads apiCallHistory/{YYYY-MM-DD} (one doc per IST day) to display:
+//  - Cumulative 30-day totals for Groq + Tavily (chat pool + verify pool combined)
+//  - Stacked bar chart (VIOLET = Groq on top, CYAN = Tavily at base)
+//  - Table toggle showing per-day breakdown by service
+//
+// TODAY'S BAR: merges the live aiStatus callsToday count (Math.max) as a
+// real-time supplement in case the serverless function hasn't flushed yet.
+//
+// Missing days (no API calls that day) fill with 0s so the chart always
+// shows exactly 30 bars — gaps are visually distinct (dim bar placeholder).
+//
+// Firestore collection: apiCallHistory/{YYYY-MM-DD}
+//   { date, groqCalls, tavilyCalls, groqVerifyCalls, tavilyVerifyCalls, updatedAt }
+//   Written by serverless routes via increment() — see serverless-snippet.js
+// ═════════════════════════════════════════════════════════════════════════════
+function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [history,    setHistory]    = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [hoveredIdx, setHoveredIdx] = useState(null);
+  const [view,       setView]       = useState("chart"); // "chart" | "table"
+
+  // 30-day window — anchored to IST so it matches the serverless date key
+  const thirtyDaysAgo = useMemo(() => {
+    const d = new Date(`${todayStr}T00:00:00+05:30`);
+    d.setDate(d.getDate() - 29);
+    return getISTDateStr(d);
+  }, [todayStr]);
+
+  // Real-time listener — resubscribes on day rollover (todayStr changes via 30s tick)
+  useEffect(() => {
+    setLoading(true);
+    const q = query(
+      collection(db, "apiCallHistory"),
+      where("date", ">=", thirtyDaysAgo),
+      where("date", "<=", todayStr),
+      orderBy("date", "asc")
+    );
+    const unsub = onSnapshot(q,
+      snap => {
+        setHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLoading(false);
+        setError(null);
+      },
+      err => {
+        console.warn("[ApiCallHistory] listener failed:", err);
+        setError(err.message || "Could not load history");
+        setLoading(false);
+      }
+    );
+    return unsub;
+  }, [thirtyDaysAgo, todayStr]);
+
+  // Full 30-day grid with zero-fills for quiet days
+  const fullGrid = useMemo(() => {
+    const map = {};
+    history.forEach(h => { map[h.date] = h; });
+
+    const days = [];
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(`${thirtyDaysAgo}T00:00:00+05:30`);
+      d.setDate(d.getDate() + i);
+      const ds  = getISTDateStr(d);
+      const rec = map[ds] || {};
+
+      // Base values from Firestore history
+      let gChat   = rec.groqCalls        || 0;
+      let tChat   = rec.tavilyCalls      || 0;
+      let gVerify = rec.groqVerifyCalls  || 0;
+      let tVerify = rec.tavilyVerifyCalls || 0;
+
+      // Today: merge live aiStatus counts (Math.max avoids double-counting)
+      // so the bar reflects the latest even if serverless hasn't committed yet
+      if (ds === todayStr && aiStatus) {
+        const liveGChat   = aiStatus.groqCallsDate         === todayStr ? (aiStatus.groqCallsToday        || 0) : 0;
+        const liveTChat   = aiStatus.tavilyCallsDate       === todayStr ? (aiStatus.tavilyCallsToday      || 0) : 0;
+        const liveGVerify = aiStatus.groqVerifyCallsDate   === todayStr ? (aiStatus.groqVerifyCallsToday  || 0) : 0;
+        const liveTVerify = aiStatus.tavilyVerifyCallsDate === todayStr ? (aiStatus.tavilyVerifyCallsToday || 0) : 0;
+        gChat   = Math.max(gChat, liveGChat);
+        tChat   = Math.max(tChat, liveTChat);
+        gVerify = Math.max(gVerify, liveGVerify);
+        tVerify = Math.max(tVerify, liveTVerify);
+      }
+
+      const label = new Date(`${ds}T00:00:00+05:30`).toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata", day: "2-digit", month: "short",
+      });
+
+      days.push({
+        date: ds, label,
+        gChat, tChat, gVerify, tVerify,
+        groqTotal:   gChat + gVerify,
+        tavilyTotal: tChat + tVerify,
+        dayTotal:    gChat + tChat + gVerify + tVerify,
+        isToday:     ds === todayStr,
+      });
+    }
+    return days;
+  }, [history, thirtyDaysAgo, todayStr, aiStatus]);
+
+  // 30-day cumulative totals
+  const totals = useMemo(() =>
+    fullGrid.reduce((acc, d) => ({
+      groq:   acc.groq   + d.groqTotal,
+      tavily: acc.tavily + d.tavilyTotal,
+      total:  acc.total  + d.dayTotal,
+    }), { groq: 0, tavily: 0, total: 0 }),
+  [fullGrid]);
+
+  const maxDayTotal  = useMemo(() => Math.max(1, ...fullGrid.map(d => d.dayTotal)), [fullGrid]);
+  const peakDay      = useMemo(() => fullGrid.find(d => d.dayTotal === maxDayTotal), [fullGrid, maxDayTotal]);
+  const hovered      = hoveredIdx !== null ? fullGrid[hoveredIdx] : null;
+  const CHART_H      = isDesktop ? 100 : 72; // px
+
+  return (
+    <div style={{
+      marginTop: 14,
+      background: th.card,
+      border: `1px solid ${th.border}`,
+      borderRadius: 14,
+      overflow: "hidden",
+    }}>
+
+      {/* ── Top gradient accent line ── */}
+      <div style={{
+        height: 2,
+        background: `linear-gradient(90deg, ${VIOLET}, ${CYAN} 55%, ${VIOLET}00 100%)`,
+      }} />
+
+      {/* ── Header ── */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 9,
+        padding: "10px 14px", borderBottom: `1px solid ${th.border}`,
+        background: dark ? "#252527" : "#f8f9fa",
+      }}>
+        <IconBarChart size={13} color={VIOLET} style={{ flexShrink: 0 }} />
+        <div>
+          <div style={{ fontSize: fs(12, isDesktop), fontWeight: 700, color: th.text }}>
+            API Call Tracker
+          </div>
+          <div style={{
+            fontSize: fs(8.5, isDesktop), color: th.textSub, fontFamily: "monospace", marginTop: 1,
+          }}>
+            groq · tavily · last 30 days · midnight resets don't affect history
+          </div>
+        </div>
+
+        {/* ── Chart / Table toggle ── */}
+        <div style={{ marginLeft: "auto", display: "flex", gap: 5 }}>
+          {["chart", "table"].map(v => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              style={{
+                padding: "3px 9px",
+                borderRadius: 6, border: `1px solid ${th.border}`,
+                background: view === v ? VIOLET : "transparent",
+                color: view === v ? "#fff" : th.textSub,
+                fontSize: fs(8.5, isDesktop), fontFamily: "monospace",
+                cursor: "pointer", fontWeight: 600,
+              }}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: "12px 14px" }}>
+
+        {/* ── 4-up stat cards ── */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: isDesktop ? "repeat(4,1fr)" : "repeat(2,1fr)",
+          gap: 8, marginBottom: 12,
+        }}>
+          <MiniStat
+            label="GROQ 30D"
+            value={totals.groq.toLocaleString()}
+            sub="chat + verify calls"
+            color={VIOLET}
+            dark={dark} th={th} isDesktop={isDesktop} loading={loading}
+          />
+          <MiniStat
+            label="TAVILY 30D"
+            value={totals.tavily.toLocaleString()}
+            sub="chat + verify calls"
+            color={CYAN}
+            dark={dark} th={th} isDesktop={isDesktop} loading={loading}
+          />
+          <MiniStat
+            label="COMBINED"
+            value={totals.total.toLocaleString()}
+            sub="all services · 30 days"
+            color={SAFFRON}
+            dark={dark} th={th} isDesktop={isDesktop} loading={loading}
+          />
+          <MiniStat
+            label="PEAK DAY"
+            value={loading ? "—" : (peakDay?.dayTotal || 0).toLocaleString()}
+            sub={loading ? "—" : (peakDay?.label || "no data")}
+            color={IND_GREEN}
+            dark={dark} th={th} isDesktop={isDesktop} loading={loading}
+          />
+        </div>
+
+        {/* ── Error banner ── */}
+        {error && (
+          <div style={{
+            marginBottom: 10, padding: "8px 11px",
+            background: dark ? "#1a0505" : "#fff5f5",
+            border: `1px solid #f8717155`,
+            borderRadius: 8, fontSize: fs(9, isDesktop),
+            color: "#f87171", fontFamily: "monospace",
+          }}>
+            ⚠ {error} — check Firestore index on <code>date</code> field
+          </div>
+        )}
+
+        {/* ── Loading shimmer ── */}
+        {loading && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 10 }}>
+            <Skeleton dark={dark} height={CHART_H} radius={8} />
+            <Skeleton dark={dark} height={10} width="60%" />
+          </div>
+        )}
+
+        {!loading && view === "chart" ? (
+          /* ═══════════ CHART VIEW ═══════════ */
+          <div>
+            {/* Hover tooltip */}
+            {hovered && (
+              <div style={{
+                marginBottom: 8, padding: "7px 10px",
+                background: dark ? "#1c1c1e" : "#f4f5fb",
+                border: `1px solid ${th.border}`,
+                borderRadius: 8, fontSize: fs(9, isDesktop),
+                fontFamily: "monospace",
+                display: "flex", flexWrap: "wrap", gap: "4px 14px",
+              }}>
+                <span style={{ color: th.text, fontWeight: 700 }}>{hovered.label}</span>
+                <span style={{ color: VIOLET }}>Groq: {hovered.groqTotal}</span>
+                <span style={{ color: CYAN }}>Tavily: {hovered.tavilyTotal}</span>
+                <span style={{ color: SAFFRON, fontWeight: 700 }}>Total: {hovered.dayTotal}</span>
+                <span style={{ color: th.textSub }}>
+                  (g-chat:{hovered.gChat} g-verify:{hovered.gVerify}
+                  {" "}t-chat:{hovered.tChat} t-verify:{hovered.tVerify})
+                </span>
+              </div>
+            )}
+
+            {/* Stacked bar chart */}
+            <div style={{ overflowX: isDesktop ? "hidden" : "auto" }}>
+              <div style={{
+                display: "flex", alignItems: "flex-end", gap: isDesktop ? 3 : 2,
+                height: CHART_H,
+                minWidth: isDesktop ? undefined : 360,
+              }}>
+                {fullGrid.map((d, i) => {
+                  const groqH   = d.dayTotal > 0 ? Math.round((d.groqTotal   / maxDayTotal) * CHART_H) : 0;
+                  const tavilyH = d.dayTotal > 0 ? Math.round((d.tavilyTotal / maxDayTotal) * CHART_H) : 0;
+                  const emptyH  = 3; // placeholder for zero days
+                  return (
+                    <div
+                      key={d.date}
+                      onMouseEnter={() => setHoveredIdx(i)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                      title={`${d.label}: ${d.dayTotal} total`}
+                      style={{
+                        flex: 1, display: "flex", flexDirection: "column",
+                        justifyContent: "flex-end", alignItems: "center",
+                        height: "100%", cursor: "pointer",
+                      }}
+                    >
+                      {d.dayTotal === 0 ? (
+                        <div style={{
+                          width: "100%", height: emptyH, borderRadius: 2,
+                          background: dark ? "#2c2c2e" : "#e8e8e8",
+                          opacity: 0.5,
+                        }} />
+                      ) : (
+                        <>
+                          {/* Groq segment (top) */}
+                          <div style={{
+                            width: "100%", height: groqH,
+                            background: hoveredIdx === i ? VIOLET : `${VIOLET}cc`,
+                            borderRadius: "3px 3px 0 0",
+                            transition: "background 0.1s",
+                          }} />
+                          {/* Tavily segment (base) */}
+                          <div style={{
+                            width: "100%", height: tavilyH,
+                            background: hoveredIdx === i ? CYAN : `${CYAN}bb`,
+                            borderRadius: tavilyH > 0 ? "0 0 2px 2px" : 0,
+                            transition: "background 0.1s",
+                          }} />
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Today highlight ring */}
+              <div style={{
+                display: "flex", gap: isDesktop ? 3 : 2,
+                minWidth: isDesktop ? undefined : 360,
+                marginTop: 2,
+              }}>
+                {fullGrid.map((d, i) => (
+                  <div
+                    key={d.date}
+                    style={{
+                      flex: 1, height: 2,
+                      background: d.isToday ? SAFFRON : "transparent",
+                      borderRadius: 2,
+                      boxShadow: d.isToday ? `0 0 4px ${SAFFRON}88` : "none",
+                      outline: hoveredIdx === i ? `1px solid ${th.border}` : "none",
+                      outlineOffset: d.isToday ? "2px" : 0,
+                      transition: "box-shadow 0.12s, background 0.12s",
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* X-axis date labels — only first, midpoint, last + today */}
+              <div style={{
+                display: "flex", gap: isDesktop ? 3 : 2,
+                paddingTop: 3, minWidth: isDesktop ? undefined : 360,
+              }}>
+                {fullGrid.map((d, i) => {
+                  const show = i === 0 || i === 14 || i === 29 || d.isToday;
+                  return (
+                    <div
+                      key={d.date}
+                      style={{
+                        flex: 1,
+                        fontSize: fs(6, isDesktop),
+                        fontFamily: "monospace",
+                        color: d.isToday ? SAFFRON : th.textSub,
+                        fontWeight: d.isToday ? 800 : 600,
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        opacity: show ? 1 : 0,
+                        pointerEvents: "none",
+                      }}
+                    >
+                      {d.isToday ? "today" : d.label.replace(" ", "\u202F")}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div style={{
+              marginTop: 9, display: "flex", gap: 10, flexWrap: "wrap",
+              fontSize: fs(8.5, isDesktop), fontFamily: "monospace",
+            }}>
+              {[
+                { color: VIOLET,   label: "Groq  (chat + verify)" },
+                { color: CYAN,     label: "Tavily (chat + verify)" },
+                { color: SAFFRON,  label: "Today" },
+              ].map(l => (
+                <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <div style={{
+                    width: 8, height: 8, borderRadius: 2,
+                    background: l.color, flexShrink: 0,
+                  }} />
+                  <span style={{ color: th.textSub }}>{l.label}</span>
+                </div>
+              ))}
+              <div style={{ marginLeft: "auto", color: th.textSub }}>
+                stacked · Groq top · Tavily base
+              </div>
+            </div>
+          </div>
+
+        ) : !loading ? (
+          /* ═══════════ TABLE VIEW ═══════════ */
+          <div style={{ overflowX: "auto" }}>
+            <table style={{
+              width: "100%", borderCollapse: "collapse",
+              fontSize: fs(9.5, isDesktop), fontFamily: "monospace",
+              minWidth: isDesktop ? undefined : 420,
+            }}>
+              <thead>
+                <tr style={{ borderBottom: `2px solid ${th.border}` }}>
+                  {["Date", "Groq Chat", "Groq Verify", "Tavily Chat", "Tavily Verify", "Day Total"].map(h => (
+                    <th key={h} style={{
+                      padding: "5px 8px", textAlign: "right",
+                      color: th.textSub, fontWeight: 700,
+                      fontSize: fs(7.5, isDesktop), letterSpacing: 0.4,
+                    }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[...fullGrid].reverse().map(d => (
+                  <tr key={d.date} style={{
+                    borderBottom: `1px solid ${dark ? "#2c2c2e44" : "#f0f0f0"}`,
+                    background: d.isToday
+                      ? (dark ? "#252527" : "#f7f7ff")
+                      : "transparent",
+                  }}>
+                    <td style={{
+                      padding: "5px 8px",
+                      color: d.isToday ? SAFFRON : th.textMid,
+                      fontWeight: d.isToday ? 800 : 600,
+                    }}>
+                      {d.label}{d.isToday ? " ★" : ""}
+                    </td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", color: VIOLET }}>
+                      {d.gChat || (d.isToday ? d.gChat : "—")}
+                    </td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", color: `${VIOLET}99` }}>
+                      {d.gVerify || (d.isToday ? d.gVerify : "—")}
+                    </td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", color: CYAN }}>
+                      {d.tChat || (d.isToday ? d.tChat : "—")}
+                    </td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", color: `${CYAN}99` }}>
+                      {d.tVerify || (d.isToday ? d.tVerify : "—")}
+                    </td>
+                    <td style={{
+                      padding: "5px 8px", textAlign: "right",
+                      color: d.dayTotal > 0 ? SAFFRON : th.textSub,
+                      fontWeight: d.dayTotal > 0 ? 700 : 400,
+                    }}>
+                      {d.dayTotal || "—"}
+                    </td>
+                  </tr>
+                ))}
+
+                {/* ── 30-day totals row ── */}
+                <tr style={{
+                  borderTop: `2px solid ${th.border}`,
+                  background: dark ? "#1c1c1e" : "#f4f5fb",
+                }}>
+                  <td style={{ padding: "7px 8px", color: th.text, fontWeight: 800 }}>
+                    30d Total
+                  </td>
+                  <td style={{ padding: "7px 8px", textAlign: "right", color: VIOLET, fontWeight: 800 }}>
+                    {fullGrid.reduce((s, d) => s + d.gChat, 0).toLocaleString()}
+                  </td>
+                  <td style={{ padding: "7px 8px", textAlign: "right", color: `${VIOLET}aa`, fontWeight: 800 }}>
+                    {fullGrid.reduce((s, d) => s + d.gVerify, 0).toLocaleString()}
+                  </td>
+                  <td style={{ padding: "7px 8px", textAlign: "right", color: CYAN, fontWeight: 800 }}>
+                    {fullGrid.reduce((s, d) => s + d.tChat, 0).toLocaleString()}
+                  </td>
+                  <td style={{ padding: "7px 8px", textAlign: "right", color: `${CYAN}aa`, fontWeight: 800 }}>
+                    {fullGrid.reduce((s, d) => s + d.tVerify, 0).toLocaleString()}
+                  </td>
+                  <td style={{ padding: "7px 8px", textAlign: "right", color: SAFFRON, fontWeight: 800 }}>
+                    {totals.total.toLocaleString()}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+
+        {/* ── Empty-state nudge — only shown when collection has no docs at all ── */}
+        {!loading && !error && totals.total === 0 && (
+          <div style={{
+            marginTop: 10, padding: "10px 12px",
+            background: dark ? "#0a0c14" : "#f4f5fb",
+            border: `1px solid ${th.border}`,
+            borderRadius: 9, fontFamily: "monospace",
+            fontSize: fs(9, isDesktop), color: th.textSub, lineHeight: 1.7,
+            display: "flex", gap: 7,
+          }}>
+            <IconInfo size={12} color={dark ? "#6fa3ff" : NAVY} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>
+              No history recorded yet.{" "}
+              <span style={{ color: th.text }}>
+                Add{" "}
+                <span style={{ color: VIOLET }}>logApiCallToHistory()</span>
+                {" "}to your serverless routes — see the snippet in the AgentsTab docs.
+              </span>
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // MAIN EXPORT: AgentsTab
 // ═════════════════════════════════════════════════════════════════════════════
@@ -4873,6 +5410,14 @@ export default function AgentsTab({ dark, isDesktop }) {
           )}
         </>
       )}
+
+      {/* ── API Call History — 30-day tracker, above attendance ────────── */}
+      <ApiCallHistoryPanel
+        dark={dark}
+        isDesktop={isDesktop}
+        aiStatus={aiStatus}
+        todayStr={todayStr}
+      />
 
       {/* ── Attendance + Notice Board — two-column row on desktop ───────── */}
       <div style={{
