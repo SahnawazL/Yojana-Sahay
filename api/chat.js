@@ -17,6 +17,7 @@
 
 import { recordAiCall } from "./_lib/firebaseAdmin.js";
 import { getNextStartIdx } from "./_lib/groqRotation.js";
+import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
 
 const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_URL = "https://api.tavily.com/search";
@@ -254,6 +255,7 @@ export default async function handler(req, res) {
       keyIdx:   retry.status === 200 ? retry.keyIdx : -1,
       count429: retry.count429,
     }).catch(() => {});
+    if (retry.status === 200) logApiCallToHistory("groqCalls").catch(() => {});
     return res.status(retry.status).json(retry.data);
   }
 
@@ -284,12 +286,14 @@ export default async function handler(req, res) {
 
       // Record first Groq call (it decided to search but didn't return text yet)
       recordAiCall({ service: "groq", keyIdx: firstKeyIdx, count429: firstCount429, triggeredSearch: false }).catch(() => {});
+      logApiCallToHistory("groqCalls").catch(() => {});
 
       // Call Tavily
       const searchResult = await searchWeb(searchQuery);
 
       // Record the Tavily search
       recordAiCall({ service: "tavily" }).catch(() => {});
+      logApiCallToHistory("tavilyCalls").catch(() => {});
 
       // ── STEP 3: Second Groq call — with Tavily results injected ─────────────
       const secondCallBody = {
@@ -316,6 +320,7 @@ export default async function handler(req, res) {
 
       // Record second Groq call — triggeredSearch:true increments groqWebSearchesToday
       recordAiCall({ service: "groq", keyIdx: secondKeyIdx, count429: secondCount429, triggeredSearch: true }).catch(() => {});
+      if (secondStatus === 200) logApiCallToHistory("groqCalls").catch(() => {});
 
       return res.status(secondStatus).json(secondData);
     }
@@ -323,5 +328,6 @@ export default async function handler(req, res) {
 
   // ── No tool call → record first response and return directly ──────────────
   recordAiCall({ service: "groq", keyIdx: firstKeyIdx, count429: firstCount429 }).catch(() => {});
+  logApiCallToHistory("groqCalls").catch(() => {});
   return res.status(firstStatus).json(firstData);
 }

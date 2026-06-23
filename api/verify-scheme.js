@@ -24,6 +24,7 @@
 
 import { recordAiCall } from "./_lib/firebaseAdmin.js";
 import { getNextStartIdx } from "./_lib/groqRotation.js";
+import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
 
 const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_EXTRACT = "https://api.tavily.com/extract";
@@ -330,6 +331,7 @@ export default async function handler(req, res) {
 
   // ── Step 2: AI extraction ─────────────────────────────────────────────────
   recordAiCall({ service: "tavily-verify" }).catch(() => {}); // Tavily Extract just succeeded above
+  logApiCallToHistory("tavilyVerifyCalls").catch(() => {});
 
   const { systemPrompt, userPrompt } = buildPrompt(name, state, text);
 
@@ -359,6 +361,7 @@ export default async function handler(req, res) {
 
   // ── Step 3: Parse Groq's JSON reply ──────────────────────────────────────
   recordAiCall({ service: "groq-verify", keyIdx, count429 }).catch(() => {}); // Groq call above returned 200
+  logApiCallToHistory("groqVerifyCalls").catch(() => {});
 
   const raw = groqData?.choices?.[0]?.message?.content ?? "";
 

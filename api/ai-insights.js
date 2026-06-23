@@ -21,6 +21,7 @@
 
 import { recordAiCall } from "./_lib/firebaseAdmin.js";
 import { getNextStartIdx } from "./_lib/groqRotation.js";
+import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
 
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL         = "llama-3.3-70b-versatile";
@@ -181,6 +182,7 @@ export default async function handler(req, res) {
     }
 
     recordAiCall({ service: "groq-verify", keyIdx, count429 }).catch(() => {}); // Groq call above returned 200
+    logApiCallToHistory("groqVerifyCalls").catch(() => {});
 
     const text = data?.choices?.[0]?.message?.content ?? "";
 
