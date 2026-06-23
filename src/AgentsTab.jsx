@@ -4531,7 +4531,15 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
             )}
 
             {/* Stacked bar chart */}
-            <div style={{ overflowX: isDesktop ? "hidden" : "auto" }}>
+            <div
+              style={{
+                overflowX: isDesktop ? "hidden" : "auto",
+                touchAction: isDesktop ? undefined : "pan-x pan-y",
+              }}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+            >
               <div style={{
                 display: "flex", alignItems: "flex-end", gap: isDesktop ? 3 : 2,
                 height: CHART_H,
@@ -4661,7 +4669,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
         ) : !loading ? (
           /* ═══════════ TABLE VIEW ═══════════ */
           <div
-            style={{ overflowX: "auto", touchAction: "pan-x" }}
+            style={{ overflowX: "auto", touchAction: "pan-x pan-y" }}
             onTouchStart={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
