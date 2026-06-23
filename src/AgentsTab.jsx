@@ -4432,7 +4432,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
           {["chart", "table"].map(v => (
             <button
               key={v}
-              onClick={() => setView(v)}
+              onClick={() => { setView(v); setHoveredIdx(null); }}
               style={{
                 padding: "3px 9px",
                 borderRadius: 6, border: `1px solid ${th.border}`,
@@ -4537,14 +4537,14 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                 overflowX: isDesktop ? "hidden" : "auto",
                 touchAction: isDesktop ? undefined : "pan-x pan-y",
               }}
-              onTouchStart={(e) => e.stopPropagation()}
+              onTouchStart={(e) => { e.stopPropagation(); setHoveredIdx(null); }}
               onTouchMove={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => { e.stopPropagation(); setHoveredIdx(null); }}
+              onTouchEnd={(e) => e.stopPropagation()}
             >
               <div style={{
                 display: "flex", alignItems: "flex-end", gap: isDesktop ? 3 : 2,
                 height: CHART_H,
-                minWidth: isDesktop ? undefined : 360,
+                minWidth: isDesktop ? undefined : 480,
               }}>
                 {fullGrid.map((d, i) => {
                   const groqH   = d.dayTotal > 0 ? Math.round((d.groqTotal   / maxDayTotal) * CHART_H) : 0;
@@ -4598,7 +4598,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
               {/* Today highlight ring */}
               <div style={{
                 display: "flex", gap: isDesktop ? 3 : 2,
-                minWidth: isDesktop ? undefined : 360,
+                minWidth: isDesktop ? undefined : 480,
                 marginTop: 2,
               }}>
                 {fullGrid.map((d, i) => (
@@ -4620,7 +4620,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
               {/* X-axis date labels — only first, midpoint, last + today */}
               <div style={{
                 display: "flex", gap: isDesktop ? 3 : 2,
-                paddingTop: 3, minWidth: isDesktop ? undefined : 360,
+                paddingTop: 3, minWidth: isDesktop ? undefined : 480,
               }}>
                 {fullGrid.map((d, i) => {
                   const show = i === 0 || i === 14 || i === 29 || d.isToday;
