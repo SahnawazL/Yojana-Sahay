@@ -7793,18 +7793,42 @@ export default function YojanaSahay(){
               <div style={{color:"rgba(255,255,255,0.72)",fontSize:13,lineHeight:1.5}}>{t.subheadline}</div>
             </div>
 
-            {/* Wave divider */}
-            <div style={{height:28,position:"relative",marginTop:6}}>
-              <svg viewBox="0 0 420 28" preserveAspectRatio="none" style={{width:"100%",height:"100%",display:"block"}}>
-                <path d={`M0,28 L0,14 Q105,0 210,14 Q315,28 420,14 L420,28 Z`} fill={th.appBg}/>
+            {/* Wave divider — two layered curves: a soft blurred shadow underneath
+                for lift, plus a glossy highlight stroke along the front curve's
+                crest. Replaces the old flat double-S sliver with something that
+                actually reads as a dimensional fold between header and body. */}
+            <div style={{height:46,position:"relative",marginTop:2}}>
+              {/* Soft glow at the crest — subtle warmth where the curve peaks */}
+              <div style={{position:"absolute",left:"58%",top:-6,width:130,height:60,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,153,51,0.20) 0%,transparent 72%)",pointerEvents:"none"}}/>
+              {/* Back layer — blurred shadow, offset down, gives the front curve lift */}
+              <svg viewBox="0 0 420 46" preserveAspectRatio="none" style={{position:"absolute",inset:0,width:"100%",height:"100%",display:"block"}}>
+                <path
+                  d="M0,46 L0,28 C90,6 150,40 230,24 C310,8 360,38 420,20 L420,46 Z"
+                  fill={dark?"rgba(0,0,0,0.30)":"rgba(0,53,128,0.12)"}
+                  style={{filter:"blur(7px)"}}
+                  transform="translate(0,7)"
+                />
+              </svg>
+              {/* Front layer — the actual fold into the body background, with a
+                  thin glossy highlight tracing its crest for a lifted-edge feel */}
+              <svg viewBox="0 0 420 46" preserveAspectRatio="none" style={{position:"absolute",inset:0,width:"100%",height:"100%",display:"block",filter:dark?"drop-shadow(0 -6px 14px rgba(0,0,0,0.30))":"drop-shadow(0 -6px 14px rgba(0,53,128,0.14))"}}>
+                <defs>
+                  <linearGradient id="waveHighlight" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%"  stopColor="rgba(255,255,255,0)"/>
+                    <stop offset="45%" stopColor="rgba(255,255,255,0.55)"/>
+                    <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0,46 L0,28 C90,6 150,40 230,24 C310,8 360,38 420,20 L420,46 Z" fill={th.appBg}/>
+                <path d="M0,28 C90,6 150,40 230,24 C310,8 360,38 420,20" fill="none" stroke="url(#waveHighlight)" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </div>
           </div>
 
           {/* Stats — animated count-up on load */}
           <div className={`fu s1 ${loaded?"show":""}`}
-            style={{background:th.card,margin:"-4px 14px 0",borderRadius:16,padding:"14px 6px 12px",display:"flex",
-              boxShadow:dark?"0 4px 24px rgba(0,0,0,0.25)":"0 4px 24px rgba(0,53,128,0.10)",
+            style={{background:th.card,margin:"-20px 14px 0",borderRadius:16,padding:"14px 6px 12px",display:"flex",
+              boxShadow:dark?"0 10px 28px rgba(0,0,0,0.35)":"0 10px 28px rgba(0,53,128,0.16)",
               border:`1.5px solid ${th.border}`,marginBottom:6,position:"relative",zIndex:1}}>
             {[
               {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,color:"#FF9933",darkColor:"#FFA950",grad:dark?"rgba(255,169,80,0.20)":"rgba(255,153,51,0.08)"},
