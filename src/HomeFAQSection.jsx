@@ -27,7 +27,7 @@
  *     staggered category-switch entrance, press scale on rows and pills
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // ─── THEME (mirrors App.jsx exactly) ─────────────────────────────────────────
 const THEME = {
@@ -380,6 +380,18 @@ export default function HomeFAQSection({ lang, dark }) {
   };
 
   const toggle = (i) => setOpenIdx((prev) => (prev === i ? null : i));
+
+  // ── Android hardware back button ──────────────────────────────────────────
+  // When an accordion item is open, push a history entry so the system back
+  // gesture collapses it instead of navigating away / closing the app.
+  useEffect(() => {
+    if (openIdx !== null) {
+      window.history.pushState({ ysFaq: true }, "");
+      const handlePopState = () => setOpenIdx(null);
+      window.addEventListener("popstate", handlePopState, { once: true });
+      return () => window.removeEventListener("popstate", handlePopState);
+    }
+  }, [openIdx]);
 
   // ── Pill data: "All" + each category ───────────────────────────────────────
   const pills = [
