@@ -3873,6 +3873,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   const [reportTab,setReportTab]=useState("my"); // "my" | "new"
   const [showAbout,setShowAbout]=useState(false);
   const [showHelpline,setShowHelpline]=useState(false);
+  const [showFAQ,setShowFAQ]=useState(false);
   const [showSignOutModal,setShowSignOutModal]=useState(false);
   const [signOutLoading,setSignOutLoading]=useState(false);
   const otpRefs=useRef([]);
@@ -3898,9 +3899,9 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   useEffect(()=>{
     const isSubView=
       stage==="otp"||stage==="setup1"||stage==="setup2"||stage==="setup3"||stage==="setup4"||
-      showReport||showAbout||showHelpline||showSignOutModal;
+      showReport||showAbout||showHelpline||showFAQ||showSignOutModal;
     if(isSubView) window.history.pushState({ysProfileSubView:true},"");
-  },[stage,showReport,showAbout,showHelpline,showSignOutModal]);
+  },[stage,showReport,showAbout,showHelpline,showFAQ,showSignOutModal]);
 
   useEffect(()=>{
     const handlePop=()=>{
@@ -3909,6 +3910,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       if(showReport)     {setShowReport(false);return;}
       if(showAbout)      {setShowAbout(false);return;}
       if(showHelpline)   {setShowHelpline(false);return;}
+      if(showFAQ)        {setShowFAQ(false);return;}
       // Walk back through setup stages
       if(stage==="setup4"){setStage("setup3");return;}
       if(stage==="setup3"){setStage("setup2");return;}
@@ -5784,6 +5786,29 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
           </div>
 
+          {/* FAQ */}
+          <div onClick={()=>{haptic();setShowFAQ(true);}}
+            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              <div style={{
+                width:38,height:38,borderRadius:11,
+                background:dark?"rgba(107,144,255,0.12)":"rgba(0,53,128,0.06)",
+                border:`1.5px solid ${dark?"rgba(107,144,255,0.28)":"rgba(0,53,128,0.16)"}`,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:14,fontWeight:800,color:dark?"#6B90FF":"#003580",fontFamily:bf,
+              }}>?</div>
+              <div>
+                <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>
+                  {isHindi?"योजना सहाय FAQ":"YojanaSahay FAQ"}
+                </div>
+                <div style={{fontSize:11,color:th.textSub,marginTop:1}}>
+                  {isHindi?"अक्सर पूछे जाने वाले सवाल":"Frequently asked questions"}
+                </div>
+              </div>
+            </div>
+            <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
+          </div>
+
           {/* Sign Out */}
           <div onClick={()=>{haptic([50,60,50]);setShowSignOutModal(true);}}
             style={{padding:"14px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
@@ -6139,6 +6164,48 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             <Suspense fallback={<PremiumLoader/>}>
             <Helpline lang={lang} dark={dark}/>
             </Suspense>
+          </div>
+        </div>
+      )}
+
+      {/* ── FAQ Screen Overlay ── */}
+      {showFAQ&&(
+        <div
+          onTouchStart={e=>e.stopPropagation()}
+          onTouchMove={e=>e.stopPropagation()}
+          onTouchEnd={e=>e.stopPropagation()}
+          style={{
+          position:"fixed",inset:0,zIndex:900,
+          background:dark?"#000":"#f2f2f7",
+          display:"flex",flexDirection:"column",
+          fontFamily:lang==="hi"?"'Noto Sans Devanagari',sans-serif":"'Noto Sans',sans-serif",
+        }}>
+          <div style={{
+            display:"flex",alignItems:"center",gap:10,
+            padding:"14px 14px 12px",flexShrink:0,
+            background:dark?"#0c0c0e":"#fff",
+            borderBottom:`1px solid ${dark?"#2c2c2e":"#f0f0f0"}`,
+          }}>
+            <div
+              onClick={()=>{haptic();setShowFAQ(false);}}
+              style={{
+                width:34,height:34,borderRadius:10,flexShrink:0,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",
+                cursor:"pointer",WebkitTapHighlightColor:"transparent",
+              }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke={dark?"#f0f0f0":"#1a1a1a"} strokeWidth="2.2"
+                strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </div>
+            <div style={{fontSize:15.5,fontWeight:800,color:dark?"#f0f0f0":"#1a1a1a",fontFamily:lang==="hi"?"'Noto Sans Devanagari',sans-serif":"'Noto Sans',sans-serif"}}>
+              {lang==="hi"?"योजना सहाय FAQ":"YojanaSahay FAQ"}
+            </div>
+          </div>
+          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"14px 16px 32px"}}>
+            <HomeFAQSection lang={lang} dark={dark}/>
           </div>
         </div>
       )}
@@ -7276,7 +7343,7 @@ export default function YojanaSahay(){
   const mountedTabsRef = useRef(new Set(["home"]));
 
   const handleTouchStart = useCallback((e) => {
-    if (showAdmin || showChecker || selectedScheme || selectedCategory) return;
+    if (showAdmin || showChecker || showFAQ || selectedScheme || selectedCategory) return;
     const t = e.touches[0];
     swipeRef.current = { x: t.clientX, y: t.clientY, lockedAxis: null };
     dragXRef.current = 0;
@@ -7285,7 +7352,7 @@ export default function YojanaSahay(){
       dragTargetRef.current.style.transform = "";
       dragTargetRef.current.style.transition = "";
     }
-  }, [showAdmin, showChecker, selectedScheme, selectedCategory]);
+  }, [showAdmin, showChecker, showFAQ, selectedScheme, selectedCategory]);
 
   const handleTouchMove = useCallback((e) => {
     if (!swipeRef.current) return;
@@ -8132,7 +8199,8 @@ export default function YojanaSahay(){
               )}
             </div>
 
-            {/* FAQ pill — opens full FAQ sheet, doesn't dump the whole list inline */}
+            {/* FAQ pill — shown only when not logged in; moves to Profile → Settings post-login */}
+            {!profile&&(
             <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
               <div
                 onClick={()=>{haptic();setShowFAQ(true);}}
@@ -8161,6 +8229,7 @@ export default function YojanaSahay(){
                 </span>
               </div>
             </div>
+            )}
 
           </div>
         </div>
@@ -8738,7 +8807,11 @@ export default function YojanaSahay(){
         <CategorySheet category={selectedCategory} lang={lang} onClose={()=>setSelectedCategory(null)} dark={dark}/>
       )}
       {showFAQ&&(
-        <div style={{
+        <div
+          onTouchStart={e=>e.stopPropagation()}
+          onTouchMove={e=>e.stopPropagation()}
+          onTouchEnd={e=>e.stopPropagation()}
+          style={{
           position:"fixed",inset:0,zIndex:900,
           background:dark?"#000":"#f2f2f7",
           display:"flex",flexDirection:"column",
