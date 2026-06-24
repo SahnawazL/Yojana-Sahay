@@ -32,6 +32,7 @@ const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
 import SchemeNewsTicker from "./SchemeNewsTicker.jsx";
+import HomeFAQSection from "./HomeFAQSection.jsx";
 
 // ─── ENRICH SCHEME_DB WITH VERIFICATION METADATA ─────────────────────────────
 // Merges lastDate, lastVerified, linkAlive, isActive, httpStatus, confidence
@@ -8128,7 +8129,6 @@ export default function YojanaSahay(){
                 </div>
               )}
             </div>
-
 
           </div>
         </div>
