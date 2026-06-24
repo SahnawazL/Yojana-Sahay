@@ -98,6 +98,22 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
   const [newsSyncing,   setNewsSyncing]   = useState(false);
   const [newsSyncMsg,   setNewsSyncMsg]   = useState("");
 
+  // Inline edit state (Medium Impact #4 — tap a headline to edit in-place)
+  const [editingId,     setEditingId]     = useState(null);
+  const [editFormEn,    setEditFormEn]    = useState("");
+  const [editFormHi,    setEditFormHi]    = useState("");
+  const [editFormUrl,   setEditFormUrl]   = useState("");
+  const [editFormScope, setEditFormScope] = useState("");
+  const [editSaving,    setEditSaving]    = useState(false);
+
+  // Bulk delete state (#5 — checkboxes + Delete selected)
+  const [selectMode,   setSelectMode]   = useState(false);
+  const [selectedIds,  setSelectedIds]  = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  // Filter tab state (#6 — All / Active / Inactive)
+  const [filterTab, setFilterTab] = useState("all");
+
   // Ref for the auto-clear timer so we can cancel it on unmount or re-sync
   const syncMsgTimerRef = useRef(null);
 
@@ -177,6 +193,71 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
     }
   }, []);
 
+  // ── Bulk delete: toggle one item in selection ─────────────────────────────
+  const handleToggleSelect = useCallback((id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
+
+  // ── Bulk delete: delete all selected from Firestore ────────────────────────
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    try {
+      await Promise.all([...selectedIds].map(id => deleteDoc(doc(db, "schemeNews", id))));
+      setSelectedIds(new Set());
+      setSelectMode(false);
+    } catch (err) {
+      console.error("[NewsTab] Bulk delete failed:", err);
+    } finally {
+      setBulkDeleting(false);
+    }
+  }, [selectedIds]);
+
+  // ── Inline edit: open edit mode for an item ────────────────────────────────
+  const handleStartEdit = useCallback((item) => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+    setEditingId(item.id);
+    setEditFormEn(item.text_en || "");
+    setEditFormHi(item.text_hi || "");
+    setEditFormUrl(item.url || "");
+    setEditFormScope(item.scope || "");
+  }, []);
+
+  // ── Inline edit: cancel without saving ──────────────────────────────────────
+  const handleCancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditFormEn("");
+    setEditFormHi("");
+    setEditFormUrl("");
+    setEditFormScope("");
+  }, []);
+
+  // ── Inline edit: save changes to Firestore ─────────────────────────────────
+  const handleSaveEdit = useCallback(async () => {
+    const enText = editFormEn.trim();
+    const hiText = editFormHi.trim();
+    if (!enText || !hiText || !editingId) return;
+    setEditSaving(true);
+    try {
+      await updateDoc(doc(db, "schemeNews", editingId), {
+        text_en: enText.slice(0, 120),
+        text_hi: hiText.slice(0, 140),
+        url:     editFormUrl.trim(),
+        scope:   editFormScope.trim(),
+      });
+      handleCancelEdit();
+    } catch (err) {
+      console.error("[NewsTab] Failed to save news item edit:", err);
+    } finally {
+      setEditSaving(false);
+    }
+  }, [editFormEn, editFormHi, editFormUrl, editFormScope, editingId, handleCancelEdit]);
+
   // ── Sync Now (calls /api/admin-sync-news — Firebase-auth gated proxy) ─────
   const handleSyncNews = useCallback(async () => {
     setNewsSyncing(true);
@@ -216,6 +297,9 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
   const activeCount  = newsItems.filter(n => n.active).length;
   const autoCount    = newsItems.filter(n => n.autoFetched).length;
   const manualCount  = newsItems.filter(n => !n.autoFetched).length;
+  const filteredItems = filterTab === "all"
+    ? newsItems
+    : newsItems.filter(n => filterTab === "active" ? n.active : !n.active);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -436,13 +520,96 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
               </svg>
               All News Items
             </div>
-            <span style={{
-              fontSize:9, color:th.textSub,
-              background:th.border, padding:"2px 7px", borderRadius:99, fontWeight:600,
-            }}>
-              {newsItems.length} total
-            </span>
+            <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+              {/* Delete selected — only visible when items are checked */}
+              {canEdit && selectMode && selectedIds.size > 0 && (
+                <div
+                  onClick={bulkDeleting ? undefined : handleBulkDelete}
+                  style={{
+                    padding:"4px 10px", borderRadius:8, fontSize:10, fontWeight:700,
+                    background: bulkDeleting ? "transparent" : "#E53E3E",
+                    color: bulkDeleting ? "#E53E3E" : "#fff",
+                    border:`1.5px solid #E53E3E`,
+                    cursor: bulkDeleting ? "default" : "pointer",
+                    opacity: bulkDeleting ? 0.65 : 1,
+                    transition:"all 0.15s", userSelect:"none", whiteSpace:"nowrap",
+                  }}
+                >
+                  {bulkDeleting ? "Deleting…" : `Delete (${selectedIds.size})`}
+                </div>
+              )}
+
+              {/* Select / Cancel toggle */}
+              {canEdit && newsItems.length > 0 && (
+                <div
+                  onClick={() => { setSelectMode(m => !m); setSelectedIds(new Set()); }}
+                  style={{
+                    padding:"4px 9px", borderRadius:8, fontSize:10, fontWeight:700,
+                    background:"transparent",
+                    color: selectMode ? th.textMid : th.textSub,
+                    border:`1.5px solid ${th.border}`,
+                    cursor:"pointer", userSelect:"none", transition:"all 0.15s",
+                  }}
+                >
+                  {selectMode ? "Cancel" : "Select"}
+                </div>
+              )}
+
+              <span style={{
+                fontSize:9, color:th.textSub,
+                background:th.border, padding:"2px 7px", borderRadius:99, fontWeight:600,
+              }}>
+                {newsItems.length} total
+              </span>
+            </div>
           </div>
+
+          {/* Filter tabs — All / Active / Inactive */}
+          {newsLoaded && newsItems.length > 0 && (
+            <div style={{
+              display:"flex", gap:0,
+              borderBottom:`1px solid ${th.border}`,
+              background:th.card,
+            }}>
+              {[
+                { key:"all",      label:"All",      count: newsItems.length },
+                { key:"active",   label:"Active",   count: activeCount      },
+                { key:"inactive", label:"Inactive", count: newsItems.length - activeCount },
+              ].map(({ key, label, count }) => {
+                const isActive = filterTab === key;
+                return (
+                  <div
+                    key={key}
+                    onClick={() => { setFilterTab(key); setSelectedIds(new Set()); }}
+                    style={{
+                      flex:1, textAlign:"center",
+                      padding:"8px 4px",
+                      fontSize:11, fontWeight: isActive ? 800 : 600,
+                      color: isActive ? (key === "inactive" ? "#E53E3E" : key === "active" ? IND_GREEN : SAFFRON) : th.textSub,
+                      borderBottom: isActive ? `2px solid ${key === "inactive" ? "#E53E3E" : key === "active" ? IND_GREEN : SAFFRON}` : "2px solid transparent",
+                      cursor:"pointer", userSelect:"none",
+                      transition:"all 0.15s",
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+                    }}
+                  >
+                    {label}
+                    <span style={{
+                      fontSize:9, fontWeight:700,
+                      padding:"1px 5px", borderRadius:99,
+                      background: isActive
+                        ? (key === "inactive" ? "rgba(229,62,62,0.12)" : key === "active" ? `${IND_GREEN}18` : `${SAFFRON}18`)
+                        : th.card2,
+                      color: isActive
+                        ? (key === "inactive" ? "#E53E3E" : key === "active" ? IND_GREEN : SAFFRON)
+                        : th.textSub,
+                    }}>
+                      {count}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Items */}
           {!newsLoaded ? (
@@ -453,101 +620,229 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
             <div style={{ padding:"24px 14px", textAlign:"center", fontSize:12, color:th.textSub }}>
               No news items yet. Add one above or tap Sync Now.
             </div>
+          ) : filteredItems.length === 0 ? (
+            <div style={{ padding:"24px 14px", textAlign:"center", fontSize:12, color:th.textSub }}>
+              No {filterTab} items.
+            </div>
           ) : (
-            newsItems.map((item, i) => {
-              const isLast  = i === newsItems.length - 1;
-              const isFresh = item.createdAt?.toMillis?.()
+            filteredItems.map((item, i) => {
+              const isLast    = i === filteredItems.length - 1;
+              const isFresh   = item.createdAt?.toMillis?.()
                 ? (Date.now() - item.createdAt.toMillis()) < 48 * 3600000
                 : false;
+              const isEditing = editingId === item.id;
+
               return (
                 <div key={item.id} style={{
-                  display:"flex", alignItems:"center", gap:10,
-                  padding:"10px 14px",
                   borderBottom: isLast ? "none" : `1px solid ${th.border}`,
-                  transition:"background 0.12s",
                 }}>
-                  {/* Active toggle */}
-                  <div
-                    onClick={canEdit ? () => handleToggleNews(item) : undefined}
-                    style={{
-                      cursor: canEdit ? "pointer" : "default",
-                      flexShrink:0, fontSize:16, lineHeight:1,
-                      opacity: canEdit ? 1 : 0.6,
-                    }}
-                    title={canEdit ? (item.active ? "Active — tap to deactivate" : "Inactive — tap to activate") : "Read-only"}
-                  >
-                    {item.active ? "✅" : "❌"}
-                  </div>
-
-                  {/* Text content */}
-                  <div style={{ flex:1, minWidth:0 }}>
-                    {/* Badges */}
-                    <div style={{ display:"flex", alignItems:"center", gap:4, flexWrap:"wrap", marginBottom:3 }}>
-                      <span style={{
-                        fontSize:8, fontWeight:800, letterSpacing:0.5,
-                        padding:"1px 6px", borderRadius:99, textTransform:"uppercase",
-                        background: item.autoFetched ? `${NAVY}18` : `${SAFFRON}18`,
-                        color:       item.autoFetched ? NAVY : SAFFRON,
-                        border:`1px solid ${item.autoFetched ? NAVY : SAFFRON}44`,
-                        flexShrink:0,
-                      }}>
-                        {item.autoFetched ? "AUTO" : "MANUAL"}
-                      </span>
-                      {item.scope ? (
-                        <span style={{
-                          fontSize:8, fontWeight:700,
-                          padding:"1px 6px", borderRadius:99, textTransform:"uppercase",
-                          background: item.scope === "Central" ? `${NAVY}12` : `${IND_GREEN}12`,
-                          color:       item.scope === "Central" ? NAVY : IND_GREEN,
-                          flexShrink:0,
-                        }}>
-                          {item.scope}
-                        </span>
-                      ) : null}
-                      {isFresh && (
-                        <span style={{
-                          fontSize:8, fontWeight:800,
-                          padding:"1px 6px", borderRadius:99,
-                          background:IND_GREEN, color:"#fff", flexShrink:0,
-                        }}>NEW</span>
-                      )}
-                    </div>
-
-                    {/* English headline */}
+                  {isEditing ? (
+                    /* ── Inline edit form ── */
                     <div style={{
-                      fontSize:12, fontWeight:600, color:th.text,
-                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                      opacity: item.active ? 1 : 0.45,
+                      padding:"12px 14px",
+                      background: dark ? "rgba(255,153,51,0.05)" : "rgba(255,153,51,0.04)",
                     }}>
-                      {item.text_en}
-                    </div>
-
-                    {/* Hindi headline */}
-                    {item.text_hi && (
-                      <div style={{
-                        fontSize:10, color:th.textSub, marginTop:1,
-                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                        fontFamily:"'Noto Sans Devanagari','Noto Sans',sans-serif",
-                        opacity: item.active ? 1 : 0.4,
-                      }}>
-                        {item.text_hi}
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        <input
+                          className="ys-input"
+                          autoFocus
+                          value={editFormEn}
+                          onChange={e => setEditFormEn(e.target.value)}
+                          placeholder="English headline…"
+                          style={{
+                            width:"100%", boxSizing:"border-box",
+                            padding:"9px 12px", borderRadius:9,
+                            background:th.inputBg, border:`1.5px solid ${SAFFRON}55`,
+                            fontSize:12, color:th.text, outline:"none",
+                          }}
+                        />
+                        <input
+                          className="ys-input"
+                          value={editFormHi}
+                          onChange={e => setEditFormHi(e.target.value)}
+                          placeholder="Hindi headline — हिंदी शीर्षक…"
+                          style={{
+                            width:"100%", boxSizing:"border-box",
+                            padding:"9px 12px", borderRadius:9,
+                            background:th.inputBg, border:`1.5px solid ${SAFFRON}55`,
+                            fontSize:12, color:th.text, outline:"none",
+                            fontFamily:"'Noto Sans Devanagari','Noto Sans',sans-serif",
+                          }}
+                        />
+                        <div style={{ display:"flex", gap:7 }}>
+                          <input
+                            className="ys-input"
+                            value={editFormUrl}
+                            onChange={e => setEditFormUrl(e.target.value)}
+                            placeholder="URL…"
+                            style={{
+                              flex:2, minWidth:0, padding:"9px 12px", borderRadius:9, boxSizing:"border-box",
+                              background:th.inputBg, border:`1.5px solid ${th.border}`,
+                              fontSize:12, color:th.text, outline:"none",
+                            }}
+                          />
+                          <input
+                            className="ys-input"
+                            value={editFormScope}
+                            onChange={e => setEditFormScope(e.target.value)}
+                            placeholder="Scope…"
+                            title="e.g. Central, Maharashtra, Uttar Pradesh"
+                            style={{
+                              flex:1, minWidth:0, padding:"9px 12px", borderRadius:9, boxSizing:"border-box",
+                              background:th.inputBg, border:`1.5px solid ${th.border}`,
+                              fontSize:12, color:th.text, outline:"none",
+                            }}
+                          />
+                        </div>
+                        <div style={{ display:"flex", gap:7, marginTop:2 }}>
+                          <div
+                            onClick={(editSaving || !editFormEn.trim() || !editFormHi.trim()) ? undefined : handleSaveEdit}
+                            style={{
+                              flex:1,
+                              background: (!editFormEn.trim() || !editFormHi.trim()) ? th.border : NAVY,
+                              color:      (!editFormEn.trim() || !editFormHi.trim()) ? th.textSub : "#fff",
+                              border:"none", borderRadius:9,
+                              padding:"10px 14px", fontSize:12, fontWeight:700,
+                              cursor: (editSaving || !editFormEn.trim() || !editFormHi.trim()) ? "default" : "pointer",
+                              textAlign:"center", transition:"all 0.15s",
+                              opacity: editSaving ? 0.6 : 1,
+                              userSelect:"none",
+                            }}
+                          >
+                            {editSaving ? "Saving…" : "Save"}
+                          </div>
+                          <div
+                            onClick={editSaving ? undefined : handleCancelEdit}
+                            style={{
+                              flex:1,
+                              background:"transparent", color:th.textMid,
+                              border:`1.5px solid ${th.border}`, borderRadius:9,
+                              padding:"10px 14px", fontSize:12, fontWeight:700,
+                              cursor: editSaving ? "default" : "pointer",
+                              textAlign:"center", userSelect:"none",
+                            }}
+                          >
+                            Cancel
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    /* ── Normal row ── */
+                    <div style={{
+                      display:"flex", alignItems:"center", gap:10,
+                      padding:"10px 14px",
+                      transition:"background 0.12s",
+                    }}>
+                      {/* Bulk-select checkbox — only in select mode */}
+                      {canEdit && selectMode && (
+                        <div
+                          onClick={() => handleToggleSelect(item.id)}
+                          style={{
+                            flexShrink:0, width:20, height:20, borderRadius:6,
+                            border:`2px solid ${selectedIds.has(item.id) ? "#E53E3E" : th.border}`,
+                            background: selectedIds.has(item.id) ? "#E53E3E" : "transparent",
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                            cursor:"pointer", transition:"all 0.15s",
+                          }}
+                        >
+                          {selectedIds.has(item.id) && (
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                              stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          )}
+                        </div>
+                      )}
 
-                  {/* Time + Delete */}
-                  <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
-                    <span style={{ fontSize:9, color:th.textSub, whiteSpace:"nowrap" }}>
-                      {timeAgo(item.createdAt)}
-                    </span>
-                    {canEdit && (
+                      {/* Active toggle */}
                       <div
-                        onClick={() => handleDeleteNews(item.id)}
-                        style={{ cursor:"pointer", fontSize:14, lineHeight:1, opacity:0.45, transition:"opacity 0.15s" }}
-                        title="Delete item"
-                      >🗑</div>
-                    )}
-                  </div>
+                        onClick={canEdit ? () => handleToggleNews(item) : undefined}
+                        style={{
+                          cursor: canEdit ? "pointer" : "default",
+                          flexShrink:0, fontSize:16, lineHeight:1,
+                          opacity: canEdit ? 1 : 0.6,
+                        }}
+                        title={canEdit ? (item.active ? "Active — tap to deactivate" : "Inactive — tap to activate") : "Read-only"}
+                      >
+                        {item.active ? "✅" : "❌"}
+                      </div>
+
+                      {/* Text content — tap to edit in-place */}
+                      <div
+                        onClick={canEdit ? () => handleStartEdit(item) : undefined}
+                        style={{ flex:1, minWidth:0, cursor: canEdit ? "pointer" : "default" }}
+                        title={canEdit ? "Tap to edit" : undefined}
+                      >
+                        {/* Badges */}
+                        <div style={{ display:"flex", alignItems:"center", gap:4, flexWrap:"wrap", marginBottom:3 }}>
+                          <span style={{
+                            fontSize:8, fontWeight:800, letterSpacing:0.5,
+                            padding:"1px 6px", borderRadius:99, textTransform:"uppercase",
+                            background: item.autoFetched ? `${NAVY}18` : `${SAFFRON}18`,
+                            color:       item.autoFetched ? NAVY : SAFFRON,
+                            border:`1px solid ${item.autoFetched ? NAVY : SAFFRON}44`,
+                            flexShrink:0,
+                          }}>
+                            {item.autoFetched ? "AUTO" : "MANUAL"}
+                          </span>
+                          {item.scope ? (
+                            <span style={{
+                              fontSize:8, fontWeight:700,
+                              padding:"1px 6px", borderRadius:99, textTransform:"uppercase",
+                              background: item.scope === "Central" ? `${NAVY}12` : `${IND_GREEN}12`,
+                              color:       item.scope === "Central" ? NAVY : IND_GREEN,
+                              flexShrink:0,
+                            }}>
+                              {item.scope}
+                            </span>
+                          ) : null}
+                          {isFresh && (
+                            <span style={{
+                              fontSize:8, fontWeight:800,
+                              padding:"1px 6px", borderRadius:99,
+                              background:IND_GREEN, color:"#fff", flexShrink:0,
+                            }}>NEW</span>
+                          )}
+                        </div>
+
+                        {/* English headline */}
+                        <div style={{
+                          fontSize:12, fontWeight:600, color:th.text,
+                          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                          opacity: item.active ? 1 : 0.45,
+                        }}>
+                          {item.text_en}
+                        </div>
+
+                        {/* Hindi headline */}
+                        {item.text_hi && (
+                          <div style={{
+                            fontSize:10, color:th.textSub, marginTop:1,
+                            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                            fontFamily:"'Noto Sans Devanagari','Noto Sans',sans-serif",
+                            opacity: item.active ? 1 : 0.4,
+                          }}>
+                            {item.text_hi}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Time + Delete */}
+                      <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
+                        <span style={{ fontSize:9, color:th.textSub, whiteSpace:"nowrap" }}>
+                          {timeAgo(item.createdAt)}
+                        </span>
+                        {canEdit && (
+                          <div
+                            onClick={() => handleDeleteNews(item.id)}
+                            style={{ cursor:"pointer", fontSize:14, lineHeight:1, opacity:0.45, transition:"opacity 0.15s" }}
+                            title="Delete item"
+                          >🗑</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })
