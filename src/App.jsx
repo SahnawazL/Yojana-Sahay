@@ -7752,7 +7752,7 @@ export default function YojanaSahay(){
             <div style={{position:"absolute",top:0,left:"30%",width:80,height:80,borderRadius:"50%",background:"radial-gradient(circle,rgba(19,136,8,0.12) 0%,transparent 70%)",pointerEvents:"none"}}/>
 
             {/* Top nav bar */}
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"52px 20px 14px",position:"relative"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"38px 20px 12px",position:"relative"}}>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <div onClick={()=>{haptic(30);setShowAvatarModal(true);}}
                   style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,cursor:"pointer",
@@ -7776,7 +7776,7 @@ export default function YojanaSahay(){
             </div>
 
             {/* Hero content */}
-            <div style={{padding:"4px 20px 22px",position:"relative"}}>
+            <div style={{padding:"2px 20px 14px",position:"relative"}}>
               {/* Trust badge — only when NOT logged in */}
               {!profile&&(
                 <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:20,padding:"4px 10px",marginBottom:10,backdropFilter:"blur(6px)"}}>
@@ -7795,23 +7795,22 @@ export default function YojanaSahay(){
 
             {/* Wave divider — two layered curves: a soft blurred shadow underneath
                 for lift, plus a glossy highlight stroke along the front curve's
-                crest. Replaces the old flat double-S sliver with something that
-                actually reads as a dimensional fold between header and body. */}
-            <div style={{height:46,position:"relative",marginTop:2}}>
+                crest. Shorter than before so the header doesn't run long. */}
+            <div style={{height:32,position:"relative",marginTop:2}}>
               {/* Soft glow at the crest — subtle warmth where the curve peaks */}
-              <div style={{position:"absolute",left:"58%",top:-6,width:130,height:60,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,153,51,0.20) 0%,transparent 72%)",pointerEvents:"none"}}/>
+              <div style={{position:"absolute",left:"58%",top:-4,width:96,height:42,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,153,51,0.20) 0%,transparent 72%)",pointerEvents:"none"}}/>
               {/* Back layer — blurred shadow, offset down, gives the front curve lift */}
-              <svg viewBox="0 0 420 46" preserveAspectRatio="none" style={{position:"absolute",inset:0,width:"100%",height:"100%",display:"block"}}>
+              <svg viewBox="0 0 420 32" preserveAspectRatio="none" style={{position:"absolute",inset:0,width:"100%",height:"100%",display:"block"}}>
                 <path
-                  d="M0,46 L0,28 C90,6 150,40 230,24 C310,8 360,38 420,20 L420,46 Z"
+                  d="M0,32 L0,19 C90,4 150,28 230,17 C310,6 360,27 420,14 L420,32 Z"
                   fill={dark?"rgba(0,0,0,0.30)":"rgba(0,53,128,0.12)"}
-                  style={{filter:"blur(7px)"}}
-                  transform="translate(0,7)"
+                  style={{filter:"blur(5px)"}}
+                  transform="translate(0,5)"
                 />
               </svg>
               {/* Front layer — the actual fold into the body background, with a
                   thin glossy highlight tracing its crest for a lifted-edge feel */}
-              <svg viewBox="0 0 420 46" preserveAspectRatio="none" style={{position:"absolute",inset:0,width:"100%",height:"100%",display:"block",filter:dark?"drop-shadow(0 -6px 14px rgba(0,0,0,0.30))":"drop-shadow(0 -6px 14px rgba(0,53,128,0.14))"}}>
+              <svg viewBox="0 0 420 32" preserveAspectRatio="none" style={{position:"absolute",inset:0,width:"100%",height:"100%",display:"block",filter:dark?"drop-shadow(0 -5px 11px rgba(0,0,0,0.30))":"drop-shadow(0 -5px 11px rgba(0,53,128,0.14))"}}>
                 <defs>
                   <linearGradient id="waveHighlight" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%"  stopColor="rgba(255,255,255,0)"/>
@@ -7819,17 +7818,17 @@ export default function YojanaSahay(){
                     <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
                   </linearGradient>
                 </defs>
-                <path d="M0,46 L0,28 C90,6 150,40 230,24 C310,8 360,38 420,20 L420,46 Z" fill={th.appBg}/>
-                <path d="M0,28 C90,6 150,40 230,24 C310,8 360,38 420,20" fill="none" stroke="url(#waveHighlight)" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M0,32 L0,19 C90,4 150,28 230,17 C310,6 360,27 420,14 L420,32 Z" fill={th.appBg}/>
+                <path d="M0,19 C90,4 150,28 230,17 C310,6 360,27 420,14" fill="none" stroke="url(#waveHighlight)" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </div>
           </div>
 
           {/* Stats — animated count-up on load */}
           <div className={`fu s1 ${loaded?"show":""}`}
-            style={{background:th.card,margin:"-20px 14px 0",borderRadius:16,padding:"14px 6px 12px",display:"flex",
-              boxShadow:dark?"0 10px 28px rgba(0,0,0,0.35)":"0 10px 28px rgba(0,53,128,0.16)",
-              border:`1.5px solid ${th.border}`,marginBottom:6,position:"relative",zIndex:1}}>
+            style={{background:dark?th.card:"linear-gradient(135deg,#fffdf7 0%,#ffffff 65%)",margin:"12px 14px 0",borderRadius:16,padding:"14px 6px 12px",display:"flex",
+              boxShadow:dark?"0 8px 22px rgba(0,0,0,0.30)":"0 8px 22px rgba(255,153,51,0.16)",
+              border:`1.5px solid ${dark?th.border:"rgba(255,179,71,0.32)"}`,marginBottom:6,position:"relative",zIndex:1}}>
             {[
               {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,color:"#FF9933",darkColor:"#FFA950",grad:dark?"rgba(255,169,80,0.20)":"rgba(255,153,51,0.08)"},
               {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>,color:"#06038D",darkColor:"#6B90FF",grad:dark?"rgba(107,144,255,0.18)":"rgba(6,3,141,0.06)"},
@@ -7863,10 +7862,10 @@ export default function YojanaSahay(){
           {LAST_VERIFIED_LABEL&&(
             <div style={{
               margin:"8px 14px 0",
-              background:dark?"rgba(255,255,255,0.035)":"#fff",
-              border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(6,3,141,0.09)"}`,
+              background:dark?"rgba(255,255,255,0.035)":"linear-gradient(135deg,#fffdf8 0%,#ffffff 70%)",
+              border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(255,179,71,0.25)"}`,
               borderRadius:13,overflow:"hidden",
-              boxShadow:dark?"none":"0 2px 10px rgba(6,3,141,0.06)",
+              boxShadow:dark?"none":"0 4px 16px rgba(255,153,51,0.12)",
             }}>
               {/* India tricolor top accent */}
               <div style={{
