@@ -360,7 +360,7 @@ const T = {
     schemesTitle:"Popular Schemes", schemesSub:"Top government benefits",
     matchedTitle:"Matched for You", matchedSub:(n)=>`${n} scheme${n!==1?"s":""} you qualify for`,
     noProfileTitle:"Get Personalised Schemes", noProfileSub:"Complete your profile once — we'll show schemes tailored just for you.",
-    setupProfileBtn:"Set Up Profile →",
+    setupProfileBtn:"Set Up Profile",
 
     navHome:"Home", navSearch:"Search", navSchemes:"Schemes", navAI:"AI Help", navProfile:"Profile",
     checkerTitle:"Eligibility Check", checkerSub:"Check complete · Ask AI about your results",
@@ -489,7 +489,7 @@ const T = {
     schemesTitle:"लोकप्रिय योजनाएं", schemesSub:"शीर्ष सरकारी लाभ",
     matchedTitle:"आपके लिए योजनाएं", matchedSub:(n)=>`${n} योजनाएं जिनके आप पात्र हैं`,
     noProfileTitle:"अपनी योजनाएं पर्सनल बनाएं", noProfileSub:"एक बार प्रोफाइल बनाएं — हम आपके लिए सही योजनाएं दिखाएंगे।",
-    setupProfileBtn:"प्रोफाइल बनाएं →",
+    setupProfileBtn:"प्रोफाइल बनाएं",
 
     navHome:"होम", navSearch:"खोजें", navSchemes:"योजनाएं", navAI:"AI", navProfile:"प्रोफाइल",
     checkerTitle:"पात्रता जांच", checkerSub:"जांच पूरी · AI से मार्गदर्शन लें",
