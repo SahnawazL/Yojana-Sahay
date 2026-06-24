@@ -6222,7 +6222,11 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
       {/* ── Report / Query Screen — two-tab: My Reports + New Report ── */}
       {showReport&&(
-        <div style={{
+        <div
+          onTouchStart={e=>e.stopPropagation()}
+          onTouchMove={e=>e.stopPropagation()}
+          onTouchEnd={e=>e.stopPropagation()}
+          style={{
           position:"fixed",inset:0,zIndex:900,
           background:THEME[dark?"dark":"light"].appBg,
           display:"flex",flexDirection:"column",
