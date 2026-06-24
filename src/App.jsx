@@ -7735,27 +7735,7 @@ export default function YojanaSahay(){
         }}>
         <div style={{flex:1,overflowY:"auto"}}>
           {/* ── PREMIUM HEADER ── */}
-          <div style={{background:"linear-gradient(160deg,#0c1445 0%,#06038D 38%,#003580 65%,#FF8C00 100%)",padding:"0 0 0",position:"relative",overflow:"hidden",
-            boxShadow:"0 6px 32px rgba(255,140,0,0.15), 0 0 0 1px rgba(255,255,255,0.07)"}}>
-
-            {/* ── 3D Bevel Border: bright top/left rim (light source) + shadow right rim ── */}
-            <div style={{
-              position:"absolute",inset:0,zIndex:4,pointerEvents:"none",
-              boxShadow:[
-                "inset 0 1.5px 0 rgba(255,255,255,0.30)",
-                "inset 1.5px 0 0 rgba(255,255,255,0.13)",
-                "inset -1.5px 0 0 rgba(0,0,0,0.24)",
-              ].join(", "),
-            }}/>
-
-            {/* ── Corner bracket accents — saffron L-marks, top-left & top-right ── */}
-            <svg width="20" height="20" viewBox="0 0 20 20" style={{position:"absolute",top:0,left:0,zIndex:5,pointerEvents:"none"}}>
-              <path d="M2 13 L2 2 L13 2" fill="none" stroke="rgba(255,153,51,0.72)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <svg width="20" height="20" viewBox="0 0 20 20" style={{position:"absolute",top:0,right:0,zIndex:5,pointerEvents:"none"}}>
-              <path d="M7 2 L18 2 L18 13" fill="none" stroke="rgba(255,153,51,0.72)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-
+          <div style={{background:"linear-gradient(160deg,#0c1445 0%,#06038D 38%,#003580 65%,#FF8C00 100%)",padding:"0 0 0",position:"relative",overflow:"hidden"}}>
             {/* Decorative: large spinning chakra watermark */}
             <div className="spin" style={{position:"absolute",right:-55,top:-55,width:220,height:220,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.06)",opacity:1,pointerEvents:"none"}}>
               <svg width="220" height="220" viewBox="0 0 220 220" style={{position:"absolute",inset:0,opacity:0.07}}>
