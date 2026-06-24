@@ -8140,39 +8140,40 @@ export default function YojanaSahay(){
                 /* ── NO PROFILE — Premium showcase ── */
                 <div>
                   {/* Hero unlock card */}
-                  <div style={{background:"linear-gradient(145deg,#0c1445 0%,#06038D 55%,#003580 100%)",borderRadius:20,padding:"20px 18px 18px",marginBottom:12,
-                    boxShadow:"0 10px 36px rgba(6,3,141,0.30)",border:"1px solid rgba(255,255,255,0.08)",position:"relative",overflow:"hidden"}}>
-                    {/* Decorative orbs */}
-                    <div style={{position:"absolute",right:-30,top:-30,width:110,height:110,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,153,51,0.18) 0%,transparent 70%)",pointerEvents:"none"}}/>
-                    <div style={{position:"absolute",left:-20,bottom:-20,width:90,height:90,borderRadius:"50%",background:"radial-gradient(circle,rgba(19,136,8,0.15) 0%,transparent 70%)",pointerEvents:"none"}}/>
-                    {/* India flag stripe */}
-                    <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#FF9933 33%,#fff 33%,#fff 66%,#138808 66%)",opacity:0.7,borderRadius:"20px 20px 0 0"}}/>
-                    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-                      <div style={{width:46,height:46,background:"rgba(255,255,255,0.12)",border:"1.5px solid rgba(255,255,255,0.25)",borderRadius:13,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,backdropFilter:"blur(6px)"}}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.92)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div style={{background:"linear-gradient(150deg,#0A1130 0%,#0D1B4C 48%,#072A6B 100%)",borderRadius:20,padding:"22px 20px 20px",marginBottom:12,
+                    boxShadow:dark?"0 14px 34px rgba(2,6,23,0.55),inset 0 1px 0 rgba(255,255,255,0.06)":"0 14px 34px rgba(7,20,60,0.22),inset 0 1px 0 rgba(255,255,255,0.06)",
+                    border:"1px solid rgba(255,255,255,0.09)",position:"relative",overflow:"hidden"}}>
+                    {/* Subtle texture — fine dot grid, restrained civic-data motif */}
+                    <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.7) 0.6px,transparent 0.6px)",backgroundSize:"16px 16px",opacity:0.05,pointerEvents:"none"}}/>
+                    <div style={{display:"flex",alignItems:"center",gap:13,marginBottom:14,position:"relative"}}>
+                      <div style={{width:44,height:44,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
                         </svg>
                       </div>
-                      <div style={{flex:1}}>
-                        <div style={{color:"#fff",fontSize:15,fontWeight:800,fontFamily:bf,lineHeight:1.25,marginBottom:3}}>{t.noProfileTitle}</div>
-                        <div style={{color:"rgba(255,255,255,0.65)",fontSize:11.5,lineHeight:1.5,fontFamily:bf}}>{t.noProfileSub}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:9,fontWeight:800,letterSpacing:1.1,textTransform:"uppercase",color:"rgba(255,153,80,0.85)",marginBottom:4,fontFamily:bf}}>
+                          {isHindi?"पर्सनलाइज़्ड मैच":"Personalised matching"}
+                        </div>
+                        <div style={{color:"#fff",fontSize:15,fontWeight:800,fontFamily:bf,lineHeight:1.25}}>{t.noProfileTitle}</div>
                       </div>
                     </div>
+                    <div style={{color:"rgba(255,255,255,0.62)",fontSize:11.5,lineHeight:1.55,fontFamily:bf,marginBottom:16,position:"relative"}}>{t.noProfileSub}</div>
                     {/* CTA button */}
                     <div onClick={()=>{haptic();setActiveTab("profile");}}
-                      style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,
-                        background:"linear-gradient(135deg,#FF9933,#FF8C00)",borderRadius:13,padding:"13px 20px",
-                        cursor:"pointer",boxShadow:"0 4px 18px rgba(255,140,0,0.40)",
+                      style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,position:"relative",
+                        background:"linear-gradient(135deg,#FF9933,#F2790A)",borderRadius:13,padding:"13px 20px",
+                        cursor:"pointer",boxShadow:"0 6px 16px rgba(0,0,0,0.28)",border:"1px solid rgba(255,255,255,0.18)",
                         transition:"transform 0.15s,box-shadow 0.15s",WebkitTapHighlightColor:"transparent"}}
-                      onTouchStart={e=>{e.currentTarget.style.transform="scale(0.97)";e.currentTarget.style.boxShadow="0 2px 10px rgba(255,140,0,0.3)";}}
-                      onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 4px 18px rgba(255,140,0,0.40)";}}>
+                      onTouchStart={e=>{e.currentTarget.style.transform="scale(0.97)";e.currentTarget.style.boxShadow="0 3px 10px rgba(0,0,0,0.24)";}}
+                      onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 6px 16px rgba(0,0,0,0.28)";}}>
                       <span style={{color:"#fff",fontSize:14,fontWeight:800,fontFamily:bf}}>{t.setupProfileBtn}</span>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                       </svg>
                     </div>
                     {/* Hint */}
-                    <div style={{textAlign:"center",marginTop:10,color:"rgba(255,255,255,0.38)",fontSize:10,fontFamily:bf,letterSpacing:0.2}}>
+                    <div style={{textAlign:"center",marginTop:11,color:"rgba(255,255,255,0.40)",fontSize:10,fontFamily:bf,letterSpacing:0.2,position:"relative"}}>
                       {isHindi?"✓ निःशुल्क · 2 मिनट में पूरा":"✓ Free · Takes only 2 minutes"}
                     </div>
                   </div>
