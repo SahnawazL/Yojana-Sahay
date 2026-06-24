@@ -31,6 +31,7 @@ import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
+import SchemeNewsTicker from "./SchemeNewsTicker.jsx";
 
 // ─── ENRICH SCHEME_DB WITH VERIFICATION METADATA ─────────────────────────────
 // Merges lastDate, lastVerified, linkAlive, isActive, httpStatus, confidence
@@ -7651,6 +7652,9 @@ export default function YojanaSahay(){
               </div>
             );})}
           </div>
+
+          {/* ── SCHEME NEWS TICKER ── */}
+          <SchemeNewsTicker lang={lang} dark={dark} />
 
           <div style={{padding:"14px 16px 100px"}}>
             {/* Eligibility CTA */}
