@@ -6,9 +6,25 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase.js";
 
 const SAFFRON    = "#FF9933";
+const NAVY       = "#06038D";
 const LIVE_RED   = "#ef4444";
 const GREEN      = "#138808";
 const ADVANCE_MS = 8000;
+const BODY_MAX_H = 84; // px — body text scrolls internally past this height
+
+// Mirrors THEME in App.jsx so this card never drifts from the app's palette
+const THEME = {
+  light: {
+    card: "#fff", card2: "#f8f9fa",
+    text: "#1a1a1a", textSub: "#888",
+    border: "#f0f0f0", border2: "#e8e8e8",
+  },
+  dark: {
+    card: "#1c1c1e", card2: "#252527",
+    text: "#f0f0f0", textSub: "#888",
+    border: "#2c2c2e", border2: "#3a3a3c",
+  },
+};
 
 const CSS = `
   @keyframes ys-live-pulse {
@@ -31,6 +47,9 @@ const CSS = `
     0%  { transform:scale(1);   opacity:0.9; }
     100%{ transform:scale(1.8); opacity:0;   }
   }
+  .ys-body-scroll::-webkit-scrollbar { width: 3px; }
+  .ys-body-scroll::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.35); border-radius: 99px; }
+  .ys-body-scroll::-webkit-scrollbar-track { background: transparent; }
 `;
 
 const haptic = (ms = 10) => { try { navigator.vibrate?.(ms); } catch {} };
@@ -55,6 +74,38 @@ function isFresh(item) {
     ?? (item.pubDate ? new Date(item.pubDate).getTime() : null);
   return ms ? (Date.now() - ms) < 48 * 3600000 : false;
 }
+
+// ── Inline icons (replace emoji — crisper, theme-colored, matches stat-icon style) ──
+const IconBroadcast = ({ size = 11, color }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4.93 4.93a10 10 0 0 0 0 14.14" />
+    <path d="M7.76 7.76a6 6 0 0 0 0 8.48" />
+    <circle cx="12" cy="12" r="2" fill={color} stroke="none" />
+    <path d="M16.24 7.76a6 6 0 0 1 0 8.48" />
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+  </svg>
+);
+
+const IconSpeaker = ({ size = 14, color, active }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="3 9 7 9 12 4 12 20 7 15 3 15 3 9" fill={color} stroke="none" />
+    {active ? (
+      <>
+        <path d="M16 8a5 5 0 0 1 0 8" />
+        <path d="M19 5a9 9 0 0 1 0 14" />
+      </>
+    ) : (
+      <path d="M16.5 11.5 L21 16.5 M21 11.5 L16.5 16.5" />
+    )}
+  </svg>
+);
+
+const IconArrowRight = ({ size = 10, color = "#fff" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="7" y1="17" x2="17" y2="7" />
+    <polyline points="8 7 17 7 17 16" />
+  </svg>
+);
 
 function SchemeNewsTicker({ lang = "en", dark = false }) {
 
@@ -123,7 +174,14 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
     return () => clearTimeout(timerRef.current);
   }, [idx, items.length]);
 
-  // ── Native touch (non-passive) — blocks tab-switch on horizontal swipe ─────
+  // ── Native touch (non-passive) — fully isolates this card from the app's
+  //    tab-swipe gesture. Previously only touchmove was guarded, so a swipe
+  //    that ended (touchend) still leaked through and switched tabs. Now every
+  //    phase of a touch that starts on this card is stopped from bubbling, so
+  //    neither a horizontal swipe (navigate news) nor a vertical drag (scroll
+  //    the body text / page) can ever be reinterpreted by the app as a tab
+  //    change. Native scrolling itself is untouched since we only stop
+  //    React-level propagation, never preventDefault on vertical moves. ──────
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -133,17 +191,21 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
       sx = e.touches[0].clientX;
       sy = e.touches[0].clientY;
       isH = false;
+      e.stopPropagation();
     };
     const onMove = (e) => {
       const dx = Math.abs(e.touches[0].clientX - sx);
       const dy = Math.abs(e.touches[0].clientY - sy);
-      if (dx > dy + 3) { isH = true; e.preventDefault(); e.stopPropagation(); }
+      if (dx > dy + 3) { isH = true; e.preventDefault(); }
+      e.stopPropagation();
     };
     const onEnd = (e) => {
-      if (!isH) return;
-      const dx = e.changedTouches[0].clientX - sx;
-      const dy = Math.abs(e.changedTouches[0].clientY - sy);
-      if (Math.abs(dx) > 40 && Math.abs(dx) > dy) advanceRef.current(dx < 0 ? 1 : -1);
+      if (isH) {
+        const dx = e.changedTouches[0].clientX - sx;
+        const dy = Math.abs(e.changedTouches[0].clientY - sy);
+        if (Math.abs(dx) > 40 && Math.abs(dx) > dy) advanceRef.current(dx < 0 ? 1 : -1);
+      }
+      e.stopPropagation();
     };
 
     el.addEventListener("touchstart", onStart, { passive: true  });
@@ -188,20 +250,26 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
     ? "'Noto Sans Devanagari','Noto Sans',sans-serif"
     : "'Noto Sans',sans-serif";
 
-  // Theme — clean, no colour overload
-  const cardBg   = dark ? "#1a1a1a"                 : "#ffffff";
-  const borderC  = dark ? "rgba(255,255,255,0.08)"  : "rgba(0,0,0,0.09)";
-  const headBg   = dark ? "rgba(255,255,255,0.03)"  : "#fafafa";
-  const divC     = dark ? "rgba(255,255,255,0.06)"  : "rgba(0,0,0,0.06)";
-  const textMain = dark ? "#e8e8e8"                  : "#111111";
-  const textSub  = dark ? "#666666"                  : "#999999";
-  const speakClr = isSpeaking ? SAFFRON : (dark ? "#444" : "#c8c8c8");
+  // Theme — pulled directly from the app's own THEME tokens, so this card
+  // never drifts a shade off from every other card on the screen.
+  const th       = dark ? THEME.dark : THEME.light;
+  const cardBg   = th.card;
+  const borderC  = th.border;
+  const headBg   = th.card2;
+  const divC     = th.border2;
+  const textMain = th.text;
+  const textSub  = th.textSub;
+  const iconClr  = dark ? "#6B90FF" : NAVY;
+  const speakClr = isSpeaking ? SAFFRON : (dark ? "#555" : "#c8c8c8");
   const shadow   = dark
-    ? "0 4px 20px rgba(0,0,0,0.5)"
-    : "0 2px 12px rgba(0,0,0,0.08)";
+    ? "0 4px 24px rgba(0,0,0,0.25)"
+    : "0 4px 24px rgba(0,53,128,0.10)";
 
   return (
-    <div ref={wrapRef} style={{ width:"100%", touchAction:"pan-y" }}>
+    <div
+      ref={wrapRef}
+      style={{ width: "auto", margin: "0 14px 14px", touchAction: "pan-y" }}
+    >
       <style>{CSS}</style>
 
       {/* ── Card ── */}
@@ -209,19 +277,28 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
         key={animKey}
         style={{
           background:   cardBg,
-          border:       `1px solid ${borderC}`,
-          borderRadius: 14,
+          border:       `1.5px solid ${borderC}`,
+          borderRadius: 16,
           overflow:     "hidden",
           boxShadow:    shadow,
+          position:     "relative",
           animation:    "ys-card-in 0.3s cubic-bezier(.22,.68,0,1.15) both",
         }}
       >
+        {/* Tricolor accent — ties this card to the app's brand language */}
+        <div style={{
+          position: "absolute", top: 0, left: "10%", right: "10%",
+          height: 2, borderRadius: "0 0 2px 2px",
+          background: `linear-gradient(90deg,${SAFFRON},${NAVY},${GREEN})`,
+          opacity: 0.6,
+        }} />
+
         {/* ── Header ── */}
         <div style={{
           display:        "flex",
           alignItems:     "center",
           justifyContent: "space-between",
-          padding:        "8px 13px",
+          padding:        "9px 13px",
           background:     headBg,
           borderBottom:   `1px solid ${divC}`,
         }}>
@@ -270,7 +347,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
               <span style={{
                 fontSize:9, color:textSub,
                 fontFamily:"'Noto Sans',sans-serif",
-                background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+                background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
                 padding:"2px 6px", borderRadius:99,
               }}>{idx + 1}/{items.length}</span>
             )}
@@ -279,12 +356,20 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
         {/* ── Body ── */}
         <div style={{ padding:"13px 14px 12px" }}>
-          <p style={{
-            margin:0, fontSize:14, fontWeight:600,
-            lineHeight:1.55, color:textMain, fontFamily:fontFace,
-          }}>
-            {text}
-          </p>
+          {/* Scrolls internally past BODY_MAX_H — long headlines no longer
+              stretch the card, and dragging inside this box never reaches
+              the app's tab-swipe handler (see touch isolation above). */}
+          <div
+            className="ys-body-scroll"
+            style={{ maxHeight: BODY_MAX_H, overflowY: "auto" }}
+          >
+            <p style={{
+              margin:0, fontSize:14, fontWeight:600,
+              lineHeight:1.55, color:textMain, fontFamily:fontFace,
+            }}>
+              {text}
+            </p>
+          </div>
 
           {/* Footer */}
           <div style={{
@@ -296,9 +381,10 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
             <span style={{
               fontSize:10, color:textSub,
               fontFamily:"'Noto Sans',sans-serif",
-              display:"flex", alignItems:"center", gap:4,
+              display:"flex", alignItems:"center", gap:5,
             }}>
-              📡 {item.source || "Google News"}
+              <IconBroadcast size={11} color={iconClr} />
+              {item.source || "Google News"}
             </span>
 
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -307,10 +393,10 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
                 onClick={(e) => { e.stopPropagation(); handleSpeak(text); }}
                 style={{
                   background:"transparent", border:"none", padding:0,
-                  cursor:"pointer", color:speakClr, fontSize:15,
-                  width:30, height:30,
+                  cursor:"pointer", width:28, height:28,
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  position:"relative", outline:"none", transition:"color 0.2s",
+                  position:"relative", outline:"none",
+                  WebkitTapHighlightColor:"transparent",
                 }}
                 aria-label={isSpeaking ? "Stop" : "Read aloud"}
               >
@@ -322,7 +408,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
                     pointerEvents:"none",
                   }}/>
                 )}
-                {isSpeaking ? "🔊" : "🔈"}
+                <IconSpeaker size={15} color={speakClr} active={isSpeaking} />
               </button>
 
               {/* Read more */}
@@ -340,19 +426,19 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
                     cursor:"pointer", outline:"none",
                     fontFamily:"'Noto Sans',sans-serif",
                     letterSpacing:0.4,
-                    display:"flex", alignItems:"center", gap:3,
+                    display:"flex", alignItems:"center", gap:4,
                     boxShadow:`0 2px 8px ${SAFFRON}44`,
                     WebkitTapHighlightColor:"transparent",
                   }}
                 >
-                  Read ↗
+                  Read <IconArrowRight size={9} />
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        {/* ── Progress bar ── */}
+        {/* ── Progress bar (auto-advance countdown) ── */}
         <div style={{ height:2, background: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)" }}>
           <div
             key={progressKey}
