@@ -334,6 +334,22 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
         {/* ── Body ── */}
         <div style={{ padding:"13px 14px 12px" }}>
+          {/* Scope badge — Central (navy) or state name (green) */}
+          {item.scope ? (
+            <div style={{ marginBottom:7 }}>
+              <span style={{
+                display:"inline-block",
+                fontSize:9, fontWeight:700, letterSpacing:0.7,
+                textTransform:"uppercase",
+                background: item.scope === "Central" ? NAVY : GREEN,
+                color:"#fff",
+                padding:"2px 9px", borderRadius:99,
+                fontFamily:"'Noto Sans',sans-serif",
+              }}>
+                {item.scope === "Central" ? "Central" : `State · ${item.scope}`}
+              </span>
+            </div>
+          ) : null}
           {/* line-clamp on each <p> independently — headline always visible
               (3 lines max), description always visible below it (2 lines max).
               No shared scroll container means no "desc hidden below maxHeight"
