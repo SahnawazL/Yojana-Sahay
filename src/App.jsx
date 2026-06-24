@@ -7399,6 +7399,27 @@ export default function YojanaSahay(){
     CATEGORIES.en.forEach(cat=>{counts[cat.filterKey]=getSchemesForCategory(cat.filterKey).length;});
     return counts;
   },[]);
+  const categoryMaxBenefit=useMemo(()=>{
+    const maxB={};
+    CATEGORIES.en.forEach(cat=>{
+      const schemes=getSchemesForCategory(cat.filterKey);
+      const max=Math.max(0,...schemes.map(s=>s.annual||0));
+      maxB[cat.filterKey]=max;
+    });
+    return maxB;
+  },[]);
+  // Bilingual benefit label — lakh/thousand aware, falls back to plain ₹ for small amounts
+  const formatCategoryBenefit=useCallback((amt)=>{
+    if(amt>=100000){
+      const v=Math.round(amt/100000);
+      return isHindi?`₹${v} लाख तक`:`Up to ₹${v}L`;
+    }
+    if(amt>=1000){
+      const v=Math.round(amt/1000);
+      return isHindi?`₹${v} हज़ार तक`:`Up to ₹${v}K`;
+    }
+    return isHindi?`₹${Math.round(amt)} तक`:`Up to ₹${Math.round(amt)}`;
+  },[isHindi]);
 
   const profileAnswers=useMemo(()=>profile?{
     who:profile.occupation,
@@ -7795,6 +7816,20 @@ export default function YojanaSahay(){
                         color:labelColor,
                         fontFamily:bf,lineHeight:1.25,letterSpacing:0.1,
                       }}>{cat.label}</div>
+                      {/* Max benefit chip — bilingual, lakh/thousand aware */}
+                      {categoryMaxBenefit[cat.filterKey]>0&&(
+                        <div style={{
+                          marginTop:4,fontSize:7.5,fontWeight:800,
+                          color:dark?"rgba(255,255,255,0.7)":cat.color,
+                          background:dark?`${cat.color}25`:`${cat.color}15`,
+                          borderRadius:6,padding:"1.5px 5px",
+                          border:`1px solid ${cat.color}35`,
+                          lineHeight:1.2,letterSpacing:0.1,
+                          fontFamily:"'Noto Sans',sans-serif",
+                        }}>
+                          {formatCategoryBenefit(categoryMaxBenefit[cat.filterKey])}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
