@@ -26,10 +26,11 @@
 
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
 
 let cachedDb = null;
 
-function getAdminDb() {
+export function getAdminDb() {
   if (cachedDb) return cachedDb;
 
   if (getApps().length === 0) {
@@ -50,6 +51,12 @@ function getAdminDb() {
 
   cachedDb = getFirestore();
   return cachedDb;
+}
+
+// Returns the Admin Auth instance (app must be initialised first via getAdminDb)
+export function getAdminAuth() {
+  getAdminDb(); // ensure app is initialised
+  return getAuth();
 }
 
 // IST date string ("2026-06-20") — used for daily counter resets
@@ -181,50 +188,6 @@ export async function recordAiCall({
         } else {
           upd.tavilyCallsDate  = today;
           upd.tavilyCallsToday = 1;
-        }
-      }
-
-      // ── GROQ VERIFY (SchemeVerifier pool — separate keys/fields) ───────────
-      if (service === "groq-verify") {
-        upd.groqVerifyLastActive = FieldValue.serverTimestamp();
-
-        if (keyIdx >= 0) upd.groqVerifyActiveKeyIdx = keyIdx;
-
-        if (d.groqVerifyCallsDate === today) {
-          upd.groqVerifyCallsToday = (d.groqVerifyCallsToday || 0) + 1;
-        } else {
-          upd.groqVerifyCallsDate  = today;
-          upd.groqVerifyCallsToday = 1;
-        }
-
-        if (count429 > 0) {
-          upd.groqVerifyLast429At = FieldValue.serverTimestamp();
-
-          const freshKeys = Array.from({ length: count429 }, (_, i) => i);
-
-          if (d.groqVerify429Date === today) {
-            upd.groqVerify429Today = (d.groqVerify429Today || 0) + count429;
-            const prev   = Array.isArray(d.groqVerify429KeysToday) ? d.groqVerify429KeysToday : [];
-            upd.groqVerify429KeysToday = [...new Set([...prev, ...freshKeys])];
-            upd.groqVerify429KeysDate  = today;
-          } else {
-            upd.groqVerify429Date      = today;
-            upd.groqVerify429Today     = count429;
-            upd.groqVerify429KeysDate  = today;
-            upd.groqVerify429KeysToday = freshKeys;
-          }
-        }
-      }
-
-      // ── TAVILY VERIFY (SchemeVerifier pool) ─────────────────────────────────
-      if (service === "tavily-verify") {
-        upd.tavilyVerifyLastActive = FieldValue.serverTimestamp();
-
-        if (d.tavilyVerifyCallsDate === today) {
-          upd.tavilyVerifyCallsToday = (d.tavilyVerifyCallsToday || 0) + 1;
-        } else {
-          upd.tavilyVerifyCallsDate  = today;
-          upd.tavilyVerifyCallsToday = 1;
         }
       }
 
