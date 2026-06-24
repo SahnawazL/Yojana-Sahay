@@ -171,8 +171,11 @@ async function groqFilterAndSummarise(items, groqKeys) {
     "scheme itself (e.g. who PMAY is for). Never invent specific numbers, dates, or details that " +
     "are not implied by the headline." +
     "\n  desc_hi — accurate Hindi translation of desc_en" +
+    "\n  scope — \"Central\" if this is a central/national government scheme (PM-prefix, central " +
+    "ministry, or explicitly nationwide). Otherwise the Indian state name in English " +
+    "(e.g. \"Maharashtra\", \"Uttar Pradesh\", \"Tamil Nadu\"). Omit the field entirely if unclear." +
     "\n\nRespond ONLY with a valid JSON array. No explanation, no markdown fences." +
-    '\nFormat: [{"idx":1,"text_en":"...","text_hi":"...","desc_en":"...","desc_hi":"..."},...]' +
+    '\nFormat: [{"idx":1,"text_en":"...","text_hi":"...","desc_en":"...","desc_hi":"...","scope":"Central"},...]' +
     "\nOmit irrelevant or non-substantive items entirely. Return [] if nothing qualifies.";
 
   const userPrompt =
@@ -350,6 +353,7 @@ export default async function handler(req, res) {
       text_hi:     result.text_hi.slice(0, 140),
       desc_en:     result.desc_en.slice(0, 200),
       desc_hi:     result.desc_hi.slice(0, 220),
+      scope:       typeof result.scope === "string" ? result.scope.slice(0, 40) : "",
       url:         source.link || "",
       source:      "Google News",
       active:      true,
