@@ -20,7 +20,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, {
-  useState, useEffect, useCallback, memo,
+  useState, useEffect, useCallback, useRef, memo,
 } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase.js";
@@ -57,9 +57,13 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
   const [items,      setItems]      = useState([]);
   const [idx,        setIdx]        = useState(0);
-  const [animKey,    setAnimKey]    = useState(0);  // forces animation restart per item
+  const [animKey,    setAnimKey]    = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [loaded,     setLoaded]     = useState(false);
+
+  // ── Touch refs — block horizontal swipes from reaching tab switcher ───────────
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
 
   // ── Firestore real-time listener ─────────────────────────────────────────────
   // Fetches only active items; sorts client-side (avoids composite index requirement).
@@ -147,6 +151,19 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
     window.open(url, "_blank", "noopener,noreferrer");
   }, []);
 
+  // ── Block horizontal swipe from bubbling to parent tab switcher ───────────────
+  const handleTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
+    const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
+    // If swipe is more horizontal than vertical, stop it reaching the tab switcher
+    if (dx > dy) e.stopPropagation();
+  }, []);
+
   // ── Guard: render nothing until loaded + at least 1 item ────────────────────
   if (!loaded || !items.length) return null;
 
@@ -185,6 +202,8 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
       {/* ── Ticker strip ── */}
       <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         style={{
           display:       "flex",
           alignItems:    "center",
@@ -197,6 +216,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
           position:      "relative",
           userSelect:    "none",
           WebkitUserSelect: "none",
+          touchAction:   "pan-y",
         }}
       >
 
