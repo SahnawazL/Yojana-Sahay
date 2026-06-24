@@ -73,10 +73,18 @@ function loadGroqKeys() {
   return keys;
 }
 
-// ── Simple title hash for deduplication ──────────────────────────────────────
-// Lowercased, whitespace-collapsed, first 70 chars — good enough for news titles.
+// ── Title hash for deduplication ─────────────────────────────────────────────
+// Strips punctuation + stop words so minor rewords ("PM Kisan installment released"
+// vs "PM Kisan: installment released today") hash to the same value and get caught.
+const STOP_WORDS = /\b(the|a|an|in|of|for|and|or|to|is|are|was|were|has|have|had|that|this|with|from|by|on|at|its|it|be|been|will|how|what|who|when|where|why|today|now|new|latest|know|details|update|news|launched|india|indian)\b/g;
 function makeTitleHash(title) {
-  return title.toLowerCase().replace(/\s+/g, " ").trim().slice(0, 70);
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")  // strip punctuation / special chars
+    .replace(STOP_WORDS, " ")        // strip noise words
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
 }
 
 // ── Strip "— Source Name" suffix Google News appends to every title ───────────
@@ -174,8 +182,10 @@ async function groqFilterAndSummarise(items, groqKeys) {
     "\n  scope — \"Central\" if this is a central/national government scheme (PM-prefix, central " +
     "ministry, or explicitly nationwide). Otherwise the Indian state name in English " +
     "(e.g. \"Maharashtra\", \"Uttar Pradesh\", \"Tamil Nadu\"). Omit the field entirely if unclear." +
+    "\n  schemeKey — canonical short name of the scheme (e.g. \"PM Kisan\", \"PMAY\", \"PM Surya Ghar\", " +
+    "\"MSME Loan\"). Max 30 chars. Used to prevent duplicate scheme coverage across cron runs." +
     "\n\nRespond ONLY with a valid JSON array. No explanation, no markdown fences." +
-    '\nFormat: [{"idx":1,"text_en":"...","text_hi":"...","desc_en":"...","desc_hi":"...","scope":"Central"},...]' +
+    '\nFormat: [{"idx":1,"text_en":"...","text_hi":"...","desc_en":"...","desc_hi":"...","scope":"Central","schemeKey":"PM Surya Ghar"},...]' +
     "\nOmit irrelevant or non-substantive items entirely. Return [] if nothing qualifies.";
 
   const userPrompt =
@@ -304,9 +314,25 @@ export default async function handler(req, res) {
 
   // ── Step 4 — Deduplicate against existing Firestore docs ─────────────────────
   const newsRef   = db.collection("schemeNews");
+
+  // All title hashes — catches exact / near-exact repeats
   const existSnap = await newsRef.select("titleHash").get();
   const existingHashes = new Set(
     existSnap.docs.map((d) => d.data().titleHash).filter(Boolean)
+  );
+
+  // Recent schemeKeys (last 14 days) — prevents same-scheme duplicates across runs
+  // even when the headline is worded differently each time.
+  const twoWeeksAgo = Timestamp.fromMillis(Date.now() - 14 * 24 * 3600 * 1000);
+  const recentSnap  = await newsRef
+    .where("createdAt", ">", twoWeeksAgo)
+    .select("schemeKey")
+    .get();
+  const recentSchemeKeys = new Set(
+    recentSnap.docs
+      .map((d) => d.data().schemeKey)
+      .filter(Boolean)
+      .map((k) => k.toLowerCase().trim())
   );
 
   const newItems = allItems
@@ -336,12 +362,37 @@ export default async function handler(req, res) {
     });
   }
 
+  // ── Step 5b — Filter groqResults by schemeKey (last-14-day dedup) ─────────────
+  // Even if title hashes differ, skip items whose canonical scheme was already
+  // covered in the past two weeks — prevents "PM Surya Ghar" appearing 3x.
+  const filteredResults = groqResults.filter((r) => {
+    if (!r.schemeKey) return true; // no key → let it through
+    const key = r.schemeKey.toLowerCase().trim();
+    if (recentSchemeKeys.has(key)) {
+      console.log(`[refresh-news] Skipping "${r.text_en}" — scheme "${r.schemeKey}" already in recent news`);
+      return false;
+    }
+    recentSchemeKeys.add(key); // block duplicates within the same batch too
+    return true;
+  });
+
+  console.log(
+    `[refresh-news] After schemeKey dedup: ${filteredResults.length} / ${groqResults.length} remain`
+  );
+
+  if (!filteredResults.length) {
+    return res.status(200).json({
+      message: "All approved items are duplicates of recent scheme coverage.",
+      added:   0,
+    });
+  }
+
   // ── Step 6 — Write approved items to Firestore ───────────────────────────────
   // Groq returns 1-based idx matching newItems array position.
   const batch    = db.batch();
   let   addCount = 0;
 
-  for (const result of groqResults) {
+  for (const result of filteredResults) {
     const itemIdx = result.idx - 1; // convert 1-based → 0-based
     if (itemIdx < 0 || itemIdx >= newItems.length) continue;
 
@@ -354,6 +405,7 @@ export default async function handler(req, res) {
       desc_en:     result.desc_en.slice(0, 200),
       desc_hi:     result.desc_hi.slice(0, 220),
       scope:       typeof result.scope === "string" ? result.scope.slice(0, 40) : "",
+      schemeKey:   typeof result.schemeKey === "string" ? result.schemeKey.slice(0, 40).trim() : "",
       url:         source.link || "",
       source:      "Google News",
       active:      true,
