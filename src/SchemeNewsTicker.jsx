@@ -228,6 +228,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
   if (!item) return null;
 
   const text     = (lang === "hi" && item.text_hi) ? item.text_hi : item.text_en;
+  const descText = (lang === "hi" && item.desc_hi) ? item.desc_hi : item.desc_en;
   const hasUrl   = Boolean(item.url);
   const fresh    = isFresh(item);
   const fontFace = lang === "hi"
@@ -338,14 +339,22 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
               the app's tab-swipe handler (see touch isolation above). */}
           <div
             className="ys-body-scroll"
-            style={{ maxHeight: BODY_MAX_H, overflowY: "auto" }}
+            style={{ maxHeight: descText ? BODY_MAX_H + 40 : BODY_MAX_H, overflowY: "auto" }}
           >
             <p style={{
               margin:0, fontSize:14, fontWeight:600,
-              lineHeight:1.55, color:textMain, fontFamily:fontFace,
+              lineHeight:1.45, color:textMain, fontFamily:fontFace,
             }}>
               {text}
             </p>
+            {descText && (
+              <p style={{
+                margin:"6px 0 0", fontSize:12, fontWeight:400,
+                lineHeight:1.5, color:textSub, fontFamily:fontFace,
+              }}>
+                {descText}
+              </p>
+            )}
           </div>
 
           {/* Footer */}
