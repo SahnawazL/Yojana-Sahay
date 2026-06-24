@@ -232,6 +232,26 @@ const googleSearchScheme = (name) => {
 
 // ─── STAT TARGETS (stable reference — prevents useCountUp from re-animating) ──
 const STAT_TARGETS = [3000, 28, 50];
+
+// ─── LAST VERIFIED DATE — Freshness Badge ──────────────────────────────────────
+// Walks SCHEME_DB (already merged with schemesMeta at module init) and finds the
+// most recent lastVerified timestamp to display as a trust signal on the home screen.
+// Returns null if no scheme has been verified yet — badge is safely hidden.
+const LAST_VERIFIED_DATE = (() => {
+  let latest = 0;
+  for (const s of SCHEME_DB) {
+    if (s.lastVerified) {
+      const t = new Date(s.lastVerified).getTime();
+      if (!isNaN(t) && t > latest) latest = t;
+    }
+  }
+  return latest > 0 ? new Date(latest) : null;
+})();
+// "15 Jun 2026" — matches the date format used across SchemeCard components
+const LAST_VERIFIED_LABEL = LAST_VERIFIED_DATE
+  ? LAST_VERIFIED_DATE.toLocaleDateString("en-IN", {day:"numeric", month:"short", year:"numeric"})
+  : null;
+
 const STORAGE_KEY      = "yojana_eligibility_answers";
 const BRIEF_CACHE_KEY  = "yojana_brief_cache";
 // Stable serialisation for answer fingerprinting — sorted keys avoid false misses
@@ -7698,6 +7718,95 @@ export default function YojanaSahay(){
               </div>
             );})}
           </div>
+
+          {/* ── FRESHNESS BADGE — "Last Verified" trust signal ──────────────────
+               Shows the most recent date schemes were checked via the verification
+               pipeline. Only renders if lastVerified data exists in schemes-meta.json.
+               ──────────────────────────────────────────────────────────────────── */}
+          {LAST_VERIFIED_LABEL&&(
+            <div style={{
+              margin:"8px 14px 0",
+              background:dark?"rgba(255,255,255,0.035)":"#fff",
+              border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(6,3,141,0.09)"}`,
+              borderRadius:13,overflow:"hidden",
+              boxShadow:dark?"none":"0 2px 10px rgba(6,3,141,0.06)",
+            }}>
+              {/* India tricolor top accent */}
+              <div style={{
+                height:3,
+                background:"linear-gradient(90deg,#FF9933 0%,#FF9933 33.3%,#ffffff 33.3%,#ffffff 66.6%,#138808 66.6%,#138808 100%)",
+              }}/>
+
+              <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 13px 11px"}}>
+
+                {/* Shield icon */}
+                <div style={{
+                  width:34,height:34,borderRadius:10,flexShrink:0,
+                  background:dark?"rgba(6,3,141,0.22)":"rgba(6,3,141,0.07)",
+                  border:`1.5px solid ${dark?"rgba(107,144,255,0.28)":"rgba(6,3,141,0.14)"}`,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                }}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"
+                      fill={dark?"#6B90FF":"#06038D"} opacity="0.85"/>
+                    <path d="M9 12l2 2 4-4" stroke="#fff" strokeWidth="2.2"
+                      strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+
+                {/* Text block */}
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:2}}>
+                    <span style={{
+                      fontSize:9,fontWeight:800,letterSpacing:1.1,textTransform:"uppercase",
+                      color:dark?"#6B90FF":"#06038D",fontFamily:"'Noto Sans',sans-serif",
+                    }}>
+                      {isHindi?"डेटा सत्यापित":"Data Verified"}
+                    </span>
+                    {/* Live pulse dot */}
+                    <span style={{
+                      display:"inline-block",width:5,height:5,borderRadius:"50%",
+                      background:"#22c55e",boxShadow:"0 0 5px #22c55e",flexShrink:0,
+                    }}/>
+                  </div>
+                  <div style={{
+                    fontSize:10,
+                    color:dark?"rgba(255,255,255,0.38)":"rgba(0,0,0,0.42)",
+                    fontFamily:"'Noto Sans',sans-serif",lineHeight:1.45,
+                  }}>
+                    {isHindi
+                      ?"स्वतंत्र पाइपलाइन द्वारा जाँचे गए सरकारी पोर्टल लिंक"
+                      :"Govt. portal links verified · No paid promotions · Independent platform"
+                    }
+                  </div>
+                </div>
+
+                {/* Date pill */}
+                <div style={{
+                  flexShrink:0,
+                  background:dark?"rgba(107,144,255,0.10)":"rgba(6,3,141,0.06)",
+                  border:`1px solid ${dark?"rgba(107,144,255,0.22)":"rgba(6,3,141,0.13)"}`,
+                  borderRadius:9,padding:"5px 10px",textAlign:"center",
+                }}>
+                  <div style={{
+                    fontSize:7.5,fontWeight:700,letterSpacing:0.6,textTransform:"uppercase",
+                    color:dark?"rgba(107,144,255,0.55)":"rgba(6,3,141,0.45)",
+                    fontFamily:"'Noto Sans',sans-serif",marginBottom:2,
+                  }}>
+                    {isHindi?"अंतिम जाँच":"Last Verified"}
+                  </div>
+                  <div style={{
+                    fontSize:11,fontWeight:800,letterSpacing:-0.2,
+                    color:dark?"#6B90FF":"#06038D",
+                    fontFamily:"'Noto Sans',sans-serif",
+                  }}>
+                    {LAST_VERIFIED_LABEL}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
 
           {/* ── SCHEME NEWS TICKER ── */}
           <SchemeNewsTicker lang={lang} dark={dark} />
