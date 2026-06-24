@@ -334,28 +334,32 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
         {/* ── Body ── */}
         <div style={{ padding:"13px 14px 12px" }}>
-          {/* Scrolls internally past BODY_MAX_H — long headlines no longer
-              stretch the card, and dragging inside this box never reaches
-              the app's tab-swipe handler (see touch isolation above). */}
-          <div
-            className="ys-body-scroll"
-            style={{ maxHeight: descText ? BODY_MAX_H + 40 : BODY_MAX_H, overflowY: "auto" }}
-          >
+          {/* line-clamp on each <p> independently — headline always visible
+              (3 lines max), description always visible below it (2 lines max).
+              No shared scroll container means no "desc hidden below maxHeight"
+              bug when the headline itself is long. */}
+          <p style={{
+            margin:0, fontSize:14, fontWeight:600,
+            lineHeight:1.45, color:textMain, fontFamily:fontFace,
+            display:"-webkit-box",
+            WebkitLineClamp:3,
+            WebkitBoxOrient:"vertical",
+            overflow:"hidden",
+          }}>
+            {text}
+          </p>
+          {descText && (
             <p style={{
-              margin:0, fontSize:14, fontWeight:600,
-              lineHeight:1.45, color:textMain, fontFamily:fontFace,
+              margin:"6px 0 0", fontSize:12, fontWeight:400,
+              lineHeight:1.5, color:textSub, fontFamily:fontFace,
+              display:"-webkit-box",
+              WebkitLineClamp:2,
+              WebkitBoxOrient:"vertical",
+              overflow:"hidden",
             }}>
-              {text}
+              {descText}
             </p>
-            {descText && (
-              <p style={{
-                margin:"6px 0 0", fontSize:12, fontWeight:400,
-                lineHeight:1.5, color:textSub, fontFamily:fontFace,
-              }}>
-                {descText}
-              </p>
-            )}
-          </div>
+          )}
 
           {/* Footer */}
           <div style={{
