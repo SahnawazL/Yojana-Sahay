@@ -19,6 +19,12 @@
  *   · Removed the unverified "3,000+ Central Government schemes" claim
  *     (EN + HI) — replaced with accurate "manually verified against
  *     official government portals" framing
+ *
+ * v4 changes vs v3:
+ *   · 24 Q&A pairs (up from 21) — added Scheme News Ticker,
+ *     Benefit Calculator, and Document Checklist entries under Schemes
+ *   · Smoother animations: spring chevron, icon scale, answer fade-in,
+ *     staggered category-switch entrance, press scale on rows and pills
  */
 
 import { useState } from "react";
@@ -63,7 +69,7 @@ const CAT_CONFIG = {
   account: { en: "Account",               hi: "अकाउंट",            icon: "👤", color: "#0284C7", darkColor: "#38BDF8" },
 };
 
-// ─── FAQ DATA — 21 bilingual Q&A pairs ───────────────────────────────────────
+// ─── FAQ DATA — 24 bilingual Q&A pairs ───────────────────────────────────────
 const FAQ_DATA = {
   en: [
     // ── About the App (5 Q) ───────────────────────────────────────────────────
@@ -339,7 +345,7 @@ function Chevron({ color, open }) {
       strokeLinecap="round" strokeLinejoin="round"
       style={{
         flexShrink:  0,
-        transition:  "transform 0.24s cubic-bezier(0.4,0,0.2,1)",
+        transition:  "transform 0.32s cubic-bezier(0.34,1.56,0.64,1)",
         transform:   open ? "rotate(180deg)" : "rotate(0deg)",
       }}
     >
@@ -394,8 +400,17 @@ export default function HomeFAQSection({ lang, dark }) {
   return (
     <div style={{ marginBottom: 14 }}>
 
-      {/* Hide webkit scrollbar on the pills row */}
-      <style>{`.ys-faq-pills::-webkit-scrollbar { display: none; }`}</style>
+      {/* Animations */}
+      <style>{`
+        .ys-faq-pills::-webkit-scrollbar { display: none; }
+        @keyframes ys-faq-in {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0);   }
+        }
+        .ys-faq-item {
+          animation: ys-faq-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both;
+        }
+      `}</style>
 
       {/* ── Section label — same style as "How It Works", "Categories" ── */}
       <div style={{
@@ -533,11 +548,11 @@ export default function HomeFAQSection({ lang, dark }) {
                   color:                   active ? pill.color : th.textSub,
                   border:                  `1px solid ${active ? `${pill.color}50` : th.border}`,
                   WebkitTapHighlightColor: "transparent",
-                  transition:              "background 0.15s, color 0.15s, border-color 0.15s",
+                  transition:              "background 0.20s, color 0.20s, border-color 0.20s, transform 0.12s",
                 }}
-                onTouchStart={(e) => { e.currentTarget.style.opacity = "0.72"; }}
-                onTouchEnd={(e)   => { e.currentTarget.style.opacity = "1";    }}
-                onTouchCancel={(e)=> { e.currentTarget.style.opacity = "1";    }}
+                onTouchStart={(e) => { e.currentTarget.style.transform = "scale(0.94)"; }}
+                onTouchEnd={(e)   => { e.currentTarget.style.transform = "scale(1)";    }}
+                onTouchCancel={(e)=> { e.currentTarget.style.transform = "scale(1)";    }}
               >
                 <span style={{ fontSize: 10 }}>{pill.icon}</span>
                 <span>{pill.label}</span>
@@ -555,7 +570,7 @@ export default function HomeFAQSection({ lang, dark }) {
             filterCat === "all" && (i === 0 || arr[i - 1].cat !== faq.cat);
 
           return (
-            <div key={`${faq.cat}-${i}`}>
+            <div key={`${filterCat}-${faq.cat}-${i}`} className="ys-faq-item" style={{ animationDelay: `${Math.min(i, 6) * 25}ms` }}>
 
               {/* ── Category section divider (shown only in "All" view) ── */}
               {showCatHeader && (() => {
@@ -611,22 +626,25 @@ export default function HomeFAQSection({ lang, dark }) {
                     : "none",
                   WebkitTapHighlightColor: "transparent",
                   userSelect:              "none",
-                  transition:              "background 0.18s",
+                  transition:              "background 0.20s, transform 0.10s",
                 }}
                 onTouchStart={(e) => {
                   e.currentTarget.style.background = dark
                     ? "rgba(255,255,255,0.05)"
                     : "rgba(0,0,0,0.025)";
+                  e.currentTarget.style.transform = "scale(0.993)";
                 }}
                 onTouchEnd={(e) => {
                   e.currentTarget.style.background = isOpen
                     ? (dark ? `${cc}16` : `${cc}08`)
                     : "transparent";
+                  e.currentTarget.style.transform = "scale(1)";
                 }}
                 onTouchCancel={(e) => {
                   e.currentTarget.style.background = isOpen
                     ? (dark ? `${cc}16` : `${cc}08`)
                     : "transparent";
+                  e.currentTarget.style.transform = "scale(1)";
                 }}
               >
                 {/* Emoji icon — category-tinted when open */}
@@ -647,7 +665,8 @@ export default function HomeFAQSection({ lang, dark }) {
                   alignItems:     "center",
                   justifyContent: "center",
                   fontSize:       14,
-                  transition:     "background 0.18s, border-color 0.18s",
+                  transition:     "background 0.20s, border-color 0.20s, transform 0.32s cubic-bezier(0.34,1.56,0.64,1)",
+                  transform:      isOpen ? "scale(1.08)" : "scale(1)",
                 }}>
                   {faq.icon}
                 </div>
@@ -660,7 +679,7 @@ export default function HomeFAQSection({ lang, dark }) {
                   color:      isOpen ? cc : th.textMid,
                   fontFamily: bf,
                   lineHeight: 1.35,
-                  transition: "color 0.18s",
+                  transition: "color 0.20s",
                 }}>
                   {faq.q}
                 </div>
@@ -670,9 +689,9 @@ export default function HomeFAQSection({ lang, dark }) {
 
               {/* ── Answer panel — maxHeight CSS accordion, no JS height calc ── */}
               <div style={{
-                maxHeight:  isOpen ? 600 : 0,
+                maxHeight:  isOpen ? 700 : 0,
                 overflow:   "hidden",
-                transition: "max-height 0.30s cubic-bezier(0.4,0,0.2,1)",
+                transition: "max-height 0.38s cubic-bezier(0.25,0.46,0.45,0.94)",
               }}>
                 <div style={{
                   display:      "flex",
@@ -682,6 +701,8 @@ export default function HomeFAQSection({ lang, dark }) {
                   background:   isOpen
                     ? (dark ? `${cc}0C` : `${cc}06`)
                     : "transparent",
+                  opacity:    isOpen ? 1 : 0,
+                  transition: "opacity 0.20s ease 0.10s, background 0.20s",
                 }}>
                   {/* "A" badge — adopts category colour */}
                   <div style={{
