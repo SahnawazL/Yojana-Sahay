@@ -13,7 +13,7 @@
  *   isDesktop    {boolean}
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   collection, addDoc, deleteDoc, doc,
   onSnapshot, updateDoc, serverTimestamp,
@@ -98,6 +98,14 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
   const [newsSyncing,   setNewsSyncing]   = useState(false);
   const [newsSyncMsg,   setNewsSyncMsg]   = useState("");
 
+  // Ref for the auto-clear timer so we can cancel it on unmount or re-sync
+  const syncMsgTimerRef = useRef(null);
+
+  // Cleanup timer on unmount
+  useEffect(() => () => {
+    if (syncMsgTimerRef.current) clearTimeout(syncMsgTimerRef.current);
+  }, []);
+
   // ── Real-time listener (mounts once, stays alive) ─────────────────────────
   useEffect(() => {
     const unsub = onSnapshot(
@@ -145,6 +153,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
       setNewsFormScope("");
     } catch (err) {
       console.error("[NewsTab] Failed to add news item:", err);
+      setNewsSyncMsg("✗ Failed to add item — check connection and try again");
     } finally {
       setNewsAdding(false);
     }
@@ -188,8 +197,8 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
         setNewsSyncMsg(`✗ ${data.error || "Sync failed"}`);
       } else if (data.skipped) {
         setNewsSyncMsg(`⏳ ${data.message}`);
-      } else if (data.added != null) {
-        setNewsSyncMsg(`✓ Added ${data.added} new item${data.added !== 1 ? "s" : ""}. Scanned ${data.scanned ?? "?"}.`);
+      } else if (data.added != null && data.scanned != null) {
+        setNewsSyncMsg(`✓ Added ${data.added} new item${data.added !== 1 ? "s" : ""}. Scanned ${data.scanned}.`);
       } else {
         setNewsSyncMsg(`✓ ${data.message || "Sync complete."}`);
       }
@@ -198,7 +207,8 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
       console.error("[NewsTab] Sync failed:", err);
     } finally {
       setNewsSyncing(false);
-      setTimeout(() => setNewsSyncMsg(""), 8000);
+      if (syncMsgTimerRef.current) clearTimeout(syncMsgTimerRef.current);
+      syncMsgTimerRef.current = setTimeout(() => setNewsSyncMsg(""), 8000);
     }
   }, []);
 
