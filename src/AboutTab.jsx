@@ -90,9 +90,9 @@ function formatCompactCount(n) {
 const STRINGS = {
   en: {
     appName:      "YojanaSahay",
-    tagline:      "Know India's Free Scheme Discovery App",
+    tagline:      "India's Free Scheme Discovery App",
     madeInIndia:  "Made in India 🇮🇳",
-    version:      "Current Release · Beta",
+    version:      "v1.4 · Beta",
 
     missionTitle: "Our Mission",
     missionBody:
@@ -103,7 +103,7 @@ const STRINGS = {
       { number:"28+",  label:"States & UTs\nCovered" },
       { number:"—",    label:"Citizens\nGuided" },
       { number:"2",    label:"Languages\nSupported" },
-      { number:"100%", label:"Free to\nUse" },
+      { number:"Free*", label:"Core\nFeatures" },
     ],
 
     dbTitle: "Comprehensive Scheme Database",
@@ -150,12 +150,12 @@ const STRINGS = {
     proEyebrow:  "COMING SOON",
     proSubtitle: "Launching with Play Store & App Store",
     proBody:
-      "YojanaSahay is currently free for all users. A Pro tier is coming for power users who rely on the AI assistant daily — with unlimited AI messages and premium features designed for serious scheme hunters.",
+      "YojanaSahay core features are free for all users. The AI assistant is available free with 10 messages per day. A Pro tier is coming for power users who rely on the AI assistant daily — with unlimited AI messages and premium features designed for serious scheme hunters.",
     proFeatures: [
       { icon:"🤖", title:"AI Messages",              desc:"Daily limit for the AI Chat assistant.",                                                                                        free:"10 / day",   pro:"Unlimited" },
       { icon:"📄", title:"PDF Export",                desc:"Download your eligibility results as a ready-to-use PDF for offline use and CSC visits.",                                     free:"✗",          pro:"✓" },
       { icon:"👨‍👩‍👧‍👦", title:"Family Profiles",           desc:"Add family members and check eligibility for each one separately.",                                                        free:"1 profile",  pro:"Unlimited" },
-      { icon:"🎯", title:"Deep Eligibility Matching", desc:"Precision match using all 15+ parameters — ration card, disability, kisan card, land holding, and more.",                    free:"✗",          pro:"✓" },
+      { icon:"🎯", title:"Deep Eligibility Matching", desc:"Match using 15+ parameters — ration card, disability, kisan card, land holding, and more. Pro adds AI-powered precision analysis and priority results.",                    free:"Standard",   pro:"Advanced" },
       { icon:"📋", title:"Application Tracker",       desc:"Mark schemes as Interested → Applied → Received and track progress.",                                                         free:"✗",          pro:"✓" },
       { icon:"📦", title:"Document Checklist",        desc:"One consolidated list of every document you need across all matched schemes.",                                                 free:"Basic",      pro:"Advanced" },
       { icon:"🔔", title:"Deadline Alerts",           desc:"Real email and push notifications for approaching scheme deadlines, filtered by your state and category.",                    free:"Basic",      pro:"Real alerts" },
@@ -168,7 +168,7 @@ const STRINGS = {
     proPricingNote:  "Pricing and payment options will be announced at launch. Payments via UPI, cards, and net banking.",
     proLoginTitle:   "Login Required for AI Chat",
     proLoginNotice:
-      "Once YojanaSahay Pro launches, signing in with Google will be mandatory to access the AI Chat tab. This links your daily usage count and Pro benefits directly to your account — ensuring fair access for free users and full access for Pro.",
+      "Signing in with Google is required to access the AI Chat tab. This links your daily usage count and Pro benefits directly to your account — ensuring fair access for free users and full access for Pro subscribers.",
 
     signInTitle: "Benefits of Signing In",
     signInSub:   "Creating an account unlocks the full YojanaSahay experience.",
@@ -235,11 +235,12 @@ const STRINGS = {
     contactTitle: "YojanaSahay Support",
     contactNote:  "For platform-related inquiries only. For scheme-specific support, please use the in-app Report & Query feature.",
 
-    lastUpdated: "Last Updated · May 2026",
+    lastUpdated: "Last Updated · June 2026",
 
     whatsNewTitle: "What's New",
     whatsNew: [
-      { version:"v1.3", date:"May 2026",   note:"Email & Google sign-in · Dark mode · Vercel edge deployment" },
+      { version:"v1.4", date:"Jun 2026",  note:"Scheme News Ticker · Benefit Calculator · Document Vault · FAQ section · Lazy loading · Swipe navigation fixes" },
+      { version:"v1.3", date:"May 2026",  note:"Email & Google sign-in · Dark mode · Vercel edge deployment" },
       { version:"v1.2", date:"Mar 2026",   note:"Report & Resolution Centre · Admin dashboard · Email alerts" },
       { version:"v1.1", date:"Jan 2026",   note:"AI Assistant (Groq) · Bilingual support · Profile-aware responses" },
       { version:"v1.0", date:"Nov 2025",   note:"Initial public Beta · Eligibility checker · Government scheme database launched" },
@@ -270,7 +271,7 @@ const STRINGS = {
     appName:      "योजना सहाय",
     tagline:      "निःशुल्क योजना सहायक",
     madeInIndia:  "मेड इन इंडिया 🇮🇳",
-    version:      "वर्तमान संस्करण · Beta",
+    version:      "v1.4 · Beta",
 
     missionTitle: "हमारा उद्देश्य",
     missionBody:
@@ -281,7 +282,7 @@ const STRINGS = {
       { number:"28+",  label:"राज्य और\nकेंद्र शासित" },
       { number:"—",    label:"नागरिक\nलाभान्वित" },
       { number:"2",    label:"भाषाएं\nउपलब्ध" },
-      { number:"100%", label:"बिल्कुल\nनिःशुल्क" },
+      { number:"Free*", label:"मुख्य\nसुविधाएं" },
     ],
 
     dbTitle: "विस्तृत योजना डेटाबेस",
@@ -312,12 +313,12 @@ const STRINGS = {
     proEyebrow:  "जल्द आ रहा है",
     proSubtitle: "Play Store और App Store पर लॉन्च होगा",
     proBody:
-      "योजनासहाय अभी सभी उपयोगकर्ताओं के लिए निःशुल्क है। उन पावर यूज़र्स के लिए Pro टियर आ रहा है जो रोज़ाना AI सहायक का उपयोग करते हैं — असीमित AI संदेश और प्रीमियम सुविधाओं के साथ।",
+      "योजनासहाय की मुख्य सुविधाएं सभी के लिए निःशुल्क हैं। AI सहायक प्रतिदिन 10 संदेश के साथ मुफ़्त उपलब्ध है। उन पावर यूज़र्स के लिए Pro टियर आ रहा है जो रोज़ाना AI का उपयोग करते हैं — असीमित AI संदेश और प्रीमियम सुविधाओं के साथ।",
     proFeatures: [
       { icon:"🤖", title:"AI संदेश",                 desc:"AI Chat सहायक के लिए दैनिक सीमा।",                                                                                           free:"10 / दिन",   pro:"असीमित" },
       { icon:"📄", title:"PDF निर्यात",               desc:"ऑफलाइन उपयोग और CSC विज़िट के लिए पात्रता परिणामों की PDF डाउनलोड करें।",                                                  free:"✗",          pro:"✓" },
       { icon:"👨‍👩‍👧‍👦", title:"परिवार प्रोफाइल",          desc:"परिवार के सदस्य जोड़ें और हर एक के लिए अलग पात्रता जांचें।",                                                              free:"1 प्रोफाइल", pro:"असीमित" },
-      { icon:"🎯", title:"गहन पात्रता मिलान",          desc:"15+ पैरामीटर — राशन कार्ड, विकलांगता, किसान कार्ड, भूमि धारण — का उपयोग करके सटीक मिलान।",                              free:"✗",          pro:"✓" },
+      { icon:"🎯", title:"गहन पात्रता मिलान",          desc:"15+ पैरामीटर — राशन कार्ड, विकलांगता, किसान कार्ड, भूमि धारण — का उपयोग करके मिलान। Pro में AI-आधारित उन्नत विश्लेषण और प्राथमिकता परिणाम।",              free:"सामान्य",    pro:"उन्नत" },
       { icon:"📋", title:"आवेदन ट्रैकर",              desc:"योजनाओं को Interested → Applied → Received के रूप में चिह्नित करें।",                                                       free:"✗",          pro:"✓" },
       { icon:"📦", title:"दस्तावेज़ चेकलिस्ट",         desc:"सभी मिलान योजनाओं के लिए एक समेकित दस्तावेज़ सूची।",                                                                        free:"Basic",      pro:"Advanced" },
       { icon:"🔔", title:"समय-सीमा अलर्ट",            desc:"आपके राज्य और श्रेणी के अनुसार योजना की अंतिम तिथि पर ईमेल और पुश नोटिफिकेशन।",                                          free:"सामान्य",    pro:"रियल अलर्ट" },
@@ -330,7 +331,7 @@ const STRINGS = {
     proPricingNote:  "मूल्य और भुगतान विकल्प लॉन्च पर घोषित होंगे। UPI, कार्ड और नेट बैंकिंग के माध्यम से भुगतान।",
     proLoginTitle:   "AI Chat के लिए लॉगिन आवश्यक",
     proLoginNotice:
-      "जब YojanaSahay Pro लॉन्च होगा, तब AI Chat टैब तक पहुँचने के लिए Google से साइन इन करना अनिवार्य होगा। इससे आपकी दैनिक उपयोग सीमा और Pro सुविधाएं सीधे आपके खाते से जुड़ी रहेंगी।",
+      "AI Chat टैब तक पहुँचने के लिए Google से साइन इन अनिवार्य है। इससे आपकी दैनिक उपयोग सीमा और Pro सुविधाएं सीधे आपके खाते से जुड़ी रहती हैं।",
 
     signInTitle: "साइन इन के लाभ",
     signInSub:   "खाता बनाकर YojanaSahay का पूरा अनुभव प्राप्त करें।",
@@ -396,10 +397,11 @@ const STRINGS = {
     contactTitle: "YojanaSahay सपोर्ट",
     contactNote:  "केवल प्लेटफ़ॉर्म संबंधी पूछताछ के लिए। योजना-विशिष्ट सहायता के लिए इन-ऐप Report & Query सुविधा का उपयोग करें।",
 
-    lastUpdated: "अंतिम अपडेट · मई 2026",
+    lastUpdated: "अंतिम अपडेट · जून 2026",
 
     whatsNewTitle: "नया क्या है",
     whatsNew: [
+      { version:"v1.4", date:"जून 2026",   note:"योजना न्यूज़ टिकर · बेनिफिट कैलकुलेटर · दस्तावेज़ वॉल्ट · FAQ अनुभाग · लेज़ी लोडिंग · स्वाइप सुधार" },
       { version:"v1.3", date:"मई 2026",    note:"ईमेल & Google साइन-इन · डार्क मोड · Vercel एज डिप्लॉयमेंट" },
       { version:"v1.2", date:"मार्च 2026", note:"रिपोर्ट & समाधान केंद्र · एडमिन डैशबोर्ड · ईमेल अलर्ट" },
       { version:"v1.1", date:"जनवरी 2026", note:"AI सहायक (Groq) · द्विभाषी समर्थन · प्रोफाइल-आधारित उत्तर" },
@@ -3009,7 +3011,7 @@ export default function AboutTab({ onClose, citizensGuided = null }) {
                 }}>Made in India</span>
               </div>
 
-              {/* v1.3 Beta */}
+              {/* v1.4 Beta */}
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 5,
                 padding: "4px 11px", borderRadius: 20,
@@ -3025,7 +3027,7 @@ export default function AboutTab({ onClose, citizensGuided = null }) {
                 <span style={{
                   fontSize: 9, fontWeight: 700, letterSpacing: 0.6,
                   color: dark ? "#7B9EFF" : ASHOKA_BLUE, fontFamily: bf,
-                }}>v1.3 Beta</span>
+                }}>v1.4 Beta</span>
               </div>
 
             </div>

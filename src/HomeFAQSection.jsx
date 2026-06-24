@@ -70,12 +70,12 @@ const FAQ_DATA = {
     {
       cat: "about", icon: "💡",
       q: "What is YojanaSahay?",
-      a: "YojanaSahay is an independent civic technology platform that helps every Indian citizen discover government welfare schemes they are legally entitled to — all in one place, completely free. We are not affiliated with any government body.",
+      a: "YojanaSahay is an independent civic technology platform that helps every Indian citizen discover government welfare schemes they are legally entitled to — all in one place, with core features completely free. We are not affiliated with any government body.",
     },
     {
       cat: "about", icon: "💰",
       q: "Is this app free?",
-      a: "Yes — completely free, forever. No ads, no subscriptions, no hidden charges of any kind. YojanaSahay is built as a public-good platform for every Indian citizen.",
+      a: "Core features are completely free, forever — scheme discovery, the Eligibility Checker, and all scheme data. No ads, no hidden charges. The AI assistant is free with 10 messages per day (resets at midnight IST). YojanaSahay Pro is coming soon with higher AI limits and priority support, but scheme discovery will always remain free for every Indian citizen.",
     },
     {
       cat: "about", icon: "🏛️",
@@ -136,6 +136,21 @@ const FAQ_DATA = {
       q: "Why am I not matched to a scheme I expected?",
       a: "Eligibility depends on your saved profile. Run the Eligibility Checker and update your profile for more accurate results. Some schemes also have very narrow criteria defined by the government — we can only reflect what the official guidelines state.",
     },
+    {
+      cat: "schemes", icon: "📰",
+      q: "What is the Scheme News Ticker on the home screen?",
+      a: "The Scheme News Ticker is a live scrolling banner that displays the latest government scheme updates, new launches, and deadline reminders. It keeps you informed of time-sensitive opportunities without requiring you to manually check for updates.",
+    },
+    {
+      cat: "schemes", icon: "💰",
+      q: "How accurate is the 'Govt. Money You Can Receive' estimate?",
+      a: "This figure adds up the maximum financial benefit across all schemes you are matched to — including monthly stipends, one-time grants, and in-kind benefits. It is an indicative ceiling, not a guaranteed amount. Actual disbursement depends on your approved application and the government's disbursement schedule. Always verify on the official scheme portal.",
+    },
+    {
+      cat: "schemes", icon: "📁",
+      q: "What is the Document Checklist?",
+      a: "The Document Checklist automatically consolidates every document you need across all your matched schemes — so you gather them in one go instead of checking scheme by scheme. A basic checklist is available free. YojanaSahay Pro (coming soon) includes an advanced checklist with document-level guidance and priority grouping.",
+    },
 
     // ── AI Assistant (4 Q) ───────────────────────────────────────────────────
     {
@@ -187,12 +202,12 @@ const FAQ_DATA = {
     {
       cat: "about", icon: "💡",
       q: "योजना सहाय क्या है?",
-      a: "योजना सहाय एक स्वतंत्र नागरिक तकनीक मंच है जो हर भारतीय नागरिक को उनकी पात्र सरकारी कल्याण योजनाओं को एक ही जगह खोजने में मदद करता है — पूरी तरह मुफ़्त। हम किसी सरकारी संस्था से संबद्ध नहीं हैं।",
+      a: "योजना सहाय एक स्वतंत्र नागरिक तकनीक मंच है जो हर भारतीय नागरिक को उनकी पात्र सरकारी कल्याण योजनाओं को एक ही जगह खोजने में मदद करता है — मुख्य सुविधाएं पूरी तरह मुफ़्त। हम किसी सरकारी संस्था से संबद्ध नहीं हैं।",
     },
     {
       cat: "about", icon: "💰",
       q: "क्या यह ऐप मुफ़्त है?",
-      a: "हाँ — पूरी तरह मुफ़्त, हमेशा के लिए। कोई विज्ञापन नहीं, कोई सदस्यता शुल्क नहीं, कोई छुपा खर्च नहीं। योजना सहाय हर भारतीय नागरिक के लिए एक सार्वजनिक-हित मंच है।",
+      a: "मुख्य सुविधाएं हमेशा के लिए मुफ़्त हैं — योजना खोज, पात्रता जाँच और सभी योजना डेटा। कोई विज्ञापन नहीं, कोई छुपा खर्च नहीं। AI सहायक फ्री में प्रतिदिन 10 संदेश देता है (मध्यरात्रि IST पर रीसेट)। YojanaSahay Pro जल्द आ रहा है — अधिक AI सीमा और प्राथमिकता सहायता के साथ। लेकिन योजना खोज हर भारतीय नागरिक के लिए हमेशा मुफ़्त रहेगी।",
     },
     {
       cat: "about", icon: "🏛️",
@@ -252,6 +267,21 @@ const FAQ_DATA = {
       cat: "schemes", icon: "❓",
       q: "मुझे अपेक्षित योजना में मैच क्यों नहीं मिला?",
       a: "पात्रता आपकी सेव की गई प्रोफाइल पर निर्भर करती है। बेहतर परिणामों के लिए पात्रता जाँचकर्ता चलाएं और प्रोफाइल अपडेट करें। कुछ योजनाओं में सरकार द्वारा परिभाषित बहुत संकीर्ण मानदंड होते हैं — हम केवल आधिकारिक दिशा-निर्देशों को ही दर्शा सकते हैं।",
+    },
+    {
+      cat: "schemes", icon: "📰",
+      q: "होम स्क्रीन पर योजना न्यूज़ टिकर क्या है?",
+      a: "योजना न्यूज़ टिकर एक लाइव स्क्रॉलिंग बैनर है जो नई सरकारी योजनाओं, अपडेट और डेडलाइन अनुस्मारक दिखाता है। यह आपको समय-संवेदनशील अवसरों से अवगत रखता है — बिना मैन्युअल रूप से जाँचे।",
+    },
+    {
+      cat: "schemes", icon: "💰",
+      q: "'सरकारी धन जो आप पा सकते हैं' अनुमान कितना सटीक है?",
+      a: "यह राशि आपकी सभी मिलान योजनाओं के अधिकतम वित्तीय लाभ को जोड़ती है — मासिक वृत्ति, एकमुश्त अनुदान और अन्य लाभ सहित। यह एक संकेतक राशि है, गारंटीकृत राशि नहीं। वास्तविक वितरण आपके स्वीकृत आवेदन और सरकारी कार्यक्रम पर निर्भर करता है। कृपया आधिकारिक पोर्टल पर सत्यापित करें।",
+    },
+    {
+      cat: "schemes", icon: "📁",
+      q: "दस्तावेज़ चेकलिस्ट क्या है?",
+      a: "दस्तावेज़ चेकलिस्ट आपकी सभी मिलान योजनाओं के लिए आवश्यक हर दस्तावेज़ की एक स्वचालित सूची बनाती है — ताकि आप एक बार में सभी इकट्ठा कर सकें। बेसिक चेकलिस्ट मुफ़्त में उपलब्ध है। YojanaSahay Pro (जल्द आ रहा है) में उन्नत चेकलिस्ट दस्तावेज़-स्तरीय मार्गदर्शन के साथ मिलेगी।",
     },
 
     // ── AI (4) ────────────────────────────────────────────────────────────────
