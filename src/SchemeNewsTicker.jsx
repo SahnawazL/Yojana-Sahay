@@ -258,7 +258,6 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
       {/* ── Card ── */}
       <div
-        key={animKey}
         style={{
           background:   cardBg,
           border:       `1.5px solid ${borderC}`,
@@ -266,17 +265,8 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
           overflow:     "hidden",
           boxShadow:    shadow,
           position:     "relative",
-          animation:    "ys-card-in 0.3s cubic-bezier(.22,.68,0,1.15) both",
         }}
       >
-        {/* Tricolor accent — ties this card to the app's brand language */}
-        <div style={{
-          position: "absolute", top: 0, left: "10%", right: "10%",
-          height: 2, borderRadius: "0 0 2px 2px",
-          background: `linear-gradient(90deg,${SAFFRON},${NAVY},${GREEN})`,
-          opacity: 0.6,
-        }} />
-
         {/* ── Header ── */}
         <div style={{
           display:        "flex",
@@ -334,48 +324,53 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
         {/* ── Body ── */}
         <div style={{ padding:"13px 14px 12px" }}>
-          {/* Scope badge — Central (navy) or state name (green) */}
-          {item.scope ? (
-            <div style={{ marginBottom:7 }}>
-              <span style={{
-                display:"inline-block",
-                fontSize:9, fontWeight:700, letterSpacing:0.7,
-                textTransform:"uppercase",
-                background: item.scope === "Central" ? NAVY : GREEN,
-                color:"#fff",
-                padding:"2px 9px", borderRadius:99,
-                fontFamily:"'Noto Sans',sans-serif",
-              }}>
-                {item.scope === "Central" ? "Central" : `State · ${item.scope}`}
-              </span>
-            </div>
-          ) : null}
-          {/* line-clamp on each <p> independently — headline always visible
-              (3 lines max), description always visible below it (2 lines max).
-              No shared scroll container means no "desc hidden below maxHeight"
-              bug when the headline itself is long. */}
-          <p style={{
-            margin:0, fontSize:14, fontWeight:600,
-            lineHeight:1.45, color:textMain, fontFamily:fontFace,
-            display:"-webkit-box",
-            WebkitLineClamp:3,
-            WebkitBoxOrient:"vertical",
-            overflow:"hidden",
-          }}>
-            {text}
-          </p>
-          {descText && (
+          {/* Only this inner block remounts on rotation — keeps the entrance
+              animation on the headline/description without flickering the
+              card's border, shadow, header, or the Speak/Read buttons below. */}
+          <div key={animKey} style={{ animation: "ys-card-in 0.3s cubic-bezier(.22,.68,0,1.15) both" }}>
+            {/* Scope badge — Central (navy) or state name (green) */}
+            {item.scope ? (
+              <div style={{ marginBottom:7 }}>
+                <span style={{
+                  display:"inline-block",
+                  fontSize:9, fontWeight:700, letterSpacing:0.7,
+                  textTransform:"uppercase",
+                  background: item.scope === "Central" ? NAVY : GREEN,
+                  color:"#fff",
+                  padding:"2px 9px", borderRadius:99,
+                  fontFamily:"'Noto Sans',sans-serif",
+                }}>
+                  {item.scope === "Central" ? "Central" : `State · ${item.scope}`}
+                </span>
+              </div>
+            ) : null}
+            {/* line-clamp on each <p> independently — headline always visible
+                (3 lines max), description always visible below it (2 lines max).
+                No shared scroll container means no "desc hidden below maxHeight"
+                bug when the headline itself is long. */}
             <p style={{
-              margin:"6px 0 0", fontSize:12, fontWeight:400,
-              lineHeight:1.5, color:textSub, fontFamily:fontFace,
+              margin:0, fontSize:14, fontWeight:600,
+              lineHeight:1.45, color:textMain, fontFamily:fontFace,
               display:"-webkit-box",
-              WebkitLineClamp:2,
+              WebkitLineClamp:3,
               WebkitBoxOrient:"vertical",
               overflow:"hidden",
             }}>
-              {descText}
+              {text}
             </p>
-          )}
+            {descText && (
+              <p style={{
+                margin:"6px 0 0", fontSize:12, fontWeight:400,
+                lineHeight:1.5, color:textSub, fontFamily:fontFace,
+                display:"-webkit-box",
+                WebkitLineClamp:2,
+                WebkitBoxOrient:"vertical",
+                overflow:"hidden",
+              }}>
+                {descText}
+              </p>
+            )}
+          </div>
 
           {/* Footer */}
           <div style={{
