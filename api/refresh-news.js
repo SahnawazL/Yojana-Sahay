@@ -457,22 +457,30 @@ export default async function handler(req, res) {
   // ── Step 7 — Trim: keep only latest MAX_NEWS auto-fetched docs ───────────────
   // Protects against unbounded growth. Manual (autoFetched:false) items are
   // never deleted here — admin manages those from the dashboard.
+  // NOTE: No .orderBy() on the Firestore query — that would require a composite
+  // index on (autoFetched, createdAt). We fetch all auto docs and sort in JS.
   try {
     const autoSnap = await newsRef
       .where("autoFetched", "==", true)
-      .orderBy("createdAt", "desc")
       .get();
 
     if (autoSnap.size > MAX_NEWS) {
-      const toDelete = autoSnap.docs.slice(MAX_NEWS); // oldest beyond limit
+      // Sort newest-first in JS — no composite index needed
+      const sorted = autoSnap.docs.sort((a, b) => {
+        const aMs = a.data().createdAt?.toMillis?.() ?? 0;
+        const bMs = b.data().createdAt?.toMillis?.() ?? 0;
+        return bMs - aMs;
+      });
+      const toDelete = sorted.slice(MAX_NEWS); // oldest beyond limit
       const trimBatch = db.batch();
       toDelete.forEach((d) => trimBatch.delete(d.ref));
       await trimBatch.commit();
       console.log(`[refresh-news] Trimmed ${toDelete.length} old auto-fetched docs`);
+    } else {
+      console.log(`[refresh-news] No trim needed (${autoSnap.size} / ${MAX_NEWS} auto docs)`);
     }
   } catch (trimErr) {
-    // Non-fatal — old docs piling up is not a critical failure
-    console.warn("[refresh-news] Trim step failed (non-fatal):", trimErr.message);
+    console.error("[refresh-news] Trim step failed:", trimErr.message);
   }
 
   // ── Done ─────────────────────────────────────────────────────────────────────
