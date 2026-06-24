@@ -30,6 +30,13 @@ const THEME = {
 const fontFamily = (lang) =>
   lang === "hi" ? "'Noto Sans Devanagari',sans-serif" : "'Noto Sans',sans-serif";
 
+// Compact formatter for the stat pill — e.g. 1240 -> "1.2K+", 850 -> "850+"
+function formatCompactCount(n) {
+  if (!n || n <= 0) return "—";
+  if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K+`;
+  return `${n}+`;
+}
+
 // ─── ELIGIBILITY DATA ─────────────────────────────────────────────────────────
 const STORAGE_KEY     = "yojana_eligibility_answers";
 const BRIEF_CACHE_KEY = "yojana_brief_cache";
@@ -68,13 +75,16 @@ const AREA_LABELS = {
 };
 
 // ─── FEATURES ─────────────────────────────────────────────────────────────────
-const FEATURES = {
+// schemeCount is passed in from App.jsx (SCHEME_DB.length) — the same real,
+// live number shown in the Home tab's "Platform at a Glance" stats — so this
+// screen never shows a number that drifts from the actual database.
+const getFeatures = (schemeCount) => ({
   en: [
     { iconKey:"bolt",     label:"Personalised answers based on your exact profile"        },
     { iconKey:"search",   label:"Live web search for latest scheme updates & deadlines"   },
     { iconKey:"globe",    label:"Chat in Hindi or English — replies in your language"     },
     { iconKey:"chat",     label:"Smart follow-up chips auto-generated after every reply"  },
-    { iconKey:"database", label:"3,000+ Central & State scheme database"                  },
+    { iconKey:"database", label:`${schemeCount}+ Central & State scheme database`          },
     { iconKey:"save",     label:"Conversation history saved across sessions"              },
   ],
   hi: [
@@ -82,10 +92,10 @@ const FEATURES = {
     { iconKey:"search",   label:"नई योजनाओं और डेडलाइन के लिए Live वेब सर्च"          },
     { iconKey:"globe",    label:"हिंदी या English — जिस भाषा में पूछें, उसी में जवाब" },
     { iconKey:"chat",     label:"हर जवाब के बाद Smart Follow-up Chips अपने आप"         },
-    { iconKey:"database", label:"3,000+ केंद्रीय और राज्य योजनाओं का डेटाबेस"         },
+    { iconKey:"database", label:`${schemeCount}+ केंद्रीय और राज्य योजनाओं का डेटाबेस`  },
     { iconKey:"save",     label:"अकाउंट में चैट हिस्ट्री सेव रहती है"                 },
   ],
-};
+});
 
 // Per-feature accent palette — each row gets its own color identity
 const ACCENT_COLORS = ["#A78BFA", "#60A5FA", "#34D399", "#F472B6", "#FBBF24", "#38BDF8"];
@@ -709,10 +719,12 @@ function AIBriefTeaser({ dark, isHindi, bf, th, onGoToChecker }) {
 export default function AILockedScreen({
   lang = "en", dark = false,
   onGoToProfile, onGoToChecker, activeTab,
+  schemeCount = 0,
 }) {
   const th       = THEME[dark ? "dark" : "light"];
   const bf       = fontFamily(lang);
   const isHindi  = lang === "hi";
+  const FEATURES = getFeatures(schemeCount);
   const features = FEATURES[lang] || FEATURES.en;
 
   const [eligData, setEligData] = useState(() => readEligibilityData());
@@ -946,8 +958,8 @@ export default function AILockedScreen({
                 marginTop: 2, fontFamily: bf, letterSpacing: 0.1,
               }}>
                 {isHindi
-                  ? "3,000+ सरकारी योजनाएं · पर्सनल जवाब"
-                  : "3,000+ govt. schemes · personalised for you"}
+                  ? `${schemeCount}+ सरकारी योजनाएं · पर्सनल जवाब`
+                  : `${schemeCount}+ govt. schemes · personalised for you`}
               </div>
             </div>
           </div>
@@ -955,7 +967,7 @@ export default function AILockedScreen({
           {/* Stat pills — per-color redesign */}
           <div style={{ display: "flex", gap: 7, marginBottom: 16, position: "relative" }}>
             {[
-              { v: "3K+",  l: isHindi ? "योजनाएं" : "Schemes",   accent: "#A78BFA" },
+              { v: formatCompactCount(schemeCount), l: isHindi ? "योजनाएं" : "Schemes",   accent: "#A78BFA" },
               { v: "24/7", l: isHindi ? "उपलब्ध"  : "Available", accent: "#38BDF8" },
               { v: "Free", l: isHindi ? "मुफ़्त"   : "Forever",   accent: "#34D399" },
             ].map((s, i) => (

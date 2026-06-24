@@ -77,6 +77,15 @@ const fontFamily = (lang) =>
     ? "'Noto Sans Devanagari', 'DM Sans', sans-serif"
     : "'DM Sans', 'Noto Sans', sans-serif";
 
+// Compact formatter for live stat numbers — e.g. 1240 -> "1.2K+", 850 -> "850+",
+// null (still loading) -> "—". Mirrors AILockedScreen.jsx's formatCompactCount.
+function formatCompactCount(n) {
+  if (n === null || n === undefined) return "—";
+  if (n <= 0) return "0";
+  if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K+`;
+  return `${n}+`;
+}
+
 // ─── BILINGUAL STRINGS ────────────────────────────────────────────────────────
 const STRINGS = {
   en: {
@@ -92,7 +101,7 @@ const STRINGS = {
     statsTitle: "Platform at a Glance",
     stats: [
       { number:"28+",  label:"States & UTs\nCovered" },
-      { number:"50L+", label:"Citizens\nGuided" },
+      { number:"—",    label:"Citizens\nGuided" },
       { number:"2",    label:"Languages\nSupported" },
       { number:"100%", label:"Free to\nUse" },
     ],
@@ -233,7 +242,7 @@ const STRINGS = {
       { version:"v1.3", date:"May 2026",   note:"Email & Google sign-in · Dark mode · Vercel edge deployment" },
       { version:"v1.2", date:"Mar 2026",   note:"Report & Resolution Centre · Admin dashboard · Email alerts" },
       { version:"v1.1", date:"Jan 2026",   note:"AI Assistant (Groq) · Bilingual support · Profile-aware responses" },
-      { version:"v1.0", date:"Nov 2025",   note:"Initial public Beta · Eligibility checker · 3,000+ schemes indexed" },
+      { version:"v1.0", date:"Nov 2025",   note:"Initial public Beta · Eligibility checker · Government scheme database launched" },
     ],
 
     shareTitle: "Share YojanaSahay",
@@ -270,7 +279,7 @@ const STRINGS = {
     statsTitle: "प्लेटफ़ॉर्म एक नज़र में",
     stats: [
       { number:"28+",  label:"राज्य और\nकेंद्र शासित" },
-      { number:"50L+", label:"नागरिक\nलाभान्वित" },
+      { number:"—",    label:"नागरिक\nलाभान्वित" },
       { number:"2",    label:"भाषाएं\nउपलब्ध" },
       { number:"100%", label:"बिल्कुल\nनिःशुल्क" },
     ],
@@ -394,7 +403,7 @@ const STRINGS = {
       { version:"v1.3", date:"मई 2026",    note:"ईमेल & Google साइन-इन · डार्क मोड · Vercel एज डिप्लॉयमेंट" },
       { version:"v1.2", date:"मार्च 2026", note:"रिपोर्ट & समाधान केंद्र · एडमिन डैशबोर्ड · ईमेल अलर्ट" },
       { version:"v1.1", date:"जनवरी 2026", note:"AI सहायक (Groq) · द्विभाषी समर्थन · प्रोफाइल-आधारित उत्तर" },
-      { version:"v1.0", date:"नवंबर 2025", note:"पहला सार्वजनिक Beta · पात्रता जांचक · 3,000+ योजनाएं" },
+      { version:"v1.0", date:"नवंबर 2025", note:"पहला सार्वजनिक Beta · पात्रता जांचक · सरकारी योजना डेटाबेस लॉन्च" },
     ],
 
     shareTitle: "योजना सहाय साझा करें",
@@ -536,7 +545,7 @@ function InfoRow({ icon, iconBg, title, desc, dark, bf, last }) {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-export default function AboutTab({ onClose }) {
+export default function AboutTab({ onClose, citizensGuided = null }) {
   // ── Fully internal dark/light — always opens dark, independent from app ──
   const [dark, setDark] = useState(() => {
     const saved = localStorage.getItem("about_dark");
@@ -1396,7 +1405,7 @@ export default function AboutTab({ onClose }) {
                     fontFamily: bf,
                     textShadow: `0 0 20px ${statColors[i]}40`,
                   }}>
-                    {stat.number}
+                    {i === 1 ? formatCompactCount(citizensGuided) : stat.number}
                   </div>
                   <div style={{
                     fontSize: 9, color: "rgba(255,255,255,0.50)", marginTop: 6,

@@ -3821,7 +3821,7 @@ function Card({children,mt=-20,dark=false}){
 }
 
 // ─── PROFILE TAB ──────────────────────────────────────────────────────────────
-function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false,toggleDark,isAdmin=false,onAdminOpen}){
+function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false,toggleDark,isAdmin=false,onAdminOpen,liveCheckerTotal=null}){
   const th=THEME[dark?"dark":"light"];
   const pt=PT[lang];
   const bf=fontFamily(lang);
@@ -4672,7 +4672,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         }}>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
             <Suspense fallback={<PremiumLoader/>}>
-            <AboutTab onClose={()=>setShowAbout(false)}/>
+            <AboutTab onClose={()=>setShowAbout(false)} citizensGuided={liveCheckerTotal}/>
             </Suspense>
           </div>
         </div>
@@ -6097,7 +6097,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           {/* Scrollable content */}
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
             <Suspense fallback={<PremiumLoader/>}>
-            <AboutTab onClose={()=>setShowAbout(false)}/>
+            <AboutTab onClose={()=>setShowAbout(false)} citizensGuided={liveCheckerTotal}/>
             </Suspense>
           </div>
         </div>
@@ -7888,7 +7888,7 @@ export default function YojanaSahay(){
                       sub:isHindi?"अपनी जानकारी भरें":"Fill in your basic details"},
                     {num:"2",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,color:"#06038D",bg:"rgba(6,3,141,0.08)",
                       title:isHindi?"AI मिलान करता है":"AI Matches Your Profile",
-                      sub:isHindi?"3000+ योजनाओं में खोज":"Searches 3,000+ schemes for you"},
+                      sub:isHindi?"योजनाओं में खोज":"Searches schemes for you"},
                     {num:"3",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,color:"#138808",bg:"rgba(19,136,8,0.08)",
                       title:isHindi?"योजना पाएं — आवेदन करें":"Get Results & Apply",
                       sub:isHindi?"पात्र योजनाएं देखें और आवेदन करें":"View matched schemes and apply online"},
@@ -8130,6 +8130,9 @@ export default function YojanaSahay(){
               )}
             </div>
 
+            {/* FAQ — bottom of Home tab */}
+            <HomeFAQSection lang={lang} dark={dark} />
+
           </div>
         </div>
       </div>
@@ -8180,6 +8183,7 @@ export default function YojanaSahay(){
           toggleDark={toggleDark}
           isAdmin={isAdmin}
           onAdminOpen={handleAdminOpen}
+          liveCheckerTotal={liveCheckerTotal}
         />}
       </div>
 
@@ -8217,6 +8221,7 @@ export default function YojanaSahay(){
             onGoToProfile={() => setActiveTab("profile")}
             onGoToChecker={() => setShowChecker(true)}
             activeTab={activeTab}
+            schemeCount={SCHEME_DB.length}
           />
         )}
       </div>
