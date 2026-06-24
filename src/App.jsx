@@ -3921,7 +3921,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     };
     window.addEventListener("popstate",handlePop);
     return()=>window.removeEventListener("popstate",handlePop);
-  },[stage,showReport,showAbout,showHelpline,showSignOutModal,profile]);
+  },[stage,showReport,showAbout,showHelpline,showFAQ,showSignOutModal,profile]);
 
   // OTP countdown timer
   useEffect(()=>{
