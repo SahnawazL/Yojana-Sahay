@@ -4666,7 +4666,11 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
       {/* ── About Screen Overlay (phone/logged-out stage) ── */}
       {showAbout&&(
-        <div style={{
+        <div
+          onTouchStart={e=>e.stopPropagation()}
+          onTouchMove={e=>e.stopPropagation()}
+          onTouchEnd={e=>e.stopPropagation()}
+          style={{
           position:"fixed",inset:0,zIndex:900,
           background:THEME[dark?"dark":"light"].appBg,
           display:"flex",flexDirection:"column",
@@ -6113,7 +6117,11 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
       {/* ── About Screen Overlay ── */}
       {showAbout&&(
-        <div style={{
+        <div
+          onTouchStart={e=>e.stopPropagation()}
+          onTouchMove={e=>e.stopPropagation()}
+          onTouchEnd={e=>e.stopPropagation()}
+          style={{
           position:"fixed",inset:0,zIndex:900,
           background:THEME[dark?"dark":"light"].appBg,
           display:"flex",flexDirection:"column",
