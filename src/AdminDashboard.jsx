@@ -21,6 +21,7 @@ import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
 import SchemeVerifier from "./SchemeVerifier.jsx";
 import AgentsTab, { useAgentPresence, useDailyTimeTracking, logAdminActivity } from "./AgentsTab.jsx";
+import NewsTab from "./NewsTab.jsx";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -171,6 +172,15 @@ const TAB_ICONS = {
       <circle cx="9" cy="7" r="4"/>
       <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
       <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+  news: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+      <line x1="16" y1="3" x2="16" y2="21"/>
+      <line x1="2" y1="9" x2="22" y2="9"/>
+      <line x1="8" y1="14" x2="13" y2="14"/>
+      <line x1="8" y1="18" x2="11" y2="18"/>
     </svg>
   ),
 };
@@ -3512,6 +3522,7 @@ const ICON_PATHS = {
   login: <><path d="M14.5 3h4A1.8 1.8 0 0 1 20.3 4.8v14.4a1.8 1.8 0 0 1-1.8 1.8h-4"/><polyline points="9.5 16.5 14.5 12 9.5 7.5"/><line x1="14.5" y1="12" x2="2.5" y2="12"/></>,
   phone: <path d="M20.5 16.8v2.5a1.7 1.7 0 0 1-1.85 1.7 16.6 16.6 0 0 1-7.24-2.58 16.4 16.4 0 0 1-5.05-5.05A16.6 16.6 0 0 1 3.78 5.6 1.7 1.7 0 0 1 5.46 3.75h2.5a1.7 1.7 0 0 1 1.7 1.46c.1.8.3 1.6.59 2.35a1.7 1.7 0 0 1-.38 1.79l-1.06 1.06a13.5 13.5 0 0 0 5.06 5.06l1.06-1.06a1.7 1.7 0 0 1 1.79-.38c.75.29 1.55.49 2.35.59a1.7 1.7 0 0 1 1.45 1.7z"/>,
   card: <><rect x="2" y="5.5" width="20" height="13" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></>,
+  news: <><path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><line x1="16" y1="3" x2="16" y2="21"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="8" y1="14" x2="13" y2="14"/><line x1="8" y1="18" x2="11" y2="18"/></>,
 };
 
 function Icon({ name, size = 16, color = "currentColor", strokeWidth = 1.8, style }) {
@@ -3888,6 +3899,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
     cleanup:   { desc:"Purge resolved reports & flush stale usage data",           badge:"database hygiene",                                                                badge2Color:"#F59E0B", accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"cleanup" },
     verify:    { desc:"Ping scheme URLs & extract deadlines via AI",               badge:"Tier 1 + Tier 2",                                                                 badge2Color:NAVY,      accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"verify" },
     agents:    { desc:"Live presence, session tracking & activity feed for agents", badge:"live · auto-refresh",                                                             badge2Color:IND_GREEN, accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"agents" },
+    news:      { desc:"Manage scheme news ticker — add, toggle & sync live updates",  badge:"live ticker",                                                                     badge2Color:SAFFRON,   accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"news" },
     export:    { desc:"Compile & download full-dashboard PDF intelligence report",  badge:"landscape A4 · PDF",                                                             badge2Color:"#10B981", accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"export" },
   };
 
@@ -4401,6 +4413,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
+  // ── Scheme News (News tab) ────────────────────────────────────────────────
+
+
   // ── Boot sequence intro — once per browser session ──────────────────────
   const [showBoot, setShowBoot] = useState(() => {
     try { return sessionStorage.getItem("ys_admin_booted") !== "true"; }
@@ -4570,6 +4585,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   useEffect(() => {
     if (activeSection === "usage" && !usageData) fetchUsage();
   }, [activeSection]);
+
+
+
+
+  // ── News: toggle active field ─────────────────────────────────────────────
+
+
+  // ── News: delete item ─────────────────────────────────────────────────────
+
+
+
 
   // ── Computed stats ────────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -5787,6 +5813,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     ["cleanup",   "Cleanup"],
     ["verify",    "Verify"],
     ["agents",    "Agents"],
+    ["news",      "News"],
     ["export",    "Export"],
   ];
   // allowedTabs=null means full admin (show all). Array means restricted — filter to those tabs only.
@@ -7582,6 +7609,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       {/* ══ AGENTS — Live Presence Monitor ══ */}
       {!loading && !error && activeSection === "agents" && (
         <AgentsTab dark={dark} isDesktop={isDesktop} />
+      )}
+
+      {/* ══ NEWS — Scheme News Manager ══ */}
+      {activeSection === "news" && (
+        <NewsTab allowedTabs={allowedTabs} dark={dark} isDesktop={isDesktop} />
       )}
 
       </div>{/* end animated tab content */}
