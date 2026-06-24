@@ -32,7 +32,7 @@ const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
 import SchemeNewsTicker from "./SchemeNewsTicker.jsx";
-import HomeFAQSection from "./HomeFAQSection.jsx";
+const HomeFAQSection = React.lazy(() => import("./HomeFAQSection.jsx"));
 
 // ─── ENRICH SCHEME_DB WITH VERIFICATION METADATA ─────────────────────────────
 // Merges lastDate, lastVerified, linkAlive, isActive, httpStatus, confidence
@@ -6205,7 +6205,9 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"14px 16px 32px"}}>
+            <Suspense fallback={<PremiumLoader/>}>
             <HomeFAQSection lang={lang} dark={dark}/>
+            </Suspense>
           </div>
         </div>
       )}
@@ -8844,7 +8846,9 @@ export default function YojanaSahay(){
           </div>
           {/* Scrollable FAQ content */}
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"14px 16px 32px"}}>
+            <Suspense fallback={<PremiumLoader/>}>
             <HomeFAQSection lang={lang} dark={dark}/>
+            </Suspense>
           </div>
         </div>
       )}
