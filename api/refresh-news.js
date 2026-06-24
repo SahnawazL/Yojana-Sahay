@@ -152,17 +152,28 @@ async function groqFilterAndSummarise(items, groqKeys) {
     .join("\n");
 
   const systemPrompt =
-    "You are a news filter for YojanaSahay — an Indian government scheme discovery app. " +
-    "Your job: from a list of news headlines, keep ONLY those directly about Indian " +
-    "government welfare schemes, yojanas, subsidies, benefits, or loan schemes for citizens. " +
+    "You are a news editor for YojanaSahay — an Indian government scheme discovery app " +
+    "used by citizens to track welfare updates. From a list of news headlines, keep ONLY " +
+    "those directly about Indian government welfare schemes, yojanas, subsidies, benefits, " +
+    "or loan schemes for citizens." +
     "\n\nREJECT headlines about: politics, elections, cricket, entertainment, " +
     "international news, stock market, crime, or anything unrelated to citizen welfare schemes." +
-    "\n\nFor each RELEVANT headline, produce:" +
-    "\n  text_en — a crisp 80-character English ticker line (include ₹ amount if mentioned)" +
-    "\n  text_hi — accurate Hindi translation of text_en (≤ 90 chars)" +
+    "\n\nALSO REJECT headlines that are too vague to explain anything concrete — e.g. just a " +
+    "scheme name followed by generic words like 'Details', 'Update', 'News', 'Launched' with " +
+    "no actual change, amount, deadline, or beneficiary action mentioned. These give a citizen " +
+    "nothing to learn or act on. Skip them rather than inventing content to fill the gap." +
+    "\n\nFor each RELEVANT and SUBSTANTIVE headline, produce:" +
+    "\n  text_en — a short, punchy English headline (≤70 characters, include ₹ amount if mentioned)" +
+    "\n  text_hi — accurate Hindi translation of text_en" +
+    "\n  desc_en — ONE plain-English sentence (max 160 characters) explaining what this update " +
+    "actually means for a citizen: what changed, who it affects, and what they might want to do " +
+    "next. Use only facts present in the headline plus general, well-known facts about the " +
+    "scheme itself (e.g. who PMAY is for). Never invent specific numbers, dates, or details that " +
+    "are not implied by the headline." +
+    "\n  desc_hi — accurate Hindi translation of desc_en" +
     "\n\nRespond ONLY with a valid JSON array. No explanation, no markdown fences." +
-    '\nFormat: [{"idx":1,"text_en":"...","text_hi":"..."},...]' +
-    "\nOmit irrelevant items entirely. Return [] if nothing is relevant.";
+    '\nFormat: [{"idx":1,"text_en":"...","text_hi":"...","desc_en":"...","desc_hi":"..."},...]' +
+    "\nOmit irrelevant or non-substantive items entirely. Return [] if nothing qualifies.";
 
   const userPrompt =
     `Evaluate these ${items.length} news headlines:\n\n${numbered}`;
@@ -178,7 +189,7 @@ async function groqFilterAndSummarise(items, groqKeys) {
         },
         body: JSON.stringify({
           model:           MODEL,
-          max_tokens:      900,
+          max_tokens:      1300,
           temperature:     0.3,
           response_format: { type: "json_object" },
           messages: [
@@ -217,12 +228,14 @@ async function groqFilterAndSummarise(items, groqKeys) {
         return [];
       }
 
-      // Validate shape — must have idx, text_en, text_hi
+      // Validate shape — must have idx, text_en, text_hi, desc_en, desc_hi
       return parsed.filter(
         (r) =>
           typeof r?.idx      === "number" &&
           typeof r?.text_en  === "string" && r.text_en.length > 5 &&
-          typeof r?.text_hi  === "string" && r.text_hi.length > 5
+          typeof r?.text_hi  === "string" && r.text_hi.length > 5 &&
+          typeof r?.desc_en  === "string" && r.desc_en.length > 10 &&
+          typeof r?.desc_hi  === "string" && r.desc_hi.length > 10
       );
 
     } catch (err) {
@@ -335,6 +348,8 @@ export default async function handler(req, res) {
     batch.set(docRef, {
       text_en:     result.text_en.slice(0, 120),  // hard cap just in case
       text_hi:     result.text_hi.slice(0, 140),
+      desc_en:     result.desc_en.slice(0, 200),
+      desc_hi:     result.desc_hi.slice(0, 220),
       url:         source.link || "",
       source:      "Google News",
       active:      true,
