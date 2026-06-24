@@ -1441,26 +1441,38 @@ const SchemeCard = memo(_SchemeCard, (prev, next) =>
 
 // ─── CATEGORY FILTER SHEET ─────────────────────────────────────────────────────
 // Opens when user taps a category tile on home page.
-// Shows all matching schemes from SCHEME_DB filtered by category filterKey.
+// Two-phase render so the sheet NEVER lags on open:
+//   Phase 1 (0–30ms)  : sheet slides up with shimmer skeleton cards
+//   Phase 2 (400ms)   : real SchemeCard list swaps in after animation ends
 function CategorySheet({category,lang,onClose,dark=false}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
   const isHindi=lang==="hi";
   const bf=fontFamily(lang);
   const [visible,setVisible]=useState(false);
+  const [contentReady,setContentReady]=useState(false);
   const [expandedId,setExpandedId]=useState(null);
 
-  useEffect(()=>{const id=setTimeout(()=>setVisible(true),30);return()=>clearTimeout(id);},[]);
-  const schemes=useMemo(()=>getSchemesForCategory(category.filterKey),[category.filterKey]);
+  useEffect(()=>{
+    const id1=setTimeout(()=>setVisible(true),30);
+    // 400ms > animation duration (350ms) — list renders after sheet is fully open
+    const id2=setTimeout(()=>setContentReady(true),400);
+    return()=>{clearTimeout(id1);clearTimeout(id2);};
+  },[]);
+
+  // Only filter SCHEME_DB once the sheet is visible — avoids blocking the animation
+  const schemes=useMemo(()=>contentReady?getSchemesForCategory(category.filterKey):[],[category.filterKey,contentReady]);
   const nationalSchemes=useMemo(()=>schemes.filter(s=>s.scope==="national"),[schemes]);
   const stateSchemes=useMemo(()=>schemes.filter(s=>s.scope==="state"),[schemes]);
+
+  // Reuse the global SkeletonCard — no local definition needed
 
   return(
     <div onClick={e=>{if(e.target===e.currentTarget)onClose();}}
       style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
       <div style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",maxHeight:"90vh",display:"flex",flexDirection:"column",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
 
-        {/* Sheet Header */}
+        {/* Sheet Header — always visible immediately */}
         <div style={{background:th.card,borderRadius:"24px 24px 0 0",padding:"12px 20px 16px",flexShrink:0,borderBottom:`1px solid ${th.border}`}}>
           <div style={{display:"flex",justifyContent:"center",marginBottom:10}}>
             <div style={{width:40,height:4,background:th.handle,borderRadius:2}}/>
@@ -1471,17 +1483,30 @@ function CategorySheet({category,lang,onClose,dark=false}){
             </div>
             <div style={{flex:1}}>
               <div style={{fontSize:17,fontWeight:800,color:th.text,fontFamily:bf}}>{category.label} {t.catSchemes}</div>
-              <div style={{fontSize:12,color:th.textSub,marginTop:1}}>{schemes.length} {isHindi?"योजनाएं मिलीं":"schemes found"}</div>
+              {/* Count placeholder while loading, real count after */}
+              <div style={{fontSize:12,color:th.textSub,marginTop:1}}>
+                {contentReady
+                  ?`${schemes.length} ${isHindi?"योजनाएं मिलीं":"schemes found"}`
+                  :<span style={{display:"inline-block",height:10,width:72,borderRadius:5,background:dark?"rgba(255,255,255,0.09)":"#ebebeb",verticalAlign:"middle"}}/>
+                }
+              </div>
             </div>
             <div onClick={()=>{haptic();onClose();}} style={{width:32,height:32,borderRadius:"50%",background:th.pillBg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:14,color:th.textMid}}>✕</div>
           </div>
-          {/* Color bar */}
+          {/* Animated color bar */}
           <div style={{height:3,borderRadius:4,background:`linear-gradient(90deg,${category.color},${category.color}55)`,marginTop:14}}/>
         </div>
 
-        {/* Schemes List */}
+        {/* List area */}
         <div style={{overflowY:"auto",padding:"14px 16px 40px",flex:1}}>
-          {schemes.length===0&&(
+
+          {/* ── Phase 1: shimmer skeletons while sheet animates in ── */}
+          {!contentReady&&(
+            <>{[0,1,2,3,4].map(i=><SkeletonCard key={i} dark={dark}/>)}</>
+          )}
+
+          {/* ── Phase 2: real content after animation done ── */}
+          {contentReady&&schemes.length===0&&(
             <div style={{textAlign:"center",padding:"40px 20px",color:"#aaa"}}>
               <div style={{fontSize:44,marginBottom:12}}>🔍</div>
               <div style={{fontSize:14,fontWeight:600,fontFamily:bf}}>{t.noSchemesFound}</div>
@@ -1489,7 +1514,7 @@ function CategorySheet({category,lang,onClose,dark=false}){
           )}
 
           {/* State schemes */}
-          {stateSchemes.length>0&&(
+          {contentReady&&stateSchemes.length>0&&(
             <>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
                 <div style={{height:1,flex:1,background:th.border2}}/>
@@ -1507,7 +1532,7 @@ function CategorySheet({category,lang,onClose,dark=false}){
           )}
 
           {/* National schemes */}
-          {nationalSchemes.length>0&&(
+          {contentReady&&nationalSchemes.length>0&&(
             <>
               <div style={{display:"flex",alignItems:"center",gap:8,margin:"14px 0 10px"}}>
                 <div style={{height:1,flex:1,background:th.border2}}/>
