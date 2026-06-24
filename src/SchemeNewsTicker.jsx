@@ -31,10 +31,6 @@ const CSS = `
     0%,100%{ opacity:1; transform:scale(1); }
     50%    { opacity:0.3; transform:scale(0.72); }
   }
-  @keyframes ys-card-in {
-    from { opacity:0; transform:translateY(6px); }
-    to   { opacity:1; transform:translateY(0);   }
-  }
   @keyframes ys-progress {
     from { width:0%; }
     to   { width:100%; }
@@ -86,7 +82,8 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
   const [items,       setItems]       = useState([]);
   const [idx,         setIdx]         = useState(0);
-  const [animKey,     setAnimKey]     = useState(0);
+  const [displayIdx,  setDisplayIdx]  = useState(0);  // lags idx — swaps only once faded out, for a true crossfade
+  const [textVisible, setTextVisible] = useState(true);
   const [progressKey, setProgressKey] = useState(0);
   const [isSpeaking,  setIsSpeaking]  = useState(false);
   const [loaded,      setLoaded]      = useState(false);
@@ -96,6 +93,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
   const itemsRef  = useRef([]);
   const timerRef  = useRef(null);
   const advanceRef = useRef(null);
+  const fadeTimerRef = useRef(null);
 
   useEffect(() => { idxRef.current  = idx;   }, [idx]);
   useEffect(() => { itemsRef.current = items; }, [items]);
@@ -121,17 +119,32 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
   useEffect(() => {
     setIdx(0);
-    setAnimKey(k => k + 1);
+    setDisplayIdx(0);
+    setTextVisible(true);
     setProgressKey(k => k + 1);
   }, [items.length]);
+
+  // ── Crossfade — fade the old headline out, swap content while invisible,
+  //    then fade the new one in. Swapping mid-fade (instead of on a remount)
+  //    is what makes this a smooth dissolve instead of a flicker/pop. ───────
+  useEffect(() => {
+    if (idx === displayIdx) return;
+    setTextVisible(false);
+    clearTimeout(fadeTimerRef.current);
+    fadeTimerRef.current = setTimeout(() => {
+      setDisplayIdx(idx);
+      setProgressKey(k => k + 1);
+      setTextVisible(true);
+    }, 160);
+    return () => clearTimeout(fadeTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx]);
 
   // ── Navigate ───────────────────────────────────────────────────────────────
   const goTo = useCallback((next) => {
     window.speechSynthesis?.cancel();
     setIsSpeaking(false);
     setIdx(next);
-    setAnimKey(k => k + 1);
-    setProgressKey(k => k + 1);
   }, []);
 
   advanceRef.current = (dir) => {
@@ -224,7 +237,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
   // ── Guard ──────────────────────────────────────────────────────────────────
   if (!loaded || !items.length) return null;
-  const item = items[idx % items.length];
+  const item = items[displayIdx % items.length];
   if (!item) return null;
 
   const text     = (lang === "hi" && item.text_hi) ? item.text_hi : item.text_en;
@@ -317,7 +330,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
                 fontFamily:"'Noto Sans',sans-serif",
                 background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
                 padding:"2px 6px", borderRadius:99,
-              }}>{idx + 1}/{items.length}</span>
+              }}>{displayIdx + 1}/{items.length}</span>
             )}
           </div>
         </div>
@@ -327,7 +340,11 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
           {/* Only this inner block remounts on rotation — keeps the entrance
               animation on the headline/description without flickering the
               card's border, shadow, header, or the Speak/Read buttons below. */}
-          <div key={animKey} style={{ animation: "ys-card-in 0.3s cubic-bezier(.22,.68,0,1.15) both" }}>
+          <div style={{
+            opacity:   textVisible ? 1 : 0,
+            transform: textVisible ? "translateY(0)" : "translateY(3px)",
+            transition: "opacity 0.16s ease, transform 0.16s ease",
+          }}>
             {/* Scope badge — Central (navy) or state name (green) */}
             {item.scope ? (
               <div style={{ marginBottom:7 }}>
@@ -454,10 +471,10 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
               key={i}
               onClick={() => { goTo(i); haptic(6); }}
               style={{
-                width:      i === idx ? 18 : 5,
+                width:      i === displayIdx ? 18 : 5,
                 height:     5,
                 borderRadius: 99,
-                background: i === idx
+                background: i === displayIdx
                   ? SAFFRON
                   : (dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"),
                 transition: "width 0.3s ease, background 0.3s ease",
