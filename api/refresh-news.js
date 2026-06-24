@@ -194,10 +194,9 @@ async function groqFilterAndSummarise(items, groqKeys) {
           "Authorization": `Bearer ${key}`,
         },
         body: JSON.stringify({
-          model:           MODEL,
-          max_tokens:      1300,
-          temperature:     0.3,
-          response_format: { type: "json_object" },
+          model:       MODEL,
+          max_tokens:  1300,
+          temperature: 0.3,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user",   content: userPrompt   },
@@ -218,7 +217,7 @@ async function groqFilterAndSummarise(items, groqKeys) {
       const data = await res.json();
       const raw  = data?.choices?.[0]?.message?.content ?? "[]";
 
-      // Groq with response_format json_object wraps arrays — unwrap if needed
+      // Model may return { items: [...] } or { results: [...] } or directly [...] — unwrap if needed
       let parsed;
       try {
         const clean = raw.replace(/```json|```/g, "").trim();
@@ -330,7 +329,7 @@ export default async function handler(req, res) {
   console.log(`[refresh-news] RSS fetched: ${allItems.length} unique items`);
 
   if (!allItems.length) {
-    return res.status(200).json({ message: "No RSS items fetched.", added: 0 });
+    return res.status(200).json({ message: "No RSS items fetched.", added: 0, scanned: 0 });
   }
 
   // ── Step 4 — Deduplicate against existing Firestore docs ─────────────────────
@@ -366,7 +365,7 @@ export default async function handler(req, res) {
 
   if (!newItems.length) {
     console.log("[refresh-news] Nothing new this week — collection is up to date.");
-    return res.status(200).json({ message: "Already up to date.", added: 0 });
+    return res.status(200).json({ message: "Already up to date.", added: 0, scanned: allItems.length });
   }
 
   // ── Step 5 — Groq: filter relevance + summarise + translate ──────────────────
@@ -380,6 +379,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       message: "No scheme-relevant items found in this week's news.",
       added:   0,
+      scanned: newItems.length,
     });
   }
 
@@ -405,6 +405,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       message: "All approved items are duplicates of recent scheme coverage.",
       added:   0,
+      scanned: newItems.length,
     });
   }
 
