@@ -7227,6 +7227,7 @@ export default function YojanaSahay(){
   const [dark,setDark]=useState(()=>localStorage.getItem("yojana_dark")==="true");
   const [activeTab,setActiveTab]=useState("home");
   const [showAdmin,setShowAdmin]=useState(false);
+  const [showFAQ,setShowFAQ]=useState(false);
 
   const [loaded,setLoaded]=useState(false);
   const [langAnim,setLangAnim]=useState(false);
@@ -7433,21 +7434,22 @@ export default function YojanaSahay(){
   // Push a history entry for each top-level overlay so pressing back closes it
   // instead of closing the whole app.
   useEffect(()=>{
-    const hasOverlay=showAdmin||showChecker||!!selectedScheme||!!selectedCategory;
+    const hasOverlay=showAdmin||showChecker||showFAQ||!!selectedScheme||!!selectedCategory;
     if(hasOverlay) window.history.pushState({ysOverlay:true},"");
-  },[showAdmin,showChecker,selectedScheme,selectedCategory]);
+  },[showAdmin,showChecker,showFAQ,selectedScheme,selectedCategory]);
 
   useEffect(()=>{
     const handlePop=()=>{
       // Close in reverse-open order (most recently opened first)
       if(showAdmin)        {setShowAdmin(false);return;}
+      if(showFAQ)          {setShowFAQ(false);return;}
       if(showChecker)      {setShowChecker(false);return;}
       if(selectedScheme)   {setSelectedScheme(null);return;}
       if(selectedCategory) {setSelectedCategory(null);return;}
     };
     window.addEventListener("popstate",handlePop);
     return()=>window.removeEventListener("popstate",handlePop);
-  },[showAdmin,showChecker,selectedScheme,selectedCategory]);
+  },[showAdmin,showChecker,showFAQ,selectedScheme,selectedCategory]);
 
   // Live stat targets: real scheme count + states + real checkerTotal from Firestore
   const statTargets=useMemo(()=>[
@@ -8130,8 +8132,35 @@ export default function YojanaSahay(){
               )}
             </div>
 
-            {/* FAQ — bottom of Home tab */}
-            <HomeFAQSection lang={lang} dark={dark} />
+            {/* FAQ pill — opens full FAQ sheet, doesn't dump the whole list inline */}
+            <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
+              <div
+                onClick={()=>{haptic();setShowFAQ(true);}}
+                style={{
+                  display:"flex",alignItems:"center",gap:7,
+                  padding:"9px 16px 9px 14px",borderRadius:999,
+                  background:dark?"rgba(107,144,255,0.10)":"rgba(0,53,128,0.05)",
+                  border:`1.5px solid ${dark?"rgba(107,144,255,0.30)":"rgba(0,53,128,0.16)"}`,
+                  cursor:"pointer",WebkitTapHighlightColor:"transparent",
+                  transition:"transform 0.12s",
+                }}
+                onTouchStart={e=>{e.currentTarget.style.transform="scale(0.96)";}}
+                onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";}}
+                onTouchCancel={e=>{e.currentTarget.style.transform="scale(1)";}}
+              >
+                <div style={{
+                  width:18,height:18,borderRadius:"50%",flexShrink:0,
+                  background:dark?"rgba(107,144,255,0.20)":"rgba(0,53,128,0.10)",
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:10,fontWeight:800,color:dark?"#6B90FF":"#003580",fontFamily:bf,
+                }}>?</div>
+                <span style={{
+                  fontSize:12,fontWeight:700,color:dark?"#6B90FF":"#003580",fontFamily:bf,letterSpacing:0.1,
+                }}>
+                  {isHindi?"योजना सहाय FAQ":"YojanaSahay FAQ"}
+                </span>
+              </div>
+            </div>
 
           </div>
         </div>
@@ -8707,6 +8736,44 @@ export default function YojanaSahay(){
       )}
       {selectedCategory&&(
         <CategorySheet category={selectedCategory} lang={lang} onClose={()=>setSelectedCategory(null)} dark={dark}/>
+      )}
+      {showFAQ&&(
+        <div style={{
+          position:"fixed",inset:0,zIndex:900,
+          background:dark?"#000":"#f2f2f7",
+          display:"flex",flexDirection:"column",
+          fontFamily:lang==="hi"?"'Noto Sans Devanagari',sans-serif":"'Noto Sans',sans-serif",
+        }}>
+          {/* Sheet header — back chevron + title, matches other full-screen overlays */}
+          <div style={{
+            display:"flex",alignItems:"center",gap:10,
+            padding:"14px 14px 12px",flexShrink:0,
+            background:dark?"#0c0c0e":"#fff",
+            borderBottom:`1px solid ${dark?"#2c2c2e":"#f0f0f0"}`,
+          }}>
+            <div
+              onClick={()=>{haptic();setShowFAQ(false);}}
+              style={{
+                width:34,height:34,borderRadius:10,flexShrink:0,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",
+                cursor:"pointer",WebkitTapHighlightColor:"transparent",
+              }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke={dark?"#f0f0f0":"#1a1a1a"} strokeWidth="2.2"
+                strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </div>
+            <div style={{fontSize:15.5,fontWeight:800,color:dark?"#f0f0f0":"#1a1a1a",fontFamily:lang==="hi"?"'Noto Sans Devanagari',sans-serif":"'Noto Sans',sans-serif"}}>
+              {isHindi?"योजना सहाय FAQ":"YojanaSahay FAQ"}
+            </div>
+          </div>
+          {/* Scrollable FAQ content */}
+          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"14px 16px 32px"}}>
+            <HomeFAQSection lang={lang} dark={dark}/>
+          </div>
+        </div>
       )}
     </div>
   );
