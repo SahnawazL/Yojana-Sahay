@@ -54,21 +54,6 @@ const CSS = `
 
 const haptic = (ms = 10) => { try { navigator.vibrate?.(ms); } catch {} };
 
-function relativeTime(item) {
-  const ms = item.createdAt?.toMillis?.()
-    ?? (item.pubDate ? new Date(item.pubDate).getTime() : null);
-  if (!ms || isNaN(ms)) return null;
-  const diff = Date.now() - ms;
-  const m = Math.floor(diff / 60000);
-  const h = Math.floor(diff / 3600000);
-  const d = Math.floor(diff / 86400000);
-  if (m  <  2) return "Just now";
-  if (m  < 60) return `${m}m ago`;
-  if (h  < 24) return `${h}h ago`;
-  if (d  <  7) return `${d}d ago`;
-  return null;
-}
-
 function isFresh(item) {
   const ms = item.createdAt?.toMillis?.()
     ?? (item.pubDate ? new Date(item.pubDate).getTime() : null);
@@ -76,16 +61,6 @@ function isFresh(item) {
 }
 
 // ── Inline icons (replace emoji — crisper, theme-colored, matches stat-icon style) ──
-const IconBroadcast = ({ size = 11, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4.93 4.93a10 10 0 0 0 0 14.14" />
-    <path d="M7.76 7.76a6 6 0 0 0 0 8.48" />
-    <circle cx="12" cy="12" r="2" fill={color} stroke="none" />
-    <path d="M16.24 7.76a6 6 0 0 1 0 8.48" />
-    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-  </svg>
-);
-
 const IconSpeaker = ({ size = 14, color, active }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="3 9 7 9 12 4 12 20 7 15 3 15 3 9" fill={color} stroke="none" />
@@ -216,7 +191,17 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
       el.removeEventListener("touchmove",  onMove);
       el.removeEventListener("touchend",   onEnd);
     };
-  }, []);
+  }, [
+    // Re-run whenever the card actually mounts. Before items load, this
+    // component returns null (no DOM), so wrapRef.current is null on the
+    // very first render. With an empty dep array this effect fired once
+    // against that null ref and never again — so once the real card
+    // appeared after Firestore loaded, no listeners were ever attached to
+    // it, and every touch fell straight through to the app's tab-swipe
+    // handler untouched. Depending on items.length re-attaches once the
+    // real DOM node exists.
+    items.length,
+  ]);
 
   // ── Read Aloud ─────────────────────────────────────────────────────────────
   const handleSpeak = useCallback((text) => {
@@ -244,7 +229,6 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
 
   const text     = (lang === "hi" && item.text_hi) ? item.text_hi : item.text_en;
   const hasUrl   = Boolean(item.url);
-  const timeAgo  = relativeTime(item);
   const fresh    = isFresh(item);
   const fontFace = lang === "hi"
     ? "'Noto Sans Devanagari','Noto Sans',sans-serif"
@@ -259,7 +243,6 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
   const divC     = th.border2;
   const textMain = th.text;
   const textSub  = th.textSub;
-  const iconClr  = dark ? "#6B90FF" : NAVY;
   const speakClr = isSpeaking ? SAFFRON : (dark ? "#555" : "#c8c8c8");
   const shadow   = dark
     ? "0 4px 24px rgba(0,0,0,0.25)"
@@ -337,12 +320,6 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
                 animation:"ys-new-glow 2s ease-in-out infinite",
               }}>NEW</span>
             )}
-            {timeAgo && (
-              <span style={{
-                fontSize:10, color:textSub,
-                fontFamily:"'Noto Sans',sans-serif",
-              }}>{timeAgo}</span>
-            )}
             {items.length > 1 && (
               <span style={{
                 fontSize:9, color:textSub,
@@ -374,19 +351,10 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
           {/* Footer */}
           <div style={{
             display:"flex", alignItems:"center",
-            justifyContent:"space-between",
+            justifyContent:"flex-end",
             marginTop:11, paddingTop:10,
             borderTop:`1px solid ${divC}`,
           }}>
-            <span style={{
-              fontSize:10, color:textSub,
-              fontFamily:"'Noto Sans',sans-serif",
-              display:"flex", alignItems:"center", gap:5,
-            }}>
-              <IconBroadcast size={11} color={iconClr} />
-              {item.source || "Google News"}
-            </span>
-
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               {/* Speak */}
               <button
