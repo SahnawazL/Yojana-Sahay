@@ -1,18 +1,13 @@
 // src/SchemeNewsTicker.jsx — Yojana Sahay · Live Scheme News Card
-// ─────────────────────────────────────────────────────────────────────────────
-// Professional card-style news display. Auto-advances every 8s.
-// Swipe left/right to navigate manually. Tap "Read ↗" to open article.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import React, {
   useState, useEffect, useCallback, useRef, memo,
 } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase.js";
 
-const SAFFRON  = "#FF9933";
-const LIVE_RED = "#ef4444";
-const GREEN    = "#138808";
+const SAFFRON    = "#FF9933";
+const LIVE_RED   = "#ef4444";
+const GREEN      = "#138808";
 const ADVANCE_MS = 8000;
 
 const CSS = `
@@ -21,7 +16,7 @@ const CSS = `
     50%    { opacity:0.3; transform:scale(0.72); }
   }
   @keyframes ys-card-in {
-    from { opacity:0; transform:translateY(7px); }
+    from { opacity:0; transform:translateY(6px); }
     to   { opacity:1; transform:translateY(0);   }
   }
   @keyframes ys-progress {
@@ -30,7 +25,7 @@ const CSS = `
   }
   @keyframes ys-new-glow {
     0%,100%{ opacity:1; }
-    50%    { opacity:0.65; }
+    50%    { opacity:0.6; }
   }
   @keyframes ys-speak-ring {
     0%  { transform:scale(1);   opacity:0.9; }
@@ -40,9 +35,8 @@ const CSS = `
 
 const haptic = (ms = 10) => { try { navigator.vibrate?.(ms); } catch {} };
 
-// ── Relative time from Firestore Timestamp or pubDate string ─────────────────
 function relativeTime(item) {
-  let ms = item.createdAt?.toMillis?.()
+  const ms = item.createdAt?.toMillis?.()
     ?? (item.pubDate ? new Date(item.pubDate).getTime() : null);
   if (!ms || isNaN(ms)) return null;
   const diff = Date.now() - ms;
@@ -56,14 +50,12 @@ function relativeTime(item) {
   return null;
 }
 
-// ── Is the item fresh (< 48 h)? ──────────────────────────────────────────────
 function isFresh(item) {
   const ms = item.createdAt?.toMillis?.()
     ?? (item.pubDate ? new Date(item.pubDate).getTime() : null);
   return ms ? (Date.now() - ms) < 48 * 3600000 : false;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 function SchemeNewsTicker({ lang = "en", dark = false }) {
 
   const [items,       setItems]       = useState([]);
@@ -73,11 +65,16 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
   const [isSpeaking,  setIsSpeaking]  = useState(false);
   const [loaded,      setLoaded]      = useState(false);
 
-  const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
-  const timerRef    = useRef(null);
+  const wrapRef   = useRef(null);
+  const idxRef    = useRef(0);
+  const itemsRef  = useRef([]);
+  const timerRef  = useRef(null);
+  const advanceRef = useRef(null);
 
-  // ── Firestore real-time listener ─────────────────────────────────────────────
+  useEffect(() => { idxRef.current  = idx;   }, [idx]);
+  useEffect(() => { itemsRef.current = items; }, [items]);
+
+  // ── Firestore ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const q = query(collection(db, "schemeNews"), where("active", "==", true));
     const unsub = onSnapshot(q, (snap) => {
@@ -90,24 +87,19 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
         });
       setItems(docs);
       setLoaded(true);
-    }, (err) => {
-      console.warn("[SchemeNewsTicker]", err.message);
-      setLoaded(true);
-    });
+    }, () => setLoaded(true));
     return () => unsub();
   }, []);
 
-  // ── Cleanup speech on unmount ─────────────────────────────────────────────────
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
 
-  // ── Reset when list length changes ───────────────────────────────────────────
   useEffect(() => {
     setIdx(0);
     setAnimKey(k => k + 1);
     setProgressKey(k => k + 1);
   }, [items.length]);
 
-  // ── Navigate to item ─────────────────────────────────────────────────────────
+  // ── Navigate ───────────────────────────────────────────────────────────────
   const goTo = useCallback((next) => {
     window.speechSynthesis?.cancel();
     setIsSpeaking(false);
@@ -116,21 +108,55 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
     setProgressKey(k => k + 1);
   }, []);
 
-  const advance = useCallback((dir = 1) => {
-    if (!items.length) return;
-    goTo((idx + dir + items.length) % items.length);
+  advanceRef.current = (dir) => {
+    const len = itemsRef.current.length;
+    if (!len) return;
+    goTo((idxRef.current + dir + len) % len);
     haptic(6);
-  }, [idx, items.length, goTo]);
+  };
 
-  // ── Auto-advance timer ────────────────────────────────────────────────────────
+  // ── Auto-advance ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!items.length) return;
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => advance(1), ADVANCE_MS);
+    timerRef.current = setTimeout(() => advanceRef.current(1), ADVANCE_MS);
     return () => clearTimeout(timerRef.current);
-  }, [idx, items.length, advance]);
+  }, [idx, items.length]);
 
-  // ── Read Aloud ────────────────────────────────────────────────────────────────
+  // ── Native touch (non-passive) — blocks tab-switch on horizontal swipe ─────
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    let sx = 0, sy = 0, isH = false;
+
+    const onStart = (e) => {
+      sx = e.touches[0].clientX;
+      sy = e.touches[0].clientY;
+      isH = false;
+    };
+    const onMove = (e) => {
+      const dx = Math.abs(e.touches[0].clientX - sx);
+      const dy = Math.abs(e.touches[0].clientY - sy);
+      if (dx > dy + 3) { isH = true; e.preventDefault(); e.stopPropagation(); }
+    };
+    const onEnd = (e) => {
+      if (!isH) return;
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = Math.abs(e.changedTouches[0].clientY - sy);
+      if (Math.abs(dx) > 40 && Math.abs(dx) > dy) advanceRef.current(dx < 0 ? 1 : -1);
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: true  });
+    el.addEventListener("touchmove",  onMove,  { passive: false });
+    el.addEventListener("touchend",   onEnd,   { passive: true  });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove",  onMove);
+      el.removeEventListener("touchend",   onEnd);
+    };
+  }, []);
+
+  // ── Read Aloud ─────────────────────────────────────────────────────────────
   const handleSpeak = useCallback((text) => {
     if (!window.speechSynthesis) return;
     if (isSpeaking) {
@@ -139,119 +165,99 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
       haptic(10);
       return;
     }
-    const utt  = new SpeechSynthesisUtterance(text);
-    utt.lang   = lang === "hi" ? "hi-IN" : "en-IN";
-    utt.rate   = 0.88;
-    utt.onend  = utt.onerror = () => setIsSpeaking(false);
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang  = lang === "hi" ? "hi-IN" : "en-IN";
+    utt.rate  = 0.88;
+    utt.onend = utt.onerror = () => setIsSpeaking(false);
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utt);
     setIsSpeaking(true);
     haptic(10);
   }, [isSpeaking, lang]);
 
-  // ── Swipe gesture ─────────────────────────────────────────────────────────────
-  const handleTouchStart = useCallback((e) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  }, []);
-
-  const handleTouchMove = useCallback((e) => {
-    const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
-    const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
-    if (dx > dy) e.stopPropagation();
-  }, []);
-
-  const handleTouchEnd = useCallback((e) => {
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
-    if (Math.abs(dx) > 40 && Math.abs(dx) > dy) advance(dx < 0 ? 1 : -1);
-  }, [advance]);
-
-  // ── Guard ─────────────────────────────────────────────────────────────────────
+  // ── Guard ──────────────────────────────────────────────────────────────────
   if (!loaded || !items.length) return null;
   const item = items[idx % items.length];
   if (!item) return null;
 
-  const text      = (lang === "hi" && item.text_hi) ? item.text_hi : item.text_en;
-  const hasUrl    = Boolean(item.url);
-  const timeAgo   = relativeTime(item);
-  const fresh     = isFresh(item);
-  const fontFace  = lang === "hi"
+  const text     = (lang === "hi" && item.text_hi) ? item.text_hi : item.text_en;
+  const hasUrl   = Boolean(item.url);
+  const timeAgo  = relativeTime(item);
+  const fresh    = isFresh(item);
+  const fontFace = lang === "hi"
     ? "'Noto Sans Devanagari','Noto Sans',sans-serif"
     : "'Noto Sans',sans-serif";
 
-  // ── Theme ─────────────────────────────────────────────────────────────────────
-  const cardBg    = dark ? "rgba(255,255,255,0.035)" : "#ffffff";
-  const borderC   = dark ? "rgba(255,153,51,0.18)"   : "rgba(255,153,51,0.25)";
-  const headBg    = dark ? "rgba(255,153,51,0.07)"   : "rgba(255,153,51,0.05)";
-  const textMain  = dark ? "#eeeeee"                  : "#111111";
-  const textSub   = dark ? "#888888"                  : "#888888";
-  const speakClr  = isSpeaking ? SAFFRON : (dark ? "#555" : "#c0c0c0");
-  const shadowVal = dark
-    ? "0 4px 20px rgba(0,0,0,0.35)"
-    : "0 2px 14px rgba(0,0,0,0.08)";
+  // Theme — clean, no colour overload
+  const cardBg   = dark ? "#1a1a1a"                 : "#ffffff";
+  const borderC  = dark ? "rgba(255,255,255,0.08)"  : "rgba(0,0,0,0.09)";
+  const headBg   = dark ? "rgba(255,255,255,0.03)"  : "#fafafa";
+  const divC     = dark ? "rgba(255,255,255,0.06)"  : "rgba(0,0,0,0.06)";
+  const textMain = dark ? "#e8e8e8"                  : "#111111";
+  const textSub  = dark ? "#666666"                  : "#999999";
+  const speakClr = isSpeaking ? SAFFRON : (dark ? "#444" : "#c8c8c8");
+  const shadow   = dark
+    ? "0 4px 20px rgba(0,0,0,0.5)"
+    : "0 2px 12px rgba(0,0,0,0.08)";
 
   return (
-    <div
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      style={{ width:"100%", touchAction:"pan-y", userSelect:"none", WebkitUserSelect:"none" }}
-    >
+    <div ref={wrapRef} style={{ width:"100%", touchAction:"pan-y" }}>
       <style>{CSS}</style>
 
-      {/* ── News Card ── */}
+      {/* ── Card ── */}
       <div
         key={animKey}
         style={{
           background:   cardBg,
           border:       `1px solid ${borderC}`,
-          borderLeft:   `4px solid ${SAFFRON}`,
-          borderRadius: 16,
+          borderRadius: 14,
           overflow:     "hidden",
-          animation:    "ys-card-in 0.32s cubic-bezier(.22,.68,0,1.2) both",
-          boxShadow:    shadowVal,
+          boxShadow:    shadow,
+          animation:    "ys-card-in 0.3s cubic-bezier(.22,.68,0,1.15) both",
         }}
       >
-
         {/* ── Header ── */}
         <div style={{
           display:        "flex",
           alignItems:     "center",
           justifyContent: "space-between",
-          padding:        "7px 13px",
+          padding:        "8px 13px",
           background:     headBg,
-          borderBottom:   `1px solid ${borderC}`,
+          borderBottom:   `1px solid ${divC}`,
         }}>
-          {/* Left — LIVE + label */}
+          {/* LIVE indicator */}
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
             <div style={{
-              width:8, height:8, borderRadius:"50%",
-              background:LIVE_RED, flexShrink:0,
-              animation:"ys-live-pulse 1.5s ease-in-out infinite",
+              width:7, height:7, borderRadius:"50%",
+              background: LIVE_RED, flexShrink:0,
+              animation: "ys-live-pulse 1.5s ease-in-out infinite",
             }}/>
             <span style={{
-              fontSize:9, fontWeight:800, letterSpacing:1.2,
-              color:LIVE_RED, textTransform:"uppercase",
+              fontSize:9, fontWeight:800, letterSpacing:1.3,
+              color: LIVE_RED, textTransform:"uppercase",
               fontFamily:"'Noto Sans',sans-serif",
             }}>LIVE</span>
             <span style={{
-              fontSize:9, fontWeight:700, letterSpacing:0.6,
-              color:SAFFRON, textTransform:"uppercase",
+              width:1, height:10, display:"inline-block",
+              background: divC, margin:"0 1px",
+            }}/>
+            <span style={{
+              fontSize:9.5, fontWeight:600, letterSpacing:0.3,
+              color: textSub, textTransform:"uppercase",
               fontFamily:"'Noto Sans',sans-serif",
-            }}>Scheme News</span>
+            }}>Scheme Update</span>
           </div>
 
-          {/* Right — NEW badge + time */}
+          {/* Right — NEW + time + counter */}
           <div style={{ display:"flex", alignItems:"center", gap:7 }}>
             {fresh && (
               <span style={{
-                fontSize:8, fontWeight:800, letterSpacing:0.8,
-                background:GREEN, color:"#fff",
+                fontSize:8, fontWeight:800, letterSpacing:0.7,
+                background: GREEN, color:"#fff",
                 padding:"2px 7px", borderRadius:99,
                 textTransform:"uppercase",
-                animation:"ys-new-glow 2s ease-in-out infinite",
                 fontFamily:"'Noto Sans',sans-serif",
+                animation:"ys-new-glow 2s ease-in-out infinite",
               }}>NEW</span>
             )}
             {timeAgo && (
@@ -260,32 +266,33 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
                 fontFamily:"'Noto Sans',sans-serif",
               }}>{timeAgo}</span>
             )}
+            {items.length > 1 && (
+              <span style={{
+                fontSize:9, color:textSub,
+                fontFamily:"'Noto Sans',sans-serif",
+                background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+                padding:"2px 6px", borderRadius:99,
+              }}>{idx + 1}/{items.length}</span>
+            )}
           </div>
         </div>
 
         {/* ── Body ── */}
-        <div style={{ padding:"12px 14px 10px" }}>
-
-          {/* News text */}
+        <div style={{ padding:"13px 14px 12px" }}>
           <p style={{
-            margin:0,
-            fontSize:13.5,
-            fontWeight:600,
-            lineHeight:1.55,
-            color:textMain,
-            fontFamily:fontFace,
+            margin:0, fontSize:14, fontWeight:600,
+            lineHeight:1.55, color:textMain, fontFamily:fontFace,
           }}>
             {text}
           </p>
 
-          {/* Source + actions row */}
+          {/* Footer */}
           <div style={{
-            display:"flex",
-            alignItems:"center",
+            display:"flex", alignItems:"center",
             justifyContent:"space-between",
-            marginTop:10,
+            marginTop:11, paddingTop:10,
+            borderTop:`1px solid ${divC}`,
           }}>
-            {/* Source */}
             <span style={{
               fontSize:10, color:textSub,
               fontFamily:"'Noto Sans',sans-serif",
@@ -294,29 +301,23 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
               📡 {item.source || "Google News"}
             </span>
 
-            {/* Actions */}
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-
-              {/* Read aloud button */}
+              {/* Speak */}
               <button
                 onClick={(e) => { e.stopPropagation(); handleSpeak(text); }}
                 style={{
-                  background:"transparent", border:"none",
-                  padding:0, cursor:"pointer",
-                  color:speakClr, fontSize:15,
+                  background:"transparent", border:"none", padding:0,
+                  cursor:"pointer", color:speakClr, fontSize:15,
                   width:30, height:30,
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  position:"relative", outline:"none",
-                  transition:"color 0.2s",
+                  position:"relative", outline:"none", transition:"color 0.2s",
                 }}
-                aria-label={isSpeaking ? "Stop reading" : "Read aloud"}
+                aria-label={isSpeaking ? "Stop" : "Read aloud"}
               >
                 {isSpeaking && (
                   <span style={{
-                    position:"absolute",
-                    width:24, height:24,
-                    borderRadius:"50%",
-                    border:`1.5px solid ${SAFFRON}`,
+                    position:"absolute", width:22, height:22,
+                    borderRadius:"50%", border:`1.5px solid ${SAFFRON}`,
                     animation:"ys-speak-ring 1.1s ease-out infinite",
                     pointerEvents:"none",
                   }}/>
@@ -324,7 +325,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
                 {isSpeaking ? "🔊" : "🔈"}
               </button>
 
-              {/* Read more button */}
+              {/* Read more */}
               {hasUrl && (
                 <button
                   onClick={() => {
@@ -332,57 +333,43 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
                     window.open(item.url, "_blank", "noopener,noreferrer");
                   }}
                   style={{
-                    background:  "transparent",
-                    border:      `1.5px solid ${SAFFRON}`,
-                    color:       SAFFRON,
-                    fontSize:    10,
-                    fontWeight:  700,
-                    padding:     "4px 11px",
-                    borderRadius:99,
-                    cursor:      "pointer",
-                    outline:     "none",
-                    fontFamily:  "'Noto Sans',sans-serif",
+                    background: SAFFRON,
+                    border: "none", color:"#fff",
+                    fontSize:10, fontWeight:700,
+                    padding:"5px 12px", borderRadius:99,
+                    cursor:"pointer", outline:"none",
+                    fontFamily:"'Noto Sans',sans-serif",
                     letterSpacing:0.4,
-                    display:     "flex",
-                    alignItems:  "center",
-                    gap:         3,
-                    transition:  "background 0.2s, color 0.2s",
+                    display:"flex", alignItems:"center", gap:3,
+                    boxShadow:`0 2px 8px ${SAFFRON}44`,
                     WebkitTapHighlightColor:"transparent",
                   }}
                 >
                   Read ↗
                 </button>
               )}
-
             </div>
           </div>
         </div>
 
         {/* ── Progress bar ── */}
-        <div style={{
-          height:3,
-          background: dark ? "rgba(255,153,51,0.08)" : "rgba(255,153,51,0.08)",
-        }}>
+        <div style={{ height:2, background: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)" }}>
           <div
             key={progressKey}
             style={{
               height:"100%",
-              background:`linear-gradient(to right, ${SAFFRON}, #ffb347)`,
+              background: SAFFRON,
               animation:`ys-progress ${ADVANCE_MS}ms linear forwards`,
             }}
           />
         </div>
-
       </div>
 
-      {/* ── Navigation dots + count ── */}
+      {/* ── Dots ── */}
       {items.length > 1 && (
         <div style={{
-          display:"flex",
-          alignItems:"center",
-          justifyContent:"center",
-          gap:4,
-          paddingTop:7,
+          display:"flex", justifyContent:"center",
+          alignItems:"center", gap:5, paddingTop:8,
         }}>
           {items.map((_, i) => (
             <div
@@ -391,32 +378,17 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
               style={{
                 width:      i === idx ? 18 : 5,
                 height:     5,
-                borderRadius:99,
+                borderRadius: 99,
                 background: i === idx
                   ? SAFFRON
-                  : (dark ? "rgba(255,153,51,0.2)" : "rgba(255,153,51,0.25)"),
+                  : (dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"),
                 transition: "width 0.3s ease, background 0.3s ease",
-                cursor:     "pointer",
-                flexShrink: 0,
+                cursor:"pointer", flexShrink:0,
               }}
             />
           ))}
         </div>
       )}
-
-      {/* ── Swipe hint ── */}
-      <p style={{
-        textAlign:"center",
-        fontSize:9,
-        color:textSub,
-        margin:"4px 0 0",
-        fontFamily:"'Noto Sans',sans-serif",
-        letterSpacing:0.4,
-        opacity:0.7,
-      }}>
-        swipe or tap dots to navigate
-      </p>
-
     </div>
   );
 }
