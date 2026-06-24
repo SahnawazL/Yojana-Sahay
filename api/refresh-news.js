@@ -74,17 +74,10 @@ function loadGroqKeys() {
 }
 
 // ── Title hash for deduplication ─────────────────────────────────────────────
-// Strips punctuation + stop words so minor rewords ("PM Kisan installment released"
-// vs "PM Kisan: installment released today") hash to the same value and get caught.
-const STOP_WORDS = /\b(the|a|an|in|of|for|and|or|to|is|are|was|were|has|have|had|that|this|with|from|by|on|at|its|it|be|been|will|how|what|who|when|where|why|today|now|new|latest|know|details|update|news|launched|india|indian)\b/g;
+// Simple lowercase + whitespace-collapse — matches format already stored in Firestore.
+// Near-duplicate detection is handled by the schemeKey 14-day window instead.
 function makeTitleHash(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")  // strip punctuation / special chars
-    .replace(STOP_WORDS, " ")        // strip noise words
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 80);
+  return title.toLowerCase().replace(/\s+/g, " ").trim().slice(0, 70);
 }
 
 // ── Strip "— Source Name" suffix Google News appends to every title ───────────
@@ -286,6 +279,34 @@ export default async function handler(req, res) {
 
   console.log("[refresh-news] ▶ Cron started at", new Date().toISOString());
 
+  // ── Step 1b — Run-interval guard ────────────────────────────────────────────
+  // Prevents duplicate accumulation during manual testing and accidental double-runs.
+  // Skips if last successful run was < MIN_RUN_INTERVAL_H hours ago.
+  // Pass ?force=true (still requires auth) to bypass during testing.
+  const MIN_RUN_INTERVAL_H = 20;
+  const forceRun = req.query?.force === "true";
+
+  if (!forceRun) {
+    try {
+      const configSnap = await db.collection("_config").doc("news").get();
+      const lastRunMs  = configSnap.data()?.lastRunAt?.toMillis?.() ?? 0;
+      const hoursAgo   = (Date.now() - lastRunMs) / 3600000;
+      if (hoursAgo < MIN_RUN_INTERVAL_H) {
+        const nextIn = (MIN_RUN_INTERVAL_H - hoursAgo).toFixed(1);
+        console.log(`[refresh-news] Rate-limited — last run ${hoursAgo.toFixed(1)}h ago.`);
+        return res.status(200).json({
+          message: `Rate-limited. Last run ${hoursAgo.toFixed(1)}h ago. Next allowed in ${nextIn}h. Append ?force=true to bypass.`,
+          skipped: true,
+        });
+      }
+    } catch (guardErr) {
+      // Non-fatal — if _config fetch fails, proceed normally
+      console.warn("[refresh-news] Rate-limit check failed (proceeding):", guardErr.message);
+    }
+  } else {
+    console.log("[refresh-news] ?force=true — skipping rate-limit guard.");
+  }
+
   // ── Step 2 — Load Groq keys ─────────────────────────────────────────────────
   const groqKeys = loadGroqKeys();
   if (!groqKeys.length) {
@@ -422,6 +443,16 @@ export default async function handler(req, res) {
 
   await batch.commit();
   console.log(`[refresh-news] ✓ Wrote ${addCount} new items to schemeNews`);
+
+  // Record this run's timestamp so the rate-limit guard works on next call
+  try {
+    await db.collection("_config").doc("news").set(
+      { lastRunAt: Timestamp.now(), lastAddCount: addCount },
+      { merge: true }
+    );
+  } catch (e) {
+    console.warn("[refresh-news] Could not update lastRunAt (non-fatal):", e.message);
+  }
 
   // ── Step 7 — Trim: keep only latest MAX_NEWS auto-fetched docs ───────────────
   // Protects against unbounded growth. Manual (autoFetched:false) items are
