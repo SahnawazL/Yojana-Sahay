@@ -230,8 +230,10 @@ const googleSearchScheme = (name) => {
   window.open(`https://www.google.com/search?q=${encodeURIComponent(name+" scheme apply")}`, "_blank");
 };
 
-// ─── STAT TARGETS (stable reference — prevents useCountUp from re-animating) ──
-const STAT_TARGETS = [3000, 28, 50];
+// ─── STAT TARGETS are now computed live inside YojanaSahay() ──────────────────
+// Scheme count  → SCHEME_DB.length (real, instant)
+// States        → 28 (static)
+// Indians Helped → appStats/usage → checkerTotal (real Firestore read)
 
 // ─── LAST VERIFIED DATE — Freshness Badge ──────────────────────────────────────
 // Walks SCHEME_DB (already merged with schemesMeta at module init) and finds the
@@ -348,7 +350,7 @@ const T = {
     greeting:(n)=> n ? `Namaste, ${n} 🙏` : "Namaste, Citizen 🙏",
     headline:"Find Your Schemes", subheadline:"Discover benefits you truly deserve",
     searchPlaceholder:"Search schemes...", searchBtn:"Search",
-    stats:[{number:"3,000+",label:"Schemes"},{number:"28",label:"States"},{number:"50L+",label:"Beneficiaries"}],
+    stats:[{number:"—",label:"Schemes"},{number:"28",label:"States"},{number:"—",label:"Indians Helped"}],
     aiBannerTitle:"Ask AI Assistant", aiBannerSub:"Ask anything about any scheme in Hindi or English",
     categoriesTitle:"Categories", categoriesSub:"Browse by Category", seeAll:"See All →",
     ctaTitle:"Check Eligibility",
@@ -477,7 +479,7 @@ const T = {
     greeting:(n)=> n ? `नमस्ते, ${n} 🙏` : "नमस्ते, नागरिक 🙏",
     headline:"आपकी योजनाएं खोजें", subheadline:"जानें आप किन लाभों के हकदार हैं",
     searchPlaceholder:"योजना खोजें...", searchBtn:"खोजें",
-    stats:[{number:"3,000+",label:"योजनाएं"},{number:"28",label:"राज्य"},{number:"50L+",label:"लाभार्थी"}],
+    stats:[{number:"—",label:"योजनाएं"},{number:"28",label:"राज्य"},{number:"—",label:"मदद मिली"}],
     aiBannerTitle:"AI सहायक से पूछें", aiBannerSub:"हिंदी या अंग्रेज़ी में कोई भी सवाल पूछें",
     categoriesTitle:"श्रेणियां", categoriesSub:"श्रेणी के अनुसार देखें", seeAll:"सभी देखें →",
     ctaTitle:"पात्रता जांचें",
@@ -7240,6 +7242,9 @@ export default function YojanaSahay(){
   });
   const [isAdmin,setIsAdmin]=useState(false);
   const [adminTabs,setAdminTabs]=useState(null); // null=full access, array=restricted tabs
+  // Live stats — populated via a single Firestore read on mount.
+  // null = still loading (shows "—" placeholder); number = ready to animate.
+  const [liveCheckerTotal,setLiveCheckerTotal]=useState(null);
   // ── Dismiss HTML splash when React mounts ─────────────────────────────────
   // #html-splash shows instantly before JS loads (pure CSS in index.html).
   // Once React is ready, fade it out and mark session so it won't show again.
@@ -7350,6 +7355,22 @@ export default function YojanaSahay(){
   useEffect(()=>{localStorage.setItem("yojana_dark",dark);},[dark]);
   useEffect(()=>{const id=setTimeout(()=>setLoaded(true),100);return()=>clearTimeout(id);},[]);
 
+  // ── Fetch live stats from Firestore ─────────────────────────────────────────
+  // One read on mount. 4 s timeout ensures the UI never hangs if offline.
+  useEffect(()=>{
+    let cancelled=false;
+    const fallback=setTimeout(()=>{ if(!cancelled) setLiveCheckerTotal(0); },4000);
+    getDoc(doc(db,"appStats","usage"))
+      .then(snap=>{
+        if(cancelled) return;
+        const data=snap.exists()?snap.data():{};
+        setLiveCheckerTotal(data.checkerTotal??0);
+      })
+      .catch(()=>{ if(!cancelled) setLiveCheckerTotal(0); })
+      .finally(()=>clearTimeout(fallback));
+    return()=>{ cancelled=true; clearTimeout(fallback); };
+  },[]);
+
   // Persist profile across page refreshes
   useEffect(()=>{
     if(profile) localStorage.setItem("yojana_profile",JSON.stringify(profile));
@@ -7427,14 +7448,24 @@ export default function YojanaSahay(){
     return()=>window.removeEventListener("popstate",handlePop);
   },[showAdmin,showChecker,selectedScheme,selectedCategory]);
 
-  // Animated stat counters — raw targets: 3000, 28, 50 (formatted below)
-  const [c0,c1,c2]=useCountUp(STAT_TARGETS,loaded,1400);
+  // Live stat targets: real scheme count + states + real checkerTotal from Firestore
+  const statTargets=useMemo(()=>[
+    SCHEME_DB.length,       // real scheme count — available immediately
+    28,                     // states covered — static fact
+    liveCheckerTotal??0,    // real citizens who ran the eligibility checker
+  ],[liveCheckerTotal]);
+
+  // Animate only once both the page and Firestore data are ready
+  const statsReady=loaded&&liveCheckerTotal!==null;
+  const [c0,c1,c2]=useCountUp(statTargets,statsReady,1400);
+
   const animatedStats=useMemo(()=>t.stats.map((s,i)=>{
-    if(i===0) return{...s,number:c0>=3000?"3,000+":(c0>=1000?(Math.floor(c0/1000)+","+String(c0%1000).padStart(3,"0")):String(c0))};
+    if(!statsReady) return{...s,number:"—"};
+    if(i===0) return{...s,number:String(c0)};
     if(i===1) return{...s,number:String(c1)};
-    if(i===2) return{...s,number:c2+"L+"};
+    if(i===2) return{...s,number:c2>0?c2+"+":"0"};
     return s;
-  }),[c0,c1,c2,t]);
+  }),[c0,c1,c2,t,statsReady]);
 
   // Categories — pulled from schemesData.js
   const categories=useMemo(()=>CATEGORIES[lang],[lang]);
@@ -7691,8 +7722,6 @@ export default function YojanaSahay(){
             style={{background:th.card,margin:"-4px 14px 0",borderRadius:16,padding:"14px 6px 12px",display:"flex",
               boxShadow:dark?"0 4px 24px rgba(0,0,0,0.25)":"0 4px 24px rgba(0,53,128,0.10)",
               border:`1.5px solid ${th.border}`,marginBottom:6,position:"relative",zIndex:1}}>
-            <div style={{position:"absolute",top:0,left:"10%",right:"10%",height:2,borderRadius:"0 0 2px 2px",
-              background:"linear-gradient(90deg,#FF9933,#06038D,#138808)",opacity:0.6}}/>
             {[
               {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,color:"#FF9933",darkColor:"#FFA950",grad:dark?"rgba(255,169,80,0.20)":"rgba(255,153,51,0.08)"},
               {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>,color:"#06038D",darkColor:"#6B90FF",grad:dark?"rgba(107,144,255,0.18)":"rgba(6,3,141,0.06)"},
