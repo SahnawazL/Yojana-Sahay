@@ -372,7 +372,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
                   onChange={e => setNewsFormUrl(e.target.value)}
                   placeholder="URL (optional)…"
                   style={{
-                    flex:2, padding:"9px 12px", borderRadius:9, boxSizing:"border-box",
+                    flex:2, minWidth:0, padding:"9px 12px", borderRadius:9, boxSizing:"border-box",
                     background:th.inputBg, border:`1.5px solid ${th.border}`,
                     fontSize:12, color:th.text, outline:"none",
                   }}
@@ -384,7 +384,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
                   placeholder="Scope…"
                   title="e.g. Central, Maharashtra, Uttar Pradesh"
                   style={{
-                    flex:1, padding:"9px 12px", borderRadius:9, boxSizing:"border-box",
+                    flex:1, minWidth:0, padding:"9px 12px", borderRadius:9, boxSizing:"border-box",
                     background:th.inputBg, border:`1.5px solid ${th.border}`,
                     fontSize:12, color:th.text, outline:"none",
                   }}
