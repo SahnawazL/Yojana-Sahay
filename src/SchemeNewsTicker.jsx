@@ -147,7 +147,14 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
     return () => unsub();
   }, []);
 
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
+  useEffect(() => {
+    // Warm up the TTS engine on mount so the first real speak() fires
+    // instantly. Without this the browser cold-starts the engine on the
+    // first tap, causing a noticeable 1-2 s delay.
+    const w = window.speechSynthesis;
+    if (w) { const u = new SpeechSynthesisUtterance(""); w.speak(u); w.cancel(); }
+    return () => w?.cancel();
+  }, []);
 
   // Cache voices as soon as the browser loads them (async on first render)
   useEffect(() => {
