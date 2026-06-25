@@ -2921,7 +2921,7 @@ function ShowMoreBtn({ expanded, hiddenCount, moreText, lessText, onToggle, dark
 }
 
 // ─── ELIGIBILITY CHECKER ───────────────────────────────────────────────────────
-function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilledAnswers,dark=false}){
+function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilledAnswers,dark=false,onOpenDetail=null}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
   const isHindi=lang==="hi";
@@ -9228,6 +9228,7 @@ function YojanaSahayInner(){
         }}
           onExitFromResults={(answersAreFromProfile)=>{if(profile&&!answersAreFromProfile)setTimeout(()=>setShowUpdateProfileSheet(true),800);}}
           prefilledAnswers={profileAnswers||undefined}
+          onOpenDetail={setSelectedScheme}
           dark={dark}/>
       )}
       {selectedCategory&&(
