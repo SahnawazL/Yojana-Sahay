@@ -8183,7 +8183,7 @@ function YojanaSahayInner(){
                     borderRadius:20,
                     background:"linear-gradient(90deg,rgba(255,153,51,0.18) 0%,rgba(255,255,255,0.28) 40%,rgba(99,179,255,0.22) 60%,rgba(255,153,51,0.18) 100%)",
                     backgroundSize:"200% auto",
-                    animation:"aiPillShimmer 2.8s linear infinite",
+                    animation:"aiPillShimmer 5.5s linear infinite",
                     border:"1px solid rgba(255,255,255,0.22)",
                     boxShadow:"0 1px 8px rgba(255,153,51,0.20), inset 0 1px 0 rgba(255,255,255,0.18)",
                     backdropFilter:"blur(6px)",
@@ -8228,27 +8228,48 @@ function YojanaSahayInner(){
               {/* LEFT: Greeting pill + Headline stack */}
               <div style={{flex:1,minWidth:0}}>
 
-                {/* Greeting / trust chip */}
-                {profile?(
-                  <div style={{
-                    display:"inline-flex",alignItems:"center",gap:6,
-                    background:"rgba(255,255,255,0.12)",
-                    border:"1px solid rgba(255,255,255,0.22)",
-                    borderRadius:20,padding:"5px 13px",marginBottom:9,
-                  }}>
-                    <span style={{fontSize:12}}>🙏</span>
-                    <span style={{color:"rgba(255,255,255,0.90)",fontSize:11,fontWeight:700,letterSpacing:0.1}}>
-                      {isHindi?`नमस्ते, ${profile?.name?.split(" ")[0]}`:`Namaste, ${profile?.name?.split(" ")[0]}`}
-                    </span>
-                  </div>
-                ):(
-                  <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:20,padding:"4px 10px",marginBottom:9}}>
-                    <div style={{width:6,height:6,borderRadius:"50%",background:"#4ade80",boxShadow:"0 0 6px #4ade80"}}/>
-                    <span style={{color:"rgba(255,255,255,0.9)",fontSize:10,fontWeight:700,letterSpacing:0.4}}>
-                      {isHindi?"योजना खोज सेवा • निःशुल्क":"Scheme Discovery • Free & Independent"}
-                    </span>
-                  </div>
-                )}
+                {/* Smart greeting chip — time-aware */}
+                {(()=>{
+                  const hr=new Date().getHours();
+                  const g=hr>=5&&hr<12
+                    ?{en:"Good Morning",  hi:"सुप्रभात",    emoji:"☀️"}
+                    :hr>=12&&hr<17
+                    ?{en:"Good Afternoon",hi:"नमस्कार",     emoji:"🌤️"}
+                    :hr>=17&&hr<21
+                    ?{en:"Good Evening",  hi:"शुभ संध्या",  emoji:"🌇"}
+                    :          {en:"Good Night",   hi:"शुभ रात्रि", emoji:"🌙"};
+                  const firstName=profile?.name?.split(" ")[0];
+                  return profile?(
+                    <div style={{
+                      display:"inline-flex",alignItems:"center",gap:6,
+                      background:"rgba(255,255,255,0.11)",
+                      border:"1px solid rgba(255,255,255,0.20)",
+                      borderRadius:20,padding:"5px 13px 5px 10px",marginBottom:9,
+                      boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14)",
+                      backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)",
+                    }}>
+                      <span style={{fontSize:13,lineHeight:1}}>{g.emoji}</span>
+                      <span style={{color:"rgba(255,255,255,0.93)",fontSize:11.5,fontWeight:700,letterSpacing:0.1}}>
+                        {isHindi?`${g.hi}, ${firstName}`:`${g.en}, ${firstName}`}
+                      </span>
+                      {matchedCount>0&&(
+                        <>
+                          <div style={{width:1,height:11,background:"rgba(255,255,255,0.22)",flexShrink:0}}/>
+                          <span style={{fontSize:10,fontWeight:600,color:"#4ade80",letterSpacing:0.1}}>
+                            {matchedCount} {isHindi?"योजनाएं":"schemes"}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  ):(
+                    <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:20,padding:"4px 10px",marginBottom:9}}>
+                      <div style={{width:6,height:6,borderRadius:"50%",background:"#4ade80",boxShadow:"0 0 6px #4ade80"}}/>
+                      <span style={{color:"rgba(255,255,255,0.9)",fontSize:10,fontWeight:700,letterSpacing:0.4}}>
+                        {isHindi?"योजना खोज सेवा • निःशुल्क":"Scheme Discovery • Free & Independent"}
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 {/* Hero headline — one line */}
                 <div style={{display:"flex",alignItems:"baseline",flexWrap:"wrap",columnGap:5,rowGap:0,marginBottom:6,fontFamily:bf}}>
