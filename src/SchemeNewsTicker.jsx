@@ -78,6 +78,36 @@ const IconArrowRight = ({ size = 10, color = "#fff" }) => (
   </svg>
 );
 
+// ── Voice picker — prefers natural Google / Apple voices over the robotic
+//    system default. getVoices() is async on first call so we cache via the
+//    voiceschanged event and fall back gracefully if none match. ─────────────
+const VOICE_PRIORITY = {
+  hi: [
+    "Google हिन्दी",        // Android — natural Hindi
+    "Microsoft Hemant",      // Windows Hindi
+  ],
+  en: [
+    "Google UK English Female",  // Android — most natural
+    "Google UK English Male",
+    "Google US English",
+    "Rishi",                     // iOS Indian-English (iOS 16+)
+    "Samantha",                  // iOS English fallback
+    "Microsoft Zira",            // Windows
+    "Microsoft David",
+  ],
+};
+
+function pickVoice(voices, lang) {
+  const priority = lang === "hi" ? VOICE_PRIORITY.hi : VOICE_PRIORITY.en;
+  for (const name of priority) {
+    const v = voices.find((x) => x.name === name);
+    if (v) return v;
+  }
+  // Fallback: first voice whose lang code matches
+  const code = lang === "hi" ? "hi" : "en";
+  return voices.find((x) => x.lang?.startsWith(code)) ?? null;
+}
+
 function SchemeNewsTicker({ lang = "en", dark = false }) {
 
   const [items,       setItems]       = useState([]);
@@ -95,6 +125,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
   const advanceRef = useRef(null);
   const fadeTimerRef = useRef(null);
   const uttRef       = useRef(null);
+  const voicesRef    = useRef([]);
 
   useEffect(() => { idxRef.current  = idx;   }, [idx]);
   useEffect(() => { itemsRef.current = items; }, [items]);
@@ -117,6 +148,16 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
   }, []);
 
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
+
+  // Cache voices as soon as the browser loads them (async on first render)
+  useEffect(() => {
+    const load = () => {
+      voicesRef.current = window.speechSynthesis?.getVoices() ?? [];
+    };
+    load();
+    window.speechSynthesis?.addEventListener("voiceschanged", load);
+    return () => window.speechSynthesis?.removeEventListener("voiceschanged", load);
+  }, []);
 
   useEffect(() => {
     setIdx(0);
@@ -229,6 +270,8 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
     uttRef.current = new SpeechSynthesisUtterance(speakText);
     uttRef.current.lang  = lang === "hi" ? "hi-IN" : "en-IN";
     uttRef.current.rate  = 0.88;
+    const voice = pickVoice(voicesRef.current, lang);
+    if (voice) uttRef.current.voice = voice;
 
     // iOS pause workaround — speechSynthesis silently stalls after a few
     // seconds on Safari; pulsing pause/resume every 10 s keeps it alive.
