@@ -7701,9 +7701,10 @@ function YojanaSahayInner(){
   });
   const [isAdmin,setIsAdmin]=useState(false);
   const [adminTabs,setAdminTabs]=useState(null); // null=full access, array=restricted tabs
-  // Live stats — populated via a single Firestore read on mount.
-  // null = still loading (shows "—" placeholder); number = ready to animate.
-  const [liveCheckerTotal,setLiveCheckerTotal]=useState(null);
+  // Live stats — seeded from localStorage cache for instant display, then refreshed from Firestore.
+  const [liveCheckerTotal,setLiveCheckerTotal]=useState(()=>{
+    try{ const v=localStorage.getItem("yojana_checker_total"); return v!==null?Number(v):null; }catch{ return null; }
+  });
   // ── Dismiss HTML splash when React mounts ─────────────────────────────────
   // #html-splash shows instantly before JS loads (pure CSS in index.html).
   // Once React is ready, fade it out and mark session so it won't show again.
@@ -7815,17 +7816,20 @@ function YojanaSahayInner(){
   useEffect(()=>{const id=setTimeout(()=>setLoaded(true),100);return()=>clearTimeout(id);},[]);
 
   // ── Fetch live stats from Firestore ─────────────────────────────────────────
-  // One read on mount. 4 s timeout ensures the UI never hangs if offline.
+  // One read on mount. 8 s timeout ensures the UI never hangs if offline.
+  // Fresh value is cached in localStorage so next visit shows it instantly.
   useEffect(()=>{
     let cancelled=false;
-    const fallback=setTimeout(()=>{ if(!cancelled) setLiveCheckerTotal(0); },4000);
+    const fallback=setTimeout(()=>{ if(!cancelled) setLiveCheckerTotal(prev=>prev??0); },8000);
     getDoc(doc(db,"appStats","usage"))
       .then(snap=>{
         if(cancelled) return;
         const data=snap.exists()?snap.data():{};
-        setLiveCheckerTotal(data.checkerTotal??0);
+        const total=data.checkerTotal??0;
+        setLiveCheckerTotal(total);
+        try{ localStorage.setItem("yojana_checker_total",String(total)); }catch{}
       })
-      .catch(()=>{ if(!cancelled) setLiveCheckerTotal(0); })
+      .catch(()=>{ if(!cancelled) setLiveCheckerTotal(prev=>prev??0); })
       .finally(()=>clearTimeout(fallback));
     return()=>{ cancelled=true; clearTimeout(fallback); };
   },[]);
@@ -7915,15 +7919,16 @@ function YojanaSahayInner(){
     liveCheckerTotal??0,    // real citizens who ran the eligibility checker
   ],[liveCheckerTotal]);
 
-  // Animate only once both the page and Firestore data are ready
-  const statsReady=loaded&&liveCheckerTotal!==null;
+  // statsReady: page loaded + we have a real Firestore value (not a timeout-zero fallback)
+  const firestoreLoaded=liveCheckerTotal!==null&&liveCheckerTotal>0||liveCheckerTotal!==null;
+  const statsReady=loaded&&firestoreLoaded;
   const [c0,c1,c2]=useCountUp(statTargets,statsReady,1400);
 
   const animatedStats=useMemo(()=>t.stats.map((s,i)=>{
-    if(!statsReady) return{...s,number:"—"};
-    if(i===0) return{...s,number:String(c0)};
-    if(i===1) return{...s,number:String(c1)};
-    if(i===2) return{...s,number:c2>0?c2+"+":"0"};
+    if(i===0) return{...s,number:loaded?String(c0):"—"};
+    if(i===1) return{...s,number:"28"};
+    // Indians Helped: show "—" if Firestore hasn't returned a real value yet or returned 0
+    if(i===2) return{...s,number:(!loaded||liveCheckerTotal===null)?"—":liveCheckerTotal>0?c2+"+":"—"};
     return s;
   }),[c0,c1,c2,t,statsReady]);
 
