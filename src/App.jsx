@@ -8168,15 +8168,24 @@ function YojanaSahayInner(){
                 <div>
                   <div style={{color:"#fff",fontSize:17,fontWeight:900,fontFamily:bf,letterSpacing:-0.3,lineHeight:1.1,marginBottom:3,display:"flex",alignItems:"center",gap:5}}>
                     {t.appName}
-                    {/* Verified badge — blue circle with checkmark */}
+                    {/* Verified badge — premium blue tick */}
                     <div style={{
-                      width:16,height:16,borderRadius:"50%",flexShrink:0,
-                      background:"linear-gradient(135deg,#3b9eff 0%,#1a6fd4 100%)",
+                      position:"relative",
+                      width:19,height:19,borderRadius:"50%",flexShrink:0,
+                      background:"linear-gradient(145deg,#55b4ff 0%,#1a8fff 35%,#0a6fd4 100%)",
                       display:"flex",alignItems:"center",justifyContent:"center",
-                      boxShadow:"0 1px 5px rgba(59,158,255,0.55)",
+                      boxShadow:"0 0 0 1.5px rgba(255,255,255,0.85), 0 2px 8px rgba(26,143,255,0.70), 0 1px 3px rgba(0,0,0,0.30)",
                     }}>
-                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
-                        <path d="M2.5 6.2l2.3 2.3 4.7-4.7" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/>
+                      {/* Inner top-left shine */}
+                      <div style={{
+                        position:"absolute",top:2,left:2.5,
+                        width:7,height:4,borderRadius:"50%",
+                        background:"rgba(255,255,255,0.38)",
+                        transform:"rotate(-20deg)",
+                        pointerEvents:"none",
+                      }}/>
+                      <svg width="10" height="10" viewBox="0 0 13 13" fill="none" style={{position:"relative",zIndex:1}}>
+                        <path d="M2.5 6.8l2.7 2.7 5.3-5.3" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </div>
                   </div>
