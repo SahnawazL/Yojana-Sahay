@@ -2972,6 +2972,41 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
   const [calcCount,   setCalcCount]   = useState(0);
   // 0=scanning  1=icons-fly-in  2=counter-matched
   const [calcPhase,   setCalcPhase]   = useState(0);
+  // ── Celebration (confetti + benefit count-up) ─────────────────────────────
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [animatedBenefit, setAnimatedBenefit] = useState(0);
+  const celebrationRafRef  = useRef(null);
+  const prevCalculatingRef = useRef(false);
+
+  // ── Celebration: fires once when `calculating` transitions true → false with matches ──
+  // NOTE: placed here so all deps (calculating, results, totalAnnual, celebrationRafRef,
+  // setShowCelebration, setAnimatedBenefit, prevCalculatingRef) are already declared above.
+  useEffect(()=>{
+    const wasCalculating=prevCalculatingRef.current;
+    prevCalculatingRef.current=calculating;
+    if(wasCalculating && !calculating && results.length>0){
+      setShowCelebration(true);
+      if(totalAnnual>0){
+        setAnimatedBenefit(0);
+        const dur=1800;
+        const startT=performance.now();
+        const tick=(now)=>{
+          const p=Math.min((now-startT)/dur,1);
+          const ease=1-Math.pow(1-p,3);
+          setAnimatedBenefit(Math.floor(ease*totalAnnual));
+          if(p<1){ celebrationRafRef.current=requestAnimationFrame(tick); }
+          else{ setAnimatedBenefit(totalAnnual); celebrationRafRef.current=null; }
+        };
+        celebrationRafRef.current=requestAnimationFrame(tick);
+      }
+      const dismissTimer=setTimeout(()=>setShowCelebration(false),3000);
+      return()=>{
+        clearTimeout(dismissTimer);
+        if(celebrationRafRef.current){ cancelAnimationFrame(celebrationRafRef.current); celebrationRafRef.current=null; }
+      };
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[calculating]);
 
   // ── Collapsible results — constants & state ───────────────────────────────
   // PREVIEW_COUNT : scheme cards visible before "Show more" in each section.
@@ -3377,32 +3412,99 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
           </div>
         )}
 
+        {/* ── CONFETTI OVERLAY — pointer-events:none so results stay tappable ── */}
+        {showCelebration&&results.length>0&&(
+          <div style={{position:"fixed",inset:0,zIndex:500,pointerEvents:"none",overflow:"hidden",animation:"celebrate-fade-out 0.55s ease 2.4s both"}}>
+            {[
+              [3,"#FF9933",1.55,0,9,true],[9,"#138808",1.72,0.08,6,false],[15,"#FFD700",1.42,0.22,11,true],
+              [22,"#FF4081",1.63,0.01,7,false],[28,"#06038D",1.85,0.17,6,true],[34,"#FF9933",1.44,0.31,9,false],
+              [40,"#138808",1.68,0.06,7,true],[46,"#FFD700",1.51,0.26,12,false],[52,"#ffffff",1.65,0.11,6,true],
+              [58,"#FF6B35",1.80,0.02,8,false],[64,"#FF9933",1.45,0.21,7,true],[70,"#4CAF50",1.73,0.32,10,false],
+              [76,"#FFD700",1.56,0.09,6,true],[82,"#FF4081",1.62,0.04,11,false],[88,"#138808",1.78,0.18,7,true],
+              [94,"#FF9933",1.43,0.28,8,false],[6,"#FFE066",1.69,0.37,6,true],[18,"#29B6F6",1.53,0.07,9,false],
+              [31,"#EF5350",1.61,0.19,7,true],[43,"#FFB300",1.82,0.29,11,false],[55,"#06038D",1.47,0.13,6,true],
+              [67,"#FF9933",1.74,0.23,8,false],[79,"#138808",1.50,0.03,9,true],[91,"#FFD700",1.66,0.33,7,false],
+              [12,"#FF4081",1.84,0.16,6,true],[24,"#4CAF50",1.41,0.27,10,false],[36,"#FF9933",1.77,0.05,7,true],
+              [48,"#FFD700",1.58,0.37,8,false],[60,"#138808",1.64,0.14,6,true],[72,"#FF6B35",1.86,0.24,9,false],
+              [84,"#FFE066",1.46,0.04,7,true],[96,"#29B6F6",1.71,0.34,11,false],
+            ].map(([l,col,dur,del,sz,rect],i)=>(
+              <div key={i} style={{
+                position:"absolute",top:-14,left:`${l}%`,
+                width:rect?sz:sz*0.75,height:rect?sz*0.5:sz,
+                borderRadius:rect?2:"50%",background:col,
+                animation:`confetti-fall ${dur}s ${del}s ease-in both`,
+                transform:`rotate(${i*53%360}deg)`,
+              }}/>
+            ))}
+          </div>
+        )}
+
         {/* Results */}
         {step===TOTAL&&(
           <div style={{padding:"16px 16px 48px"}}>
             {results.length>0?(
               <>
-                <div style={{background:"linear-gradient(135deg,#138808,#16a34a)",borderRadius:20,padding:"18px 20px",marginBottom:16,boxShadow:"0 6px 24px rgba(19,136,8,0.25)"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-                    <div style={{fontSize:34}}>🎉</div>
+                {/* ── CELEBRATION HERO CARD ── */}
+                <div style={{
+                  background:"linear-gradient(145deg,#0a5c1f 0%,#138808 45%,#1da832 100%)",
+                  borderRadius:22,padding:"20px 20px 18px",marginBottom:16,
+                  boxShadow:"0 10px 36px rgba(19,136,8,0.38),0 3px 10px rgba(0,0,0,0.18)",
+                  animation:"celebrate-card-in 0.65s cubic-bezier(0.34,1.56,0.64,1) both",
+                  position:"relative",overflow:"hidden",
+                }}>
+                  {/* One-shot shine sweep */}
+                  <div style={{position:"absolute",top:0,left:"-60%",width:"40%",height:"100%",background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)",transform:"skewX(-15deg)",animation:"premiumShine 1.2s ease-out 0.45s 1",pointerEvents:"none"}}/>
+                  {/* Subtle radial glow */}
+                  <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 80% 60% at 50% -10%,rgba(255,255,255,0.10) 0%,transparent 70%)",pointerEvents:"none"}}/>
+
+                  {/* Top row: 🎉 + scheme count */}
+                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14,position:"relative"}}>
+                    <div style={{fontSize:40,lineHeight:1,animation:"celebrate-emoji-pop 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.15s both"}}>🎉</div>
                     <div>
-                      <div style={{fontSize:16,fontWeight:800,color:"#fff",fontFamily:bf}}>{t.matchSub(results.length)}</div>
-                      {answers.state&&<div style={{fontSize:12,color:"rgba(255,255,255,0.8)",marginTop:2}}>📍 {answers.state}</div>}
+                      <div style={{fontSize:18,fontWeight:900,color:"#fff",fontFamily:bf,lineHeight:1.15,letterSpacing:-0.4}}>{t.matchSub(results.length)}</div>
+                      {answers.state&&<div style={{fontSize:12,color:"rgba(255,255,255,0.82)",marginTop:3,display:"flex",alignItems:"center",gap:4}}>📍 <span>{answers.state}</span></div>}
                     </div>
                   </div>
-                  <div style={{display:"flex",gap:8}}>
-                    <div style={{flex:1,background:"rgba(255,255,255,0.15)",borderRadius:12,padding:"10px 12px",textAlign:"center"}}>
-                      <div style={{fontSize:20,fontWeight:800,color:"#fff"}}>{nationalResults.length}</div>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,0.8)",marginTop:2}}>🇮🇳 {isHindi?"केंद्रीय":"Central"}</div>
+
+                  {/* Benefit hero block */}
+                  {totalAnnual>0&&(
+                    <div style={{
+                      background:"rgba(0,0,0,0.18)",border:"1.5px solid rgba(255,255,255,0.22)",
+                      borderRadius:16,padding:"14px 16px",marginBottom:14,textAlign:"center",
+                      animation:"celebrate-amount-pop 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.32s both",
+                    }}>
+                      <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.68)",letterSpacing:1.6,textTransform:"uppercase",fontFamily:bf,marginBottom:6}}>
+                        {isHindi?"कुल अनुमानित सालाना लाभ":"Total Estimated Annual Benefit"}
+                      </div>
+                      <div style={{
+                        fontSize:42,fontWeight:900,color:"#FFD700",fontFamily:bf,lineHeight:1,
+                        letterSpacing:-1.5,
+                        textShadow:"0 0 24px rgba(255,215,0,0.55),0 2px 10px rgba(0,0,0,0.35)",
+                      }}>
+                        ₹{animatedBenefit>=100000
+                          ?`${(animatedBenefit/100000).toFixed(1)}L`
+                          :`${(animatedBenefit/1000).toFixed(0)}K`}
+                      </div>
+                      <div style={{fontSize:11.5,color:"rgba(255,255,255,0.72)",marginTop:5,fontFamily:bf,fontWeight:500}}>
+                        {isHindi?"आप इसके हकदार हैं — अभी आवेदन करें!":"You're entitled to this — claim it now!"}
+                      </div>
                     </div>
-                    <div style={{flex:1,background:"rgba(255,255,255,0.15)",borderRadius:12,padding:"10px 12px",textAlign:"center"}}>
-                      <div style={{fontSize:20,fontWeight:800,color:"#fff"}}>{stateResults.length}</div>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,0.8)",marginTop:2}}>📍 {isHindi?"राज्य":"State"}</div>
+                  )}
+
+                  {/* Central / State breakdown pills */}
+                  <div style={{display:"flex",gap:8,position:"relative"}}>
+                    <div style={{flex:1,background:"rgba(255,255,255,0.13)",borderRadius:12,padding:"10px 12px",textAlign:"center"}}>
+                      <div style={{fontSize:22,fontWeight:900,color:"#fff",lineHeight:1}}>{nationalResults.length}</div>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.78)",marginTop:3}}>🇮🇳 {isHindi?"केंद्रीय":"Central"}</div>
                     </div>
-                    {totalAnnual>0&&(
-                      <div style={{flex:2,background:"rgba(255,255,255,0.2)",borderRadius:12,padding:"10px 12px",textAlign:"center",border:"1px solid rgba(255,255,255,0.3)"}}>
-                        <div style={{fontSize:16,fontWeight:800,color:"#fff"}}>₹{(totalAnnual/100000).toFixed(1)}L</div>
-                        <div style={{fontSize:10,color:"rgba(255,255,255,0.8)",marginTop:2}}>{t.totalBenefit}</div>
+                    <div style={{flex:1,background:"rgba(255,255,255,0.13)",borderRadius:12,padding:"10px 12px",textAlign:"center"}}>
+                      <div style={{fontSize:22,fontWeight:900,color:"#fff",lineHeight:1}}>{stateResults.length}</div>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.78)",marginTop:3}}>📍 {isHindi?"राज्य":"State"}</div>
+                    </div>
+                    {totalAnnual===0&&(
+                      <div style={{flex:2,background:"rgba(255,255,255,0.10)",borderRadius:12,padding:"10px 12px",textAlign:"center",border:"1px solid rgba(255,255,255,0.18)"}}>
+                        <div style={{fontSize:14,fontWeight:800,color:"#fff",lineHeight:1}}>{results.length}</div>
+                        <div style={{fontSize:10,color:"rgba(255,255,255,0.78)",marginTop:3}}>{isHindi?"कुल योजनाएं":"Total Schemes"}</div>
                       </div>
                     )}
                   </div>
@@ -7136,6 +7238,34 @@ const APP_STYLES = `
           0%,100%{text-shadow:0 0 28px rgba(255,153,51,0.45),0 0 55px rgba(255,153,51,0.2)}
           50%    {text-shadow:0 0 50px rgba(255,153,51,0.85),0 0 90px rgba(255,153,51,0.45)}
         }
+        /* ── Celebration Moment ───────────────────────────────────────────────── */
+        @keyframes confetti-fall{
+          0%  {transform:translateY(-10px) rotate(0deg)  scaleX(1);  opacity:1}
+          20% {transform:translateY(20vh)  rotate(180deg) scaleX(-1); opacity:1}
+          50% {transform:translateY(55vh)  rotate(400deg) scaleX(1);  opacity:0.9}
+          85% {opacity:0.6}
+          100%{transform:translateY(115vh) rotate(720deg) scaleX(-1); opacity:0}
+        }
+        @keyframes celebrate-card-in{
+          0%  {opacity:0;transform:scale(0.80) translateY(16px)}
+          55% {transform:scale(1.03)  translateY(-3px)}
+          100%{opacity:1;transform:scale(1)    translateY(0)}
+        }
+        @keyframes celebrate-amount-pop{
+          0%  {opacity:0;transform:scale(0.55) translateY(8px)}
+          60% {transform:scale(1.06) translateY(-2px)}
+          100%{opacity:1;transform:scale(1)    translateY(0)}
+        }
+        @keyframes celebrate-emoji-pop{
+          0%  {opacity:0;transform:scale(0.3) rotate(-20deg)}
+          55% {transform:scale(1.25) rotate(10deg)}
+          75% {transform:scale(0.92) rotate(-4deg)}
+          100%{opacity:1;transform:scale(1)    rotate(0deg)}
+        }
+        @keyframes celebrate-fade-out{
+          0%  {opacity:1}
+          100%{opacity:0;pointer-events:none}
+        }
         /* 8-directional fly-in keyframes for scheme icons */
         @keyframes fly-from-tl{from{opacity:0;transform:translate(-100px,-90px) scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
         @keyframes fly-from-tr{from{opacity:0;transform:translate(100px,-90px)  scale(0.2)}to{opacity:1;transform:translate(0,0) scale(1)}}
@@ -7735,7 +7865,27 @@ export default function YojanaSahay(){
         }}>
         <div style={{flex:1,overflowY:"auto"}}>
           {/* ── PREMIUM HEADER ── */}
-          <div style={{background:"linear-gradient(160deg,#0c1445 0%,#06038D 38%,#003580 65%,#FF8C00 100%)",padding:"0 0 0",position:"relative",overflow:"hidden"}}>
+          <div style={{background:"linear-gradient(160deg,#0c1445 0%,#06038D 38%,#003580 65%,#FF8C00 100%)",padding:"0 0 0",position:"relative",overflow:"hidden",
+            boxShadow:"0 6px 32px rgba(255,140,0,0.15), 0 0 0 1px rgba(255,255,255,0.07)"}}>
+
+            {/* ── 3D Bevel Border: bright top/left rim (light source) + shadow right rim ── */}
+            <div style={{
+              position:"absolute",inset:0,zIndex:4,pointerEvents:"none",
+              boxShadow:[
+                "inset 0 1.5px 0 rgba(255,255,255,0.30)",
+                "inset 1.5px 0 0 rgba(255,255,255,0.13)",
+                "inset -1.5px 0 0 rgba(0,0,0,0.24)",
+              ].join(", "),
+            }}/>
+
+            {/* ── Corner bracket accents — saffron L-marks, top-left & top-right ── */}
+            <svg width="20" height="20" viewBox="0 0 20 20" style={{position:"absolute",top:0,left:0,zIndex:5,pointerEvents:"none"}}>
+              <path d="M2 13 L2 2 L13 2" fill="none" stroke="rgba(255,153,51,0.72)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <svg width="20" height="20" viewBox="0 0 20 20" style={{position:"absolute",top:0,right:0,zIndex:5,pointerEvents:"none"}}>
+              <path d="M7 2 L18 2 L18 13" fill="none" stroke="rgba(255,153,51,0.72)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+
             {/* Decorative: large spinning chakra watermark */}
             <div className="spin" style={{position:"absolute",right:-55,top:-55,width:220,height:220,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.06)",opacity:1,pointerEvents:"none"}}>
               <svg width="220" height="220" viewBox="0 0 220 220" style={{position:"absolute",inset:0,opacity:0.07}}>
