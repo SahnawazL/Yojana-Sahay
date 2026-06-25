@@ -255,6 +255,20 @@ const LAST_VERIFIED_LABEL = LAST_VERIFIED_DATE
   ? LAST_VERIFIED_DATE.toLocaleDateString("en-IN", {day:"numeric", month:"short", year:"numeric"})
   : null;
 
+// ─── VERIFICATION STATS — for smart trust banner across scheme lists ────────────
+// Runs once at module init using the already-merged SCHEME_DB.
+const VERIFICATION_STATS = (()=>{
+  let verified=0, live=0;
+  for(const s of SCHEME_DB){
+    if(s.lastVerified!=null) verified++;
+    if(s.linkAlive===true) live++;
+  }
+  const total=SCHEME_DB.length;
+  // pctLive: % of verified schemes whose link is confirmed live
+  const pctLive=verified>0?Math.round((live/verified)*100):0;
+  return { total, verified, live, pctLive };
+})();
+
 const STORAGE_KEY      = "yojana_eligibility_answers";
 const BRIEF_CACHE_KEY  = "yojana_brief_cache";
 // Stable serialisation for answer fingerprinting — sorted keys avoid false misses
@@ -1793,15 +1807,50 @@ function SearchTab({lang,dark=false}){
       {/* ── Results ── */}
       <div style={{padding:"12px 16px 80px"}}>
 
-        {/* Link hint banner */}
-        <div style={{display:"flex",alignItems:"flex-start",gap:8,background:dark?"#1c1300":"#FFFBEB",borderRadius:12,padding:"9px 12px",marginBottom:14,border:`1px solid ${dark?"#78350f40":"#FDE68A"}`}}>
-          <span style={{fontSize:13,flexShrink:0,marginTop:1}}>💡</span>
-          <span style={{fontSize:11,color:dark?"#fbbf24":"#92400e",lineHeight:1.5,fontFamily:bf}}>
-            {isHindi
-              ?"कुछ योजना लिंक काम नहीं कर सकते। सटीक जानकारी के लिए योजना का नाम कॉपी करके Google पर खोजें।"
-              :"Some scheme links may not work. Copy the scheme name & search on Google for the correct & up-to-date info."}
-          </span>
-        </div>
+        {/* ── Smart Verification Status ── */}
+        {VERIFICATION_STATS.verified>0?(
+          <div style={{
+            display:"flex",alignItems:"center",gap:10,
+            background:dark?"rgba(19,136,8,0.09)":"rgba(19,136,8,0.05)",
+            border:`1px solid ${dark?"rgba(19,136,8,0.22)":"rgba(19,136,8,0.15)"}`,
+            borderRadius:12,padding:"9px 13px",marginBottom:14,
+          }}>
+            <span style={{fontSize:15,flexShrink:0}}>🛡️</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:11,fontWeight:700,color:dark?"#4ade80":"#15803d",fontFamily:bf,lineHeight:1.3}}>
+                {isHindi
+                  ?`${VERIFICATION_STATS.pctLive}% लिंक सत्यापित और लाइव`
+                  :`${VERIFICATION_STATS.pctLive}% links verified live`}
+                {LAST_VERIFIED_LABEL&&(
+                  <span style={{fontWeight:500,opacity:0.7}}>
+                    {isHindi?` · जाँच: ${LAST_VERIFIED_LABEL}`:` · Checked ${LAST_VERIFIED_LABEL}`}
+                  </span>
+                )}
+              </div>
+              <div style={{fontSize:10,color:dark?"rgba(74,222,128,0.6)":"rgba(21,128,61,0.65)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>
+                {isHindi
+                  ?"लिंक काम न करे तो कार्ड › खोलें — ~5% अगली जाँच से पहले बदल सकते हैं"
+                  :"Tap › on a card for the official link · ~5% may change between checks"}
+              </div>
+            </div>
+            <div style={{
+              fontSize:8,fontWeight:800,letterSpacing:0.7,flexShrink:0,
+              color:dark?"#4ade80":"#15803d",
+              background:dark?"rgba(19,136,8,0.16)":"rgba(19,136,8,0.08)",
+              border:`1px solid ${dark?"rgba(19,136,8,0.28)":"rgba(19,136,8,0.15)"}`,
+              borderRadius:20,padding:"3px 9px",textTransform:"uppercase",
+            }}>
+              {isHindi?"सत्यापित":"AI VERIFIED"}
+            </div>
+          </div>
+        ):(
+          <div style={{display:"flex",alignItems:"flex-start",gap:8,background:dark?"rgba(255,153,51,0.08)":"#FFFBEB",borderRadius:12,padding:"9px 12px",marginBottom:14,border:`1px solid ${dark?"rgba(255,153,51,0.18)":"#FDE68A"}`}}>
+            <span style={{fontSize:13,flexShrink:0,marginTop:1}}>💡</span>
+            <span style={{fontSize:11,color:dark?"#fbbf24":"#92400e",lineHeight:1.5,fontFamily:bf}}>
+              {isHindi?"कुछ योजना लिंक काम नहीं कर सकते। सटीक जानकारी के लिए योजना का नाम Google पर खोजें।":"Some scheme links may not work. Search the scheme name on Google for the latest info."}
+            </span>
+          </div>
+        )}
 
         {/* Skeleton shimmer while loading / searching */}
         {skeletonCount>0&&Array.from({length:skeletonCount}).map((_,i)=>(
@@ -2499,15 +2548,50 @@ function SchemesTab({lang,dark=false}){
       {/* ── SCHEME LIST ── */}
       <div ref={scrollContainerRef} style={{padding:"12px 16px 80px",overflowY:"auto",flex:1}}>
 
-        {/* Hint banner */}
-        <div style={{display:"flex",alignItems:"flex-start",gap:8,background:dark?"#1c1300":"#FFFBEB",borderRadius:12,padding:"9px 12px",marginBottom:14,border:`1px solid ${dark?"#78350f40":"#FDE68A"}`}}>
-          <span style={{fontSize:13,flexShrink:0,marginTop:1}}>💡</span>
-          <span style={{fontSize:11,color:dark?"#fbbf24":"#92400e",lineHeight:1.5,fontFamily:bf}}>
-            {isHindi
-              ? "कुछ योजना लिंक काम नहीं कर सकते। सटीक जानकारी के लिए योजना का नाम कॉपी करके Google पर खोजें।"
-              : "Some scheme links may not work. Copy the scheme name & search on Google for the correct & up-to-date info."}
-          </span>
-        </div>
+        {/* ── Smart Verification Status ── */}
+        {VERIFICATION_STATS.verified>0?(
+          <div style={{
+            display:"flex",alignItems:"center",gap:10,
+            background:dark?"rgba(19,136,8,0.09)":"rgba(19,136,8,0.05)",
+            border:`1px solid ${dark?"rgba(19,136,8,0.22)":"rgba(19,136,8,0.15)"}`,
+            borderRadius:12,padding:"9px 13px",marginBottom:14,
+          }}>
+            <span style={{fontSize:15,flexShrink:0}}>🛡️</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:11,fontWeight:700,color:dark?"#4ade80":"#15803d",fontFamily:bf,lineHeight:1.3}}>
+                {isHindi
+                  ?`${VERIFICATION_STATS.pctLive}% लिंक सत्यापित और लाइव`
+                  :`${VERIFICATION_STATS.pctLive}% links verified live`}
+                {LAST_VERIFIED_LABEL&&(
+                  <span style={{fontWeight:500,opacity:0.7}}>
+                    {isHindi?` · जाँच: ${LAST_VERIFIED_LABEL}`:` · Checked ${LAST_VERIFIED_LABEL}`}
+                  </span>
+                )}
+              </div>
+              <div style={{fontSize:10,color:dark?"rgba(74,222,128,0.6)":"rgba(21,128,61,0.65)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>
+                {isHindi
+                  ?"लिंक काम न करे तो कार्ड › खोलें — ~5% अगली जाँच से पहले बदल सकते हैं"
+                  :"Tap › on a card for the official link · ~5% may change between checks"}
+              </div>
+            </div>
+            <div style={{
+              fontSize:8,fontWeight:800,letterSpacing:0.7,flexShrink:0,
+              color:dark?"#4ade80":"#15803d",
+              background:dark?"rgba(19,136,8,0.16)":"rgba(19,136,8,0.08)",
+              border:`1px solid ${dark?"rgba(19,136,8,0.28)":"rgba(19,136,8,0.15)"}`,
+              borderRadius:20,padding:"3px 9px",textTransform:"uppercase",
+            }}>
+              {isHindi?"सत्यापित":"AI VERIFIED"}
+            </div>
+          </div>
+        ):(
+          <div style={{display:"flex",alignItems:"flex-start",gap:8,background:dark?"rgba(255,153,51,0.08)":"#FFFBEB",borderRadius:12,padding:"9px 12px",marginBottom:14,border:`1px solid ${dark?"rgba(255,153,51,0.18)":"#FDE68A"}`}}>
+            <span style={{fontSize:13,flexShrink:0,marginTop:1}}>💡</span>
+            <span style={{fontSize:11,color:dark?"#fbbf24":"#92400e",lineHeight:1.5,fontFamily:bf}}>
+              {isHindi?"कुछ योजना लिंक काम नहीं कर सकते। सटीक जानकारी के लिए योजना का नाम Google पर खोजें।":"Some scheme links may not work. Search the scheme name on Google for the latest info."}
+            </span>
+          </div>
+        )}
 
         {/* Skeleton shimmer cards */}
         {skeletonCount>0&&Array.from({length:skeletonCount}).map((_,i)=>(
