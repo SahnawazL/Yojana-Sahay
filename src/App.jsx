@@ -8108,6 +8108,7 @@ function YojanaSahayInner(){
         <div style={{flex:1,overflowY:"auto"}}>
           {/* ── PREMIUM HEADER ── */}
           <div style={{background:"linear-gradient(160deg,#0c1445 0%,#06038D 38%,#003580 65%,#FF8C00 100%)",padding:"0 0 0",position:"relative",overflow:"hidden",
+            isolation:"isolate",
             boxShadow:"0 6px 32px rgba(255,140,0,0.15), 0 0 0 1px rgba(255,255,255,0.07)"}}>
 
             {/* ── 3D Bevel Border ── */}
