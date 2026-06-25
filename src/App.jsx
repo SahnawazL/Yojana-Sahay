@@ -8120,14 +8120,6 @@ function YojanaSahayInner(){
               ].join(", "),
             }}/>
 
-            {/* ── Corner bracket accents — saffron L-marks, top-left & top-right ── */}
-            <svg width="20" height="20" viewBox="0 0 20 20" style={{position:"absolute",top:0,left:0,zIndex:5,pointerEvents:"none"}}>
-              <path d="M2 13 L2 2 L13 2" fill="none" stroke="rgba(255,153,51,0.72)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <svg width="20" height="20" viewBox="0 0 20 20" style={{position:"absolute",top:0,right:0,zIndex:5,pointerEvents:"none"}}>
-              <path d="M7 2 L18 2 L18 13" fill="none" stroke="rgba(255,153,51,0.72)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-
             {/* Decorative: large spinning chakra watermark */}
             <div className="spin" style={{position:"absolute",right:-55,top:-55,width:220,height:220,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.06)",opacity:1,pointerEvents:"none"}}>
               <svg width="220" height="220" viewBox="0 0 220 220" style={{position:"absolute",inset:0,opacity:0.07}}>
@@ -8218,7 +8210,7 @@ function YojanaSahayInner(){
 
           {/* Stats — animated count-up on load */}
           <div className={`fu s1 ${loaded?"show":""}`}
-            style={{background:dark?th.card:"linear-gradient(135deg,#fffdf7 0%,#ffffff 65%)",margin:"12px 14px 0",borderRadius:16,padding:"14px 6px 12px",display:"flex",
+            style={{background:dark?th.card:"linear-gradient(135deg,#fffdf7 0%,#ffffff 65%)",margin:"-8px 14px 0",borderRadius:16,padding:"14px 6px 12px",display:"flex",
               boxShadow:dark?"0 8px 22px rgba(0,0,0,0.30)":"0 8px 22px rgba(255,153,51,0.16)",
               border:`1.5px solid ${dark?th.border:"rgba(255,179,71,0.32)"}`,marginBottom:6,position:"relative",zIndex:1}}>
             {[
