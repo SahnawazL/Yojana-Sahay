@@ -456,10 +456,44 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
           {/* Footer */}
           <div style={{
             display:"flex", alignItems:"center",
-            justifyContent:"flex-end",
+            justifyContent:"space-between",
             marginTop:11, paddingTop:10,
             borderTop:`1px solid ${divC}`,
           }}>
+
+            {/* Left — source badge */}
+            <div style={{ display:"flex", alignItems:"center", gap:3 }}>
+              {item.autoFetched ? (
+                <>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none"
+                    stroke={textSub} strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 4v6h-6"/>
+                    <path d="M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                  </svg>
+                  <span style={{
+                    fontSize:8.5, color:textSub,
+                    fontFamily:"'Noto Sans',sans-serif", letterSpacing:0.2,
+                  }}>Google News · 3d</span>
+                </>
+              ) : (
+                <>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none"
+                    stroke={GREEN} strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <polyline points="9 12 11 14 15 10"/>
+                  </svg>
+                  <span style={{
+                    fontSize:8.5, color:GREEN,
+                    fontFamily:"'Noto Sans',sans-serif", letterSpacing:0.2,
+                  }}>Admin verified</span>
+                </>
+              )}
+            </div>
+
+            {/* Right — speaker + read buttons */}
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               {/* Speak */}
               <button
