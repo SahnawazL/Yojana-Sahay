@@ -8240,20 +8240,18 @@ function YojanaSahayInner(){
                   </div>
                 )}
 
-                {/* Hero headline — Discover. Apply. Benefit. */}
-                {isHindi?(
-                  <div style={{fontFamily:bf,lineHeight:1.16,marginBottom:7,letterSpacing:-0.3}}>
-                    <div style={{color:"#fff",fontSize:25,fontWeight:900}}>खोजें।</div>
-                    <div style={{fontSize:25,fontWeight:900,color:"#FF9933"}}>आवेदन करें।</div>
-                    <div style={{fontSize:25,fontWeight:900,color:"#4ade80"}}>लाभ पाएं।</div>
-                  </div>
-                ):(
-                  <div style={{fontFamily:bf,lineHeight:1.16,marginBottom:7,letterSpacing:-0.3}}>
-                    <div style={{color:"#fff",fontSize:26,fontWeight:900}}>Discover.</div>
-                    <div style={{fontSize:26,fontWeight:900,color:"#FF9933"}}>Apply.</div>
-                    <div style={{fontSize:26,fontWeight:900,color:"#4ade80"}}>Benefit.</div>
-                  </div>
-                )}
+                {/* Hero headline — one line */}
+                <div style={{display:"flex",alignItems:"baseline",flexWrap:"wrap",columnGap:5,rowGap:0,marginBottom:6,fontFamily:bf}}>
+                  <span style={{color:"#fff",fontSize:16,fontWeight:900,letterSpacing:-0.3}}>
+                    {isHindi?"खोजें।":"Discover."}
+                  </span>
+                  <span style={{fontSize:16,fontWeight:900,color:"#FF9933",letterSpacing:-0.3}}>
+                    {isHindi?"आवेदन।":"Apply."}
+                  </span>
+                  <span style={{fontSize:16,fontWeight:900,color:"#4ade80",letterSpacing:-0.3}}>
+                    {isHindi?"लाभ पाएं।":"Benefit."}
+                  </span>
+                </div>
 
                 {/* Subline */}
                 <div style={{color:"rgba(255,255,255,0.62)",fontSize:11.5,lineHeight:1.48}}>
@@ -8261,60 +8259,67 @@ function YojanaSahayInner(){
                 </div>
               </div>
 
-              {/* RIGHT: Trust badge */}
+              {/* RIGHT: Trust badge — compact & professional */}
               <div style={{
-                flexShrink:0,width:112,
+                flexShrink:0,width:96,
                 display:"flex",flexDirection:"column",alignItems:"center",
-                background:"rgba(0,0,0,0.22)",
-                border:"1px solid rgba(255,255,255,0.13)",
-                borderRadius:18,padding:"12px 8px 10px",
-                boxShadow:"0 6px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)",
-                backdropFilter:"blur(6px)",
-                WebkitBackdropFilter:"blur(6px)",
+                background:"rgba(0,8,60,0.52)",
+                border:"1px solid rgba(255,255,255,0.14)",
+                borderRadius:14,padding:"10px 6px 8px",
+                boxShadow:"0 4px 20px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10)",
+                backdropFilter:"blur(8px)",
+                WebkitBackdropFilter:"blur(8px)",
               }}>
                 {/* Gold shield */}
-                <div style={{marginBottom:4}}>
-                  <svg width="42" height="42" viewBox="0 0 44 44" fill="none">
+                <div style={{marginBottom:3}}>
+                  <svg width="32" height="32" viewBox="0 0 44 46" fill="none">
                     <defs>
-                      <linearGradient id="ysShieldGold" x1="22" y1="4" x2="22" y2="42" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stopColor="#FFE566"/>
-                        <stop offset="55%" stopColor="#FFAD00"/>
-                        <stop offset="100%" stopColor="#C87800"/>
+                      <linearGradient id="ysShieldG2" x1="22" y1="2" x2="22" y2="44" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="#FFE55C"/>
+                        <stop offset="60%" stopColor="#FFAA00"/>
+                        <stop offset="100%" stopColor="#C07800"/>
                       </linearGradient>
                     </defs>
-                    <path d="M22 4L6 10.5v11.8c0 9.4 6.9 18.2 16 20.4 9.1-2.2 16-11 16-20.4V10.5L22 4z"
-                      fill="url(#ysShieldGold)"/>
-                    <path d="M22 4L6 10.5v11.8c0 9.4 6.9 18.2 16 20.4 9.1-2.2 16-11 16-20.4V10.5L22 4z"
-                      fill="none" stroke="rgba(255,235,100,0.45)" strokeWidth="1.2"/>
-                    <path d="M15 22.5l4.5 4.5 9.5-9.5" stroke="#fff" strokeWidth="2.6"
-                      strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M22 3L5 10v13c0 10.2 7.2 19.7 17 22 9.8-2.3 17-11.8 17-22V10L22 3z" fill="url(#ysShieldG2)"/>
+                    <path d="M22 3L5 10v13c0 10.2 7.2 19.7 17 22 9.8-2.3 17-11.8 17-22V10L22 3z" fill="none" stroke="rgba(255,230,80,0.4)" strokeWidth="1"/>
+                    <path d="M14 23.5l5 5 11-11" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
 
-                <div style={{fontSize:7,fontWeight:700,letterSpacing:1.3,color:"rgba(255,255,255,0.65)",textTransform:"uppercase",marginBottom:1}}>TRUSTED BY</div>
-                <div style={{fontSize:22,fontWeight:900,color:"#fff",lineHeight:1,fontFamily:bf,letterSpacing:-0.5}}>1M+</div>
-                <div style={{fontSize:8,fontWeight:800,letterSpacing:1.6,color:"#FF9933",textTransform:"uppercase",marginBottom:5}}>INDIANS</div>
+                <div style={{fontSize:6.5,fontWeight:700,letterSpacing:1.2,color:"rgba(255,255,255,0.60)",textTransform:"uppercase",marginBottom:1}}>TRUSTED BY</div>
+                <div style={{fontSize:20,fontWeight:900,color:"#fff",lineHeight:1,fontFamily:bf,letterSpacing:-0.5}}>1M+</div>
+                <div style={{fontSize:7.5,fontWeight:800,letterSpacing:1.5,color:"#FF9933",textTransform:"uppercase",marginBottom:4}}>INDIANS</div>
 
-                {/* Laurel wreaths */}
-                <svg width="84" height="22" viewBox="0 0 84 22" fill="none" style={{marginBottom:4}}>
-                  {/* Left branch */}
-                  <path d="M3 19 C5 14 8 9 12 6" stroke="#DAA520" strokeWidth="1.4" strokeLinecap="round"/>
-                  <ellipse cx="5" cy="17" rx="3.2" ry="1.7" fill="#DAA520" opacity="0.82" transform="rotate(-25 5 17)"/>
-                  <ellipse cx="8" cy="12.5" rx="3.2" ry="1.7" fill="#DAA520" opacity="0.82" transform="rotate(-45 8 12.5)"/>
-                  <ellipse cx="11" cy="8" rx="2.8" ry="1.5" fill="#DAA520" opacity="0.82" transform="rotate(-65 11 8)"/>
-                  <ellipse cx="2.5" cy="19.5" rx="2.5" ry="1.4" fill="#DAA520" opacity="0.75" transform="rotate(-10 2.5 19.5)"/>
-                  {/* Right branch (mirrored) */}
-                  <path d="M81 19 C79 14 76 9 72 6" stroke="#DAA520" strokeWidth="1.4" strokeLinecap="round"/>
-                  <ellipse cx="79" cy="17" rx="3.2" ry="1.7" fill="#DAA520" opacity="0.82" transform="rotate(25 79 17)"/>
-                  <ellipse cx="76" cy="12.5" rx="3.2" ry="1.7" fill="#DAA520" opacity="0.82" transform="rotate(45 76 12.5)"/>
-                  <ellipse cx="73" cy="8" rx="2.8" ry="1.5" fill="#DAA520" opacity="0.82" transform="rotate(65 73 8)"/>
-                  <ellipse cx="81.5" cy="19.5" rx="2.5" ry="1.4" fill="#DAA520" opacity="0.75" transform="rotate(10 81.5 19.5)"/>
+                {/* Real botanical laurel wreath SVG */}
+                <svg width="80" height="22" viewBox="0 0 86 24" fill="none" style={{marginBottom:3}}>
+                  {/* Left stem */}
+                  <path d="M43 22 C39 16 31 11 17 6" stroke="#9A7000" strokeWidth="1.1" strokeLinecap="round"/>
+                  {/* Left leaves — alternating each side of stem */}
+                  <path d="M40 20 C37 17 36 13 38 10 C40 13 40 17 40 20Z" fill="#DAA520" opacity="0.90" transform="rotate(-10 40 20)"/>
+                  <path d="M38 18 C36 15 36 12 38 10 C39 12 39 15 38 18Z" fill="#C09010" opacity="0.68" transform="rotate(12 38 18)"/>
+                  <path d="M35 16 C32 13 32 9 34 6 C36 9 36 13 35 16Z" fill="#DAA520" opacity="0.90" transform="rotate(-26 35 16)"/>
+                  <path d="M33 14 C31 12 31 9 33 7 C34 9 34 12 33 14Z" fill="#C09010" opacity="0.68" transform="rotate(-4 33 14)"/>
+                  <path d="M29 12 C26 9 26 6 28 3 C30 6 30 9 29 12Z" fill="#DAA520" opacity="0.90" transform="rotate(-42 29 12)"/>
+                  <path d="M27 10 C25 8 25 5 27 3 C28 5 28 8 27 10Z" fill="#C09010" opacity="0.65" transform="rotate(-20 27 10)"/>
+                  <path d="M23 8 C21 6 21 3 23 1 C24 3 24 6 23 8Z" fill="#DAA520" opacity="0.85" transform="rotate(-56 23 8)"/>
+                  <path d="M21 7 C19 5 20 3 22 1 C23 3 22 5 21 7Z" fill="#C09010" opacity="0.60" transform="rotate(-35 21 7)"/>
+                  {/* Right stem */}
+                  <path d="M43 22 C47 16 55 11 69 6" stroke="#9A7000" strokeWidth="1.1" strokeLinecap="round"/>
+                  {/* Right leaves — mirrored */}
+                  <path d="M46 20 C49 17 50 13 48 10 C46 13 46 17 46 20Z" fill="#DAA520" opacity="0.90" transform="rotate(10 46 20)"/>
+                  <path d="M48 18 C50 15 50 12 48 10 C47 12 47 15 48 18Z" fill="#C09010" opacity="0.68" transform="rotate(-12 48 18)"/>
+                  <path d="M51 16 C54 13 54 9 52 6 C50 9 50 13 51 16Z" fill="#DAA520" opacity="0.90" transform="rotate(26 51 16)"/>
+                  <path d="M53 14 C55 12 55 9 53 7 C52 9 52 12 53 14Z" fill="#C09010" opacity="0.68" transform="rotate(4 53 14)"/>
+                  <path d="M57 12 C60 9 60 6 58 3 C56 6 56 9 57 12Z" fill="#DAA520" opacity="0.90" transform="rotate(42 57 12)"/>
+                  <path d="M59 10 C61 8 61 5 59 3 C58 5 58 8 59 10Z" fill="#C09010" opacity="0.65" transform="rotate(20 59 10)"/>
+                  <path d="M63 8 C65 6 65 3 63 1 C62 3 62 6 63 8Z" fill="#DAA520" opacity="0.85" transform="rotate(56 63 8)"/>
+                  <path d="M65 7 C67 5 66 3 64 1 C63 3 64 5 65 7Z" fill="#C09010" opacity="0.60" transform="rotate(35 65 7)"/>
                 </svg>
 
                 {/* 3 gold stars */}
-                <div style={{display:"flex",gap:3}}>
+                <div style={{display:"flex",gap:2}}>
                   {[0,1,2].map(si=>(
-                    <svg key={si} width="11" height="11" viewBox="0 0 24 24" fill="#FFD700">
+                    <svg key={si} width="9" height="9" viewBox="0 0 24 24" fill="#FFD700">
                       <path d="M12 2l2.5 7.5H22l-6.5 4.5 2.5 7.5L12 17l-6 4.5 2.5-7.5L2 9.5h7.5L12 2z"/>
                     </svg>
                   ))}
