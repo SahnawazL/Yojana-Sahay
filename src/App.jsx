@@ -7414,6 +7414,10 @@ const APP_STYLES = `
         @keyframes answer-lock-pulse{0%{transform:scale(1)}35%{transform:scale(1.04)}70%{transform:scale(0.98)}100%{transform:scale(1)}}
         @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
         @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:0.6}}
+        @keyframes aiPillShimmer{
+          0%  {background-position:200% center}
+          100%{background-position:-200% center}
+        }
         @keyframes calc-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(0.85)}}
         @keyframes calc-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         @keyframes calc-slide-in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
@@ -8168,39 +8172,36 @@ function YojanaSahayInner(){
                 <div>
                   <div style={{color:"#fff",fontSize:17,fontWeight:900,fontFamily:bf,letterSpacing:-0.3,lineHeight:1.1,marginBottom:3,display:"flex",alignItems:"center",gap:5}}>
                     {t.appName}
-                    {/* Verified badge — premium blue tick */}
-                    <div style={{
-                      position:"relative",
-                      width:19,height:19,borderRadius:"50%",flexShrink:0,
-                      background:"linear-gradient(145deg,#55b4ff 0%,#1a8fff 35%,#0a6fd4 100%)",
-                      display:"flex",alignItems:"center",justifyContent:"center",
-                      boxShadow:"0 0 0 1.5px rgba(255,255,255,0.85), 0 2px 8px rgba(26,143,255,0.70), 0 1px 3px rgba(0,0,0,0.30)",
-                    }}>
-                      {/* Inner top-left shine */}
-                      <div style={{
-                        position:"absolute",top:2,left:2.5,
-                        width:7,height:4,borderRadius:"50%",
-                        background:"rgba(255,255,255,0.38)",
-                        transform:"rotate(-20deg)",
-                        pointerEvents:"none",
-                      }}/>
-                      <svg width="10" height="10" viewBox="0 0 13 13" fill="none" style={{position:"relative",zIndex:1}}>
-                        <path d="M2.5 6.8l2.7 2.7 5.3-5.3" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}>
+                  <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:5}}>
                     <span style={{color:"rgba(255,255,255,0.58)",fontSize:10,fontWeight:600,letterSpacing:0.1}}>{t.appSub}</span>
                   </div>
-                  {/* AI-Powered — subtle, elegant, own line */}
-                  <div style={{display:"flex",alignItems:"center",gap:4}}>
+                  {/* AI-Powered — premium shimmer pill */}
+                  <div style={{
+                    display:"inline-flex",alignItems:"center",gap:5,
+                    padding:"3px 9px 3px 7px",
+                    borderRadius:20,
+                    background:"linear-gradient(90deg,rgba(255,153,51,0.18) 0%,rgba(255,255,255,0.28) 40%,rgba(99,179,255,0.22) 60%,rgba(255,153,51,0.18) 100%)",
+                    backgroundSize:"200% auto",
+                    animation:"aiPillShimmer 2.8s linear infinite",
+                    border:"1px solid rgba(255,255,255,0.22)",
+                    boxShadow:"0 1px 8px rgba(255,153,51,0.20), inset 0 1px 0 rgba(255,255,255,0.18)",
+                    backdropFilter:"blur(6px)",
+                    WebkitBackdropFilter:"blur(6px)",
+                  }}>
+                    {/* Spark icon */}
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
                       <path d="M12 2L14.5 9.5H22L16 14L18.5 21.5L12 17L5.5 21.5L8 14L2 9.5H9.5L12 2Z"
-                        fill="rgba(255,153,51,0.85)" stroke="rgba(255,153,51,0.4)" strokeWidth="1"/>
+                        fill="#FFD580" stroke="rgba(255,200,80,0.5)" strokeWidth="0.8"/>
                     </svg>
                     <span style={{
-                      color:"rgba(255,153,51,0.82)",
-                      fontSize:9.5,fontWeight:700,letterSpacing:0.8,textTransform:"uppercase",
+                      fontSize:9,fontWeight:800,letterSpacing:1.1,textTransform:"uppercase",
+                      background:"linear-gradient(90deg,#FFD580,#fff 45%,#a8d8ff 75%,#FFD580)",
+                      backgroundSize:"200% auto",
+                      animation:"aiPillShimmer 2.8s linear infinite",
+                      WebkitBackgroundClip:"text",
+                      WebkitTextFillColor:"transparent",
+                      backgroundClip:"text",
                     }}>
                       {isHindi?"AI-संचालित":"AI-Powered"}
                     </span>
