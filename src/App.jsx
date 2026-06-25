@@ -924,7 +924,7 @@ function DarkModeToggle({dark,onToggle}){
 // ─── SCHEME CARD (used in eligibility results, schemes tab & category sheet) ─────
 // Smooth expand/collapse via CSS grid 0fr→1fr trick.
 // Content is ALWAYS mounted — animation works in both directions everywhere.
-function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null}){
+function _SchemeCard({scheme,lang,expanded,onToggle,dark=false}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
   const bf=fontFamily(lang);
@@ -1459,20 +1459,6 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                   </div>
                 </>
               )}
-              {/* ── View Full Checklist — opens SchemeDetailSheet with tap-to-check docs + WhatsApp share ── */}
-              {onOpenDetail&&(
-                <div onClick={e=>{e.stopPropagation();haptic(30);onOpenDetail(scheme.id);}}
-                  style={{display:"flex",alignItems:"center",justifyContent:"center",gap:7,
-                    marginTop:4,background:scheme.color+"13",border:`1.5px solid ${scheme.color}40`,
-                    borderRadius:12,padding:"11px 14px",cursor:"pointer",
-                    WebkitTapHighlightColor:"transparent"}}>
-                  <span style={{fontSize:13}}>📋</span>
-                  <span style={{fontSize:12,fontWeight:700,color:scheme.color,fontFamily:bf}}>
-                    {isHindi?"चेकलिस्ट देखें & WhatsApp Share":"View Checklist & Share"}
-                  </span>
-                  <span style={{fontSize:14,color:scheme.color,opacity:0.7,marginLeft:2}}>›</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1484,11 +1470,10 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
 // Custom memo comparator — ignores onToggle (always a new arrow fn) and only
 // re-renders when the data that actually affects the UI changes.
 const SchemeCard = memo(_SchemeCard, (prev, next) =>
-  prev.scheme       === next.scheme       &&
-  prev.lang         === next.lang         &&
-  prev.expanded     === next.expanded     &&
-  prev.dark         === next.dark         &&
-  prev.onOpenDetail === next.onOpenDetail
+  prev.scheme  === next.scheme  &&
+  prev.lang    === next.lang    &&
+  prev.expanded=== next.expanded&&
+  prev.dark    === next.dark
 );
 
 // ─── CATEGORY FILTER SHEET ─────────────────────────────────────────────────────
@@ -1496,7 +1481,7 @@ const SchemeCard = memo(_SchemeCard, (prev, next) =>
 // Two-phase render so the sheet NEVER lags on open:
 //   Phase 1 (0–30ms)  : sheet slides up with shimmer skeleton cards
 //   Phase 2 (400ms)   : real SchemeCard list swaps in after animation ends
-function CategorySheet({category,lang,onClose,dark=false,onOpenDetail=null}){
+function CategorySheet({category,lang,onClose,dark=false}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
   const isHindi=lang==="hi";
@@ -1578,8 +1563,7 @@ function CategorySheet({category,lang,onClose,dark=false,onOpenDetail=null}){
               {stateSchemes.map(s=>(
                 <SchemeCard key={s.id} scheme={s} lang={lang} dark={dark}
                   expanded={expandedId===s.id}
-                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}
-                  onOpenDetail={onOpenDetail}/>
+                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
               ))}
             </>
           )}
@@ -1597,8 +1581,7 @@ function CategorySheet({category,lang,onClose,dark=false,onOpenDetail=null}){
               {nationalSchemes.map(s=>(
                 <SchemeCard key={s.id} scheme={s} lang={lang} dark={dark}
                   expanded={expandedId===s.id}
-                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}
-                  onOpenDetail={onOpenDetail}/>
+                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
               ))}
             </>
           )}
@@ -1660,9 +1643,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
         ?(isHindi?`आवेदन करें: ${applyUrl}`:`Apply here: ${applyUrl}`)
         :(isHindi?`आवेदन: ${scheme.apply[lang]}`:`How to apply: ${scheme.apply[lang]}`),
       "",
-      "─────────────────────",
-      isHindi?"🇮🇳 अपनी पात्र योजनाएं मुफ्त खोजें:":"🇮🇳 Find schemes you qualify for — free:",
-      "👉 https://yojanasahay.vercel.app",
+      isHindi?"YojanaSahay ऐप से":"via YojanaSahay app",
     ];
     window.open(`https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`,"_blank");
   };
@@ -1761,7 +1742,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
 // ─── SEARCH TAB ────────────────────────────────────────────────────────────────
 // Paginated + skeleton + deferred query to match SchemesTab performance.
 // Root cause of old lag: dumped ALL SCHEME_DB cards to DOM at once (no pagination).
-function SearchTab({lang,dark=false,onOpenDetail=null}){
+function SearchTab({lang,dark=false}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
   const isHindi=lang==="hi";
@@ -1973,8 +1954,7 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
               {visibleNat.map(s=>(
                 <SchemeCard key={s.id} scheme={s} lang={lang} dark={dark}
                   expanded={expandedId===s.id}
-                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}
-                  onOpenDetail={onOpenDetail}/>
+                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
               ))}
             </>
           )}
@@ -1992,8 +1972,7 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
               {visibleState.map(s=>(
                 <SchemeCard key={s.id} scheme={s} lang={lang} dark={dark}
                   expanded={expandedId===s.id}
-                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}
-                  onOpenDetail={onOpenDetail}/>
+                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
               ))}
             </>
           )}
@@ -2274,7 +2253,7 @@ function SkeletonCard({dark=false}){
 // Paginated + skeleton + deferred-filter for instant tab open
 const PAGE_SIZE=20;
 
-function SchemesTab({lang,dark=false,onOpenDetail=null}){
+function SchemesTab({lang,dark=false}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
   const isHindi=lang==="hi";
@@ -2716,8 +2695,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
               {visibleState.map(s=>(
                 <SchemeCard key={s.id} scheme={s} lang={lang} dark={dark}
                   expanded={expandedId===s.id}
-                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}
-                  onOpenDetail={onOpenDetail}/>
+                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
               ))}
             </>
           )}
@@ -2735,8 +2713,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
               {visibleNat.map(s=>(
                 <SchemeCard key={s.id} scheme={s} lang={lang} dark={dark}
                   expanded={expandedId===s.id}
-                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}
-                  onOpenDetail={onOpenDetail}/>
+                  onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
               ))}
             </>
           )}
@@ -3161,14 +3138,6 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
   const [animatedBenefit, setAnimatedBenefit] = useState(0);
   const celebrationRafRef  = useRef(null);
   const prevCalculatingRef = useRef(false);
-
-  // ── Page-reload fix: results pre-loaded from localStorage, no calculating transition fires ──
-  // animatedBenefit stays 0 on reload even though totalAnnual is correct.
-  // Set it immediately on mount when results are already present.
-  useEffect(()=>{
-    if(totalAnnual>0) setAnimatedBenefit(totalAnnual);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[]);
 
   // ── Celebration: fires once when `calculating` transitions true → false with matches ──
   // NOTE: placed here so all deps (calculating, results, totalAnnual, celebrationRafRef,
@@ -3859,7 +3828,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                         // in fresh from 0; initial-render cards keep their original stagger.
                         animationDelay:`${(showAllState&&idx>=PREVIEW_COUNT?(idx-PREVIEW_COUNT):idx)*60}ms`,
                       }}>
-                        <SchemeCard scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)} onOpenDetail={onOpenDetail}/>
+                        <SchemeCard scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
                       </div>
                     ))}
                     {stateResults.length>PREVIEW_COUNT&&(
@@ -3888,7 +3857,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                         // on expand, newly revealed cards animate in with a clean 0-based stagger.
                         animationDelay:`${(showAllNational&&idx>=PREVIEW_COUNT?(idx-PREVIEW_COUNT):(stateResults.length+idx))*60}ms`,
                       }}>
-                        <SchemeCard scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)} onOpenDetail={onOpenDetail}/>
+                        <SchemeCard scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)}/>
                       </div>
                     ))}
                     {nationalResults.length>PREVIEW_COUNT&&(
@@ -8625,7 +8594,7 @@ export default function YojanaSahay(){
           flexDirection:"column",minHeight:0,overflow:"hidden",
           willChange:activeTab==="search"?"transform":"auto",
         }}>
-        {mountedTabsRef.current.has("search") && <SearchTab lang={lang} dark={dark} onOpenDetail={setSelectedScheme}/>}
+        {mountedTabsRef.current.has("search") && <SearchTab lang={lang} dark={dark}/>}
       </div>
 
       {/* SCHEMES — lazy mount: nothing rendered until first visit */}
@@ -8638,7 +8607,7 @@ export default function YojanaSahay(){
           flexDirection:"column",minHeight:0,overflow:"hidden",
           willChange:activeTab==="schemes"?"transform":"auto",
         }}>
-        {mountedTabsRef.current.has("schemes") && <SchemesTab lang={lang} dark={dark} onOpenDetail={setSelectedScheme}/>}
+        {mountedTabsRef.current.has("schemes") && <SchemesTab lang={lang} dark={dark}/>}
       </div>
 
       {/* PROFILE — lazy mount: nothing rendered until first visit */}
@@ -9180,11 +9149,11 @@ export default function YojanaSahay(){
           prefilledAnswers={profileAnswers||undefined}
           dark={dark}/>
       )}
-      {selectedCategory&&(
-        <CategorySheet category={selectedCategory} lang={lang} onClose={()=>setSelectedCategory(null)} dark={dark} onOpenDetail={setSelectedScheme}/>
-      )}
       {selectedScheme&&(
         <SchemeDetailSheet schemeId={selectedScheme} lang={lang} onClose={()=>setSelectedScheme(null)} dark={dark}/>
+      )}
+      {selectedCategory&&(
+        <CategorySheet category={selectedCategory} lang={lang} onClose={()=>setSelectedCategory(null)} dark={dark}/>
       )}
       {showFAQ&&(
         <div
