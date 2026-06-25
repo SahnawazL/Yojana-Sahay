@@ -8142,28 +8142,10 @@ function YojanaSahayInner(){
             <div style={{position:"absolute",left:-30,bottom:-20,width:130,height:130,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,153,51,0.18) 0%,transparent 70%)",pointerEvents:"none"}}/>
             {/* Decorative: green orb top-center */}
             <div style={{position:"absolute",top:0,left:"30%",width:80,height:80,borderRadius:"50%",background:"radial-gradient(circle,rgba(19,136,8,0.12) 0%,transparent 70%)",pointerEvents:"none"}}/>
-            {/* Decorative: India map faint outline watermark */}
-            <svg style={{position:"absolute",right:6,bottom:8,width:110,height:130,opacity:0.055,pointerEvents:"none",zIndex:1}} viewBox="0 0 220 260" fill="none">
-              <path d="M110 8 L126 16 L140 14 L152 22 L160 34 L158 48 L168 60 L172 74 L166 86 L170 98 L162 108 L164 120 L158 132 L152 144 L154 158 L148 170 L144 182 L148 194 L140 206 L130 216 L118 224 L110 232 L102 224 L90 216 L80 206 L72 194 L76 182 L72 170 L66 158 L68 144 L62 132 L56 120 L58 108 L50 98 L54 86 L48 74 L52 60 L62 48 L60 34 L68 22 L80 14 L94 16 L110 8Z" stroke="#ffffff" strokeWidth="3" fill="none"/>
-              <path d="M62 48 L54 52 L44 58 L38 66 L42 76 L50 82 L48 74" stroke="#ffffff" strokeWidth="2.5" fill="none"/>
-              <path d="M158 48 L166 52 L176 58 L182 66 L178 76 L170 82 L172 74" stroke="#ffffff" strokeWidth="2.5" fill="none"/>
-            </svg>
-            {/* Decorative: Indian flag tricolor diagonal ribbon — bottom-right */}
-            <div style={{position:"absolute",right:-18,bottom:0,width:70,height:"100%",overflow:"hidden",pointerEvents:"none",zIndex:1,opacity:0.28}}>
-              <div style={{
-                position:"absolute",bottom:-20,right:-30,
-                width:90,height:300,
-                transform:"rotate(-18deg)",
-                transformOrigin:"bottom right",
-              }}>
-                <div style={{height:"33.33%",background:"#FF9933"}}/>
-                <div style={{height:"33.33%",background:"rgba(255,255,255,0.9)"}}/>
-                <div style={{height:"33.33%",background:"#138808"}}/>
-              </div>
-            </div>
+
 
             {/* ── Top nav bar ── */}
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"38px 20px 12px",position:"relative",zIndex:3}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"20px 16px 10px",position:"relative",zIndex:3}}>
 
               {/* Left: Logo + Brand */}
               <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -8199,7 +8181,6 @@ function YojanaSahayInner(){
                     </div>
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}>
-                    <span style={{fontSize:10}}>🇮🇳</span>
                     <span style={{color:"rgba(255,255,255,0.58)",fontSize:10,fontWeight:600,letterSpacing:0.1}}>{t.appSub}</span>
                   </div>
                   {/* AI-Powered — subtle, elegant, own line */}
@@ -8232,7 +8213,7 @@ function YojanaSahayInner(){
             </div>
 
             {/* ── Hero content — two-column layout ── */}
-            <div style={{padding:"2px 20px 14px",position:"relative",zIndex:3,display:"flex",alignItems:"center",gap:10}}>
+            <div style={{padding:"4px 16px 28px",position:"relative",zIndex:3,display:"flex",alignItems:"center",gap:10}}>
 
               {/* LEFT: Greeting pill + Headline stack */}
               <div style={{flex:1,minWidth:0}}>
@@ -8342,36 +8323,13 @@ function YojanaSahayInner(){
 
             </div>
 
-            {/* Wave divider */}
-            <div style={{height:32,position:"relative",marginTop:4,zIndex:3}}>
-              <div style={{position:"absolute",left:"58%",top:-4,width:96,height:42,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,153,51,0.20) 0%,transparent 72%)",pointerEvents:"none"}}/>
-              <svg viewBox="0 0 420 32" preserveAspectRatio="none" style={{position:"absolute",inset:0,width:"100%",height:"100%",display:"block"}}>
-                <path
-                  d="M0,32 L0,19 C90,4 150,28 230,17 C310,6 360,27 420,14 L420,32 Z"
-                  fill={dark?"rgba(0,0,0,0.30)":"rgba(0,53,128,0.12)"}
-                  style={{filter:"blur(5px)"}}
-                  transform="translate(0,5)"
-                />
-              </svg>
-              <svg viewBox="0 0 420 32" preserveAspectRatio="none" style={{position:"absolute",inset:0,width:"100%",height:"100%",display:"block",filter:dark?"drop-shadow(0 -5px 11px rgba(0,0,0,0.30))":"drop-shadow(0 -5px 11px rgba(0,53,128,0.14))"}}>
-                <defs>
-                  <linearGradient id="waveHighlight" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%"  stopColor="rgba(255,255,255,0)"/>
-                    <stop offset="45%" stopColor="rgba(255,255,255,0.55)"/>
-                    <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
-                  </linearGradient>
-                </defs>
-                <path d="M0,32 L0,19 C90,4 150,28 230,17 C310,6 360,27 420,14 L420,32 Z" fill={th.appBg}/>
-                <path d="M0,19 C90,4 150,28 230,17 C310,6 360,27 420,14" fill="none" stroke="url(#waveHighlight)" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </div>
           </div>
 
-          {/* Stats — animated count-up on load */}
+          {/* Stats — animated count-up on load, overlaps header */}
           <div className={`fu s1 ${loaded?"show":""}`}
-            style={{background:dark?th.card:"linear-gradient(135deg,#fffdf7 0%,#ffffff 65%)",margin:"-8px 14px 0",borderRadius:16,padding:"14px 6px 12px",display:"flex",
-              boxShadow:dark?"0 8px 22px rgba(0,0,0,0.30)":"0 8px 22px rgba(255,153,51,0.16)",
-              border:`1.5px solid ${dark?th.border:"rgba(255,179,71,0.32)"}`,marginBottom:6,position:"relative",zIndex:1}}>
+            style={{background:dark?th.card:"linear-gradient(135deg,#fffdf7 0%,#ffffff 65%)",margin:"-22px 14px 0",borderRadius:18,padding:"14px 6px 12px",display:"flex",
+              boxShadow:dark?"0 8px 28px rgba(0,0,0,0.40)":"0 8px 28px rgba(255,153,51,0.22)",
+              border:`1.5px solid ${dark?th.border:"rgba(255,179,71,0.32)"}`,marginBottom:6,position:"relative",zIndex:2}}>
             {[
               {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,color:"#FF9933",darkColor:"#FFA950",grad:dark?"rgba(255,169,80,0.20)":"rgba(255,153,51,0.08)"},
               {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>,color:"#06038D",darkColor:"#6B90FF",grad:dark?"rgba(107,144,255,0.18)":"rgba(6,3,141,0.06)"},
