@@ -8252,11 +8252,11 @@ function YojanaSahayInner(){
                       <span style={{color:"rgba(255,255,255,0.93)",fontSize:11.5,fontWeight:700,letterSpacing:0.1}}>
                         {isHindi?`${g.hi}, ${firstName}`:`${g.en}, ${firstName}`}
                       </span>
-                      {matchedCount>0&&(
+                      {allMatchedSchemes.length>0&&(
                         <>
                           <div style={{width:1,height:11,background:"rgba(255,255,255,0.22)",flexShrink:0}}/>
                           <span style={{fontSize:10,fontWeight:600,color:"#4ade80",letterSpacing:0.1}}>
-                            {matchedCount} {isHindi?"योजनाएं":"schemes"}
+                            {allMatchedSchemes.length} {isHindi?"योजनाएं":"schemes"}
                           </span>
                         </>
                       )}
