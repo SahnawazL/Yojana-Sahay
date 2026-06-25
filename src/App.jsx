@@ -8107,39 +8107,29 @@ function YojanaSahayInner(){
         }}>
         <div style={{flex:1,overflowY:"auto"}}>
           {/* ── PREMIUM HEADER ── */}
-          <div style={{
-            background:"linear-gradient(165deg,#060720 0%,#0b1565 28%,#0a316e 54%,#6b2800 82%,#bf4700 100%)",
-            padding:"0 0 0",position:"relative",overflow:"hidden",
-            boxShadow:"0 8px 40px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,255,255,0.06)",
-          }}>
+          <div style={{background:"linear-gradient(160deg,#0c1445 0%,#06038D 38%,#003580 65%,#FF8C00 100%)",padding:"0 0 0",position:"relative",overflow:"hidden",
+            boxShadow:"0 6px 32px rgba(255,140,0,0.15), 0 0 0 1px rgba(255,255,255,0.07)"}}>
 
-            {/* ── SIGNATURE: Tricolor pride strip — saffron | white | green ── */}
-            <div style={{position:"absolute",top:0,left:0,right:0,height:3,display:"flex",zIndex:6,pointerEvents:"none"}}>
-              <div style={{flex:1,background:"#FF9933"}}/>
-              <div style={{flex:1,background:"rgba(255,255,255,0.88)"}}/>
-              <div style={{flex:1,background:"#138808"}}/>
-            </div>
-
-            {/* ── Bevel rim: saffron top glow + shadow sides ── */}
+            {/* ── 3D Bevel Border ── */}
             <div style={{
               position:"absolute",inset:0,zIndex:4,pointerEvents:"none",
               boxShadow:[
-                "inset 0 3px 0 rgba(255,153,51,0.18)",
-                "inset 1.5px 0 0 rgba(255,255,255,0.08)",
-                "inset -1.5px 0 0 rgba(0,0,0,0.28)",
+                "inset 0 1.5px 0 rgba(255,255,255,0.30)",
+                "inset 1.5px 0 0 rgba(255,255,255,0.13)",
+                "inset -1.5px 0 0 rgba(0,0,0,0.24)",
               ].join(", "),
             }}/>
 
             {/* ── Subtle dot-mesh texture for depth ── */}
             <div style={{
               position:"absolute",inset:0,zIndex:1,pointerEvents:"none",
-              backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.032) 1px,transparent 1px)",
+              backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.028) 1px,transparent 1px)",
               backgroundSize:"20px 20px",
             }}/>
 
             {/* Decorative: spinning chakra watermark */}
-            <div className="spin" style={{position:"absolute",right:-55,top:-55,width:220,height:220,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.04)",opacity:1,pointerEvents:"none"}}>
-              <svg width="220" height="220" viewBox="0 0 220 220" style={{position:"absolute",inset:0,opacity:0.065}}>
+            <div className="spin" style={{position:"absolute",right:-55,top:-55,width:220,height:220,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.06)",opacity:1,pointerEvents:"none"}}>
+              <svg width="220" height="220" viewBox="0 0 220 220" style={{position:"absolute",inset:0,opacity:0.07}}>
                 {WATERMARK_SPOKES.map(({i,x1,y1,x2,y2})=>(
                   <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#fff" strokeWidth={3}/>
                 ))}
@@ -8148,132 +8138,107 @@ function YojanaSahayInner(){
               </svg>
             </div>
             {/* Decorative: saffron orb bottom-left */}
-            <div style={{position:"absolute",left:-40,bottom:-30,width:160,height:160,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,110,0,0.22) 0%,transparent 70%)",pointerEvents:"none"}}/>
-            {/* Decorative: cool blue orb right-center */}
-            <div style={{position:"absolute",right:10,top:70,width:110,height:110,borderRadius:"50%",background:"radial-gradient(circle,rgba(70,120,255,0.13) 0%,transparent 70%)",pointerEvents:"none"}}/>
-            {/* Decorative: green accent top-center */}
-            <div style={{position:"absolute",top:0,left:"28%",width:90,height:90,borderRadius:"50%",background:"radial-gradient(circle,rgba(19,136,8,0.11) 0%,transparent 70%)",pointerEvents:"none"}}/>
+            <div style={{position:"absolute",left:-30,bottom:-20,width:130,height:130,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,153,51,0.18) 0%,transparent 70%)",pointerEvents:"none"}}/>
+            {/* Decorative: green orb top-center */}
+            <div style={{position:"absolute",top:0,left:"30%",width:80,height:80,borderRadius:"50%",background:"radial-gradient(circle,rgba(19,136,8,0.12) 0%,transparent 70%)",pointerEvents:"none"}}/>
 
             {/* ── Top nav bar ── */}
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"44px 18px 14px",position:"relative",zIndex:3}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"38px 20px 12px",position:"relative",zIndex:3}}>
 
               {/* Left: Logo + Brand */}
-              <div style={{display:"flex",alignItems:"center",gap:11}}>
-                {/* Logo with tricolor glow rings */}
-                <div
-                  onClick={()=>{haptic(30);setShowAvatarModal(true);}}
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                {/* Logo with premium glow ring */}
+                <div onClick={()=>{haptic(30);setShowAvatarModal(true);}}
                   style={{
-                    position:"relative",
-                    width:48,height:48,
-                    borderRadius:14,
-                    overflow:"hidden",
-                    flexShrink:0,
-                    cursor:"pointer",
-                    WebkitTapHighlightColor:"transparent",
+                    width:46,height:46,borderRadius:13,overflow:"hidden",flexShrink:0,cursor:"pointer",
                     boxShadow:[
-                      "0 0 0 1.5px rgba(255,153,51,0.75)",
-                      "0 0 0 3.5px rgba(255,153,51,0.16)",
-                      "0 0 0 5px rgba(19,136,8,0.22)",
-                      "0 4px 18px rgba(0,0,0,0.45)",
+                      "0 0 0 1.5px rgba(255,153,51,0.70)",
+                      "0 0 0 3.5px rgba(255,153,51,0.15)",
+                      "0 4px 16px rgba(0,0,0,0.40)",
                     ].join(", "),
+                    WebkitTapHighlightColor:"transparent",
                   }}>
                   <img src={appLogo} alt="Yojana Sahay"
                     style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
                 </div>
 
-                {/* Brand text */}
+                {/* Brand text — 3 clean lines */}
                 <div>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
-                    <span style={{
-                      color:"#fff",fontSize:17.5,fontWeight:900,
-                      fontFamily:bf,letterSpacing:-0.4,lineHeight:1,
-                    }}>{t.appName}</span>
-                    {/* Official verified badge */}
-                    <div style={{
-                      display:"inline-flex",alignItems:"center",gap:3,
-                      background:"rgba(19,136,8,0.22)",
-                      border:"1px solid rgba(19,136,8,0.48)",
-                      borderRadius:20,padding:"2.5px 7px",
-                    }}>
-                      <svg width="7" height="7" viewBox="0 0 24 24" fill="none">
-                        <path d="M20 6L9 17L4 12" stroke="#4ade80" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      <span style={{color:"#4ade80",fontSize:8,fontWeight:800,letterSpacing:0.6}}>
-                        {isHindi?"आधिकारिक":"OFFICIAL"}
-                      </span>
-                    </div>
+                  <div style={{color:"#fff",fontSize:17,fontWeight:900,fontFamily:bf,letterSpacing:-0.3,lineHeight:1.1,marginBottom:3}}>
+                    {t.appName}
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:4}}>
+                  <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}>
                     <span style={{fontSize:10}}>🇮🇳</span>
-                    <span style={{color:"rgba(255,255,255,0.55)",fontSize:9.5,fontWeight:600,letterSpacing:0.2}}>{t.appSub}</span>
-                    <span style={{color:"rgba(255,255,255,0.22)",fontSize:9}}>•</span>
-                    <span style={{color:"rgba(255,153,51,0.85)",fontSize:9.5,fontWeight:700,letterSpacing:0.2}}>
+                    <span style={{color:"rgba(255,255,255,0.58)",fontSize:10,fontWeight:600,letterSpacing:0.1}}>{t.appSub}</span>
+                  </div>
+                  {/* AI-Powered — subtle, elegant, own line */}
+                  <div style={{display:"flex",alignItems:"center",gap:4}}>
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2L14.5 9.5H22L16 14L18.5 21.5L12 17L5.5 21.5L8 14L2 9.5H9.5L12 2Z"
+                        fill="rgba(255,153,51,0.85)" stroke="rgba(255,153,51,0.4)" strokeWidth="1"/>
+                    </svg>
+                    <span style={{
+                      color:"rgba(255,153,51,0.82)",
+                      fontSize:9.5,fontWeight:700,letterSpacing:0.8,textTransform:"uppercase",
+                    }}>
                       {isHindi?"AI-संचालित":"AI-Powered"}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Right: Toggles in a unified glass capsule */}
+              {/* Right: Toggles — unified glass capsule */}
               <div style={{
-                display:"flex",alignItems:"center",gap:0,
+                display:"flex",alignItems:"center",
                 background:"rgba(255,255,255,0.08)",
                 border:"1px solid rgba(255,255,255,0.14)",
-                borderRadius:50,padding:"3px 4px",
+                borderRadius:50,padding:"3px 4px",flexShrink:0,
               }}>
                 <DarkModeToggle dark={dark} onToggle={toggleDark}/>
-                <div style={{width:1,height:16,background:"rgba(255,255,255,0.16)",margin:"0 3px",flexShrink:0}}/>
+                <div style={{width:1,height:15,background:"rgba(255,255,255,0.18)",margin:"0 3px",flexShrink:0}}/>
                 <LangToggle lang={lang} onToggle={toggleLang} dark={true}/>
               </div>
             </div>
 
             {/* ── Hero content ── */}
-            <div style={{padding:"0 20px 16px",position:"relative",zIndex:3}}>
+            <div style={{padding:"2px 20px 14px",position:"relative",zIndex:3}}>
 
-              {/* Greeting / status chip */}
+              {/* Greeting / trust chip */}
               {profile?(
                 <div style={{
                   display:"inline-flex",alignItems:"center",gap:6,
-                  background:"rgba(255,255,255,0.10)",
-                  border:"1px solid rgba(255,255,255,0.18)",
-                  borderRadius:20,padding:"5px 12px",marginBottom:10,
+                  background:"rgba(255,255,255,0.12)",
+                  border:"1px solid rgba(255,255,255,0.22)",
+                  borderRadius:20,padding:"5px 13px",marginBottom:10,
                 }}>
-                  <span style={{fontSize:13}}>🙏</span>
-                  <span style={{color:"rgba(255,255,255,0.88)",fontSize:11,fontWeight:700,letterSpacing:0.2}}>
-                    {isHindi?`नमस्ते, ${profile?.name?.split(" ")[0]}`:`Welcome back, ${profile?.name?.split(" ")[0]}`}
+                  <span style={{fontSize:12}}>🙏</span>
+                  <span style={{color:"rgba(255,255,255,0.90)",fontSize:11,fontWeight:700,letterSpacing:0.1}}>
+                    {isHindi?`नमस्ते, ${profile?.name?.split(" ")[0]}`:`Namaste, ${profile?.name?.split(" ")[0]}`}
                   </span>
                 </div>
               ):(
-                <div style={{
-                  display:"inline-flex",alignItems:"center",gap:6,
-                  background:"rgba(255,255,255,0.09)",
-                  border:"1px solid rgba(255,255,255,0.20)",
-                  borderRadius:20,padding:"4px 11px",marginBottom:10,
-                }}>
+                <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:20,padding:"4px 10px",marginBottom:10}}>
                   <div style={{width:6,height:6,borderRadius:"50%",background:"#4ade80",boxShadow:"0 0 6px #4ade80"}}/>
-                  <span style={{color:"rgba(255,255,255,0.88)",fontSize:10,fontWeight:700,letterSpacing:0.4}}>
+                  <span style={{color:"rgba(255,255,255,0.9)",fontSize:10,fontWeight:700,letterSpacing:0.4}}>
                     {isHindi?"योजना खोज सेवा • निःशुल्क":"Scheme Discovery • Free & Independent"}
                   </span>
                 </div>
               )}
 
-              {/* Headline — gradient white → warm gold */}
+              {/* Headline — gradient: white → warm gold */}
               <div style={{
-                fontSize:23,fontWeight:900,lineHeight:1.22,
-                fontFamily:bf,letterSpacing:-0.5,marginBottom:8,
-                background:"linear-gradient(130deg,#ffffff 0%,#ffe8c0 55%,#ffb347 100%)",
+                color:"#fff",fontSize:22,fontWeight:900,lineHeight:1.25,
+                fontFamily:bf,letterSpacing:-0.4,marginBottom:6,
+                background:"linear-gradient(130deg,#ffffff 0%,#ffe0b0 60%,#ffb347 100%)",
                 WebkitBackgroundClip:"text",
                 WebkitTextFillColor:"transparent",
                 backgroundClip:"text",
               }}>{t.headline}</div>
 
-              {/* Subheadline with tricolor left-border accent */}
+              {/* Subheadline with saffron left-border accent */}
               <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
-                <div style={{
-                  width:2.5,minHeight:34,borderRadius:2,flexShrink:0,marginTop:2,
-                  background:"linear-gradient(180deg,#FF9933 0%,#ffffff44 50%,#138808 100%)",
-                }}/>
-                <div style={{color:"rgba(255,255,255,0.68)",fontSize:13,lineHeight:1.5}}>{t.subheadline}</div>
+                <div style={{width:2.5,minHeight:30,borderRadius:2,flexShrink:0,marginTop:3,background:"rgba(255,153,51,0.75)"}}/>
+                <div style={{color:"rgba(255,255,255,0.72)",fontSize:13,lineHeight:1.5}}>{t.subheadline}</div>
               </div>
             </div>
 
