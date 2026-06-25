@@ -1811,9 +1811,9 @@ function SearchTab({lang,dark=false}){
         {VERIFICATION_STATS.verified>0?(
           <div style={{
             display:"flex",alignItems:"center",gap:10,
-            background:dark?"rgba(19,136,8,0.09)":"rgba(19,136,8,0.05)",
-            border:`1px solid ${dark?"rgba(19,136,8,0.22)":"rgba(19,136,8,0.15)"}`,
-            borderRadius:12,padding:"9px 13px",marginBottom:14,
+            background:dark?"rgba(19,136,8,0.09)":"linear-gradient(135deg,rgba(22,163,74,0.10),rgba(74,222,128,0.04))",
+            border:`1px solid ${dark?"rgba(19,136,8,0.22)":"rgba(19,136,8,0.22)"}`,
+            borderRadius:12,padding:"9px 13px",marginBottom:14,boxShadow:dark?"none":"0 1px 8px rgba(19,136,8,0.07)",
           }}>
             <span style={{fontSize:15,flexShrink:0}}>🛡️</span>
             <div style={{flex:1,minWidth:0}}>
@@ -1827,7 +1827,7 @@ function SearchTab({lang,dark=false}){
                   </span>
                 )}
               </div>
-              <div style={{fontSize:10,color:dark?"rgba(74,222,128,0.6)":"rgba(21,128,61,0.65)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>
+              <div style={{fontSize:10,color:dark?"rgba(74,222,128,0.6)":"rgba(15,98,46,0.85)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>
                 {isHindi
                   ?"लिंक काम न करे तो कार्ड › खोलें — ~5% अगली जाँच से पहले बदल सकते हैं"
                   :"Tap › on a card for the official link · ~5% may change between checks"}
@@ -1836,8 +1836,8 @@ function SearchTab({lang,dark=false}){
             <div style={{
               fontSize:8,fontWeight:800,letterSpacing:0.7,flexShrink:0,
               color:dark?"#4ade80":"#15803d",
-              background:dark?"rgba(19,136,8,0.16)":"rgba(19,136,8,0.08)",
-              border:`1px solid ${dark?"rgba(19,136,8,0.28)":"rgba(19,136,8,0.15)"}`,
+              background:dark?"rgba(19,136,8,0.16)":"rgba(19,136,8,0.14)",
+              border:`1px solid ${dark?"rgba(19,136,8,0.28)":"rgba(19,136,8,0.30)"}`,
               borderRadius:20,padding:"3px 9px",textTransform:"uppercase",
             }}>
               {isHindi?"सत्यापित":"AI VERIFIED"}
@@ -2552,9 +2552,9 @@ function SchemesTab({lang,dark=false}){
         {VERIFICATION_STATS.verified>0?(
           <div style={{
             display:"flex",alignItems:"center",gap:10,
-            background:dark?"rgba(19,136,8,0.09)":"rgba(19,136,8,0.05)",
-            border:`1px solid ${dark?"rgba(19,136,8,0.22)":"rgba(19,136,8,0.15)"}`,
-            borderRadius:12,padding:"9px 13px",marginBottom:14,
+            background:dark?"rgba(19,136,8,0.09)":"linear-gradient(135deg,rgba(22,163,74,0.10),rgba(74,222,128,0.04))",
+            border:`1px solid ${dark?"rgba(19,136,8,0.22)":"rgba(19,136,8,0.22)"}`,
+            borderRadius:12,padding:"9px 13px",marginBottom:14,boxShadow:dark?"none":"0 1px 8px rgba(19,136,8,0.07)",
           }}>
             <span style={{fontSize:15,flexShrink:0}}>🛡️</span>
             <div style={{flex:1,minWidth:0}}>
@@ -2568,7 +2568,7 @@ function SchemesTab({lang,dark=false}){
                   </span>
                 )}
               </div>
-              <div style={{fontSize:10,color:dark?"rgba(74,222,128,0.6)":"rgba(21,128,61,0.65)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>
+              <div style={{fontSize:10,color:dark?"rgba(74,222,128,0.6)":"rgba(15,98,46,0.85)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>
                 {isHindi
                   ?"लिंक काम न करे तो कार्ड › खोलें — ~5% अगली जाँच से पहले बदल सकते हैं"
                   :"Tap › on a card for the official link · ~5% may change between checks"}
@@ -2577,8 +2577,8 @@ function SchemesTab({lang,dark=false}){
             <div style={{
               fontSize:8,fontWeight:800,letterSpacing:0.7,flexShrink:0,
               color:dark?"#4ade80":"#15803d",
-              background:dark?"rgba(19,136,8,0.16)":"rgba(19,136,8,0.08)",
-              border:`1px solid ${dark?"rgba(19,136,8,0.28)":"rgba(19,136,8,0.15)"}`,
+              background:dark?"rgba(19,136,8,0.16)":"rgba(19,136,8,0.14)",
+              border:`1px solid ${dark?"rgba(19,136,8,0.28)":"rgba(19,136,8,0.30)"}`,
               borderRadius:20,padding:"3px 9px",textTransform:"uppercase",
             }}>
               {isHindi?"सत्यापित":"AI VERIFIED"}
