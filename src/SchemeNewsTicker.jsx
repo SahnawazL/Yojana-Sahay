@@ -94,6 +94,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
   const timerRef  = useRef(null);
   const advanceRef = useRef(null);
   const fadeTimerRef = useRef(null);
+  const uttRef       = useRef(null);
 
   useEffect(() => { idxRef.current  = idx;   }, [idx]);
   useEffect(() => { itemsRef.current = items; }, [items]);
@@ -217,7 +218,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
   ]);
 
   // ── Read Aloud ─────────────────────────────────────────────────────────────
-  const handleSpeak = useCallback((text) => {
+  const handleSpeak = useCallback((speakText) => {
     if (!window.speechSynthesis) return;
     if (isSpeaking) {
       window.speechSynthesis.cancel();
@@ -225,12 +226,25 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
       haptic(10);
       return;
     }
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang  = lang === "hi" ? "hi-IN" : "en-IN";
-    utt.rate  = 0.88;
-    utt.onend = utt.onerror = () => setIsSpeaking(false);
+    uttRef.current = new SpeechSynthesisUtterance(speakText);
+    uttRef.current.lang  = lang === "hi" ? "hi-IN" : "en-IN";
+    uttRef.current.rate  = 0.88;
+
+    // iOS pause workaround — speechSynthesis silently stalls after a few
+    // seconds on Safari; pulsing pause/resume every 10 s keeps it alive.
+    let iosTimer;
+    uttRef.current.onstart = () => {
+      iosTimer = setInterval(() => {
+        if (!window.speechSynthesis.speaking) { clearInterval(iosTimer); return; }
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }, 10000);
+    };
+    uttRef.current.onend   = () => { clearInterval(iosTimer); setIsSpeaking(false); };
+    uttRef.current.onerror = () => { clearInterval(iosTimer); setIsSpeaking(false); };
+
     window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utt);
+    window.speechSynthesis.speak(uttRef.current);
     setIsSpeaking(true);
     haptic(10);
   }, [isSpeaking, lang]);
