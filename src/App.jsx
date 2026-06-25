@@ -8142,6 +8142,25 @@ function YojanaSahayInner(){
             <div style={{position:"absolute",left:-30,bottom:-20,width:130,height:130,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,153,51,0.18) 0%,transparent 70%)",pointerEvents:"none"}}/>
             {/* Decorative: green orb top-center */}
             <div style={{position:"absolute",top:0,left:"30%",width:80,height:80,borderRadius:"50%",background:"radial-gradient(circle,rgba(19,136,8,0.12) 0%,transparent 70%)",pointerEvents:"none"}}/>
+            {/* Decorative: India map faint outline watermark */}
+            <svg style={{position:"absolute",right:6,bottom:8,width:110,height:130,opacity:0.055,pointerEvents:"none",zIndex:1}} viewBox="0 0 220 260" fill="none">
+              <path d="M110 8 L126 16 L140 14 L152 22 L160 34 L158 48 L168 60 L172 74 L166 86 L170 98 L162 108 L164 120 L158 132 L152 144 L154 158 L148 170 L144 182 L148 194 L140 206 L130 216 L118 224 L110 232 L102 224 L90 216 L80 206 L72 194 L76 182 L72 170 L66 158 L68 144 L62 132 L56 120 L58 108 L50 98 L54 86 L48 74 L52 60 L62 48 L60 34 L68 22 L80 14 L94 16 L110 8Z" stroke="#ffffff" strokeWidth="3" fill="none"/>
+              <path d="M62 48 L54 52 L44 58 L38 66 L42 76 L50 82 L48 74" stroke="#ffffff" strokeWidth="2.5" fill="none"/>
+              <path d="M158 48 L166 52 L176 58 L182 66 L178 76 L170 82 L172 74" stroke="#ffffff" strokeWidth="2.5" fill="none"/>
+            </svg>
+            {/* Decorative: Indian flag tricolor diagonal ribbon — bottom-right */}
+            <div style={{position:"absolute",right:-18,bottom:0,width:70,height:"100%",overflow:"hidden",pointerEvents:"none",zIndex:1,opacity:0.28}}>
+              <div style={{
+                position:"absolute",bottom:-20,right:-30,
+                width:90,height:300,
+                transform:"rotate(-18deg)",
+                transformOrigin:"bottom right",
+              }}>
+                <div style={{height:"33.33%",background:"#FF9933"}}/>
+                <div style={{height:"33.33%",background:"rgba(255,255,255,0.9)"}}/>
+                <div style={{height:"33.33%",background:"#138808"}}/>
+              </div>
+            </div>
 
             {/* ── Top nav bar ── */}
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"38px 20px 12px",position:"relative",zIndex:3}}>
@@ -8165,8 +8184,19 @@ function YojanaSahayInner(){
 
                 {/* Brand text — 3 clean lines */}
                 <div>
-                  <div style={{color:"#fff",fontSize:17,fontWeight:900,fontFamily:bf,letterSpacing:-0.3,lineHeight:1.1,marginBottom:3}}>
+                  <div style={{color:"#fff",fontSize:17,fontWeight:900,fontFamily:bf,letterSpacing:-0.3,lineHeight:1.1,marginBottom:3,display:"flex",alignItems:"center",gap:5}}>
                     {t.appName}
+                    {/* Verified badge — blue circle with checkmark */}
+                    <div style={{
+                      width:16,height:16,borderRadius:"50%",flexShrink:0,
+                      background:"linear-gradient(135deg,#3b9eff 0%,#1a6fd4 100%)",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      boxShadow:"0 1px 5px rgba(59,158,255,0.55)",
+                    }}>
+                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                        <path d="M2.5 6.2l2.3 2.3 4.7-4.7" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}>
                     <span style={{fontSize:10}}>🇮🇳</span>
@@ -8201,46 +8231,115 @@ function YojanaSahayInner(){
               </div>
             </div>
 
-            {/* ── Hero content ── */}
-            <div style={{padding:"2px 20px 14px",position:"relative",zIndex:3}}>
+            {/* ── Hero content — two-column layout ── */}
+            <div style={{padding:"2px 20px 14px",position:"relative",zIndex:3,display:"flex",alignItems:"center",gap:10}}>
 
-              {/* Greeting / trust chip */}
-              {profile?(
-                <div style={{
-                  display:"inline-flex",alignItems:"center",gap:6,
-                  background:"rgba(255,255,255,0.12)",
-                  border:"1px solid rgba(255,255,255,0.22)",
-                  borderRadius:20,padding:"5px 13px",marginBottom:10,
-                }}>
-                  <span style={{fontSize:12}}>🙏</span>
-                  <span style={{color:"rgba(255,255,255,0.90)",fontSize:11,fontWeight:700,letterSpacing:0.1}}>
-                    {isHindi?`नमस्ते, ${profile?.name?.split(" ")[0]}`:`Namaste, ${profile?.name?.split(" ")[0]}`}
-                  </span>
+              {/* LEFT: Greeting pill + Headline stack */}
+              <div style={{flex:1,minWidth:0}}>
+
+                {/* Greeting / trust chip */}
+                {profile?(
+                  <div style={{
+                    display:"inline-flex",alignItems:"center",gap:6,
+                    background:"rgba(255,255,255,0.12)",
+                    border:"1px solid rgba(255,255,255,0.22)",
+                    borderRadius:20,padding:"5px 13px",marginBottom:9,
+                  }}>
+                    <span style={{fontSize:12}}>🙏</span>
+                    <span style={{color:"rgba(255,255,255,0.90)",fontSize:11,fontWeight:700,letterSpacing:0.1}}>
+                      {isHindi?`नमस्ते, ${profile?.name?.split(" ")[0]}`:`Namaste, ${profile?.name?.split(" ")[0]}`}
+                    </span>
+                  </div>
+                ):(
+                  <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:20,padding:"4px 10px",marginBottom:9}}>
+                    <div style={{width:6,height:6,borderRadius:"50%",background:"#4ade80",boxShadow:"0 0 6px #4ade80"}}/>
+                    <span style={{color:"rgba(255,255,255,0.9)",fontSize:10,fontWeight:700,letterSpacing:0.4}}>
+                      {isHindi?"योजना खोज सेवा • निःशुल्क":"Scheme Discovery • Free & Independent"}
+                    </span>
+                  </div>
+                )}
+
+                {/* Hero headline — Discover. Apply. Benefit. */}
+                {isHindi?(
+                  <div style={{fontFamily:bf,lineHeight:1.16,marginBottom:7,letterSpacing:-0.3}}>
+                    <div style={{color:"#fff",fontSize:25,fontWeight:900}}>खोजें।</div>
+                    <div style={{fontSize:25,fontWeight:900,color:"#FF9933"}}>आवेदन करें।</div>
+                    <div style={{fontSize:25,fontWeight:900,color:"#4ade80"}}>लाभ पाएं।</div>
+                  </div>
+                ):(
+                  <div style={{fontFamily:bf,lineHeight:1.16,marginBottom:7,letterSpacing:-0.3}}>
+                    <div style={{color:"#fff",fontSize:26,fontWeight:900}}>Discover.</div>
+                    <div style={{fontSize:26,fontWeight:900,color:"#FF9933"}}>Apply.</div>
+                    <div style={{fontSize:26,fontWeight:900,color:"#4ade80"}}>Benefit.</div>
+                  </div>
+                )}
+
+                {/* Subline */}
+                <div style={{color:"rgba(255,255,255,0.62)",fontSize:11.5,lineHeight:1.48}}>
+                  {isHindi?"सरकारी योजनाएं जो आपको सशक्त बनाती हैं":"Find schemes that truly empower you."}
                 </div>
-              ):(
-                <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:20,padding:"4px 10px",marginBottom:10}}>
-                  <div style={{width:6,height:6,borderRadius:"50%",background:"#4ade80",boxShadow:"0 0 6px #4ade80"}}/>
-                  <span style={{color:"rgba(255,255,255,0.9)",fontSize:10,fontWeight:700,letterSpacing:0.4}}>
-                    {isHindi?"योजना खोज सेवा • निःशुल्क":"Scheme Discovery • Free & Independent"}
-                  </span>
-                </div>
-              )}
-
-              {/* Headline — gradient: white → warm gold */}
-              <div style={{
-                color:"#fff",fontSize:22,fontWeight:900,lineHeight:1.25,
-                fontFamily:bf,letterSpacing:-0.4,marginBottom:6,
-                background:"linear-gradient(130deg,#ffffff 0%,#ffe0b0 60%,#ffb347 100%)",
-                WebkitBackgroundClip:"text",
-                WebkitTextFillColor:"transparent",
-                backgroundClip:"text",
-              }}>{t.headline}</div>
-
-              {/* Subheadline with saffron left-border accent */}
-              <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
-                <div style={{width:2.5,minHeight:30,borderRadius:2,flexShrink:0,marginTop:3,background:"rgba(255,153,51,0.75)"}}/>
-                <div style={{color:"rgba(255,255,255,0.72)",fontSize:13,lineHeight:1.5}}>{t.subheadline}</div>
               </div>
+
+              {/* RIGHT: Trust badge */}
+              <div style={{
+                flexShrink:0,width:112,
+                display:"flex",flexDirection:"column",alignItems:"center",
+                background:"rgba(0,0,0,0.22)",
+                border:"1px solid rgba(255,255,255,0.13)",
+                borderRadius:18,padding:"12px 8px 10px",
+                boxShadow:"0 6px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)",
+                backdropFilter:"blur(6px)",
+                WebkitBackdropFilter:"blur(6px)",
+              }}>
+                {/* Gold shield */}
+                <div style={{marginBottom:4}}>
+                  <svg width="42" height="42" viewBox="0 0 44 44" fill="none">
+                    <defs>
+                      <linearGradient id="ysShieldGold" x1="22" y1="4" x2="22" y2="42" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="#FFE566"/>
+                        <stop offset="55%" stopColor="#FFAD00"/>
+                        <stop offset="100%" stopColor="#C87800"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M22 4L6 10.5v11.8c0 9.4 6.9 18.2 16 20.4 9.1-2.2 16-11 16-20.4V10.5L22 4z"
+                      fill="url(#ysShieldGold)"/>
+                    <path d="M22 4L6 10.5v11.8c0 9.4 6.9 18.2 16 20.4 9.1-2.2 16-11 16-20.4V10.5L22 4z"
+                      fill="none" stroke="rgba(255,235,100,0.45)" strokeWidth="1.2"/>
+                    <path d="M15 22.5l4.5 4.5 9.5-9.5" stroke="#fff" strokeWidth="2.6"
+                      strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+
+                <div style={{fontSize:7,fontWeight:700,letterSpacing:1.3,color:"rgba(255,255,255,0.65)",textTransform:"uppercase",marginBottom:1}}>TRUSTED BY</div>
+                <div style={{fontSize:22,fontWeight:900,color:"#fff",lineHeight:1,fontFamily:bf,letterSpacing:-0.5}}>1M+</div>
+                <div style={{fontSize:8,fontWeight:800,letterSpacing:1.6,color:"#FF9933",textTransform:"uppercase",marginBottom:5}}>INDIANS</div>
+
+                {/* Laurel wreaths */}
+                <svg width="84" height="22" viewBox="0 0 84 22" fill="none" style={{marginBottom:4}}>
+                  {/* Left branch */}
+                  <path d="M3 19 C5 14 8 9 12 6" stroke="#DAA520" strokeWidth="1.4" strokeLinecap="round"/>
+                  <ellipse cx="5" cy="17" rx="3.2" ry="1.7" fill="#DAA520" opacity="0.82" transform="rotate(-25 5 17)"/>
+                  <ellipse cx="8" cy="12.5" rx="3.2" ry="1.7" fill="#DAA520" opacity="0.82" transform="rotate(-45 8 12.5)"/>
+                  <ellipse cx="11" cy="8" rx="2.8" ry="1.5" fill="#DAA520" opacity="0.82" transform="rotate(-65 11 8)"/>
+                  <ellipse cx="2.5" cy="19.5" rx="2.5" ry="1.4" fill="#DAA520" opacity="0.75" transform="rotate(-10 2.5 19.5)"/>
+                  {/* Right branch (mirrored) */}
+                  <path d="M81 19 C79 14 76 9 72 6" stroke="#DAA520" strokeWidth="1.4" strokeLinecap="round"/>
+                  <ellipse cx="79" cy="17" rx="3.2" ry="1.7" fill="#DAA520" opacity="0.82" transform="rotate(25 79 17)"/>
+                  <ellipse cx="76" cy="12.5" rx="3.2" ry="1.7" fill="#DAA520" opacity="0.82" transform="rotate(45 76 12.5)"/>
+                  <ellipse cx="73" cy="8" rx="2.8" ry="1.5" fill="#DAA520" opacity="0.82" transform="rotate(65 73 8)"/>
+                  <ellipse cx="81.5" cy="19.5" rx="2.5" ry="1.4" fill="#DAA520" opacity="0.75" transform="rotate(10 81.5 19.5)"/>
+                </svg>
+
+                {/* 3 gold stars */}
+                <div style={{display:"flex",gap:3}}>
+                  {[0,1,2].map(si=>(
+                    <svg key={si} width="11" height="11" viewBox="0 0 24 24" fill="#FFD700">
+                      <path d="M12 2l2.5 7.5H22l-6.5 4.5 2.5 7.5L12 17l-6 4.5 2.5-7.5L2 9.5h7.5L12 2z"/>
+                    </svg>
+                  ))}
+                </div>
+              </div>
+
             </div>
 
             {/* Wave divider */}
