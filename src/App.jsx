@@ -7815,21 +7815,39 @@ function YojanaSahayInner(){
   useEffect(()=>{localStorage.setItem("yojana_dark",dark);},[dark]);
   useEffect(()=>{const id=setTimeout(()=>setLoaded(true),100);return()=>clearTimeout(id);},[]);
 
-  // ── Fetch live stats from Firestore ─────────────────────────────────────────
-  // One read on mount. 8 s timeout ensures the UI never hangs if offline.
+  // ── Fetch live stats via our own /api/stats proxy ───────────────────────────
+  // Instagram/Facebook/Threads in-app browsers commonly block or throttle
+  // direct Firestore connections (google firestore.googleapis.com), which used
+  // to make this read silently fail and fall back to 0. A request to our own
+  // domain (/api/stats) cannot be blocked the same way, since it's same-origin.
+  // The serverless function (api/stats.js) reads Firestore server-side with
+  // firebase-admin and just returns plain JSON.
+  // Direct Firestore read is kept ONLY as a last-resort fallback in case the
+  // serverless function itself is ever unreachable (e.g. local dev without
+  // `vercel dev`, or a cold-start network blip).
+  // 8 s timeout ensures the UI never hangs if everything is offline.
   // Fresh value is cached in localStorage so next visit shows it instantly.
   useEffect(()=>{
     let cancelled=false;
+    const applyTotal=(total)=>{
+      if(cancelled) return;
+      setLiveCheckerTotal(total);
+      try{ localStorage.setItem("yojana_checker_total",String(total)); }catch{}
+    };
+    const directFirestoreFallback=()=>{
+      getDoc(doc(db,"appStats","usage"))
+        .then(snap=>{
+          if(cancelled) return;
+          const data=snap.exists()?snap.data():{};
+          applyTotal(data.checkerTotal??0);
+        })
+        .catch(()=>{ if(!cancelled) setLiveCheckerTotal(prev=>prev??0); });
+    };
     const fallback=setTimeout(()=>{ if(!cancelled) setLiveCheckerTotal(prev=>prev??0); },8000);
-    getDoc(doc(db,"appStats","usage"))
-      .then(snap=>{
-        if(cancelled) return;
-        const data=snap.exists()?snap.data():{};
-        const total=data.checkerTotal??0;
-        setLiveCheckerTotal(total);
-        try{ localStorage.setItem("yojana_checker_total",String(total)); }catch{}
-      })
-      .catch(()=>{ if(!cancelled) setLiveCheckerTotal(prev=>prev??0); })
+    fetch("/api/stats")
+      .then(res=>{ if(!res.ok) throw new Error("stats proxy returned "+res.status); return res.json(); })
+      .then(data=>{ applyTotal(data.checkerTotal??0); })
+      .catch(directFirestoreFallback)
       .finally(()=>clearTimeout(fallback));
     return()=>{ cancelled=true; clearTimeout(fallback); };
   },[]);
