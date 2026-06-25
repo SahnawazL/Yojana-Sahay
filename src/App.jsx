@@ -1598,11 +1598,56 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
   const scheme=useMemo(()=>SCHEME_DB.find(s=>s.id===schemeId),[schemeId]);
   const t=T[lang];
   const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
   const [visible,setVisible]=useState(false);
   useEffect(()=>{const id=setTimeout(()=>setVisible(true),30);return()=>clearTimeout(id);},[]);
   const isOnline=scheme?.applyType==="online";
   const applyUrl=useMemo(()=>isOnline?safeApplyUrl(scheme.apply.en):null,[scheme]);
+
+  // ── Per-scheme document checklist — own localStorage slot per account+scheme ──
+  // Separate from DocumentVaultCard's aggregate vault: this tracks just THIS scheme's docs.
+  const uid=auth.currentUser?.uid||"guest";
+  const checkKey=`yojana_scheme_check_${uid}_${schemeId}`;
+  const [docChecked,setDocChecked]=useState({});
+  useEffect(()=>{
+    try{setDocChecked(JSON.parse(localStorage.getItem(checkKey)||"{}"));}
+    catch{setDocChecked({});}
+  },[checkKey]);
+  const toggleDoc=useCallback((i)=>{
+    haptic(30);
+    setDocChecked(prev=>{
+      const next={...prev,[i]:!prev[i]};
+      try{localStorage.setItem(checkKey,JSON.stringify(next));}catch{}
+      return next;
+    });
+  },[checkKey]);
+
   if(!scheme)return null;
+
+  const docList=scheme.docs[lang]||[];
+  const docTotal=docList.length;
+  const docDone=docList.filter((_,i)=>docChecked[i]).length;
+  const allDocsDone=docTotal>0&&docDone===docTotal;
+
+  // Builds a plain-text version of the checklist for WhatsApp sharing
+  const shareChecklist=()=>{
+    haptic();
+    const lines=[
+      `📋 ${scheme.name[lang]}`,
+      `💰 ${scheme.benefit[lang]}`,
+      "",
+      isHindi?"ज़रूरी दस्तावेज़:":"Documents needed:",
+      ...docList.map((d,i)=>`${docChecked[i]?"✅":"⬜"} ${d}`),
+      "",
+      applyUrl
+        ?(isHindi?`आवेदन करें: ${applyUrl}`:`Apply here: ${applyUrl}`)
+        :(isHindi?`आवेदन: ${scheme.apply[lang]}`:`How to apply: ${scheme.apply[lang]}`),
+      "",
+      isHindi?"YojanaSahay ऐप से":"via YojanaSahay app",
+    ];
+    window.open(`https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`,"_blank");
+  };
+
   return(
     <div onClick={e=>{if(e.target===e.currentTarget)onClose();}}
       style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
@@ -1627,16 +1672,42 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
           <div style={{fontSize:11,color:th.textSub,marginTop:4}}>{scheme.ministry[lang]}</div>
         </div>
         <div style={{padding:"0 16px 36px"}}>
-          <div style={{background:th.card2,borderRadius:16,padding:16,marginBottom:14}}>
-            <div style={{fontSize:11,fontWeight:700,color:th.textSub,letterSpacing:0.6,marginBottom:10,textTransform:"uppercase"}}>📄 {t.docsLabel}</div>
-            {scheme.docs[lang].map((doc,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 0",borderBottom:i<scheme.docs[lang].length-1?`1px solid ${th.border}`:"none"}}>
-                <div style={{width:22,height:22,borderRadius:"50%",background:scheme.color+"18",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  <span style={{color:scheme.color,fontSize:11,fontWeight:800}}>✓</span>
-                </div>
-                <span style={{fontSize:13,color:th.text,fontFamily:bf}}>{doc}</span>
+          {/* ── Application Checklist header + live progress ── */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,paddingLeft:2}}>
+            <div style={{fontSize:11,fontWeight:700,color:th.textSub,letterSpacing:0.6,textTransform:"uppercase",fontFamily:bf}}>
+              {isHindi?"आवेदन चेकलिस्ट":"Application Checklist"}
+            </div>
+            {docTotal>0&&(
+              <div style={{display:"flex",alignItems:"center",gap:5,background:allDocsDone?"rgba(19,136,8,0.12)":th.card2,border:`1px solid ${allDocsDone?"rgba(19,136,8,0.3)":th.border}`,borderRadius:20,padding:"3px 9px"}}>
+                <span style={{fontSize:10,fontWeight:800,color:allDocsDone?"#138808":th.textSub,fontVariantNumeric:"tabular-nums"}}>{docDone}/{docTotal}</span>
+                <span style={{fontSize:10}}>{allDocsDone?"✅":"📋"}</span>
               </div>
-            ))}
+            )}
+          </div>
+
+          {/* ── STEP 1 — Gather Documents (tap to check off) ── */}
+          <div style={{background:th.card2,borderRadius:16,padding:16,marginBottom:14}}>
+            <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:11}}>
+              <div style={{width:22,height:22,borderRadius:"50%",background:scheme.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10.5,fontWeight:900,color:"#fff",fontFamily:"'Noto Sans',sans-serif"}}>1</div>
+              <div style={{fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf}}>{isHindi?"दस्तावेज़ इकट्ठा करें":"Gather These Documents"}</div>
+            </div>
+            {docList.map((doc,i)=>{
+              const isChecked=!!docChecked[i];
+              return(
+                <div key={i} onClick={()=>toggleDoc(i)} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 0",borderBottom:i<docList.length-1?`1px solid ${th.border}`:"none",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+                  <div style={{width:22,height:22,borderRadius:"50%",background:isChecked?scheme.color:scheme.color+"18",border:isChecked?"none":`1.5px solid ${scheme.color}40`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"background 0.2s"}}>
+                    <span style={{color:isChecked?"#fff":scheme.color,fontSize:11,fontWeight:800}}>✓</span>
+                  </div>
+                  <span style={{fontSize:13,color:isChecked?th.textSub:th.text,fontFamily:bf,textDecoration:isChecked?"line-through":"none",transition:"color 0.2s"}}>{doc}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── STEP 2 — Apply at the portal / office ── */}
+          <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:10,paddingLeft:2}}>
+            <div style={{width:22,height:22,borderRadius:"50%",background:scheme.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10.5,fontWeight:900,color:"#fff",fontFamily:"'Noto Sans',sans-serif"}}>2</div>
+            <div style={{fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf}}>{isHindi?"पोर्टल पर आवेदन करें":"Apply & Submit"}</div>
           </div>
           <div onClick={()=>{haptic();if(applyUrl)window.open(applyUrl,"_blank");else googleSearchScheme(scheme.name.en);}}
             style={{background:applyUrl?`linear-gradient(135deg,${scheme.color},${scheme.color}cc)`:"linear-gradient(135deg,#1D4ED8,#2563eb)",borderRadius:16,padding:18,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",boxShadow:applyUrl?`0 6px 20px ${scheme.color}40`:"0 6px 20px rgba(37,99,235,0.35)"}}>
@@ -1656,6 +1727,12 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
               </span>
             </div>
           )}
+
+          {/* ── Share checklist on WhatsApp ── */}
+          <div onClick={shareChecklist} style={{marginTop:12,display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:dark?"rgba(37,211,102,0.12)":"#E7F9EF",border:"1.5px solid rgba(37,211,102,0.35)",borderRadius:14,padding:"12px 16px",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.6 1.4 5.1L2 22l5.1-1.3c1.4.8 3.1 1.2 4.9 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm5.5 12.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.6.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.8-.4-1.6-.9-2.4-1.6-.7-.6-1.2-1.4-1.6-2.2-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.1-.5-.1-.2-.6-1.5-.9-2-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.7.7-1 1.5-1 2.5.1 1.2.6 2.4 1.4 3.5 1.5 2 3.3 3.4 5.6 4.2.6.2 1.1.2 1.5.1.5 0 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2 0-.1-.2-.2-.4-.3z"/></svg>
+            <span style={{fontSize:12.5,fontWeight:700,color:dark?"#25D366":"#0E7A3C",fontFamily:bf}}>{isHindi?"WhatsApp पर चेकलिस्ट भेजें":"Share Checklist on WhatsApp"}</span>
+          </div>
         </div>
       </div>
     </div>
