@@ -31,7 +31,6 @@ import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
-import trustedBadgeImg from "./trusted-badge.webp";
 import SchemeNewsTicker from "./SchemeNewsTicker.jsx";
 const HomeFAQSection = React.lazy(() => import("./HomeFAQSection.jsx"));
 
@@ -7415,12 +7414,6 @@ const APP_STYLES = `
         @keyframes answer-lock-pulse{0%{transform:scale(1)}35%{transform:scale(1.04)}70%{transform:scale(0.98)}100%{transform:scale(1)}}
         @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
         @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:0.6}}
-        @keyframes trustedBadgeShimmer{
-          0%  {filter:drop-shadow(0 6px 18px rgba(0,0,0,0.55)) brightness(1)    drop-shadow(0 0 0px  rgba(255,210,80,0))}
-          40% {filter:drop-shadow(0 6px 22px rgba(0,0,0,0.45)) brightness(1.12) drop-shadow(0 0 14px rgba(255,210,80,0.65))}
-          60% {filter:drop-shadow(0 6px 22px rgba(0,0,0,0.45)) brightness(1.15) drop-shadow(0 0 20px rgba(255,210,80,0.80))}
-          100%{filter:drop-shadow(0 6px 18px rgba(0,0,0,0.55)) brightness(1)    drop-shadow(0 0 0px  rgba(255,210,80,0))}
-        }
         @keyframes calc-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(0.85)}}
         @keyframes calc-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         @keyframes calc-slide-in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
@@ -8266,20 +8259,6 @@ function YojanaSahayInner(){
                 </div>
               </div>
 
-              {/* RIGHT: Trust badge — image */}
-              <img
-                src={trustedBadgeImg}
-                alt="Trusted by 1M+ Indians"
-                style={{
-                  flexShrink:0,
-                  width:135,
-                  height:"auto",
-                  objectFit:"contain",
-                  userSelect:"none",
-                  pointerEvents:"none",
-                  animation:"trustedBadgeShimmer 3s ease-in-out infinite",
-                }}
-              />
 
             </div>
 
