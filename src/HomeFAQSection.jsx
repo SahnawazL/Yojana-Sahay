@@ -828,6 +828,28 @@ export default function HomeFAQSection({ lang, dark }) {
           outline-offset: 2px;
           border-radius: 3px;
         }
+
+        /* Feedback button hover */
+        .ys-vote-btn { transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease; }
+        .ys-vote-btn:active { transform: scale(0.92) !important; }
+
+        /* Thanks confirmation pop-in */
+        @keyframes ys-thanks-in {
+          0%   { opacity: 0; transform: scale(0.80) translateY(4px); }
+          60%  { opacity: 1; transform: scale(1.06) translateY(-1px); }
+          100% { opacity: 1; transform: scale(1)    translateY(0);    }
+        }
+        .ys-thanks-badge {
+          animation: ys-thanks-in 0.38s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+
+        /* Icon pulse after vote */
+        @keyframes ys-vote-pulse {
+          0%   { box-shadow: 0 0 0 0px currentColor; }
+          60%  { box-shadow: 0 0 0 5px transparent;  }
+          100% { box-shadow: 0 0 0 0px transparent;  }
+        }
+        .ys-voted-icon { animation: ys-vote-pulse 0.5s ease 0.1s both; }
       `}</style>
 
       {/* ── Section label — v6: left accent bar ── */}
@@ -1246,73 +1268,195 @@ export default function HomeFAQSection({ lang, dark }) {
                   {renderAnswer(faq.a, cc, th, bf, isHindi, dark)}
                   </div>
 
-                  {/* ── Was this helpful? feedback bar (v8) ── */}
+                  {/* ── Was this helpful? feedback bar (v13 · professional) ── */}
                   {(() => {
                     const globalIdx = allFaqs.indexOf(faq);
                     const faqId     = `${lang}_${faq.cat}_${globalIdx}`;
                     const voted     = feedbackState[faqId] || null;
+
+                    // SVG paths for thumbs-up (reused; down = scaleY(-1))
+                    const thumbPath = (
+                      <>
+                        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
+                      </>
+                    );
+
                     return (
                       <div style={{
                         display:        "flex",
                         alignItems:     "center",
                         justifyContent: "space-between",
-                        padding:        "7px 15px 11px",
-                        borderTop:      `1px solid ${cc}20`,
+                        padding:        "8px 14px 12px",
+                        borderTop:      `1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}`,
+                        minHeight:      44,
                       }}>
-                        <span style={{
-                          fontSize:   10,
-                          color:      voted ? (voted === "up" ? VOTE_COLOR.up : VOTE_COLOR.down) : th.textSub,
-                          fontFamily: bf,
-                          fontWeight: voted ? 700 : 600,
-                          transition: "color 0.22s",
-                        }}>
-                          {voted
-                            ? (isHindi ? "धन्यवाद! 🙏" : "Thanks for your feedback!")
-                            : (isHindi ? "क्या यह उपयोगी था?" : "Was this helpful?")}
-                        </span>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          {["up", "down"]
-                            .filter((v) => !voted || voted === v) // once voted, only the chosen button stays — no faded "ghost" leftover
-                            .map((v) => {
-                            const isChosen = voted === v;
-                            const emoji    = v === "up" ? "👍" : "👎";
-                            const vc       = VOTE_COLOR[v]; // green for "up", light red for "down"
-                            return (
-                              <button
-                                key={v}
-                                type="button"
-                                disabled={!!voted}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (!voted) logFeedback(faqId, faq.cat, v, faq.q);
-                                }}
-                                style={{
-                                  display:        "flex",
-                                  alignItems:     "center",
-                                  justifyContent: "center",
-                                  width:          30,
-                                  height:         30,
-                                  borderRadius:   isChosen ? 15 : 9,
-                                  border:         isChosen ? "none" : `1.5px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}`,
-                                  background:     isChosen
-                                    ? vc
-                                    : (dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.025)"),
-                                  fontSize:       15,
-                                  lineHeight:     1,
-                                  padding:        0,
-                                  margin:         0,
-                                  cursor:         voted ? "default" : "pointer",
-                                  boxShadow:      isChosen ? `0 3px 10px ${vc}66` : "none",
-                                  transition:     "background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1), border-radius 0.25s ease",
-                                  WebkitTapHighlightColor: "transparent",
-                                  transform:      isChosen ? "scale(1.08)" : "scale(1)",
-                                }}
-                              >
-                                {emoji}
-                              </button>
-                            );
-                          })}
-                        </div>
+
+                        {/* Left: label or thanks */}
+                        {voted ? (
+                          <div
+                            className="ys-thanks-badge"
+                            style={{
+                              display:     "flex",
+                              alignItems:  "center",
+                              gap:         7,
+                            }}
+                          >
+                            {/* Check circle */}
+                            <div
+                              className="ys-voted-icon"
+                              style={{
+                                width:          22,
+                                height:         22,
+                                borderRadius:   "50%",
+                                background:     voted === "up"
+                                  ? (dark ? "rgba(74,222,128,0.18)"  : "rgba(19,136,8,0.10)")
+                                  : (dark ? "rgba(252,165,165,0.18)" : "rgba(248,113,113,0.12)"),
+                                border:         `1.5px solid ${voted === "up" ? VOTE_COLOR.up : VOTE_COLOR.down}`,
+                                display:        "flex",
+                                alignItems:     "center",
+                                justifyContent: "center",
+                                flexShrink:     0,
+                                color:          voted === "up" ? VOTE_COLOR.up : VOTE_COLOR.down,
+                              }}
+                            >
+                              <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                                <path
+                                  d="M2.5 6l2.5 2.5 4.5-4.5"
+                                  stroke="currentColor"
+                                  strokeWidth="1.7"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+
+                            {/* Thanks text */}
+                            <span style={{
+                              fontSize:      11,
+                              fontWeight:    600,
+                              color:         voted === "up" ? VOTE_COLOR.up : VOTE_COLOR.down,
+                              fontFamily:    bf,
+                              letterSpacing: 0.1,
+                            }}>
+                              {isHindi ? "धन्यवाद! 🙏" : "Thanks for your feedback!"}
+                            </span>
+                          </div>
+                        ) : (
+                          <span style={{
+                            fontSize:   11,
+                            color:      th.textSub,
+                            fontFamily: bf,
+                            fontWeight: 500,
+                          }}>
+                            {isHindi ? "क्या यह उपयोगी था?" : "Was this helpful?"}
+                          </span>
+                        )}
+
+                        {/* Right: pill with Yes / No buttons (hidden after vote) */}
+                        {!voted && (
+                          <div style={{
+                            display:      "flex",
+                            alignItems:   "center",
+                            background:   dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+                            borderRadius: 20,
+                            padding:      "2px 3px",
+                            border:       `1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`,
+                            gap:          2,
+                          }}>
+                            {["up", "down"].map((v) => {
+                              const isUp = v === "up";
+                              const hoverBg    = isUp
+                                ? (dark ? "rgba(74,222,128,0.18)"  : "rgba(19,136,8,0.10)")
+                                : (dark ? "rgba(252,165,165,0.18)" : "rgba(248,113,113,0.12)");
+                              const hoverColor = isUp ? VOTE_COLOR.up : VOTE_COLOR.down;
+
+                              return (
+                                <button
+                                  key={v}
+                                  type="button"
+                                  className="ys-vote-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    logFeedback(faqId, faq.cat, v, faq.q);
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = hoverBg;
+                                    e.currentTarget.style.color      = hoverColor;
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "transparent";
+                                    e.currentTarget.style.color      = dark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.38)";
+                                  }}
+                                  style={{
+                                    display:                 "flex",
+                                    alignItems:              "center",
+                                    gap:                     4,
+                                    padding:                 "5px 10px",
+                                    borderRadius:            17,
+                                    border:                  "none",
+                                    background:              "transparent",
+                                    cursor:                  "pointer",
+                                    color:                   dark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.38)",
+                                    fontFamily:              bf,
+                                    fontSize:                11,
+                                    fontWeight:              600,
+                                    WebkitTapHighlightColor: "transparent",
+                                    userSelect:              "none",
+                                  }}
+                                >
+                                  {/* Thumb SVG */}
+                                  <svg
+                                    width="13" height="13"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    style={{ transform: isUp ? "none" : "scaleY(-1)", flexShrink: 0 }}
+                                  >
+                                    {thumbPath}
+                                  </svg>
+                                  {isUp
+                                    ? (isHindi ? "हाँ" : "Yes")
+                                    : (isHindi ? "नहीं" : "No")}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* After vote: small chosen-icon badge on the right */}
+                        {voted && (
+                          <div style={{
+                            width:          28,
+                            height:         28,
+                            borderRadius:   "50%",
+                            background:     voted === "up"
+                              ? (dark ? "rgba(74,222,128,0.13)"  : "rgba(19,136,8,0.08)")
+                              : (dark ? "rgba(252,165,165,0.13)" : "rgba(248,113,113,0.09)"),
+                            display:        "flex",
+                            alignItems:     "center",
+                            justifyContent: "center",
+                            flexShrink:     0,
+                            color:          voted === "up" ? VOTE_COLOR.up : VOTE_COLOR.down,
+                          }}>
+                            <svg
+                              width="13" height="13"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              style={{ transform: voted === "up" ? "none" : "scaleY(-1)" }}
+                            >
+                              {thumbPath}
+                            </svg>
+                          </div>
+                        )}
+
                       </div>
                     );
                   })()}
