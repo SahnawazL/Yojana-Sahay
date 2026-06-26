@@ -2312,7 +2312,9 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
 
   useEffect(()=>{
     // Only show if user has never seen it
-    if(localStorage.getItem(HINT_KEY)) return;
+    let alreadySeen=false;
+    try{alreadySeen=!!localStorage.getItem(HINT_KEY);}catch{}
+    if(alreadySeen) return;
     // Delay slightly so tab slide animation completes first
     const id=setTimeout(()=>setShowFilterHint(true), 900);
     return()=>clearTimeout(id);
@@ -7680,8 +7682,8 @@ class AppErrorBoundary extends React.Component{
 
 // ─── MAIN APP ──────────────────────────────────────────────────────────────────
 function YojanaSahayInner(){
-  const [lang,setLang]=useState(()=>localStorage.getItem("yojana_lang")||"en");
-  const [dark,setDark]=useState(()=>localStorage.getItem("yojana_dark")==="true");
+  const [lang,setLang]=useState(()=>{try{return localStorage.getItem("yojana_lang")||"en";}catch{return "en";}});
+  const [dark,setDark]=useState(()=>{try{return localStorage.getItem("yojana_dark")==="true";}catch{return false;}});
   const [activeTab,setActiveTab]=useState("home");
   const [showAdmin,setShowAdmin]=useState(false);
   const [showFAQ,setShowFAQ]=useState(false);
@@ -7811,8 +7813,8 @@ function YojanaSahayInner(){
     return () => clearTimeout(t);
   }, [swipeDir]); // activeTab removed — not used inside, was restarting timer on every tab switch
 
-  useEffect(()=>{localStorage.setItem("yojana_lang",lang);},[lang]);
-  useEffect(()=>{localStorage.setItem("yojana_dark",dark);},[dark]);
+  useEffect(()=>{try{localStorage.setItem("yojana_lang",lang);}catch{}},[lang]);
+  useEffect(()=>{try{localStorage.setItem("yojana_dark",dark);}catch{}},[dark]);
   useEffect(()=>{const id=setTimeout(()=>setLoaded(true),100);return()=>clearTimeout(id);},[]);
 
   // ── Fetch live stats via our own /api/stats proxy ───────────────────────────
@@ -7854,8 +7856,10 @@ function YojanaSahayInner(){
 
   // Persist profile across page refreshes
   useEffect(()=>{
-    if(profile) localStorage.setItem("yojana_profile",JSON.stringify(profile));
-    else localStorage.removeItem("yojana_profile");
+    try{
+      if(profile) localStorage.setItem("yojana_profile",JSON.stringify(profile));
+      else localStorage.removeItem("yojana_profile");
+    }catch{}
   },[profile]);
 
   // On every auth state change: clear on sign-out; restore Firestore profile on session restore
