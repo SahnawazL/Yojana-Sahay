@@ -542,7 +542,7 @@ export default function HomeFAQSection({ lang, dark }) {
   const [feedbackState, setFeedbackState] = useState({});
 
   // ── FAQ feedback — logs 👍/👎 votes to Firestore faqFeedback collection ──
-  const logFeedback = async (faqId, cat, vote) => {
+  const logFeedback = async (faqId, cat, vote, question) => {
     setFeedbackState(prev => ({ ...prev, [faqId]: vote }));
     try {
       // Signed-in users get their Firebase UID.
@@ -560,6 +560,7 @@ export default function HomeFAQSection({ lang, dark }) {
       const docId = `${faqId}__${uid}`;
       await setDoc(doc(db, "faqFeedback", docId), {
         faqId,
+        q: question,    // question text — shown in admin FAQ Feedback tab
         cat,
         vote,           // 'up' or 'down'
         lang,
@@ -1165,7 +1166,7 @@ export default function HomeFAQSection({ lang, dark }) {
                                 disabled={!!voted}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (!voted) logFeedback(faqId, faq.cat, v);
+                                  if (!voted) logFeedback(faqId, faq.cat, v, faq.q);
                                 }}
                                 style={{
                                   display:        "flex",
