@@ -1,11 +1,44 @@
 /**
- * YojanaSahay — HomeFAQSection.jsx  (v9 · Premium)
+ * YojanaSahay — HomeFAQSection.jsx  (v11 · Premium)
  * Collapsible bilingual FAQ · Home Tab
  *
  * Copyright (c) 2026 Sahnawaz Ahmed Laskar
  * SPDX-License-Identifier: MIT
  *
  * Usage: <HomeFAQSection lang={lang} dark={dark} />
+ *
+ * v11 changes vs v10:
+ *   · Polish: voted feedback button looked clunky
+ *     – The chosen 👍/👎 button stacked a 1.5px border AND a 3px box-shadow
+ *       ring AND a scale(1.15) jump on top of each other, reading as a
+ *       harsh navy square rather than a clean "liked" state. The other,
+ *       un-chosen button just sat there at 30% opacity as a faded ghost,
+ *       cluttering the row instead of receding.
+ *     – Fix: once voted, only the CHOSEN button renders at all (the other
+ *       is filtered out, not just faded) — a single clean pill, filled
+ *       solid with the category colour, no border, one soft drop-shadow,
+ *       a gentler scale(1.08) on a smoother easing curve, and the corners
+ *       round further into a pill shape to read as "confirmed" rather
+ *       than "selected in a list".
+ *
+ * v10 changes vs v9:
+ *   · Bug fix: feedback vote didn't survive closing/reopening the FAQ
+ *     – The 👍/👎 vote bar saved to Firestore correctly (one doc per
+ *       faqId+uid, merge:true), but `feedbackState` — the local state that
+ *       decides whether a row shows "Was this helpful?" vs "Thanks!" — was
+ *       only ever set in memory when you tapped a button. It was never
+ *       loaded FROM Firestore, so every time this component unmounted
+ *       (closing the FAQ panel) and remounted (reopening it), it reset to
+ *       an empty object and every question looked unvoted again — even
+ *       though the underlying vote was saved forever.
+ *     – Fix: on mount, fetch this voter's own past votes (one query, by
+ *       uid) and pre-fill feedbackState before render. Signed-in users:
+ *       persists forever, on any device, since it's keyed to their
+ *       permanent Firebase UID. Guests: persists for the browser session
+ *       (matches the existing anon-id design — see v8 note below).
+ *     – Extracted the uid-resolution logic (signed-in UID vs per-session
+ *       anon id) into a shared getVoterId() so the new restore-on-mount
+ *       effect and the existing vote-writer use the exact same identity.
  *
  * v9 changes vs v8:
  *   · Bug fix: tap-to-close was closing the whole FAQ panel
@@ -68,8 +101,27 @@
 
 import { useState, useEffect, useRef } from "react";
 import { db } from "./firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, getDocs, query, where } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+
+// ── Resolve the current voter's identity for FAQ feedback ──────────────────
+// Signed-in users: their permanent Firebase UID, so a vote (and its restore
+// on every future visit) follows their account forever, on any device.
+// Guests: a stable "anon_xxxxxxxx" id cached in sessionStorage, so repeat
+// votes/restores within the same browser session resolve to the same
+// person — it clears when the tab fully closes, by design (no account to
+// tie a guest's vote to beyond that).
+function getVoterId() {
+  let uid = getAuth().currentUser?.uid;
+  if (!uid) {
+    uid = sessionStorage.getItem("ys_anon_faq_id");
+    if (!uid) {
+      uid = "anon_" + Math.random().toString(36).slice(2, 10);
+      sessionStorage.setItem("ys_anon_faq_id", uid);
+    }
+  }
+  return uid;
+}
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -561,23 +613,39 @@ export default function HomeFAQSection({ lang, dark }) {
   const [filterCat, setFilterCat] = useState("all");
   const [feedbackState, setFeedbackState] = useState({});
 
+  // ── Restore this voter's past FAQ votes on mount ──────────────────────
+  // Runs every time HomeFAQSection mounts (i.e. every time the FAQ panel
+  // is opened, since closing it unmounts the component and wipes local
+  // state). Without this, feedbackState always starts empty and every
+  // question looks unvoted again, even though the vote is saved forever.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const uid  = getVoterId();
+        const snap = await getDocs(query(collection(db, "faqFeedback"), where("uid", "==", uid)));
+        if (cancelled) return;
+        const restored = {};
+        snap.forEach((d) => {
+          const data = d.data();
+          if (data?.faqId && data?.vote) restored[data.faqId] = data.vote;
+        });
+        if (Object.keys(restored).length) {
+          setFeedbackState((prev) => ({ ...restored, ...prev }));
+        }
+      } catch (e) {
+        console.warn("FAQ feedback restore failed:", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // ── FAQ feedback — logs 👍/👎 votes to Firestore faqFeedback collection ──
   const logFeedback = async (faqId, cat, vote, question) => {
     setFeedbackState(prev => ({ ...prev, [faqId]: vote }));
     try {
-      // Signed-in users get their Firebase UID.
-      // Guests get a stable "anon_xxxxxxxx" ID for this browser session —
-      // stored in sessionStorage so the same guest doesn't double-vote
-      // across questions, and clears automatically when the tab closes.
-      let uid = getAuth().currentUser?.uid;
-      if (!uid) {
-        uid = sessionStorage.getItem("ys_anon_faq_id");
-        if (!uid) {
-          uid = "anon_" + Math.random().toString(36).slice(2, 10);
-          sessionStorage.setItem("ys_anon_faq_id", uid);
-        }
-      }
-      const docId = `${faqId}__${uid}`;
+      const uid    = getVoterId();
+      const docId  = `${faqId}__${uid}`;
       await setDoc(doc(db, "faqFeedback", docId), {
         faqId,
         q: question,    // question text — shown in admin FAQ Feedback tab
@@ -1182,7 +1250,9 @@ export default function HomeFAQSection({ lang, dark }) {
                             : (isHindi ? "क्या यह उपयोगी था?" : "Was this helpful?")}
                         </span>
                         <div style={{ display: "flex", gap: 6 }}>
-                          {["up", "down"].map((v) => {
+                          {["up", "down"]
+                            .filter((v) => !voted || voted === v) // once voted, only the chosen button stays — no faded "ghost" leftover
+                            .map((v) => {
                             const isChosen = voted === v;
                             const emoji    = v === "up" ? "👍" : "👎";
                             return (
@@ -1200,21 +1270,20 @@ export default function HomeFAQSection({ lang, dark }) {
                                   justifyContent: "center",
                                   width:          30,
                                   height:         30,
-                                  borderRadius:   9,
-                                  border:         `1.5px solid ${isChosen ? cc : (dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)")}`,
+                                  borderRadius:   isChosen ? 15 : 9,
+                                  border:         isChosen ? "none" : `1.5px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}`,
                                   background:     isChosen
-                                    ? `${cc}22`
+                                    ? cc
                                     : (dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.025)"),
                                   fontSize:       15,
                                   lineHeight:     1,
                                   padding:        0,
                                   margin:         0,
                                   cursor:         voted ? "default" : "pointer",
-                                  opacity:        voted && !isChosen ? 0.30 : 1,
-                                  transition:     "background 0.18s, border-color 0.18s, opacity 0.22s, transform 0.12s",
+                                  boxShadow:      isChosen ? `0 3px 10px ${cc}40` : "none",
+                                  transition:     "background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1), border-radius 0.25s ease",
                                   WebkitTapHighlightColor: "transparent",
-                                  transform:      isChosen ? "scale(1.15)" : "scale(1)",
-                                  boxShadow:      isChosen ? `0 0 0 3px ${cc}18` : "none",
+                                  transform:      isChosen ? "scale(1.08)" : "scale(1)",
                                 }}
                               >
                                 {emoji}
