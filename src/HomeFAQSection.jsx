@@ -1,11 +1,23 @@
 /**
- * YojanaSahay — HomeFAQSection.jsx  (v11 · Premium)
+ * YojanaSahay — HomeFAQSection.jsx  (v12 · Premium)
  * Collapsible bilingual FAQ · Home Tab
  *
  * Copyright (c) 2026 Sahnawaz Ahmed Laskar
  * SPDX-License-Identifier: MIT
  *
  * Usage: <HomeFAQSection lang={lang} dark={dark} />
+ *
+ * v12 changes vs v11:
+ *   · Polish: vote button colour was the FAQ's category colour
+ *     – Thumbs-up and thumbs-down both filled with whatever colour that
+ *       row's category happened to be (navy, saffron, violet…), so a
+ *       "helpful" vote on an AI question looked nothing like a "helpful"
+ *       vote on a Privacy question.
+ *     – Fix: introduced a fixed VOTE_COLOR pair — green for 👍, a soft
+ *       light red for 👎 — independent of category, with dark-mode
+ *       variants for contrast. Applied to both the chosen button's fill
+ *       and the "Thanks for your feedback!" label colour, so the whole
+ *       confirmation reads as one consistent sentiment colour.
  *
  * v11 changes vs v10:
  *   · Polish: voted feedback button looked clunky
@@ -665,6 +677,15 @@ export default function HomeFAQSection({ lang, dark }) {
   const isHindi = lang === "hi";
   const allFaqs = FAQ_DATA[lang] || FAQ_DATA.en;
 
+  // Vote sentiment colours — fixed green/red regardless of the FAQ's own
+  // category colour, so "helpful" and "not helpful" read as universal
+  // signals at a glance rather than blending into the row's accent colour.
+  const VOTE_COLOR = {
+    up:   dark ? "#4ADE80" : "#138808", // green
+    down: dark ? "#FCA5A5" : "#F87171", // light red — softer, not alarm-red
+  };
+
+
   // v7 bugfix: accordion content height was a hardcoded `maxHeight: 700`,
   // which silently clipped any answer (esp. answers with a `note` block, or
   // Hindi text — which runs noticeably longer than English for the same
@@ -1240,7 +1261,7 @@ export default function HomeFAQSection({ lang, dark }) {
                       }}>
                         <span style={{
                           fontSize:   10,
-                          color:      voted ? cc : th.textSub,
+                          color:      voted ? (voted === "up" ? VOTE_COLOR.up : VOTE_COLOR.down) : th.textSub,
                           fontFamily: bf,
                           fontWeight: voted ? 700 : 600,
                           transition: "color 0.22s",
@@ -1255,6 +1276,7 @@ export default function HomeFAQSection({ lang, dark }) {
                             .map((v) => {
                             const isChosen = voted === v;
                             const emoji    = v === "up" ? "👍" : "👎";
+                            const vc       = VOTE_COLOR[v]; // green for "up", light red for "down"
                             return (
                               <button
                                 key={v}
@@ -1273,14 +1295,14 @@ export default function HomeFAQSection({ lang, dark }) {
                                   borderRadius:   isChosen ? 15 : 9,
                                   border:         isChosen ? "none" : `1.5px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}`,
                                   background:     isChosen
-                                    ? cc
+                                    ? vc
                                     : (dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.025)"),
                                   fontSize:       15,
                                   lineHeight:     1,
                                   padding:        0,
                                   margin:         0,
                                   cursor:         voted ? "default" : "pointer",
-                                  boxShadow:      isChosen ? `0 3px 10px ${cc}40` : "none",
+                                  boxShadow:      isChosen ? `0 3px 10px ${vc}66` : "none",
                                   transition:     "background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1), border-radius 0.25s ease",
                                   WebkitTapHighlightColor: "transparent",
                                   transform:      isChosen ? "scale(1.08)" : "scale(1)",
