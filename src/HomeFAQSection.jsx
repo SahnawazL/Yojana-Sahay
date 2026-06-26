@@ -1,11 +1,31 @@
 /**
- * YojanaSahay — HomeFAQSection.jsx  (v8 · Premium)
+ * YojanaSahay — HomeFAQSection.jsx  (v9 · Premium)
  * Collapsible bilingual FAQ · Home Tab
  *
  * Copyright (c) 2026 Sahnawaz Ahmed Laskar
  * SPDX-License-Identifier: MIT
  *
  * Usage: <HomeFAQSection lang={lang} dark={dark} />
+ *
+ * v9 changes vs v8:
+ *   · Bug fix: tap-to-close was closing the whole FAQ panel
+ *     – The v8 "pop our own entry" fix called window.history.back() when a
+ *       row was closed by tapping it. back() fires a REAL, global popstate
+ *       event — and this app's parent screens (ProfileTab / top-level App)
+ *       also listen for popstate to close their own overlay/sub-view when
+ *       it's still open. They can't tell "an inner FAQ row just closed"
+ *       apart from "the user pressed back to leave", so they closed the
+ *       entire FAQ panel too, dropping the user back on whatever screen
+ *       opened it (e.g. Profile).
+ *     – Fix: tap-to-close now calls window.history.replaceState(null,"")
+ *       instead. It still neutralises our own history slot in place (so a
+ *       later real back-press doesn't need an extra press), but — unlike
+ *       back() — replaceState() never dispatches popstate, so no other
+ *       screen's listener hears about it or reacts.
+ *     – Note: pressing the actual hardware/gesture back button while a row
+ *       is open is a separate case (real navigation, can't be silenced the
+ *       same way) and can still close the whole panel. Flagging this as a
+ *       known follow-up — let me know if you want it fixed too.
  *
  * v8 changes vs v7:
  *   · Feature: "Was this helpful?" 👍/👎 feedback bar
@@ -635,7 +655,13 @@ export default function HomeFAQSection({ lang, dark }) {
       window.history.pushState({ ysFaq: true }, "");
     } else if (openIdx === null && faqHistoryPushed.current) {
       faqHistoryPushed.current = false;
-      window.history.back();
+      // v9 fix: was window.history.back() — that fires a real, GLOBAL
+      // popstate event that the parent screen's own back-button listener
+      // also hears, and reacts to by closing the whole FAQ panel (it can't
+      // tell "a row closed" apart from "user pressed back to leave").
+      // replaceState() neutralises our slot in place without dispatching
+      // popstate at all, so nothing else gets notified or reacts.
+      window.history.replaceState(null, "");
     }
   }, [openIdx]);
 
