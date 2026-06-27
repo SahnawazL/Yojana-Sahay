@@ -1845,12 +1845,16 @@
     "confidence": 0
   },
   "an_youth_skill_ddet": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-27T21:12:43.875Z",
+    "linkAlive": true,
+    "httpStatus": 0,
+    "confidence": 0
   },
   "an_pmjay_health": {
-    "lastVerified": "2026-06-16T20:36:16.595Z",
-    "linkAlive": true
+    "lastVerified": "2026-06-27T21:12:43.875Z",
+    "linkAlive": true,
+    "httpStatus": 200,
+    "confidence": 0
   },
   "bihar_minority_scholarship": {
     "lastVerified": "2026-06-19T22:38:22.919Z",
@@ -3362,5 +3366,12 @@
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
+  },
+  "an_sc_st_scholarship": {
+    "lastVerified": "2026-06-27T21:12:43.875Z",
+    "httpStatus": 200,
+    "linkAlive": false,
+    "isActive": true,
+    "confidence": 1
   }
 }
