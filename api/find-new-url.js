@@ -5,18 +5,20 @@
 //
 // Flow:
 //   1. POST { id, name, ministry, oldUrl, state }
-//   2. Two parallel Tavily Search queries — targeted + broad fallback
+//   2. Two parallel Serper Search queries — targeted + broad fallback
 //   3. Deduplicate + normalise candidates
 //   4. Ping each (HEAD → GET fallback, mirrors ping-url.js)
 //   5. Score: domain quality × liveness
 //   6. Return top 5 sorted: [{ url, title, domain, alive, httpStatus, confidence }]
 //
-// Keys: TAVILY_VERIFY_KEY (preferred) → TAVILY_API_KEY fallback (same priority as verify-scheme.js)
+// Keys: SERPER_API_KEY in Vercel → Settings → Environment Variables
+// NOTE: verify-scheme.js still uses TAVILY_VERIFY_KEY for page content
+//       extraction (Tavily Extract bypasses .gov.in IP blocks — Serper cannot).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { recordAiCall } from "./_lib/firebaseAdmin.js";
 
-const TAVILY_SEARCH   = "https://api.tavily.com/search";
+const SERPER_SEARCH   = "https://google.serper.dev/search";
 const PING_TIMEOUT_MS = 8000;
 const MAX_CANDIDATES  = 5;
 const USER_AGENT      =
@@ -49,60 +51,55 @@ function extractDomain(url) {
 }
 
 
-// ── Tavily Search ─────────────────────────────────────────────────────────────
-// Returns raw [{url, title}] array.  No include_domains filter so we don't
-// miss schemes that moved to a non-.gov.in portal — domain scoring handles it.
+// ── Serper Search ─────────────────────────────────────────────────────────────
+// Calls Google Search via Serper and returns [{url, title}].
+// Serper uses X-API-KEY header (not body) and returns data.organic[].link
+// (not data.results[].url like Tavily did).
 
-async function tavilySearch(query, tavilyKey, maxResults = 7) {
+async function serperSearch(query, serperKey, maxResults = 7) {
   try {
-    const res = await fetch(TAVILY_SEARCH, {
+    const res = await fetch(SERPER_SEARCH, {
       method:  "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-KEY":    serperKey,           // ← Serper auth: header, not body
+      },
       body: JSON.stringify({
-        api_key:      tavilyKey,
-        query,
-        search_depth: "basic",
-        max_results:  maxResults,
+        q:   query,
+        num: maxResults,                     // number of results (max 10 per call)
+        gl:  "in",                           // country: India — boosts .gov.in results
+        hl:  "en",                           // language: English
       }),
     });
 
     if (!res.ok) {
-      // THE BUG THIS FIXES: this used to return [] here, indistinguishable
-      // from "Tavily searched fine and genuinely found nothing." A revoked
-      // key (401), exhausted quota (432/433), rate limit (429), or a Tavily
-      // outage (5xx) all look identical to the user — every scheme just
-      // shows "No candidates found" forever, with the real reason sitting
-      // only in a server log nobody's looking at. Returning the status/
-      // detail lets the caller tell a real failure apart from a real empty
-      // result.
       let detail = `HTTP ${res.status}`;
       try {
         const body = await res.json();
-        // Tavily's `detail` field can be a plain string OR a nested object
-        // like { error: "..." } — stringifying the object directly produces
-        // the literal text "[object Object]", so dig out a real message first.
-        const raw = body?.detail;
-        const msg = typeof raw === "string" ? raw
-                  : (raw?.error ?? raw?.message ?? (raw ? JSON.stringify(raw) : null));
+        const msg  = body?.message ?? body?.error ?? null;
         if (msg) detail = `HTTP ${res.status}: ${msg}`;
       } catch { /* body wasn't JSON — keep the bare status */ }
 
-      console.warn(`[find-new-url] Tavily HTTP ${res.status} for query: ${query}`);
+      console.warn(`[find-new-url] Serper HTTP ${res.status} for query: ${query}`);
       return { results: [], error: { status: res.status, message: detail } };
     }
 
     const data = await res.json();
-    recordAiCall({ service: "tavily-verify" }).catch(() => {}); // Tavily search just succeeded — Verify Pipeline pool, not AI Chat
+
+    // Serper returns organic results under data.organic[]
+    // Each item has: { link, title, snippet, position }
+    // We map link → url to keep the same shape the rest of the file expects.
+    recordAiCall({ service: "serper-verify" }).catch(() => {}); // track in API call history
     return {
-      results: (data.results ?? []).map(r => ({
-        url:   r.url?.trim() ?? "",
+      results: (data.organic ?? []).map(r => ({
+        url:   r.link?.trim() ?? "",
         title: r.title ?? "",
       })).filter(r => r.url),
       error: null,
     };
 
   } catch (err) {
-    console.warn("[find-new-url] Tavily search error:", err.message);
+    console.warn("[find-new-url] Serper search error:", err.message);
     return { results: [], error: { status: 0, message: err.message } };
   }
 }
@@ -152,10 +149,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const tavilyKey = (process.env.TAVILY_VERIFY_KEY ?? process.env.TAVILY_API_KEY)?.trim();
-  if (!tavilyKey) {
+  const serperKey = process.env.SERPER_API_KEY?.trim();
+  if (!serperKey) {
     return res.status(500).json({
-      error: "No Tavily key configured. Add TAVILY_VERIFY_KEY (or TAVILY_API_KEY) in Vercel → Settings → Environment Variables.",
+      error: "No Serper key configured. Add SERPER_API_KEY in Vercel → Settings → Environment Variables.",
     });
   }
 
@@ -174,13 +171,13 @@ export default async function handler(req, res) {
   const stateStr    = state !== "national" ? ` ${state}` : "";
 
   const [q1, q2] = await Promise.all([
-    tavilySearch(
+    serperSearch(
       `"${name}"${ministryStr ? ` "${ministryStr}"` : ""}${stateStr} India official apply`,
-      tavilyKey, 7
+      serperKey, 7
     ),
-    tavilySearch(
+    serperSearch(
       `${name}${stateStr} India government scheme portal apply`,
-      tavilyKey, 6
+      serperKey, 6
     ),
   ]);
 
@@ -202,13 +199,11 @@ export default async function handler(req, res) {
     if (errors.length === 2) {
       const e = errors[0];
       let searchError;
-      if      (e.status === 401) searchError = "Tavily API key invalid or revoked — check TAVILY_API_KEY in Vercel.";
-      else if (e.status === 429) searchError = "Tavily is rate-limiting requests — wait a bit and retry.";
-      else if (e.status === 432) searchError = "Tavily plan limit exceeded — upgrade your plan or wait for it to reset (Tavily dashboard → Usage).";
-      else if (e.status === 433) searchError = "Tavily pay-as-you-go limit exceeded — raise your limit on the Tavily dashboard.";
-      else if (e.status >= 500)  searchError = "Tavily service is currently unavailable (server error).";
-      else if (e.status === 0)   searchError = `Tavily request failed: ${e.message}`;
-      else                       searchError = `Tavily error: ${e.message}`;
+      if      (e.status === 401) searchError = "Serper API key invalid or revoked — check SERPER_API_KEY in Vercel.";
+      else if (e.status === 429) searchError = "Serper is rate-limiting requests — wait a bit and retry.";
+      else if (e.status >= 500)  searchError = "Serper service is currently unavailable (server error).";
+      else if (e.status === 0)   searchError = `Serper request failed: ${e.message}`;
+      else                       searchError = `Serper error: ${e.message}`;
 
       console.warn(`[find-new-url] Search failed for "${name}": ${searchError}`);
       return res.status(200).json({ candidates: [], searchError });
