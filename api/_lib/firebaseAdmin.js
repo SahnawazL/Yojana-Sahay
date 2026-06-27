@@ -18,6 +18,7 @@
 // the .replace(/\\n/g, "\n") below handles both cases safely either way.
 //
 // Used by: verify-scheme.js, chat.js, find-new-url.js, ai-insights.js
+// Serper (find-new-url.js) tracked separately from Tavily (verify-scheme.js)
 //
 // Exports:
 //   markAiActive(field)     — legacy: just write a lastActive timestamp
@@ -85,7 +86,7 @@ export async function markAiActive(field) {
 // ── Record a completed AI API call with full telemetry ───────────────────────
 //
 // options:
-//   service          "groq" | "tavily"
+//   service          "groq" | "tavily" | "tavily-verify" | "serper" | "serper-verify"
 //   keyIdx           0-based index of the Groq key that ultimately succeeded.
 //                    Pass -1 if ALL keys were exhausted (total failure).
 //   count429         How many keys were 429'd before the successful key.
@@ -111,9 +112,12 @@ export async function markAiActive(field) {
 //   groqLast429At           Timestamp  — when the last 429 happened
 //   groqWebSearchesToday    number     — Tavily-triggered Groq calls today
 //   groqWebSearchesDate     string     — IST date for web-search reset
-//   tavilyLastActive        Timestamp  — updated on every Tavily call
+//   tavilyLastActive        Timestamp  — updated on every Tavily call (verify-scheme.js)
 //   tavilyCallsToday        number     — resets at midnight IST
 //   tavilyCallsDate         string     — IST date for Tavily reset
+//   serperLastActive        Timestamp  — updated on every Serper call (find-new-url.js)
+//   serperCallsToday        number     — resets at midnight IST
+//   serperCallsDate         string     — IST date for Serper reset
 export async function recordAiCall({
   service         = "groq",
   keyIdx          = 0,
@@ -180,7 +184,9 @@ export async function recordAiCall({
       }
 
       // ── TAVILY ────────────────────────────────────────────────────────────
-      if (service === "tavily") {
+      // Catches both "tavily" (direct) and "tavily-verify" (verify-scheme.js
+      // Extract calls) — previously "tavily-verify" was silently a no-op.
+      if (service === "tavily" || service === "tavily-verify") {
         upd.tavilyLastActive = FieldValue.serverTimestamp();
 
         if (d.tavilyCallsDate === today) {
@@ -188,6 +194,21 @@ export async function recordAiCall({
         } else {
           upd.tavilyCallsDate  = today;
           upd.tavilyCallsToday = 1;
+        }
+      }
+
+      // ── SERPER ────────────────────────────────────────────────────────────
+      // Catches both "serper" (direct) and "serper-verify" (find-new-url.js).
+      // Serper replaced Tavily Search in find-new-url.js; Tavily Extract
+      // in verify-scheme.js is still tracked above under "tavily-verify".
+      if (service === "serper" || service === "serper-verify") {
+        upd.serperLastActive = FieldValue.serverTimestamp();
+
+        if (d.serperCallsDate === today) {
+          upd.serperCallsToday = (d.serperCallsToday || 0) + 1;
+        } else {
+          upd.serperCallsDate  = today;
+          upd.serperCallsToday = 1;
         }
       }
 
