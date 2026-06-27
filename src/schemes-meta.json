@@ -3368,9 +3368,9 @@
     "confidence": 0
   },
   "an_sc_st_scholarship": {
-    "lastVerified": "2026-06-27T21:12:43.875Z",
+    "lastVerified": "2026-06-27T21:14:02.479Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "isActive": true,
     "confidence": 1
   }
