@@ -287,6 +287,128 @@ const REVEAL_ICONS = [
   {icon:"💊", x:"44%", y:"12%", anim:"fly-from-t",  delay:"0.02s"},
   {icon:"🚜", x:"44%", y:"80%", anim:"fly-from-b",  delay:"0.15s"},
 ];
+// ─── CATEGORY SVG ICONS (replaces emojis for a premium, professional look) ────
+const CATEGORY_ICONS = {
+  farmer: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22V8"/><path d="M8 8C8 5 10 3 12 3s4 2 4 5c0 2-4 6-4 6S8 10 8 8z"/>
+      <path d="M6 17a4 4 0 014-4"/><path d="M18 17a4 4 0 00-4-4"/>
+    </svg>
+  ),
+  student: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+    </svg>
+  ),
+  women: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 00-16 0"/>
+    </svg>
+  ),
+  senior: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="5" r="3"/>
+      <path d="M7 22v-5l-2-4a4 4 0 014-4h4a4 4 0 014 4l-2 4v5"/><path d="M16 17l3 5"/>
+    </svg>
+  ),
+  business: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/>
+      <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+    </svg>
+  ),
+  housing: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/>
+      <path d="M9 21v-6h6v6"/>
+    </svg>
+  ),
+  health: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+    </svg>
+  ),
+  insurance: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <path d="M9 12l2 2 4-4"/>
+    </svg>
+  ),
+  pension: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+    </svg>
+  ),
+  free: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 12 20 22 4 22 4 12"/>
+      <rect x="2" y="7" width="20" height="5" rx="1"/><path d="M12 22V7"/>
+      <path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/>
+      <path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/>
+    </svg>
+  ),
+  skill: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+    </svg>
+  ),
+  child: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="5" r="3"/><path d="M3 21a6 6 0 0112 0"/>
+      <circle cx="18" cy="8" r="2"/><path d="M14 21a4 4 0 018 0"/>
+    </svg>
+  ),
+  labour: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+    </svg>
+  ),
+  food: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8h1a4 4 0 010 8h-1"/>
+      <path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+      <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+    </svg>
+  ),
+  rural: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 20l6-11 5 8 3-4 4 7H3z"/>
+    </svg>
+  ),
+  disability: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="16" cy="4" r="2"/>
+      <path d="M10 3L8 14l4-2 2 6"/>
+      <path d="M14 19c0 2-1.8 3-4 3a4 4 0 010-8h4"/>
+    </svg>
+  ),
+  solar: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  ),
+  maternity: (c) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+    </svg>
+  ),
+};
+// filterKey aliases — handle any naming variant in schemesData.js
+CATEGORY_ICONS.skillYouth   = CATEGORY_ICONS.skill;
+CATEGORY_ICONS.childGirl    = CATEGORY_ICONS.child;
+CATEGORY_ICONS.freeBenefits = CATEGORY_ICONS.free;
+// Fallback star icon for any unknown future category
+CATEGORY_ICONS.default = (c) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </svg>
+);
+
 // ─── TAB ORDER (stable reference — defined once at module level) ───────────────
 const TABS = ["home","search","schemes","ai","profile"];
 const fontFamily = (lang) => lang==="hi"
@@ -8576,8 +8698,18 @@ function YojanaSahayInner(){
                         lineHeight:"12px",textAlign:"center",letterSpacing:0.2,
                         fontFamily:"'Noto Sans',sans-serif",
                       }}>{count}</div>
-                      {/* Emoji */}
-                      <div style={{fontSize:19,marginBottom:5,lineHeight:1}}>{cat.icon}</div>
+                      {/* Icon */}
+                      <div style={{
+                        width:34,height:34,borderRadius:9,flexShrink:0,
+                        background:dark?`${cat.color}22`:`${cat.color}18`,
+                        border:`1px solid ${dark?`${cat.color}45`:`${cat.color}30`}`,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        margin:"0 auto 6px",
+                      }}>
+                        {(CATEGORY_ICONS[cat.filterKey]||CATEGORY_ICONS.default)(
+                          dark?"rgba(255,255,255,0.85)":cat.color
+                        )}
+                      </div>
                       {/* Label */}
                       <div style={{
                         fontSize:9.5,fontWeight:700,
