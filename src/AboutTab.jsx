@@ -200,6 +200,18 @@ const STRINGS = {
       "YojanaSahay does not facilitate direct scheme applications, financial transactions, or document processing. The platform serves solely as an informational and discovery service.",
     ],
 
+    termsTitle:  "Terms of Service",
+    termsPoints: [
+      "By using YojanaSahay, you agree to these Terms of Service. If you do not agree, please discontinue use of the platform.",
+      "Service Provided 'As-Is' — YojanaSahay is provided without warranties of any kind. We do not guarantee uninterrupted access, error-free operation, or that scheme information or AI-generated responses are complete, current, or accurate at all times.",
+      "Limitation of Liability — YojanaSahay, its developer, and team shall not be held liable for any loss, damage, rejected application, missed deadline, or financial harm arising from reliance on information, eligibility results, or AI-generated guidance on the platform. Users are solely responsible for verifying all details with official government sources before applying.",
+      "Acceptable Use — Users must not misuse the platform, including submitting false reports, attempting to scrape or reverse-engineer the platform, interfering with its operation, or impersonating another person or entity.",
+      "Account Suspension — We reserve the right to suspend or terminate any account found to be in violation of these terms, without prior notice, to protect the platform and its users.",
+      "Eligibility to Use — YojanaSahay is intended for individuals aged 18 and above. If you are a minor, please use the platform only under the supervision of a parent or guardian.",
+      "Changes to These Terms — These terms may be updated periodically. Continued use of the platform after changes take effect constitutes acceptance of the revised terms.",
+      "Governing Law — These Terms of Service are governed by the laws of India, and any disputes shall be subject to the exclusive jurisdiction of competent courts in India.",
+    ],
+
     techTitle: "Technology & Infrastructure",
     techBody:  "YojanaSahay is engineered on a production-grade, security-first technology stack — combining proven cloud infrastructure, globally distributed deployment, and version-controlled development to ensure reliability, transparency, and performance for every citizen across India.",
     techStack: [
@@ -221,7 +233,7 @@ const STRINGS = {
       { icon:"💬", text:"AI Conversation Privacy — Your conversations with the AI Assistant are stored securely in your private Firestore account, fully isolated from all other users. Your conversations are never shared with third parties, never disclosed publicly, and never used to train, fine-tune, or evaluate any external AI model or service." },
       { icon:"📧", text:"Email Usage Policy — Your email address is used strictly for: (a) account authentication via Firebase Auth, (b) automatic submission confirmations when you file a report or query, and (c) direct replies from the support team. We do not send newsletters, promotional campaigns, or any unsolicited marketing communications — ever." },
       { icon:"🛡️", text:"Data Access Controls — Access to your personal data is restricted exclusively to authorised platform administrators, and only when required to investigate or resolve a support request you have submitted. All administrative access is logged. Your data is never accessed, analysed, or processed for commercial, advertising, or profiling purposes." },
-      { icon:"⚖️", text:"Your Rights, Protections & Compliance — YojanaSahay never uses tracking cookies, retargeting pixels, or behavioural profiling tools. The platform never collects sensitive identifiers such as Aadhaar numbers, PAN cards, bank account details, or biometric data — citizens are strongly advised never to share such information within the app. You have the right to access, correct, export, or permanently delete your data at any time by contacting yojanasahayofficial@gmail.com; all verified deletion requests are fulfilled within 30 calendar days. Any updates to this policy will be communicated within the app before taking effect. This policy is governed by the laws of India, including the Digital Personal Data Protection Act, 2023 (DPDPA), and any disputes shall be subject to the exclusive jurisdiction of competent courts in India." },
+      { icon:"⚖️", text:"Your Rights, Protections & Compliance — YojanaSahay never uses tracking cookies, retargeting pixels, or behavioural profiling tools. The platform never collects sensitive identifiers such as Aadhaar numbers, PAN cards, bank account details, or biometric data — citizens are strongly advised never to share such information within the app. You have the right to access, correct, export, or permanently delete your data at any time by contacting yojanasahayofficial@gmail.com; all verified deletion requests are fulfilled within 7 business days. Any updates to this policy will be communicated within the app before taking effect. This policy is governed by the laws of India, including the Digital Personal Data Protection Act, 2023 (DPDPA), and any disputes shall be subject to the exclusive jurisdiction of competent courts in India." },
     ],
 
     devTitle:    "About the Developer",
@@ -257,9 +269,9 @@ const STRINGS = {
       { icon:"📖",  name:"Open Source Community",note:"The libraries and tools that power this platform, freely available to all developers" },
     ],
 
-    grievanceTitle:   "User Support & Complaints",
-    grievanceBody:    "YojanaSahay is committed to resolving every user concern promptly and transparently. Every submission made through the in-app Report & Query system receives an automatic confirmation email instantly. The platform administrator is notified immediately upon each submission and personally reviews every concern.",
-    grievanceNote:    "Platform Administrator: Sahnawaz Ahmed Laskar",
+    grievanceTitle:   "User Support & Grievance Officer",
+    grievanceBody:    "YojanaSahay is committed to resolving every user concern promptly and transparently. Sahnawaz Ahmed Laskar is the designated Grievance Officer under the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021. Every submission made through the in-app Report & Query system receives an automatic confirmation email instantly, is acknowledged within 24 hours, and is personally reviewed and resolved by the Grievance Officer.",
+    grievanceNote:    "Grievance Officer: Sahnawaz Ahmed Laskar",
 
     copyright:  "© 2026 Sahnawaz Ahmed Laskar · Open source under MIT License",
     footerNote: "YojanaSahay · An independent civic technology platform · India",
@@ -361,6 +373,18 @@ const STRINGS = {
       "योजना सहाय सीधे आवेदन, वित्तीय लेनदेन या दस्तावेज़ प्रसंस्करण की सुविधा नहीं देता। यह प्लेटफ़ॉर्म केवल सूचना और खोज सेवा के रूप में कार्य करता है।",
     ],
 
+    termsTitle:  "सेवा की शर्तें",
+    termsPoints: [
+      "योजना सहाय का उपयोग करके, आप इन सेवा की शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया प्लेटफ़ॉर्म का उपयोग बंद कर दें।",
+      "सेवा 'जैसी है' प्रदान की जाती है — योजना सहाय किसी भी प्रकार की वारंटी के बिना प्रदान किया जाता है। हम निर्बाध पहुंच, त्रुटि-मुक्त संचालन, या योजना जानकारी व AI-जनित उत्तरों के हर समय पूर्ण, अद्यतन और सटीक होने की गारंटी नहीं देते।",
+      "देयता की सीमा — योजना सहाय, इसके डेवलपर और टीम किसी भी हानि, क्षति, आवेदन अस्वीकृति, छूटी हुई समय-सीमा, या वित्तीय नुकसान के लिए उत्तरदायी नहीं होंगे जो प्लेटफ़ॉर्म पर दी गई जानकारी, पात्रता परिणामों या AI-जनित सुझावों पर निर्भर रहने से उत्पन्न हो। आवेदन से पूर्व आधिकारिक सरकारी स्रोतों से विवरण सत्यापित करने की पूरी ज़िम्मेदारी उपयोगकर्ता की है।",
+      "उचित उपयोग — उपयोगकर्ताओं को प्लेटफ़ॉर्म का दुरुपयोग नहीं करना चाहिए, जिसमें झूठी रिपोर्ट सबमिट करना, प्लेटफ़ॉर्म को स्क्रैप या रिवर्स-इंजीनियर करने का प्रयास, इसके संचालन में हस्तक्षेप, या किसी अन्य व्यक्ति या संस्था का प्रतिरूपण शामिल है।",
+      "खाता निलंबन — हम इन शर्तों का उल्लंघन करने वाले किसी भी खाते को बिना पूर्व सूचना के निलंबित या समाप्त करने का अधिकार सुरक्षित रखते हैं, ताकि प्लेटफ़ॉर्म और इसके उपयोगकर्ताओं की सुरक्षा की जा सके।",
+      "उपयोग की पात्रता — योजना सहाय 18 वर्ष या उससे अधिक आयु के व्यक्तियों के लिए है। यदि आप नाबालिग हैं, तो कृपया माता-पिता या अभिभावक की देखरेख में ही प्लेटफ़ॉर्म का उपयोग करें।",
+      "इन शर्तों में परिवर्तन — इन शर्तों को समय-समय पर अपडेट किया जा सकता है। परिवर्तन लागू होने के बाद प्लेटफ़ॉर्म का निरंतर उपयोग संशोधित शर्तों की स्वीकृति माना जाएगा।",
+      "शासी कानून — ये सेवा की शर्तें भारत के कानूनों द्वारा शासित हैं, और किसी भी विवाद के लिए भारत के सक्षम न्यायालयों का विशेष अधिकार क्षेत्र होगा।",
+    ],
+
     techTitle: "प्रौद्योगिकी और अवसंरचना",
     techBody:  "योजना सहाय एक उत्पादन-स्तरीय, सुरक्षा-प्रथम तकनीकी स्टैक पर निर्मित है — जिसमें विश्वसनीय क्लाउड अवसंरचना, वैश्विक वितरित डिप्लॉयमेंट और संस्करण-नियंत्रित विकास का संयोजन है।",
     techStack: [
@@ -382,7 +406,7 @@ const STRINGS = {
       { icon:"💬", text:"AI बातचीत की गोपनीयता — AI सहायक के साथ आपकी बातचीत आपके निजी Firestore खाते में सुरक्षित रूप से संग्रहीत होती है और अन्य सभी उपयोगकर्ताओं से पूरी तरह अलग रहती है। आपकी बातचीत कभी साझा नहीं की जाती, सार्वजनिक नहीं की जाती और किसी भी बाहरी AI मॉडल को प्रशिक्षित या बेहतर बनाने के लिए उपयोग नहीं की जाती।" },
       { icon:"📧", text:"ईमेल उपयोग नीति — आपका ईमेल पता केवल इन उद्देश्यों के लिए उपयोग किया जाता है: (क) Firebase Auth के माध्यम से खाता प्रमाणीकरण, (ख) रिपोर्ट या प्रश्न सबमिट करने पर स्वचालित पुष्टि ईमेल, और (ग) प्लेटफ़ॉर्म सपोर्ट टीम के आधिकारिक उत्तर। हम न्यूज़लेटर, प्रचार अभियान या कोई भी अवांछित मार्केटिंग संदेश कभी नहीं भेजते।" },
       { icon:"🛡️", text:"डेटा पहुंच नियंत्रण — आपके व्यक्तिगत डेटा तक पहुंच केवल अधिकृत प्लेटफ़ॉर्म प्रशासकों तक सीमित है, और केवल तभी जब आपके द्वारा सबमिट किए गए सपोर्ट अनुरोध की जांच या समाधान के लिए आवश्यक हो। सभी प्रशासनिक पहुंच लॉग की जाती है। आपका डेटा कभी भी व्यावसायिक, विज्ञापन या प्रोफाइलिंग उद्देश्यों के लिए उपयोग नहीं किया जाता।" },
-      { icon:"⚖️", text:"आपके अधिकार, सुरक्षाएं और अनुपालन — योजना सहाय कभी भी ट्रैकिंग कुकी, रिटार्गेटिंग पिक्सेल या व्यवहार प्रोफाइलिंग टूल का उपयोग नहीं करता। प्लेटफ़ॉर्म आधार नंबर, PAN कार्ड, बैंक खाता विवरण या बायोमेट्रिक डेटा जैसी संवेदनशील पहचान कभी एकत्र नहीं करता — नागरिकों को दृढ़ता से सलाह दी जाती है कि ऐसी जानकारी ऐप में कभी साझा न करें। आप किसी भी समय yojanasahayofficial@gmail.com पर संपर्क करके अपना डेटा देख सकते हैं, सुधार सकते हैं, निर्यात कर सकते हैं या स्थायी रूप से हटा सकते हैं; सभी सत्यापित अनुरोध 30 कैलेंडर दिनों में पूरे किए जाते हैं। इस नीति में कोई भी बदलाव लागू होने से पहले ऐप के भीतर सूचित किया जाएगा। यह नीति भारत के कानूनों, विशेष रूप से डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम, 2023 (DPDPA) द्वारा शासित है।" },
+      { icon:"⚖️", text:"आपके अधिकार, सुरक्षाएं और अनुपालन — योजना सहाय कभी भी ट्रैकिंग कुकी, रिटार्गेटिंग पिक्सेल या व्यवहार प्रोफाइलिंग टूल का उपयोग नहीं करता। प्लेटफ़ॉर्म आधार नंबर, PAN कार्ड, बैंक खाता विवरण या बायोमेट्रिक डेटा जैसी संवेदनशील पहचान कभी एकत्र नहीं करता — नागरिकों को दृढ़ता से सलाह दी जाती है कि ऐसी जानकारी ऐप में कभी साझा न करें। आप किसी भी समय yojanasahayofficial@gmail.com पर संपर्क करके अपना डेटा देख सकते हैं, सुधार सकते हैं, निर्यात कर सकते हैं या स्थायी रूप से हटा सकते हैं; सभी सत्यापित अनुरोध 7 कार्य दिवसों में पूरे किए जाते हैं। इस नीति में कोई भी बदलाव लागू होने से पहले ऐप के भीतर सूचित किया जाएगा। यह नीति भारत के कानूनों, विशेष रूप से डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम, 2023 (DPDPA) द्वारा शासित है।" },
     ],
 
     devTitle:    "डेवलपर के बारे में",
@@ -418,9 +442,9 @@ const STRINGS = {
       { icon:"📖",  name:"ओपन सोर्स समुदाय",   note:"इस प्लेटफ़ॉर्म को शक्ति देने वाले टूल्स और लाइब्रेरी, सभी डेवलपर्स के लिए निःशुल्क" },
     ],
 
-    grievanceTitle:   "उपयोगकर्ता सहायता और शिकायत",
-    grievanceBody:    "योजना सहाय हर उपयोगकर्ता की समस्या को शीघ्र और पारदर्शी तरीके से हल करने के लिए प्रतिबद्ध है। इन-ऐप Report & Query के माध्यम से सबमिट की गई हर शिकायत पर तुरंत स्वचालित पुष्टि ईमेल भेजी जाती है। प्लेटफ़ॉर्म प्रशासक को प्रत्येक सबमिशन की तत्काल सूचना मिलती है और वे व्यक्तिगत रूप से हर समस्या की समीक्षा करते हैं।",
-    grievanceNote:    "प्लेटफ़ॉर्म प्रशासक: Sahnawaz Ahmed Laskar",
+    grievanceTitle:   "उपयोगकर्ता सहायता एवं शिकायत अधिकारी",
+    grievanceBody:    "योजना सहाय हर उपयोगकर्ता की समस्या को शीघ्र और पारदर्शी तरीके से हल करने के लिए प्रतिबद्ध है। सूचना प्रौद्योगिकी (मध्यवर्ती दिशानिर्देश और डिजिटल मीडिया आचार संहिता) नियम, 2021 के अंतर्गत Sahnawaz Ahmed Laskar को नामित शिकायत अधिकारी (Grievance Officer) नियुक्त किया गया है। इन-ऐप Report & Query के माध्यम से सबमिट की गई हर शिकायत पर तुरंत स्वचालित पुष्टि ईमेल भेजी जाती है, 24 घंटों के भीतर स्वीकार की जाती है, और शिकायत अधिकारी द्वारा व्यक्तिगत रूप से समीक्षा एवं समाधान किया जाता है।",
+    grievanceNote:    "शिकायत अधिकारी: Sahnawaz Ahmed Laskar",
 
     copyright:  "© 2026 Sahnawaz Ahmed Laskar · MIT License के अंतर्गत ओपन सोर्स",
     footerNote: "योजना सहाय · एक स्वतंत्र नागरिक प्रौद्योगिकी प्लेटफ़ॉर्म · भारत",
@@ -1974,6 +1998,31 @@ export default function AboutTab({ onClose, citizensGuided = null }) {
           </Card>
         </div>
 
+        {/* ── TERMS OF SERVICE ─────────────────────────────────────────── */}
+        <div className="ys-card">
+          <Card dark={dark}>
+            <SectionHeader title={s.termsTitle} accent={NAVY} dark={dark} bf={bf} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {s.termsPoints.map((pt, i) => (
+                <div key={i} style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: 7, flexShrink: 0,
+                    background: dark ? `${NAVY}1E` : `${NAVY}10`,
+                    border: `1px solid ${NAVY}33`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 9, fontWeight: 800, color: dark ? "#6B90FF" : NAVY, marginTop: 1,
+                  }}>
+                    {i + 1}
+                  </div>
+                  <div style={{ fontSize: 11, color: th.textMid, lineHeight: 1.8, fontFamily: bf }}>
+                    {pt}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+
         {/* ── USER SUPPORT & COMPLAINTS ────────────────────────────────── */}
         <div className="ys-card">
           <div style={{
@@ -2013,7 +2062,7 @@ export default function AboutTab({ onClose, citizensGuided = null }) {
                     color: dark ? `rgba(180,200,255,0.50)` : `${NAVY}88`,
                     fontFamily: bf,
                   }}>
-                    {isHindi ? "प्लेटफ़ॉर्म प्रशासक" : "Platform Administrator"}
+                    {isHindi ? "शिकायत अधिकारी" : "Grievance Officer"}
                   </div>
                   <div style={{
                     fontSize: 13, fontWeight: 700,
@@ -2051,8 +2100,8 @@ export default function AboutTab({ onClose, citizensGuided = null }) {
                   <span>⚡</span>
                   <span>
                     {isHindi
-                      ? "तत्काल पुष्टि ईमेल  ·  72 घंटे में समाधान"
-                      : "Instant confirmation email  ·  Resolution within 72 hours"}
+                      ? "तत्काल पुष्टि ईमेल  ·  24 घंटे में स्वीकृति  ·  72 घंटे में समाधान"
+                      : "Instant confirmation email  ·  Acknowledged within 24h  ·  Resolved within 72h"}
                   </span>
                 </div>
               </div>
