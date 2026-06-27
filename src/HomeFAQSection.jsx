@@ -7,6 +7,23 @@
  *
  * Usage: <HomeFAQSection lang={lang} dark={dark} />
  *
+ * v14 changes vs v13:
+ *   · Bug fix: feedback votes not restoring on refresh / cross-browser
+ *     – Root cause: getVoterId() read getAuth().currentUser synchronously
+ *       at the top of an async IIFE that ran immediately on component mount.
+ *       Firebase Auth restores persisted sessions asynchronously — currentUser
+ *       is null for 100–500 ms on every page load/refresh even for fully
+ *       signed-in users. The restore query therefore ran with an anon ID,
+ *       found nothing in Firestore, and showed all vote buttons as unvoted.
+ *     – Fix: replaced the restore useEffect with an onAuthStateChanged
+ *       subscriber that waits for Firebase to confirm the session before
+ *       resolving the voter identity and querying. Added voterIdRef (set
+ *       once when auth resolves) so logFeedback uses the same stable identity
+ *       as the restore, eliminating any write/read uid mismatch.
+ *     – Cross-browser / multi-device: works for signed-in users (real UID
+ *       follows the account). For guests, sessionStorage is inherently
+ *       tab-local by design — cross-browser persistence requires an account.
+ *
  * v13 changes vs v12:
  *   · Bug fix: fragile index-based faqId corrupted Firestore vote records
  *     – faqId was derived as `${lang}_${faq.cat}_${globalIdx}` where
@@ -127,15 +144,17 @@
 import { useState, useEffect, useRef } from "react";
 import { db } from "./firebase";
 import { doc, setDoc, serverTimestamp, collection, getDocs, query, where } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-// ── Resolve the current voter's identity for FAQ feedback ──────────────────
-// Signed-in users: their permanent Firebase UID, so a vote (and its restore
-// on every future visit) follows their account forever, on any device.
-// Guests: a stable "anon_xxxxxxxx" id cached in sessionStorage, so repeat
-// votes/restores within the same browser session resolve to the same
-// person — it clears when the tab fully closes, by design (no account to
-// tie a guest's vote to beyond that).
+// ── Resolve the current voter's identity — FALLBACK ONLY ──────────────────
+// This is kept as a last-resort safety net for logFeedback.
+// The primary identity resolution now happens inside the onAuthStateChanged
+// listener in the component (see voterIdRef), which guarantees Firebase Auth
+// has fully resolved the persisted session before we ever read currentUser.
+// Calling getAuth().currentUser synchronously (as this function does) is
+// inherently racy on page load — currentUser is null for 100–500 ms even
+// for signed-in users while Firebase re-establishes the session from the
+// stored token. Do NOT use this function for the restore query.
 function getVoterId() {
   let uid = getAuth().currentUser?.uid;
   if (!uid) {
@@ -688,17 +707,45 @@ export default function HomeFAQSection({ lang, dark }) {
   const [filterCat, setFilterCat] = useState("all");
   const [feedbackState, setFeedbackState] = useState({});
 
-  // ── Restore this voter's past FAQ votes on mount ──────────────────────
-  // Runs every time HomeFAQSection mounts (i.e. every time the FAQ panel
-  // is opened, since closing it unmounts the component and wipes local
-  // state). Without this, feedbackState always starts empty and every
-  // question looks unvoted again, even though the vote is saved forever.
+  // Stable voter identity — set exactly once when onAuthStateChanged confirms
+  // Firebase Auth has resolved the persisted session. Using this ref (instead
+  // of calling getAuth().currentUser synchronously) prevents the race where
+  // currentUser is null for 100–500 ms on page load even for signed-in users,
+  // which caused the restore query to run under a wrong anon ID and find nothing.
+  const voterIdRef = useRef(null);
+
+  // ── Restore this voter's past FAQ votes on mount ──────────────────────────
+  // onAuthStateChanged fires once Firebase Auth has confirmed who (if anyone)
+  // is signed in — only then do we resolve the voter identity and query.
+  // This is the fix for the auth race: the old code called getVoterId() at
+  // the top of an async IIFE, which ran before onAuthStateChanged had fired,
+  // so signed-in users were briefly treated as guests and the restore query
+  // returned empty results.
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const auth = getAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      unsubscribe(); // We only need the first event — don't re-run on sign-out
+
+      // Resolve and cache the stable voter identity
+      let uid;
+      if (user) {
+        uid = user.uid;                                    // real Firebase UID
+      } else {
+        uid = sessionStorage.getItem("ys_anon_faq_id");   // anon: reuse existing
+        if (!uid) {
+          uid = "anon_" + Math.random().toString(36).slice(2, 10);
+          sessionStorage.setItem("ys_anon_faq_id", uid);  // anon: create once per tab
+        }
+      }
+      voterIdRef.current = uid;
+
+      if (cancelled) return;
       try {
-        const uid  = getVoterId();
-        const snap = await getDocs(query(collection(db, "faqFeedback"), where("uid", "==", uid)));
+        const snap = await getDocs(
+          query(collection(db, "faqFeedback"), where("uid", "==", uid))
+        );
         if (cancelled) return;
         const restored = {};
         snap.forEach((d) => {
@@ -711,16 +758,22 @@ export default function HomeFAQSection({ lang, dark }) {
       } catch (e) {
         console.warn("FAQ feedback restore failed:", e);
       }
-    })();
-    return () => { cancelled = true; };
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   // ── FAQ feedback — logs 👍/👎 votes to Firestore faqFeedback collection ──
   const logFeedback = async (faqId, cat, vote, question) => {
     setFeedbackState(prev => ({ ...prev, [faqId]: vote }));
     try {
-      const uid    = getVoterId();
-      const docId  = `${faqId}__${uid}`;
+      // voterIdRef is guaranteed to be set by onAuthStateChanged before any
+      // user interaction is possible. getVoterId() is kept only as a safety net.
+      const uid   = voterIdRef.current ?? getVoterId();
+      const docId = `${faqId}__${uid}`;
       await setDoc(doc(db, "faqFeedback", docId), {
         faqId,
         q: question,    // question text — shown in admin FAQ Feedback tab
