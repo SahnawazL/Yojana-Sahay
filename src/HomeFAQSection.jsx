@@ -207,7 +207,7 @@ const CAT_CONFIG = {
   account: { en: "Account",        hi: "अकाउंट",          color: "#0284C7", darkColor: "#38BDF8"  },
 };
 
-// ─── FAQ DATA — 25 bilingual Q&A pairs ───────────────────────────────────────
+// ─── FAQ DATA — 27 bilingual Q&A pairs ───────────────────────────────────────
 const FAQ_DATA = {
   en: [
     // ── About the App (5 Q) ───────────────────────────────────────────────────
@@ -327,7 +327,7 @@ const FAQ_DATA = {
       a: "Each scheme is added manually after reviewing the official government notification or portal page — never auto-scraped or bulk-imported. Once published, it enters a continuous two-tier verification pipeline: an automated crawler periodically checks that the official link is still reachable, while a Groq AI pass cross-checks the scheme's stated dates against the live notification to catch ones that have quietly expired, been extended, or changed. Anything flagged by either check is routed to a manual review queue for correction or removal — so accuracy keeps improving even after a scheme goes live.",
     },
 
-    // ── AI Assistant (4 Q) ───────────────────────────────────────────────────
+    // ── AI Assistant (5 Q) ───────────────────────────────────────────────────
     {
       cat: "ai",
       id: "ai_001",
@@ -352,8 +352,17 @@ const FAQ_DATA = {
       q: "Does the AI search the internet?",
       a: "Yes. The AI uses Tavily's live web search API to fetch real-time information on scheme deadlines, application windows, and recent government updates — going beyond our static database to give you the freshest available information.",
     },
+    {
+      cat: "ai",
+      id: "ai_005",
+      q: "Can I fully trust the AI's answers?",
+      a: {
+        text: "The AI assistant is a guidance tool, not a substitute for official confirmation. While it draws on our verified scheme database and live web search, AI-generated responses can occasionally be incomplete, outdated, or incorrect.",
+        note: "Always cross-check eligibility, deadlines, and benefit amounts on the official government portal before applying or making a decision.",
+      },
+    },
 
-    // ── Account & Support (4 Q) ──────────────────────────────────────────────
+    // ── Account & Support (5 Q) ──────────────────────────────────────────────
     {
       cat: "account",
       id: "account_001",
@@ -376,7 +385,13 @@ const FAQ_DATA = {
       cat: "account",
       id: "account_004",
       q: "How do I report a bug or wrong scheme data?",
-      a: "Use the 'Report Issue' button in the Profile tab (sign-in required), or email yojanasahayofficial@gmail.com. Reports are logged to our support queue with device and browser metadata attached automatically, to help us reproduce issues faster. Bug reports receive a reply within 48 hours; verified scheme data corrections typically go live within 24 hours.",
+      a: "Use the 'Report Issue' button in the Profile tab (sign-in required), or email yojanasahayofficial@gmail.com. Reports are logged to our support queue with device and browser metadata attached automatically, to help us reproduce issues faster. Every report is acknowledged within 24 hours; bug reports receive a full reply within 48 hours, and verified scheme data corrections typically go live within 24 hours.",
+    },
+    {
+      cat: "account",
+      id: "account_005",
+      q: "Where can I read the Terms of Service or file a formal grievance?",
+      a: "The full Terms of Service, Privacy Policy, and our designated Grievance Officer's contact details are published in the About tab. For a formal grievance, email yojanasahayofficial@gmail.com — it's acknowledged within 24 hours and personally reviewed by the Grievance Officer.",
     },
   ],
 
@@ -498,7 +513,7 @@ const FAQ_DATA = {
       a: "हर योजना आधिकारिक सरकारी अधिसूचना या पोर्टल की जांच के बाद मैन्युअल रूप से जोड़ी जाती है — कभी ऑटो-स्क्रैप या बल्क-इम्पोर्ट नहीं होती। प्रकाशित होने के बाद यह एक निरंतर दो-स्तरीय सत्यापन पाइपलाइन से गुज़रती है: एक ऑटोमेटेड क्रॉलर समय-समय पर जांचता है कि आधिकारिक लिंक अभी काम कर रहा है, जबकि Groq AI की एक प्रक्रिया योजना की तारीखों की लाइव अधिसूचना से तुलना करके उन योजनाओं को पकड़ती है जो चुपचाप समाप्त हो गई, बढ़ाई गई या बदल गई हैं। किसी भी जांच में फ़्लैग की गई योजना सुधार या हटाने के लिए मैन्युअल समीक्षा कतार में भेज दी जाती है — इस तरह डेटा की सटीकता लाइव होने के बाद भी सुधरती रहती है।",
     },
 
-    // ── AI (4) ────────────────────────────────────────────────────────────────
+    // ── AI (5) ────────────────────────────────────────────────────────────────
     {
       cat: "ai",
       id: "ai_001",
@@ -523,8 +538,17 @@ const FAQ_DATA = {
       q: "क्या AI इंटरनेट सर्च करता है?",
       a: "हाँ। AI Tavily के लाइव वेब सर्च API का उपयोग करके योजना की डेडलाइन, आवेदन विंडो और हालिया सरकारी अपडेट की रीयल-टाइम जानकारी लाता है — हमारे स्थिर डेटाबेस से भी आगे।",
     },
+    {
+      cat: "ai",
+      id: "ai_005",
+      q: "क्या मैं AI के उत्तरों पर पूरी तरह भरोसा कर सकता हूँ?",
+      a: {
+        text: "AI सहायक एक मार्गदर्शन टूल है, आधिकारिक पुष्टि का विकल्प नहीं। यह हमारे सत्यापित डेटाबेस और लाइव वेब सर्च पर आधारित है, फिर भी AI-जनित उत्तर कभी-कभी अधूरे, पुराने या गलत हो सकते हैं।",
+        note: "आवेदन या कोई निर्णय लेने से पहले पात्रता, समय-सीमा और लाभ राशि को आधिकारिक सरकारी पोर्टल पर अवश्य जांच लें।",
+      },
+    },
 
-    // ── Account (4) ───────────────────────────────────────────────────────────
+    // ── Account (5) ───────────────────────────────────────────────────────────
     {
       cat: "account",
       id: "account_001",
@@ -547,7 +571,13 @@ const FAQ_DATA = {
       cat: "account",
       id: "account_004",
       q: "बग या गलत योजना डेटा कैसे रिपोर्ट करें?",
-      a: "प्रोफाइल टैब में 'समस्या रिपोर्ट करें' बटन का उपयोग करें (लॉगिन आवश्यक), या yojanasahayofficial@gmail.com पर ईमेल करें। रिपोर्ट हमारी सपोर्ट कतार में डिवाइस और ब्राउज़र मेटाडेटा के साथ स्वचालित रूप से लॉग होती है, जिससे समस्या को दोबारा पहचानना आसान होता है। बग रिपोर्ट पर 48 घंटे में जवाब और सत्यापित योजना डेटा सुधार 24 घंटे में लाइव।",
+      a: "प्रोफाइल टैब में 'समस्या रिपोर्ट करें' बटन का उपयोग करें (लॉगिन आवश्यक), या yojanasahayofficial@gmail.com पर ईमेल करें। रिपोर्ट हमारी सपोर्ट कतार में डिवाइस और ब्राउज़र मेटाडेटा के साथ स्वचालित रूप से लॉग होती है, जिससे समस्या को दोबारा पहचानना आसान होता है। हर रिपोर्ट 24 घंटे में स्वीकार की जाती है; बग रिपोर्ट पर 48 घंटे में पूरा जवाब और सत्यापित योजना डेटा सुधार 24 घंटे में लाइव।",
+    },
+    {
+      cat: "account",
+      id: "account_005",
+      q: "सेवा की शर्तें कहाँ पढ़ें या औपचारिक शिकायत कैसे दर्ज करें?",
+      a: "पूरी सेवा की शर्तें, गोपनीयता नीति, और हमारे नामित शिकायत अधिकारी (Grievance Officer) के संपर्क विवरण About टैब में प्रकाशित हैं। औपचारिक शिकायत के लिए yojanasahayofficial@gmail.com पर ईमेल करें — इसे 24 घंटे में स्वीकार किया जाता है और शिकायत अधिकारी द्वारा व्यक्तिगत रूप से समीक्षा की जाती है।",
     },
   ],
 };

@@ -193,16 +193,12 @@ const STRINGS = {
     reportFlow:
       "All submissions are stored securely and reviewed by the YojanaSahay priority support team. Logged-in users receive automatic email confirmation upon submission and are notified when the team provides a full response. Status transitions — Open → In Progress → Resolved — are visible in real time within the app.",
 
-    legalTitle:  "Legal & Disclaimer",
-    legalPoints: [
-      "YojanaSahay is an independent digital platform for government scheme discovery and is not affiliated with, endorsed by, or representative of any Central or State Government body or ministry.",
-      "All scheme data is sourced from publicly available official government portals and communications. While we strive for accuracy, users are advised to verify scheme details directly from the respective government sources before applying.",
-      "YojanaSahay does not facilitate direct scheme applications, financial transactions, or document processing. The platform serves solely as an informational and discovery service.",
-    ],
-
     termsTitle:  "Terms of Service",
     termsPoints: [
       "By using YojanaSahay, you agree to these Terms of Service. If you do not agree, please discontinue use of the platform.",
+      "YojanaSahay is an independent digital platform for government scheme discovery and is not affiliated with, endorsed by, or representative of any Central or State Government body or ministry.",
+      "All scheme data is sourced from publicly available official government portals and communications. While we strive for accuracy, users are advised to verify scheme details directly from the respective government sources before applying.",
+      "YojanaSahay does not facilitate direct scheme applications, financial transactions, or document processing. The platform serves solely as an informational and discovery service.",
       "Service Provided 'As-Is' — YojanaSahay is provided without warranties of any kind. We do not guarantee uninterrupted access, error-free operation, or that scheme information or AI-generated responses are complete, current, or accurate at all times.",
       "Limitation of Liability — YojanaSahay, its developer, and team shall not be held liable for any loss, damage, rejected application, missed deadline, or financial harm arising from reliance on information, eligibility results, or AI-generated guidance on the platform. Users are solely responsible for verifying all details with official government sources before applying.",
       "Acceptable Use — Users must not misuse the platform, including submitting false reports, attempting to scrape or reverse-engineer the platform, interfering with its operation, or impersonating another person or entity.",
@@ -233,7 +229,7 @@ const STRINGS = {
       { icon:"💬", text:"AI Conversation Privacy — Your conversations with the AI Assistant are stored securely in your private Firestore account, fully isolated from all other users. Your conversations are never shared with third parties, never disclosed publicly, and never used to train, fine-tune, or evaluate any external AI model or service." },
       { icon:"📧", text:"Email Usage Policy — Your email address is used strictly for: (a) account authentication via Firebase Auth, (b) automatic submission confirmations when you file a report or query, and (c) direct replies from the support team. We do not send newsletters, promotional campaigns, or any unsolicited marketing communications — ever." },
       { icon:"🛡️", text:"Data Access Controls — Access to your personal data is restricted exclusively to authorised platform administrators, and only when required to investigate or resolve a support request you have submitted. All administrative access is logged. Your data is never accessed, analysed, or processed for commercial, advertising, or profiling purposes." },
-      { icon:"⚖️", text:"Your Rights, Protections & Compliance — YojanaSahay never uses tracking cookies, retargeting pixels, or behavioural profiling tools. The platform never collects sensitive identifiers such as Aadhaar numbers, PAN cards, bank account details, or biometric data — citizens are strongly advised never to share such information within the app. You have the right to access, correct, export, or permanently delete your data at any time by contacting yojanasahayofficial@gmail.com; all verified deletion requests are fulfilled within 7 business days. Any updates to this policy will be communicated within the app before taking effect. This policy is governed by the laws of India, including the Digital Personal Data Protection Act, 2023 (DPDPA), and any disputes shall be subject to the exclusive jurisdiction of competent courts in India." },
+      { icon:"⚖️", text:"Your Rights, Protections & Compliance — YojanaSahay never uses tracking cookies, retargeting pixels, or behavioural profiling tools. The platform never collects sensitive identifiers such as Aadhaar numbers, PAN cards, bank account details, or biometric data — citizens are strongly advised never to share such information within the app. You have the right to access, correct, export, or permanently delete your data at any time by contacting yojanasahayofficial@gmail.com; all verified deletion requests are fulfilled within 7 business days. Any updates to this policy will be communicated within the app before taking effect. This Privacy Policy is governed by India's Digital Personal Data Protection Act, 2023 (DPDPA) — see our Terms of Service for the platform's general governing law and jurisdiction." },
     ],
 
     devTitle:    "About the Developer",
@@ -366,16 +362,12 @@ const STRINGS = {
     reportFlow:
       "सभी सबमिशन सुरक्षित रूप से संग्रहीत होते हैं और योजना सहाय की प्राथमिक सपोर्ट टीम द्वारा समीक्षा की जाती है। लॉगिन उपयोगकर्ताओं को सबमिशन पर स्वचालित ईमेल पुष्टि और टीम के उत्तर पर सूचना मिलती है। स्थिति — Open → In Progress → Resolved — ऐप में वास्तविक समय में दिखाई देती है।",
 
-    legalTitle:  "कानूनी एवं अस्वीकरण",
-    legalPoints: [
-      "योजना सहाय सरकारी योजना खोज के लिए एक स्वतंत्र डिजिटल प्लेटफ़ॉर्म है और किसी भी केंद्र या राज्य सरकार निकाय या मंत्रालय से संबद्ध, अनुमोदित या प्रतिनिधि नहीं है।",
-      "सभी योजना डेटा सार्वजनिक रूप से उपलब्ध आधिकारिक सरकारी पोर्टलों से प्राप्त किया गया है। सटीकता के प्रयास के बावजूद, उपयोगकर्ताओं को आवेदन से पूर्व संबंधित सरकारी स्रोतों से विवरण सत्यापित करने की सलाह दी जाती है।",
-      "योजना सहाय सीधे आवेदन, वित्तीय लेनदेन या दस्तावेज़ प्रसंस्करण की सुविधा नहीं देता। यह प्लेटफ़ॉर्म केवल सूचना और खोज सेवा के रूप में कार्य करता है।",
-    ],
-
     termsTitle:  "सेवा की शर्तें",
     termsPoints: [
       "योजना सहाय का उपयोग करके, आप इन सेवा की शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया प्लेटफ़ॉर्म का उपयोग बंद कर दें।",
+      "योजना सहाय सरकारी योजना खोज के लिए एक स्वतंत्र डिजिटल प्लेटफ़ॉर्म है और किसी भी केंद्र या राज्य सरकार निकाय या मंत्रालय से संबद्ध, अनुमोदित या प्रतिनिधि नहीं है।",
+      "सभी योजना डेटा सार्वजनिक रूप से उपलब्ध आधिकारिक सरकारी पोर्टलों से प्राप्त किया गया है। सटीकता के प्रयास के बावजूद, उपयोगकर्ताओं को आवेदन से पूर्व संबंधित सरकारी स्रोतों से विवरण सत्यापित करने की सलाह दी जाती है।",
+      "योजना सहाय सीधे आवेदन, वित्तीय लेनदेन या दस्तावेज़ प्रसंस्करण की सुविधा नहीं देता। यह प्लेटफ़ॉर्म केवल सूचना और खोज सेवा के रूप में कार्य करता है।",
       "सेवा 'जैसी है' प्रदान की जाती है — योजना सहाय किसी भी प्रकार की वारंटी के बिना प्रदान किया जाता है। हम निर्बाध पहुंच, त्रुटि-मुक्त संचालन, या योजना जानकारी व AI-जनित उत्तरों के हर समय पूर्ण, अद्यतन और सटीक होने की गारंटी नहीं देते।",
       "देयता की सीमा — योजना सहाय, इसके डेवलपर और टीम किसी भी हानि, क्षति, आवेदन अस्वीकृति, छूटी हुई समय-सीमा, या वित्तीय नुकसान के लिए उत्तरदायी नहीं होंगे जो प्लेटफ़ॉर्म पर दी गई जानकारी, पात्रता परिणामों या AI-जनित सुझावों पर निर्भर रहने से उत्पन्न हो। आवेदन से पूर्व आधिकारिक सरकारी स्रोतों से विवरण सत्यापित करने की पूरी ज़िम्मेदारी उपयोगकर्ता की है।",
       "उचित उपयोग — उपयोगकर्ताओं को प्लेटफ़ॉर्म का दुरुपयोग नहीं करना चाहिए, जिसमें झूठी रिपोर्ट सबमिट करना, प्लेटफ़ॉर्म को स्क्रैप या रिवर्स-इंजीनियर करने का प्रयास, इसके संचालन में हस्तक्षेप, या किसी अन्य व्यक्ति या संस्था का प्रतिरूपण शामिल है।",
@@ -406,7 +398,7 @@ const STRINGS = {
       { icon:"💬", text:"AI बातचीत की गोपनीयता — AI सहायक के साथ आपकी बातचीत आपके निजी Firestore खाते में सुरक्षित रूप से संग्रहीत होती है और अन्य सभी उपयोगकर्ताओं से पूरी तरह अलग रहती है। आपकी बातचीत कभी साझा नहीं की जाती, सार्वजनिक नहीं की जाती और किसी भी बाहरी AI मॉडल को प्रशिक्षित या बेहतर बनाने के लिए उपयोग नहीं की जाती।" },
       { icon:"📧", text:"ईमेल उपयोग नीति — आपका ईमेल पता केवल इन उद्देश्यों के लिए उपयोग किया जाता है: (क) Firebase Auth के माध्यम से खाता प्रमाणीकरण, (ख) रिपोर्ट या प्रश्न सबमिट करने पर स्वचालित पुष्टि ईमेल, और (ग) प्लेटफ़ॉर्म सपोर्ट टीम के आधिकारिक उत्तर। हम न्यूज़लेटर, प्रचार अभियान या कोई भी अवांछित मार्केटिंग संदेश कभी नहीं भेजते।" },
       { icon:"🛡️", text:"डेटा पहुंच नियंत्रण — आपके व्यक्तिगत डेटा तक पहुंच केवल अधिकृत प्लेटफ़ॉर्म प्रशासकों तक सीमित है, और केवल तभी जब आपके द्वारा सबमिट किए गए सपोर्ट अनुरोध की जांच या समाधान के लिए आवश्यक हो। सभी प्रशासनिक पहुंच लॉग की जाती है। आपका डेटा कभी भी व्यावसायिक, विज्ञापन या प्रोफाइलिंग उद्देश्यों के लिए उपयोग नहीं किया जाता।" },
-      { icon:"⚖️", text:"आपके अधिकार, सुरक्षाएं और अनुपालन — योजना सहाय कभी भी ट्रैकिंग कुकी, रिटार्गेटिंग पिक्सेल या व्यवहार प्रोफाइलिंग टूल का उपयोग नहीं करता। प्लेटफ़ॉर्म आधार नंबर, PAN कार्ड, बैंक खाता विवरण या बायोमेट्रिक डेटा जैसी संवेदनशील पहचान कभी एकत्र नहीं करता — नागरिकों को दृढ़ता से सलाह दी जाती है कि ऐसी जानकारी ऐप में कभी साझा न करें। आप किसी भी समय yojanasahayofficial@gmail.com पर संपर्क करके अपना डेटा देख सकते हैं, सुधार सकते हैं, निर्यात कर सकते हैं या स्थायी रूप से हटा सकते हैं; सभी सत्यापित अनुरोध 7 कार्य दिवसों में पूरे किए जाते हैं। इस नीति में कोई भी बदलाव लागू होने से पहले ऐप के भीतर सूचित किया जाएगा। यह नीति भारत के कानूनों, विशेष रूप से डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम, 2023 (DPDPA) द्वारा शासित है।" },
+      { icon:"⚖️", text:"आपके अधिकार, सुरक्षाएं और अनुपालन — योजना सहाय कभी भी ट्रैकिंग कुकी, रिटार्गेटिंग पिक्सेल या व्यवहार प्रोफाइलिंग टूल का उपयोग नहीं करता। प्लेटफ़ॉर्म आधार नंबर, PAN कार्ड, बैंक खाता विवरण या बायोमेट्रिक डेटा जैसी संवेदनशील पहचान कभी एकत्र नहीं करता — नागरिकों को दृढ़ता से सलाह दी जाती है कि ऐसी जानकारी ऐप में कभी साझा न करें। आप किसी भी समय yojanasahayofficial@gmail.com पर संपर्क करके अपना डेटा देख सकते हैं, सुधार सकते हैं, निर्यात कर सकते हैं या स्थायी रूप से हटा सकते हैं; सभी सत्यापित अनुरोध 7 कार्य दिवसों में पूरे किए जाते हैं। इस नीति में कोई भी बदलाव लागू होने से पहले ऐप के भीतर सूचित किया जाएगा। यह गोपनीयता नीति भारत के डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम, 2023 (DPDPA) द्वारा शासित है — प्लेटफ़ॉर्म के सामान्य शासी कानून और अधिकार क्षेत्र के लिए हमारी सेवा की शर्तें देखें।" },
     ],
 
     devTitle:    "डेवलपर के बारे में",
@@ -1969,31 +1961,6 @@ export default function AboutTab({ onClose, citizensGuided = null }) {
               <div style={{ fontSize: 11, color: th.textMid, lineHeight: 1.85, fontFamily: bf }}>
                 {s.reportFlow}
               </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* ── LEGAL & DISCLAIMER ───────────────────────────────────────── */}
-        <div className="ys-card">
-          <Card dark={dark}>
-            <SectionHeader title={s.legalTitle} accent="#DC2626" dark={dark} bf={bf} />
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {s.legalPoints.map((pt, i) => (
-                <div key={i} style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
-                  <div style={{
-                    width: 22, height: 22, borderRadius: 7, flexShrink: 0,
-                    background: dark ? "rgba(220,38,38,0.12)" : "rgba(220,38,38,0.08)",
-                    border: "1px solid rgba(220,38,38,0.20)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 9, fontWeight: 800, color: "#DC2626", marginTop: 1,
-                  }}>
-                    {i + 1}
-                  </div>
-                  <div style={{ fontSize: 11, color: th.textMid, lineHeight: 1.8, fontFamily: bf }}>
-                    {pt}
-                  </div>
-                </div>
-              ))}
             </div>
           </Card>
         </div>
