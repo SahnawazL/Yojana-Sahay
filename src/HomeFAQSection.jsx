@@ -7,6 +7,19 @@
  *
  * Usage: <HomeFAQSection lang={lang} dark={dark} />
  *
+ * v13 changes vs v12:
+ *   · Bug fix: fragile index-based faqId corrupted Firestore vote records
+ *     – faqId was derived as `${lang}_${faq.cat}_${globalIdx}` where
+ *       globalIdx = allFaqs.indexOf(faq). This meant any reorder, insertion,
+ *       or category-filter change could silently shift indices and make old
+ *       vote records in Firestore point to the wrong questions forever.
+ *     – Fix: every entry in FAQ_DATA (both `en` and `hi` arrays) now carries
+ *       a stable `id` field (e.g. "schemes_003"). faqId in the render is now
+ *       simply `faq.id` — immune to reordering and filter state.
+ *     – Migration note: existing Firestore docs keyed to the old
+ *       `${lang}_${cat}_${idx}` format are orphaned and will not restore.
+ *       They used the wrong IDs anyway if any reorder had occurred.
+ *
  * v12 changes vs v11:
  *   · Polish: vote button colour was the FAQ's category colour
  *     – Thumbs-up and thumbs-down both filled with whatever colour that
@@ -181,26 +194,31 @@ const FAQ_DATA = {
     // ── About the App (5 Q) ───────────────────────────────────────────────────
     {
       cat: "about",
+      id: "about_001",
       q: "What is YojanaSahay?",
       a: "YojanaSahay is an independent, AI-powered civic technology platform built on a structured, growing database of government welfare schemes, each tagged with eligibility metadata and benefit details, that helps every Indian citizen discover schemes they are legally entitled to — all in one place, with core features completely free. A live Scheme Update ticker keeps the database fresh with the latest government scheme news. We are not affiliated with any government body.",
     },
     {
       cat: "about",
+      id: "about_002",
       q: "Is this app free?",
       a: "Core features are completely free, forever — scheme discovery, the Eligibility Checker, and all scheme data. No ads, no hidden charges. The AI assistant is free with 10 messages per day, tracked server-side per account and reset at midnight IST. YojanaSahay Pro is coming soon with higher AI limits and priority support, but scheme discovery will always remain free for every Indian citizen.",
     },
     {
       cat: "about",
+      id: "about_003",
       q: "Is this an official government app?",
       a: "No. YojanaSahay is an independent platform — not affiliated with, endorsed by, or representative of any government ministry or department. We simply help citizens discover the schemes they are rightfully entitled to.",
     },
     {
       cat: "about",
+      id: "about_004",
       q: "Which states and schemes are covered?",
       a: "We cover Central Government schemes and state-level schemes across all major Indian states including Assam, Karnataka, Maharashtra, Madhya Pradesh, Delhi, UP, and more. Every scheme is manually added and verified against official government portals, then stored as a structured bilingual record in our database — with coverage expanding every app update.",
     },
     {
       cat: "about",
+      id: "about_005",
       q: "Can I apply for schemes directly from this app?",
       a: "No — YojanaSahay is a discovery and guidance platform. Every scheme page provides a direct link to the official government application portal. We never intercept, hold, or process applications on your behalf.",
     },
@@ -208,21 +226,25 @@ const FAQ_DATA = {
     // ── Privacy & Data (4 Q) ─────────────────────────────────────────────────
     {
       cat: "privacy",
+      id: "privacy_001",
       q: "Is my data safe?",
       a: "Yes. All data is stored on Firebase (Google Cloud), encrypted at rest (AES-256) and in transit (TLS 1.2+), with Firestore security rules restricting every document to its owning account UID — no other user or unauthenticated client can read it. We never sell, share, or use your personal data for advertising — ever.",
     },
     {
       cat: "privacy",
+      id: "privacy_002",
       q: "What personal data does the app collect?",
       a: "We store your profile answers (state, income, age, occupation, caste category) under your Firebase Authentication UID in Firestore, to personalise scheme results. If you sign in with Google, your name and email are also stored. No payment data, biometrics, or Aadhaar numbers are ever collected.",
     },
     {
       cat: "privacy",
+      id: "privacy_003",
       q: "Does the app access my camera, microphone, or location?",
       a: "Never. YojanaSahay does not request camera, microphone, GPS, or contacts permissions. The only system permission used is internet access — plain HTTPS calls to fetch scheme data from Firestore and sync via our Vercel-hosted endpoints.",
     },
     {
       cat: "privacy",
+      id: "privacy_004",
       q: "How do I delete my account and all my data?",
       a: "Email yojanasahayofficial@gmail.com with subject 'Data Deletion Request'. Within 7 business days, your Firestore user document and any linked subcollections — saved profile, chat history — are permanently deleted, with a confirmation email sent to you.",
     },
@@ -230,6 +252,7 @@ const FAQ_DATA = {
     // ── Schemes & Eligibility (8 Q) ──────────────────────────────────────────
     {
       cat: "schemes",
+      id: "schemes_001",
       q: "How accurate is the scheme information?",
       a: {
         text: "All scheme data is sourced from official Central and State Government portals and regularly re-verified by our team, with each record carrying a last-verified date visible on the scheme page.",
@@ -238,11 +261,13 @@ const FAQ_DATA = {
     },
     {
       cat: "schemes",
+      id: "schemes_002",
       q: "How does the Eligibility Checker work?",
       a: "The Eligibility Checker asks 7–10 questions covering state, income, age, occupation, caste category, land holding, and ration card. Your answers build a profile object that's evaluated client-side against each scheme's own eligibility rule in our database, and results are ranked by relevance. All matching runs on-device — no profile data is sent to external servers to compute it.",
     },
     {
       cat: "schemes",
+      id: "schemes_003",
       q: "What if a scheme link is broken or shows 'No Response'?",
       a: {
         text: "Go to the Profile tab and tap 'Report Issue' (you'll need to be signed in). Our verification pipeline runs periodic automated HTTP reachability checks on every scheme link, and our team manually reviews anything flagged.",
@@ -251,16 +276,19 @@ const FAQ_DATA = {
     },
     {
       cat: "schemes",
+      id: "schemes_004",
       q: "Why am I not matched to a scheme I expected?",
       a: "Eligibility depends on your saved profile — it's re-evaluated against each scheme's eligibility rule every time you run the checker. Run the Eligibility Checker again and update your profile for more accurate results. Some schemes also have very narrow criteria defined by the government — we can only reflect what the official guidelines state.",
     },
     {
       cat: "schemes",
+      id: "schemes_005",
       q: "What is the Scheme News Ticker on the home screen?",
       a: "The Scheme News Ticker is a live scrolling banner backed by a real-time Firestore listener — new government scheme updates, launches, and deadline reminders push to your screen automatically, with no manual refresh or polling needed.",
     },
     {
       cat: "schemes",
+      id: "schemes_006",
       q: "How accurate is the 'Govt. Money You Can Receive' estimate?",
       a: {
         text: "This figure is computed by summing the declared benefit field — monthly stipends, one-time grants, and in-kind benefits — across every scheme object your profile currently matches.",
@@ -269,11 +297,13 @@ const FAQ_DATA = {
     },
     {
       cat: "schemes",
+      id: "schemes_007",
       q: "What is the Document Checklist?",
       a: "The Document Checklist is built by merging and deduplicating the document-requirement arrays across every scheme your profile matches — so you gather every document once instead of checking scheme by scheme. A basic checklist is available free. YojanaSahay Pro (coming soon) includes an advanced checklist with document-level guidance and priority grouping.",
     },
     {
       cat: "schemes",
+      id: "schemes_008",
       q: "How are new schemes added and verified?",
       a: "Each scheme is added manually after reviewing the official government notification or portal page — never auto-scraped or bulk-imported. Once published, it enters a continuous two-tier verification pipeline: an automated crawler periodically checks that the official link is still reachable, while a Groq AI pass cross-checks the scheme's stated dates against the live notification to catch ones that have quietly expired, been extended, or changed. Anything flagged by either check is routed to a manual review queue for correction or removal — so accuracy keeps improving even after a scheme goes live.",
     },
@@ -281,21 +311,25 @@ const FAQ_DATA = {
     // ── AI Assistant (4 Q) ───────────────────────────────────────────────────
     {
       cat: "ai",
+      id: "ai_001",
       q: "How does the AI assistant work?",
       a: "The AI is powered by Groq (LLaMA model) and answers questions about any scheme in Hindi or English, using your saved profile object as context to give personalised guidance. It can also trigger a real-time web search for the latest deadlines and updates beyond our stored database.",
     },
     {
       cat: "ai",
+      id: "ai_002",
       q: "How many AI messages do I get per day?",
       a: "Free accounts get 10 AI messages per day, tracked server-side per account with a rolling counter that resets at midnight IST. YojanaSahay Pro (coming soon) will offer higher limits and priority AI responses.",
     },
     {
       cat: "ai",
+      id: "ai_003",
       q: "Can the AI help me fill application forms?",
       a: "Yes — the AI provides step-by-step document guidance and explains exactly how to fill out forms. It cannot submit forms on your behalf. All applications must be submitted through the official government portal.",
     },
     {
       cat: "ai",
+      id: "ai_004",
       q: "Does the AI search the internet?",
       a: "Yes. The AI uses Tavily's live web search API to fetch real-time information on scheme deadlines, application windows, and recent government updates — going beyond our static database to give you the freshest available information.",
     },
@@ -303,21 +337,25 @@ const FAQ_DATA = {
     // ── Account & Support (4 Q) ──────────────────────────────────────────────
     {
       cat: "account",
+      id: "account_001",
       q: "Do I need an account to use YojanaSahay?",
       a: "No account required. You can browse schemes and run the Eligibility Checker without signing in. Signing in (free, via Google through Firebase Authentication) stores your profile against your account UID in Firestore, personalises results, tracks support requests, and unlocks the AI assistant.",
     },
     {
       cat: "account",
+      id: "account_002",
       q: "Which languages are supported?",
       a: "English and Hindi (हिंदी). Every scheme record and UI string is stored as a bilingual field pair in our database rather than machine-translated at runtime, so switching with the EN / हिं toggle is instant. More regional languages are planned for future releases.",
     },
     {
       cat: "account",
+      id: "account_003",
       q: "Is there a Pro version coming?",
       a: "Yes! YojanaSahay Pro is in development — featuring higher AI message limits, priority support, advanced scheme tracking, and more. Sign in now to be among the first notified when it launches.",
     },
     {
       cat: "account",
+      id: "account_004",
       q: "How do I report a bug or wrong scheme data?",
       a: "Use the 'Report Issue' button in the Profile tab (sign-in required), or email yojanasahayofficial@gmail.com. Reports are logged to our support queue with device and browser metadata attached automatically, to help us reproduce issues faster. Bug reports receive a reply within 48 hours; verified scheme data corrections typically go live within 24 hours.",
     },
@@ -327,26 +365,31 @@ const FAQ_DATA = {
     // ── About (5) ─────────────────────────────────────────────────────────────
     {
       cat: "about",
+      id: "about_001",
       q: "योजना सहाय क्या है?",
       a: "योजना सहाय एक स्वतंत्र, AI-संचालित नागरिक तकनीक मंच है, जो सरकारी कल्याण योजनाओं के एक संरचित और निरंतर बढ़ते डेटाबेस पर बना है — हर योजना के साथ पात्रता और लाभ की जानकारी टैग की गई है। यह हर भारतीय नागरिक को उनकी पात्र योजनाओं को एक ही जगह खोजने में मदद करता है — मुख्य सुविधाएं पूरी तरह मुफ़्त। एक लाइव योजना अपडेट टिकर डेटाबेस को नवीनतम सरकारी योजना समाचार के साथ ताज़ा रखता है। हम किसी सरकारी संस्था से संबद्ध नहीं हैं।",
     },
     {
       cat: "about",
+      id: "about_002",
       q: "क्या यह ऐप मुफ़्त है?",
       a: "मुख्य सुविधाएं हमेशा के लिए मुफ़्त हैं — योजना खोज, पात्रता जाँच और सभी योजना डेटा। कोई विज्ञापन नहीं, कोई छुपा खर्च नहीं। AI सहायक फ्री में प्रतिदिन 10 संदेश देता है — यह सीमा हर अकाउंट के लिए सर्वर-साइड ट्रैक होती है और मध्यरात्रि IST पर रीसेट होती है। YojanaSahay Pro जल्द आ रहा है — अधिक AI सीमा और प्राथमिकता सहायता के साथ। लेकिन योजना खोज हर भारतीय नागरिक के लिए हमेशा मुफ़्त रहेगी।",
     },
     {
       cat: "about",
+      id: "about_003",
       q: "क्या यह कोई सरकारी ऐप है?",
       a: "नहीं। योजना सहाय एक स्वतंत्र मंच है — हम किसी भी सरकारी मंत्रालय या विभाग से संबद्ध, अनुमोदित या प्रतिनिधि नहीं हैं। हम केवल नागरिकों को उनकी पात्र योजनाएं खोजने में सहायता करते हैं।",
     },
     {
       cat: "about",
+      id: "about_004",
       q: "कौन से राज्य और योजनाएं शामिल हैं?",
       a: "हम केंद्र सरकार की योजनाएं और असम, कर्नाटक, महाराष्ट्र, मध्यप्रदेश, दिल्ली, UP सहित सभी प्रमुख राज्यों की योजनाएं कवर करते हैं। हर योजना आधिकारिक सरकारी पोर्टलों पर सत्यापित करने के बाद ही जोड़ी जाती है, और फिर हमारे डेटाबेस में एक संरचित द्विभाषी रिकॉर्ड के रूप में सेव होती है। हर ऐप अपडेट के साथ कवरेज बढ़ती है।",
     },
     {
       cat: "about",
+      id: "about_005",
       q: "क्या मैं इस ऐप से सीधे आवेदन कर सकता हूँ?",
       a: "नहीं — योजना सहाय एक खोज और मार्गदर्शन मंच है। हर योजना पृष्ठ पर आधिकारिक सरकारी आवेदन पोर्टल का सीधा लिंक दिया जाता है। हम कोई आवेदन संसाधित नहीं करते।",
     },
@@ -354,21 +397,25 @@ const FAQ_DATA = {
     // ── Privacy (4) ───────────────────────────────────────────────────────────
     {
       cat: "privacy",
+      id: "privacy_001",
       q: "क्या मेरा डेटा सुरक्षित है?",
       a: "हाँ। आपका डेटा Firebase (Google Cloud) पर AES-256 एन्क्रिप्शन (रेस्ट में) और TLS 1.2+ (ट्रांज़िट में) के साथ सुरक्षित है, और Firestore सिक्योरिटी रूल्स हर दस्तावेज़ को सिर्फ उसके मालिक अकाउंट UID तक सीमित रखते हैं — कोई अन्य उपयोगकर्ता या असत्यापित क्लाइंट उसे नहीं पढ़ सकता। हम आपका डेटा कभी नहीं बेचते, साझा नहीं करते, और विज्ञापन के लिए उपयोग नहीं करते।",
     },
     {
       cat: "privacy",
+      id: "privacy_002",
       q: "ऐप कौन सा व्यक्तिगत डेटा इकट्ठा करता है?",
       a: "हम आपकी प्रोफाइल जानकारी (राज्य, आय, आयु, व्यवसाय, जाति वर्ग) को आपके Firebase Authentication UID के अंतर्गत Firestore में सेव करते हैं, ताकि योजना परिणाम व्यक्तिगत किए जा सकें। Google से साइन इन पर नाम और ईमेल भी सेव होते हैं। कोई भुगतान डेटा, बायोमेट्रिक्स या आधार नंबर कभी नहीं लिया जाता।",
     },
     {
       cat: "privacy",
+      id: "privacy_003",
       q: "क्या ऐप कैमरा, माइक्रोफोन या लोकेशन एक्सेस करता है?",
       a: "कभी नहीं। योजना सहाय कभी भी कैमरा, माइक्रोफोन, GPS, या संपर्कों की अनुमति नहीं माँगता। केवल एक सिस्टम परमिशन उपयोग होती है — इंटरनेट एक्सेस, यानी Firestore से डेटा लाने और हमारे Vercel-होस्टेड एंडपॉइंट्स से सिंक करने के लिए साधारण HTTPS कॉल्स।",
     },
     {
       cat: "privacy",
+      id: "privacy_004",
       q: "मैं अपना अकाउंट और सभी डेटा कैसे हटाऊं?",
       a: "yojanasahayofficial@gmail.com पर 'Data Deletion Request' विषय से ईमेल करें। 7 कार्य दिवसों में आपका Firestore यूज़र दस्तावेज़ और उससे जुड़ी सभी सब-कलेक्शन्स — सेव की गई प्रोफाइल, चैट हिस्ट्री — स्थायी रूप से हटा दी जाती हैं, और पुष्टि ईमेल भेजी जाती है।",
     },
@@ -376,6 +423,7 @@ const FAQ_DATA = {
     // ── Schemes (8) ───────────────────────────────────────────────────────────
     {
       cat: "schemes",
+      id: "schemes_001",
       q: "योजना जानकारी कितनी सटीक है?",
       a: {
         text: "सभी योजना डेटा केंद्र और राज्य सरकार के आधिकारिक पोर्टलों से लिया गया है और हमारी टीम नियमित रूप से दोबारा सत्यापित करती है — हर रिकॉर्ड पर योजना पृष्ठ पर दिखने वाली 'अंतिम सत्यापन तिथि' होती है।",
@@ -384,11 +432,13 @@ const FAQ_DATA = {
     },
     {
       cat: "schemes",
+      id: "schemes_002",
       q: "पात्रता जाँचकर्ता कैसे काम करता है?",
       a: "पात्रता जाँचकर्ता 7–10 सवाल पूछता है — राज्य, आय, आयु, व्यवसाय, जाति वर्ग, भूमि और राशन कार्ड। आपके जवाबों से एक प्रोफाइल ऑब्जेक्ट बनता है, जिसे डिवाइस पर ही हर योजना के अपने पात्रता नियम के विरुद्ध जांचा जाता है, और परिणाम प्रासंगिकता के अनुसार दिखाए जाते हैं। सारी गणना डिवाइस पर ही होती है — आपकी प्रोफाइल का डेटा गणना के लिए बाहरी सर्वर पर नहीं भेजा जाता।",
     },
     {
       cat: "schemes",
+      id: "schemes_003",
       q: "यदि कोई योजना लिंक टूटा हो या 'कोई प्रतिक्रिया नहीं' दिखे?",
       a: {
         text: "प्रोफाइल टैब में जाकर 'समस्या रिपोर्ट करें' पर टैप करें (इसके लिए लॉगिन आवश्यक है)। हमारी सत्यापन पाइपलाइन हर योजना लिंक पर समय-समय पर स्वचालित HTTP जांच चलाती है, और फ़्लैग किए गए लिंक की मैन्युअल समीक्षा होती है।",
@@ -397,16 +447,19 @@ const FAQ_DATA = {
     },
     {
       cat: "schemes",
+      id: "schemes_004",
       q: "मुझे अपेक्षित योजना में मैच क्यों नहीं मिला?",
       a: "पात्रता आपकी सेव की गई प्रोफाइल पर निर्भर करती है — हर बार जाँचकर्ता चलाने पर इसे हर योजना के पात्रता नियम के विरुद्ध फिर से जांचा जाता है। बेहतर परिणामों के लिए पात्रता जाँचकर्ता फिर से चलाएं और प्रोफाइल अपडेट करें। कुछ योजनाओं में सरकार द्वारा परिभाषित बहुत संकीर्ण मानदंड होते हैं — हम केवल आधिकारिक दिशा-निर्देशों को ही दर्शा सकते हैं।",
     },
     {
       cat: "schemes",
+      id: "schemes_005",
       q: "होम स्क्रीन पर योजना न्यूज़ टिकर क्या है?",
       a: "योजना न्यूज़ टिकर एक लाइव स्क्रॉलिंग बैनर है, जो एक रीयल-टाइम Firestore लिसनर पर आधारित है — नई सरकारी योजनाएं, अपडेट और डेडलाइन अनुस्मारक बिना मैन्युअल रीफ्रेश या पोलिंग के सीधे आपकी स्क्रीन पर आ जाते हैं।",
     },
     {
       cat: "schemes",
+      id: "schemes_006",
       q: "'सरकारी धन जो आप पा सकते हैं' अनुमान कितना सटीक है?",
       a: {
         text: "यह राशि आपकी प्रोफाइल से मेल खाने वाली हर योजना के घोषित लाभ फ़ील्ड — मासिक वृत्ति, एकमुश्त अनुदान और अन्य लाभ — को जोड़कर निकाली जाती है।",
@@ -415,11 +468,13 @@ const FAQ_DATA = {
     },
     {
       cat: "schemes",
+      id: "schemes_007",
       q: "दस्तावेज़ चेकलिस्ट क्या है?",
       a: "दस्तावेज़ चेकलिस्ट आपकी प्रोफाइल से मेल खाने वाली हर योजना की दस्तावेज़-आवश्यकता सूचियों को मिलाकर और दोहराव हटाकर बनाई जाती है — ताकि आप हर दस्तावेज़ एक बार में इकट्ठा करें, योजना-दर-योजना जांचने के बजाय। बेसिक चेकलिस्ट मुफ़्त में उपलब्ध है। YojanaSahay Pro (जल्द आ रहा है) में उन्नत चेकलिस्ट दस्तावेज़-स्तरीय मार्गदर्शन के साथ मिलेगी।",
     },
     {
       cat: "schemes",
+      id: "schemes_008",
       q: "नई योजनाएं कैसे जोड़ी और सत्यापित की जाती हैं?",
       a: "हर योजना आधिकारिक सरकारी अधिसूचना या पोर्टल की जांच के बाद मैन्युअल रूप से जोड़ी जाती है — कभी ऑटो-स्क्रैप या बल्क-इम्पोर्ट नहीं होती। प्रकाशित होने के बाद यह एक निरंतर दो-स्तरीय सत्यापन पाइपलाइन से गुज़रती है: एक ऑटोमेटेड क्रॉलर समय-समय पर जांचता है कि आधिकारिक लिंक अभी काम कर रहा है, जबकि Groq AI की एक प्रक्रिया योजना की तारीखों की लाइव अधिसूचना से तुलना करके उन योजनाओं को पकड़ती है जो चुपचाप समाप्त हो गई, बढ़ाई गई या बदल गई हैं। किसी भी जांच में फ़्लैग की गई योजना सुधार या हटाने के लिए मैन्युअल समीक्षा कतार में भेज दी जाती है — इस तरह डेटा की सटीकता लाइव होने के बाद भी सुधरती रहती है।",
     },
@@ -427,21 +482,25 @@ const FAQ_DATA = {
     // ── AI (4) ────────────────────────────────────────────────────────────────
     {
       cat: "ai",
+      id: "ai_001",
       q: "AI सहायक कैसे काम करता है?",
       a: "AI सहायक Groq (LLaMA मॉडल) द्वारा संचालित है और हिंदी या English में किसी भी योजना के बारे में जवाब देता है, आपकी सेव की गई प्रोफाइल ऑब्जेक्ट को संदर्भ के रूप में उपयोग करते हुए व्यक्तिगत मार्गदर्शन देता है। यह नवीनतम डेडलाइन और अपडेट के लिए हमारे स्टोर किए गए डेटाबेस से आगे जाकर रीयल-टाइम वेब सर्च भी ट्रिगर कर सकता है।",
     },
     {
       cat: "ai",
+      id: "ai_002",
       q: "प्रतिदिन कितने AI संदेश मिलते हैं?",
       a: "फ्री अकाउंट में प्रतिदिन 10 AI संदेश मिलते हैं — यह हर अकाउंट के लिए सर्वर-साइड ट्रैक होने वाला एक रोलिंग काउंटर है, जो मध्यरात्रि IST पर रीसेट होता है। YojanaSahay Pro (जल्द आ रहा है) में अधिक सीमा और प्राथमिकता जवाब होंगे।",
     },
     {
       cat: "ai",
+      id: "ai_003",
       q: "क्या AI आवेदन फॉर्म भरने में मदद करता है?",
       a: "हाँ — AI आवश्यक दस्तावेज और फॉर्म भरने के चरण चरण-दर-चरण समझाता है। फॉर्म जमा करना आपको आधिकारिक सरकारी पोर्टल पर करना होगा — AI आपकी ओर से जमा नहीं कर सकता।",
     },
     {
       cat: "ai",
+      id: "ai_004",
       q: "क्या AI इंटरनेट सर्च करता है?",
       a: "हाँ। AI Tavily के लाइव वेब सर्च API का उपयोग करके योजना की डेडलाइन, आवेदन विंडो और हालिया सरकारी अपडेट की रीयल-टाइम जानकारी लाता है — हमारे स्थिर डेटाबेस से भी आगे।",
     },
@@ -449,21 +508,25 @@ const FAQ_DATA = {
     // ── Account (4) ───────────────────────────────────────────────────────────
     {
       cat: "account",
+      id: "account_001",
       q: "क्या अकाउंट बनाना ज़रूरी है?",
       a: "नहीं। बिना साइन इन के भी योजनाएं देख सकते हैं और पात्रता जांच सकते हैं। मुफ़्त Google साइन-इन (Firebase Authentication के ज़रिए) से आपकी प्रोफाइल आपके अकाउंट UID के अंतर्गत Firestore में सेव होती है, परिणाम व्यक्तिगत मिलते हैं, सपोर्ट अनुरोध ट्रैक होते हैं और AI सहायक का उपयोग होता है।",
     },
     {
       cat: "account",
+      id: "account_002",
       q: "कौन-सी भाषाएं समर्थित हैं?",
       a: "English और हिंदी। हर योजना रिकॉर्ड और UI टेक्स्ट हमारे डेटाबेस में एक द्विभाषी फ़ील्ड-जोड़े के रूप में सेव है, रनटाइम पर मशीन-अनुवाद नहीं होता — इसलिए EN / हिं टॉगल से भाषा बदलना तुरंत होता है। भविष्य के अपडेट में और क्षेत्रीय भाषाएं जोड़ी जाएंगी।",
     },
     {
       cat: "account",
+      id: "account_003",
       q: "क्या Pro संस्करण आ रहा है?",
       a: "हाँ! YojanaSahay Pro विकास में है — अधिक AI संदेश सीमा, प्राथमिकता सहायता, उन्नत योजना ट्रैकिंग और अधिक। अभी साइन इन करें — लॉन्च पर पहले सूचित हों।",
     },
     {
       cat: "account",
+      id: "account_004",
       q: "बग या गलत योजना डेटा कैसे रिपोर्ट करें?",
       a: "प्रोफाइल टैब में 'समस्या रिपोर्ट करें' बटन का उपयोग करें (लॉगिन आवश्यक), या yojanasahayofficial@gmail.com पर ईमेल करें। रिपोर्ट हमारी सपोर्ट कतार में डिवाइस और ब्राउज़र मेटाडेटा के साथ स्वचालित रूप से लॉग होती है, जिससे समस्या को दोबारा पहचानना आसान होता है। बग रिपोर्ट पर 48 घंटे में जवाब और सत्यापित योजना डेटा सुधार 24 घंटे में लाइव।",
     },
@@ -1270,8 +1333,11 @@ export default function HomeFAQSection({ lang, dark }) {
 
                   {/* ── Was this helpful? feedback bar (v13 · professional) ── */}
                   {(() => {
-                    const globalIdx = allFaqs.indexOf(faq);
-                    const faqId     = `${lang}_${faq.cat}_${globalIdx}`;
+                    // Stable ID — set on every FAQ_DATA entry as faq.id (e.g. "schemes_003").
+                    // Old code derived faqId from the array index, which silently
+                    // corrupted Firestore vote records whenever questions were
+                    // reordered or new ones inserted before existing entries.
+                    const faqId = faq.id;
                     const voted     = feedbackState[faqId] || null;
 
                     // SVG paths for thumbs-up (reused; down = scaleY(-1))
