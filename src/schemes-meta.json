@@ -1891,14 +1891,15 @@
     "isActive": true
   },
   "chandigarh_post_matric_scholarship": {
-    "lastVerified": "2026-06-17T09:50:16.815Z",
+    "lastVerified": "2026-06-28T08:06:59.800Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 1,
+    "isActive": true
   },
   "chandigarh_chb_ews_housing": {
-    "lastVerified": "2026-06-17T09:50:16.815Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-06-28T08:06:59.800Z",
+    "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
