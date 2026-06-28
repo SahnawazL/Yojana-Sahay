@@ -51,7 +51,8 @@ const SAFFRON   = "#FF9933";
 const NAVY      = "#003580";
 const IND_GREEN = "#138808";
 const VIOLET     = "#8B5CF6";
-const CYAN       = "#06B6D4";
+const CYAN          = "#06B6D4";
+const SERPER_ORANGE = "#F97316";  // Serper URL finder — Google-search orange
 const IDLE_AMBER = "#F59E0B";   // three-state presence: idle = amber
 
 // ─── TAB LABELS ───────────────────────────────────────────────────────────────
@@ -236,6 +237,14 @@ function IconDownload({ size = 13, color = "currentColor", style }) {
     </svg>
   );
 }
+function IconSearch({ size = 14, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+      <circle cx="10.5" cy="10.5" r="6.5" stroke={color} strokeWidth="1.8"/>
+      <path d="M15.5 15.5L20 20" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
 function IconBarChart({ size = 14, color = "currentColor", style }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
@@ -308,13 +317,23 @@ const AI_AGENTS = [
     firestoreKey:"tavilyVerifyLastActive",
     sessionStart: null,
   },
+  {
+    id:          "serper-verify",
+    name:        "Serper Search",
+    role:        "SchemeVerifier · URL Finder",
+    type:        "ai",
+    allowedTabs: ["verify"],
+    model:       "google-serper-v1",
+    firestoreKey:"serperLastActive",
+    sessionStart: null,
+  },
 ];
 
 // Which AI_AGENTS ids belong to which agent-grid section. Two separate Groq
 // pools (different keys, different Firestore fields) means two separate
 // sections — otherwise it's easy to misread one pool's health as the other's.
 const CHAT_AI_IDS   = new Set(["groq-ai", "tavily-api"]);       // main app — chat.js, GROQ_API_KEY_1..5
-const VERIFY_AI_IDS = new Set(["groq-verify", "tavily-verify"]); // admin SchemeVerifier — GROQ_VERIFY_KEY*
+const VERIFY_AI_IDS = new Set(["groq-verify", "tavily-verify", "serper-verify"]); // admin SchemeVerifier — GROQ_VERIFY_KEY* + SERPER_API_KEY
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 function toDate(ts) {
@@ -1460,7 +1479,7 @@ const AgentCard = React.memo(function AgentCard({ agent, dark, isDesktop }) {
       )}
 
       {/* ── AI Health Panel — Tavily daily stats ── */}
-      {agent.type === "ai" && (agent.id === "tavily-api" || agent.id === "tavily-verify") && (
+      {agent.type === "ai" && (agent.id === "tavily-api" || agent.id === "tavily-verify" || agent.id === "serper-verify") && (
         <div style={{
           marginTop: 9, padding: "10px 11px",
           background: dark ? "#161618" : "#f7f7f9",
@@ -4349,6 +4368,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
       let tChat   = rec.tavilyCalls      || 0;
       let gVerify = rec.groqVerifyCalls  || 0;
       let tVerify = rec.tavilyVerifyCalls || 0;
+      let serper  = rec.serperCalls       || 0;
 
       // Today: merge live aiStatus counts (Math.max avoids double-counting)
       // so the bar reflects the latest even if serverless hasn't committed yet
@@ -4357,10 +4377,12 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
         const liveTChat   = aiStatus.tavilyCallsDate       === todayStr ? (aiStatus.tavilyCallsToday      || 0) : 0;
         const liveGVerify = aiStatus.groqVerifyCallsDate   === todayStr ? (aiStatus.groqVerifyCallsToday  || 0) : 0;
         const liveTVerify = aiStatus.tavilyVerifyCallsDate === todayStr ? (aiStatus.tavilyVerifyCallsToday || 0) : 0;
-        gChat   = Math.max(gChat, liveGChat);
-        tChat   = Math.max(tChat, liveTChat);
+        const liveSerper  = aiStatus.serperCallsDate        === todayStr ? (aiStatus.serperCallsToday       || 0) : 0;
+        gChat   = Math.max(gChat,   liveGChat);
+        tChat   = Math.max(tChat,   liveTChat);
         gVerify = Math.max(gVerify, liveGVerify);
         tVerify = Math.max(tVerify, liveTVerify);
+        serper  = Math.max(serper,  liveSerper);
       }
 
       const label = new Date(`${ds}T00:00:00+05:30`).toLocaleDateString("en-IN", {
@@ -4369,10 +4391,10 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
 
       days.push({
         date: ds, label,
-        gChat, tChat, gVerify, tVerify,
+        gChat, tChat, gVerify, tVerify, serper,
         groqTotal:   gChat + gVerify,
         tavilyTotal: tChat + tVerify,
-        dayTotal:    gChat + tChat + gVerify + tVerify,
+        dayTotal:    gChat + tChat + gVerify + tVerify + serper,
         isToday:     ds === todayStr,
       });
     }
@@ -4384,8 +4406,9 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
     fullGrid.reduce((acc, d) => ({
       groq:   acc.groq   + d.groqTotal,
       tavily: acc.tavily + d.tavilyTotal,
+      serper: acc.serper + d.serper,
       total:  acc.total  + d.dayTotal,
-    }), { groq: 0, tavily: 0, total: 0 }),
+    }), { groq: 0, tavily: 0, serper: 0, total: 0 }),
   [fullGrid]);
 
   const maxDayTotal  = useMemo(() => Math.max(1, ...fullGrid.map(d => d.dayTotal)), [fullGrid]);
@@ -4453,7 +4476,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
         {/* ── 4-up stat cards ── */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: isDesktop ? "repeat(4,1fr)" : "repeat(2,1fr)",
+          gridTemplateColumns: isDesktop ? "repeat(5,1fr)" : "repeat(2,1fr)",
           gap: 8, marginBottom: 12,
         }}>
           <MiniStat
@@ -4468,6 +4491,13 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
             value={totals.tavily.toLocaleString()}
             sub="chat + verify calls"
             color={CYAN}
+            dark={dark} th={th} isDesktop={isDesktop} loading={loading}
+          />
+          <MiniStat
+            label="SERPER 30D"
+            value={totals.serper.toLocaleString()}
+            sub="url finder calls"
+            color={SERPER_ORANGE}
             dark={dark} th={th} isDesktop={isDesktop} loading={loading}
           />
           <MiniStat
@@ -4523,10 +4553,12 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                 <span style={{ color: th.text, fontWeight: 700 }}>{hovered.label}</span>
                 <span style={{ color: VIOLET }}>Groq: {hovered.groqTotal}</span>
                 <span style={{ color: CYAN }}>Tavily: {hovered.tavilyTotal}</span>
+                <span style={{ color: SERPER_ORANGE }}>Serper: {hovered.serper}</span>
                 <span style={{ color: SAFFRON, fontWeight: 700 }}>Total: {hovered.dayTotal}</span>
                 <span style={{ color: th.textSub }}>
                   (g-chat:{hovered.gChat} g-verify:{hovered.gVerify}
-                  {" "}t-chat:{hovered.tChat} t-verify:{hovered.tVerify})
+                  {" "}t-chat:{hovered.tChat} t-verify:{hovered.tVerify}
+                  {" "}serper:{hovered.serper})
                 </span>
               </div>
             )}
@@ -4549,6 +4581,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                 {fullGrid.map((d, i) => {
                   const groqH   = d.dayTotal > 0 ? Math.round((d.groqTotal   / maxDayTotal) * CHART_H) : 0;
                   const tavilyH = d.dayTotal > 0 ? Math.round((d.tavilyTotal / maxDayTotal) * CHART_H) : 0;
+                  const serperH = d.dayTotal > 0 ? Math.round((d.serper       / maxDayTotal) * CHART_H) : 0;
                   const emptyH  = 6; // placeholder for zero days — kept visible, not just a sliver
                   return (
                     <div
@@ -4576,16 +4609,21 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                           <div style={{
                             width: "100%", height: groqH,
                             background: hoveredIdx === i ? VIOLET : `${VIOLET}cc`,
-                            borderRadius: "3px 3px 0 0",
+                            borderRadius: groqH > 0 ? "3px 3px 0 0" : 0,
                             transition: "background 0.1s",
                           }} />
-                          {/* Tavily segment (base) */}
+                          {/* Tavily segment (middle) */}
                           <div style={{
                             width: "100%", height: tavilyH,
                             background: hoveredIdx === i ? CYAN : `${CYAN}bb`,
-                            borderRadius: tavilyH > 0
-                              ? (groqH === 0 ? "3px 3px 2px 2px" : "0 0 2px 2px")
-                              : 0,
+                            borderRadius: 0,
+                            transition: "background 0.1s",
+                          }} />
+                          {/* Serper segment (base) */}
+                          <div style={{
+                            width: "100%", height: serperH,
+                            background: hoveredIdx === i ? SERPER_ORANGE : `${SERPER_ORANGE}bb`,
+                            borderRadius: serperH > 0 ? "0 0 2px 2px" : 0,
                             transition: "background 0.1s",
                           }} />
                         </>
@@ -4655,8 +4693,9 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
               fontSize: fs(8.5, isDesktop), fontFamily: "monospace",
             }}>
               {[
-                { color: VIOLET,   label: "Groq  (chat + verify)" },
-                { color: CYAN,     label: "Tavily (chat + verify)" },
+                { color: VIOLET,        label: "Groq   (chat + verify)" },
+                { color: CYAN,          label: "Tavily (chat + verify)" },
+                { color: SERPER_ORANGE, label: "Serper (url finder)" },
                 { color: SAFFRON,  label: "Today" },
               ].map(l => (
                 <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -4701,7 +4740,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
             }}>
               <thead>
                 <tr style={{ borderBottom: `2px solid ${th.border}` }}>
-                  {["Date", "Groq Chat", "Groq Verify", "Tavily Chat", "Tavily Verify", "Day Total"].map(h => (
+                  {["Date", "Groq Chat", "Groq Verify", "Tavily Chat", "Tavily Verify", "Serper", "Day Total"].map(h => (
                     <th key={h} style={{
                       padding: "5px 8px", textAlign: "right",
                       color: th.textSub, fontWeight: 700,
@@ -4739,6 +4778,9 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                     <td style={{ padding: "5px 8px", textAlign: "right", color: `${CYAN}99` }}>
                       {d.tVerify || (d.isToday ? d.tVerify : "—")}
                     </td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", color: SERPER_ORANGE }}>
+                      {d.serper || (d.isToday ? d.serper : "—")}
+                    </td>
                     <td style={{
                       padding: "5px 8px", textAlign: "right",
                       color: d.dayTotal > 0 ? SAFFRON : th.textSub,
@@ -4768,6 +4810,9 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
                   </td>
                   <td style={{ padding: "7px 8px", textAlign: "right", color: `${CYAN}aa`, fontWeight: 800 }}>
                     {fullGrid.reduce((s, d) => s + d.tVerify, 0).toLocaleString()}
+                  </td>
+                  <td style={{ padding: "7px 8px", textAlign: "right", color: SERPER_ORANGE, fontWeight: 800 }}>
+                    {totals.serper.toLocaleString()}
                   </td>
                   <td style={{ padding: "7px 8px", textAlign: "right", color: SAFFRON, fontWeight: 800 }}>
                     {totals.total.toLocaleString()}
@@ -5012,6 +5057,13 @@ export default function AgentsTab({ dark, isDesktop }) {
           ...ag,
           lastSeen:   aiStatus.tavilyVerifyLastActive                                  || null,
           callsToday: aiStatus.tavilyVerifyCallsDate === todayStr ? (aiStatus.tavilyVerifyCallsToday || 0) : 0,
+        };
+      }
+      if (ag.id === "serper-verify") {
+        return {
+          ...ag,
+          lastSeen:   aiStatus.serperLastActive                                       || null,
+          callsToday: aiStatus.serperCallsDate === todayStr ? (aiStatus.serperCallsToday || 0) : 0,
         };
       }
       return { ...ag, lastSeen: aiStatus[ag.firestoreKey] || null };
@@ -5433,7 +5485,7 @@ export default function AgentsTab({ dark, isDesktop }) {
           {verifyAgents.length > 0 && (
             <SectionFrame
               label="Verify Pipeline"
-              sublabel="dedicated groq_verify_key · tavily_verify_key — admin schemeverifier + ai insights"
+              sublabel="groq_verify_key · tavily_verify_key · serper_api_key — admin schemeverifier + url finder"
               color={IND_GREEN}
               dark={dark}
               isDesktop={isDesktop}
