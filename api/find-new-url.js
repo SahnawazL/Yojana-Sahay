@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { recordAiCall } from "./_lib/firebaseAdmin.js";
+import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
 
 const SERPER_SEARCH   = "https://google.serper.dev/search";
 const PING_TIMEOUT_MS = 8000;
@@ -89,7 +90,8 @@ async function serperSearch(query, serperKey, maxResults = 7) {
     // Serper returns organic results under data.organic[]
     // Each item has: { link, title, snippet, position }
     // We map link → url to keep the same shape the rest of the file expects.
-    recordAiCall({ service: "serper-verify" }).catch(() => {}); // track in API call history
+    recordAiCall({ service: "serper-verify" }).catch(() => {});     // track in adminMeta/aiStatus
+    logApiCallToHistory("serperCalls").catch(() => {});               // track in apiCallHistory 30-day chart
     return {
       results: (data.organic ?? []).map(r => ({
         url:   r.link?.trim() ?? "",
