@@ -18,12 +18,13 @@
 //   logApiCallToHistory("tavilyCalls").catch(() => {});
 //   logApiCallToHistory("groqVerifyCalls").catch(() => {});
 //   logApiCallToHistory("tavilyVerifyCalls").catch(() => {});
+//   logApiCallToHistory("serperCalls").catch(() => {});       // find-new-url.js
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 /**
- * @param {"groqCalls"|"tavilyCalls"|"groqVerifyCalls"|"tavilyVerifyCalls"} service
+ * @param {"groqCalls"|"tavilyCalls"|"groqVerifyCalls"|"tavilyVerifyCalls"|"serperCalls"} service
  * @param {number} [count=1]  — pass a higher number if you batch calls
  */
 export async function logApiCallToHistory(service, count = 1) {
