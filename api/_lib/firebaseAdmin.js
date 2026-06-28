@@ -112,12 +112,24 @@ export async function markAiActive(field) {
 //   groqLast429At           Timestamp  — when the last 429 happened
 //   groqWebSearchesToday    number     — Tavily-triggered Groq calls today
 //   groqWebSearchesDate     string     — IST date for web-search reset
-//   tavilyLastActive        Timestamp  — updated on every Tavily call (verify-scheme.js)
-//   tavilyCallsToday        number     — resets at midnight IST
-//   tavilyCallsDate         string     — IST date for Tavily reset
-//   serperLastActive        Timestamp  — updated on every Serper call (find-new-url.js)
-//   serperCallsToday        number     — resets at midnight IST
-//   serperCallsDate         string     — IST date for Serper reset
+//   tavilyLastActive           Timestamp  — updated on every chat Tavily call (chat.js)
+//   tavilyCallsToday           number     — resets at midnight IST
+//   tavilyCallsDate            string     — IST date for chat Tavily reset
+//   tavilyVerifyLastActive     Timestamp  — updated on every verify Tavily call (verify-scheme.js)
+//   tavilyVerifyCallsToday     number     — resets at midnight IST
+//   tavilyVerifyCallsDate      string     — IST date for verify Tavily reset
+//   groqVerifyLastActive       Timestamp  — updated on every verify Groq call (verify-scheme.js)
+//   groqVerifyActiveKeyIdx     number     — index of currently active verify Groq key
+//   groqVerifyCallsToday       number     — resets at midnight IST
+//   groqVerifyCallsDate        string     — IST date for verify Groq reset
+//   groqVerify429Today         number     — total 429s today (verify keys)
+//   groqVerify429Date          string     — IST date for verify 429 reset
+//   groqVerify429KeysToday     number[]   — which verify key indices got 429'd today
+//   groqVerify429KeysDate      string     — IST date for verify key-429 array reset
+//   groqVerifyLast429At        Timestamp  — when the last verify 429 happened
+//   serperLastActive           Timestamp  — updated on every Serper call (find-new-url.js)
+//   serperCallsToday           number     — resets at midnight IST
+//   serperCallsDate            string     — IST date for Serper reset
 export async function recordAiCall({
   service         = "groq",
   keyIdx          = 0,
@@ -183,10 +195,48 @@ export async function recordAiCall({
         }
       }
 
-      // ── TAVILY ────────────────────────────────────────────────────────────
-      // Catches both "tavily" (direct) and "tavily-verify" (verify-scheme.js
-      // Extract calls) — previously "tavily-verify" was silently a no-op.
-      if (service === "tavily" || service === "tavily-verify") {
+      // ── GROQ VERIFY ───────────────────────────────────────────────────────
+      // service "groq-verify" → verify pipeline (verify-scheme.js).
+      // AgentsTab "groq-verify" card reads: groqVerifyLastActive,
+      // groqVerifyActiveKeyIdx, groqVerifyCallsToday, groqVerify429Today etc.
+      // Pre-existing bug fix: this was a silent no-op in the original because
+      // only "groq" was handled — groq-verify card always showed zeros.
+      if (service === "groq-verify") {
+        upd.groqVerifyLastActive = FieldValue.serverTimestamp();
+
+        if (keyIdx >= 0) upd.groqVerifyActiveKeyIdx = keyIdx;
+
+        if (d.groqVerifyCallsDate === today) {
+          upd.groqVerifyCallsToday = (d.groqVerifyCallsToday || 0) + 1;
+        } else {
+          upd.groqVerifyCallsDate  = today;
+          upd.groqVerifyCallsToday = 1;
+        }
+
+        if (count429 > 0) {
+          upd.groqVerifyLast429At = FieldValue.serverTimestamp();
+
+          const freshKeys = Array.from({ length: count429 }, (_, i) => i);
+
+          if (d.groqVerify429Date === today) {
+            upd.groqVerify429Today = (d.groqVerify429Today || 0) + count429;
+            const prev = Array.isArray(d.groqVerify429KeysToday) ? d.groqVerify429KeysToday : [];
+            upd.groqVerify429KeysToday = [...new Set([...prev, ...freshKeys])];
+            upd.groqVerify429KeysDate  = today;
+          } else {
+            upd.groqVerify429Date      = today;
+            upd.groqVerify429Today     = count429;
+            upd.groqVerify429KeysDate  = today;
+            upd.groqVerify429KeysToday = freshKeys;
+          }
+        }
+      }
+
+      // ── TAVILY CHAT ───────────────────────────────────────────────────────
+      // service "tavily" → chat pipeline (chat.js).
+      // AgentsTab "tavily-api" card reads: tavilyLastActive, tavilyCallsToday,
+      // tavilyCallsDate.
+      if (service === "tavily") {
         upd.tavilyLastActive = FieldValue.serverTimestamp();
 
         if (d.tavilyCallsDate === today) {
@@ -194,6 +244,22 @@ export async function recordAiCall({
         } else {
           upd.tavilyCallsDate  = today;
           upd.tavilyCallsToday = 1;
+        }
+      }
+
+      // ── TAVILY VERIFY ─────────────────────────────────────────────────────
+      // service "tavily-verify" → verify pipeline (verify-scheme.js Extract).
+      // Previously a silent no-op — "tavily-verify" never matched "tavily".
+      // AgentsTab "tavily-verify" card reads: tavilyVerifyLastActive,
+      // tavilyVerifyCallsToday, tavilyVerifyCallsDate.
+      if (service === "tavily-verify") {
+        upd.tavilyVerifyLastActive = FieldValue.serverTimestamp();
+
+        if (d.tavilyVerifyCallsDate === today) {
+          upd.tavilyVerifyCallsToday = (d.tavilyVerifyCallsToday || 0) + 1;
+        } else {
+          upd.tavilyVerifyCallsDate  = today;
+          upd.tavilyVerifyCallsToday = 1;
         }
       }
 
