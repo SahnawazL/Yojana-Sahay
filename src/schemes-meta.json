@@ -1528,76 +1528,76 @@
     "confidence": 0
   },
   "cg_dr_khoobasuram_health": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_higher_ed_scholarship": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_solar_suryashakti": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_shauchalay_nirman": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_kaushal_vikas": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_labour_card": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_pre_matric_tribal": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0.5
   },
   "cg_saur_sujala": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_organic_farming": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_drip_sprinkler": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_msme_subsidy": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_startup_niti": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "linkAlive": true,
     "httpStatus": 200,
-    "confidence": 0
+    "confidence": 0.5
   },
   "uk_nanda_gaura": {
     "lastVerified": "2026-06-22T17:24:12.092Z",
@@ -2611,14 +2611,13 @@
     "confidence": 0
   },
   "cg_dr_khoobasuram": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 1,
-    "lastDate": "2021-11-30"
+    "confidence": 0
   },
   "cg_mahtari_vandan": {
-    "lastVerified": "2026-06-22T12:37:29.719Z",
+    "lastVerified": "2026-06-28T08:10:35.506Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
