@@ -3902,31 +3902,52 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                      total, not a guaranteed payout, and that documents +
                      per-scheme approval still decide the real outcome.       */}
                 <div style={{
-                  background:dark?"rgba(255,153,51,0.08)":"rgba(255,153,51,0.06)",
-                  border:`1.5px solid ${dark?"rgba(255,153,51,0.28)":"rgba(255,153,51,0.30)"}`,
-                  borderRadius:16,padding:"13px 15px",marginBottom:16,
+                  position:"relative",borderRadius:14,marginBottom:16,padding:1,
+                  background: dark
+                    ? "linear-gradient(135deg,rgba(255,179,102,0.30),rgba(255,153,51,0.14),rgba(255,179,102,0.26))"
+                    : "linear-gradient(135deg,rgba(217,119,6,0.20),rgba(255,153,51,0.10),rgba(217,119,6,0.16))",
+                  boxShadow: dark
+                    ? "0 3px 14px rgba(255,153,51,0.08)"
+                    : "0 3px 12px rgba(217,119,6,0.06)",
                 }}>
-                  <div onClick={()=>{haptic();setShowEstimateInfo(v=>!v);}} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
-                    <div style={{width:30,height:30,borderRadius:9,flexShrink:0,background:"rgba(255,153,51,0.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15}}>📋</div>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:12.5,fontWeight:800,color:dark?"#FFB366":"#B45309",fontFamily:bf,lineHeight:1.3}}>{t.estimateTitle}</div>
-                      <div style={{fontSize:10.5,color:dark?"rgba(255,179,102,0.75)":"rgba(180,83,9,0.75)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>{t.estimateShort}</div>
+                  <div style={{
+                    borderRadius:13,overflow:"hidden",
+                    background: dark ? "#1C1410" : "#FFFBF5",
+                  }}>
+                    <div onClick={()=>{haptic();setShowEstimateInfo(v=>!v);}} style={{display:"flex",alignItems:"center",gap:9,cursor:"pointer",WebkitTapHighlightColor:"transparent",padding:"11px 13px"}}>
+                      <div style={{
+                        width:26,height:26,borderRadius:8,flexShrink:0,
+                        background: dark
+                          ? "linear-gradient(135deg,rgba(255,153,51,0.30),rgba(255,179,102,0.16))"
+                          : "linear-gradient(135deg,rgba(255,153,51,0.22),rgba(255,179,102,0.12))",
+                        border:`1px solid ${dark?"rgba(255,153,51,0.22)":"rgba(217,119,6,0.16)"}`,
+                        display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,
+                      }}>📋</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:11.5,fontWeight:700,letterSpacing:0.1,color:dark?"#FFC785":"#9A5B0A",fontFamily:bf,lineHeight:1.3}}>{t.estimateTitle}</div>
+                        <div style={{fontSize:10,color:dark?"rgba(255,199,133,0.62)":"rgba(154,91,10,0.65)",marginTop:1.5,fontFamily:bf,lineHeight:1.4}}>{t.estimateShort}</div>
+                      </div>
+                      <span style={{fontSize:11,color:dark?"rgba(255,199,133,0.55)":"rgba(154,91,10,0.5)",flexShrink:0,transform:showEstimateInfo?"rotate(180deg)":"none",transition:"transform 0.3s cubic-bezier(0.4,0,0.2,1)"}}>▾</span>
                     </div>
-                    <span style={{fontSize:13,color:dark?"rgba(255,179,102,0.7)":"rgba(180,83,9,0.65)",flexShrink:0,transform:showEstimateInfo?"rotate(180deg)":"none",transition:"transform 0.25s",marginTop:1}}>▾</span>
-                  </div>
-                  {showEstimateInfo&&(
-                    <div style={{marginTop:11,paddingTop:11,borderTop:`1px solid ${dark?"rgba(255,153,51,0.18)":"rgba(255,153,51,0.20)"}`,display:"flex",flexDirection:"column",gap:8,animation:"briefSlideIn 0.2s ease"}}>
-                      {t.estimatePoints.map((p,i)=>(
-                        <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                          <span style={{fontSize:12,flexShrink:0,marginTop:1}}>{["🎯","💰","📝","📎"][i]||"•"}</span>
-                          <span style={{fontSize:11.5,lineHeight:1.55,color:dark?"#FCD9B0":"#92400E",fontFamily:bf}}>{p}</span>
+                    <div style={{
+                      maxHeight: showEstimateInfo ? 400 : 0,
+                      opacity: showEstimateInfo ? 1 : 0,
+                      overflow:"hidden",
+                      transition:"max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
+                    }}>
+                      <div style={{padding:"0 13px 11px",display:"flex",flexDirection:"column",gap:7,borderTop:`1px solid ${dark?"rgba(255,153,51,0.12)":"rgba(217,119,6,0.12)"}`,marginTop:0,paddingTop:9}}>
+                        {t.estimatePoints.map((p,i)=>(
+                          <div key={i} style={{display:"flex",gap:7,alignItems:"flex-start"}}>
+                            <span style={{fontSize:10.5,flexShrink:0,marginTop:1.5,opacity:0.85}}>{["🎯","💰","📝","📎"][i]||"•"}</span>
+                            <span style={{fontSize:10.5,lineHeight:1.55,color:dark?"#F0C99A":"#7C4A0A",fontFamily:bf}}>{p}</span>
+                          </div>
+                        ))}
+                        <div onClick={()=>{haptic();setShowEstimateInfo(false);}} style={{textAlign:"center",fontSize:10,color:dark?"rgba(255,199,133,0.5)":"rgba(154,91,10,0.45)",fontFamily:bf,marginTop:2,cursor:"pointer"}}>
+                          {t.estimateLess}
                         </div>
-                      ))}
-                      <div onClick={()=>{haptic();setShowEstimateInfo(false);}} style={{textAlign:"center",fontSize:10.5,color:dark?"rgba(255,179,102,0.6)":"rgba(180,83,9,0.55)",fontFamily:bf,marginTop:2,cursor:"pointer"}}>
-                        {t.estimateLess}
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* ── AI Results Brief ── */}
