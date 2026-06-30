@@ -207,6 +207,17 @@ function formatDate(ts) {
   return d.toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"2-digit" });
 }
 
+// Same as formatDate but also includes the time-of-day — used in the user
+// detail drawer where an admin benefits from a precise timestamp, not just
+// the date.
+function formatDateTime(ts) {
+  if (!ts) return "—";
+  const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
+  const datePart = d.toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"2-digit" });
+  const timePart = d.toLocaleTimeString("en-IN", { hour:"numeric", minute:"2-digit", hour12:true });
+  return `${datePart}, ${timePart}`;
+}
+
 function timeAgo(ts) {
   if (!ts) return "—";
   const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
@@ -218,6 +229,19 @@ function timeAgo(ts) {
   if (hrs < 24)  return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   return `${days}d ago`;
+}
+
+// Formats a duration in milliseconds (e.g. lastSessionDuration, totalActiveDuration)
+// into a short readable string like "2h 14m" or "38m". Used for session-time
+// fields, distinct from timeAgo() which formats "how long since" a timestamp.
+function formatDuration(ms) {
+  if (!ms || ms < 1000) return "—";
+  const totalMinutes = Math.floor(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  if (minutes > 0) return `${minutes}m`;
+  return "<1m";
 }
 
 // ─── DONUT CHART ──────────────────────────────────────────────────────────────
@@ -439,7 +463,9 @@ function UserDrawer({ user, dark, onClose, isDesktop }) {
     ] : []),
     // ── Account ──────────────────────────────────────────────────────────
     { label:"🗓 Joined",     value: formatDate(user.createdAt) },
-    { label:"🟢 Last Seen",  value: formatDate(user.lastSeen)  },
+    { label:"🟢 Last Seen",  value: user.lastSeen ? `${timeAgo(user.lastSeen)} · ${formatDateTime(user.lastSeen)}` : "—" },
+    { label:"⏱️ Last Session", value: formatDuration(user.lastSessionDuration) },
+    { label:"📊 Total Time",   value: formatDuration(user.totalActiveDuration) },
   ];
 
   return (

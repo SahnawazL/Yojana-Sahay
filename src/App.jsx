@@ -8128,6 +8128,63 @@ function YojanaSahayInner(){
     return()=>unsub();
   },[]);
 
+  // ── Session duration tracking ────────────────────────────────────────────
+  // Tracks how long the user is actively using the app per visit ("session")
+  // and accumulates a lifetime total, both written to Firestore for
+  // signed-in users so AdminDashboard can show both metrics per user.
+  //
+  // sessionStorage anchors the session start time: it persists across page
+  // refreshes/navigation within the SAME browser tab, but clears automatically
+  // when the tab actually closes — exactly the boundary of "one session".
+  useEffect(()=>{
+    let sessionStart;
+    try{
+      sessionStart = sessionStorage.getItem("ys_session_start");
+      if(!sessionStart){
+        sessionStart = String(Date.now());
+        sessionStorage.setItem("ys_session_start", sessionStart);
+      }
+    }catch{ sessionStart = String(Date.now()); }
+    const startMs = Number(sessionStart);
+    let flushedMs = 0; // how much of this session has already been added to totalActiveDuration — prevents double-counting on repeated background/foreground toggles
+
+    const flush = () => {
+      const user = auth.currentUser;
+      if(!user) return; // only track for signed-in users — guests have no Firestore doc to write to
+      const elapsed = Date.now() - startMs;
+      const delta = elapsed - flushedMs;
+      if(delta < 1000) return; // skip no-op flushes under 1s
+      flushedMs = elapsed;
+      updateDoc(doc(db,"users",user.uid),{
+        lastSessionDuration: elapsed,           // this session's running total — overwritten each flush
+        totalActiveDuration: increment(delta),  // lifetime total — only the NEW delta is added
+      }).catch(()=>{});
+    };
+
+    // Flush when the tab goes to background — the most reliable signal we
+    // have that the user has (probably) stopped actively using the app.
+    const onVisibility = () => { if(document.visibilityState==="hidden") flush(); };
+    // pagehide covers tab close / swipe-away on mobile, which doesn't always
+    // fire visibilitychange first.
+    const onPageHide = () => flush();
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onPageHide);
+
+    // Safety-net heartbeat: if the OS kills the tab on a low-memory phone
+    // without firing any lifecycle event, this caps lost active time to
+    // at most 60 seconds instead of losing the whole session.
+    const heartbeat = setInterval(()=>{
+      if(document.visibilityState==="visible") flush();
+    }, 60000);
+
+    return ()=>{
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onPageHide);
+      clearInterval(heartbeat);
+    };
+  },[]);
+
   // Handle Google redirect result at the TOP LEVEL — runs on every page load
   // regardless of which tab is active. Catches the result even on low-memory
   // phones where the browser killed the tab mid-redirect. ──────────────────────
