@@ -6,6 +6,7 @@
     "node": "24.x"
   },
   "scripts": {
+    "prebuild": "node scripts/generate-scheme-pages.mjs",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
