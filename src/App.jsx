@@ -32,6 +32,8 @@ const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
 import SchemeNewsTicker from "./SchemeNewsTicker.jsx";
+import { useOfflineStatus } from "./useOfflineStatus.js";
+import { idbSet, idbDelete, idbGet, OFFLINE_KEYS, migrateLocalStorageToIDB } from "./offlineStorage.js";
 const HomeFAQSection = React.lazy(() => import("./HomeFAQSection.jsx"));
 
 // ─── ENRICH SCHEME_DB WITH VERIFICATION METADATA ─────────────────────────────
@@ -183,6 +185,55 @@ function PremiumLoader() {
           <div style={{position:"absolute",top:0,left:0,bottom:0,width:"40%",background:"linear-gradient(90deg,transparent,#8b5cf6,#a78bfa,transparent)",borderRadius:99,animation:"pl-progress 1.8s ease-in-out infinite"}}/>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── OFFLINE BANNER ────────────────────────────────────────────────────────────
+// Shown as a slim fixed strip at the top when navigator.onLine is false.
+// Reassures the user that scheme data is still available (it's statically
+// bundled) while noting that AI and profile sync need internet.
+function OfflineBanner({ lang, dark }) {
+  const isHindi = lang === "hi";
+  const bf = fontFamily(lang);
+  return (
+    <div style={{
+      position:"fixed", top:0, left:0, right:0, zIndex:9998,
+      background: dark ? "rgba(28,14,0,0.97)" : "rgba(255,247,237,0.97)",
+      borderBottom:`1px solid ${dark?"rgba(133,77,14,0.5)":"rgba(253,186,116,0.8)"}`,
+      backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
+      padding:"7px 16px",
+      display:"flex", alignItems:"center", gap:10,
+      animation:"offlineBannerIn 0.28s cubic-bezier(0.22,1,0.36,1) both",
+    }}>
+      {/* Wi-Fi off SVG icon */}
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+        stroke={dark?"#FCD34D":"#92400E"} strokeWidth="2.2"
+        strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+        <path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/>
+        <path d="M5 12.55a10.94 10.94 0 015.17-2.39"/>
+        <path d="M10.71 5.05A16 16 0 0122.56 9"/>
+        <path d="M1.42 9a15.91 15.91 0 014.7-2.88"/>
+        <path d="M8.53 16.11a6 6 0 016.95 0"/>
+        <line x1="12" y1="20" x2="12.01" y2="20"/>
+      </svg>
+      <div style={{flex:1, minWidth:0}}>
+        <div style={{fontSize:12, fontWeight:700, color:dark?"#FCD34D":"#92400E", fontFamily:bf, lineHeight:1.3}}>
+          {isHindi ? "आप ऑफलाइन हैं" : "You're Offline"}
+        </div>
+        <div style={{fontSize:10.5, color:dark?"rgba(253,211,77,0.65)":"#B45309", fontFamily:bf, marginTop:1.5, lineHeight:1.4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+          {isHindi
+            ? "योजना डेटा उपलब्ध है · AI सुविधाओं के लिए इंटरनेट चाहिए"
+            : "Scheme data available · AI features need internet"}
+        </div>
+      </div>
+      {/* Pulsing dot */}
+      <div style={{width:7, height:7, borderRadius:"50%", flexShrink:0,
+        background:dark?"#FCD34D":"#D97706",
+        boxShadow:`0 0 8px ${dark?"rgba(253,211,77,0.7)":"rgba(217,119,6,0.5)"}`,
+        animation:"badgePulse 1.8s ease-in-out infinite",
+      }}/>
     </div>
   );
 }
@@ -7538,6 +7589,7 @@ const APP_STYLES = `
         @keyframes answer-lock-pulse{0%{transform:scale(1)}35%{transform:scale(1.04)}70%{transform:scale(0.98)}100%{transform:scale(1)}}
         @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
         @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:0.6}}
+        @keyframes offlineBannerIn{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
         @keyframes aiPillShimmer{
           0%  {background-position:200% center}
           100%{background-position:-200% center}
@@ -7829,6 +7881,11 @@ function YojanaSahayInner(){
   const [liveCheckerTotal,setLiveCheckerTotal]=useState(()=>{
     try{ const v=localStorage.getItem("yojana_checker_total"); return v!==null?Number(v):null; }catch{ return null; }
   });
+
+  // ── Offline status ─────────────────────────────────────────────────────────
+  const isOffline = useOfflineStatus();
+  const wasOfflineRef = useRef(false);
+
   // ── Dismiss HTML splash when React mounts ─────────────────────────────────
   // #html-splash shows instantly before JS loads (pure CSS in index.html).
   // Once React is ready, fade it out and mark session so it won't show again.
@@ -7976,19 +8033,52 @@ function YojanaSahayInner(){
     return()=>{ cancelled=true; clearTimeout(fallback); };
   },[]);
 
-  // Persist profile across page refreshes
+  // Persist profile across page refreshes — localStorage + IndexedDB mirror
   useEffect(()=>{
     try{
       if(profile) localStorage.setItem("yojana_profile",JSON.stringify(profile));
       else localStorage.removeItem("yojana_profile");
     }catch{}
+    // IDB mirror: more durable than localStorage on Android low-storage situations
+    if(profile) idbSet(OFFLINE_KEYS.PROFILE, profile).catch(()=>{});
+    else idbDelete(OFFLINE_KEYS.PROFILE).catch(()=>{});
   },[profile]);
+
+  // Persist liveCheckerTotal to IDB so stats counter survives offline restarts
+  useEffect(()=>{
+    if(liveCheckerTotal!==null) idbSet(OFFLINE_KEYS.CHECKER_TOTAL, liveCheckerTotal).catch(()=>{});
+  },[liveCheckerTotal]);
+
+  // One-time migration: copy existing localStorage values into IndexedDB.
+  // Runs only on first app launch after this update — no-op on every subsequent load.
+  useEffect(()=>{ migrateLocalStorageToIDB().catch(()=>{}); },[]);
+
+  // Auto-refresh on reconnect: getDoc() is one-shot and won't auto-retry when
+  // internet returns. This effect watches isOffline flip true→false and refetches
+  // /api/stats and the Firestore profile so data is never stale after reconnecting.
+  useEffect(()=>{
+    if(!wasOfflineRef.current||isOffline){ wasOfflineRef.current=isOffline; return; }
+    wasOfflineRef.current=false;
+    // Re-fetch live stats
+    fetch("/api/stats")
+      .then(r=>{ if(!r.ok) throw new Error(); return r.json(); })
+      .then(data=>{ const t=data.checkerTotal??0; setLiveCheckerTotal(t); try{localStorage.setItem("yojana_checker_total",String(t));}catch{} })
+      .catch(()=>{});
+    // Re-fetch Firestore profile if signed in
+    const user=auth.currentUser;
+    if(!user) return;
+    getDoc(doc(db,"users",user.uid))
+      .then(snap=>{ if(!snap.exists()) return; const d=snap.data(); setProfile(d); try{localStorage.setItem("yojana_profile",JSON.stringify(d));}catch{} })
+      .catch(()=>{});
+  },[isOffline]);
 
   // On every auth state change: clear on sign-out; restore Firestore profile on session restore
   useEffect(()=>{
     const unsub=onAuthStateChanged(auth,async(user)=>{
       if(!user){ setProfile(null); setIsAdmin(false); setAdminTabs(null); return; }
       // Restore profile from Firestore (handles page refresh, tab restore & Google redirect)
+      // Firebase offline persistence (enabled in firebase.js) serves this from
+      // IndexedDB cache instantly when offline, then syncs when connection returns.
       try{
         const snap=await getDoc(doc(db,"users",user.uid));
         if(snap.exists()){
@@ -8003,7 +8093,18 @@ function YojanaSahayInner(){
           // Navigate to profile tab so ProfileTab mounts and runs setup flow.
           setActiveTab("profile");
         }
-      }catch{}
+      }catch{
+        // Firestore unreachable and Firebase offline cache is cold (first-ever offline visit).
+        // Fall back to IndexedDB app cache so the user isn't stuck on a blank profile.
+        const cached=await idbGet(OFFLINE_KEYS.PROFILE).catch(()=>null);
+        if(cached){
+          setProfile(cached);
+          const fullAdmin=cached.isAdmin===true;
+          const restrictedAdmin=Array.isArray(cached.adminTabs)&&cached.adminTabs.length>0;
+          setIsAdmin(fullAdmin||restrictedAdmin);
+          setAdminTabs(fullAdmin?null:(restrictedAdmin?cached.adminTabs:null));
+        }
+      }
       // Update lastSeen silently
       try{ await updateDoc(doc(db,"users",user.uid),{lastSeen:serverTimestamp()}); }catch{}
     });
@@ -8243,6 +8344,10 @@ function YojanaSahayInner(){
   return(
     <div className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0.7:1,transition:"opacity 0.12s,background 0.3s"}}>
       <style>{APP_STYLES}</style>
+
+      {/* ── Offline banner — slides in from top when device has no network ── */}
+      {isOffline && <OfflineBanner lang={lang} dark={dark} />}
+      {isOffline && <div style={{height:42,flexShrink:0}}/>}
 
       {/* ── TAB CONTENT — all tabs always mounted, zero DOM remount, zero blink ──
            Each tab uses the same flex+visibility trick as the AI tab.
