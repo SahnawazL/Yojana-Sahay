@@ -6300,7 +6300,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                   boxShadow:"0 2px 8px rgba(0,32,96,0.22)"}}>🛡️</div>
                 <div>
                   <div style={{fontSize:14,fontWeight:700,color:th.text,fontFamily:bf}}>Admin Dashboard</div>
-                  <div style={{fontSize:11,color:th.textSub,marginTop:1}}>View users, stats & export data</div>
+                  <div style={{fontSize:11,color:th.textSub,marginTop:1}}>Manage schemes, content & platform health</div>
                 </div>
               </div>
               <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
