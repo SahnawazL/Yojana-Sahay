@@ -37,6 +37,7 @@ const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
 const PLATFORM_ID   = "Platform ID: YSH-2026-IND · MIT Licensed · Beta";
 const DEV_WEBSITE   = "https://sahnawaz-portfolio.vercel.app";
 const CONTACT_EMAIL = "yojanasahayofficial@gmail.com";
+const GITHUB_REPO    = "https://github.com/SahnawazL/Yojana-Sahay";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -271,6 +272,7 @@ const STRINGS = {
 
     copyright:  "© 2026 Sahnawaz Ahmed Laskar · Open source under MIT License",
     footerNote: "YojanaSahay · An independent civic technology platform · India",
+    viewSource: "View Source",
     platformId: PLATFORM_ID,
   },
 
@@ -440,6 +442,7 @@ const STRINGS = {
 
     copyright:  "© 2026 Sahnawaz Ahmed Laskar · MIT License के अंतर्गत ओपन सोर्स",
     footerNote: "योजना सहाय · एक स्वतंत्र नागरिक प्रौद्योगिकी प्लेटफ़ॉर्म · भारत",
+    viewSource: "सोर्स देखें",
     platformId: PLATFORM_ID,
   },
 };
@@ -3015,6 +3018,29 @@ export default function AboutTab({ onClose, citizensGuided = null }) {
                   fontSize: 9, fontWeight: 700, letterSpacing: 0.6,
                   color: dark ? "rgba(255,255,255,0.50)" : "#334170", fontFamily: bf,
                 }}>MIT Licensed</span>
+              </div>
+
+              {/* View Source — GitHub (proves the MIT-licensed claim above) */}
+              <div
+                onClick={() => safeOpen(GITHUB_REPO)}
+                role="link"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === "Enter") safeOpen(GITHUB_REPO); }}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "4px 11px", borderRadius: 20,
+                  background: dark ? "rgba(255,255,255,0.05)" : "rgba(10,18,48,0.06)",
+                  border: dark ? "1px solid rgba(255,255,255,0.09)" : "1px solid rgba(10,18,48,0.11)",
+                  cursor: "pointer", WebkitTapHighlightColor: "transparent",
+                }}>
+                {/* GitHub mark */}
+                <svg width="9" height="9" viewBox="0 0 16 16" fill={dark ? "rgba(255,255,255,0.50)" : "#334170"}>
+                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, letterSpacing: 0.6,
+                  color: dark ? "rgba(255,255,255,0.50)" : "#334170", fontFamily: bf,
+                }}>{s.viewSource}</span>
               </div>
 
               {/* Made in India */}
