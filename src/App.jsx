@@ -7872,6 +7872,23 @@ function YojanaSahayInner(){
   const [selectedScheme,setSelectedScheme]=useState(null);   // SchemeDetailSheet
   const [selectedCategory,setSelectedCategory]=useState(null); // CategorySheet
   const [showAvatarModal,setShowAvatarModal]=useState(false);
+
+  // ── Deep-link from static SEO scheme pages ─────────────────────────────────
+  // /public/schemes/{id}.html and /public/yojana/{id}.html each link back here
+  // as "/?scheme={id}". On first mount, open that scheme's detail sheet
+  // automatically, then strip the query param so it doesn't reappear on
+  // subsequent in-app navigation or refresh.
+  useEffect(()=>{
+    try{
+      const params = new URLSearchParams(window.location.search);
+      const schemeId = params.get("scheme");
+      if(schemeId){
+        setSelectedScheme(schemeId);
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }catch{}
+  },[]);
+
   const [profile,setProfile]=useState(()=>{
     try{return JSON.parse(localStorage.getItem("yojana_profile")||"null")||null;}catch{return null;}
   });
