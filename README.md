@@ -1,9 +1,9 @@
 <div align="center">
 
 # 🇮🇳 Yojana Sahay
-### Official Government Scheme Finder
+### Government Scheme Discovery Platform
 
-**Bridging every Indian citizen to the welfare benefits they rightfully deserve**
+**Helping every Indian citizen find the welfare schemes available to them**
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-yojanasahay.vercel.app-blue?style=for-the-badge&logo=vercel)](https://yojanasahay.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
@@ -16,11 +16,11 @@
 
 ## 📖 About
 
-**Yojana Sahay** (योजना सहाय — *"Scheme Aid"*) is an independent civic technology platform built to help citizens of India discover and access the government welfare schemes they are legally entitled to.
+**Yojana Sahay** (योजना सहाय — *"Scheme Aid"*) is an independent civic technology platform built to help citizens of India discover and check their eligibility for government welfare schemes — schemes they may otherwise never find out about.
 
-The platform eliminates the information gap between citizens and the government welfare ecosystem — regardless of location, language, or literacy level — through smart search, an AI-powered assistant, and a personalized eligibility checker.
+The platform closes the information gap between citizens and the government welfare ecosystem — regardless of location, language, or literacy level — through smart search, an AI-powered assistant, and a personalized eligibility checker.
 
-> ⚠️ Yojana Sahay is an independent platform and is **not affiliated with, endorsed by, or representative of** any Central or State Government body or ministry.
+> ⚠️ **Yojana Sahay is an independent platform.** It is **not affiliated with, endorsed by, sponsored by, or representative of** any Central or State Government body, ministry, or department of India. All scheme information is aggregated from publicly available government sources for informational purposes only.
 
 ---
 
@@ -39,7 +39,7 @@ A real-time AI-powered assistant for scheme queries in **Hindi and English**. Pr
 An in-app support system for submitting bug reports, scheme addition requests, general queries, and feedback. Every submission is reviewed by the Yojana Sahay team with real-time status tracking (Open → In Progress → Resolved) and email responses.
 
 ### 🛡️ Admin Dashboard
-A comprehensive admin panel with user analytics, donut charts, bar charts, cross-tab breakdowns, scheme coverage metrics, paginated user management, and filtered CSV export.
+An internal, access-controlled panel for platform operations — scheme coverage tracking, usage analytics, and content management. Restricted to authorised administrators only.
 
 ### 🌙 Dark Mode & Bilingual UI
 Full dark/light theme toggle and seamless Hindi ↔ English language switching throughout the entire app.
@@ -161,9 +161,11 @@ Yojana Sahay supports three sign-in methods:
 
 - 📱 **Phone OTP** — via Firebase Phone Auth
 - 🔵 **Google Sign-In** — via Firebase Google Provider
-- 📧 **Email & Password** — via Firebase Email Auth
+- 📧 **Email & Password** — via Firebase Email Auth, with **forgot password** recovery support
 
-Signing in unlocks personalized scheme matching, profile-aware AI responses, report tracking, and email notifications.
+Scheme search and browsing are available without an account. Signing in unlocks personalized scheme matching, profile-aware AI responses, report tracking, and email notifications.
+
+> 🔒 Authentication is handled entirely via Firebase. Credentials and personal data are never shared with third parties — see the **No Third-Party Sharing** policy in the in-app About section for full details.
 
 ---
 
@@ -196,10 +198,11 @@ Logged-in users receive **automatic email confirmation** on submission and are *
 
 ## ⚖️ Legal & Disclaimer
 
-- Yojana Sahay is an **independent** digital platform and is not affiliated with any government body.
-- All scheme data is sourced from publicly available official government portals.
+- Yojana Sahay is an **independent** digital platform and is **not affiliated with, endorsed by, sponsored by, or representative of** any Central or State Government body, ministry, or department of India.
+- All scheme data is sourced from publicly available official government portals and is provided for **informational purposes only**.
+- Eligibility results shown in-app are **estimates based on user-provided answers** — they do not constitute legal entitlement, approval, or a guarantee of benefit.
 - Users are advised to **verify scheme details directly from official government sources** before applying.
-- Yojana Sahay does not facilitate direct applications, financial transactions, or document processing. It is solely an informational and discovery service.
+- Yojana Sahay does not facilitate direct applications, financial transactions, or document processing. It is solely an informational and discovery service, and accepts no liability for decisions made based on information shown in the app.
 
 ---
 
