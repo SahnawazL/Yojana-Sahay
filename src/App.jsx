@@ -3489,7 +3489,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                 </div>
               </div>
             </div>
-            <div onClick={()=>{onClose();}} style={{width:30,height:30,borderRadius:"50%",background:th.pillBg,border:`1.5px solid ${th.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:12,color:th.textSub,fontWeight:700}}>✕</div>
+            <div onClick={()=>{if(step===TOTAL){onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>answers[k]!==prefilledAnswers[k]));}onClose();}} style={{width:30,height:30,borderRadius:"50%",background:th.pillBg,border:`1.5px solid ${th.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:12,color:th.textSub,fontWeight:700}}>✕</div>
           </div>
           {/* Premium numbered stepper — replaces both old bars */}
           {step<TOTAL&&(
