@@ -522,6 +522,9 @@ function parseResponse(raw) {
 // ─── AI RESULTS BRIEF ────────────────────────────────────────────────────────
 // One-shot call — no conversation history, no scheme index, just the user's
 // results. Called automatically when the eligibility checker shows results.
+// 4 sentences: benefit + count, top scheme + apply step, near-miss/encouragement,
+// then an honest 4th sentence reminding the user the total is an estimate that
+// only becomes real after applying, approval, and correct documents per scheme.
 const WHO_LABEL    = { farmer:"Farmer", student:"Student", women:"Woman", senior:"Senior Citizen", business:"Business Owner", general:"General Citizen" };
 const INCOME_LABEL = { below1:"Below ₹1 Lakh", "1to3":"₹1–3 Lakh", "3to6":"₹3–6 Lakh", above6:"Above ₹6 Lakh" };
 const AGE_LABEL    = { below18:"Below 18", "18to35":"18–35 yrs", "35to60":"35–60 yrs", above60:"Above 60 yrs" };
@@ -558,7 +561,7 @@ export async function generateResultsBrief(answers, matchedSchemes, nearMissSche
     : "You are a warm Indian welfare advisor. Write in simple, encouraging English. Plain paragraph only — no bullets, no headers, no markdown.";
 
   const userPrompt = isHindi
-    ? `एक नागरिक की पात्रता जांच पूरी हुई। 3 वाक्यों का व्यक्तिगत सारांश लिखें:
+    ? `एक नागरिक की पात्रता जांच पूरी हुई। 4 वाक्यों का व्यक्तिगत सारांश लिखें:
 
 प्रोफाइल: ${profileLine}
 कुल वार्षिक लाभ: ${totalFormatted}
@@ -569,8 +572,9 @@ ${topNearMiss ? `लगभग मिलने वाली: ${topNearMiss}` : ""
 - पहले वाक्य में कुल लाभ और योजनाओं की संख्या बताएं
 - दूसरे वाक्य में सबसे बड़ी योजना और आवेदन की सलाह दें
 - ${topNearMiss ? "तीसरे वाक्य में सबसे अच्छी near-miss और क्या करना है बताएं" : "तीसरे वाक्य में प्रोत्साहन दें"}
-केवल सादा पैराग्राफ। 3 वाक्य।`
-    : `A citizen just completed the eligibility checker. Write a warm 3-sentence personal brief:
+- चौथे वाक्य में एक छोटी, सहज लाइन में ईमानदारी से बताएं कि यह कुल राशि एक अनुमान है — असली लाभ तभी मिलेगा जब वे हर योजना के लिए सही दस्तावेज़ों के साथ आवेदन करें और मंज़ूरी मिले। हतोत्साहित किए बिना, भरोसेमंद और सहयोगी लहजे में लिखें — चेतावनी जैसा न लगे।
+केवल सादा पैराग्राफ। ठीक 4 वाक्य।`
+    : `A citizen just completed the eligibility checker. Write a warm 4-sentence personal brief:
 
 Profile: ${profileLine}
 Total annual benefit: ${totalFormatted}
@@ -580,15 +584,16 @@ ${topNearMiss ? `Near-misses: ${topNearMiss}` : ""}
 Rules:
 - Sentence 1: open with the total benefit and scheme count unlocked
 - Sentence 2: name the highest-value scheme and give one concrete apply step
-- Sentence 3: ${topNearMiss ? "mention the most achievable near-miss and exactly what they need to qualify" : "end with an encouraging nudge to apply now"}
-Plain paragraph only. Exactly 3 sentences. No markdown.`;
+- Sentence 3: ${topNearMiss ? "mention the most achievable near-miss and exactly what they need to qualify" : "give an encouraging nudge to apply now"}
+- Sentence 4: in one short, honest line, note that this total is an estimate and becomes real only once they apply and get approved for each scheme with the correct documents — write it supportively, like helpful advice, not a warning
+Plain paragraph only. Exactly 4 sentences. No markdown.`;
 
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model:       MODEL,
-      max_tokens:  300,
+      max_tokens:  460, // 300 supported 3 sentences; 4 sentences scales to ~400 — set higher with buffer so the new honest 4th sentence never gets cut mid-word
       temperature: 0.4,
       messages: [
         { role: "system", content: systemPrompt },

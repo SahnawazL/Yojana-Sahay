@@ -554,6 +554,15 @@ const T = {
     stepOf:(c,t)=>`Step ${c} of ${t}`,
     nextBtn:"Next →", backBtn:"← Back", checkBtn:"Find My Schemes 🎯",
     matchSub:(n)=>`You qualify for ${n} scheme${n!==1?"s":""}`,
+    estimateTitle:"What These Numbers Mean",
+    estimateShort:"This is an estimate, not a guaranteed payout — tap to understand how it works",
+    estimateLess:"Show less",
+    estimatePoints:[
+      "These are schemes you may be eligible for based on your answers — being shown here is not the same as automatic approval.",
+      "The ₹ amount shown is the combined MAXIMUM benefit only if you successfully apply to and get approved for every matched scheme — not a guaranteed payout.",
+      "Each scheme has its own application process and is verified separately by its respective government department.",
+      "Keep your documents accurate and ready — incomplete or incorrect documents are the most common reason eligible applicants get rejected.",
+    ],
     centralLabel:"🇮🇳 Central", stateLabel:(s)=>`📍 ${s}`,
     noMatchTitle:"No exact matches", noMatchSub:"Try a different state or change your answers",
     retakeBtn:"Retake", doneBtn:"Done", fixAnswerBtn:"← Fix my answer",
@@ -683,6 +692,15 @@ const T = {
     stepOf:(c,t)=>`सवाल ${c} / ${t}`,
     nextBtn:"अगला →", backBtn:"← वापस", checkBtn:"मेरी योजनाएं खोजें 🎯",
     matchSub:(n)=>`आप ${n} योजना${n!==1?"ओं":""} के हकदार हैं`,
+    estimateTitle:"ये आंकड़े क्या दर्शाते हैं",
+    estimateShort:"यह एक अनुमान है, गारंटी नहीं — समझने के लिए टैप करें",
+    estimateLess:"कम दिखाएं",
+    estimatePoints:[
+      "ये वे योजनाएं हैं जिनके लिए आप अपने जवाबों के अनुसार शायद पात्र हैं — यहां दिखना स्वतः स्वीकृति नहीं है।",
+      "दिखाई गई ₹ राशि अधिकतम संभावित कुल लाभ है — सिर्फ तभी जब आप हर मिलान योजना के लिए सफलतापूर्वक आवेदन करें और मंज़ूरी मिले — यह गारंटीशुदा राशि नहीं है।",
+      "हर योजना की अपनी अलग आवेदन प्रक्रिया है और संबंधित सरकारी विभाग द्वारा अलग से सत्यापित की जाती है।",
+      "अपने दस्तावेज़ सही और तैयार रखें — गलत या अधूरे दस्तावेज़ ही पात्र लोगों के आवेदन रद्द होने की सबसे बड़ी वजह हैं।",
+    ],
     centralLabel:"🇮🇳 केंद्रीय", stateLabel:(s)=>`📍 ${s}`,
     noMatchTitle:"कोई मिलान नहीं", noMatchSub:"राज्य या जवाब बदलकर दोबारा कोशिश करें",
     retakeBtn:"फिर से", doneBtn:"पूरा हुआ", fixAnswerBtn:"← जवाब ठीक करें",
@@ -3172,6 +3190,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
   const animCountRaf=useRef(null);  // rAF handle for the count-up tween
   const prevCountRef=useRef(0);     // last committed count, so tween starts from it
   const [expandedId,setExpandedId]=useState(null);
+  const [showEstimateInfo,setShowEstimateInfo]=useState(false); // "What These Numbers Mean" disclaimer expand/collapse
 
   const [results,setResults]=useState(()=>{
     if(prefilledAnswers) return SCHEME_DB.filter(s=>s.match(prefilledAnswers));
@@ -3853,7 +3872,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                           :`${(animatedBenefit/1000).toFixed(0)}K`}
                       </div>
                       <div style={{fontSize:11.5,color:"rgba(255,255,255,0.72)",marginTop:5,fontFamily:bf,fontWeight:500}}>
-                        {isHindi?"आप इसके हकदार हैं — अभी आवेदन करें!":"You're entitled to this — claim it now!"}
+                        {isHindi?"*अनुमानित — सभी योजनाओं में आवेदन व मंज़ूरी पर निर्भर":"*Estimated — if you apply & get approved for all matched schemes"}
                       </div>
                     </div>
                   )}
@@ -3875,6 +3894,39 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* ── "What These Numbers Mean" — honest-estimate disclaimer ──
+                     Addresses the "this feels fake / how could I get ₹80L"
+                     reaction: clarifies the ₹ figure is a maximum potential
+                     total, not a guaranteed payout, and that documents +
+                     per-scheme approval still decide the real outcome.       */}
+                <div style={{
+                  background:dark?"rgba(255,153,51,0.08)":"rgba(255,153,51,0.06)",
+                  border:`1.5px solid ${dark?"rgba(255,153,51,0.28)":"rgba(255,153,51,0.30)"}`,
+                  borderRadius:16,padding:"13px 15px",marginBottom:16,
+                }}>
+                  <div onClick={()=>{haptic();setShowEstimateInfo(v=>!v);}} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+                    <div style={{width:30,height:30,borderRadius:9,flexShrink:0,background:"rgba(255,153,51,0.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15}}>📋</div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:12.5,fontWeight:800,color:dark?"#FFB366":"#B45309",fontFamily:bf,lineHeight:1.3}}>{t.estimateTitle}</div>
+                      <div style={{fontSize:10.5,color:dark?"rgba(255,179,102,0.75)":"rgba(180,83,9,0.75)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>{t.estimateShort}</div>
+                    </div>
+                    <span style={{fontSize:13,color:dark?"rgba(255,179,102,0.7)":"rgba(180,83,9,0.65)",flexShrink:0,transform:showEstimateInfo?"rotate(180deg)":"none",transition:"transform 0.25s",marginTop:1}}>▾</span>
+                  </div>
+                  {showEstimateInfo&&(
+                    <div style={{marginTop:11,paddingTop:11,borderTop:`1px solid ${dark?"rgba(255,153,51,0.18)":"rgba(255,153,51,0.20)"}`,display:"flex",flexDirection:"column",gap:8,animation:"briefSlideIn 0.2s ease"}}>
+                      {t.estimatePoints.map((p,i)=>(
+                        <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                          <span style={{fontSize:12,flexShrink:0,marginTop:1}}>{["🎯","💰","📝","📎"][i]||"•"}</span>
+                          <span style={{fontSize:11.5,lineHeight:1.55,color:dark?"#FCD9B0":"#92400E",fontFamily:bf}}>{p}</span>
+                        </div>
+                      ))}
+                      <div onClick={()=>{haptic();setShowEstimateInfo(false);}} style={{textAlign:"center",fontSize:10.5,color:dark?"rgba(255,179,102,0.6)":"rgba(180,83,9,0.55)",fontFamily:bf,marginTop:2,cursor:"pointer"}}>
+                        {t.estimateLess}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* ── AI Results Brief ── */}
