@@ -620,6 +620,14 @@ function UserRow({ user, dark, onTap }) {
         <div style={{ fontSize:9, color:th.textSub, marginTop:2 }}>
           {timeAgo(user.lastSeen)}
         </div>
+        {user.lastSessionDuration ? (
+          <div style={{
+            fontSize:9, color:IND_GREEN, fontWeight:700, marginTop:2,
+            display:"flex", alignItems:"center", justifyContent:"flex-end", gap:2,
+          }}>
+            ⏱️ {formatDuration(user.lastSessionDuration)}
+          </div>
+        ) : null}
       </div>
       <div style={{ fontSize:14, color:th.textSub, flexShrink:0 }}>›</div>
     </div>
