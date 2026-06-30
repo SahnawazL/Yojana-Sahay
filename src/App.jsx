@@ -3902,47 +3902,62 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                      total, not a guaranteed payout, and that documents +
                      per-scheme approval still decide the real outcome.       */}
                 <div style={{
-                  position:"relative",borderRadius:14,marginBottom:16,padding:1,
+                  position:"relative",borderRadius:13,marginBottom:16,padding:1,
                   background: dark
-                    ? "linear-gradient(135deg,rgba(255,179,102,0.30),rgba(255,153,51,0.14),rgba(255,179,102,0.26))"
-                    : "linear-gradient(135deg,rgba(217,119,6,0.20),rgba(255,153,51,0.10),rgba(217,119,6,0.16))",
-                  boxShadow: dark
-                    ? "0 3px 14px rgba(255,153,51,0.08)"
-                    : "0 3px 12px rgba(217,119,6,0.06)",
+                    ? "linear-gradient(140deg,rgba(255,255,255,0.10),rgba(255,153,51,0.20),rgba(255,255,255,0.04))"
+                    : "linear-gradient(140deg,rgba(217,119,6,0.16),rgba(255,153,51,0.07),rgba(217,119,6,0.10))",
                 }}>
                   <div style={{
-                    borderRadius:13,overflow:"hidden",
-                    background: dark ? "#1C1410" : "#FFFBF5",
+                    borderRadius:12,overflow:"hidden",
+                    background: dark ? "#1A1512" : "#FFFFFF",
+                    boxShadow: dark
+                      ? "inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 10px rgba(0,0,0,0.18)"
+                      : "inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 10px rgba(120,75,10,0.06)",
                   }}>
-                    <div onClick={()=>{haptic();setShowEstimateInfo(v=>!v);}} style={{display:"flex",alignItems:"center",gap:9,cursor:"pointer",WebkitTapHighlightColor:"transparent",padding:"11px 13px"}}>
+                    <div onClick={()=>{haptic();setShowEstimateInfo(v=>!v);}} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",WebkitTapHighlightColor:"transparent",padding:"10.5px 13px"}}>
                       <div style={{
-                        width:26,height:26,borderRadius:8,flexShrink:0,
-                        background: dark
-                          ? "linear-gradient(135deg,rgba(255,153,51,0.30),rgba(255,179,102,0.16))"
-                          : "linear-gradient(135deg,rgba(255,153,51,0.22),rgba(255,179,102,0.12))",
-                        border:`1px solid ${dark?"rgba(255,153,51,0.22)":"rgba(217,119,6,0.16)"}`,
-                        display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,
-                      }}>📋</div>
+                        width:25,height:25,borderRadius:"50%",flexShrink:0,
+                        background: dark ? "rgba(255,153,51,0.13)" : "rgba(217,119,6,0.09)",
+                        border:`1px solid ${dark?"rgba(255,153,51,0.30)":"rgba(217,119,6,0.24)"}`,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        fontSize:11,fontWeight:800,fontFamily:bf,
+                        color:dark?"#FFB266":"#B45309",
+                      }}>i</div>
                       <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:11.5,fontWeight:700,letterSpacing:0.1,color:dark?"#FFC785":"#9A5B0A",fontFamily:bf,lineHeight:1.3}}>{t.estimateTitle}</div>
-                        <div style={{fontSize:10,color:dark?"rgba(255,199,133,0.62)":"rgba(154,91,10,0.65)",marginTop:1.5,fontFamily:bf,lineHeight:1.4}}>{t.estimateShort}</div>
+                        <div style={{fontSize:11.5,fontWeight:700,letterSpacing:0.15,color:dark?"#F2E4D8":"#3D2B12",fontFamily:bf,lineHeight:1.3}}>{t.estimateTitle}</div>
+                        <div style={{fontSize:10,color:dark?"rgba(242,228,216,0.50)":"rgba(61,43,18,0.55)",marginTop:1.5,fontFamily:bf,lineHeight:1.4}}>{t.estimateShort}</div>
                       </div>
-                      <span style={{fontSize:11,color:dark?"rgba(255,199,133,0.55)":"rgba(154,91,10,0.5)",flexShrink:0,transform:showEstimateInfo?"rotate(180deg)":"none",transition:"transform 0.3s cubic-bezier(0.4,0,0.2,1)"}}>▾</span>
+                      <div style={{
+                        width:20,height:20,borderRadius:"50%",flexShrink:0,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.035)",
+                        transform:showEstimateInfo?"rotate(180deg)":"none",
+                        transition:"transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+                      }}>
+                        <span style={{fontSize:9,color:dark?"rgba(242,228,216,0.6)":"rgba(61,43,18,0.5)"}}>▾</span>
+                      </div>
                     </div>
                     <div style={{
                       maxHeight: showEstimateInfo ? 400 : 0,
                       opacity: showEstimateInfo ? 1 : 0,
                       overflow:"hidden",
-                      transition:"max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
+                      transition:"max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease",
                     }}>
-                      <div style={{padding:"0 13px 11px",display:"flex",flexDirection:"column",gap:7,borderTop:`1px solid ${dark?"rgba(255,153,51,0.12)":"rgba(217,119,6,0.12)"}`,marginTop:0,paddingTop:9}}>
+                      <div style={{margin:"0 13px",borderTop:`1px solid ${dark?"rgba(255,255,255,0.07)":"rgba(61,43,18,0.08)"}`}}/>
+                      <div style={{padding:"10px 13px 12px",display:"flex",flexDirection:"column",gap:8}}>
                         {t.estimatePoints.map((p,i)=>(
-                          <div key={i} style={{display:"flex",gap:7,alignItems:"flex-start"}}>
-                            <span style={{fontSize:10.5,flexShrink:0,marginTop:1.5,opacity:0.85}}>{["🎯","💰","📝","📎"][i]||"•"}</span>
-                            <span style={{fontSize:10.5,lineHeight:1.55,color:dark?"#F0C99A":"#7C4A0A",fontFamily:bf}}>{p}</span>
+                          <div key={i} style={{display:"flex",gap:9,alignItems:"flex-start"}}>
+                            <div style={{
+                              width:14,height:14,borderRadius:"50%",flexShrink:0,marginTop:1.5,
+                              background:dark?"rgba(255,153,51,0.14)":"rgba(217,119,6,0.10)",
+                              display:"flex",alignItems:"center",justifyContent:"center",
+                              fontSize:8,fontWeight:800,fontFamily:bf,
+                              color:dark?"#FFB266":"#B45309",
+                            }}>{i+1}</div>
+                            <span style={{fontSize:10.5,lineHeight:1.55,color:dark?"rgba(242,228,216,0.82)":"rgba(61,43,18,0.78)",fontFamily:bf}}>{p}</span>
                           </div>
                         ))}
-                        <div onClick={()=>{haptic();setShowEstimateInfo(false);}} style={{textAlign:"center",fontSize:10,color:dark?"rgba(255,199,133,0.5)":"rgba(154,91,10,0.45)",fontFamily:bf,marginTop:2,cursor:"pointer"}}>
+                        <div onClick={()=>{haptic();setShowEstimateInfo(false);}} style={{textAlign:"center",fontSize:10,fontWeight:600,color:dark?"rgba(255,178,102,0.65)":"rgba(180,83,9,0.6)",fontFamily:bf,marginTop:3,cursor:"pointer"}}>
                           {t.estimateLess}
                         </div>
                       </div>
