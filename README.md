@@ -27,7 +27,7 @@ The platform closes the information gap between citizens and the government welf
 ## ✨ Features
 
 ### 🔍 Smart Scheme Discovery
-Search and browse 3,000+ Central and State government schemes, filtered by category, state, and beneficiary type. Instant results with detailed eligibility criteria, benefits, and application guidance.
+Search and browse a constantly expanding database of Central and State government schemes, filtered by category, state, and beneficiary type. Instant results with detailed eligibility criteria, benefits, and application guidance.
 
 ### 🎯 Eligibility Checker
 A 6-step guided questionnaire that analyses your profile and instantly matches the schemes you qualify for — no guesswork, no wasted time.
@@ -50,7 +50,7 @@ Full dark/light theme toggle and seamless Hindi ↔ English language switching t
 
 | Metric | Value |
 |--------|-------|
-| Government Schemes Indexed | 3,000+ |
+| Government Schemes Indexed | Growing weekly 📈 |
 | States & UTs Covered | 28+ |
 | Languages Supported | 2 (Hindi & English) |
 | Cost to Citizens | Free |
