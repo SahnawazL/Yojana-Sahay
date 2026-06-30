@@ -36,6 +36,12 @@ export default defineConfig({
         skipWaiting:  true,
         clientsClaim: true,
 
+        // Workbox's default precache limit is 2 MiB. App.jsx is a large single-file
+        // component (9,600+ lines) so the built bundle exceeds that. Raised to 5 MiB
+        // to cover it with headroom. Long-term, consider React.lazy() code-splitting
+        // for AdminDashboard.jsx / SchemeVerifier.jsx to shrink the main bundle.
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+
         // SPA fallback: any navigation that isn't a precached file serves index.html.
         // Denylist: /api/* must never fall back to index.html (they're server functions).
         navigateFallback:          "/index.html",
