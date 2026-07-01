@@ -24,7 +24,7 @@ import { getNextStartIdx }          from "./groqRotation.js";
 import { logApiCallToHistory }      from "./apiCallHistory.js";
 import { FieldValue }  from "firebase-admin/firestore";
 import nodemailer      from "nodemailer";
-import { SCHEME_DB }   from "../schemesData.js";
+import { SCHEME_DB }   from "../../src/schemesData.js";
 
 const DAYS_WINDOW           = 7;  // alert when a deadline is within this many days
 const MAX_SCHEMES_PER_EMAIL = 6;  // keep the digest readable
