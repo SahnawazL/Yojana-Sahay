@@ -23,6 +23,7 @@ import SchemeVerifier from "./SchemeVerifier.jsx";
 import AgentsTab, { useAgentPresence, useDailyTimeTracking, logAdminActivity } from "./AgentsTab.jsx";
 import NewsTab from "./NewsTab.jsx";
 import FAQFeedbackTab from "./FAQFeedbackTab.jsx";
+import DeadlineAlertsTab from "./DeadlineAlertsTab.jsx";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -188,6 +189,12 @@ const TAB_ICONS = {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
       <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
       <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+    </svg>
+  ),
+  deadlines: (color="currentColor", size=12) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 01-3.46 0"/>
     </svg>
   ),
 };
@@ -3564,6 +3571,7 @@ const ICON_PATHS = {
   phone: <path d="M20.5 16.8v2.5a1.7 1.7 0 0 1-1.85 1.7 16.6 16.6 0 0 1-7.24-2.58 16.4 16.4 0 0 1-5.05-5.05A16.6 16.6 0 0 1 3.78 5.6 1.7 1.7 0 0 1 5.46 3.75h2.5a1.7 1.7 0 0 1 1.7 1.46c.1.8.3 1.6.59 2.35a1.7 1.7 0 0 1-.38 1.79l-1.06 1.06a13.5 13.5 0 0 0 5.06 5.06l1.06-1.06a1.7 1.7 0 0 1 1.79-.38c.75.29 1.55.49 2.35.59a1.7 1.7 0 0 1 1.45 1.7z"/>,
   card: <><rect x="2" y="5.5" width="20" height="13" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></>,
   news: <><path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><line x1="16" y1="3" x2="16" y2="21"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="8" y1="14" x2="13" y2="14"/><line x1="8" y1="18" x2="11" y2="18"/></>,
+  deadline: <><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></>,
 };
 
 function Icon({ name, size = 16, color = "currentColor", strokeWidth = 1.8, style }) {
@@ -3939,6 +3947,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
     reports:   { desc:"User-reported issues, admin replies & status workflow",     badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badge2Color: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)", icon:"reports" },
     cleanup:   { desc:"Purge resolved reports & flush stale usage data",           badge:"database hygiene",                                                                badge2Color:"#F59E0B", accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"cleanup" },
     verify:    { desc:"Ping scheme URLs & extract deadlines via AI",               badge:"Tier 1 + Tier 2",                                                                 badge2Color:NAVY,      accentColor:NAVY,      glow:"rgba(0,53,128,0.35)",     icon:"verify" },
+    deadlines: { desc:"Email users about scheme deadlines closing soon",           badge:"auto + manual",                                                                   badge2Color:VIOLET,    accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"deadline" },
     agents:    { desc:"Live presence, session tracking & activity feed for agents", badge:"live · auto-refresh",                                                             badge2Color:IND_GREEN, accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"agents" },
     news:      { desc:"Manage scheme news ticker — add, toggle & sync live updates",  badge:"live ticker",                                                                     badge2Color:SAFFRON,   accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"news" },
     faq:       { desc:"👍/👎 helpfulness votes per FAQ — spot confusing answers fast", badge:"user feedback",                                                                   badge2Color:VIOLET,    accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"faq"  },
@@ -5854,6 +5863,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     ["reports",   "Reports"],
     ["cleanup",   "Cleanup"],
     ["verify",    "Verify"],
+    ["deadlines", "Deadlines"],
     ["agents",    "Agents"],
     ["news",      "News"],
     ["faq",       "FAQ Feedback"],
@@ -7647,6 +7657,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       {/* ══ VERIFY — Scheme URL Verifier ══ */}
       {!loading && !error && activeSection === "verify" && (
         <SchemeVerifier dark={dark} isDesktop={isDesktop} />
+      )}
+
+      {/* ══ DEADLINES — Scheme Deadline Alert Emails ══ */}
+      {!loading && !error && activeSection === "deadlines" && (
+        <DeadlineAlertsTab dark={dark} isDesktop={isDesktop} />
       )}
 
       {/* ══ AGENTS — Live Presence Monitor ══ */}
