@@ -43,7 +43,7 @@ const db = getFirestore();
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const GROQ_URL    = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL       = "llama-3.1-8b-instant"; // fast + cheap for summarisation
+const MODEL       = "openai/gpt-oss-20b"; // migrated from llama-3.1-8b-instant (Groq deprecated it June 17, 2026) — fast + cheap for summarisation, free tier, 200K TPD
 const MAX_NEWS    = 20;   // max auto-fetched docs kept in Firestore at once
 const MAX_NEW     = 8;    // max new items to process per cron run
 const FETCH_MS    = 8000; // RSS fetch timeout

@@ -28,7 +28,7 @@ import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
 
 const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_EXTRACT = "https://api.tavily.com/extract";
-const MODEL          = "llama-3.1-8b-instant"; // 8b is sufficient for JSON extraction — ~80% fewer tokens than 70b
+const MODEL          = "openai/gpt-oss-20b"; // migrated from llama-3.1-8b-instant (Groq deprecated it June 17, 2026) — sufficient for JSON extraction, free tier, 200K TPD
 const FETCH_TIMEOUT  = 10000;   // 10 s — Tavily is fast but allow some headroom
 const MAX_PAGE_CHARS = 4000;    // truncate stripped text to keep tokens low
 
