@@ -13,7 +13,11 @@
 // Uses the dedicated GROQ_VERIFY_KEY (same as verify-scheme.js) so insights
 // runs never consume the main chat pool's daily quota.
 //
-// Model: llama-3.3-70b-versatile — best JSON adherence in Groq's lineup.
+// Model: openai/gpt-oss-120b — migrated from llama-3.3-70b-versatile, which
+// Groq deprecated (announced June 17, 2026) and is decommissioning. gpt-oss-120b
+// is Groq's recommended replacement: strong JSON adherence, free tier, hosted
+// directly on Groq's LPU hardware. Free-tier limits per key: 30 RPM / 1K RPD /
+// 8K TPM / 200K TPD (2x the daily token budget of the old model).
 // Temperature 0.2 — low randomness for deterministic structured output.
 // max_tokens 800 — enough for the 4-field JSON shape SmartInsightsPanel expects.
 //
@@ -24,7 +28,7 @@ import { getNextStartIdx } from "./_lib/groqRotation.js";
 import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
 
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL         = "llama-3.3-70b-versatile";
+const MODEL         = "openai/gpt-oss-120b";
 const MAX_TOKENS    = 800;
 const TEMPERATURE   = 0.2;
 
