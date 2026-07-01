@@ -9,7 +9,7 @@
       "schedule": "0 4 */3 * *"
     },
     {
-      "path":     "/api/send-deadline-alerts",
+      "path":     "/api/deadline-alerts",
       "schedule": "0 5 * * *"
     }
   ]
