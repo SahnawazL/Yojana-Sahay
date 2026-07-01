@@ -7,7 +7,7 @@
 //   • "Send Alerts Now" manual trigger button
 //   • A send log — recent runs, each expandable to see which emails got sent
 //
-// Talks to /api/admin-send-deadline-alerts.js (GET for history, POST to trigger),
+// Talks to /api/deadline-alerts.js (GET for history, POST to trigger),
 // authenticated with the current admin's Firebase ID token.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -63,7 +63,7 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
       const idToken = await getAuth().currentUser?.getIdToken();
       if (!idToken) throw new Error("Not signed in");
 
-      const res = await fetch("/api/admin-send-deadline-alerts", {
+      const res = await fetch("/api/deadline-alerts", {
         headers: { Authorization: `Bearer ${idToken}` },
       });
       const data = await res.json().catch(() => ({}));
@@ -85,7 +85,7 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
       const idToken = await getAuth().currentUser?.getIdToken();
       if (!idToken) throw new Error("Not signed in");
 
-      const res = await fetch("/api/admin-send-deadline-alerts", {
+      const res = await fetch("/api/deadline-alerts", {
         method: "POST",
         headers: { Authorization: `Bearer ${idToken}` },
       });
