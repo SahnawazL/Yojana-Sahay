@@ -11,6 +11,15 @@
     {
       "path":     "/api/deadline-alerts",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path":     "/api/agent-auto-fix",
+      "schedule": "0 3 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "api/agent-auto-fix.js": {
+      "maxDuration": 60
+    }
+  }
 }
