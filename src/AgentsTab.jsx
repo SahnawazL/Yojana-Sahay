@@ -1689,6 +1689,174 @@ const StatCard = React.memo(function StatCard({ label, value, color, Icon, toolt
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Auto-Fix Agent Card
+// ─────────────────────────────────────────────────────────────────────────────
+// Unlike the human/AI agents above (which track live presence via a Firestore
+// heartbeat), agent-auto-fix.js is a once-daily cron job with no "online"
+// concept — so instead of AgentCard, this reads the latest doc from the
+// `agentRuns` collection and shows what its last run actually did: schemes
+// scanned, URLs auto-fixed, items flagged for manual review, any failures.
+// ═════════════════════════════════════════════════════════════════════════════
+const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  const ISSUE_LABEL = {
+    MULTI_URL: "Multiple URLs",
+    TEXT_ONLY: "No URL (text only)",
+    NO_URL:    "URL missing",
+  };
+  const ISSUE_COLOR = { MULTI_URL: SAFFRON, TEXT_ONLY: "#EF4444", NO_URL: "#EF4444" };
+
+  const hasRun    = !!run;
+  const hasFail   = hasRun && run.autoFixFailed > 0;
+  const statusColor = !hasRun ? th.textSub : hasFail ? "#EF4444" : IND_GREEN;
+  const statusLabel = !hasRun ? "No runs yet" : hasFail ? "Ran with errors" : "Healthy";
+
+  return (
+    <div style={{
+      position:"relative",
+      background: th.card,
+      border:`1px solid ${th.border}`,
+      borderRadius:12,
+      overflow:"hidden",
+    }}>
+      <div style={{ height:2.5, background:`linear-gradient(90deg, ${CYAN}, ${CYAN}40)`, boxShadow:`0 0 8px ${CYAN}80` }} />
+
+      <div style={{ padding:"13px 14px" }}>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:11 }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+              <div style={{
+                width:24, height:24, borderRadius:7, flexShrink:0,
+                background:`${CYAN}18`, display:"flex", alignItems:"center", justifyContent:"center",
+              }}>
+                <IconRadar size={13} color={CYAN} />
+              </div>
+              <div style={{ fontSize:fs(13, isDesktop), fontWeight:800, color:th.text }}>
+                Auto-Fix Agent
+              </div>
+            </div>
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginTop:3, marginLeft:31 }}>
+              SchemeVerifier · NO_HTTPS URL patcher · daily cron
+            </div>
+          </div>
+          <div style={{
+            display:"flex", alignItems:"center", gap:5,
+            padding:"3px 9px", borderRadius:20,
+            background:`${statusColor}18`, border:`1px solid ${statusColor}40`,
+            flexShrink:0,
+          }}>
+            <span style={{ width:6, height:6, borderRadius:"50%", background:statusColor }} />
+            <span style={{ fontSize:fs(9, isDesktop), fontWeight:700, color:statusColor }}>
+              {loading ? "Loading…" : statusLabel}
+            </span>
+          </div>
+        </div>
+
+        {loading ? (
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
+            {[0,1,2,3].map(i => <Skeleton key={i} height={54} radius={10} dark={dark} />)}
+          </div>
+        ) : !hasRun ? (
+          <div style={{
+            padding:"16px", textAlign:"center", color:th.textSub, fontSize:fs(11, isDesktop),
+            border:`1px dashed ${th.border}`, borderRadius:10,
+          }}>
+            Waiting for the first 3 AM run. Nothing scanned yet.
+          </div>
+        ) : (
+          <>
+            {/* Stat tiles */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginBottom:10 }}>
+              {[
+                { label:"Scanned",  value: run.totalSchemesScanned ?? 0, color: th.textMid },
+                { label:"Fixed",    value: run.autoFixed ?? 0,           color: IND_GREEN },
+                { label:"Review",   value: run.needsReviewCount ?? 0,    color: SAFFRON },
+                { label:"Failed",   value: run.autoFixFailed ?? 0,       color: run.autoFixFailed ? "#EF4444" : th.textSub },
+              ].map(t => (
+                <div key={t.label} style={{
+                  background: th.card2, borderRadius:10, padding:"9px 8px",
+                  border:`1px solid ${th.border}`,
+                }}>
+                  <div style={{ fontSize:fs(17, isDesktop), fontWeight:800, color:t.color, fontFamily:"monospace" }}>
+                    {t.value}
+                  </div>
+                  <div style={{ fontSize:fs(8, isDesktop), color:th.textSub, marginTop:2, fontWeight:700, textTransform:"uppercase", letterSpacing:0.3 }}>
+                    {t.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Last run + commits */}
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, display:"flex", flexWrap:"wrap", gap:"4px 14px", marginBottom: run.needsReviewCount > 0 ? 10 : 0 }}>
+              <span>Last run: <strong style={{ color:th.textMid }}>{timeAgo(run.createdAt)}</strong></span>
+              {run.commits?.length > 0 && (
+                <span>
+                  Commits: <strong style={{ color:th.textMid }}>{run.commits.length}</strong>
+                  {" "}({run.commits.reduce((s,c)=>s+(c.count||0),0)} URL{run.commits.reduce((s,c)=>s+(c.count||0),0)!==1?"s":""})
+                </span>
+              )}
+            </div>
+
+            {/* Needs-review list — collapsible */}
+            {run.needsReviewCount > 0 && (
+              <div>
+                <div
+                  {...activatable(() => setReviewOpen(v => !v), `${reviewOpen ? "Collapse" : "Expand"} ${run.needsReviewCount} items needing review`)}
+                  onClick={() => setReviewOpen(v => !v)}
+                  style={{
+                    display:"flex", alignItems:"center", gap:6, cursor:"pointer",
+                    fontSize:fs(10, isDesktop), fontWeight:700, color:SAFFRON, userSelect:"none",
+                  }}
+                >
+                  <IconAlert size={11} color={SAFFRON} />
+                  {run.needsReviewCount} scheme{run.needsReviewCount !== 1 ? "s" : ""} need manual review
+                  <span style={{ marginLeft:"auto", transform: reviewOpen ? "rotate(90deg)" : "none", transition:"transform 0.15s" }}>
+                    <IconChevronRight size={11} color={th.textSub} />
+                  </span>
+                </div>
+
+                {reviewOpen && (
+                  <div style={{
+                    marginTop:8, maxHeight:180, overflowY:"auto",
+                    border:`1px solid ${th.border}`, borderRadius:9,
+                  }}>
+                    {run.needsReview.map((item, i) => (
+                      <div key={item.id + i} style={{
+                        display:"flex", alignItems:"center", gap:8, padding:"7px 9px",
+                        borderBottom: i < run.needsReview.length - 1 ? `1px solid ${th.border}` : "none",
+                      }}>
+                        <span style={{
+                          fontSize:fs(8, isDesktop), fontWeight:700, padding:"2px 6px", borderRadius:5, flexShrink:0,
+                          background:`${ISSUE_COLOR[item.type] || th.textSub}18`, color: ISSUE_COLOR[item.type] || th.textSub,
+                        }}>
+                          {ISSUE_LABEL[item.type] || item.type}
+                        </span>
+                        <span style={{ fontSize:fs(10, isDesktop), color:th.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                          {item.name}
+                        </span>
+                        {item.state && (
+                          <span style={{ fontSize:fs(8.5, isDesktop), color:th.textSub, marginLeft:"auto", flexShrink:0 }}>
+                            {item.state}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Activity Timeline Row
 // ═════════════════════════════════════════════════════════════════════════════
 const ActivityRow = React.memo(function ActivityRow({ act, dark, isLast, isDesktop }) {
@@ -5187,6 +5355,41 @@ export default function AgentsTab({ dark, isDesktop }) {
   const chatAgents   = useMemo(() => displayAgents.filter(a => CHAT_AI_IDS.has(a.id)),   [displayAgents]);
   const verifyAgents = useMemo(() => displayAgents.filter(a => VERIFY_AI_IDS.has(a.id)), [displayAgents]);
 
+  // ── Auto-Fix Agent — latest run from Firestore `agentRuns` collection ────
+  // Live via onSnapshot (not the 30s poll) so a run that lands while the
+  // dashboard is open shows up immediately, same as the rest of the tab.
+  const [autoFixRun, setAutoFixRun] = useState(null);
+  const [autoFixLoading, setAutoFixLoading] = useState(true);
+
+  useEffect(() => {
+    // NOTE: deliberately no orderBy() here. Combining where("agent","==",…)
+    // with orderBy("createdAt", …) on a different field requires a Firestore
+    // COMPOSITE INDEX that doesn't exist by default — the query would fail
+    // silently into the onSnapshot error branch until you manually created
+    // one in the Firebase console. Fetching the last few docs and sorting
+    // client-side avoids that setup step entirely — zero Firestore config
+    // needed beyond the collection existing.
+    const q = query(
+      collection(db, "agentRuns"),
+      where("agent", "==", "agent-auto-fix"),
+      limit(10)
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      if (snap.empty) {
+        setAutoFixRun(null);
+      } else {
+        const docs = snap.docs.map(d => d.data());
+        docs.sort((a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0));
+        setAutoFixRun(docs[0]);
+      }
+      setAutoFixLoading(false);
+    }, (err) => {
+      console.error("[AgentsTab] agentRuns listener failed:", err.message);
+      setAutoFixLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
   // Renders one section's grid of cards — shared by all three sections below.
   // auto-fit (not auto-fill): auto-fill reserves empty 280px+ column tracks
   // even when a section has fewer cards than fit in a row (e.g. AI Chat and
@@ -5495,6 +5698,17 @@ export default function AgentsTab({ dark, isDesktop }) {
           )}
         </>
       )}
+
+      {/* ── Autonomous Agents — cron-triggered, no live presence concept ── */}
+      <SectionFrame
+        label="Autonomous Agents"
+        sublabel="agentRuns firestore log — no presence heartbeat, runs on its own schedule"
+        color={CYAN}
+        dark={dark}
+        isDesktop={isDesktop}
+      >
+        <AutoFixAgentCard run={autoFixRun} loading={autoFixLoading} dark={dark} isDesktop={isDesktop} />
+      </SectionFrame>
 
       {/* ── API Call History — 30-day tracker, above attendance ────────── */}
       <ApiCallHistoryPanel
