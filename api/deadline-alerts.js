@@ -22,8 +22,8 @@
  * and (optionally) CRON_SECRET for manual cron testing via curl.
  */
 
-import { getAdminDb, getAdminAuth } from "./_lib/firebaseAdmin.js";
-import { runDeadlineAlerts }        from "./_lib/deadlineAlerts.js";
+import { getAdminDb, getAdminAuth }        from "./_lib/firebaseAdmin.js";
+import { runDeadlineAlerts, DAILY_EMAIL_LIMIT } from "./_lib/deadlineAlerts.js";
 
 // ── Verify the caller is an admin via Firebase ID token ────────────────────
 async function verifyAdmin(req) {
@@ -93,10 +93,22 @@ export default async function handler(req, res) {
           sent:        data.sent,
           skipped:     data.skipped,
           recipients:  data.recipients ?? [],
+          quotaUsed:   data.quotaUsed ?? null,
+          quotaLimit:  data.quotaLimit ?? null,
+          quotaHit:    data.quotaHit ?? false,
         };
       });
 
-      return res.status(200).json({ runs });
+      // Live daily quota — independent of any single run, so the admin tab can
+      // show "X / 450 sent today" even between runs.
+      const todayKey  = new Date().toISOString().slice(0, 10);
+      const quotaSnap = await auth.db.collection("emailQuota").doc(todayKey).get();
+      const todayQuota = {
+        used:  quotaSnap.exists ? (quotaSnap.data().count || 0) : 0,
+        limit: DAILY_EMAIL_LIMIT,
+      };
+
+      return res.status(200).json({ runs, todayQuota });
     } catch (err) {
       console.error("[deadline-alerts] Failed to fetch history:", err.message);
       return res.status(500).json({ error: "Could not load run history" });
