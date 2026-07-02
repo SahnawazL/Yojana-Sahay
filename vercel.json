@@ -1,0 +1,25 @@
+{
+  "rewrites": [
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/(.*)",  "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path":     "/api/refresh-news",
+      "schedule": "0 4 */3 * *"
+    },
+    {
+      "path":     "/api/deadline-alerts",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path":     "/api/agent-auto-fix",
+      "schedule": "0 3 * * *"
+    }
+  ],
+  "functions": {
+    "api/agent-auto-fix.js": {
+      "maxDuration": 60
+    }
+  }
+}
