@@ -6,17 +6,22 @@
 import { SCHEME_DB } from "./schemesData.js";
 
 // ─── MODEL SELECTION ─────────────────────────────────────────────────────────
-// llama-3.3-70b-versatile → 128K context · best quality on Groq free tier
-//   • Much better at multi-turn conversations, Hindi, and nuanced scheme answers
-//   • Same free-tier rate limits as 8b (30 RPM / 6K TPM / 1K RPD per key)
-//   • Groq LPU keeps it fast despite 70B size (~300 tok/s)
+// llama-3.3-70b-versatile was deprecated by Groq (announced June 17, 2026) and
+// is being decommissioned — migrated to openai/gpt-oss-120b, Groq's recommended
+// replacement for this exact model.
+//
+// openai/gpt-oss-120b → free tier, hosted directly on Groq's LPU hardware
+//   • Free-tier limits per key: 30 RPM / 1K RPD / 8K TPM / 200K TPD
+//     (2x the daily token budget vs the old model's 100K TPD — better fit
+//      for our 6-key rotation pool and real daily traffic)
+//   • Strong JSON adherence, multi-turn conversation, and Hindi support
 //
 // Alternatives (swap MODEL string if needed):
-//   "llama-3.1-8b-instant"    → fastest, lowest quality, same limits
-//   "llama-3.3-70b-versatile" → best quality ← CURRENT CHOICE
-//   "llama-3.1-70b-versatile" → similar to 3.3-70b
+//   "llama-3.1-8b-instant" → fastest, lowest quality, same free-tier limits
+//   "openai/gpt-oss-120b"  → best quality on free tier ← CURRENT CHOICE
+//   "qwen/qwen3-32b"       → higher RPM (60) but lower TPM (6K)
 //
-const MODEL = "llama-3.3-70b-versatile";
+const MODEL = "openai/gpt-oss-120b";
 
 // ─── DEVELOPER & APP IDENTITY ────────────────────────────────────────────────
 // Single source of truth — update here to update AI knowledge everywhere.
@@ -48,7 +53,7 @@ const APP = {
     "Suggested follow-up chips after each AI response",
     "Reading-time cooldown for rural users (10–15s after each reply)",
     "Light / dark mode, Ashok Chakra animation in header",
-    "Powered by Groq AI (llama-3.3-70b-versatile) via Vercel serverless API",
+    "Powered by Groq AI (openai/gpt-oss-120b) via Vercel serverless API",
     "Web search powered by Tavily for real-time scheme updates",
   ],
   tech: "React.js, Vercel, Groq API, Tavily Search, Vite",
