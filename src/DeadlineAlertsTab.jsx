@@ -42,6 +42,7 @@ function StatBox({ label, value, color, dark }) {
 
 export default function DeadlineAlertsTab({ dark, isDesktop }) {
   const [runs, setRuns]         = useState([]);
+  const [todayQuota, setTodayQuota] = useState(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
   const [triggering, setTriggering] = useState(false);
@@ -69,6 +70,7 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
       setRuns(data.runs || []);
+      setTodayQuota(data.todayQuota || null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -127,6 +129,33 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
         </button>
       </div>
 
+      {/* Daily Gmail quota — always visible, independent of any single run */}
+      {todayQuota && (() => {
+        const pct = Math.min(100, Math.round((todayQuota.used / todayQuota.limit) * 100));
+        const nearLimit = pct >= 80;
+        const barColor  = pct >= 100 ? RED : pct >= 80 ? AMBER : GREEN;
+        return (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: th.textSub, marginBottom: 4 }}>
+              <span>Today's email quota</span>
+              <span style={{ fontWeight: 700, color: barColor }}>{todayQuota.used} / {todayQuota.limit}</span>
+            </div>
+            <div style={{ height: 6, borderRadius: 4, background: dark ? "#222" : "#e8e8e8", overflow: "hidden" }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: barColor, borderRadius: 4, transition: "width 0.3s" }} />
+            </div>
+            {nearLimit && (
+              <div style={{
+                marginTop: 8, padding: "9px 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600,
+                background: `${barColor}15`, color: barColor, border: `1px solid ${barColor}30`,
+              }}>
+                ⚠️ Approaching Gmail's daily sending safety limit ({todayQuota.limit}/day). Any users past this
+                limit are automatically retried on the next run — no emails are lost, just delayed.
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Toast */}
       {toast && (
         <div style={{
@@ -182,6 +211,14 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
                       }}>
                         {run.trigger === "manual" ? `MANUAL · ${run.triggeredBy}` : "AUTO CRON"}
                       </span>
+                      {run.quotaHit && (
+                        <span style={{
+                          marginLeft: 6, fontSize: 9.5, fontWeight: 700, padding: "2px 7px", borderRadius: 20,
+                          background: "rgba(217,119,6,0.12)", color: AMBER,
+                        }}>
+                          QUOTA LIMIT HIT
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: 11, color: th.textSub, marginTop: 3 }}>
                       {run.checked} checked · {run.sent} sent · {run.skipped} skipped
@@ -196,9 +233,36 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
                       <div style={{ fontSize: 11.5, color: th.textSub }}>No emails sent this run.</div>
                     ) : (
                       run.recipients.map((r, i) => (
-                        <div key={i} style={{ fontSize: 11.5, color: th.text, padding: "5px 0", borderBottom: i < run.recipients.length - 1 ? `1px solid ${th.border}` : "none" }}>
-                          <span style={{ fontWeight: 600 }}>{r.email}</span>
-                          <span style={{ color: th.textSub }}> — {r.schemeCount} scheme{r.schemeCount === 1 ? "" : "s"}, soonest in {r.soonestDays} day{r.soonestDays === 1 ? "" : "s"}</span>
+                        <div key={i} style={{ padding: "8px 0", borderBottom: i < run.recipients.length - 1 ? `1px solid ${th.border}` : "none" }}>
+                          <div style={{ fontSize: 11.5, color: th.text }}>
+                            <span style={{ fontWeight: 600 }}>{r.email}</span>
+                            <span style={{ color: th.textSub }}> — {r.schemeCount} scheme{r.schemeCount === 1 ? "" : "s"}, soonest in {r.soonestDays} day{r.soonestDays === 1 ? "" : "s"}</span>
+                            {r.reminderCount > 0 && (
+                              <span style={{
+                                marginLeft: 6, fontSize: 9, fontWeight: 800, letterSpacing: 0.3,
+                                padding: "1px 6px", borderRadius: 20, color: RED, background: "rgba(229,62,62,0.1)",
+                              }}>
+                                FINAL REMINDER ×{r.reminderCount}
+                              </span>
+                            )}
+                          </div>
+                          {r.introText && (
+                            <div style={{
+                              marginTop: 4, fontSize: 11, lineHeight: 1.5, color: th.textSub,
+                              background: dark ? "#161616" : "#f0f0f0", borderRadius: 6,
+                              padding: "6px 8px", display: "flex", gap: 6, alignItems: "flex-start",
+                            }}>
+                              <span style={{
+                                flexShrink: 0, fontSize: 9, fontWeight: 700, letterSpacing: 0.3,
+                                padding: "1px 5px", borderRadius: 4,
+                                color: r.aiPersonalized ? "#8B5CF6" : th.textSub,
+                                background: r.aiPersonalized ? "rgba(139,92,246,0.14)" : (dark ? "#222" : "#e4e4e4"),
+                              }}>
+                                {r.aiPersonalized ? "AI" : "TEMPLATE"}
+                              </span>
+                              <span style={{ fontStyle: "italic" }}>"{r.introText}"</span>
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
