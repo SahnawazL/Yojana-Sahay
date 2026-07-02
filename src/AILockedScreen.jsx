@@ -718,7 +718,7 @@ function AIBriefTeaser({ dark, isHindi, bf, th, onGoToChecker }) {
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function AILockedScreen({
   lang = "en", dark = false,
-  onGoToProfile, onGoToChecker, activeTab,
+  onGoToProfile, onGoToChecker, onGoToAboutPro, activeTab,
   schemeCount = 0,
 }) {
   const th       = THEME[dark ? "dark" : "light"];
@@ -739,6 +739,7 @@ export default function AILockedScreen({
   }, []);
 
   const [btnPressed, setBtnPressed] = useState(false);
+  const [proPressed, setProPressed] = useState(false);
 
   // Palette
   const purpleC = dark ? "#A78BFA" : "#7C3AED";
@@ -969,7 +970,7 @@ export default function AILockedScreen({
             {[
               { v: formatCompactCount(schemeCount), l: isHindi ? "योजनाएं" : "Schemes",   accent: "#A78BFA" },
               { v: "24/7", l: isHindi ? "उपलब्ध"  : "Available", accent: "#38BDF8" },
-              { v: "Free", l: isHindi ? "मुफ़्त"   : "Forever",   accent: "#34D399" },
+              { v: isHindi ? "10/दिन" : "10/day",   l: isHindi ? "मुफ़्त"   : "Free",   accent: "#34D399" },
             ].map((s, i) => (
               <div key={i} style={{
                 flex: 1, textAlign: "center",
@@ -1097,11 +1098,21 @@ export default function AILockedScreen({
         </div>
 
         {/* ── COMING SOON STRIP ── */}
-        <div style={{
+        <div
+          onClick={() => { setProPressed(false); onGoToAboutPro?.(); }}
+          onPointerDown={() => setProPressed(true)}
+          onPointerUp={() => setProPressed(false)}
+          onPointerLeave={() => setProPressed(false)}
+          style={{
           display: "flex", alignItems: "center", gap: 10,
           padding: "10px 14px", borderRadius: 12,
           background: dark ? `${purpleC}08` : `${purpleC}05`,
           border: `1px dashed ${purpleC}22`,
+          cursor: onGoToAboutPro ? "pointer" : "default",
+          transform: proPressed ? "scale(0.98)" : "scale(1)",
+          transition: "transform 0.12s",
+          WebkitTapHighlightColor: "transparent",
+          userSelect: "none",
         }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 5,

@@ -564,7 +564,7 @@ function InfoRow({ icon, iconBg, title, desc, dark, bf, last }) {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-export default function AboutTab({ onClose, citizensGuided = null }) {
+export default function AboutTab({ onClose, citizensGuided = null, scrollToSection = null }) {
   // ── Fully internal dark/light — always opens dark, independent from app ──
   const [dark, setDark] = useState(() => {
     const saved = localStorage.getItem("about_dark");
@@ -587,6 +587,19 @@ export default function AboutTab({ onClose, citizensGuided = null }) {
     const el = document.getElementById("ys-dev-card");
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
   };
+
+  // ── Deep-link scroll — opened from outside (e.g. AI Lockscreen's
+  //    "YojanaSahay Pro — launching soon" strip) with intent to land
+  //    directly on the Pro section instead of the top of the page.
+  useEffect(() => {
+    if (scrollToSection === "pro") {
+      const t = setTimeout(() => {
+        const el = document.getElementById("ys-pro-section");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 350); // let the overlay mount/paint first so the scroll isn't fought
+      return () => clearTimeout(t);
+    }
+  }, [scrollToSection]);
 
   // Prevent body scroll when settings open
   useEffect(() => {
@@ -1560,7 +1573,7 @@ export default function AboutTab({ onClose, citizensGuided = null }) {
         </div>
 
         {/* ── YOJANASAHAY PRO — COMING SOON ───────────────────────────── */}
-        <div className="ys-card">
+        <div className="ys-card" id="ys-pro-section">
           <div style={{
             borderRadius: R.xl,
             padding: "26px 20px 24px",

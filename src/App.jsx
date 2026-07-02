@@ -4378,7 +4378,7 @@ function Card({children,mt=-20,dark=false}){
 }
 
 // ─── PROFILE TAB ──────────────────────────────────────────────────────────────
-function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false,toggleDark,isAdmin=false,onAdminOpen,liveCheckerTotal=null}){
+function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false,toggleDark,isAdmin=false,onAdminOpen,liveCheckerTotal=null,openAboutProSignal=0}){
   const th=THEME[dark?"dark":"light"];
   const pt=PT[lang];
   const bf=fontFamily(lang);
@@ -4429,6 +4429,15 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   const [showReport,setShowReport]=useState(false);
   const [reportTab,setReportTab]=useState("my"); // "my" | "new"
   const [showAbout,setShowAbout]=useState(false);
+  const [aboutScrollTarget,setAboutScrollTarget]=useState(null); // e.g. "pro" — where AboutTab should deep-scroll to on open
+  // External trigger (from AILockedScreen's Pro strip, which lives outside
+  // this tab): any bump of openAboutProSignal opens About scrolled to Pro.
+  useEffect(()=>{
+    if(openAboutProSignal){
+      setShowAbout(true);
+      setAboutScrollTarget("pro");
+    }
+  },[openAboutProSignal]);
   const [showHelpline,setShowHelpline]=useState(false);
   const [showFAQ,setShowFAQ]=useState(false);
   const [showSignOutModal,setShowSignOutModal]=useState(false);
@@ -5235,7 +5244,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         }}>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
             <Suspense fallback={<PremiumLoader/>}>
-            <AboutTab onClose={()=>setShowAbout(false)} citizensGuided={liveCheckerTotal}/>
+            <AboutTab onClose={()=>{setShowAbout(false);setAboutScrollTarget(null);}} citizensGuided={liveCheckerTotal} scrollToSection={aboutScrollTarget}/>
             </Suspense>
           </div>
         </div>
@@ -6687,7 +6696,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           {/* Scrollable content */}
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
             <Suspense fallback={<PremiumLoader/>}>
-            <AboutTab onClose={()=>setShowAbout(false)} citizensGuided={liveCheckerTotal}/>
+            <AboutTab onClose={()=>{setShowAbout(false);setAboutScrollTarget(null);}} citizensGuided={liveCheckerTotal} scrollToSection={aboutScrollTarget}/>
             </Suspense>
           </div>
         </div>
@@ -7949,6 +7958,15 @@ function YojanaSahayInner(){
   const [activeTab,setActiveTab]=useState("home");
   const [showAdmin,setShowAdmin]=useState(false);
   const [showFAQ,setShowFAQ]=useState(false);
+  // Cross-tab signal: AILockedScreen's "YojanaSahay Pro" strip lives
+  // outside ProfileTab, which owns the About overlay locally. Bumping
+  // this counter (rather than a boolean) guarantees ProfileTab's effect
+  // fires every time, even if the user taps it twice in a row.
+  const [openAboutProSignal,setOpenAboutProSignal]=useState(0);
+  const handleGoToAboutPro=useCallback(()=>{
+    setActiveTab("profile");
+    setOpenAboutProSignal(s=>s+1);
+  },[]);
 
   const [loaded,setLoaded]=useState(false);
   const [langAnim,setLangAnim]=useState(false);
@@ -8018,6 +8036,39 @@ function YojanaSahayInner(){
   // mounts on the SAME render it becomes active — no one-frame blank flash.
   // "home" is pre-seeded because it's the initial activeTab.
   const mountedTabsRef = useRef(new Set(["home"]));
+
+  // ── TAB "scroll to top" on nav tap ──────────────────────────────────────
+  // Keeps a persistent DOM ref to each tab's outer wrapper (unlike
+  // dragTargetRef, which only ever points at whichever tab is currently
+  // active). Tapping a bottom-nav item — whether it's already active or
+  // you're switching into it — smoothly scrolls that tab's content back
+  // to the top, matching the familiar "tap home icon to scroll up" pattern.
+  const tabWrapRefs = useRef({});
+  const findScroller = (el) => {
+    if (!el) return null;
+    const cs = getComputedStyle(el);
+    if (cs.overflowY === "auto" || cs.overflowY === "scroll") return el;
+    // Stop descending as soon as a scroll container is found above —
+    // we never walk into its children, so long lists (scheme cards, etc.)
+    // living *inside* that container are never touched.
+    const kids = el.children;
+    for (let i = 0; i < kids.length; i++) {
+      const found = findScroller(kids[i]);
+      if (found) return found;
+    }
+    return null;
+  };
+  const scrollTabToTop = useCallback((tab) => {
+    const wrap = tabWrapRefs.current[tab];
+    if (!wrap) return;
+    // The real scrollable element sometimes lives right on the wrapper
+    // (Home) and sometimes one or more levels deep inside a child
+    // component (Search/Schemes/Profile/AI). Walk down and grab the
+    // first element that's actually set up to scroll, so this works
+    // regardless of where that container lives.
+    const scroller = findScroller(wrap) || wrap;
+    scroller.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const handleTouchStart = useCallback((e) => {
     if (showAdmin || showChecker || showFAQ || selectedScheme || selectedCategory) return;
@@ -8517,7 +8568,7 @@ function YojanaSahayInner(){
 
       {/* HOME — always mounted (initial tab); hidden with display:none when inactive */}
       <div
-        ref={activeTab==="home" ? dragTargetRef : null}
+        ref={(el)=>{ tabWrapRefs.current["home"]=el; if(activeTab==="home") dragTargetRef.current=el; }}
         className={activeTab==="home" ? (swipeDir==="left"?"tab-enter-left":swipeDir==="right"?"tab-enter-right":undefined) : undefined}
         style={{
           display:activeTab==="home"?"flex":"none",
@@ -9172,7 +9223,7 @@ function YojanaSahayInner(){
 
       {/* SEARCH — lazy mount: nothing rendered until first visit */}
       <div
-        ref={activeTab==="search" ? dragTargetRef : null}
+        ref={(el)=>{ tabWrapRefs.current["search"]=el; if(activeTab==="search") dragTargetRef.current=el; }}
         className={activeTab==="search" ? (swipeDir==="left"?"tab-enter-left":swipeDir==="right"?"tab-enter-right":undefined) : undefined}
         style={{
           display:activeTab==="search"?"flex":"none",
@@ -9185,7 +9236,7 @@ function YojanaSahayInner(){
 
       {/* SCHEMES — lazy mount: nothing rendered until first visit */}
       <div
-        ref={activeTab==="schemes" ? dragTargetRef : null}
+        ref={(el)=>{ tabWrapRefs.current["schemes"]=el; if(activeTab==="schemes") dragTargetRef.current=el; }}
         className={activeTab==="schemes" ? (swipeDir==="left"?"tab-enter-left":swipeDir==="right"?"tab-enter-right":undefined) : undefined}
         style={{
           display:activeTab==="schemes"?"flex":"none",
@@ -9198,7 +9249,7 @@ function YojanaSahayInner(){
 
       {/* PROFILE — lazy mount: nothing rendered until first visit */}
       <div
-        ref={activeTab==="profile" ? dragTargetRef : null}
+        ref={(el)=>{ tabWrapRefs.current["profile"]=el; if(activeTab==="profile") dragTargetRef.current=el; }}
         className={activeTab==="profile" ? (swipeDir==="left"?"tab-enter-left":swipeDir==="right"?"tab-enter-right":undefined) : undefined}
         style={{
           display:activeTab==="profile"?"flex":"none",
@@ -9217,6 +9268,7 @@ function YojanaSahayInner(){
           isAdmin={isAdmin}
           onAdminOpen={handleAdminOpen}
           liveCheckerTotal={liveCheckerTotal}
+          openAboutProSignal={openAboutProSignal}
         />}
       </div>
 
@@ -9227,7 +9279,7 @@ function YojanaSahayInner(){
            ── Gate: show AILockedScreen when signed out, AIChat when signed in.
            ── Smooth swipe: direction animation + live dragX applied when active. ── */}
       <div
-        ref={activeTab==="ai" ? dragTargetRef : null}
+        ref={(el)=>{ tabWrapRefs.current["ai"]=el; if(activeTab==="ai") dragTargetRef.current=el; }}
         className={activeTab==="ai"
           ? (swipeDir==="left"?"tab-enter-left":swipeDir==="right"?"tab-enter-right":undefined)
           : undefined}
@@ -9253,6 +9305,7 @@ function YojanaSahayInner(){
             dark={dark}
             onGoToProfile={() => setActiveTab("profile")}
             onGoToChecker={() => setShowChecker(true)}
+            onGoToAboutPro={handleGoToAboutPro}
             activeTab={activeTab}
             schemeCount={SCHEME_DB.length}
           />
@@ -9293,6 +9346,12 @@ function YojanaSahayInner(){
               onClick={()=>{
                 if(!active) haptic(30);   // only haptic when switching
                 setActiveTab(item.tab);
+                // Double rAF: wait for the display:none→flex swap to commit
+                // and lay out before measuring/scrolling, so this works
+                // whether you're re-tapping the active tab or switching in.
+                requestAnimationFrame(()=>{
+                  requestAnimationFrame(()=>scrollTabToTop(item.tab));
+                });
               }}>
 
               <div className={`bn-pill${active?" active":""}`}>
