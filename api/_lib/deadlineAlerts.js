@@ -1,11 +1,10 @@
 // api/_lib/deadlineAlerts.js — Yojana Sahay · Deadline Alert Core Logic
 // ─────────────────────────────────────────────────────────────────────────────
-// Shared by:
-//   • api/send-deadline-alerts.js        (automatic daily Vercel Cron)
-//   • api/admin-send-deadline-alerts.js  (manual "Send Alerts Now" from AdminDashboard)
-//
-// Keeping the logic in one place means the cron run and the manual admin run
-// always behave identically and both get logged the same way.
+// Shared logic used by api/deadline-alerts.js, which handles both:
+//   • the automatic daily Vercel Cron trigger
+//   • the manual "Send Alerts Now" trigger from AdminDashboard
+// (both paths call runDeadlineAlerts() below, so they always behave identically
+// and both get logged the same way)
 //
 // Official sender: yojanasahayofficial@gmail.com (set via GMAIL_USER env var)
 //
@@ -26,9 +25,23 @@ import { FieldValue }  from "firebase-admin/firestore";
 import nodemailer      from "nodemailer";
 import { SCHEME_DB }   from "../../src/schemesData.js";
 
-const DAYS_WINDOW           = 7;  // alert when a deadline is within this many days
+const DAYS_WINDOW           = 7;  // first alert: deadline within this many days
+const URGENT_DAYS           = 2;  // second, more urgent reminder if still not applied by this point
 const MAX_SCHEMES_PER_EMAIL = 6;  // keep the digest readable
 const RUN_LOG_KEEP          = 30; // trim deadlineAlertRuns to the latest N runs
+
+// ── Daily Gmail sending-limit safeguard ────────────────────────────────────────
+// A free/personal Gmail account (not Workspace) caps out around 500 recipients
+// per rolling 24h. We stay well under that with our own hard limit, tracked in
+// Firestore so it persists across runs (cron + manual) on the same calendar day.
+export const DAILY_EMAIL_LIMIT = 450; // safety buffer below Gmail's real ~500/day cap
+
+// UTC calendar day as YYYY-MM-DD. This is an approximation of Gmail's own reset
+// window (which isn't a fixed public boundary) — good enough as our own safety
+// margin, not a claim of matching Gmail's exact reset time.
+function getTodayDateKey() {
+  return new Date().toISOString().slice(0, 10); // "2026-07-02"
+}
 
 // ── AI-personalized intro line — same fast model as refresh-news/verify-scheme ─
 const GROQ_ENDPOINT  = "https://api.groq.com/openai/v1/chat/completions";
@@ -36,7 +49,7 @@ const AI_MODEL       = "openai/gpt-oss-20b"; // fast + cheap, one short sentence
 const AI_MAX_TOKENS  = 80;
 const AI_TEMPERATURE = 0.6; // a little warmth, still fast and on-topic
 
-// ── Load Groq keys — dedicated verify pool first (same pattern as ai-insights.js) ─
+// ── Load Groq keys — dedicated verify pool first, same key-rotation pattern used elsewhere ─
 function loadGroqKeys() {
   const seen = new Set();
   const keys = [];
@@ -96,12 +109,16 @@ async function callGroq(keys, bodyObject) {
 // ── Generate one warm, short personalized line for the email intro ────────────
 // Falls back to null on any failure — caller uses a plain default line instead.
 // Keeps the app running even if Groq is briefly unavailable or rate-limited.
-async function generatePersonalizedIntro(keys, name, topScheme, days, isHindi) {
+async function generatePersonalizedIntro(keys, name, topScheme, days, isHindi, isReminder = false) {
   if (keys.length === 0) return null;
   try {
     const prompt = isHindi
-      ? `उपयोगकर्ता का नाम: ${name || "नागरिक"}. उनकी सबसे जरूरी योजना: ${topScheme}, आवेदन की अंतिम तिथि ${days} दिन में। एक छोटा, गर्मजोशी भरा वाक्य लिखें (अधिकतम 20 शब्द) जो उन्हें नाम से संबोधित करे और आवेदन करने के लिए प्रोत्साहित करे। केवल वाक्य लिखें, कुछ और नहीं।`
-      : `User's name: ${name || "there"}. Their most urgent scheme: ${topScheme}, deadline in ${days} days. Write one short, warm sentence (max 20 words) addressing them by name and encouraging them to apply now. Only output the sentence, nothing else.`;
+      ? (isReminder
+          ? `उपयोगकर्ता का नाम: ${name || "नागरिक"}. यह उन्हें ${topScheme} योजना के बारे में दूसरी और अंतिम याद दिलाना है — आवेदन की अंतिम तिथि केवल ${days} दिन में है और उन्होंने अभी तक आवेदन नहीं किया। एक छोटा, तत्काल लेकिन विनम्र वाक्य लिखें (अधिकतम 20 शब्द) जो नाम से संबोधित करे। केवल वाक्य लिखें, कुछ और नहीं।`
+          : `उपयोगकर्ता का नाम: ${name || "नागरिक"}. उनकी सबसे जरूरी योजना: ${topScheme}, आवेदन की अंतिम तिथि ${days} दिन में। एक छोटा, गर्मजोशी भरा वाक्य लिखें (अधिकतम 20 शब्द) जो उन्हें नाम से संबोधित करे और आवेदन करने के लिए प्रोत्साहित करे। केवल वाक्य लिखें, कुछ और नहीं।`)
+      : (isReminder
+          ? `User's name: ${name || "there"}. This is a SECOND and FINAL reminder about the ${topScheme} scheme — deadline is only ${days} day${days === 1 ? "" : "s"} away and they still haven't applied. Write one short, urgent-but-polite sentence (max 20 words) addressing them by name. Only output the sentence, nothing else.`
+          : `User's name: ${name || "there"}. Their most urgent scheme: ${topScheme}, deadline in ${days} days. Write one short, warm sentence (max 20 words) addressing them by name and encouraging them to apply now. Only output the sentence, nothing else.`);
 
     const { status, data, keyIdx, count429 } = await callGroq(keys, {
       model: AI_MODEL,
@@ -164,23 +181,36 @@ function daysUntil(lastDate) {
   return diff >= 0 ? diff : null;
 }
 
+// ── Resolve the final intro line — AI text if it succeeded, else a plain default ──
+// Shared by buildEmailHtml() and the recipient log, so what's LOGGED always matches
+// exactly what was actually SENT.
+function resolveIntroText(intro, isHindi = false) {
+  return intro
+    || (isHindi
+      ? "आपकी योग्य योजनाओं की अंतिम तिथि नजदीक आ रही है — अभी आवेदन करें।"
+      : "Schemes you qualify for are closing soon — apply now to avoid missing out.");
+}
+
 // ── Build the HTML email body ──────────────────────────────────────────────────
 // intro: AI-generated personalized sentence (or null → falls back to a plain default)
+// schemes: [{ scheme, days, isReminder }] — isReminder = true means this is the
+// second, more urgent nudge (already alerted once before, now very close to deadline)
 function buildEmailHtml(schemes, intro, isHindi = false) {
-  const rows = schemes.map(({ scheme, days }) => `
+  const rows = schemes.map(({ scheme, days, isReminder }) => `
     <tr>
       <td style="padding:10px 12px;border-bottom:1px solid #eee;">
-        <div style="font-weight:700;font-size:14px;color:#111;">${scheme.icon || "📋"} ${scheme.name?.en || "Scheme"}</div>
+        <div style="font-weight:700;font-size:14px;color:#111;">
+          ${scheme.icon || "📋"} ${scheme.name?.en || "Scheme"}
+          ${isReminder ? `<span style="margin-left:6px;font-size:9.5px;font-weight:800;letter-spacing:0.3px;
+            color:#DC2626;background:rgba(220,38,38,0.1);padding:2px 6px;border-radius:20px;">FINAL REMINDER</span>` : ""}
+        </div>
         <div style="font-size:12px;color:${days <= 3 ? "#DC2626" : "#EA580C"};margin-top:3px;">
           ${days === 0 ? "Deadline is TODAY" : `Only ${days} day${days === 1 ? "" : "s"} left to apply`}
         </div>
       </td>
     </tr>`).join("");
 
-  const introText = intro
-    || (isHindi
-      ? "आपकी योग्य योजनाओं की अंतिम तिथि नजदीक आ रही है — अभी आवेदन करें।"
-      : "Schemes you qualify for are closing soon — apply now to avoid missing out.");
+  const introText = resolveIntroText(intro, isHindi);
 
   return `
   <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
@@ -214,6 +244,13 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
   const transporter = getTransporter(); // throws early if env vars missing
   const groqKeys    = loadGroqKeys();   // empty array → generatePersonalizedIntro no-ops, template falls back automatically
 
+  // ── Daily quota check-in ────────────────────────────────────────────────────
+  const dateKey     = getTodayDateKey();
+  const quotaRef    = db.collection("emailQuota").doc(dateKey);
+  const quotaSnap    = await quotaRef.get();
+  let quotaUsed      = quotaSnap.exists ? (quotaSnap.data().count || 0) : 0;
+  let quotaHit        = false; // true once we start refusing sends this run
+
   let checked = 0, sent = 0, skipped = 0;
   const recipients = [];
 
@@ -228,7 +265,11 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
     const profileAnswers = buildProfileAnswers(profile);
     if (!profileAnswers) { skipped++; continue; }
 
-    const alreadyAlerted = new Set(profile.alertedSchemeIds || []);
+    // Two separate tracking arrays on the user doc:
+    //   alertedSchemeIds       — has EVER been sent a first alert for this scheme
+    //   urgentAlertedSchemeIds — has been sent the closer-to-deadline final reminder
+    const alreadyStandardAlerted = new Set(profile.alertedSchemeIds || []);
+    const alreadyUrgentAlerted   = new Set(profile.urgentAlertedSchemeIds || []);
 
     const matched = SCHEME_DB.filter(s => {
       try { return s.match(profileAnswers); } catch { return false; }
@@ -236,37 +277,79 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
 
     const urgent = matched
       .map(scheme => ({ scheme, days: daysUntil(scheme.lastDate) }))
-      .filter(({ scheme, days }) => days !== null && days <= DAYS_WINDOW && !alreadyAlerted.has(scheme.id))
+      .filter(({ scheme, days }) => {
+        if (days === null || days > DAYS_WINDOW) return false;
+        const isFirstAlert      = !alreadyStandardAlerted.has(scheme.id);
+        const isFinalReminder   = alreadyStandardAlerted.has(scheme.id)
+          && days <= URGENT_DAYS
+          && !alreadyUrgentAlerted.has(scheme.id);
+        return isFirstAlert || isFinalReminder;
+      })
+      .map(({ scheme, days }) => ({
+        scheme, days,
+        isReminder: alreadyStandardAlerted.has(scheme.id), // true = this is the 2nd, escalated nudge
+      }))
       .sort((a, b) => a.days - b.days)
       .slice(0, MAX_SCHEMES_PER_EMAIL);
 
     if (urgent.length === 0) { skipped++; continue; }
 
+    // ── Daily quota gate — stop sending once we're at the safety limit ────────
+    // Don't waste a Groq call generating an intro we won't be able to send.
+    if (quotaUsed >= DAILY_EMAIL_LIMIT) {
+      quotaHit = true;
+      skipped++;
+      continue; // not marked as alerted, so they're retried automatically next run
+    }
+
     // ── AI-personalized intro line — falls back to plain default inside buildEmailHtml ──
     // Note: language preference (yojana_lang) lives only in the user's browser localStorage,
     // not on the Firestore profile, so scheduled/manual emails default to English for now.
     const topScheme = urgent[0].scheme.name?.en || urgent[0].scheme.id;
-    const intro = await generatePersonalizedIntro(groqKeys, profile.name, topScheme, urgent[0].days, false);
+    const intro = await generatePersonalizedIntro(groqKeys, profile.name, topScheme, urgent[0].days, false, urgent[0].isReminder);
 
     try {
+      const hasReminder = urgent.some(u => u.isReminder);
+      const subject = hasReminder
+        ? `⚠️ Final reminder: ${urgent.length} scheme deadline${urgent.length > 1 ? "s" : ""} closing very soon — Yojana Sahay`
+        : `⏳ ${urgent.length} scheme deadline${urgent.length > 1 ? "s" : ""} closing soon — Yojana Sahay`;
+
       await transporter.sendMail({
         from:    `"Yojana Sahay" <${process.env.GMAIL_USER}>`,
         to:      email,
-        subject: `⏳ ${urgent.length} scheme deadline${urgent.length > 1 ? "s" : ""} closing soon — Yojana Sahay`,
+        subject,
         html:    buildEmailHtml(urgent, intro, false),
       });
 
-      await userDoc.ref.update({
+      const urgentIdsThisSend = urgent.filter(u => u.days <= URGENT_DAYS).map(u => u.scheme.id);
+
+      const updatePayload = {
         alertedSchemeIds:    FieldValue.arrayUnion(...urgent.map(u => u.scheme.id)),
         lastDeadlineAlertAt: FieldValue.serverTimestamp(),
-      });
+      };
+      // FieldValue.arrayUnion() throws if called with zero elements — only attach
+      // this field when there's actually at least one urgent-tier scheme to record.
+      if (urgentIdsThisSend.length > 0) {
+        updatePayload.urgentAlertedSchemeIds = FieldValue.arrayUnion(...urgentIdsThisSend);
+      }
+      await userDoc.ref.update(updatePayload);
+
+      // Update the daily quota counter immediately after each successful send,
+      // so a crash mid-run never loses count or lets us silently over-send.
+      quotaUsed++;
+      await quotaRef.set(
+        { count: FieldValue.increment(1), lastUpdated: FieldValue.serverTimestamp() },
+        { merge: true }
+      );
 
       recipients.push({
         email,
         schemeCount:    urgent.length,
         soonestDays:    urgent[0].days,
         schemes:        urgent.map(u => u.scheme.name?.en || u.scheme.id),
+        reminderCount:  urgent.filter(u => u.isReminder).length, // how many were the 2nd, escalated nudge
         aiPersonalized: !!intro,
+        introText:      resolveIntroText(intro, false), // exact line the user actually received
       });
       sent++;
     } catch (mailErr) {
@@ -282,6 +365,7 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
     runAt: FieldValue.serverTimestamp(),
     checked, sent, skipped,
     recipients,
+    quotaUsed, quotaLimit: DAILY_EMAIL_LIMIT, quotaHit,
   };
   const runRef = await db.collection("deadlineAlertRuns").add(runDoc);
 
@@ -299,5 +383,8 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
     console.warn("[deadlineAlerts] Run-log trim skipped:", trimErr.message);
   }
 
-  return { runId: runRef.id, trigger, triggeredBy, checked, sent, skipped, recipients };
+  return {
+    runId: runRef.id, trigger, triggeredBy, checked, sent, skipped, recipients,
+    quotaUsed, quotaLimit: DAILY_EMAIL_LIMIT, quotaHit,
+  };
 }
