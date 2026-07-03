@@ -76,6 +76,7 @@ const ACT_COLORS = {
   export:  "#F59E0B",
   reply:   CYAN,
   update:  "#F97316",
+  auto:    CYAN,
 };
 
 // ─── AGENT IDENTITY PALETTE ───────────────────────────────────────────────────
@@ -3663,7 +3664,7 @@ function ModalButton({ children, onClick, disabled, primary, color, th, isDeskto
 
 function PurgeModal({
   dark, isDesktop, stage, cutoffLabel,
-  includeActivity, includeAttendance,
+  includeActivity, includeAttendance, includeAgentRuns,
   animCounts, confirmText, setConfirmText,
   logLines, progressPct, deletedSoFar, totalToDelete,
   result, error, onCancel, onConfirm, onClose, logBoxRef,
@@ -3749,12 +3750,12 @@ function PurgeModal({
               </div>
               <ReadoutRow
                 label="TARGET COLLECTIONS"
-                value={[includeActivity && "adminActivity", includeAttendance && "agentTimeLogs"].filter(Boolean).join(", ") || "none"}
+                value={[includeActivity && "adminActivity", includeAttendance && "agentTimeLogs", includeAgentRuns && "agentRuns"].filter(Boolean).join(", ") || "none"}
                 th={th} isDesktop={isDesktop}
               />
               <ReadoutRow
                 label="QUERY"
-                value={[includeActivity && "time < cutoff", includeAttendance && "date < cutoff"].filter(Boolean).join("   ")}
+                value={[includeActivity && "time < cutoff", includeAttendance && "date < cutoff", includeAgentRuns && "createdAt < cutoff"].filter(Boolean).join("   ")}
                 th={th} isDesktop={isDesktop}
               />
               <ReadoutRow label="BATCH SIZE" value={`${PURGE_BATCH_SIZE} writes / commit`} th={th} isDesktop={isDesktop} />
@@ -3781,10 +3782,13 @@ function PurgeModal({
 
               <div style={{ border: `1px solid ${th.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 14 }}>
                 {includeActivity && (
-                  <SummaryRow label="Activity Log" sub="adminActivity · time field" count={animCounts.activity} color={PURGE_CYAN} th={th} isDesktop={isDesktop} />
+                  <SummaryRow label="Activity Log" sub="adminActivity · time field" count={animCounts.activity} color={PURGE_CYAN} th={th} isDesktop={isDesktop} last={!includeAttendance && !includeAgentRuns} />
                 )}
                 {includeAttendance && (
-                  <SummaryRow label="Daily Attendance" sub="agentTimeLogs · date field" count={animCounts.attendance} color={PURGE_VIOLET} th={th} isDesktop={isDesktop} last />
+                  <SummaryRow label="Daily Attendance" sub="agentTimeLogs · date field" count={animCounts.attendance} color={PURGE_VIOLET} th={th} isDesktop={isDesktop} last={!includeAgentRuns} />
+                )}
+                {includeAgentRuns && (
+                  <SummaryRow label="Auto-Fix Agent Runs" sub="agentRuns · createdAt field" count={animCounts.agentRuns} color={CYAN} th={th} isDesktop={isDesktop} last />
                 )}
                 <div style={{
                   display: "flex", justifyContent: "space-between", alignItems: "baseline",
@@ -3792,7 +3796,7 @@ function PurgeModal({
                 }}>
                   <span style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, fontWeight: 700, letterSpacing: 0.4 }}>TOTAL</span>
                   <span style={{ fontSize: fs(15, isDesktop), fontWeight: 800, color: th.text, fontFamily: "monospace" }}>
-                    {(animCounts.activity + animCounts.attendance).toLocaleString("en-IN")}
+                    {(animCounts.activity + animCounts.attendance + animCounts.agentRuns).toLocaleString("en-IN")}
                   </span>
                 </div>
               </div>
@@ -3865,13 +3869,14 @@ function PurgeModal({
                   <IconCheck size={20} color={PURGE_EMERALD} />
                 </div>
                 <div style={{ fontSize: fs(18, isDesktop), fontWeight: 800, color: th.text, fontFamily: "monospace" }}>
-                  {(result.activity + result.attendance).toLocaleString("en-IN")}
+                  {(result.activity + result.attendance + result.agentRuns).toLocaleString("en-IN")}
                 </div>
                 <div style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, marginTop: 2 }}>records permanently removed</div>
               </div>
               <div style={{ border: `1px solid ${th.border}`, borderRadius: 10, overflow: "hidden" }}>
-                {result.includeActivity   && <StatRow label="Activity Log"     value={result.activity}    th={th} isDesktop={isDesktop} />}
-                {result.includeAttendance && <StatRow label="Daily Attendance" value={result.attendance}  th={th} isDesktop={isDesktop} />}
+                {result.includeActivity   && <StatRow label="Activity Log"        value={result.activity}    th={th} isDesktop={isDesktop} />}
+                {result.includeAttendance && <StatRow label="Daily Attendance"    value={result.attendance}  th={th} isDesktop={isDesktop} />}
+                {result.includeAgentRuns  && <StatRow label="Auto-Fix Agent Runs" value={result.agentRuns}   th={th} isDesktop={isDesktop} />}
                 <StatRow label="Cutoff"     value={cutoffLabel}                          th={th} isDesktop={isDesktop} />
                 <StatRow label="Time taken" value={`${(result.timeMs / 1000).toFixed(1)}s`} th={th} isDesktop={isDesktop} last />
               </div>
@@ -3939,12 +3944,14 @@ function DataRetentionPanel({ dark, isDesktop }) {
 
   const [includeActivity,   setIncludeActivity]   = useState(true);
   const [includeAttendance, setIncludeAttendance] = useState(true);
+  const [includeAgentRuns,  setIncludeAgentRuns]  = useState(true);
 
   const [stage,  setStage]  = useState(null); // null | scan | confirm | processing | complete | error
   const [months, setMonths] = useState(null);
-  const [counts, setCounts] = useState({ activity: 0, attendance: 0 });
+  const [counts, setCounts] = useState({ activity: 0, attendance: 0, agentRuns: 0 });
   const [animActivity,   setAnimActivity]   = useState(0);
   const [animAttendance, setAnimAttendance] = useState(0);
+  const [animAgentRuns,  setAnimAgentRuns]  = useState(0);
   const [confirmText, setConfirmText] = useState("");
   const [logLines,    setLogLines]    = useState([]);
   const [deletedSoFar, setDeletedSoFar] = useState(0);
@@ -3956,7 +3963,7 @@ function DataRetentionPanel({ dark, isDesktop }) {
     if (logBoxRef.current) logBoxRef.current.scrollTop = logBoxRef.current.scrollHeight;
   }, [logLines]);
 
-  const noneSelected = !includeActivity && !includeAttendance;
+  const noneSelected = !includeActivity && !includeAttendance && !includeAgentRuns;
 
   const cutoffLabel = (m = months) => monthsAgoDate(m).toLocaleDateString("en-IN", {
     day: "2-digit", month: "short", year: "numeric",
@@ -3968,16 +3975,18 @@ function DataRetentionPanel({ dark, isDesktop }) {
     setConfirmText("");
     setResult(null);
     setError(null);
-    setCounts({ activity: 0, attendance: 0 });
+    setCounts({ activity: 0, attendance: 0, agentRuns: 0 });
     setAnimActivity(0);
     setAnimAttendance(0);
+    setAnimAgentRuns(0);
 
     const cutoffDate    = monthsAgoDate(m);
     const cutoffDateStr = getISTDateStr(cutoffDate);
     const startedAt = Date.now();
-    const [activityCount, attendanceCount] = await Promise.all([
+    const [activityCount, attendanceCount, agentRunsCount] = await Promise.all([
       includeActivity   ? countOlderThan("adminActivity", "time", cutoffDate)     : Promise.resolve(0),
       includeAttendance ? countOlderThan("agentTimeLogs",  "date", cutoffDateStr) : Promise.resolve(0),
+      includeAgentRuns  ? countOlderThan("agentRuns",      "createdAt", cutoffDate) : Promise.resolve(0),
     ]);
 
     // Floor the scan stage at ~850ms so it always reads as a deliberate
@@ -3987,10 +3996,11 @@ function DataRetentionPanel({ dark, isDesktop }) {
     const elapsed = Date.now() - startedAt;
     if (elapsed < MIN_SCAN_MS) await new Promise(r => setTimeout(r, MIN_SCAN_MS - elapsed));
 
-    const finalCounts = { activity: activityCount ?? 0, attendance: attendanceCount ?? 0 };
+    const finalCounts = { activity: activityCount ?? 0, attendance: attendanceCount ?? 0, agentRuns: agentRunsCount ?? 0 };
     setCounts(finalCounts);
     animateCountTo(setAnimActivity, finalCounts.activity);
     animateCountTo(setAnimAttendance, finalCounts.attendance);
+    animateCountTo(setAnimAgentRuns, finalCounts.agentRuns);
     setStage("confirm");
   };
 
@@ -4018,7 +4028,7 @@ function DataRetentionPanel({ dark, isDesktop }) {
     };
 
     try {
-      let activityDeleted = 0, attendanceDeleted = 0;
+      let activityDeleted = 0, attendanceDeleted = 0, agentRunsDeleted = 0;
       if (includeActivity && counts.activity > 0) {
         activityDeleted = await deleteOlderThan("adminActivity", "time", cutoffDate, {
           estimatedBatches: Math.max(1, Math.ceil(counts.activity / 400)), onBatch,
@@ -4029,10 +4039,15 @@ function DataRetentionPanel({ dark, isDesktop }) {
           estimatedBatches: Math.max(1, Math.ceil(counts.attendance / 400)), onBatch,
         });
       }
-      setLogLines(prev => [...prev, `> done — ${activityDeleted + attendanceDeleted} records purged`]);
+      if (includeAgentRuns && counts.agentRuns > 0) {
+        agentRunsDeleted = await deleteOlderThan("agentRuns", "createdAt", cutoffDate, {
+          estimatedBatches: Math.max(1, Math.ceil(counts.agentRuns / 400)), onBatch,
+        });
+      }
+      setLogLines(prev => [...prev, `> done — ${activityDeleted + attendanceDeleted + agentRunsDeleted} records purged`]);
       setResult({
-        activity: activityDeleted, attendance: attendanceDeleted, months,
-        includeActivity, includeAttendance, timeMs: Date.now() - startedAt,
+        activity: activityDeleted, attendance: attendanceDeleted, agentRuns: agentRunsDeleted, months,
+        includeActivity, includeAttendance, includeAgentRuns, timeMs: Date.now() - startedAt,
       });
       setStage("complete");
     } catch (e) {
@@ -4042,7 +4057,7 @@ function DataRetentionPanel({ dark, isDesktop }) {
     }
   };
 
-  const totalToDelete = (includeActivity ? counts.activity : 0) + (includeAttendance ? counts.attendance : 0);
+  const totalToDelete = (includeActivity ? counts.activity : 0) + (includeAttendance ? counts.attendance : 0) + (includeAgentRuns ? counts.agentRuns : 0);
   const progressPct   = totalToDelete > 0 ? Math.min(100, (deletedSoFar / totalToDelete) * 100) : 100;
 
   return (
@@ -4088,6 +4103,17 @@ function DataRetentionPanel({ dark, isDesktop }) {
             />
             Daily Attendance
           </label>
+          <label style={{
+            display: "flex", alignItems: "center", gap: 6, fontSize: fs(11, isDesktop),
+            color: th.text, cursor: stage === null ? "pointer" : "default",
+            opacity: stage === null ? 1 : 0.6,
+          }}>
+            <input
+              type="checkbox" checked={includeAgentRuns} disabled={stage !== null}
+              onChange={e => setIncludeAgentRuns(e.target.checked)} style={{ accentColor: PURGE_VIOLET }}
+            />
+            Auto-Fix Agent Runs
+          </label>
         </div>
 
         {/* Threshold triggers */}
@@ -4114,19 +4140,27 @@ function DataRetentionPanel({ dark, isDesktop }) {
         </div>
 
         {/* Persisted summary after the modal is closed */}
-        {stage === null && result && (
-          <div style={{
-            marginTop: 10, padding: "8px 12px", borderRadius: 8,
-            background: `${PURGE_EMERALD}14`, border: `1px solid ${PURGE_EMERALD}40`,
-            fontSize: fs(11, isDesktop), color: th.text,
-          }}>
-            Deleted
-            {result.includeActivity ? ` ${result.activity} activity event${result.activity === 1 ? "" : "s"}` : ""}
-            {result.includeActivity && result.includeAttendance ? " and" : ""}
-            {result.includeAttendance ? ` ${result.attendance} attendance day${result.attendance === 1 ? "" : "s"}` : ""}
-            {" "}older than {result.months} months.
-          </div>
-        )}
+        {stage === null && result && (() => {
+          const parts = [
+            result.includeActivity   ? `${result.activity} activity event${result.activity === 1 ? "" : "s"}` : null,
+            result.includeAttendance ? `${result.attendance} attendance day${result.attendance === 1 ? "" : "s"}` : null,
+            result.includeAgentRuns  ? `${result.agentRuns} agent run${result.agentRuns === 1 ? "" : "s"}` : null,
+          ].filter(Boolean);
+          const summaryText = parts.length === 0
+            ? "Nothing"
+            : parts.length === 1
+              ? parts[0]
+              : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+          return (
+            <div style={{
+              marginTop: 10, padding: "8px 12px", borderRadius: 8,
+              background: `${PURGE_EMERALD}14`, border: `1px solid ${PURGE_EMERALD}40`,
+              fontSize: fs(11, isDesktop), color: th.text,
+            }}>
+              Deleted {summaryText} older than {result.months} months.
+            </div>
+          );
+        })()}
         {stage === null && error && (
           <div style={{
             marginTop: 10, padding: "8px 12px", borderRadius: 8,
@@ -4142,8 +4176,8 @@ function DataRetentionPanel({ dark, isDesktop }) {
         <PurgeModal
           dark={dark} isDesktop={isDesktop} stage={stage}
           cutoffLabel={cutoffLabel()}
-          includeActivity={includeActivity} includeAttendance={includeAttendance}
-          animCounts={{ activity: animActivity, attendance: animAttendance }}
+          includeActivity={includeActivity} includeAttendance={includeAttendance} includeAgentRuns={includeAgentRuns}
+          animCounts={{ activity: animActivity, attendance: animAttendance, agentRuns: animAgentRuns }}
           confirmText={confirmText} setConfirmText={setConfirmText}
           logLines={logLines} progressPct={progressPct} deletedSoFar={deletedSoFar} totalToDelete={totalToDelete}
           result={result} error={error}
