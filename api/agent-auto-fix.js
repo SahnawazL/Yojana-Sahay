@@ -101,6 +101,33 @@ export default async function handler(req, res) {
       console.error("[agent-auto-fix] Firestore log failed:", logErr.message);
     }
 
+    // ── Step 4: post to the Activity Ticker — only on days with something to
+    // report, so a clean scan doesn't spam the feed with "did nothing" entries ──
+    if (fixedCount > 0 || needsReview.length > 0) {
+      try {
+        const db = getAdminDb();
+        if (db) {
+          const parts = [];
+          if (fixedCount > 0) {
+            parts.push(`auto-fixed ${fixedCount} URL${fixedCount !== 1 ? "s" : ""} across ${commitResult.commits.length} file${commitResult.commits.length !== 1 ? "s" : ""}`);
+          }
+          if (needsReview.length > 0) {
+            parts.push(`flagged ${needsReview.length} scheme${needsReview.length !== 1 ? "s" : ""} for review`);
+          }
+          await db.collection("adminActivity").add({
+            agentId: "agent-auto-fix",
+            agentName: "Auto-Fix Agent",
+            action: `Daily scan: ${parts.join(", ")}`,
+            tab: "agents",
+            type: "auto",
+            time: new Date(),
+          });
+        }
+      } catch (tickerErr) {
+        console.error("[agent-auto-fix] Activity ticker post failed:", tickerErr.message);
+      }
+    }
+
     console.log(
       `[agent-auto-fix] Scanned ${summary.totalSchemesScanned} schemes · ` +
       `${summary.autoFixed} auto-fixed · ${summary.needsReviewCount} need review · ` +
