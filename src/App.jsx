@@ -2952,19 +2952,28 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
         {(()=>{
           const activeFilterCount=(filter!=="all"?1:0)+(selectedState!=="all"?1:0)+(closingSoonOnly?1:0);
           if(activeFilterCount<2) return null;
+          const accent=dark?"#7aa5ff":ASHOKA_BLUE;
           return(
             <div style={{
-              display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,
-              padding:"7px 12px",marginBottom:10,borderRadius:12,
-              background:dark?"rgba(6,3,141,0.14)":ASHOKA_BLUE+"0c",
-              border:`1px solid ${ASHOKA_BLUE}30`,
+              display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,
+              padding:"8px 8px 8px 12px",marginBottom:10,borderRadius:13,
+              background:dark
+                ?"linear-gradient(135deg,rgba(122,165,255,0.14),rgba(122,165,255,0.05))"
+                :"linear-gradient(135deg,rgba(6,3,141,0.07),rgba(6,3,141,0.02))",
+              border:`1px solid ${dark?"rgba(122,165,255,0.28)":ASHOKA_BLUE+"26"}`,
+              boxShadow:dark?"inset 0 1px 0 rgba(255,255,255,0.03)":"inset 0 1px 0 rgba(255,255,255,0.6)",
             }}>
-              <span style={{fontSize:11,fontWeight:700,color:ASHOKA_BLUE,fontFamily:bf}}>
-                🔀 {t.filtersActiveN(activeFilterCount)}
+              <span style={{display:"flex",alignItems:"center",gap:6,fontSize:11.5,fontWeight:700,color:accent,fontFamily:bf}}>
+                <span style={{fontSize:12}}>🔀</span> {t.filtersActiveN(activeFilterCount)}
               </span>
-              <span onClick={()=>{haptic(30);setFilter("all");setSelectedState("all");setClosingSoonOnly(false);}}
-                style={{fontSize:11,fontWeight:800,color:ASHOKA_BLUE,cursor:"pointer",fontFamily:bf,textDecoration:"underline",textUnderlineOffset:2}}>
-                {t.clearAll}
+              <span className="fpill-state" onClick={()=>{haptic(30);setFilter("all");setSelectedState("all");setClosingSoonOnly(false);}}
+                style={{
+                  fontSize:11,fontWeight:800,color:dark?"#0b1330":"#fff",fontFamily:bf,
+                  background:dark?"linear-gradient(135deg,#a9c4ff,#7aa5ff)":`linear-gradient(135deg,${ASHOKA_BLUE},#1d1acb)`,
+                  boxShadow:dark?"0 2px 8px rgba(122,165,255,0.35)":"0 2px 8px rgba(6,3,141,0.3)",
+                  padding:"6px 12px",
+                }}>
+                ✕ {t.clearAll}
               </span>
             </div>
           );
