@@ -594,6 +594,9 @@ const T = {
     searchStatePh:"Search your state...",
     centralSchemes:"Central Government Schemes", stateSchemes:"State Government Schemes",
     nationalOnly:"National Only", nationalOnlyFull:"National Schemes Only", selectNational:"Only Central Govt. schemes, available across all states",
+    sortDefault:"Relevance", sortDeadline:"Closing Soon First", sortAmount:"Highest Amount", sortLabel:"Sort", sortBtnActive:"Sorted",
+    closingSoon:"Closing Soon", closingSoonHint:"Deadline within 30 days",
+    filtersActiveN:(n)=>`${n} filters active`, clearAll:"Clear all",
     profileTitle:"My Profile", setupTitle:"Set Up Profile", setupSub:"Fill once · Used everywhere",
     editBtn:"Edit", matchedBtn:"My Matched Schemes", saveBtn:"Save Profile ✓", skipBtn:"Skip",
     profileStats:["Schemes matched","Docs saved","Guided"],
@@ -733,6 +736,9 @@ const T = {
     searchStatePh:"अपना राज्य खोजें...",
     centralSchemes:"केंद्र सरकार की योजनाएं", stateSchemes:"राज्य सरकार की योजनाएं",
     nationalOnly:"केवल राष्ट्रीय", nationalOnlyFull:"केवल राष्ट्रीय योजनाएं", selectNational:"केवल केंद्र सरकार की योजनाएं, सभी राज्यों में उपलब्ध",
+    sortDefault:"प्रासंगिकता", sortDeadline:"जल्द बंद होने वाली पहले", sortAmount:"सबसे ज़्यादा राशि", sortLabel:"क्रमबद्ध करें", sortBtnActive:"क्रमबद्ध",
+    closingSoon:"जल्द बंद हो रही", closingSoonHint:"30 दिनों के भीतर अंतिम तिथि",
+    filtersActiveN:(n)=>`${n} फ़िल्टर सक्रिय`, clearAll:"सभी हटाएं",
     profileTitle:"मेरी प्रोफाइल", setupTitle:"प्रोफाइल बनाएं", setupSub:"एक बार भरें · हर जगह काम आएगा",
     editBtn:"बदलें", matchedBtn:"मेरी योजनाएं", saveBtn:"सहेजें ✓", skipBtn:"छोड़ें",
     profileStats:["मिलान योजनाएं","दस्तावेज़","सहायता"],
@@ -2547,6 +2553,9 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
   const [visibleCount,setVisibleCount]=useState(PAGE_SIZE);
   const [isReady,setIsReady]=useState(false);
   const [scrollingTo,setScrollingTo]=useState(null); // "state" | "central" | null
+  const [sortBy,setSortBy]=useState("default"); // "default" | "deadline" | "amount"
+  const [showSortMenu,setShowSortMenu]=useState(false);
+  const [closingSoonOnly,setClosingSoonOnly]=useState(false);
 
   // ── Track state selections ────────────────────────────────────────────────
   const handleStateSelect=useCallback((st)=>{
@@ -2603,7 +2612,9 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
   // Deferred values: pill taps are instant; heavy filtering runs async
   const deferredFilter=useDeferredValue(filter);
   const deferredState=useDeferredValue(selectedState);
-  const isStale=filter!==deferredFilter||selectedState!==deferredState;
+  const deferredSortBy=useDeferredValue(sortBy);
+  const deferredClosingSoon=useDeferredValue(closingSoonOnly);
+  const isStale=filter!==deferredFilter||selectedState!==deferredState||sortBy!==deferredSortBy||closingSoonOnly!==deferredClosingSoon;
 
   // Delay first paint by 1 frame so tab slide animation fires first
   useEffect(()=>{
@@ -2618,21 +2629,46 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
     }else if(deferredState!=="all"){
       base=base.filter(s=>s.scope==="national"||s.state===deferredState);
     }
-    // Rank: active(2) > unverified(1) > expired/dead(0)
     const now=Date.now();
-    return [...base].sort((a,b)=>{
-      // Fix 3: rank by linkAlive (pure URL liveness), falling back to the
-      // legacy isActive field for schemes not yet re-verified.
-      const sc=s=>{const la=s.linkAlive??s.isActive;return la===true?2:la===false||(s.lastDate&&new Date(s.lastDate).getTime()<now)?0:1;};
-      return sc(b)-sc(a);
-    });
-  },[deferredFilter,deferredState]);
+    // "Closing Soon" quick filter — open schemes with a deadline inside the next 30 days
+    if(deferredClosingSoon){
+      base=base.filter(s=>{
+        if(!s.lastDate) return false;
+        const ld=new Date(s.lastDate).getTime();
+        if(ld<now) return false;
+        const daysLeft=Math.ceil((ld-now)/(1000*60*60*24));
+        return daysLeft<=30;
+      });
+    }
+    const arr=[...base];
+    // Rank: active(2) > unverified(1) > expired/dead(0) — used as the default order
+    // and as a tie-breaker so dead/expired schemes never float to the top.
+    const sc=s=>{const la=s.linkAlive??s.isActive;return la===true?2:la===false||(s.lastDate&&new Date(s.lastDate).getTime()<now)?0:1;};
+    if(deferredSortBy==="deadline"){
+      arr.sort((a,b)=>{
+        const ad=a.lastDate?new Date(a.lastDate).getTime():Infinity;
+        const bd=b.lastDate?new Date(b.lastDate).getTime():Infinity;
+        const aExp=ad<now,bExp=bd<now;
+        if(aExp!==bExp) return aExp?1:-1; // expired always sinks below open ones
+        if(ad!==bd) return ad-bd; // soonest deadline first
+        return sc(b)-sc(a);
+      });
+    }else if(deferredSortBy==="amount"){
+      arr.sort((a,b)=>{
+        const diff=(b.annual||0)-(a.annual||0);
+        return diff!==0?diff:sc(b)-sc(a);
+      });
+    }else{
+      arr.sort((a,b)=>sc(b)-sc(a));
+    }
+    return arr;
+  },[deferredFilter,deferredState,deferredSortBy,deferredClosingSoon]);
 
   const national=useMemo(()=>filtered.filter(s=>s.scope==="national"),[filtered]);
   const stateSchemes=useMemo(()=>filtered.filter(s=>s.scope==="state"),[filtered]);
 
-  // Reset pagination when filter changes
-  useEffect(()=>{setVisibleCount(PAGE_SIZE);setExpandedId(null);},[filter,selectedState]);
+  // Reset pagination when any filter/sort changes
+  useEffect(()=>{setVisibleCount(PAGE_SIZE);setExpandedId(null);},[filter,selectedState,sortBy,closingSoonOnly]);
 
   // Smooth state-chip dismiss: play exit animation, then clear state
   const handleClearState=useCallback(()=>{
@@ -2698,20 +2734,67 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
               </div>
             )}
           </div>
-          <div onClick={()=>{haptic();setShowStatePicker(true);}}
-            className="fpill-state"
-            style={{
-              background:selectedState==="national"?ASHOKA_BLUE+"18":selectedState!=="all"?SAFFRON+"18":th.pillBg,
-              border:`1.5px solid ${selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.border2}`,
-              boxShadow:selectedState==="national"?`0 2px 10px ${ASHOKA_BLUE}28`:selectedState!=="all"?`0 2px 10px ${SAFFRON}28`:"0 1px 4px rgba(0,0,0,0.06)",
-            }}>
-            <span style={{fontSize:14,lineHeight:1}}>{selectedState==="national"?"🏛️":"🇮🇳"}</span>
-            <span style={{fontSize:11,fontWeight:700,color:selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.textMid,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:bf}}>
-              {selectedState==="all"?(isHindi?"सभी राज्य":"All States"):selectedState==="national"?t.nationalOnly:selectedState}
-            </span>
-            <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{opacity:0.5,flexShrink:0}}>
-              <path d="M2 3.5L5 6.5L8 3.5" stroke={selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            {/* ── Sort control ── */}
+            <div style={{position:"relative"}}>
+              <div onClick={()=>{haptic();setShowSortMenu(v=>!v);}}
+                style={{
+                  display:"flex",alignItems:"center",gap:4,padding:"6px 9px",borderRadius:20,cursor:"pointer",
+                  background:sortBy!=="default"?ASHOKA_BLUE+"18":th.pillBg,
+                  border:`1.5px solid ${sortBy!=="default"?ASHOKA_BLUE:th.border2}`,
+                  boxShadow:sortBy!=="default"?`0 2px 10px ${ASHOKA_BLUE}28`:"0 1px 4px rgba(0,0,0,0.06)",
+                }}>
+                <span style={{fontSize:12,lineHeight:1}}>⇅</span>
+                <span style={{fontSize:11,fontWeight:700,color:sortBy!=="default"?ASHOKA_BLUE:th.textMid,fontFamily:bf,whiteSpace:"nowrap"}}>
+                  {sortBy==="deadline"?t.sortDeadline:sortBy==="amount"?t.sortAmount:t.sortLabel}
+                </span>
+              </div>
+              {showSortMenu&&(
+                <>
+                  <div onClick={()=>setShowSortMenu(false)} style={{position:"fixed",inset:0,zIndex:290}}/>
+                  <div style={{
+                    position:"absolute",top:"calc(100% + 6px)",right:0,zIndex:300,
+                    background:th.card,borderRadius:14,minWidth:200,overflow:"hidden",
+                    border:`1px solid ${th.border}`,
+                    boxShadow:dark?"0 10px 34px rgba(0,0,0,0.5)":"0 10px 34px rgba(0,0,0,0.16)",
+                    animation:"fadeIn 0.16s ease",
+                  }}>
+                    {[
+                      {key:"default",icon:"🎯",label:t.sortDefault},
+                      {key:"deadline",icon:"⏳",label:t.sortDeadline},
+                      {key:"amount",icon:"💰",label:t.sortAmount},
+                    ].map(opt=>(
+                      <div key={opt.key} onClick={()=>{haptic();setSortBy(opt.key);setShowSortMenu(false);}}
+                        style={{
+                          padding:"11px 14px",display:"flex",alignItems:"center",gap:9,cursor:"pointer",
+                          background:sortBy===opt.key?ASHOKA_BLUE+"12":"transparent",
+                        }}>
+                        <span style={{fontSize:15,flexShrink:0}}>{opt.icon}</span>
+                        <span style={{fontSize:12.5,fontWeight:sortBy===opt.key?700:500,color:sortBy===opt.key?ASHOKA_BLUE:th.text,flex:1,fontFamily:bf}}>
+                          {opt.label}
+                        </span>
+                        {sortBy===opt.key&&<span style={{color:ASHOKA_BLUE,fontSize:12,flexShrink:0}}>✓</span>}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            <div onClick={()=>{haptic();setShowStatePicker(true);}}
+              className="fpill-state"
+              style={{
+                background:selectedState==="national"?ASHOKA_BLUE+"18":selectedState!=="all"?SAFFRON+"18":th.pillBg,
+                border:`1.5px solid ${selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.border2}`,
+                boxShadow:selectedState==="national"?`0 2px 10px ${ASHOKA_BLUE}28`:selectedState!=="all"?`0 2px 10px ${SAFFRON}28`:"0 1px 4px rgba(0,0,0,0.06)",
+              }}>
+              <span style={{fontSize:14,lineHeight:1}}>{selectedState==="national"?"🏛️":"🇮🇳"}</span>
+              <span style={{fontSize:11,fontWeight:700,color:selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.textMid,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:bf}}>
+                {selectedState==="all"?(isHindi?"सभी राज्य":"All States"):selectedState==="national"?t.nationalOnly:selectedState}
+              </span>
+              <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{opacity:0.5,flexShrink:0}}>
+                <path d="M2 3.5L5 6.5L8 3.5" stroke={selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -2816,8 +2899,42 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
               {cat.label}
             </div>
           );})}
+          {/* ── Closing Soon toggle — independent of category selection ── */}
+          <div onClick={()=>{haptic();setClosingSoonOnly(v=>!v);dismissHint();}}
+            className="fpill"
+            style={{
+              background:closingSoonOnly?"linear-gradient(135deg,#EA580C,#C2410C)":th.pillBg,
+              color:closingSoonOnly?"#fff":th.textMid,
+              border:`1.5px solid ${closingSoonOnly?"transparent":th.border2}`,
+              boxShadow:closingSoonOnly?"0 3px 14px rgba(234,88,12,0.38), inset 0 1px 0 rgba(255,255,255,0.14)":"0 1px 3px rgba(0,0,0,0.05)",
+              fontFamily:bf,display:"flex",alignItems:"center",gap:4,
+            }}>
+            <span>⏰</span>{t.closingSoon}
+          </div>
           </div>{/* end pill row */}
         </div>{/* end pill row wrapper */}
+
+        {/* ── Combined filter summary — appears only when 2+ filter dimensions are stacked ── */}
+        {(()=>{
+          const activeFilterCount=(filter!=="all"?1:0)+(selectedState!=="all"?1:0)+(closingSoonOnly?1:0);
+          if(activeFilterCount<2) return null;
+          return(
+            <div style={{
+              display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,
+              padding:"7px 12px",marginBottom:10,borderRadius:12,
+              background:dark?"rgba(6,3,141,0.14)":ASHOKA_BLUE+"0c",
+              border:`1px solid ${ASHOKA_BLUE}30`,
+            }}>
+              <span style={{fontSize:11,fontWeight:700,color:ASHOKA_BLUE,fontFamily:bf}}>
+                🔀 {t.filtersActiveN(activeFilterCount)}
+              </span>
+              <span onClick={()=>{haptic(30);setFilter("all");setSelectedState("all");setClosingSoonOnly(false);}}
+                style={{fontSize:11,fontWeight:800,color:ASHOKA_BLUE,cursor:"pointer",fontFamily:bf,textDecoration:"underline",textUnderlineOffset:2}}>
+                {t.clearAll}
+              </span>
+            </div>
+          );
+        })()}
 
         {/* Active state chip row */}
         {(selectedState!=="all"||dismissingState)&&(()=>{
@@ -2855,7 +2972,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
               <span style={{
                 fontSize:12,fontWeight:700,color:chipC,
                 fontFamily:bf,letterSpacing:0.1,
-                maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
+                maxWidth:isNat?175:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
               }}>{isNat?t.nationalOnlyFull:selectedState}</span>
               {/* Premium ✕ close button */}
               <div
@@ -2895,24 +3012,26 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                   :stateSchemes.length>0&&<span style={{fontSize:9,color:"#b45309",marginLeft:1}}>↓</span>}
               </div>
             )}
-            <div onClick={()=>{if(national.length>0){haptic(30);setScrollingTo("central");if(visibleNat.length>0){scrollToRef(centralHeaderRef,"central");}else{pendingScrollCentral.current=true;setVisibleCount(stateSchemes.length+PAGE_SIZE);}}}}
-              className="state-chip-enter"
-              style={{display:"flex",alignItems:"center",gap:4,
-                background:scrollingTo==="central"?"#BFDBFE":"#EFF6FF",
-                border:`1.5px solid ${scrollingTo==="central"?"#1d4ed8":"#3b82f6"}`,
-                borderRadius:20,padding:"4px 10px",
-                cursor:national.length>0?"pointer":"default",
-                transform:scrollingTo==="central"?"scale(0.93)":"scale(1)",
-                boxShadow:scrollingTo==="central"?"0 0 0 3px #93c5fd80":"none",
-                transition:"background 0.15s,border-color 0.15s,transform 0.15s,box-shadow 0.15s"}}>
-              <span style={{fontSize:11}}>🇮🇳</span>
-              <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",fontFamily:bf}}>
-                {isHindi?"केंद्रीय":"Central"} ({national.length})
-              </span>
-              {scrollingTo==="central"
-                ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><AshokaChakra size={11} color="#1D4ED8" spinning={true}/></span>
-                :national.length>0&&<span style={{fontSize:9,color:"#2563eb",marginLeft:1}}>↓</span>}
-            </div>
+            {!isNat&&(
+              <div onClick={()=>{if(national.length>0){haptic(30);setScrollingTo("central");if(visibleNat.length>0){scrollToRef(centralHeaderRef,"central");}else{pendingScrollCentral.current=true;setVisibleCount(stateSchemes.length+PAGE_SIZE);}}}}
+                className="state-chip-enter"
+                style={{display:"flex",alignItems:"center",gap:4,
+                  background:scrollingTo==="central"?"#BFDBFE":"#EFF6FF",
+                  border:`1.5px solid ${scrollingTo==="central"?"#1d4ed8":"#3b82f6"}`,
+                  borderRadius:20,padding:"4px 10px",
+                  cursor:national.length>0?"pointer":"default",
+                  transform:scrollingTo==="central"?"scale(0.93)":"scale(1)",
+                  boxShadow:scrollingTo==="central"?"0 0 0 3px #93c5fd80":"none",
+                  transition:"background 0.15s,border-color 0.15s,transform 0.15s,box-shadow 0.15s"}}>
+                <span style={{fontSize:11}}>🇮🇳</span>
+                <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",fontFamily:bf}}>
+                  {isHindi?"केंद्रीय":"Central"} ({national.length})
+                </span>
+                {scrollingTo==="central"
+                  ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><AshokaChakra size={11} color="#1D4ED8" spinning={true}/></span>
+                  :national.length>0&&<span style={{fontSize:9,color:"#2563eb",marginLeft:1}}>↓</span>}
+              </div>
+            )}
           </div>
           );})()}
       </div>
