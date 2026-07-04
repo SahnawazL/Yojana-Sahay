@@ -593,6 +593,7 @@ const T = {
     },
     searchStatePh:"Search your state...",
     centralSchemes:"Central Government Schemes", stateSchemes:"State Government Schemes",
+    nationalOnly:"National Only", nationalOnlyFull:"National Schemes Only", selectNational:"Only Central Govt. schemes, available across all states",
     profileTitle:"My Profile", setupTitle:"Set Up Profile", setupSub:"Fill once · Used everywhere",
     editBtn:"Edit", matchedBtn:"My Matched Schemes", saveBtn:"Save Profile ✓", skipBtn:"Skip",
     profileStats:["Schemes matched","Docs saved","Guided"],
@@ -731,6 +732,7 @@ const T = {
     },
     searchStatePh:"अपना राज्य खोजें...",
     centralSchemes:"केंद्र सरकार की योजनाएं", stateSchemes:"राज्य सरकार की योजनाएं",
+    nationalOnly:"केवल राष्ट्रीय", nationalOnlyFull:"केवल राष्ट्रीय योजनाएं", selectNational:"केवल केंद्र सरकार की योजनाएं, सभी राज्यों में उपलब्ध",
     profileTitle:"मेरी प्रोफाइल", setupTitle:"प्रोफाइल बनाएं", setupSub:"एक बार भरें · हर जगह काम आएगा",
     editBtn:"बदलें", matchedBtn:"मेरी योजनाएं", saveBtn:"सहेजें ✓", skipBtn:"छोड़ें",
     profileStats:["मिलान योजनाएं","दस्तावेज़","सहायता"],
@@ -2402,6 +2404,28 @@ function StatePickerSheet({selectedState,onSelect,onClose,lang,dark=false}){
               )}
             </div>
 
+            {/* National Only row — shows Central Govt. schemes exclusively, no state */}
+            <div onClick={()=>{haptic();onSelect("national");onClose();}}
+              style={{display:"flex",alignItems:"center",gap:12,padding:"13px 20px",
+                background:selectedState==="national"?SAFFRON+"12":"transparent",
+                cursor:"pointer",borderBottom:`1px solid ${th.border}`}}>
+              <span style={{fontSize:18}}>🏛️</span>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:14,fontWeight:selectedState==="national"?700:500,
+                  color:selectedState==="national"?SAFFRON:th.text,fontFamily:bf}}>
+                  {isHindi?"केवल राष्ट्रीय योजनाएं":"National Schemes Only"}
+                </div>
+                <div style={{fontSize:10.5,color:th.textSub,marginTop:1,fontFamily:bf}}>
+                  {isHindi?"कोई भी राज्य नहीं, केवल केंद्रीय":"No state — Central Govt. schemes only"}
+                </div>
+              </div>
+              {selectedState==="national"&&(
+                <span style={{width:20,height:20,borderRadius:"50%",background:SAFFRON,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:10,color:"#fff",fontWeight:800,flexShrink:0}}>✓</span>
+              )}
+            </div>
+
             {/* Recently picked — shown only when not searching and a prior selection exists */}
             {!isSearching&&recentState&&recentState!=="all"&&recentState!==selectedState&&(
               <>
@@ -2414,8 +2438,8 @@ function StatePickerSheet({selectedState,onSelect,onClose,lang,dark=false}){
               </>
             )}
 
-            {/* Currently selected highlight — show at top when not "all" and not searching */}
-            {!isSearching&&selectedState&&selectedState!=="all"&&(
+            {/* Currently selected highlight — show at top when not "all"/"national" and not searching */}
+            {!isSearching&&selectedState&&selectedState!=="all"&&selectedState!=="national"&&(
               <>
                 <div style={{padding:"8px 20px 4px",fontSize:10,fontWeight:700,
                   color:SAFFRON,letterSpacing:0.8,textTransform:"uppercase",
@@ -2589,7 +2613,9 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
 
   const filtered=useMemo(()=>{
     let base=deferredFilter==="all"?SCHEME_DB:getSchemesForCategory(deferredFilter);
-    if(deferredState!=="all"){
+    if(deferredState==="national"){
+      base=base.filter(s=>s.scope==="national");
+    }else if(deferredState!=="all"){
       base=base.filter(s=>s.scope==="national"||s.state===deferredState);
     }
     // Rank: active(2) > unverified(1) > expired/dead(0)
@@ -2675,16 +2701,16 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
           <div onClick={()=>{haptic();setShowStatePicker(true);}}
             className="fpill-state"
             style={{
-              background:selectedState!=="all"?SAFFRON+"18":th.pillBg,
-              border:`1.5px solid ${selectedState!=="all"?SAFFRON:th.border2}`,
-              boxShadow:selectedState!=="all"?`0 2px 10px ${SAFFRON}28`:"0 1px 4px rgba(0,0,0,0.06)",
+              background:selectedState==="national"?ASHOKA_BLUE+"18":selectedState!=="all"?SAFFRON+"18":th.pillBg,
+              border:`1.5px solid ${selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.border2}`,
+              boxShadow:selectedState==="national"?`0 2px 10px ${ASHOKA_BLUE}28`:selectedState!=="all"?`0 2px 10px ${SAFFRON}28`:"0 1px 4px rgba(0,0,0,0.06)",
             }}>
-            <span style={{fontSize:14,lineHeight:1}}>🇮🇳</span>
-            <span style={{fontSize:11,fontWeight:700,color:selectedState!=="all"?SAFFRON:th.textMid,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:bf}}>
-              {selectedState==="all"?(isHindi?"सभी राज्य":"All States"):selectedState}
+            <span style={{fontSize:14,lineHeight:1}}>{selectedState==="national"?"🏛️":"🇮🇳"}</span>
+            <span style={{fontSize:11,fontWeight:700,color:selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.textMid,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:bf}}>
+              {selectedState==="all"?(isHindi?"सभी राज्य":"All States"):selectedState==="national"?t.nationalOnly:selectedState}
             </span>
             <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{opacity:0.5,flexShrink:0}}>
-              <path d="M2 3.5L5 6.5L8 3.5" stroke={selectedState!=="all"?SAFFRON:th.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 3.5L5 6.5L8 3.5" stroke={selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </div>
@@ -2794,72 +2820,83 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
         </div>{/* end pill row wrapper */}
 
         {/* Active state chip row */}
-        {(selectedState!=="all"||dismissingState)&&(
-          <div style={{display:"flex",alignItems:"center",gap:6,paddingBottom:10,flexWrap:"wrap"}}>
-            {/* ── Premium state chip ── */}
+        {(selectedState!=="all"||dismissingState)&&(()=>{
+          const isNat=selectedState==="national";
+          const chipC=isNat?ASHOKA_BLUE:SAFFRON;
+          return(
+          <div key={selectedState} style={{display:"flex",alignItems:"center",gap:6,paddingBottom:10,flexWrap:"wrap"}}>
+            {/* ── Premium state/national chip ── */}
             <div className={dismissingState?"state-chip-exit":"state-chip-enter"}
               style={{
                 display:"flex",alignItems:"center",gap:6,
-                background:`linear-gradient(135deg,${SAFFRON}20 0%,${SAFFRON}0d 100%)`,
-                border:`1.5px solid ${SAFFRON}55`,
+                background:`linear-gradient(135deg,${chipC}20 0%,${chipC}0d 100%)`,
+                border:`1.5px solid ${chipC}55`,
                 borderRadius:50,
                 padding:"4px 6px 4px 9px",
-                boxShadow:`0 2px 14px ${SAFFRON}20,inset 0 1px 0 rgba(255,255,255,0.09)`,
+                boxShadow:`0 2px 14px ${chipC}20,inset 0 1px 0 rgba(255,255,255,0.09)`,
               }}>
-              {/* Location dot bubble */}
+              {/* Icon bubble — pin for state, building for national-only */}
               <div style={{
                 width:18,height:18,borderRadius:"50%",
-                background:`${SAFFRON}22`,
-                border:`1px solid ${SAFFRON}35`,
+                background:`${chipC}22`,
+                border:`1px solid ${chipC}35`,
                 display:"flex",alignItems:"center",justifyContent:"center",
                 flexShrink:0,
               }}>
-                <svg width="8" height="10" viewBox="0 0 10 12" fill={SAFFRON}>
-                  <path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 7 5 7s5-3.25 5-7c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 1 1 5 3.5a1.5 1.5 0 0 1 0 3z"/>
-                </svg>
+                {isNat?(
+                  <span style={{fontSize:10,lineHeight:1}}>🏛️</span>
+                ):(
+                  <svg width="8" height="10" viewBox="0 0 10 12" fill={chipC}>
+                    <path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 7 5 7s5-3.25 5-7c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 1 1 5 3.5a1.5 1.5 0 0 1 0 3z"/>
+                  </svg>
+                )}
               </div>
-              {/* State name */}
+              {/* State name / National label */}
               <span style={{
-                fontSize:12,fontWeight:700,color:SAFFRON,
+                fontSize:12,fontWeight:700,color:chipC,
                 fontFamily:bf,letterSpacing:0.1,
-                maxWidth:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
-              }}>{selectedState}</span>
+                maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
+              }}>{isNat?t.nationalOnlyFull:selectedState}</span>
               {/* Premium ✕ close button */}
               <div
                 className="state-chip-close"
                 onClick={handleClearState}
                 style={{
                   width:20,height:20,borderRadius:"50%",
-                  background:`${SAFFRON}22`,
-                  border:`1px solid ${SAFFRON}30`,
+                  background:`${chipC}22`,
+                  border:`1px solid ${chipC}30`,
                   display:"flex",alignItems:"center",justifyContent:"center",
                   cursor:"pointer",flexShrink:0,
                   transition:"background 0.18s,transform 0.15s cubic-bezier(0.34,1.56,0.64,1),border-color 0.18s",
                 }}>
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                  <path d="M1.5 1.5L6.5 6.5M6.5 1.5L1.5 6.5" stroke={SAFFRON} strokeWidth="1.8" strokeLinecap="round"/>
+                  <path d="M1.5 1.5L6.5 6.5M6.5 1.5L1.5 6.5" stroke={chipC} strokeWidth="1.8" strokeLinecap="round"/>
                 </svg>
               </div>
             </div>
-            <div onClick={()=>{if(stateSchemes.length>0){haptic(30);scrollToRef(stateHeaderRef,"state");}}}
-              style={{display:"flex",alignItems:"center",gap:4,
-                background:scrollingTo==="state"?"#FEF08A":stateSchemes.length>0?"#FEF9C3":"#f5f5f0",
-                border:`1.5px solid ${scrollingTo==="state"?"#ca8a04":stateSchemes.length>0?"#d97706":"#e0e0e0"}`,
-                borderRadius:20,padding:"4px 10px",
-                cursor:stateSchemes.length>0?"pointer":"default",
-                opacity:stateSchemes.length>0?1:0.55,
-                transform:scrollingTo==="state"?"scale(0.93)":"scale(1)",
-                boxShadow:scrollingTo==="state"?"0 0 0 3px #fde04780":"none",
-                transition:"background 0.15s,border-color 0.15s,transform 0.15s,box-shadow 0.15s"}}>
-              <span style={{fontSize:11}}>📍</span>
-              <span style={{fontSize:11,fontWeight:700,color:stateSchemes.length>0?"#92400e":"#999",fontFamily:bf}}>
-                {isHindi?"राज्य":"State"} ({stateSchemes.length})
-              </span>
-              {scrollingTo==="state"
-                ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><AshokaChakra size={11} color="#b45309" spinning={true}/></span>
-                :stateSchemes.length>0&&<span style={{fontSize:9,color:"#b45309",marginLeft:1}}>↓</span>}
-            </div>
+            {!isNat&&(
+              <div onClick={()=>{if(stateSchemes.length>0){haptic(30);scrollToRef(stateHeaderRef,"state");}}}
+                className="state-chip-enter"
+                style={{display:"flex",alignItems:"center",gap:4,
+                  background:scrollingTo==="state"?"#FEF08A":stateSchemes.length>0?"#FEF9C3":"#f5f5f0",
+                  border:`1.5px solid ${scrollingTo==="state"?"#ca8a04":stateSchemes.length>0?"#d97706":"#e0e0e0"}`,
+                  borderRadius:20,padding:"4px 10px",
+                  cursor:stateSchemes.length>0?"pointer":"default",
+                  opacity:stateSchemes.length>0?1:0.55,
+                  transform:scrollingTo==="state"?"scale(0.93)":"scale(1)",
+                  boxShadow:scrollingTo==="state"?"0 0 0 3px #fde04780":"none",
+                  transition:"background 0.15s,border-color 0.15s,transform 0.15s,box-shadow 0.15s"}}>
+                <span style={{fontSize:11}}>📍</span>
+                <span style={{fontSize:11,fontWeight:700,color:stateSchemes.length>0?"#92400e":"#999",fontFamily:bf}}>
+                  {isHindi?"राज्य":"State"} ({stateSchemes.length})
+                </span>
+                {scrollingTo==="state"
+                  ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><AshokaChakra size={11} color="#b45309" spinning={true}/></span>
+                  :stateSchemes.length>0&&<span style={{fontSize:9,color:"#b45309",marginLeft:1}}>↓</span>}
+              </div>
+            )}
             <div onClick={()=>{if(national.length>0){haptic(30);setScrollingTo("central");if(visibleNat.length>0){scrollToRef(centralHeaderRef,"central");}else{pendingScrollCentral.current=true;setVisibleCount(stateSchemes.length+PAGE_SIZE);}}}}
+              className="state-chip-enter"
               style={{display:"flex",alignItems:"center",gap:4,
                 background:scrollingTo==="central"?"#BFDBFE":"#EFF6FF",
                 border:`1.5px solid ${scrollingTo==="central"?"#1d4ed8":"#3b82f6"}`,
@@ -2877,7 +2914,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                 :national.length>0&&<span style={{fontSize:9,color:"#2563eb",marginLeft:1}}>↓</span>}
             </div>
           </div>
-        )}
+          );})()}
       </div>
 
       {/* ── SCHEME LIST ── */}
