@@ -2004,6 +2004,82 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
 // ─── SEARCH TAB ────────────────────────────────────────────────────────────────
 // Paginated + skeleton + deferred query to match SchemesTab performance.
 // Root cause of old lag: dumped ALL SCHEME_DB cards to DOM at once (no pagination).
+function VerificationBanner({lang,dark=false}){
+  const isHindi=lang==="hi";
+  const bf=fontFamily(lang);
+  return VERIFICATION_STATS.verified>0?(
+    <div style={{
+      position:"relative",overflow:"hidden",
+      display:"flex",alignItems:"center",gap:11,
+      background:dark
+        ?"linear-gradient(135deg,rgba(22,50,34,0.55),rgba(14,32,22,0.55))"
+        :"linear-gradient(135deg,#ffffff,#f3fbf5)",
+      border:`1px solid ${dark?"rgba(74,222,128,0.16)":"rgba(19,136,8,0.14)"}`,
+      borderRadius:14,padding:"11px 14px",marginBottom:14,
+      boxShadow:dark
+        ?"0 4px 18px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.03)"
+        :"0 3px 16px rgba(19,136,8,0.09), inset 0 1px 0 rgba(255,255,255,0.7)",
+      backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",
+    }}>
+      {/* premium top hairline accent */}
+      <div style={{position:"absolute",top:0,left:14,right:14,height:1,
+        background:"linear-gradient(90deg,transparent,rgba(34,197,94,0.6),transparent)"}}/>
+
+      {/* Icon badge */}
+      <div style={{
+        width:31,height:31,borderRadius:9.5,flexShrink:0,
+        display:"flex",alignItems:"center",justifyContent:"center",
+        background:dark?"linear-gradient(135deg,#22c55e,#15803d)":"linear-gradient(135deg,#34d399,#16a34a)",
+        boxShadow:"0 3px 10px rgba(22,163,74,0.35)",
+      }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2.5l6.5 3v5.1c0 4.6-3.1 8.3-6.5 9.6-3.4-1.3-6.5-5-6.5-9.6V5.5L12 2.5z"/>
+          <path d="M9 12l2 2 4-4.2"/>
+        </svg>
+      </div>
+
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:11.5,fontWeight:700,color:dark?"#e7fbee":"#0f5a2e",fontFamily:bf,lineHeight:1.35,letterSpacing:0.1}}>
+          {isHindi
+            ?`${VERIFICATION_STATS.pctLive}% लिंक सत्यापित और लाइव`
+            :`${VERIFICATION_STATS.pctLive}% links verified live`}
+          {LAST_VERIFIED_LABEL&&(
+            <span style={{fontWeight:500,opacity:0.6}}>
+              {isHindi?` · जाँच: ${LAST_VERIFIED_LABEL}`:` · Checked ${LAST_VERIFIED_LABEL}`}
+            </span>
+          )}
+        </div>
+        <div style={{fontSize:10,color:dark?"rgba(190,242,210,0.55)":"rgba(15,90,46,0.62)",marginTop:3,fontFamily:bf,lineHeight:1.45}}>
+          {isHindi
+            ?"लिंक काम न करे तो कार्ड › खोलें — ~5% अगली जाँच से पहले बदल सकते हैं"
+            :"Tap › on a card for the official link · ~5% may change between checks"}
+        </div>
+      </div>
+
+      <div style={{
+        fontSize:8.5,fontWeight:800,letterSpacing:0.6,flexShrink:0,
+        color:"#ffffff",
+        background:dark?"linear-gradient(135deg,#22c55e,#166534)":"linear-gradient(135deg,#34d399,#15803d)",
+        borderRadius:20,padding:"4px 9px",textTransform:"uppercase",
+        boxShadow:"0 2px 7px rgba(22,163,74,0.32)",
+      }}>
+        {isHindi?"सत्यापित":"AI VERIFIED"}
+      </div>
+    </div>
+  ):(
+    <div style={{display:"flex",alignItems:"flex-start",gap:9,
+      background:dark?"linear-gradient(135deg,rgba(255,153,51,0.10),rgba(255,153,51,0.04))":"linear-gradient(135deg,#FFFBEB,#FFF8E1)",
+      borderRadius:14,padding:"10px 13px",marginBottom:14,
+      border:`1px solid ${dark?"rgba(255,153,51,0.20)":"#FDE68A"}`,
+      boxShadow:dark?"none":"0 2px 10px rgba(217,119,6,0.06)"}}>
+      <span style={{fontSize:13,flexShrink:0,marginTop:1}}>💡</span>
+      <span style={{fontSize:11,color:dark?"#fbbf24":"#92400e",lineHeight:1.5,fontFamily:bf}}>
+        {isHindi?"कुछ योजना लिंक काम नहीं कर सकते। सटीक जानकारी के लिए योजना का नाम Google पर खोजें।":"Some scheme links may not work. Search the scheme name on Google for the latest info."}
+      </span>
+    </div>
+  );
+}
+
 function SearchTab({lang,dark=false,onOpenDetail=null}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
@@ -2147,49 +2223,7 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
       <div style={{padding:"12px 16px 80px"}}>
 
         {/* ── Smart Verification Status ── */}
-        {VERIFICATION_STATS.verified>0?(
-          <div style={{
-            display:"flex",alignItems:"center",gap:10,
-            background:dark?"rgba(19,136,8,0.09)":"linear-gradient(135deg,rgba(22,163,74,0.10),rgba(74,222,128,0.04))",
-            border:`1px solid ${dark?"rgba(19,136,8,0.22)":"rgba(19,136,8,0.22)"}`,
-            borderRadius:12,padding:"9px 13px",marginBottom:14,boxShadow:dark?"none":"0 1px 8px rgba(19,136,8,0.07)",
-          }}>
-            <span style={{fontSize:15,flexShrink:0}}>🛡️</span>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:11,fontWeight:700,color:dark?"#4ade80":"#15803d",fontFamily:bf,lineHeight:1.3}}>
-                {isHindi
-                  ?`${VERIFICATION_STATS.pctLive}% लिंक सत्यापित और लाइव`
-                  :`${VERIFICATION_STATS.pctLive}% links verified live`}
-                {LAST_VERIFIED_LABEL&&(
-                  <span style={{fontWeight:500,opacity:0.7}}>
-                    {isHindi?` · जाँच: ${LAST_VERIFIED_LABEL}`:` · Checked ${LAST_VERIFIED_LABEL}`}
-                  </span>
-                )}
-              </div>
-              <div style={{fontSize:10,color:dark?"rgba(74,222,128,0.6)":"rgba(15,98,46,0.85)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>
-                {isHindi
-                  ?"लिंक काम न करे तो कार्ड › खोलें — ~5% अगली जाँच से पहले बदल सकते हैं"
-                  :"Tap › on a card for the official link · ~5% may change between checks"}
-              </div>
-            </div>
-            <div style={{
-              fontSize:8,fontWeight:800,letterSpacing:0.7,flexShrink:0,
-              color:dark?"#4ade80":"#15803d",
-              background:dark?"rgba(19,136,8,0.16)":"rgba(19,136,8,0.14)",
-              border:`1px solid ${dark?"rgba(19,136,8,0.28)":"rgba(19,136,8,0.30)"}`,
-              borderRadius:20,padding:"3px 9px",textTransform:"uppercase",
-            }}>
-              {isHindi?"सत्यापित":"AI VERIFIED"}
-            </div>
-          </div>
-        ):(
-          <div style={{display:"flex",alignItems:"flex-start",gap:8,background:dark?"rgba(255,153,51,0.08)":"#FFFBEB",borderRadius:12,padding:"9px 12px",marginBottom:14,border:`1px solid ${dark?"rgba(255,153,51,0.18)":"#FDE68A"}`}}>
-            <span style={{fontSize:13,flexShrink:0,marginTop:1}}>💡</span>
-            <span style={{fontSize:11,color:dark?"#fbbf24":"#92400e",lineHeight:1.5,fontFamily:bf}}>
-              {isHindi?"कुछ योजना लिंक काम नहीं कर सकते। सटीक जानकारी के लिए योजना का नाम Google पर खोजें।":"Some scheme links may not work. Search the scheme name on Google for the latest info."}
-            </span>
-          </div>
-        )}
+        <VerificationBanner lang={lang} dark={dark}/>
 
         {/* Skeleton shimmer while loading / searching */}
         {skeletonCount>0&&Array.from({length:skeletonCount}).map((_,i)=>(
@@ -3040,49 +3074,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
       <div ref={scrollContainerRef} style={{padding:"12px 16px 80px",overflowY:"auto",flex:1}}>
 
         {/* ── Smart Verification Status ── */}
-        {VERIFICATION_STATS.verified>0?(
-          <div style={{
-            display:"flex",alignItems:"center",gap:10,
-            background:dark?"rgba(19,136,8,0.09)":"linear-gradient(135deg,rgba(22,163,74,0.10),rgba(74,222,128,0.04))",
-            border:`1px solid ${dark?"rgba(19,136,8,0.22)":"rgba(19,136,8,0.22)"}`,
-            borderRadius:12,padding:"9px 13px",marginBottom:14,boxShadow:dark?"none":"0 1px 8px rgba(19,136,8,0.07)",
-          }}>
-            <span style={{fontSize:15,flexShrink:0}}>🛡️</span>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:11,fontWeight:700,color:dark?"#4ade80":"#15803d",fontFamily:bf,lineHeight:1.3}}>
-                {isHindi
-                  ?`${VERIFICATION_STATS.pctLive}% लिंक सत्यापित और लाइव`
-                  :`${VERIFICATION_STATS.pctLive}% links verified live`}
-                {LAST_VERIFIED_LABEL&&(
-                  <span style={{fontWeight:500,opacity:0.7}}>
-                    {isHindi?` · जाँच: ${LAST_VERIFIED_LABEL}`:` · Checked ${LAST_VERIFIED_LABEL}`}
-                  </span>
-                )}
-              </div>
-              <div style={{fontSize:10,color:dark?"rgba(74,222,128,0.6)":"rgba(15,98,46,0.85)",marginTop:2,fontFamily:bf,lineHeight:1.4}}>
-                {isHindi
-                  ?"लिंक काम न करे तो कार्ड › खोलें — ~5% अगली जाँच से पहले बदल सकते हैं"
-                  :"Tap › on a card for the official link · ~5% may change between checks"}
-              </div>
-            </div>
-            <div style={{
-              fontSize:8,fontWeight:800,letterSpacing:0.7,flexShrink:0,
-              color:dark?"#4ade80":"#15803d",
-              background:dark?"rgba(19,136,8,0.16)":"rgba(19,136,8,0.14)",
-              border:`1px solid ${dark?"rgba(19,136,8,0.28)":"rgba(19,136,8,0.30)"}`,
-              borderRadius:20,padding:"3px 9px",textTransform:"uppercase",
-            }}>
-              {isHindi?"सत्यापित":"AI VERIFIED"}
-            </div>
-          </div>
-        ):(
-          <div style={{display:"flex",alignItems:"flex-start",gap:8,background:dark?"rgba(255,153,51,0.08)":"#FFFBEB",borderRadius:12,padding:"9px 12px",marginBottom:14,border:`1px solid ${dark?"rgba(255,153,51,0.18)":"#FDE68A"}`}}>
-            <span style={{fontSize:13,flexShrink:0,marginTop:1}}>💡</span>
-            <span style={{fontSize:11,color:dark?"#fbbf24":"#92400e",lineHeight:1.5,fontFamily:bf}}>
-              {isHindi?"कुछ योजना लिंक काम नहीं कर सकते। सटीक जानकारी के लिए योजना का नाम Google पर खोजें।":"Some scheme links may not work. Search the scheme name on Google for the latest info."}
-            </span>
-          </div>
-        )}
+        <VerificationBanner lang={lang} dark={dark}/>
 
         {/* Skeleton shimmer cards */}
         {skeletonCount>0&&Array.from({length:skeletonCount}).map((_,i)=>(
