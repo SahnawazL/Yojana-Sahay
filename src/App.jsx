@@ -8984,13 +8984,13 @@ function YojanaSahayInner(){
           {LAST_VERIFIED_LABEL&&(
             <div style={{
               position:"relative",overflow:"hidden",
-              margin:"8px 14px 0",
+              margin:"8px 14px 14px",
               background:dark
                 ?"linear-gradient(120deg,rgba(255,153,51,0.14) 0%,rgba(255,255,255,0.03) 40%,rgba(255,255,255,0.03) 60%,rgba(19,136,8,0.14) 100%),#1c1c1e"
                 :"linear-gradient(120deg,rgba(255,153,51,0.10) 0%,rgba(255,255,255,0.9) 40%,rgba(255,255,255,0.9) 60%,rgba(19,136,8,0.09) 100%),#ffffff",
-              border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(27,42,74,0.12)"}`,
+              border:`1px solid ${dark?"rgba(255,255,255,0.12)":"rgba(27,42,74,0.12)"}`,
               borderRadius:13,
-              boxShadow:dark?"0 4px 18px rgba(0,0,0,0.24)":"0 4px 16px rgba(27,42,74,0.08)",
+              boxShadow:dark?"0 6px 20px rgba(0,0,0,0.35)":"0 4px 16px rgba(27,42,74,0.08)",
               animation:"verifyBadgeIn 0.6s cubic-bezier(0.22,1,0.36,1) both",
             }}>
               {/* Whole-card tricolor wash (above) is the single intentional place in
