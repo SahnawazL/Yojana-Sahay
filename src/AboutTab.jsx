@@ -567,12 +567,17 @@ function InfoRow({ icon, iconBg, title, desc, dark, bf, last }) {
 export default function AboutTab({ onClose, citizensGuided = null, scrollToSection = null }) {
   // ── Fully internal dark/light — always opens dark, independent from app ──
   const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem("about_dark");
-    return saved !== null ? saved === "true" : true;
+    try {
+      const saved = localStorage.getItem("about_dark");
+      return saved !== null ? saved === "true" : true;
+    } catch { return true; }
   });
 
   // ── Fully internal language — independent from app ──
-  const [lang, setLang]         = useState(() => localStorage.getItem("about_lang") || "en");
+  const [lang, setLang]         = useState(() => {
+    try { return localStorage.getItem("about_lang") || "en"; }
+    catch { return "en"; }
+  });
   const [fading, setFading]     = useState(false);
   const [settingsOpen, setSettingsOpen]       = useState(false);
   const [settingsClosing, setSettingsClosing] = useState(false);
@@ -623,8 +628,8 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
   }, [onClose]);
 
   // Persist both preferences
-  useEffect(() => { localStorage.setItem("about_dark", String(dark)); }, [dark]);
-  useEffect(() => { localStorage.setItem("about_lang", lang); },        [lang]);
+  useEffect(() => { try{ localStorage.setItem("about_dark", String(dark)); }catch{} }, [dark]);
+  useEffect(() => { try{ localStorage.setItem("about_lang", lang); }catch{} },        [lang]);
 
   const toggleDark = () => setDark(d => !d);
 

@@ -158,10 +158,14 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 function getVoterId() {
   let uid = getAuth().currentUser?.uid;
   if (!uid) {
-    uid = sessionStorage.getItem("ys_anon_faq_id");
-    if (!uid) {
-      uid = "anon_" + Math.random().toString(36).slice(2, 10);
-      sessionStorage.setItem("ys_anon_faq_id", uid);
+    try {
+      uid = sessionStorage.getItem("ys_anon_faq_id");
+      if (!uid) {
+        uid = "anon_" + Math.random().toString(36).slice(2, 10);
+        sessionStorage.setItem("ys_anon_faq_id", uid);
+      }
+    } catch {
+      uid = "anon_" + Math.random().toString(36).slice(2, 10); // storage blocked — one-off id
     }
   }
   return uid;
@@ -763,10 +767,14 @@ export default function HomeFAQSection({ lang, dark }) {
       if (user) {
         uid = user.uid;                                    // real Firebase UID
       } else {
-        uid = sessionStorage.getItem("ys_anon_faq_id");   // anon: reuse existing
-        if (!uid) {
-          uid = "anon_" + Math.random().toString(36).slice(2, 10);
-          sessionStorage.setItem("ys_anon_faq_id", uid);  // anon: create once per tab
+        try {
+          uid = sessionStorage.getItem("ys_anon_faq_id");   // anon: reuse existing
+          if (!uid) {
+            uid = "anon_" + Math.random().toString(36).slice(2, 10);
+            sessionStorage.setItem("ys_anon_faq_id", uid);  // anon: create once per tab
+          }
+        } catch {
+          uid = "anon_" + Math.random().toString(36).slice(2, 10); // storage blocked — use a one-off id for this render
         }
       }
       voterIdRef.current = uid;
