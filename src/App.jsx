@@ -7780,6 +7780,8 @@ const APP_STYLES = `
         @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
         @keyframes checkPop{0%{transform:scale(0.3);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(-3px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes verifyBadgeIn{from{opacity:0;transform:translateY(8px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes verifyRibbonGlow{0%,100%{opacity:0.92}50%{opacity:1}}
         ::-webkit-scrollbar{display:none;}
         .tb{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;}
         .sb{transition:all 0.3s;} .sb.fc{box-shadow:0 0 0 3px rgba(255,153,51,0.25);}
@@ -8986,16 +8988,24 @@ function YojanaSahayInner(){
               background:dark?"rgba(255,255,255,0.035)":"linear-gradient(135deg,#fdfdfd 0%,#ffffff 70%)",
               border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(27,42,74,0.12)"}`,
               borderRadius:13,
-              boxShadow:dark?"none":"0 4px 16px rgba(27,42,74,0.08)",
+              boxShadow:dark?"0 4px 18px rgba(0,0,0,0.24)":"0 4px 16px rgba(27,42,74,0.08)",
+              animation:"verifyBadgeIn 0.6s cubic-bezier(0.22,1,0.36,1) both",
             }}>
               {/* Single intentional tricolor accent — the only place in the app
                   where saffron/white/green appears, marking this as the one
                   "official verification" moment. Rendered as a slim ribbon on
                   the left edge rather than a full-width bar, so it doesn't read
-                  as a progress/loading indicator. */}
+                  as a progress/loading indicator. Colours blend smoothly into
+                  one another (no hard banding) for a premium, softer finish. */}
               <div style={{
                 position:"absolute",left:0,top:0,bottom:0,width:4,
-                background:"linear-gradient(180deg,#FF9933 0%,#FF9933 33.3%,#ffffff 33.3%,#ffffff 66.6%,#138808 66.6%,#138808 100%)",
+                background:"linear-gradient(180deg,#FF9933 0%,#FFC57A 28%,#ffffff 50%,#8FD9A8 72%,#138808 100%)",
+                animation:"verifyRibbonGlow 3.2s ease-in-out infinite",
+              }}/>
+              {/* soft inner glow so the ribbon feels inset rather than pasted on */}
+              <div style={{
+                position:"absolute",left:0,top:0,bottom:0,width:16,pointerEvents:"none",
+                background:"linear-gradient(90deg,rgba(19,136,8,0.05),transparent)",
               }}/>
 
               <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 13px 11px 17px"}}>
