@@ -472,6 +472,12 @@ const IND_GREEN  = "#138808";
 const ASHOKA_BLUE= "#06038D";
 const NAVY_BLUE  = "#003580";
 
+// ─── PREMIUM STATE ACCENT (used only for state-pill UI: StateRow, trigger pill, removable chip) ──
+// Deep burgundy for light mode (9.9:1 contrast on white — well above WCAG AA).
+// Soft rose-gold for dark mode (8.1:1 contrast on dark card — the raw burgundy fails at 2.1:1).
+const STATE_ACCENT      = "#7A2140"; // light mode
+const STATE_ACCENT_DARK = "#E6A0B3"; // dark mode
+
 // ─── THEME TOKENS ──────────────────────────────────────────────────────────────
 const THEME={
   light:{
@@ -563,7 +569,7 @@ const T = {
       "Each scheme has its own application process and is verified separately by its respective government department.",
       "Keep your documents accurate and ready — incomplete or incorrect documents are the most common reason eligible applicants get rejected.",
     ],
-    centralLabel:"🇮🇳 Central", stateLabel:(s)=>`📍 ${s}`,
+    centralLabel:"🇮🇳 Central", stateLabel:(s)=>s,
     noMatchTitle:"No exact matches", noMatchSub:"Try a different state or change your answers",
     retakeBtn:"Retake", doneBtn:"Done", fixAnswerBtn:"← Fix my answer",
     applyLabel:"How to Apply", docsLabel:"Documents Needed", totalBenefit:"Total annual benefit",
@@ -605,7 +611,7 @@ const T = {
     noSchemesFound:"No schemes found for this category.",
     steps:[
       {title:"Personal Details",sub:"Tell us about yourself",icon:"👤"},
-      {title:"Your Location",sub:"Where do you live?",icon:"📍"},
+      {title:"Your Location",sub:"Where do you live?",icon:"🧭"},
       {title:"Family & Income",sub:"Your household details",icon:"👨‍👩‍👧"},
       {title:"Occupation",sub:"What do you do?",icon:"💼"},
       {title:"Documents",sub:"Basic document info",icon:"📄"},
@@ -637,7 +643,7 @@ const T = {
         options:[{value:"general",label:"General"},{value:"obc",label:"OBC"},{value:"sc",label:"SC (Scheduled Caste)"},{value:"st",label:"ST (Scheduled Tribe)"},{value:"ews",label:"EWS"}]},
       {id:"age",   q:"What is your age?",          icon:"🎂", hint:"Age of the main applicant",
         options:[{value:"below18",label:"Below 18"},{value:"18to35",label:"18–35 years"},{value:"35to60",label:"35–60 years"},{value:"above60",label:"Above 60 years"}]},
-      {id:"area",  q:"Your area type?",            icon:"📍", hint:"Your residential area",
+      {id:"area",  q:"Your area type?",            icon:"🏞️", hint:"Your residential area",
         options:[{value:"rural",label:"Rural / Village 🏡"},{value:"urban",label:"Urban / City 🏙️"},{value:"semi",label:"Semi-urban / Town 🏘️"}]},
     ],
     // ── Adaptive / conditional bonus questions ──────────────────────────────
@@ -705,7 +711,7 @@ const T = {
       "हर योजना की अपनी अलग आवेदन प्रक्रिया है और संबंधित सरकारी विभाग द्वारा अलग से सत्यापित की जाती है।",
       "अपने दस्तावेज़ सही और तैयार रखें — गलत या अधूरे दस्तावेज़ ही पात्र लोगों के आवेदन रद्द होने की सबसे बड़ी वजह हैं।",
     ],
-    centralLabel:"🇮🇳 केंद्रीय", stateLabel:(s)=>`📍 ${s}`,
+    centralLabel:"🇮🇳 केंद्रीय", stateLabel:(s)=>s,
     noMatchTitle:"कोई मिलान नहीं", noMatchSub:"राज्य या जवाब बदलकर दोबारा कोशिश करें",
     retakeBtn:"फिर से", doneBtn:"पूरा हुआ", fixAnswerBtn:"← जवाब ठीक करें",
     applyLabel:"आवेदन कैसे करें", docsLabel:"ज़रूरी दस्तावेज़", totalBenefit:"कुल वार्षिक लाभ",
@@ -746,7 +752,7 @@ const T = {
     noSchemesFound:"इस श्रेणी में कोई योजना नहीं मिली।",
     steps:[
       {title:"व्यक्तिगत विवरण",sub:"अपने बारे में बताएं",icon:"👤"},
-      {title:"आपका स्थान",sub:"आप कहाँ रहते हैं?",icon:"📍"},
+      {title:"आपका स्थान",sub:"आप कहाँ रहते हैं?",icon:"🧭"},
       {title:"परिवार और आय",sub:"घर की जानकारी",icon:"👨‍👩‍👧"},
       {title:"व्यवसाय",sub:"आप क्या करते हैं?",icon:"💼"},
       {title:"दस्तावेज़",sub:"बुनियादी जानकारी",icon:"📄"},
@@ -778,7 +784,7 @@ const T = {
         options:[{value:"general",label:"सामान्य"},{value:"obc",label:"OBC"},{value:"sc",label:"SC (अनु. जाति)"},{value:"st",label:"ST (अनु. जनजाति)"},{value:"ews",label:"EWS"}]},
       {id:"age",   q:"आपकी उम्र क्या है?",           icon:"🎂", hint:"मुख्य आवेदक की उम्र",
         options:[{value:"below18",label:"18 से कम"},{value:"18to35",label:"18–35 वर्ष"},{value:"35to60",label:"35–60 वर्ष"},{value:"above60",label:"60 से अधिक"}]},
-      {id:"area",  q:"आपका क्षेत्र?",                icon:"📍", hint:"आपके रहने का क्षेत्र",
+      {id:"area",  q:"आपका क्षेत्र?",                icon:"🏞️", hint:"आपके रहने का क्षेत्र",
         options:[{value:"rural",label:"ग्रामीण / गांव 🏡"},{value:"urban",label:"शहरी / नगर 🏙️"},{value:"semi",label:"अर्ध-शहरी 🏘️"}]},
     ],
     // ── अनुकूल / सशर्त अतिरिक्त सवाल ───────────────────────────────────────
@@ -1789,7 +1795,7 @@ function CategorySheet({category,lang,onClose,dark=false,onOpenDetail=null}){
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
                 <div style={{height:1,flex:1,background:th.border2}}/>
                 <span style={{fontSize:11,fontWeight:700,color:"#854D0E",background:"#FEF9C3",borderRadius:20,padding:"3px 10px",border:"1px solid #FEF08A"}}>
-                  📍 {t.stateSchemes} ({stateSchemes.length})
+                  {t.stateSchemes} ({stateSchemes.length})
                 </span>
                 <div style={{height:1,flex:1,background:th.border2}}/>
               </div>
@@ -2262,7 +2268,7 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
               <div style={{display:"flex",alignItems:"center",gap:8,margin:`${visibleNat.length>0?14:0}px 0 10px`}}>
                 <div style={{height:1,flex:1,background:th.border2}}/>
                 <span style={{fontSize:11,fontWeight:700,color:"#854D0E",background:"#FEF9C3",borderRadius:20,padding:"3px 10px",border:"1px solid #FEF08A"}}>
-                  📍 {t.stateSchemes} ({stateRes.length})
+                  {t.stateSchemes} ({stateRes.length})
                 </span>
                 <div style={{height:1,flex:1,background:th.border2}}/>
               </div>
@@ -2358,17 +2364,17 @@ function StatePickerSheet({selectedState,onSelect,onClose,lang,dark=false}){
     onClose();
   };
 
-  const StateRow=({st,icon="📍"})=>(
+  const StateRow=({st,icon=null})=>(
     <div onClick={()=>{haptic();handleSelect(st);}}
       style={{display:"flex",alignItems:"center",gap:12,padding:"12px 20px",
-        background:selectedState===st?SAFFRON+"15":"transparent",
+        background:selectedState===st?(dark?STATE_ACCENT_DARK:STATE_ACCENT)+"15":"transparent",
         cursor:"pointer",borderBottom:`1px solid ${th.border}`,
         transition:"background 0.15s"}}>
-      <span style={{fontSize:15}}>{icon}</span>
+      {icon&&<span style={{fontSize:15}}>{icon}</span>}
       <span style={{flex:1,fontSize:14,fontWeight:selectedState===st?700:500,
-        color:selectedState===st?SAFFRON:th.text,fontFamily:bf}}>{st}</span>
+        color:selectedState===st?(dark?STATE_ACCENT_DARK:STATE_ACCENT):th.text,fontFamily:bf}}>{st}</span>
       {selectedState===st&&(
-        <span style={{width:20,height:20,borderRadius:"50%",background:SAFFRON,
+        <span style={{width:20,height:20,borderRadius:"50%",background:STATE_ACCENT,
           display:"flex",alignItems:"center",justifyContent:"center",
           fontSize:10,color:"#fff",fontWeight:800,flexShrink:0}}>✓</span>
       )}
@@ -2430,17 +2436,17 @@ function StatePickerSheet({selectedState,onSelect,onClose,lang,dark=false}){
             {/* All States row — always on top */}
             <div onClick={()=>{haptic();onSelect("all");onClose();}}
               style={{display:"flex",alignItems:"center",gap:12,padding:"13px 20px",
-                background:selectedState==="all"?ASHOKA_BLUE+"10":"transparent",
+                background:selectedState==="all"?(dark?"rgba(122,165,255,0.14)":ASHOKA_BLUE+"10"):"transparent",
                 cursor:"pointer",borderBottom:`1px solid ${th.border}`}}>
               <span style={{fontSize:18}}>🇮🇳</span>
               <span style={{flex:1,fontSize:14,fontWeight:selectedState==="all"?700:500,
-                color:selectedState==="all"?ASHOKA_BLUE:th.text,fontFamily:bf}}>
+                color:selectedState==="all"?(dark?"#7aa5ff":ASHOKA_BLUE):th.text,fontFamily:bf}}>
                 {isHindi?"सभी राज्य":"All States"}
               </span>
               {selectedState==="all"&&(
-                <span style={{width:20,height:20,borderRadius:"50%",background:ASHOKA_BLUE,
+                <span style={{width:20,height:20,borderRadius:"50%",background:dark?"#7aa5ff":ASHOKA_BLUE,
                   display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:10,color:"#fff",fontWeight:800,flexShrink:0}}>✓</span>
+                  fontSize:10,color:dark?"#0b1330":"#fff",fontWeight:800,flexShrink:0}}>✓</span>
               )}
             </div>
 
@@ -2486,7 +2492,7 @@ function StatePickerSheet({selectedState,onSelect,onClose,lang,dark=false}){
                   background:SAFFRON+"08"}}>
                   {isHindi?"चुना गया":"Selected"} ✓
                 </div>
-                <StateRow st={selectedState} icon="📍"/>
+                <StateRow st={selectedState}/>
               </>
             )}
 
@@ -2818,16 +2824,16 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
             <div onClick={()=>{haptic();setShowStatePicker(true);}}
               className="fpill-state"
               style={{
-                background:selectedState==="national"?(dark?"rgba(122,165,255,0.16)":ASHOKA_BLUE+"18"):selectedState!=="all"?SAFFRON+"18":th.pillBg,
-                border:`1.5px solid ${selectedState==="national"?(dark?"rgba(122,165,255,0.5)":ASHOKA_BLUE):selectedState!=="all"?SAFFRON:th.border2}`,
-                boxShadow:selectedState==="national"?`0 2px 10px ${dark?"rgba(122,165,255,0.3)":ASHOKA_BLUE+"28"}`:selectedState!=="all"?`0 2px 10px ${SAFFRON}28`:"0 1px 4px rgba(0,0,0,0.06)",
+                background:selectedState==="national"?(dark?"rgba(122,165,255,0.16)":ASHOKA_BLUE+"18"):selectedState!=="all"?(dark?STATE_ACCENT_DARK+"22":STATE_ACCENT+"18"):th.pillBg,
+                border:`1.5px solid ${selectedState==="national"?(dark?"rgba(122,165,255,0.5)":ASHOKA_BLUE):selectedState!=="all"?(dark?STATE_ACCENT_DARK:STATE_ACCENT):th.border2}`,
+                boxShadow:selectedState==="national"?`0 2px 10px ${dark?"rgba(122,165,255,0.3)":ASHOKA_BLUE+"28"}`:selectedState!=="all"?`0 2px 10px ${dark?STATE_ACCENT_DARK:STATE_ACCENT}28`:"0 1px 4px rgba(0,0,0,0.06)",
               }}>
               <span style={{fontSize:14,lineHeight:1}}>{selectedState==="national"?"🏛️":"🇮🇳"}</span>
-              <span style={{fontSize:11,fontWeight:700,color:selectedState==="national"?(dark?"#7aa5ff":ASHOKA_BLUE):selectedState!=="all"?SAFFRON:th.textMid,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:bf}}>
+              <span style={{fontSize:11,fontWeight:700,color:selectedState==="national"?(dark?"#7aa5ff":ASHOKA_BLUE):selectedState!=="all"?(dark?STATE_ACCENT_DARK:STATE_ACCENT):th.textMid,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:bf}}>
                 {selectedState==="all"?(isHindi?"सभी राज्य":"All States"):selectedState==="national"?t.nationalOnly:selectedState}
               </span>
               <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{opacity:0.5,flexShrink:0}}>
-                <path d="M2 3.5L5 6.5L8 3.5" stroke={selectedState==="national"?(dark?"#7aa5ff":ASHOKA_BLUE):selectedState!=="all"?SAFFRON:th.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 3.5L5 6.5L8 3.5" stroke={selectedState==="national"?(dark?"#7aa5ff":ASHOKA_BLUE):selectedState!=="all"?(dark?STATE_ACCENT_DARK:STATE_ACCENT):th.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
           </div>
@@ -2983,7 +2989,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
         {/* Active state chip row */}
         {(selectedState!=="all"||dismissingState)&&(()=>{
           const isNat=selectedState==="national";
-          const chipC=isNat?(dark?"#7aa5ff":ASHOKA_BLUE):SAFFRON;
+          const chipC=isNat?(dark?"#7aa5ff":ASHOKA_BLUE):(dark?STATE_ACCENT_DARK:STATE_ACCENT);
           return(
           <div key={selectedState} style={{display:"flex",alignItems:"center",gap:6,paddingBottom:10,flexWrap:"wrap"}}>
             {/* ── Premium state/national chip ── */}
@@ -3047,7 +3053,6 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                   transform:scrollingTo==="state"?"scale(0.93)":"scale(1)",
                   boxShadow:scrollingTo==="state"?"0 0 0 3px #fde04780":"none",
                   transition:"background 0.15s,border-color 0.15s,transform 0.15s,box-shadow 0.15s"}}>
-                <span style={{fontSize:11}}>📍</span>
                 <span style={{fontSize:11,fontWeight:700,color:stateSchemes.length>0?"#92400e":"#999",fontFamily:bf}}>
                   {isHindi?"राज्य":"State"} ({stateSchemes.length})
                 </span>
@@ -3104,7 +3109,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
               <div ref={stateHeaderRef} style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
                 <div style={{height:1,flex:1,background:th.border2}}/>
                 <span style={{fontSize:11,fontWeight:700,color:"#92400e",background:"#FEF9C3",borderRadius:20,padding:"3px 10px",border:"1px solid #d97706"}}>
-                  📍 {t.stateSchemes} ({stateSchemes.length})
+                  {t.stateSchemes} ({stateSchemes.length})
                 </span>
                 <div style={{height:1,flex:1,background:th.border2}}/>
               </div>
@@ -4050,7 +4055,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                     <div style={{fontSize:40,lineHeight:1,animation:"celebrate-emoji-pop 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.15s both"}}>🎉</div>
                     <div>
                       <div style={{fontSize:18,fontWeight:900,color:"#fff",fontFamily:bf,lineHeight:1.15,letterSpacing:-0.4}}>{t.matchSub(results.length)}</div>
-                      {answers.state&&<div style={{fontSize:12,color:"rgba(255,255,255,0.82)",marginTop:3,display:"flex",alignItems:"center",gap:4}}>📍 <span>{answers.state}</span></div>}
+                      {answers.state&&<div style={{fontSize:12,color:"rgba(255,255,255,0.82)",marginTop:3,display:"flex",alignItems:"center",gap:4}}><span>{answers.state}</span></div>}
                     </div>
                   </div>
 
@@ -4087,7 +4092,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                     </div>
                     <div style={{flex:1,background:"rgba(255,255,255,0.13)",borderRadius:12,padding:"10px 12px",textAlign:"center"}}>
                       <div style={{fontSize:22,fontWeight:900,color:"#fff",lineHeight:1}}>{stateResults.length}</div>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,0.78)",marginTop:3}}>📍 {isHindi?"राज्य":"State"}</div>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.78)",marginTop:3}}>{isHindi?"राज्य":"State"}</div>
                     </div>
                     {totalAnnual===0&&(
                       <div style={{flex:2,background:"rgba(255,255,255,0.10)",borderRadius:12,padding:"10px 12px",textAlign:"center",border:"1px solid rgba(255,255,255,0.18)"}}>
@@ -4314,7 +4319,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                   <>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
                       <div style={{height:1,flex:1,background:th.border2}}/>
-                      <span style={{fontSize:11,fontWeight:700,color:"#854D0E",background:"#FEF9C3",borderRadius:20,padding:"3px 10px",border:"1px solid #FEF08A"}}>📍 {t.stateSchemes} ({stateResults.length})</span>
+                      <span style={{fontSize:11,fontWeight:700,color:"#854D0E",background:"#FEF9C3",borderRadius:20,padding:"3px 10px",border:"1px solid #FEF08A"}}>{t.stateSchemes} ({stateResults.length})</span>
                       <div style={{height:1,flex:1,background:th.border2}}/>
                     </div>
                     {(showAllState?stateResults:stateResults.slice(0,PREVIEW_COUNT)).map((s,idx)=>(
@@ -5656,7 +5661,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         <Card dark={dark}>
           {/* State — tap-to-select scrollable list (no typing) */}
           <div style={{marginBottom:16}}>
-            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>📍 {pt.stateLabel}</div>
+            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>{pt.stateLabel}</div>
             {setupState&&(
               <div style={{fontSize:11.5,color:"#138808",fontWeight:700,fontFamily:bf,marginBottom:7,display:"flex",alignItems:"center",gap:5}}>
                 <span>✓</span><span>{setupState}</span>
@@ -5810,7 +5815,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
           {/* ── Area Type ── */}
           <div style={{marginBottom:20}}>
-            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>📍 {fields.area}</div>
+            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>{fields.area}</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
               {fields.areas.map(o=>{
                 const a=setupArea===o.v;
@@ -6248,7 +6253,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         <div style={{display:"grid",gridTemplateColumns:"1fr 1.6fr 1.6fr",gap:8}}>
           {[
             {value:matchedCount,label:isHindi?"योजनाएं":"Schemes",isNum:true,icon:"🎯"},
-            {value:profile?.state||"—",label:isHindi?"राज्य":"State",isNum:false,icon:"📍"},
+            {value:profile?.state||"—",label:isHindi?"राज्य":"State",isNum:false,icon:"🗺️"},
             {value:(catDisplayLabel(profile?.occupation)||"").split(" ")[0]||"—",label:isHindi?"श्रेणी":"Category",isNum:false,icon:catIcon(profile?.occupation)},
           ].map((stat,i)=>(
             <div key={i} style={{
@@ -9287,7 +9292,7 @@ function YojanaSahayInner(){
                               color:s.scope==="national"?"#1D4ED8":"#854D0E",
                               borderRadius:6,padding:"1px 6px",
                               border:`1px solid ${s.scope==="national"?"#BFDBFE":"#FEF08A"}`}}>
-                              {s.scope==="national"?`🇮🇳 ${isHindi?"केंद्रीय":"Central"}`:`📍 ${s.state}`}
+                              {s.scope==="national"?`🇮🇳 ${isHindi?"केंद्रीय":"Central"}`:s.state}
                             </span>
                           </div>
                           <div style={{fontSize:13,fontWeight:700,color:th.text,lineHeight:1.3,fontFamily:bf}}>{s.name[lang]}</div>
@@ -9739,7 +9744,7 @@ function YojanaSahayInner(){
         ].filter(Boolean).length;
         const captured=[checkerAnswers.who,checkerAnswers.income,checkerAnswers.state,checkerAnswers.age,checkerAnswers.area,checkerAnswers.house,checkerAnswers.caste,checkerAnswers.landHolding,checkerAnswers.educationLevel,checkerAnswers.rationCard].filter(Boolean).length;
         const chips=[
-          checkerAnswers.state&&{icon:"📍",label:checkerAnswers.state},
+          checkerAnswers.state&&{icon:"🗺️",label:checkerAnswers.state},
           checkerAnswers.who&&{icon:"👤",label:checkerAnswers.who},
           checkerAnswers.income&&{icon:"💰",label:checkerAnswers.income},
         ].filter(Boolean).slice(0,3);
