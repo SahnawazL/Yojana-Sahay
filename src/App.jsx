@@ -1072,8 +1072,8 @@ function LangToggle({lang,onToggle,dark=false}){
   return(
     <button onClick={()=>{haptic();onToggle();}} style={{display:"flex",alignItems:"center",background:trackBg,border:`1.5px solid ${trackBdr}`,borderRadius:22,padding:"3px 4px",cursor:"pointer",height:34,width:72,position:"relative",overflow:"hidden",flexShrink:0}}>
       <div style={{position:"absolute",top:3,left:isHindi?"calc(50% - 2px)":3,width:"calc(50% - 2px)",bottom:3,background:"#fff",borderRadius:16,transition:"left 0.28s",boxShadow:"0 1px 6px rgba(0,0,0,0.2)",zIndex:0}}/>
-      <span style={{flex:1,textAlign:"center",fontSize:11,fontWeight:700,color:!isHindi?"#FF8C00":inactiveC,position:"relative",zIndex:1}}>EN</span>
-      <span style={{flex:1,textAlign:"center",fontSize:11,fontWeight:700,color:isHindi?"#FF8C00":inactiveC,position:"relative",zIndex:1}}>हिं</span>
+      <span style={{flex:1,textAlign:"center",fontSize:11,fontWeight:700,color:!isHindi?"#1B2A4A":inactiveC,position:"relative",zIndex:1}}>EN</span>
+      <span style={{flex:1,textAlign:"center",fontSize:11,fontWeight:700,color:isHindi?"#1B2A4A":inactiveC,position:"relative",zIndex:1}}>हिं</span>
     </button>
   );
 }
@@ -1119,14 +1119,14 @@ function DarkModeToggle({dark,onToggle}){
       {/* ☀ Sun — left side — lit when light mode active */}
       <span style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",
         position:"relative",zIndex:1,
-        color:!dark?"#FF8C00":"rgba(255,255,255,0.55)",
+        color:!dark?"#1B2A4A":"rgba(255,255,255,0.55)",
         transition:"color 0.25s"}}>
         <SunIcon/>
       </span>
       {/* ☽ Moon — right side — lit when dark mode active */}
       <span style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",
         position:"relative",zIndex:1,
-        color:dark?"#FF8C00":"rgba(255,255,255,0.55)",
+        color:dark?"#1B2A4A":"rgba(255,255,255,0.55)",
         transition:"color 0.25s"}}>
         <MoonIcon/>
       </span>
@@ -7822,9 +7822,9 @@ const APP_STYLES = `
           overflow:hidden;
         }
         .bn-pill.active{
-          background:linear-gradient(145deg,rgba(255,153,51,0.15) 0%,rgba(255,107,0,0.09) 100%);
-          box-shadow:0 2px 14px rgba(255,153,51,0.18), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(255,153,51,0.10);
-          border-color:rgba(255,153,51,0.20);
+          background:linear-gradient(145deg,rgba(201,162,39,0.16) 0%,rgba(138,110,26,0.10) 100%);
+          box-shadow:0 2px 14px rgba(201,162,39,0.20), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(201,162,39,0.12);
+          border-color:rgba(201,162,39,0.22);
           gap:7px;
         }
         /* Tap feedback — gentle, no jump */
@@ -7870,9 +7870,9 @@ const APP_STYLES = `
         /* Glow dot — fades in softly, no spring bounce */
         .bn-dot{
           width:3px;height:3px;border-radius:50%;
-          background:linear-gradient(135deg,#FF9933,#FF6B00);
+          background:linear-gradient(135deg,#C9A227,#8A6E1A);
           position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
-          box-shadow:0 0 6px rgba(255,153,51,0.85),0 0 12px rgba(255,107,0,0.4);
+          box-shadow:0 0 6px rgba(201,162,39,0.85),0 0 12px rgba(138,110,26,0.4);
           animation:dotFadeIn 0.35s ease forwards;
         }
         @keyframes dotFadeIn{from{opacity:0;transform:translateX(-50%) scale(0.3);}to{opacity:1;transform:translateX(-50%) scale(1);}}
@@ -8672,13 +8672,7 @@ function YojanaSahayInner(){
       tab:"home", label:t.navHome,
       iconFilled:(c)=>(
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <defs>
-            <linearGradient id="ng-home" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#FF9933"/>
-              <stop offset="100%" stopColor="#FF6B00"/>
-            </linearGradient>
-          </defs>
-          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z" fill="url(#ng-home)" opacity="0.18"/>
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z" fill={dark?"#C9A227":"#1B2A4A"} opacity="0.18"/>
           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z" stroke={c} strokeWidth="1.8" strokeLinejoin="round" fill="none"/>
           <path d="M9 21v-6a1 1 0 011-1h4a1 1 0 011 1v6" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/>
         </svg>
@@ -8694,13 +8688,7 @@ function YojanaSahayInner(){
       tab:"search", label:t.navSearch,
       iconFilled:(c)=>(
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <defs>
-            <linearGradient id="ng-srch" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#FF9933"/>
-              <stop offset="100%" stopColor="#FF6B00"/>
-            </linearGradient>
-          </defs>
-          <circle cx="11" cy="11" r="7" fill="url(#ng-srch)" opacity="0.18"/>
+          <circle cx="11" cy="11" r="7" fill={dark?"#C9A227":"#1B2A4A"} opacity="0.18"/>
           <circle cx="11" cy="11" r="7" stroke={c} strokeWidth="1.8"/>
           <line x1="16.5" y1="16.5" x2="21" y2="21" stroke={c} strokeWidth="2" strokeLinecap="round"/>
           <line x1="8" y1="11" x2="14" y2="11" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
@@ -8718,13 +8706,7 @@ function YojanaSahayInner(){
       tab:"schemes", label:t.navSchemes,
       iconFilled:(c)=>(
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <defs>
-            <linearGradient id="ng-sch" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#FF9933"/>
-              <stop offset="100%" stopColor="#FF6B00"/>
-            </linearGradient>
-          </defs>
-          <rect x="4" y="3" width="16" height="18" rx="2.5" fill="url(#ng-sch)" opacity="0.18"/>
+          <rect x="4" y="3" width="16" height="18" rx="2.5" fill={dark?"#C9A227":"#1B2A4A"} opacity="0.18"/>
           <rect x="4" y="3" width="16" height="18" rx="2.5" stroke={c} strokeWidth="1.8"/>
           <line x1="8" y1="8" x2="16" y2="8" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
           <line x1="8" y1="12" x2="16" y2="12" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
@@ -8748,13 +8730,7 @@ function YojanaSahayInner(){
       tab:"profile", label:t.navProfile,
       iconFilled:(c)=>(
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <defs>
-            <linearGradient id="ng-pro" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#FF9933"/>
-              <stop offset="100%" stopColor="#FF6B00"/>
-            </linearGradient>
-          </defs>
-          <circle cx="12" cy="8" r="3.5" fill="url(#ng-pro)" opacity="0.22"/>
+          <circle cx="12" cy="8" r="3.5" fill={dark?"#C9A227":"#1B2A4A"} opacity="0.22"/>
           <circle cx="12" cy="8" r="3.5" stroke={c} strokeWidth="1.8"/>
           <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={c} strokeWidth="1.8" strokeLinecap="round" fill="none"/>
         </svg>
@@ -8766,7 +8742,7 @@ function YojanaSahayInner(){
         </svg>
       ),
     },
-  ],[t]);
+  ],[t,dark]);
 
   // Seed the currently-active tab before JSX so its content renders immediately
   mountedTabsRef.current.add(activeTab);
@@ -9548,8 +9524,9 @@ function YojanaSahayInner(){
       }}>
         {navItems.map((item,idx)=>{
           const active = activeTab===item.tab;
+          const navAccent = dark ? "#C9A227" : "#1B2A4A";
           const iconColor = active
-            ? "#FF7A00"
+            ? navAccent
             : (dark ? "#606060" : "#C0C0C0");
 
           return(
@@ -9574,7 +9551,7 @@ function YojanaSahayInner(){
                   key={`${item.tab}-${active}`}
                   style={{
                     filter: active
-                      ? "drop-shadow(0 0 5px rgba(255,122,0,0.55))"
+                      ? `drop-shadow(0 0 5px ${dark?"rgba(201,162,39,0.55)":"rgba(27,42,74,0.35)"})`
                       : "none",
                     transition:"filter 0.25s",
                   }}>
@@ -9589,7 +9566,7 @@ function YojanaSahayInner(){
                       }}>
                       <AshokaChakra
                         size={22}
-                        color={active ? "#FF7A00" : (dark?"#606060":"#C0C0C0")}
+                        color={active ? navAccent : (dark?"#606060":"#C0C0C0")}
                         spinning={false}
                       />
                     </div>
@@ -9603,7 +9580,7 @@ function YojanaSahayInner(){
                 {/* Label — only visible on active, slides in from left */}
                 <div
                   className={`bn-label${active?" active":""}`}
-                  style={{color:"#FF7A00", fontFamily:bf}}>
+                  style={{color:navAccent, fontFamily:bf}}>
                   {item.label}
                 </div>
               </div>
