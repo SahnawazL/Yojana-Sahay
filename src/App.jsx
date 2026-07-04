@@ -2778,7 +2778,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                   border:`1.5px solid ${sortBy!=="default"?(dark?"rgba(122,165,255,0.5)":ASHOKA_BLUE):th.border2}`,
                   boxShadow:sortBy!=="default"?`0 2px 10px ${dark?"rgba(122,165,255,0.3)":ASHOKA_BLUE+"28"}`:"0 1px 4px rgba(0,0,0,0.06)",
                 }}>
-                <span style={{fontSize:12,lineHeight:1}}>⇅</span>
+                <span style={{fontSize:12,lineHeight:1,color:sortBy!=="default"?(dark?"#7aa5ff":ASHOKA_BLUE):th.textMid}}>⇅</span>
                 <span style={{fontSize:11,fontWeight:700,color:sortBy!=="default"?(dark?"#7aa5ff":ASHOKA_BLUE):th.textMid,fontFamily:bf,whiteSpace:"nowrap"}}>
                   {sortBy==="deadline"?t.sortDeadline:sortBy==="amount"?t.sortAmount:t.sortLabel}
                 </span>
@@ -2794,9 +2794,9 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                     animation:"fadeIn 0.16s ease",
                   }}>
                     {[
-                      {key:"default",icon:"🎯",label:t.sortDefault},
-                      {key:"deadline",icon:"⏳",label:t.sortDeadline},
-                      {key:"amount",icon:"💰",label:t.sortAmount},
+                      {key:"default",label:t.sortDefault},
+                      {key:"deadline",label:t.sortDeadline},
+                      {key:"amount",label:t.sortAmount},
                     ].map(opt=>{
                       const sortAccent=dark?"#7aa5ff":ASHOKA_BLUE;
                       return(
@@ -2805,7 +2805,6 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                           padding:"11px 14px",display:"flex",alignItems:"center",gap:9,cursor:"pointer",
                           background:sortBy===opt.key?(dark?"rgba(122,165,255,0.14)":ASHOKA_BLUE+"12"):"transparent",
                         }}>
-                        <span style={{fontSize:15,flexShrink:0}}>{opt.icon}</span>
                         <span style={{fontSize:12.5,fontWeight:sortBy===opt.key?700:500,color:sortBy===opt.key?sortAccent:th.text,flex:1,fontFamily:bf}}>
                           {opt.label}
                         </span>
