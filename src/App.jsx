@@ -8986,8 +8986,8 @@ function YojanaSahayInner(){
               position:"relative",overflow:"hidden",
               margin:"8px 14px 0",
               background:dark
-                ?"linear-gradient(120deg,rgba(255,153,51,0.16) 0%,rgba(255,255,255,0.035) 40%,rgba(255,255,255,0.035) 60%,rgba(19,136,8,0.16) 100%),rgba(20,24,20,0.4)"
-                :"linear-gradient(120deg,rgba(255,153,51,0.11) 0%,rgba(255,255,255,0.85) 40%,rgba(255,255,255,0.85) 60%,rgba(19,136,8,0.10) 100%),linear-gradient(135deg,#fdfdfd 0%,#ffffff 70%)",
+                ?"linear-gradient(120deg,rgba(255,153,51,0.14) 0%,rgba(255,255,255,0.03) 40%,rgba(255,255,255,0.03) 60%,rgba(19,136,8,0.14) 100%),#1c1c1e"
+                :"linear-gradient(120deg,rgba(255,153,51,0.10) 0%,rgba(255,255,255,0.9) 40%,rgba(255,255,255,0.9) 60%,rgba(19,136,8,0.09) 100%),#ffffff",
               border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(27,42,74,0.12)"}`,
               borderRadius:13,
               boxShadow:dark?"0 4px 18px rgba(0,0,0,0.24)":"0 4px 16px rgba(27,42,74,0.08)",
@@ -8998,9 +8998,14 @@ function YojanaSahayInner(){
                   the one "official verification" moment. A soft top hairline ties it
                   together without reading as a loading/progress indicator. */}
               <div style={{
-                position:"absolute",top:0,left:14,right:14,height:1.5,
-                background:"linear-gradient(90deg,#FF9933 0%,#FFC57A 25%,#ffffff 50%,#8FD9A8 75%,#138808 100%)",
+                position:"absolute",top:0,left:14,right:14,height:2,borderRadius:2,
+                background:"linear-gradient(90deg,rgba(255,153,51,0.85) 0%,rgba(255,197,122,0.85) 22%,rgba(255,255,255,0.9) 50%,rgba(143,217,168,0.85) 78%,rgba(19,136,8,0.85) 100%)",
                 animation:"verifyRibbonGlow 3.2s ease-in-out infinite",
+              }}/>
+              {/* soft glow beneath the hairline so the blend reads even at 2px height */}
+              <div style={{
+                position:"absolute",top:0,left:14,right:14,height:10,pointerEvents:"none",
+                background:"linear-gradient(90deg,rgba(255,153,51,0.10) 0%,transparent 40%,transparent 60%,rgba(19,136,8,0.10) 100%)",
               }}/>
 
               <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 13px 11px 17px"}}>
