@@ -1883,32 +1883,47 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
         </div>
         <div style={{padding:"0 16px 36px"}}>
           {/* ── Application Checklist header + live progress ── */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,paddingLeft:2}}>
-            <div style={{fontSize:11,fontWeight:700,color:th.textSub,letterSpacing:0.6,textTransform:"uppercase",fontFamily:bf}}>
-              {isHindi?"आवेदन चेकलिस्ट":"Application Checklist"}
+          <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:12}}>
+            <div style={{width:36,height:36,borderRadius:11,flexShrink:0,background:`linear-gradient(135deg,${scheme.color}22,${scheme.color}0a)`,border:`1.5px solid ${scheme.color}35`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>📋</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:13,fontWeight:800,color:th.text,fontFamily:bf,lineHeight:1.2}}>
+                {isHindi?"ज़रूरी दस्तावेज़":"Documents You'll Need"}
+              </div>
+              <div style={{fontSize:10,color:th.textSub,marginTop:2,fontFamily:bf}}>
+                {isHindi?"तैयार होते ही टैप कर के चेक करें — अपने आप सेव होगा":"Tap each one off as you gather it — saved automatically"}
+              </div>
             </div>
             {docTotal>0&&(
-              <div style={{display:"flex",alignItems:"center",gap:5,background:allDocsDone?"rgba(19,136,8,0.12)":th.card2,border:`1px solid ${allDocsDone?"rgba(19,136,8,0.3)":th.border}`,borderRadius:20,padding:"3px 9px"}}>
-                <span style={{fontSize:10,fontWeight:800,color:allDocsDone?"#138808":th.textSub,fontVariantNumeric:"tabular-nums"}}>{docDone}/{docTotal}</span>
-                <span style={{fontSize:10}}>{allDocsDone?"✅":"📋"}</span>
+              <div style={{display:"flex",alignItems:"center",gap:5,background:allDocsDone?"rgba(19,136,8,0.12)":th.card2,border:`1px solid ${allDocsDone?"rgba(19,136,8,0.3)":th.border}`,borderRadius:20,padding:"4px 10px",flexShrink:0,transition:"background 0.35s ease, border-color 0.35s ease"}}>
+                <span style={{fontSize:11,fontWeight:800,color:allDocsDone?"#138808":th.text,fontVariantNumeric:"tabular-nums",transition:"color 0.35s ease"}}>{docDone}/{docTotal}</span>
+                <span style={{fontSize:11}}>{allDocsDone?"✅":"📋"}</span>
               </div>
             )}
           </div>
 
-          {/* ── STEP 1 — Gather Documents (tap to check off) ── */}
-          <div style={{background:th.card2,borderRadius:16,padding:16,marginBottom:14}}>
-            <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:11}}>
-              <div style={{width:22,height:22,borderRadius:"50%",background:scheme.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10.5,fontWeight:900,color:"#fff",fontFamily:"'Noto Sans',sans-serif"}}>1</div>
-              <div style={{fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf}}>{isHindi?"दस्तावेज़ इकट्ठा करें":"Gather These Documents"}</div>
+          {/* Live progress bar — matches the visual language used across the app */}
+          {docTotal>0&&(
+            <div style={{height:6,background:dark?"rgba(255,255,255,0.08)":"#eef0f3",borderRadius:6,overflow:"hidden",marginBottom:14}}>
+              <div style={{height:"100%",width:`${Math.round((docDone/docTotal)*100)}%`,borderRadius:6,background:allDocsDone?"linear-gradient(90deg,#22c55e,#16a34a)":`linear-gradient(90deg,${scheme.color},${scheme.color}cc)`,transition:"width 0.5s cubic-bezier(0.22,1,0.36,1)",boxShadow:`0 0 8px ${scheme.color}55`}}/>
             </div>
+          )}
+
+          {/* ── STEP 1 — Gather Documents (tap to check off) ── */}
+          <div style={{background:th.card2,borderRadius:16,padding:"4px 15px",marginBottom:14,border:`1px solid ${th.border}`}}>
             {docList.map((doc,i)=>{
               const isChecked=!!docChecked[i];
               return(
-                <div key={i} onClick={()=>toggleDoc(i)} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 0",borderBottom:i<docList.length-1?`1px solid ${th.border}`:"none",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
-                  <div style={{width:22,height:22,borderRadius:"50%",background:isChecked?scheme.color:scheme.color+"18",border:isChecked?"none":`1.5px solid ${scheme.color}40`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"background 0.2s"}}>
-                    <span style={{color:isChecked?"#fff":scheme.color,fontSize:11,fontWeight:800}}>✓</span>
+                <div key={i} onClick={()=>toggleDoc(i)}
+                  style={{display:"flex",alignItems:"center",gap:11,padding:"12px 4px",margin:"0 -4px",borderRadius:10,borderBottom:i<docList.length-1?`1px solid ${th.border}`:"none",cursor:"pointer",WebkitTapHighlightColor:"transparent",transition:"transform 0.15s cubic-bezier(0.22,1,0.36,1), background 0.2s",willChange:"transform"}}
+                  onTouchStart={e=>{e.currentTarget.style.transform="scale(0.985)";e.currentTarget.style.background=dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.025)";}}
+                  onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.background="transparent";}}
+                  onTouchCancel={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.background="transparent";}}>
+                  <div style={{width:24,height:24,borderRadius:8,flexShrink:0,border:`2px solid ${isChecked?scheme.color:th.border}`,background:isChecked?`linear-gradient(135deg,${scheme.color},${scheme.color}cc)`:"transparent",display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1)",boxShadow:isChecked?`0 2px 8px ${scheme.color}45`:"none",transform:isChecked?"scale(1.05)":"scale(1)"}}>
+                    {isChecked&&(
+                      <svg width="13" height="13" viewBox="0 0 12 12" fill="none" style={{animation:"checkPop 0.28s cubic-bezier(0.34,1.56,0.64,1)"}}><path d="M2 6.5L4.5 9L10 3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    )}
                   </div>
-                  <span style={{fontSize:13,color:isChecked?th.textSub:th.text,fontFamily:bf,textDecoration:isChecked?"line-through":"none",transition:"color 0.2s"}}>{doc}</span>
+                  <span style={{fontSize:13,fontWeight:isChecked?500:600,color:isChecked?th.textSub:th.text,fontFamily:bf,textDecoration:isChecked?"line-through":"none",transition:"color 0.3s ease",flex:1}}>{doc}</span>
                 </div>
               );
             })}
@@ -1939,9 +1954,19 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
           )}
 
           {/* ── Share checklist on WhatsApp ── */}
-          <div onClick={shareChecklist} style={{marginTop:12,display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:dark?"rgba(37,211,102,0.12)":"#E7F9EF",border:"1.5px solid rgba(37,211,102,0.35)",borderRadius:14,padding:"12px 16px",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.6 1.4 5.1L2 22l5.1-1.3c1.4.8 3.1 1.2 4.9 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm5.5 12.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.6.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.8-.4-1.6-.9-2.4-1.6-.7-.6-1.2-1.4-1.6-2.2-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.1-.5-.1-.2-.6-1.5-.9-2-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.7.7-1 1.5-1 2.5.1 1.2.6 2.4 1.4 3.5 1.5 2 3.3 3.4 5.6 4.2.6.2 1.1.2 1.5.1.5 0 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2 0-.1-.2-.2-.4-.3z"/></svg>
-            <span style={{fontSize:12.5,fontWeight:700,color:dark?"#25D366":"#0E7A3C",fontFamily:bf}}>{isHindi?"WhatsApp पर चेकलिस्ट भेजें":"Share Checklist on WhatsApp"}</span>
+          <div onClick={shareChecklist}
+            style={{marginTop:12,display:"flex",alignItems:"center",gap:11,background:dark?"rgba(37,211,102,0.10)":"#F0FDF6",border:"1.5px solid rgba(37,211,102,0.35)",borderRadius:14,padding:"11px 14px",cursor:"pointer",WebkitTapHighlightColor:"transparent",transition:"transform 0.15s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s",willChange:"transform"}}
+            onTouchStart={e=>{e.currentTarget.style.transform="scale(0.97)";e.currentTarget.style.boxShadow=dark?"0 2px 10px rgba(37,211,102,0.15)":"0 2px 10px rgba(37,211,102,0.2)";}}
+            onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="none";}}
+            onTouchCancel={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="none";}}>
+            <div style={{width:34,height:34,borderRadius:"50%",background:"#25D366",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 3px 10px rgba(37,211,102,0.45)"}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/></svg>
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:12.5,fontWeight:700,color:dark?"#25D366":"#0E7A3C",fontFamily:bf,lineHeight:1.2}}>{isHindi?"WhatsApp पर भेजें":"Share on WhatsApp"}</div>
+              <div style={{fontSize:9.5,color:th.textSub,marginTop:1,fontFamily:bf}}>{isHindi?"चेकलिस्ट परिवार या दोस्तों को भेजें":"Send this checklist to family or friends"}</div>
+            </div>
+            <span style={{fontSize:15,color:"#25D366",opacity:0.8,flexShrink:0}}>›</span>
           </div>
         </div>
       </div>
@@ -7563,6 +7588,7 @@ const APP_STYLES = `
         .sc:hover{transform:translateY(-2px);}
         .spin{animation:spin 20s linear infinite;}
         @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+        @keyframes checkPop{0%{transform:scale(0.3);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
         ::-webkit-scrollbar{display:none;}
         .tb{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;}
         .sb{transition:all 0.3s;} .sb.fc{box-shadow:0 0 0 3px rgba(255,153,51,0.25);}
