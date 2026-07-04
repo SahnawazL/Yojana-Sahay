@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/banner.png" alt="Yojana Sahay Banner" width="100%">
+<img src="assets/banner.jpg" alt="Yojana Sahay Banner" width="100%">
 
 <img src="assets/divider.png" alt="" width="100%" height="6">
 
