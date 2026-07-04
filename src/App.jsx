@@ -478,6 +478,14 @@ const NAVY_BLUE  = "#003580";
 const STATE_ACCENT      = "#7A2140"; // light mode
 const STATE_ACCENT_DARK = "#E6A0B3"; // dark mode
 
+// ─── PREMIUM HOMEPAGE ACCENT (stat strip, CTA, verified badge internals) ──────
+// Deep indigo anchors light mode (14.2:1 on white); muted gold anchors dark mode
+// (gold text fails contrast on white — 2.4:1 — so it's reserved for dark surfaces).
+// Tricolor (saffron/white/green) is intentionally NOT used here — it stays
+// confined to the single accent ribbon inside the verified badge, nowhere else.
+const PREMIUM_INDIGO = "#1B2A4A";
+const PREMIUM_GOLD   = "#C9A227";
+
 // ─── THEME TOKENS ──────────────────────────────────────────────────────────────
 const THEME={
   light:{
@@ -8973,30 +8981,19 @@ function YojanaSahayInner(){
 
           {/* Stats — animated count-up on load, overlaps header */}
           <div className={`fu s1 ${loaded?"show":""}`}
-            style={{background:dark?th.card:"linear-gradient(135deg,#fffdf7 0%,#ffffff 65%)",margin:"-22px 14px 0",borderRadius:18,padding:"14px 6px 12px",display:"flex",
-              boxShadow:dark?"0 8px 28px rgba(0,0,0,0.40)":"0 8px 28px rgba(255,153,51,0.22)",
-              border:`1.5px solid ${dark?th.border:"rgba(255,179,71,0.32)"}`,marginBottom:6,position:"relative",zIndex:2}}>
-            {[
-              {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,color:"#FF9933",darkColor:"#FFA950",grad:dark?"rgba(255,169,80,0.20)":"rgba(255,153,51,0.08)"},
-              {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>,color:"#06038D",darkColor:"#6B90FF",grad:dark?"rgba(107,144,255,0.18)":"rgba(6,3,141,0.06)"},
-              {icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>,color:"#138808",darkColor:"#34D058",grad:dark?"rgba(52,208,88,0.16)":"rgba(19,136,8,0.07)"},
-            ].map((meta,i)=>{
-              const ic=dark?meta.darkColor:meta.color;
+            style={{background:dark?th.card:"linear-gradient(135deg,#fffdf7 0%,#ffffff 65%)",margin:"-22px 14px 0",borderRadius:18,padding:"18px 6px 16px",display:"flex",
+              boxShadow:dark?"0 8px 28px rgba(0,0,0,0.40)":"0 8px 28px rgba(27,42,74,0.10)",
+              border:`1.5px solid ${dark?th.border:"rgba(27,42,74,0.10)"}`,marginBottom:6,position:"relative",zIndex:2}}>
+            {animatedStats.map((s,i)=>{
+              const accent=dark?PREMIUM_GOLD:PREMIUM_INDIGO;
               return(
               <div key={i} style={{flex:1,textAlign:"center",padding:"0 6px",
                 borderRight:i<2?`1px solid ${th.border}`:'none'}}>
-                <div style={{width:30,height:30,borderRadius:9,background:meta.grad,
-                  border:`1px solid ${ic}44`,
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  color:ic,
-                  fontSize:14,margin:"0 auto 6px"}}>
-                  {meta.icon}
+                <div style={{fontSize:21,fontWeight:900,color:accent,fontVariantNumeric:"tabular-nums",lineHeight:1,fontFamily:"'Noto Sans',sans-serif",letterSpacing:-0.5}}>
+                  {s.number}
                 </div>
-                <div style={{fontSize:18,fontWeight:900,color:ic,fontVariantNumeric:"tabular-nums",lineHeight:1,fontFamily:"'Noto Sans',sans-serif"}}>
-                  {animatedStats[i].number}
-                </div>
-                <div style={{fontSize:9.5,color:th.textSub,marginTop:3,fontWeight:600,fontFamily:bf,letterSpacing:0.2}}>
-                  {animatedStats[i].label}
+                <div style={{fontSize:9,color:th.textSub,marginTop:6,fontWeight:600,fontFamily:bf,letterSpacing:0.4,textTransform:"uppercase"}}>
+                  {s.label}
                 </div>
               </div>
             );})}
@@ -9008,30 +9005,35 @@ function YojanaSahayInner(){
                ──────────────────────────────────────────────────────────────────── */}
           {LAST_VERIFIED_LABEL&&(
             <div style={{
+              position:"relative",overflow:"hidden",
               margin:"8px 14px 0",
-              background:dark?"rgba(255,255,255,0.035)":"linear-gradient(135deg,#fffdf8 0%,#ffffff 70%)",
-              border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(255,179,71,0.25)"}`,
-              borderRadius:13,overflow:"hidden",
-              boxShadow:dark?"none":"0 4px 16px rgba(255,153,51,0.12)",
+              background:dark?"rgba(255,255,255,0.035)":"linear-gradient(135deg,#fdfdfd 0%,#ffffff 70%)",
+              border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(27,42,74,0.12)"}`,
+              borderRadius:13,
+              boxShadow:dark?"none":"0 4px 16px rgba(27,42,74,0.08)",
             }}>
-              {/* India tricolor top accent */}
+              {/* Single intentional tricolor accent — the only place in the app
+                  where saffron/white/green appears, marking this as the one
+                  "official verification" moment. Rendered as a slim ribbon on
+                  the left edge rather than a full-width bar, so it doesn't read
+                  as a progress/loading indicator. */}
               <div style={{
-                height:3,
-                background:"linear-gradient(90deg,#FF9933 0%,#FF9933 33.3%,#ffffff 33.3%,#ffffff 66.6%,#138808 66.6%,#138808 100%)",
+                position:"absolute",left:0,top:0,bottom:0,width:4,
+                background:"linear-gradient(180deg,#FF9933 0%,#FF9933 33.3%,#ffffff 33.3%,#ffffff 66.6%,#138808 66.6%,#138808 100%)",
               }}/>
 
-              <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 13px 11px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 13px 11px 17px"}}>
 
                 {/* Shield icon */}
                 <div style={{
                   width:34,height:34,borderRadius:10,flexShrink:0,
-                  background:dark?"rgba(6,3,141,0.22)":"rgba(6,3,141,0.07)",
-                  border:`1.5px solid ${dark?"rgba(107,144,255,0.28)":"rgba(6,3,141,0.14)"}`,
+                  background:dark?"rgba(201,162,39,0.16)":"rgba(27,42,74,0.07)",
+                  border:`1.5px solid ${dark?"rgba(201,162,39,0.30)":"rgba(27,42,74,0.14)"}`,
                   display:"flex",alignItems:"center",justifyContent:"center",
                 }}>
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
                     <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"
-                      fill={dark?"#6B90FF":"#06038D"} opacity="0.85"/>
+                      fill={dark?"#D9B84A":"#1B2A4A"} opacity="0.85"/>
                     <path d="M9 12l2 2 4-4" stroke="#fff" strokeWidth="2.2"
                       strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -9042,7 +9044,7 @@ function YojanaSahayInner(){
                   <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:2}}>
                     <span style={{
                       fontSize:9,fontWeight:800,letterSpacing:1.1,textTransform:"uppercase",
-                      color:dark?"#6B90FF":"#06038D",fontFamily:"'Noto Sans',sans-serif",
+                      color:dark?"#D9B84A":"#1B2A4A",fontFamily:"'Noto Sans',sans-serif",
                     }}>
                       {isHindi?"डेटा सत्यापित":"Data Verified"}
                     </span>
@@ -9067,20 +9069,20 @@ function YojanaSahayInner(){
                 {/* Date pill */}
                 <div style={{
                   flexShrink:0,
-                  background:dark?"rgba(107,144,255,0.10)":"rgba(6,3,141,0.06)",
-                  border:`1px solid ${dark?"rgba(107,144,255,0.22)":"rgba(6,3,141,0.13)"}`,
+                  background:dark?"rgba(201,162,39,0.10)":"rgba(27,42,74,0.06)",
+                  border:`1px solid ${dark?"rgba(201,162,39,0.24)":"rgba(27,42,74,0.13)"}`,
                   borderRadius:9,padding:"5px 10px",textAlign:"center",
                 }}>
                   <div style={{
                     fontSize:7.5,fontWeight:700,letterSpacing:0.6,textTransform:"uppercase",
-                    color:dark?"rgba(107,144,255,0.55)":"rgba(6,3,141,0.45)",
+                    color:dark?"rgba(201,162,39,0.65)":"rgba(27,42,74,0.45)",
                     fontFamily:"'Noto Sans',sans-serif",marginBottom:2,
                   }}>
                     {isHindi?"अंतिम जाँच":"Last Verified"}
                   </div>
                   <div style={{
                     fontSize:11,fontWeight:800,letterSpacing:-0.2,
-                    color:dark?"#6B90FF":"#06038D",
+                    color:dark?"#D9B84A":"#1B2A4A",
                     fontFamily:"'Noto Sans',sans-serif",
                   }}>
                     {LAST_VERIFIED_LABEL}
@@ -9097,23 +9099,24 @@ function YojanaSahayInner(){
           <div style={{padding:"14px 16px 100px"}}>
             {/* Eligibility CTA */}
             <div className={`fu s1 cp ${loaded?"show":""}`} onClick={()=>{haptic();setShowChecker(true);}}
-              style={{background:"linear-gradient(135deg,#138808 0%,#16a34a 60%,#15803d 100%)",borderRadius:18,padding:"17px 18px",marginBottom:14,
+              style={{background:"linear-gradient(135deg,#1B2A4A 0%,#152238 55%,#0B1626 100%)",borderRadius:18,padding:"17px 18px",marginBottom:14,
                 display:"flex",alignItems:"center",gap:14,cursor:"pointer",position:"relative",overflow:"hidden",
-                boxShadow:"0 8px 28px rgba(19,136,8,0.32)",WebkitTapHighlightColor:"transparent"}}
+                border:"1px solid rgba(201,162,39,0.30)",
+                boxShadow:"0 8px 28px rgba(11,22,38,0.38)",WebkitTapHighlightColor:"transparent"}}
               onTouchStart={e=>{e.currentTarget.style.transform="scale(0.98)";}}
               onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";}}>
-              {/* Decorative orb */}
-              <div style={{position:"absolute",right:-20,top:-20,width:90,height:90,borderRadius:"50%",background:"rgba(255,255,255,0.08)",pointerEvents:"none"}}/>
-              <div style={{width:50,height:50,background:"rgba(255,255,255,0.18)",borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"1.5px solid rgba(255,255,255,0.28)",boxShadow:"0 2px 12px rgba(0,0,0,0.15)"}}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {/* Decorative orb — subtle gold glow instead of flat white */}
+              <div style={{position:"absolute",right:-20,top:-20,width:90,height:90,borderRadius:"50%",background:"radial-gradient(circle,rgba(201,162,39,0.16) 0%,rgba(201,162,39,0) 70%)",pointerEvents:"none"}}/>
+              <div style={{width:50,height:50,background:"rgba(201,162,39,0.14)",borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"1.5px solid rgba(201,162,39,0.35)",boxShadow:"0 2px 12px rgba(0,0,0,0.20)"}}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#D9B84A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
                 </svg>
               </div>
               <div style={{flex:1}}>
                 <div style={{color:"#fff",fontSize:15,fontWeight:800,fontFamily:bf,marginBottom:3}}>{t.ctaTitle}</div>
-                <div style={{color:"rgba(255,255,255,0.78)",fontSize:11.5,lineHeight:1.4}}>{t.ctaSub(!!profile)}</div>
+                <div style={{color:"rgba(255,255,255,0.62)",fontSize:11.5,lineHeight:1.4}}>{t.ctaSub(!!profile)}</div>
               </div>
-              <div style={{background:"rgba(255,255,255,0.22)",borderRadius:11,padding:"10px 13px",color:"#fff",fontSize:12.5,fontWeight:800,border:"1.5px solid rgba(255,255,255,0.38)",fontFamily:bf,flexShrink:0,textAlign:"center",lineHeight:1.3}}>
+              <div style={{background:"#C9A227",borderRadius:11,padding:"10px 13px",color:"#1B2A4A",fontSize:12.5,fontWeight:800,border:"1.5px solid rgba(255,255,255,0.15)",fontFamily:bf,flexShrink:0,textAlign:"center",lineHeight:1.3}}>
                 {t.ctaBtn(!!profile)}
               </div>
             </div>
