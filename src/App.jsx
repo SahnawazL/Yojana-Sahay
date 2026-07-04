@@ -2774,12 +2774,12 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
               <div onClick={()=>{haptic();setShowSortMenu(v=>!v);}}
                 style={{
                   display:"flex",alignItems:"center",gap:4,padding:"6px 9px",borderRadius:20,cursor:"pointer",
-                  background:sortBy!=="default"?ASHOKA_BLUE+"18":th.pillBg,
-                  border:`1.5px solid ${sortBy!=="default"?ASHOKA_BLUE:th.border2}`,
-                  boxShadow:sortBy!=="default"?`0 2px 10px ${ASHOKA_BLUE}28`:"0 1px 4px rgba(0,0,0,0.06)",
+                  background:sortBy!=="default"?(dark?"rgba(122,165,255,0.16)":ASHOKA_BLUE+"18"):th.pillBg,
+                  border:`1.5px solid ${sortBy!=="default"?(dark?"rgba(122,165,255,0.5)":ASHOKA_BLUE):th.border2}`,
+                  boxShadow:sortBy!=="default"?`0 2px 10px ${dark?"rgba(122,165,255,0.3)":ASHOKA_BLUE+"28"}`:"0 1px 4px rgba(0,0,0,0.06)",
                 }}>
                 <span style={{fontSize:12,lineHeight:1}}>⇅</span>
-                <span style={{fontSize:11,fontWeight:700,color:sortBy!=="default"?ASHOKA_BLUE:th.textMid,fontFamily:bf,whiteSpace:"nowrap"}}>
+                <span style={{fontSize:11,fontWeight:700,color:sortBy!=="default"?(dark?"#7aa5ff":ASHOKA_BLUE):th.textMid,fontFamily:bf,whiteSpace:"nowrap"}}>
                   {sortBy==="deadline"?t.sortDeadline:sortBy==="amount"?t.sortAmount:t.sortLabel}
                 </span>
               </div>
@@ -2797,36 +2797,38 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                       {key:"default",icon:"🎯",label:t.sortDefault},
                       {key:"deadline",icon:"⏳",label:t.sortDeadline},
                       {key:"amount",icon:"💰",label:t.sortAmount},
-                    ].map(opt=>(
+                    ].map(opt=>{
+                      const sortAccent=dark?"#7aa5ff":ASHOKA_BLUE;
+                      return(
                       <div key={opt.key} onClick={()=>{haptic();setSortBy(opt.key);setShowSortMenu(false);}}
                         style={{
                           padding:"11px 14px",display:"flex",alignItems:"center",gap:9,cursor:"pointer",
-                          background:sortBy===opt.key?ASHOKA_BLUE+"12":"transparent",
+                          background:sortBy===opt.key?(dark?"rgba(122,165,255,0.14)":ASHOKA_BLUE+"12"):"transparent",
                         }}>
                         <span style={{fontSize:15,flexShrink:0}}>{opt.icon}</span>
-                        <span style={{fontSize:12.5,fontWeight:sortBy===opt.key?700:500,color:sortBy===opt.key?ASHOKA_BLUE:th.text,flex:1,fontFamily:bf}}>
+                        <span style={{fontSize:12.5,fontWeight:sortBy===opt.key?700:500,color:sortBy===opt.key?sortAccent:th.text,flex:1,fontFamily:bf}}>
                           {opt.label}
                         </span>
-                        {sortBy===opt.key&&<span style={{color:ASHOKA_BLUE,fontSize:12,flexShrink:0}}>✓</span>}
+                        {sortBy===opt.key&&<span style={{color:sortAccent,fontSize:12,flexShrink:0}}>✓</span>}
                       </div>
-                    ))}
-                  </div>
+                      );})}
+                  </div>{/*close-sort-menu-marker*/}
                 </>
               )}
             </div>
             <div onClick={()=>{haptic();setShowStatePicker(true);}}
               className="fpill-state"
               style={{
-                background:selectedState==="national"?ASHOKA_BLUE+"18":selectedState!=="all"?SAFFRON+"18":th.pillBg,
-                border:`1.5px solid ${selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.border2}`,
-                boxShadow:selectedState==="national"?`0 2px 10px ${ASHOKA_BLUE}28`:selectedState!=="all"?`0 2px 10px ${SAFFRON}28`:"0 1px 4px rgba(0,0,0,0.06)",
+                background:selectedState==="national"?(dark?"rgba(122,165,255,0.16)":ASHOKA_BLUE+"18"):selectedState!=="all"?SAFFRON+"18":th.pillBg,
+                border:`1.5px solid ${selectedState==="national"?(dark?"rgba(122,165,255,0.5)":ASHOKA_BLUE):selectedState!=="all"?SAFFRON:th.border2}`,
+                boxShadow:selectedState==="national"?`0 2px 10px ${dark?"rgba(122,165,255,0.3)":ASHOKA_BLUE+"28"}`:selectedState!=="all"?`0 2px 10px ${SAFFRON}28`:"0 1px 4px rgba(0,0,0,0.06)",
               }}>
               <span style={{fontSize:14,lineHeight:1}}>{selectedState==="national"?"🏛️":"🇮🇳"}</span>
-              <span style={{fontSize:11,fontWeight:700,color:selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.textMid,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:bf}}>
+              <span style={{fontSize:11,fontWeight:700,color:selectedState==="national"?(dark?"#7aa5ff":ASHOKA_BLUE):selectedState!=="all"?SAFFRON:th.textMid,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:bf}}>
                 {selectedState==="all"?(isHindi?"सभी राज्य":"All States"):selectedState==="national"?t.nationalOnly:selectedState}
               </span>
               <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{opacity:0.5,flexShrink:0}}>
-                <path d="M2 3.5L5 6.5L8 3.5" stroke={selectedState==="national"?ASHOKA_BLUE:selectedState!=="all"?SAFFRON:th.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 3.5L5 6.5L8 3.5" stroke={selectedState==="national"?(dark?"#7aa5ff":ASHOKA_BLUE):selectedState!=="all"?SAFFRON:th.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
           </div>
@@ -2982,7 +2984,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
         {/* Active state chip row */}
         {(selectedState!=="all"||dismissingState)&&(()=>{
           const isNat=selectedState==="national";
-          const chipC=isNat?ASHOKA_BLUE:SAFFRON;
+          const chipC=isNat?(dark?"#7aa5ff":ASHOKA_BLUE):SAFFRON;
           return(
           <div key={selectedState} style={{display:"flex",alignItems:"center",gap:6,paddingBottom:10,flexWrap:"wrap"}}>
             {/* ── Premium state/national chip ── */}
@@ -7706,12 +7708,12 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
           display:"flex", alignItems:"center", justifyContent:"center", gap:6,
           cursor:"pointer", background: dark ? th.card2 : "#FAFAFA",
         }}>
-          <span style={{ fontSize:12, fontWeight:700, color:ASHOKA_BLUE, fontFamily:bf }}>
+          <span style={{ fontSize:12, fontWeight:700, color:dark?"#7aa5ff":ASHOKA_BLUE, fontFamily:bf }}>
             {showAll
               ? (isHindi ? "कम दिखाएं" : "Show less")
               : (isHindi ? `सभी ${sortedDocs.length} दस्तावेज़ देखें` : `See all ${sortedDocs.length} documents`)}
           </span>
-          <span style={{ color:ASHOKA_BLUE, fontSize:14, display:"inline-block", transform: showAll ? "rotate(180deg)" : "none", transition:"transform 0.25s" }}>▾</span>
+          <span style={{ color:dark?"#7aa5ff":ASHOKA_BLUE, fontSize:14, display:"inline-block", transform: showAll ? "rotate(180deg)" : "none", transition:"transform 0.25s" }}>▾</span>
         </div>
       )}
 
