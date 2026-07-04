@@ -1273,8 +1273,12 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                 background:copied?(dark?"#14532d":"#f0fdf4"):(dark?"rgba(255,255,255,0.07)":scheme.color+"12"),
                 border:`1px solid ${copied?"#22c55e60":scheme.color+"35"}`,
                 borderRadius:8,padding:"3px 7px",cursor:"pointer",
-                transition:"all 0.2s",marginTop:1,
-              }}>
+                transition:"transform 0.15s cubic-bezier(0.22,1,0.36,1), background 0.2s, border-color 0.2s",marginTop:1,
+                WebkitTapHighlightColor:"transparent",willChange:"transform",
+              }}
+              onTouchStart={e=>{e.currentTarget.style.transform="scale(0.92)";}}
+              onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";}}
+              onTouchCancel={e=>{e.currentTarget.style.transform="scale(1)";}}>
               <span style={{fontSize:11,lineHeight:1}}>{copied?"✓":"⎘"}</span>
               <span style={{fontSize:9,fontWeight:700,
                 color:copied?"#16a34a":scheme.color,
@@ -1296,7 +1300,12 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                 background:"#EFF6FF",border:"1px solid #93C5FD",
                 borderRadius:8,padding:"4px 9px",cursor:"pointer",
                 animation:"fadeIn 0.2s ease",
-              }}>
+                transition:"transform 0.15s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s",
+                WebkitTapHighlightColor:"transparent",willChange:"transform",
+              }}
+              onTouchStart={e=>{e.currentTarget.style.transform="scale(0.94)";e.currentTarget.style.boxShadow="0 2px 6px rgba(29,78,216,0.18)";}}
+              onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="none";}}
+              onTouchCancel={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="none";}}>
               <span style={{fontSize:11}}>🔎</span>
               <span style={{fontSize:10,fontWeight:700,color:"#1D4ED8"}}>
                 Search on Google →
@@ -1439,7 +1448,12 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                           display:"flex",alignItems:"center",justifyContent:"center",gap:5,
                           background:"#EFF6FF",border:"1px solid #93C5FD",
                           borderRadius:8,padding:"8px 10px",cursor:"pointer",
-                        }}>
+                          transition:"transform 0.15s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s",
+                          WebkitTapHighlightColor:"transparent",willChange:"transform",
+                        }}
+                        onTouchStart={e=>{e.currentTarget.style.transform="scale(0.97)";e.currentTarget.style.boxShadow="0 2px 6px rgba(29,78,216,0.18)";}}
+                        onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="none";}}
+                        onTouchCancel={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="none";}}>
                         <span style={{fontSize:12}}>🔎</span>
                         <span style={{fontSize:10,fontWeight:700,color:"#1D4ED8"}}>
                           {isHindi?"गूगल पर सही लिंक खोजें →":"Find correct link on Google →"}
@@ -1632,7 +1646,12 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                       display:"flex",alignItems:"center",justifyContent:"center",gap:6,
                       background:"#EFF6FF",border:"1px solid #93C5FD",
                       borderRadius:10,padding:"10px 14px",cursor:"pointer",
-                    }}>
+                      transition:"transform 0.15s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s",
+                      WebkitTapHighlightColor:"transparent",willChange:"transform",
+                    }}
+                    onTouchStart={e=>{e.currentTarget.style.transform="scale(0.97)";e.currentTarget.style.boxShadow="0 2px 8px rgba(29,78,216,0.18)";}}
+                    onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="none";}}
+                    onTouchCancel={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="none";}}>
                     <span style={{fontSize:13}}>🔎</span>
                     <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8"}}>
                       {isHindi?"गूगल पर नवीनतम जानकारी खोजें →":"Search Google for latest info →"}
@@ -7589,6 +7608,7 @@ const APP_STYLES = `
         .spin{animation:spin 20s linear infinite;}
         @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
         @keyframes checkPop{0%{transform:scale(0.3);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(-3px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
         ::-webkit-scrollbar{display:none;}
         .tb{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;}
         .sb{transition:all 0.3s;} .sb.fc{box-shadow:0 0 0 3px rgba(255,153,51,0.25);}
