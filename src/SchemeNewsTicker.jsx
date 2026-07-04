@@ -32,8 +32,8 @@ const CSS = `
     50%    { opacity:0.3; transform:scale(0.72); }
   }
   @keyframes ys-progress {
-    from { width:0%; }
-    to   { width:100%; }
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
   }
   @keyframes ys-new-glow {
     0%,100%{ opacity:1; }
@@ -545,13 +545,22 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
           </div>
         </div>
 
-        {/* ── Progress bar (auto-advance countdown) ── */}
-        <div style={{ height:2, background: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)" }}>
+        {/* ── Progress bar (auto-advance countdown) ──
+             Uses transform:scaleX (compositor-only) instead of animating
+             width, so there's no reflow and no sub-pixel edge poking past
+             the card's rounded corners at 100%. A small side inset + pill
+             radius keeps it looking like a neat floating track rather than
+             a bar flush with the card edge. */}
+        <div style={{
+          margin: "0 8px 8px", height:3, borderRadius:99, overflow:"hidden",
+          background: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)",
+        }}>
           <div
             key={progressKey}
             style={{
-              height:"100%",
+              height:"100%", width:"100%", borderRadius:99,
               background: SAFFRON,
+              transformOrigin: "left",
               animation:`ys-progress ${ADVANCE_MS}ms linear forwards`,
             }}
           />

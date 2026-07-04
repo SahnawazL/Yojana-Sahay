@@ -8985,27 +8985,22 @@ function YojanaSahayInner(){
             <div style={{
               position:"relative",overflow:"hidden",
               margin:"8px 14px 0",
-              background:dark?"rgba(255,255,255,0.035)":"linear-gradient(135deg,#fdfdfd 0%,#ffffff 70%)",
+              background:dark
+                ?"linear-gradient(120deg,rgba(255,153,51,0.16) 0%,rgba(255,255,255,0.035) 40%,rgba(255,255,255,0.035) 60%,rgba(19,136,8,0.16) 100%),rgba(20,24,20,0.4)"
+                :"linear-gradient(120deg,rgba(255,153,51,0.11) 0%,rgba(255,255,255,0.85) 40%,rgba(255,255,255,0.85) 60%,rgba(19,136,8,0.10) 100%),linear-gradient(135deg,#fdfdfd 0%,#ffffff 70%)",
               border:`1px solid ${dark?"rgba(255,255,255,0.08)":"rgba(27,42,74,0.12)"}`,
               borderRadius:13,
               boxShadow:dark?"0 4px 18px rgba(0,0,0,0.24)":"0 4px 16px rgba(27,42,74,0.08)",
               animation:"verifyBadgeIn 0.6s cubic-bezier(0.22,1,0.36,1) both",
             }}>
-              {/* Single intentional tricolor accent — the only place in the app
-                  where saffron/white/green appears, marking this as the one
-                  "official verification" moment. Rendered as a slim ribbon on
-                  the left edge rather than a full-width bar, so it doesn't read
-                  as a progress/loading indicator. Colours blend smoothly into
-                  one another (no hard banding) for a premium, softer finish. */}
+              {/* Whole-card tricolor wash (above) is the single intentional place in
+                  the app where saffron/white/green appears together, marking this as
+                  the one "official verification" moment. A soft top hairline ties it
+                  together without reading as a loading/progress indicator. */}
               <div style={{
-                position:"absolute",left:0,top:0,bottom:0,width:4,
-                background:"linear-gradient(180deg,#FF9933 0%,#FFC57A 28%,#ffffff 50%,#8FD9A8 72%,#138808 100%)",
+                position:"absolute",top:0,left:14,right:14,height:1.5,
+                background:"linear-gradient(90deg,#FF9933 0%,#FFC57A 25%,#ffffff 50%,#8FD9A8 75%,#138808 100%)",
                 animation:"verifyRibbonGlow 3.2s ease-in-out infinite",
-              }}/>
-              {/* soft inner glow so the ribbon feels inset rather than pasted on */}
-              <div style={{
-                position:"absolute",left:0,top:0,bottom:0,width:16,pointerEvents:"none",
-                background:"linear-gradient(90deg,rgba(19,136,8,0.05),transparent)",
               }}/>
 
               <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 13px 11px 17px"}}>
