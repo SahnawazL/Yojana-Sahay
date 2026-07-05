@@ -1363,6 +1363,15 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
             transform:expanded?"translateY(0)":"translateY(-8px)",
             transition:"opacity 0.28s ease 0.08s,transform 0.28s ease 0.08s",
           }}>
+            {/* Plain-language description — what this scheme actually means, in simple words */}
+            {scheme.description?.[lang]&&(
+              <div style={{padding:"14px 16px 0"}}>
+                <div style={{fontSize:12.5,color:th.text,lineHeight:1.5,fontFamily:bf,background:dark?"rgba(255,255,255,0.04)":"#fff",border:`1px solid ${scheme.color}22`,borderRadius:10,padding:"10px 12px"}}>
+                  {scheme.description[lang]}
+                </div>
+              </div>
+            )}
+
             {/* Documents */}
             <div style={{padding:"14px 16px 10px"}}>
               <div style={{
@@ -1923,6 +1932,15 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
           {scheme.annual>0&&<div style={{fontSize:12,color:th.textMid}}>📅 Annual: <strong style={{color:scheme.color}}>₹{scheme.annual.toLocaleString("en-IN")}</strong></div>}
           <div style={{fontSize:11,color:th.textSub,marginTop:4}}>{scheme.ministry[lang]}</div>
         </div>
+        {/* ── Plain-language description — what the scheme actually does, in simple words ── */}
+        {scheme.description?.[lang]&&(
+          <div style={{margin:"0 16px 16px",padding:"12px 14px",borderRadius:14,background:dark?"rgba(255,255,255,0.04)":"#F8FAFC",border:`1px solid ${dark?"rgba(255,255,255,0.08)":"#E2E8F0"}`}}>
+            <div style={{fontSize:10,fontWeight:700,color:th.textSub,marginBottom:4,letterSpacing:0.3,fontFamily:bf}}>
+              {isHindi?"ℹ️ यह योजना क्या है":"ℹ️ WHAT THIS SCHEME MEANS FOR YOU"}
+            </div>
+            <div style={{fontSize:13,color:th.text,lineHeight:1.5,fontFamily:bf}}>{scheme.description[lang]}</div>
+          </div>
+        )}
         <div style={{padding:"0 16px 36px"}}>
           {/* ── Application Checklist header + live progress ── */}
           <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:12}}>
