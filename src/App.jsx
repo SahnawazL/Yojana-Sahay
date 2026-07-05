@@ -3023,7 +3023,11 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
           <div style={{
             display:"flex",gap:7,overflowX:"auto",padding:"0 0 12px",scrollbarWidth:"none",
             animation:"fadeIn 0.28s cubic-bezier(0.22,1,0.36,1) both",
-          }}>
+          }}
+          onTouchStart={e=>e.stopPropagation()}
+          onTouchMove={e=>e.stopPropagation()}
+          onTouchEnd={e=>e.stopPropagation()}
+          >
             <div onClick={()=>{haptic();setClassFilter("all");}}
               className="fpill"
               style={{
