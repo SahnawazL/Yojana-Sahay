@@ -703,10 +703,10 @@
     "linkAlive": false
   },
   "pms_obc": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:51:36.265Z",
     "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "tn_pudhumai_penn": {
     "lastVerified": "2026-06-22T17:45:04.191Z",
