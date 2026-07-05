@@ -46,8 +46,15 @@ import nodemailer               from "nodemailer";
 
 const GROQ_ENDPOINT     = "https://api.groq.com/openai/v1/chat/completions";
 const COMPOSE_AI_MODEL  = "openai/gpt-oss-20b";
-const COMPOSE_MAX_TOKENS = 320;
-const COMPOSE_TEMPERATURE = 0.6;
+// gpt-oss-20b is a reasoning model — it spends part of the token budget on
+// hidden chain-of-thought BEFORE writing the visible answer. The intro-line
+// generator elsewhere in this codebase uses max_tokens:80 and gets away with
+// it only because it silently falls back to a default sentence if Groq comes
+// back empty. We need an actual subject+body, so we give it real headroom
+// AND cap reasoning effort so it doesn't burn the whole budget "thinking".
+const COMPOSE_MAX_TOKENS       = 900;
+const COMPOSE_TEMPERATURE      = 0.6;
+const COMPOSE_REASONING_EFFORT = "low"; // "low" | "medium" | "high" — low leaves more budget for the actual reply
 
 function loadGroqKeys() {
   const seen = new Set();
@@ -126,6 +133,7 @@ async function generateEmailDraft({ toName, notes, lang }) {
     model: COMPOSE_AI_MODEL,
     max_tokens: COMPOSE_MAX_TOKENS,
     temperature: COMPOSE_TEMPERATURE,
+    reasoning_effort: COMPOSE_REASONING_EFFORT,
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },
@@ -144,7 +152,14 @@ async function generateEmailDraft({ toName, notes, lang }) {
   logApiCallToHistory("groqVerifyCalls").catch(() => {});
 
   const raw = data?.choices?.[0]?.message?.content?.trim();
-  if (!raw) return { error: "AI returned an empty response — try again" };
+  if (!raw) {
+    const finishReason = data?.choices?.[0]?.finish_reason;
+    console.error("[deadline-alerts] Groq returned empty content. finish_reason:", finishReason, "full choice:", JSON.stringify(data?.choices?.[0]).slice(0, 300));
+    const hint = finishReason === "length"
+      ? " (model ran out of tokens — try again, this should be rarer now with a higher token budget)"
+      : "";
+    return { error: `AI returned an empty response — try again${hint}` };
+  }
 
   // Defensive JSON extraction: strip ```json fences if present, then fall
   // back to grabbing the first {...} block in case the model added any
