@@ -193,24 +193,65 @@ function buildBrandedHtml(bodyText, isHindi = false) {
     .split(/\n\s*\n/)
     .map(p => p.trim())
     .filter(Boolean)
-    .map(p => `<p style="font-size:13px;color:#333;margin:0 0 12px;line-height:1.6;">${escapeHtml(p)}</p>`)
+    .map(p => `<p style="font-size:14px;color:#2d2d2d;margin:0 0 14px;line-height:1.7;">${escapeHtml(p)}</p>`)
     .join("");
 
+  const t = isHindi
+    ? {
+        title: "योजना सहाय टीम",
+        subtitle: "सरकारी योजना खोज ऐप",
+        cta: "YojanaSahay खोलें",
+        footer: "यह ईमेल YojanaSahay टीम द्वारा व्यक्तिगत रूप से भेजा गया है।",
+        legal: "YojanaSahay एक स्वतंत्र योजना-खोज सेवा है और किसी भी सरकारी विभाग से आधिकारिक रूप से संबद्ध नहीं है।",
+      }
+    : {
+        title: "YojanaSahay Team",
+        subtitle: "Government Schemes Finder App",
+        cta: "Open YojanaSahay",
+        footer: "This email was sent to you personally by the YojanaSahay team.",
+        legal: "YojanaSahay is an independent scheme-discovery service and is not officially affiliated with any government department.",
+      };
+
   return `
-  <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
-    <div style="background:linear-gradient(135deg,#FF9933,#138808);padding:18px 20px;border-radius:10px 10px 0 0;">
-      <h2 style="color:#fff;margin:0;font-size:18px;">📩 ${isHindi ? "योजना सहाय टीम की ओर से" : "A note from Team Yojana Sahay"}</h2>
+  <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8e8e8;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+
+    <!-- Tricolor accent strip -->
+    <div style="height:4px;background:linear-gradient(90deg,#FF9933 0%,#FF9933 33%,#FFFFFF 33%,#FFFFFF 66%,#138808 66%,#138808 100%);"></div>
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#06038D 0%,#0d0a9e 100%);padding:28px 28px 24px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+        <tr>
+          <td style="vertical-align:middle;">
+            <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.14);display:inline-block;text-align:center;line-height:44px;font-size:22px;margin-bottom:12px;">🏛️</div>
+            <h1 style="color:#fff;margin:0;font-size:21px;font-weight:800;letter-spacing:0.2px;">${t.title}</h1>
+            <p style="color:rgba(255,255,255,0.75);margin:4px 0 0;font-size:12.5px;font-weight:500;letter-spacing:0.3px;text-transform:uppercase;">${t.subtitle}</p>
+          </td>
+        </tr>
+      </table>
     </div>
-    <div style="padding:18px 20px 6px;background:#fff;">
+
+    <!-- Body -->
+    <div style="padding:26px 28px 8px;">
       ${paragraphs}
     </div>
-    <div style="padding:16px 20px;background:#fafafa;border-radius:0 0 10px 10px;text-align:center;">
-      <a href="https://yojanasahay.vercel.app" style="display:inline-block;background:#06038D;color:#fff;
-        text-decoration:none;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;">
-        ${isHindi ? "Yojana Sahay खोलें" : "Open Yojana Sahay"}
+
+    <!-- CTA -->
+    <div style="padding:8px 28px 28px;text-align:center;">
+      <a href="https://yojanasahay.vercel.app" style="display:inline-block;background:linear-gradient(135deg,#06038D,#0d0a9e);color:#fff;
+        text-decoration:none;padding:13px 34px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:0.2px;box-shadow:0 3px 10px rgba(6,3,141,0.25);">
+        ${t.cta} →
       </a>
-      <p style="font-size:10.5px;color:#999;margin-top:12px;">
-        ${isHindi ? "यह ईमेल Yojana Sahay टीम द्वारा व्यक्तिगत रूप से भेजा गया है।" : "This email was sent to you personally by the Yojana Sahay team."}
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:18px 28px;background:#f8f9fb;border-top:1px solid #eee;text-align:center;">
+      <p style="font-size:11px;color:#8a8a8a;margin:0 0 6px;line-height:1.5;">${t.footer}</p>
+      <p style="font-size:10px;color:#b0b0b0;margin:0 0 14px;line-height:1.5;">${t.legal}</p>
+      <div style="border-top:1px solid #e5e5e5;margin:0 0 12px;"></div>
+      <p style="font-size:11px;color:#666;margin:0 0 3px;font-weight:700;">${isHindi ? "टीम YojanaSahay" : "Team YojanaSahay"}</p>
+      <p style="font-size:9.5px;color:#aaa;margin:0;letter-spacing:0.2px;">
+        © ${new Date().getFullYear()} YojanaSahay · ${isHindi ? "MIT लाइसेंस के तहत जारी" : "Released under the MIT License"}
       </p>
     </div>
   </div>`;
