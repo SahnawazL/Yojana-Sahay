@@ -118,8 +118,8 @@ async function generateEmailDraft({ toName, notes, lang }) {
   const isHindi = lang === "hi";
 
   const system = isHindi
-    ? `आप YojanaSahay (भारतीय सरकारी योजना खोज ऐप) की आधिकारिक टीम की ओर से ईमेल लिखते हैं। आपको केवल वही तथ्य उपयोग करने हैं जो एडमिन नोट्स में दिए गए हैं — कभी भी कोई योजना का नाम, राशि, तारीख या पात्रता विवरण न बनाएं जो नोट्स में नहीं है। भाषा गर्मजोशी भरी, पेशेवर और संक्षिप्त हो (80-150 शब्द)। अपने पूरे उत्तर को केवल एक मान्य JSON ऑब्जेक्ट के रूप में दें, बिना किसी अतिरिक्त टेक्स्ट, व्याख्या या मार्कडाउन कोड-फेंस के, ठीक इस प्रारूप में: {"subject": "...", "body": "..."} — body में पैराग्राफ के बीच खाली लाइन (\\n\\n) हो।`
-    : `You write emails on behalf of the official YojanaSahay team (an Indian government scheme discovery app). Use ONLY the facts given in the admin's notes below — never invent scheme names, amounts, dates, or eligibility details that aren't in the notes. Keep it warm, professional, and concise (80-150 words). Respond with your ENTIRE reply as a single valid JSON object, with no extra text, explanation, or markdown code fences, in exactly this shape: {"subject": "...", "body": "..."} — body should use blank lines (\\n\\n) between paragraphs, no markdown, and should end with a soft invitation to open the YojanaSahay app.`;
+    ? `आप YojanaSahay (भारतीय सरकारी योजना खोज ऐप) की आधिकारिक टीम की ओर से ईमेल लिखते हैं। आपको केवल वही तथ्य उपयोग करने हैं जो एडमिन नोट्स में दिए गए हैं — कभी भी कोई योजना का नाम, राशि, तारीख या पात्रता विवरण न बनाएं जो नोट्स में नहीं है। भाषा गर्मजोशी भरी, पेशेवर और संक्षिप्त हो (80-150 शब्द)। यदि नोट्स में कोई एक प्रमुख तथ्य हो — जैसे कोई समय-सीमा, राशि, या योजना का नाम — तो उसे एक अलग पैराग्राफ में इस तरह लिखें: पैराग्राफ की शुरुआत 📌 से करें और महत्वपूर्ण शब्द(शब्दों) को **इस तरह** बोल्ड करें (जैसे: "📌 आवेदन की अंतिम तिथि **31 जुलाई 2026** है")। यह सिर्फ एक ऐसे तथ्य के लिए करें, पूरे ईमेल में हर जगह बोल्ड टेक्स्ट या 📌 का प्रयोग न करें, और कोई अन्य मार्कडाउन (बुलेट, हेडिंग आदि) उपयोग न करें। अपने पूरे उत्तर को केवल एक मान्य JSON ऑब्जेक्ट के रूप में दें, बिना किसी अतिरिक्त टेक्स्ट, व्याख्या या मार्कडाउन कोड-फेंस के, ठीक इस प्रारूप में: {"subject": "...", "body": "..."} — body में पैराग्राफ के बीच खाली लाइन (\\n\\n) हो।`
+    : `You write emails on behalf of the official YojanaSahay team (an Indian government scheme discovery app). Use ONLY the facts given in the admin's notes below — never invent scheme names, amounts, dates, or eligibility details that aren't in the notes. Keep it warm, professional, and concise (80-150 words). If the notes contain one standout fact — a deadline, an amount, or a scheme name — put it in its own paragraph starting with 📌 and wrap the key word(s) in **double asterisks** to bold them (e.g. "📌 The application deadline is **31 July 2026**"). Use this for at most one such fact, not throughout the email, and don't use any other markdown (no bullets, headers, etc.) anywhere else in the body. Respond with your ENTIRE reply as a single valid JSON object, with no extra text, explanation, or markdown code fences, in exactly this shape: {"subject": "...", "body": "..."} — body should use blank lines (\\n\\n) between paragraphs and should end with a soft invitation to open the YojanaSahay app.`;
 
   const user = isHindi
     ? `उपयोगकर्ता का नाम: ${toName || "उपयोगकर्ता"}\nएडमिन के नोट्स (केवल यही तथ्य उपयोग करें): ${notes}`
@@ -188,12 +188,38 @@ function escapeHtml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// Converts **bold** markdown-style emphasis (applied AFTER escaping, so it's
+// safe from injection) into a styled <strong>. Lets an admin or the AI draft
+// call out a scheme name, amount, or deadline inline.
+function applyInlineEmphasis(escaped) {
+  return escaped.replace(/\*\*(.+?)\*\*/g, '<strong style="color:#0d0a9e;font-weight:700;">$1</strong>');
+}
+
 function buildBrandedHtml(bodyText, isHindi = false) {
-  const paragraphs = bodyText
+  const rawParagraphs = bodyText
     .split(/\n\s*\n/)
     .map(p => p.trim())
-    .filter(Boolean)
-    .map(p => `<p style="font-size:14px;color:#2d2d2d;margin:0 0 14px;line-height:1.7;">${escapeHtml(p)}</p>`)
+    .filter(Boolean);
+
+  const paragraphs = rawParagraphs
+    .map((p, i) => {
+      // A paragraph starting with 📌 renders as a highlighted callout card —
+      // use this for a single key fact (deadline, amount, scheme name) that
+      // should stand out from the surrounding prose.
+      const isCallout = /^📌/.test(p);
+      const clean = isCallout ? p.replace(/^📌\s*/, "") : p;
+      const text = applyInlineEmphasis(escapeHtml(clean));
+
+      if (isCallout) {
+        return `<div style="background:#fdf8ee;border:1px solid #e6dcc4;border-left:3px solid #C9A961;border-radius:8px;padding:12px 16px;margin:0 0 16px;font-size:13.5px;color:#3d3520;line-height:1.6;">📌&nbsp; ${text}</div>`;
+      }
+      // First paragraph is treated as the opening/greeting line and gets a
+      // touch more presence than the rest of the body copy.
+      const style = i === 0
+        ? "font-size:14.5px;color:#1a1a1a;margin:0 0 16px;line-height:1.75;letter-spacing:0.1px;"
+        : "font-size:14px;color:#2d2d2d;margin:0 0 14px;line-height:1.7;";
+      return `<p style="${style}">${text}</p>`;
+    })
     .join("");
 
   const t = isHindi
@@ -203,6 +229,8 @@ function buildBrandedHtml(bodyText, isHindi = false) {
         cta: "YojanaSahay खोलें",
         footer: "यह ईमेल YojanaSahay टीम द्वारा व्यक्तिगत रूप से भेजा गया है।",
         legal: "YojanaSahay एक स्वतंत्र योजना-खोज सेवा है और किसी भी सरकारी विभाग से आधिकारिक रूप से संबद्ध नहीं है।",
+        issued: "जारी दिनांक",
+        help: "मदद चाहिए या कोई सवाल है? बस इस ईमेल का जवाब दें — यह सीधे हमारी टीम तक पहुंचेगा।",
       }
     : {
         title: "YojanaSahay Team",
@@ -210,22 +238,39 @@ function buildBrandedHtml(bodyText, isHindi = false) {
         cta: "Open YojanaSahay",
         footer: "This email was sent to you personally by the YojanaSahay team.",
         legal: "YojanaSahay is an independent scheme-discovery service and is not officially affiliated with any government department.",
+        issued: "ISSUED",
+        help: "Need help or have a question? Just reply to this email — it reaches our team directly.",
       };
+
+  const issuedDate = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 
   return `
   <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8e8e8;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
 
-    <!-- Tricolor accent strip -->
-    <div style="height:4px;background:linear-gradient(90deg,#FF9933 0%,#FF9933 33%,#FFFFFF 33%,#FFFFFF 66%,#138808 66%,#138808 100%);"></div>
-
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#06038D 0%,#0d0a9e 100%);padding:28px 28px 24px;">
+    <div style="background:linear-gradient(135deg,#050340 0%,#1a1464 70%,#26185c 100%);padding:22px 28px;border-bottom:2px solid #C9A961;">
       <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
         <tr>
+          <td style="width:46px;vertical-align:middle;padding-right:14px;">
+            <div style="width:42px;height:42px;border-radius:10px;background:rgba(201,169,97,0.14);border:1px solid rgba(201,169,97,0.4);text-align:center;line-height:42px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align:middle;">
+                <path d="M12 2L2 8h20L12 2z" fill="#C9A961"/>
+                <rect x="4" y="9" width="2.5" height="9" fill="#C9A961"/>
+                <rect x="10.75" y="9" width="2.5" height="9" fill="#C9A961"/>
+                <rect x="17.5" y="9" width="2.5" height="9" fill="#C9A961"/>
+                <rect x="2" y="19" width="20" height="2" fill="#C9A961"/>
+              </svg>
+            </div>
+          </td>
           <td style="vertical-align:middle;">
-            <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.14);display:inline-block;text-align:center;line-height:44px;font-size:22px;margin-bottom:12px;">🏛️</div>
-            <h1 style="color:#fff;margin:0;font-size:21px;font-weight:800;letter-spacing:0.2px;">${t.title}</h1>
-            <p style="color:rgba(255,255,255,0.75);margin:4px 0 0;font-size:12.5px;font-weight:500;letter-spacing:0.3px;text-transform:uppercase;">${t.subtitle}</p>
+            <div style="color:#fff;font-size:19px;font-weight:800;letter-spacing:0.2px;line-height:1.25;">${t.title}</div>
+            <div style="color:#C9A961;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:3px;">${t.subtitle}</div>
+          </td>
+          <td style="vertical-align:middle;text-align:right;white-space:nowrap;padding-left:10px;">
+            <div style="border:1px solid #C9A961;border-radius:9px;padding:7px 13px;background:rgba(255,255,255,0.06);box-shadow:0 3px 8px rgba(0,0,0,0.25);">
+              <div style="color:#C9A961;font-size:8.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">${t.issued}</div>
+              <div style="color:#fff;font-size:11.5px;font-weight:600;margin-top:2px;">${issuedDate}</div>
+            </div>
           </td>
         </tr>
       </table>
@@ -239,17 +284,18 @@ function buildBrandedHtml(bodyText, isHindi = false) {
     <!-- CTA -->
     <div style="padding:8px 28px 28px;text-align:center;">
       <a href="https://yojanasahay.vercel.app" style="display:inline-block;background:linear-gradient(135deg,#06038D,#0d0a9e);color:#fff;
-        text-decoration:none;padding:13px 34px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:0.2px;box-shadow:0 3px 10px rgba(6,3,141,0.25);">
+        text-decoration:none;padding:13px 34px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:0.2px;border:1px solid rgba(201,169,97,0.5);box-shadow:0 3px 10px rgba(6,3,141,0.25),inset 0 1px 0 rgba(255,255,255,0.18);">
         ${t.cta} →
       </a>
     </div>
 
     <!-- Footer -->
-    <div style="padding:18px 28px;background:#f8f9fb;border-top:1px solid #eee;text-align:center;">
+    <div style="padding:18px 28px;background:#f8f9fb;border-top:2px solid rgba(201,169,97,0.55);text-align:center;">
       <p style="font-size:11px;color:#8a8a8a;margin:0 0 6px;line-height:1.5;">${t.footer}</p>
+      <p style="font-size:10.5px;color:#6b6b6b;margin:0 0 10px;line-height:1.55;">${t.help}</p>
       <p style="font-size:10px;color:#b0b0b0;margin:0 0 14px;line-height:1.5;">${t.legal}</p>
-      <div style="border-top:1px solid #e5e5e5;margin:0 0 12px;"></div>
-      <p style="font-size:11px;color:#666;margin:0 0 3px;font-weight:700;">${isHindi ? "टीम YojanaSahay" : "Team YojanaSahay"}</p>
+      <div style="border-top:1px solid #e6dcc4;margin:0 0 12px;width:60px;margin-left:auto;margin-right:auto;"></div>
+      <p style="font-size:11px;color:#3d3520;margin:0 0 3px;font-weight:700;">${isHindi ? "टीम YojanaSahay" : "Team YojanaSahay"}</p>
       <p style="font-size:9.5px;color:#aaa;margin:0;letter-spacing:0.2px;">
         © ${new Date().getFullYear()} YojanaSahay · ${isHindi ? "MIT लाइसेंस के तहत जारी" : "Released under the MIT License"}
       </p>
@@ -395,6 +441,10 @@ export default async function handler(req, res) {
     if (!subject || !subject.trim()) return res.status(400).json({ error: "subject is required" });
     if (!body || !body.trim())       return res.status(400).json({ error: "body is required" });
 
+    // Strip CR/LF from the subject to prevent SMTP header injection (e.g. a
+    // pasted "Reminder\nBcc: someone@evil.com" turning into a real header).
+    const safeSubject = subject.replace(/[\r\n]+/g, " ").trim();
+
     const dateKey  = new Date().toISOString().slice(0, 10);
     const quotaRef = auth.db.collection("emailQuota").doc(dateKey);
 
@@ -411,7 +461,7 @@ export default async function handler(req, res) {
       await transporter.sendMail({
         from: `"Yojana Sahay" <${process.env.GMAIL_USER}>`,
         to: toEmail,
-        subject,
+        subject: safeSubject,
         html,
       });
 
@@ -425,7 +475,7 @@ export default async function handler(req, res) {
       await auth.db.collection("adminCustomEmails").add({
         toName: toName || null,
         toEmail,
-        subject,
+        subject: safeSubject,
         body,
         lang: lang || "en",
         sentBy: auth.email || null,
