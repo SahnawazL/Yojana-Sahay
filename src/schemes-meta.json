@@ -312,10 +312,10 @@
     "linkAlive": true
   },
   "ayushman": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T11:03:27.762Z",
     "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "scholarship": {
     "lastVerified": "2026-07-05T10:44:20.597Z",
@@ -563,11 +563,11 @@
     "linkAlive": true
   },
   "pm_svamitva": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T11:03:27.762Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "igndps": {
     "lastVerified": "2026-07-05T10:44:20.597Z",
@@ -1901,9 +1901,9 @@
     "confidence": 0
   },
   "nfobc": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T11:03:27.762Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "aif": {
@@ -3449,9 +3449,9 @@
     "confidence": 0
   },
   "nats_apprenticeship": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T11:03:27.762Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "tulip_internship": {
