@@ -305,11 +305,11 @@
     "linkAlive": true
   },
   "pmawas_urban": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "ayushman": {
     "lastVerified": "2026-07-05T10:44:20.597Z",
@@ -349,11 +349,11 @@
     "linkAlive": true
   },
   "pmjdy": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmjjby": {
     "lastVerified": "2026-07-05T10:44:20.597Z",
@@ -464,10 +464,10 @@
     "linkAlive": true
   },
   "pmjay_senior": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmgsy": {
     "lastVerified": "2026-07-05T10:44:20.597Z",
@@ -537,10 +537,10 @@
     "linkAlive": true
   },
   "pm_yasasvi": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pm_kusum": {
     "lastVerified": "2026-07-05T10:44:20.597Z",
@@ -672,10 +672,10 @@
     "linkAlive": true
   },
   "csss": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "mcm_minority": {
     "lastVerified": "2026-07-05T10:44:20.597Z",
@@ -684,10 +684,10 @@
     "linkAlive": true
   },
   "free_coaching_sc": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmfme": {
     "lastVerified": "2026-07-05T10:44:20.597Z",
@@ -697,10 +697,10 @@
     "linkAlive": true
   },
   "premat_sc": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pms_obc": {
     "lastVerified": "2026-07-05T10:51:36.265Z",
@@ -1519,9 +1519,9 @@
     "confidence": 0
   },
   "rgnf": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "cg_dr_khoobasuram_health": {
@@ -1919,9 +1919,9 @@
     "confidence": 0
   },
   "pm_smile": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "aicte_pragati": {
@@ -3378,9 +3378,9 @@
     "confidence": 0
   },
   "ishan_uday": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "nos_overseas": {
@@ -3395,27 +3395,27 @@
     "confidence": 0
   },
   "ig_pg_sgc": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "top_class_sc": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "inspire_she": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "pmss_defence": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "pm_special_jk": {
@@ -3431,21 +3431,21 @@
     "confidence": 0
   },
   "seed_dnt_coaching": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "ambedkar_interest_subsidy": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "nfpwd": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 404,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "nats_apprenticeship": {
@@ -3455,9 +3455,9 @@
     "confidence": 0
   },
   "tulip_internship": {
-    "lastVerified": "2026-07-05T10:44:20.597Z",
+    "lastVerified": "2026-07-05T10:53:34.120Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   }
 }
