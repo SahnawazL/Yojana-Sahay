@@ -23,7 +23,24 @@ export const INDIA_STATES = [
 ];
 
 
-// ─── SCHEME DATABASE ───────────────────────────────────────────────────────────
+// ─── SEARCH SYNONYMS ────────────────────────────────────────────────────────────
+// Students search in their own words ("10 pass", "matric", "ssc") rather than
+// official scheme terminology ("Class 10", "Secondary Education"). Each group
+// below maps a canonical tag to every common phrasing a student might type.
+// A scheme opts in to a tag by listing it in its own `keywords: [...]` array.
+// The search filter (in App.jsx) expands whatever the student typed into these
+// tags and matches them against each scheme's keywords — on top of the normal
+// name/tag/ministry substring search, never instead of it.
+export const SEARCH_SYNONYM_GROUPS = [
+  { tag:"class10", triggers:["10 pass","10th pass","xth pass","10th","10 th","xth","class 10","class10","10 std","std 10","matric","matriculation","ssc","after 10th","after 10"] },
+  { tag:"class12", triggers:["12 pass","12th pass","xiith pass","12th","12 th","xiith","class 12","class12","12 std","std 12","inter","intermediate","hsc","after 12th","after 12"] },
+  { tag:"iti", triggers:["iti","industrial training institute"] },
+  { tag:"polytechnic", triggers:["polytechnic","diploma"] },
+  { tag:"skill", triggers:["skill","training","kaushal","vocational"] },
+  { tag:"dropout", triggers:["dropout","drop out","school leaving","left school"] },
+];
+
+
 // HOW TO ADD A NEW SCHEME:
 //   1. Copy any existing block below.
 //   2. Give it a unique id (e.g. "my_new_scheme").
@@ -345,6 +362,7 @@ export const SCHEME_DB = [
     apply:   { en: "https://skillindiadigital.gov.in", hi: "skillindiadigital.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Educational Certificates","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","शैक्षणिक प्रमाण पत्र","बैंक खाता","पासपोर्ट फोटो"] },
+    keywords: ["class10","class12","skill","dropout"],
     match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -584,6 +602,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Class 7/8 Mark Sheet (min. 55%)","Income Certificate (≤₹3.5L/year)","Caste Certificate (if SC/ST)","Passport Size Photos","Address Proof"],
                hi: ["आधार कार्ड","कक्षा 7/8 की मार्कशीट (न्यूनतम 55%)","आय प्रमाण पत्र (≤₹3.5 लाख/वर्ष)","जाति प्रमाण पत्र (SC/ST के लिए)","पासपोर्ट साइज़ फोटो","पता प्रमाण"] },
     // Eligibility: student in govt/govt-aided school, family income ≤ ₹3.5L, min 55% in Class 7/8
+    keywords: ["class10","class12"],
     match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -599,7 +618,25 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","OBC/EBC/DNT Caste Certificate","Income Certificate (≤₹2.5L/year)","Previous Year Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","OBC/EBC/DNT जाति प्रमाण पत्र","आय प्रमाण पत्र (≤₹2.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC/EBC/DNT student in Class 9 or 11, family income ≤ ₹2.5L, merit-based selection
+    keywords: ["class10","class12"],
     match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+  },
+
+  {
+    id: "nsigse",
+    icon: "🎀", color: "#DB2777", scope: "national",
+    ministry: { en: "Ministry of Education", hi: "शिक्षा मंत्रालय" },
+    name:    { en: "National Scheme of Incentive to Girls for Secondary Education (NSIGSE)", hi: "राष्ट्रीय बालिका प्रोत्साहन योजना - माध्यमिक शिक्षा (NSIGSE)" },
+    benefit: { en: "₹3,000 one-time deposit on enrolling in Class 9 · matures with interest when she turns 18 (after passing Class 10)", hi: "कक्षा 9 में दाखिले पर ₹3,000 की एकमुश्त जमा · 18 वर्ष की आयु पर ब्याज सहित परिपक्व (कक्षा 10 पास करने के बाद)" },
+    tag:     { en: "Student / Women", hi: "छात्र / महिला" },
+    annual: 3000,
+    apply:   { en: "https://www.myscheme.gov.in/schemes/nsigse", hi: "scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","SC/ST Caste Certificate (or KGBV Class 8 pass certificate)","School Enrollment Certificate (Class 9)","Bank/Post Office Account","Age Proof (must be ≤16 at Class 9 enrollment)"],
+               hi: ["आधार कार्ड","SC/ST जाति प्रमाण पत्र (या KGBV कक्षा 8 प्रमाण पत्र)","स्कूल नामांकन प्रमाण (कक्षा 9)","बैंक/डाकघर खाता","आयु प्रमाण (कक्षा 9 में प्रवेश के समय ≤16 वर्ष)"] },
+    // Eligibility: unmarried SC/ST girl (or any-caste KGBV Class 8 pass) enrolled in Class 9 at a govt/govt-aided/local-body
+    // school, age ≤16 at enrollment. No income ceiling. Excludes private-unaided and central govt schools (KV/NV/CBSE).
+    keywords: ["class10"],
+    match: (a) => a.who === "student" || a.who === "women",
   },
 
   {
@@ -749,6 +786,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","PAN Card","Admission Letter from Institute","10th/12th/Graduation Mark Sheets","Income Certificate","Bank Account"],
                hi: ["आधार कार्ड","पैन कार्ड","संस्था का प्रवेश पत्र","10वीं/12वीं/स्नातक मार्कशीट","आय प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: student admitted to recognised higher education institution, family income below ₹8L
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -839,6 +877,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","SC / ST Caste Certificate","Income Certificate (≤₹2.5L/year)","Previous Year Mark Sheet","Institution Admission Letter","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","SC/ST जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
     // Eligibility: SC/ST student post Class 10, family income ≤ ₹2.5L
+    keywords: ["class10"],
     match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -1013,6 +1052,7 @@ export const SCHEME_DB = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/pre-st", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","ST Caste Certificate","Income Certificate (≤₹2.5L/year)","Class 8 Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","ST जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","कक्षा 8 मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
+    keywords: ["class10"],
     match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -1143,6 +1183,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Minority Community Certificate (Muslim/Christian/Sikh/Buddhist/Jain/Parsi)","Income Certificate (≤₹2.5L/year)","Previous Year Mark Sheet (min 50%)","Admission Letter","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","पिछले वर्ष मार्कशीट (न्यूनतम 50%)","प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
     // Eligibility: minority student in Class 11 to PG technical/professional/general degree, income ≤ ₹2.5L
+    keywords: ["class10","class12"],
     match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -1218,6 +1259,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Income Certificate (≤₹2.5L/year)","Class 8 Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","कक्षा 8 मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     // Eligibility: SC student in Class 9–10 in govt/govt-aided school, family income ≤ ₹2.5L
+    keywords: ["class10"],
     match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -1278,6 +1320,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","OBC (Non-Creamy Layer) Caste Certificate","Income Certificate (≤₹1.5L/year)","Previous Year Mark Sheet","Institution Admission Letter","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) जाति प्रमाण पत्र","आय प्रमाण (≤₹1.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC (non-creamy layer) student post Class 10, family income ≤ ₹1.5L
+    keywords: ["class10"],
     match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -1475,6 +1518,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Income Certificate (family income ≤₹8L/year)","AICTE-institution Admission Letter","Class 10 & 12 Mark Sheets","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","आय प्रमाण (पारिवारिक आय ≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","कक्षा 10 और 12 की मार्कशीट","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: girl student in AICTE-approved technical diploma/degree, family income ≤ ₹8L
+    keywords: ["class10","class12","polytechnic","diploma"],
     match: (a) => (a.who === "women" || a.who === "student") && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1490,6 +1534,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥40% disability)","Income Certificate (family income ≤₹8L/year)","AICTE-institution Admission Letter","Mark Sheets","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (≥40%)","आय प्रमाण (≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","मार्कशीट","बैंक खाता (आधार लिंक)"] },
     // Eligibility: student with ≥40% disability in AICTE-approved technical programme, income ≤ ₹8L
+    keywords: ["class10","class12","polytechnic","diploma"],
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 

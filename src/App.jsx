@@ -17,6 +17,7 @@ import {
   SCHEME_DB,
   CATEGORIES,
   getSchemesForCategory,
+  SEARCH_SYNONYM_GROUPS,
 } from "./schemesData.js";
 import schemesMeta from "./schemes-meta.json";
 import { auth, db } from "./firebase.js";
@@ -2094,6 +2095,22 @@ function VerificationBanner({lang,dark=false}){
   );
 }
 
+// ─── SMART SEARCH ──────────────────────────────────────────────────────────────
+// Students type things like "10 pass", "10th pass", "matric", "ssc" instead of
+// official terms like "Class 10". This expands whatever they typed into the
+// canonical tags it matches (see SEARCH_SYNONYM_GROUPS in schemesData.js), so
+// schemes tagged with that concept surface even when the literal words don't
+// appear anywhere in the scheme's name/tag/ministry.
+function expandSearchTags(query){
+  const nq=query.toLowerCase().trim();
+  const tags=new Set();
+  if(!nq) return tags;
+  SEARCH_SYNONYM_GROUPS.forEach(group=>{
+    if(group.triggers.some(trigger=>nq.includes(trigger)||trigger.includes(nq))) tags.add(group.tag);
+  });
+  return tags;
+}
+
 function SearchTab({lang,dark=false,onOpenDetail=null}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
@@ -2139,19 +2156,27 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
   },[deferredQuery]);
 
   // Filtered results — runs only when deferred query settles (not on every keystroke)
+  const queryTags=useMemo(()=>expandSearchTags(deferredQuery),[deferredQuery]);
   const results=useMemo(()=>{
     if(!isReady) return [];
     if(deferredQuery.trim().length===0) return SCHEME_DB;
     const q=deferredQuery.toLowerCase();
-    return SCHEME_DB.filter(s=>(
-      s.name.en.toLowerCase().includes(q)||
-      s.name.hi.toLowerCase().includes(q)||
-      s.tag.en.toLowerCase().includes(q)||
-      s.tag.hi.toLowerCase().includes(q)||
-      s.ministry.en.toLowerCase().includes(q)||
-      (s.state&&s.state.toLowerCase().includes(q))
-    ));
-  },[deferredQuery,isReady]);
+    return SCHEME_DB.filter(s=>{
+      const textMatch=(
+        s.name.en.toLowerCase().includes(q)||
+        s.name.hi.toLowerCase().includes(q)||
+        s.tag.en.toLowerCase().includes(q)||
+        s.tag.hi.toLowerCase().includes(q)||
+        s.ministry.en.toLowerCase().includes(q)||
+        (s.state&&s.state.toLowerCase().includes(q))
+      );
+      // Smart fallback: query normalized to a concept (e.g. "10 pass" → class10)
+      // matches schemes opted into that concept via their own keywords array —
+      // catches phrasing that doesn't literally appear in the scheme's text.
+      const smartMatch=queryTags.size>0 && s.keywords && s.keywords.some(k=>queryTags.has(k));
+      return textMatch||smartMatch;
+    });
+  },[deferredQuery,isReady,queryTags]);
 
   const national=useMemo(()=>results.filter(s=>s.scope==="national"),[results]);
   const stateRes=useMemo(()=>results.filter(s=>s.scope==="state"),[results]);
@@ -2587,6 +2612,17 @@ function SkeletonCard({dark=false}){
 // Paginated + skeleton + deferred-filter for instant tab open
 const PAGE_SIZE=20;
 
+// Shown only when the "Student" category pill is active. Values match the
+// `keywords` tags schemes opt into (see SEARCH_SYNONYM_GROUPS in schemesData.js) —
+// same tagging system the smart-search feature uses, so both stay in sync as
+// more schemes get tagged over time.
+const CLASS_SUBFILTERS=[
+  { key:"class10",     en:"10th Pass",      hi:"10वीं पास"        },
+  { key:"class12",     en:"12th Pass",      hi:"12वीं पास"        },
+  { key:"polytechnic", en:"ITI / Diploma",  hi:"आईटीआई / डिप्लोमा" },
+  { key:"skill",       en:"Skill Training", hi:"कौशल प्रशिक्षण"    },
+];
+
 function SchemesTab({lang,dark=false,onOpenDetail=null}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
@@ -2595,6 +2631,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
 
   const [expandedId,setExpandedId]=useState(null);
   const [filter,setFilter]=useState("all");
+  const [classFilter,setClassFilter]=useState("all"); // sub-filter shown only when filter==="student"
   const [selectedState,setSelectedState]=useState("all");
   const [dismissingState,setDismissingState]=useState(false);
   const [showStatePicker,setShowStatePicker]=useState(false);
@@ -2647,6 +2684,14 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
     setShowFilterHint(false);
     try{localStorage.setItem(HINT_KEY,"1");}catch{}
   };
+
+  // Sub-filter only makes sense inside "student" — clear it the moment the
+  // person taps any other category, so it doesn't silently linger and confuse
+  // results if they come back to "student" later, or leave it stuck active
+  // under an unrelated category.
+  useEffect(()=>{
+    if(filter!=="student") setClassFilter("all");
+  },[filter]);
   // ─────────────────────────────────────────────────────────────────────────
 
   const cats=useMemo(()=>CATEGORIES[lang],[lang]);
@@ -2659,10 +2704,11 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
 
   // Deferred values: pill taps are instant; heavy filtering runs async
   const deferredFilter=useDeferredValue(filter);
+  const deferredClassFilter=useDeferredValue(classFilter);
   const deferredState=useDeferredValue(selectedState);
   const deferredSortBy=useDeferredValue(sortBy);
   const deferredClosingSoon=useDeferredValue(closingSoonOnly);
-  const isStale=filter!==deferredFilter||selectedState!==deferredState||sortBy!==deferredSortBy||closingSoonOnly!==deferredClosingSoon;
+  const isStale=filter!==deferredFilter||classFilter!==deferredClassFilter||selectedState!==deferredState||sortBy!==deferredSortBy||closingSoonOnly!==deferredClosingSoon;
 
   // Delay first paint by 1 frame so tab slide animation fires first
   useEffect(()=>{
@@ -2672,6 +2718,13 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
 
   const filtered=useMemo(()=>{
     let base=deferredFilter==="all"?SCHEME_DB:getSchemesForCategory(deferredFilter);
+    // Class sub-filter — only meaningful inside "student", narrows further by
+    // the scheme's own keywords tag (e.g. class10, class12, polytechnic, skill).
+    // Schemes not yet tagged simply won't appear under a class sub-filter —
+    // they still show up fine under plain "Student" with no sub-filter applied.
+    if(deferredFilter==="student"&&deferredClassFilter!=="all"){
+      base=base.filter(s=>s.keywords&&s.keywords.includes(deferredClassFilter));
+    }
     if(deferredState==="national"){
       base=base.filter(s=>s.scope==="national");
     }else if(deferredState!=="all"){
@@ -2710,13 +2763,13 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
       arr.sort((a,b)=>sc(b)-sc(a));
     }
     return arr;
-  },[deferredFilter,deferredState,deferredSortBy,deferredClosingSoon]);
+  },[deferredFilter,deferredClassFilter,deferredState,deferredSortBy,deferredClosingSoon]);
 
   const national=useMemo(()=>filtered.filter(s=>s.scope==="national"),[filtered]);
   const stateSchemes=useMemo(()=>filtered.filter(s=>s.scope==="state"),[filtered]);
 
   // Reset pagination when any filter/sort changes
-  useEffect(()=>{setVisibleCount(PAGE_SIZE);setExpandedId(null);},[filter,selectedState,sortBy,closingSoonOnly]);
+  useEffect(()=>{setVisibleCount(PAGE_SIZE);setExpandedId(null);},[filter,classFilter,selectedState,sortBy,closingSoonOnly]);
 
   // Smooth state-chip dismiss: play exit animation, then clear state
   const handleClearState=useCallback(()=>{
@@ -2963,9 +3016,45 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
           </div>{/* end pill row */}
         </div>{/* end pill row wrapper */}
 
+        {/* ── Class sub-filter — appears only when "Student" is the active category ──
+             Fades/slides in rather than popping, so it reads as a natural extension
+             of the pill row rather than a layout jump. */}
+        {filter==="student"&&(
+          <div style={{
+            display:"flex",gap:7,overflowX:"auto",padding:"0 0 12px",scrollbarWidth:"none",
+            animation:"fadeIn 0.28s cubic-bezier(0.22,1,0.36,1) both",
+          }}>
+            <div onClick={()=>{haptic();setClassFilter("all");}}
+              className="fpill"
+              style={{
+                background:classFilter==="all"?th.text:th.pillBg,
+                color:classFilter==="all"?th.appBg:th.textSub,
+                border:`1.5px solid ${classFilter==="all"?"transparent":th.border2}`,
+                fontSize:12,fontFamily:bf,
+              }}>
+              {isHindi?"सभी कक्षाएं":"All Classes"}
+            </div>
+            {CLASS_SUBFILTERS.map(cf=>{
+              const active=classFilter===cf.key;
+              return(
+                <div key={cf.key} onClick={()=>{haptic();setClassFilter(active?"all":cf.key);}}
+                  className="fpill"
+                  style={{
+                    background:active?"#003580":th.pillBg,
+                    color:active?"#fff":th.textSub,
+                    border:`1.5px solid ${active?"transparent":th.border2}`,
+                    fontSize:12,fontFamily:bf,
+                  }}>
+                  {isHindi?cf.hi:cf.en}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* ── Combined filter summary — appears only when 2+ filter dimensions are stacked ── */}
         {(()=>{
-          const activeFilterCount=(filter!=="all"?1:0)+(selectedState!=="all"?1:0)+(closingSoonOnly?1:0);
+          const activeFilterCount=(filter!=="all"?1:0)+(classFilter!=="all"?1:0)+(selectedState!=="all"?1:0)+(closingSoonOnly?1:0);
           if(activeFilterCount<2) return null;
           const accent=dark?"#7aa5ff":ASHOKA_BLUE;
           return(
@@ -2981,7 +3070,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
               <span style={{display:"flex",alignItems:"center",gap:6,fontSize:11.5,fontWeight:700,color:accent,fontFamily:bf}}>
                 <span style={{fontSize:12}}>🔀</span> {t.filtersActiveN(activeFilterCount)}
               </span>
-              <span className="fpill-state" onClick={()=>{haptic(30);setFilter("all");setSelectedState("all");setClosingSoonOnly(false);}}
+              <span className="fpill-state" onClick={()=>{haptic(30);setFilter("all");setClassFilter("all");setSelectedState("all");setClosingSoonOnly(false);}}
                 style={{
                   fontSize:11,fontWeight:800,color:dark?"#0b1330":"#fff",fontFamily:bf,
                   background:dark?"linear-gradient(135deg,#a9c4ff,#7aa5ff)":`linear-gradient(135deg,${ASHOKA_BLUE},#1d1acb)`,
