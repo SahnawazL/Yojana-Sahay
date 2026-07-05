@@ -3459,5 +3459,9 @@
     "httpStatus": 0,
     "linkAlive": true,
     "confidence": 0
+  },
+  "delhi_pmkvy_skill": {
+    "lastVerified": "2026-07-05T11:08:05.671Z",
+    "linkAlive": true
   }
 }
