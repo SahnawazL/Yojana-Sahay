@@ -620,11 +620,11 @@
     "linkAlive": true
   },
   "pms_sc_st": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-05T11:39:04.719Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "naps": {
     "lastVerified": "2026-07-05T11:38:40.525Z",
