@@ -117,7 +117,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹5 Lakh/year free hospital treatment", hi: "₹5 लाख/वर्ष मुफ्त अस्पताल इलाज" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "https://pmjay.gov.in", hi: "pmjay.gov.in" }, applyType: "online",
+    apply:   { en: "https://abdm.gov.in/", hi: "pmjay.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","Income Certificate"],
                hi: ["आधार कार्ड","राशन कार्ड","आय प्रमाण पत्र"] },
     match: (a) => ["below1","1to3"].includes(a.income),
@@ -736,7 +736,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free legal property card for rural households · Enables using property as loan collateral", hi: "ग्रामीण घरों को मुफ्त कानूनी संपत्ति कार्ड · संपत्ति पर बैंक लोन लेने योग्य" },
     tag:     { en: "Rural / Property", hi: "ग्रामीण / संपत्ति" },
     annual: 0,
-    apply:   { en: "https://indbiz.gov.in/pm-modi-launches-property-cards-under-svamitva-scheme", hi: "svamitva.nic.in" }, applyType: "online",
+    apply:   { en: "https://svamitva.up.gov.in/", hi: "svamitva.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Existing Land / House Records","Village Abadi Land Proof","Bank Account"],
                hi: ["आधार कार्ड","मौजूदा भूमि/घर के कागज़","ग्राम आबादी भूमि प्रमाण","बैंक खाता"] },
     // Eligibility: any rural household resident
@@ -1386,7 +1386,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹31,000/month (JRF) · ₹35,000/month (SRF) + HRA + contingency for OBC M.Phil/PhD students", hi: "OBC M.Phil/PhD छात्रों को ₹31,000/माह (JRF) · ₹35,000/माह (SRF) + HRA + आकस्मिक अनुदान" },
     tag:     { en: "Student / OBC", hi: "छात्र / OBC" },
     annual: 420000,
-    apply:   { en: "https://www.myscheme.gov.in/hi/schemes/rgnfscc", hi: "https://scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://nbcfdc.gov.in/nbcfdc/web/nfobc", hi: "https://scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC (Non-Creamy Layer) Certificate","Admission Letter for M.Phil / PhD","NET / JRF Score Card","Income Certificate (family income ≤₹8L/year)","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड","आय प्रमाण (परिवार आय ≤₹8 लाख/वर्ष)","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC (non-creamy layer) student admitted to M.Phil/PhD, income ≤ ₹8L
@@ -1843,7 +1843,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹1,25,000/year (maintenance + tuition reimbursement) for J&K/Ladakh students studying outside their UT", hi: "अपने केंद्र शासित प्रदेश से बाहर पढ़ने वाले J&K/लद्दाख छात्रों को ₹1,25,000/वर्ष (रखरखाव + ट्यूशन प्रतिपूर्ति)" },
     tag:     { en: "Student / J&K-Ladakh", hi: "छात्र / J&K-लद्दाख" },
     annual: 125000,
-    apply:   { en: "https://www.indiascienceandtechnology.gov.in/nurturing-minds/scholarships/graduation/prime-ministers-special-scholarship-scheme-pmsss-jk", hi: "aicte-india.org" }, applyType: "online",
+    apply:   { en: "https://www.aicte.gov.in/index.php/bureaus/jk", hi: "aicte-india.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Domicile Certificate (J&K/Ladakh)","Class 12 Mark Sheet","Admission Proof (outside UT)","Bank Account"],
                hi: ["आधार कार्ड","अधिवास प्रमाण पत्र (J&K/लद्दाख)","कक्षा 12 मार्कशीट","प्रवेश प्रमाण (UT के बाहर)","बैंक खाता"] },
     // Eligibility: domicile of J&K or Ladakh, studying outside the UT
@@ -1926,7 +1926,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹9,000/month stipend for fresh engineering/diploma/degree graduates undergoing apprenticeship", hi: "नए इंजीनियरिंग/डिप्लोमा/डिग्री स्नातकों को शिक्षुता के दौरान ₹9,000/माह वजीफा" },
     tag:     { en: "Student / Apprenticeship", hi: "छात्र / शिक्षुता" },
     annual: 108000,
-    apply:   { en: "https://mhrdnats.gov.in", hi: "mhrdnats.gov.in" }, applyType: "online",
+    apply:   { en: "https://boatwr.education.gov.in/wp-content/uploads/2023/08/student_manual.pdf", hi: "mhrdnats.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Diploma/Degree Certificate","Educational Mark Sheets","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","डिप्लोमा/डिग्री प्रमाण पत्र","शैक्षणिक मार्कशीट","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: fresh engineering/diploma/degree graduate, age 18-35
