@@ -102,7 +102,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹2.50 Lakh subsidy on home loan", hi: "होम लोन पर ₹2.50 लाख सब्सिडी" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 250000,
-    apply:   { en: "https://pmay-urban.gov.in/about", hi: "pmaymis.gov.in" }, applyType: "online",
+    apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/pradhan-mantri-awas-yojana-urban_pmay-u.html", hi: "pmaymis.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Income Proof","Bank Statement","No Property Certificate"],
                hi: ["आधार कार्ड","आय प्रमाण","बैंक स्टेटमेंट","संपत्ति न होने का प्रमाण"] },
     match: (a) => ["no","kutcha"].includes(a.house) && ["below1","1to3","3to6"].includes(a.income) && ["urban","semi"].includes(a.area),
@@ -222,7 +222,7 @@ export const SCHEME_DB = [
     benefit: { en: "Zero-balance account + RuPay card + ₹2L accident cover", hi: "जीरो बैलेंस खाता + RuPay कार्ड + ₹2 लाख दुर्घटना बीमा" },
     tag:     { en: "Banking", hi: "बैंकिंग" },
     annual: 0,
-    apply:   { en: "https://www.pmjdy.gov.in/scheme", hi: "pmjdy.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.pmindia.gov.in/hi/major_initiatives/%E0%A4%AA%E0%A5%8D%E0%A4%B0%E0%A4%A7%E0%A4%BE%E0%A4%A8-%E0%A4%AE%E0%A4%82%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A5%80-%E0%A4%9C%E0%A4%A8-%E0%A4%A7%E0%A4%A8-%E0%A4%AF%E0%A5%8B%E0%A4%9C%E0%A4%A8%E0%A4%BE/", hi: "pmjdy.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (or Voter ID / Passport)", "Passport Photo"],
                hi: ["आधार कार्ड (या मतदाता पहचान पत्र / पासपोर्ट)", "पासपोर्ट फोटो"] },
     // Eligibility: any unbanked Indian, targeted at low-income households
@@ -486,7 +486,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹5 Lakh/year free health cover for all citizens 70 years & above", hi: "70+ वर्ष के सभी नागरिकों को ₹5 लाख/वर्ष मुफ्त स्वास्थ्य कवर" },
     tag:     { en: "Senior / Health", hi: "वरिष्ठ / स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "https://pmjay.gov.in", hi: "pmjay.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.india.gov.in/spotlight/details/ayushman-bharat-pradhan-mantri-jan-arogya-yojana", hi: "pmjay.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (70+ years)","Any ID Proof"],
                hi: ["आधार कार्ड","आयु प्रमाण (70+ वर्ष)","कोई भी पहचान पत्र"] },
     match: (a) => a.who === "senior" || a.age === "above60",
@@ -653,7 +653,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹75,000/year (Class 9) · ₹1,25,000/year (Class 11) via DBT", hi: "कक्षा 9: ₹75,000/वर्ष · कक्षा 11: ₹1,25,000/वर्ष · DBT से सीधे बैंक में" },
     tag:     { en: "Student / OBC", hi: "छात्र / OBC" },
     annual: 75000,
-    apply:   { en: "https://socialjustice.gov.in/schemes/101", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/pm-yasasvitcceobcebcdnts", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC/EBC/DNT Caste Certificate","Income Certificate (≤₹2.5L/year)","Previous Year Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","OBC/EBC/DNT जाति प्रमाण पत्र","आय प्रमाण पत्र (≤₹2.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC/EBC/DNT student in Class 9 or 11, family income ≤ ₹2.5L, merit-based selection
@@ -1208,7 +1208,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹12,000/year (UG 1st–3rd year) · ₹20,000/year (PG) for Class 12 toppers", hi: "कक्षा 12 टॉपर्स को ₹12,000/वर्ष (UG 1–3 वर्ष) · ₹20,000/वर्ष (PG)" },
     tag:     { en: "Student / Merit", hi: "छात्र / मेधा" },
     annual: 12000,
-    apply:   { en: "https://socialjustice.gov.in/schemes/27", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/csss-cus", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Mark Sheet (above 80th percentile in Board exam)","Income Certificate (≤₹4.5L/year)","College Admission Letter","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 12 मार्कशीट (बोर्ड परीक्षा में 80वीं प्रतिशत से ऊपर)","आय प्रमाण (≤₹4.5 लाख/वर्ष)","कॉलेज प्रवेश पत्र","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: students above 80th percentile in Class 12 Board, family income ≤ ₹4.5L, in regular UG/PG (not distance/open)
@@ -1273,7 +1273,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free coaching for UPSC, SSC, Banking, Railways, NEET, JEE & PSU exams · ₹3,000/month living allowance during coaching", hi: "UPSC, SSC, बैंकिंग, रेलवे, NEET, JEE और PSU परीक्षाओं की मुफ्त कोचिंग · कोचिंग के दौरान ₹3,000/माह भत्ता" },
     tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
     annual: 36000,
-    apply:   { en: "https://socialjustice.gov.in/schemes/30", hi: "coaching.dosje.gov.in" }, applyType: "online",
+    apply:   { en: "https://grants-msje.gov.in/fccguidelines", hi: "coaching.dosje.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC / OBC Caste Certificate","Income Certificate (≤₹8L/year)","Educational Certificate (Class 12 / Graduation)","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","SC/OBC जाति प्रमाण पत्र","आय प्रमाण (≤₹8 लाख/वर्ष)","शैक्षणिक प्रमाण (कक्षा 12/स्नातक)","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: SC/OBC student, family income ≤ ₹8L, targeting national competitive exams
@@ -1337,7 +1337,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹150–₹350/month maintenance allowance + full tuition & school fee reimbursement for SC students in Class 9–10", hi: "कक्षा 9–10 के SC छात्रों को ₹150–₹350/माह रखरखाव भत्ता + पूरी ट्यूशन और स्कूल फीस प्रतिपूर्ति" },
     tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
     annual: 4200,
-    apply:   { en: "https://socialjustice.gov.in/schemes", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.indiascholarships.in/scholarships/pre-matric-scholarship-for-sc-students-odisha", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Income Certificate (≤₹2.5L/year)","Class 8 Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","कक्षा 8 मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     // Eligibility: SC student in Class 9–10 in govt/govt-aided school, family income ≤ ₹2.5L
@@ -1370,7 +1370,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹31,000/month (JRF, first 2 yrs) · ₹35,000/month (SRF, yrs 3–5) + HRA + contingency grant for M.Phil/PhD", hi: "M.Phil/PhD के लिए ₹31,000/माह (JRF, पहले 2 वर्ष) · ₹35,000/माह (SRF, वर्ष 3–5) + HRA + आकस्मिक अनुदान" },
     tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
     annual: 420000,
-    apply:   { en: "https://socialjustice.gov.in/schemes/29", hi: "ugc.ac.in / scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/hi/schemes/rgnfscc", hi: "ugc.ac.in / scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Admission Letter for M.Phil / PhD","NET / JRF Score Card (or UGC-exempted category proof)","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड (या UGC-छूट श्रेणी)","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: SC student admitted to M.Phil/PhD in UGC-recognised university; no income restriction
@@ -1386,7 +1386,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹31,000/month (JRF) · ₹35,000/month (SRF) + HRA + contingency for OBC M.Phil/PhD students", hi: "OBC M.Phil/PhD छात्रों को ₹31,000/माह (JRF) · ₹35,000/माह (SRF) + HRA + आकस्मिक अनुदान" },
     tag:     { en: "Student / OBC", hi: "छात्र / OBC" },
     annual: 420000,
-    apply:   { en: "https://socialjustice.gov.in/schemes/29", hi: "https://scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/hi/schemes/rgnfscc", hi: "https://scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC (Non-Creamy Layer) Certificate","Admission Letter for M.Phil / PhD","NET / JRF Score Card","Income Certificate (family income ≤₹8L/year)","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड","आय प्रमाण (परिवार आय ≤₹8 लाख/वर्ष)","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC (non-creamy layer) student admitted to M.Phil/PhD, income ≤ ₹8L
@@ -1531,7 +1531,7 @@ export const SCHEME_DB = [
     benefit: { en: "Comprehensive welfare for transgender persons: ABHA / Aadhaar support, free education, PMKVY skill training, PM SVANidhi loan, Ayushman Bharat ₹5L health cover, shelter & livelihood rehabilitation", hi: "ट्रांसजेंडर व्यक्तियों के लिए व्यापक कल्याण: ABHA/आधार सहायता, मुफ्त शिक्षा, PMKVY प्रशिक्षण, PM स्वनिधि लोन, आयुष्मान ₹5 लाख स्वास्थ्य बीमा, आश्रय और आजीविका पुनर्वास" },
     tag:     { en: "General", hi: "सामान्य" },
     annual: 0,
-    apply:   { en: "https://socialjustice.gov.in/schemes/99", hi: "smilecdo.dosje.gov.in / जिला समाज कल्याण कार्यालय / राज्य ट्रांसजेंडर कल्याण बोर्ड" }, applyType: "online",
+    apply:   { en: "https://grants-msje.gov.in/display-smile-guidelines", hi: "smilecdo.dosje.gov.in / जिला समाज कल्याण कार्यालय / राज्य ट्रांसजेंडर कल्याण बोर्ड" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Self-identification as Transgender (or District Screening Committee Certificate)","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","ट्रांसजेंडर स्व-पहचान (या जिला स्क्रीनिंग समिति प्रमाण पत्र)","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: transgender persons and persons engaged in begging seeking rehabilitation
@@ -1729,7 +1729,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹5,000/month (up to ₹50,000/year) for NE region students in general degree courses", hi: "पूर्वोत्तर छात्रों को सामान्य डिग्री पाठ्यक्रमों के लिए ₹5,000/माह (₹50,000/वर्ष तक)" },
     tag:     { en: "Student / North-East", hi: "छात्र / पूर्वोत्तर" },
     annual: 50000,
-    apply:   { en: "https://www.aicte-india.org/schemes/students-schemes/ishan-uday", hi: "aicte-india.org" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/iu-sss-ner", hi: "aicte-india.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Domicile Certificate (NE State)","Class 12 Mark Sheet","Admission Proof","Income Certificate","Bank Passbook"],
                hi: ["आधार कार्ड","अधिवास प्रमाण पत्र (पूर्वोत्तर राज्य)","कक्षा 12 मार्कशीट","प्रवेश प्रमाण","आय प्रमाण पत्र","बैंक पासबुक"] },
     // Eligibility: student resident of an NE state, family income within cap
@@ -1777,7 +1777,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹36,200/year for 2 years for single girl child pursuing postgraduate studies", hi: "स्नातकोत्तर पढ़ने वाली एकल बालिका को ₹36,200/वर्ष, 2 वर्षों के लिए" },
     tag:     { en: "Student / Girl Child", hi: "छात्र / बालिका" },
     annual: 36200,
-    apply:   { en: "https://scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/pg-igssgc", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Single Girl Child Affidavit","PG Admission Proof","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","एकल बालिका शपथ पत्र","PG प्रवेश प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: single girl child admitted to 1st year full-time PG course
@@ -1793,7 +1793,7 @@ export const SCHEME_DB = [
     benefit: { en: "Full tuition, hostel & books for SC students admitted to IITs, IIMs, AIIMS, NITs & other premier institutes", hi: "IIT, IIM, AIIMS, NIT जैसे प्रमुख संस्थानों में प्रवेशित SC छात्रों के लिए पूर्ण ट्यूशन, हॉस्टल व किताबें" },
     tag:     { en: "Student / SC", hi: "छात्र / SC" },
     annual: 200000,
-    apply:   { en: "https://socialjustice.gov.in", hi: "socialjustice.gov.in" }, applyType: "online",
+    apply:   { en: "https://en.vikaspedia.in/viewcontent/schemesall/schemes-for-students/scholarship/top-class-education-scheme-for-sc-students?lgn=en", hi: "socialjustice.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Admission Letter (notified institution)","Income Certificate","Bank Account"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","प्रवेश पत्र (अधिसूचित संस्थान)","आय प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: SC student admitted to a notified premier institution, income ≤ ₹8L
@@ -1809,7 +1809,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹80,000/year (₹60,000 scholarship + ₹20,000 summer research) for top Class 12 science students pursuing BSc/MSc", hi: "टॉप कक्षा 12 विज्ञान छात्रों को BSc/MSc हेतु ₹80,000/वर्ष (₹60,000 छात्रवृत्ति + ₹20,000 ग्रीष्मकालीन शोध)" },
     tag:     { en: "Student / Science", hi: "छात्र / विज्ञान" },
     annual: 80000,
-    apply:   { en: "https://online-inspire.gov.in", hi: "online-inspire.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/hi/schemes/inspire-she", hi: "online-inspire.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Mark Sheet","BSc/MSc Admission Proof","Board Rank Certificate","Bank Account"],
                hi: ["आधार कार्ड","कक्षा 12 मार्कशीट","BSc/MSc प्रवेश प्रमाण","बोर्ड रैंक प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: top-ranked Class 12 student pursuing basic/natural sciences
@@ -1826,7 +1826,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹2,500–3,000/month for wards & widows of Ex-Servicemen, Coast Guard & CAPF pursuing professional degrees", hi: "पूर्व सैनिकों, तटरक्षक व CAPF के आश्रितों/विधवाओं को व्यावसायिक डिग्री हेतु ₹2,500–3,000/माह" },
     tag:     { en: "Student / Defence Family", hi: "छात्र / रक्षा परिवार" },
     annual: 36000,
-    apply:   { en: "https://ksb.gov.in", hi: "ksb.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/pmss", hi: "ksb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ex-Servicemen/CAPF ID Proof","Class 12 Mark Sheet (60%+)","Admission Proof","Bank Account"],
                hi: ["आधार कार्ड","पूर्व सैनिक/CAPF पहचान प्रमाण","कक्षा 12 मार्कशीट (60%+)","प्रवेश प्रमाण","बैंक खाता"] },
     // Eligibility: ward/widow of Ex-Servicemen/CAPF, 60%+ in Class 12, in professional degree
@@ -1843,7 +1843,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹1,25,000/year (maintenance + tuition reimbursement) for J&K/Ladakh students studying outside their UT", hi: "अपने केंद्र शासित प्रदेश से बाहर पढ़ने वाले J&K/लद्दाख छात्रों को ₹1,25,000/वर्ष (रखरखाव + ट्यूशन प्रतिपूर्ति)" },
     tag:     { en: "Student / J&K-Ladakh", hi: "छात्र / J&K-लद्दाख" },
     annual: 125000,
-    apply:   { en: "https://www.aicte-india.org/schemes/students-schemes/PMSSS", hi: "aicte-india.org" }, applyType: "online",
+    apply:   { en: "https://www.indiascienceandtechnology.gov.in/nurturing-minds/scholarships/graduation/prime-ministers-special-scholarship-scheme-pmsss-jk", hi: "aicte-india.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Domicile Certificate (J&K/Ladakh)","Class 12 Mark Sheet","Admission Proof (outside UT)","Bank Account"],
                hi: ["आधार कार्ड","अधिवास प्रमाण पत्र (J&K/लद्दाख)","कक्षा 12 मार्कशीट","प्रवेश प्रमाण (UT के बाहर)","बैंक खाता"] },
     // Eligibility: domicile of J&K or Ladakh, studying outside the UT
@@ -1877,7 +1877,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free coaching for competitive & entrance exams for DNT/NT/SNT community students", hi: "DNT/NT/SNT समुदाय के छात्रों के लिए प्रतियोगी व प्रवेश परीक्षाओं की निःशुल्क कोचिंग" },
     tag:     { en: "Student / DNT", hi: "छात्र / DNT" },
     annual: 0,
-    apply:   { en: "https://socialjustice.gov.in", hi: "socialjustice.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.buddy4study.com/page/free-coaching-for-dnt-students-under-seed-scheme", hi: "socialjustice.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","DNT/NT/SNT Community Certificate","Income Certificate","Educational Certificates","Bank Account"],
                hi: ["आधार कार्ड","DNT/NT/SNT समुदाय प्रमाण पत्र","आय प्रमाण पत्र","शैक्षणिक प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: DNT/NT/SNT student, low family income
@@ -1894,7 +1894,7 @@ export const SCHEME_DB = [
     benefit: { en: "Full interest subsidy during moratorium on education loans up to ₹20 Lakh for OBC/EBC students studying abroad", hi: "विदेश में पढ़ने वाले OBC/EBC छात्रों को ₹20 लाख तक के शिक्षा ऋण पर मोहलत अवधि में पूर्ण ब्याज सब्सिडी" },
     tag:     { en: "Student / OBC-EBC", hi: "छात्र / OBC-EBC" },
     annual: 0,
-    apply:   { en: "https://scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/dacssiselosobcebc", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC/EBC Certificate","Foreign University Admission Letter","Education Loan Sanction Letter","Income Certificate"],
                hi: ["आधार कार्ड","OBC/EBC प्रमाण पत्र","विदेशी विश्वविद्यालय प्रवेश पत्र","शिक्षा ऋण स्वीकृति पत्र","आय प्रमाण पत्र"] },
     // Eligibility: OBC/EBC student with sanctioned education loan for overseas Master's/M.Phil/PhD
@@ -1910,7 +1910,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹31,000–35,000/month (JRF/SRF) + HRA for differently-abled students pursuing M.Phil/PhD", hi: "दिव्यांग M.Phil/PhD छात्रों को ₹31,000–35,000/माह (JRF/SRF) + HRA" },
     tag:     { en: "Student / Disability", hi: "छात्र / दिव्यांगता" },
     annual: 372000,
-    apply:   { en: "https://www.ugc.gov.in", hi: "ugc.gov.in" }, applyType: "online",
+    apply:   { en: "https://depwd.gov.in/en/scholarship/", hi: "ugc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥40%)","PG Mark Sheet","M.Phil/PhD Registration Proof","Bank Account"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (≥40%)","PG मार्कशीट","M.Phil/PhD पंजीकरण प्रमाण","बैंक खाता"] },
     // Eligibility: student with ≥40% disability registered for M.Phil/PhD
@@ -1943,7 +1943,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹12,000–20,000/month stipend for fresh graduate internships in Urban Local Bodies & Smart Cities", hi: "शहरी स्थानीय निकायों व स्मार्ट सिटीज़ में नए स्नातकों को इंटर्नशिप हेतु ₹12,000–20,000/माह वजीफा" },
     tag:     { en: "Student / Internship", hi: "छात्र / इंटर्नशिप" },
     annual: 180000,
-    apply:   { en: "https://tulip.iudx.org.in", hi: "tulip.iudx.org.in" }, applyType: "online",
+    apply:   { en: "https://en.vikaspedia.in/viewcontent/schemesall/schemes-for-students/the-urban-learning-internship-program?lgn=en", hi: "tulip.iudx.org.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Graduation Certificate","Resume","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","स्नातक प्रमाण पत्र","रिज्यूमे","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: fresh graduate (last 3 years), age 18-35
