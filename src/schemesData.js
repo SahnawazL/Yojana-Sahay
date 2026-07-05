@@ -1843,7 +1843,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹1,25,000/year (maintenance + tuition reimbursement) for J&K/Ladakh students studying outside their UT", hi: "अपने केंद्र शासित प्रदेश से बाहर पढ़ने वाले J&K/लद्दाख छात्रों को ₹1,25,000/वर्ष (रखरखाव + ट्यूशन प्रतिपूर्ति)" },
     tag:     { en: "Student / J&K-Ladakh", hi: "छात्र / J&K-लद्दाख" },
     annual: 125000,
-    apply:   { en: "https://www.aicte.gov.in/index.php/bureaus/jk", hi: "aicte-india.org" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in/public/schemeGuidelines/AICTE/PM_USPY(SSSJKL)SchemeSpecifications.pdf", hi: "aicte-india.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Domicile Certificate (J&K/Ladakh)","Class 12 Mark Sheet","Admission Proof (outside UT)","Bank Account"],
                hi: ["आधार कार्ड","अधिवास प्रमाण पत्र (J&K/लद्दाख)","कक्षा 12 मार्कशीट","प्रवेश प्रमाण (UT के बाहर)","बैंक खाता"] },
     // Eligibility: domicile of J&K or Ladakh, studying outside the UT
