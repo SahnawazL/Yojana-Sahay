@@ -49,6 +49,18 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
   const [expandedId, setExpandedId] = useState(null);
   const [toast, setToast]       = useState(null);
 
+  // ── AI Compose & Send — one-off personalized email, drafted by Groq from
+  // facts the admin types in, editable before sending ──────────────────────
+  const [composeOpen, setComposeOpen]   = useState(false);
+  const [toName, setToName]             = useState("");
+  const [toEmail, setToEmail]           = useState("");
+  const [composeNotes, setComposeNotes] = useState("");
+  const [composeLang, setComposeLang]   = useState("en");
+  const [draft, setDraft]               = useState(null); // { subject, body }
+  const [drafting, setDrafting]         = useState(false);
+  const [sendingDraft, setSendingDraft] = useState(false);
+  const [composeToast, setComposeToast] = useState(null);
+
   const th = {
     bg:     dark ? "#0d0d0d" : "#f5f5f0",
     card:   dark ? "#161616" : "#fff",
@@ -105,6 +117,63 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
 
   const latest = runs[0];
 
+  // ── AI Compose handlers ─────────────────────────────────────────────────
+  const handleDraft = async () => {
+    setComposeToast(null);
+    if (!toEmail.trim() || !/^\S+@\S+\.\S+$/.test(toEmail)) {
+      setComposeToast({ type: "error", text: "Enter a valid recipient email first" });
+      return;
+    }
+    if (!composeNotes.trim()) {
+      setComposeToast({ type: "error", text: "Add a few notes for the AI to work from — e.g. what they searched, what changed" });
+      return;
+    }
+    setDrafting(true);
+    try {
+      const idToken = await getAuth().currentUser?.getIdToken();
+      if (!idToken) throw new Error("Not signed in");
+      const res = await fetch("/api/deadline-alerts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ action: "draft", toName, toEmail, notes: composeNotes, lang: composeLang }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+      setDraft(data);
+    } catch (err) {
+      setComposeToast({ type: "error", text: err.message });
+    } finally {
+      setDrafting(false);
+    }
+  };
+
+  const handleSendDraft = async () => {
+    if (!draft) return;
+    setComposeToast(null);
+    setSendingDraft(true);
+    try {
+      const idToken = await getAuth().currentUser?.getIdToken();
+      if (!idToken) throw new Error("Not signed in");
+      const res = await fetch("/api/deadline-alerts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({
+          action: "send", toName, toEmail,
+          subject: draft.subject, body: draft.body, lang: composeLang,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+      setComposeToast({ type: "success", text: `Email sent to ${toEmail}` });
+      setDraft(null);
+      setToName(""); setToEmail(""); setComposeNotes("");
+    } catch (err) {
+      setComposeToast({ type: "error", text: err.message });
+    } finally {
+      setSendingDraft(false);
+    }
+  };
+
   return (
     <div style={{ padding: isDesktop ? "28px 40px 48px" : "14px 13px 36px", background: th.bg, minHeight: "100%" }}>
 
@@ -127,6 +196,144 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
         >
           {triggering ? "Sending…" : "📤 Send Alerts Now"}
         </button>
+      </div>
+
+      {/* ── AI Compose & Send ── one-off personalized email for any user ── */}
+      <div style={{
+        background: th.card, border: `1.5px solid ${dark ? "rgba(139,92,246,0.35)" : "rgba(139,92,246,0.25)"}`,
+        borderRadius: 14, marginBottom: 18, overflow: "hidden",
+      }}>
+        <div
+          onClick={() => setComposeOpen(o => !o)}
+          style={{ padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: 10, background: "rgba(139,92,246,0.14)",
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
+            }}>✨</div>
+            <div>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: th.text }}>AI Compose & Send</div>
+              <div style={{ fontSize: 10.5, color: th.textSub }}>Groq drafts a personalized email from facts you give it — you edit, then send</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 16, color: th.textSub }}>{composeOpen ? "▲" : "▼"}</div>
+        </div>
+
+        {composeOpen && (
+          <div style={{ borderTop: `1px solid ${th.border}`, padding: "16px", display: "flex", flexDirection: "column", gap: 12 }}>
+
+            {composeToast && (
+              <div style={{
+                padding: "9px 12px", borderRadius: 9, fontSize: 12, fontWeight: 600,
+                background: composeToast.type === "success" ? "rgba(19,136,8,0.1)" : "rgba(229,62,62,0.1)",
+                color: composeToast.type === "success" ? GREEN : RED,
+                border: `1px solid ${composeToast.type === "success" ? GREEN : RED}30`,
+              }}>
+                {composeToast.type === "success" ? "✅ " : "⚠️ "}{composeToast.text}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <input
+                value={toName} onChange={e => setToName(e.target.value)}
+                placeholder="Recipient name (optional)"
+                style={{
+                  flex: "1 1 160px", padding: "10px 12px", borderRadius: 9, fontSize: 12.5,
+                  border: `1px solid ${th.border}`, background: dark ? "#0f0f0f" : "#fff", color: th.text,
+                }}
+              />
+              <input
+                value={toEmail} onChange={e => setToEmail(e.target.value)}
+                placeholder="Recipient email *"
+                style={{
+                  flex: "1 1 200px", padding: "10px 12px", borderRadius: 9, fontSize: 12.5,
+                  border: `1px solid ${th.border}`, background: dark ? "#0f0f0f" : "#fff", color: th.text,
+                }}
+              />
+              <select
+                value={composeLang} onChange={e => setComposeLang(e.target.value)}
+                style={{
+                  padding: "10px 12px", borderRadius: 9, fontSize: 12.5,
+                  border: `1px solid ${th.border}`, background: dark ? "#0f0f0f" : "#fff", color: th.text,
+                }}
+              >
+                <option value="en">English</option>
+                <option value="hi">हिंदी</option>
+              </select>
+            </div>
+
+            <textarea
+              value={composeNotes} onChange={e => setComposeNotes(e.target.value)}
+              placeholder={`Notes for the AI — only real facts, e.g.:\n"He searched for 10th pass schemes on ${new Date().toLocaleDateString('en-IN', {month:'short'})} X. We fixed a tagging bug that was hiding relevant schemes and added new ones. Invite him to check the app again."`}
+              rows={4}
+              style={{
+                padding: "10px 12px", borderRadius: 9, fontSize: 12.5, resize: "vertical",
+                border: `1px solid ${th.border}`, background: dark ? "#0f0f0f" : "#fff", color: th.text,
+                fontFamily: "inherit", lineHeight: 1.5,
+              }}
+            />
+
+            <button
+              onClick={handleDraft}
+              disabled={drafting}
+              style={{
+                background: drafting ? "#999" : "#8B5CF6", color: "#fff", border: "none",
+                borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700,
+                cursor: drafting ? "not-allowed" : "pointer", alignSelf: "flex-start",
+              }}
+            >
+              {drafting ? "✨ Generating…" : draft ? "🔁 Regenerate Draft" : "✨ Generate with AI"}
+            </button>
+
+            {draft && (
+              <div style={{
+                marginTop: 4, padding: 14, borderRadius: 12,
+                background: dark ? "#0f0f0f" : "#fafafa", border: `1px solid ${th.border}`,
+                display: "flex", flexDirection: "column", gap: 10,
+              }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "#8B5CF6", letterSpacing: 0.4, textTransform: "uppercase" }}>
+                  ✏️ Editable draft — review before sending
+                </div>
+                <div>
+                  <div style={{ fontSize: 10.5, color: th.textSub, marginBottom: 4, fontWeight: 600 }}>Subject</div>
+                  <input
+                    value={draft.subject}
+                    onChange={e => setDraft(d => ({ ...d, subject: e.target.value }))}
+                    style={{
+                      width: "100%", padding: "9px 11px", borderRadius: 8, fontSize: 12.5, fontWeight: 700,
+                      border: `1px solid ${th.border}`, background: th.card, color: th.text, boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+                <div>
+                  <div style={{ fontSize: 10.5, color: th.textSub, marginBottom: 4, fontWeight: 600 }}>Body</div>
+                  <textarea
+                    value={draft.body}
+                    onChange={e => setDraft(d => ({ ...d, body: e.target.value }))}
+                    rows={7}
+                    style={{
+                      width: "100%", padding: "9px 11px", borderRadius: 8, fontSize: 12.5, lineHeight: 1.55,
+                      border: `1px solid ${th.border}`, background: th.card, color: th.text,
+                      fontFamily: "inherit", resize: "vertical", boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+                <button
+                  onClick={handleSendDraft}
+                  disabled={sendingDraft}
+                  style={{
+                    background: sendingDraft ? "#999" : GREEN, color: "#fff", border: "none",
+                    borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700,
+                    cursor: sendingDraft ? "not-allowed" : "pointer", alignSelf: "flex-start",
+                  }}
+                >
+                  {sendingDraft ? "Sending…" : `📤 Send to ${toEmail || "recipient"}`}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Daily Gmail quota — always visible, independent of any single run */}
