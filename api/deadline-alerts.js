@@ -211,7 +211,9 @@ function buildBrandedHtml(bodyText, isHindi = false) {
       const text = applyInlineEmphasis(escapeHtml(clean));
 
       if (isCallout) {
-        return `<div style="background:#fdf8ee;border:1px solid #e6dcc4;border-left:3px solid #C9A961;border-radius:8px;padding:12px 16px;margin:0 0 16px;font-size:13.5px;color:#3d3520;line-height:1.6;">📌&nbsp; ${text}</div>`;
+        // Table cell (not a <div>) so bgcolor actually holds under Gmail's
+        // dark-mode inversion — divs with only CSS background get flipped.
+        return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;"><tr><td bgcolor="#fdf8ee" style="background-color:#fdf8ee;border:1px solid #e6dcc4;border-left:3px solid #C9A961;border-radius:8px;padding:12px 16px;font-size:13.5px;color:#3d3520;line-height:1.6;">📌&nbsp; ${text}</td></tr></table>`;
       }
       // First paragraph is treated as the opening/greeting line and gets a
       // touch more presence than the rest of the body copy.
@@ -248,11 +250,16 @@ function buildBrandedHtml(bodyText, isHindi = false) {
   // quirks (confirmed against a live Gmail Android inbox):
   //  1. Inline <svg> is stripped by Gmail's sanitizer, so the header icon
   //     uses the 🏛️ emoji instead — it renders reliably everywhere.
-  //  2. Gmail's dark mode auto-inverts colors it judges "light-only," which
-  //     flipped our navy-on-white card to a dark-on-dark mess. The
-  //     color-scheme meta tags plus explicit bgcolor attributes on every
-  //     table cell (not just CSS background) is what actually holds the
-  //     intended colors in Gmail's Android/iOS apps.
+  //  2. Gmail's dark mode auto-inverts colors it judges "light-only." The
+  //     color-scheme meta tags help, but the fix that actually holds colors
+  //     is putting every tinted box (icon badge, issued badge, CTA, callout)
+  //     on its own <table><td bgcolor="..."> — bgcolor is an HTML attribute,
+  //     not CSS, so Gmail's inverter leaves it alone. Plain <div>s with only
+  //     a CSS background-color are exactly what it flips.
+  //  3. Full-bleed letter layout: no floating narrow card on a grey backdrop
+  //     (that "boxed in the middle of the screen" look). The header/body/
+  //     footer bands each run edge-to-edge at width:100%, like a real letter,
+  //     which reads as more official on a phone screen.
   return `<!doctype html>
 <html lang="${isHindi ? "hi" : "en"}">
 <head>
@@ -262,64 +269,66 @@ function buildBrandedHtml(bodyText, isHindi = false) {
 <meta name="supported-color-schemes" content="light only">
 <title>${t.title}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f0f0f0;" bgcolor="#f0f0f0">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f0f0;" bgcolor="#f0f0f0">
+<body style="margin:0;padding:0;background-color:#ffffff;" bgcolor="#ffffff">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;font-family:'Segoe UI',Helvetica,Arial,sans-serif;" bgcolor="#ffffff">
+
+  <!-- Header -->
   <tr>
-    <td align="center" style="padding:30px 12px;">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;font-family:'Segoe UI',Helvetica,Arial,sans-serif;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e8e8e8;" bgcolor="#ffffff">
-
-        <!-- Header -->
+    <td bgcolor="#1a1464" style="background-color:#1a1464;padding:26px 32px;border-bottom:3px solid #C9A961;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="background-color:#1a1464;padding:22px 28px;border-bottom:2px solid #C9A961;" bgcolor="#1a1464">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="width:46px;vertical-align:middle;padding-right:14px;">
-                  <div style="width:42px;height:42px;border-radius:10px;background-color:rgba(201,169,97,0.14);border:1px solid rgba(201,169,97,0.4);text-align:center;line-height:42px;font-size:20px;">🏛️</div>
-                </td>
-                <td style="vertical-align:middle;">
-                  <div style="color:#ffffff;font-size:19px;font-weight:800;letter-spacing:0.2px;line-height:1.25;">${t.title}</div>
-                  <div style="color:#C9A961;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:3px;">${t.subtitle}</div>
-                </td>
-                <td style="vertical-align:middle;text-align:right;white-space:nowrap;padding-left:10px;">
-                  <div style="border:1px solid #C9A961;border-radius:9px;padding:7px 13px;background-color:rgba(255,255,255,0.08);">
-                    <div style="color:#C9A961;font-size:8.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">${t.issued}</div>
-                    <div style="color:#ffffff;font-size:11.5px;font-weight:600;margin-top:2px;">${issuedDate}</div>
-                  </div>
-                </td>
-              </tr>
-            </table>
+          <td style="width:46px;vertical-align:middle;padding-right:14px;">
+            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+              <td width="42" height="42" bgcolor="#2b2468" style="width:42px;height:42px;border-radius:10px;border:1px solid rgba(201,169,97,0.4);text-align:center;vertical-align:middle;font-size:20px;">🏛️</td>
+            </tr></table>
+          </td>
+          <td style="vertical-align:middle;">
+            <div style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:0.2px;line-height:1.25;">${t.title}</div>
+            <div style="color:#C9A961;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:3px;">${t.subtitle}</div>
+          </td>
+          <td style="vertical-align:middle;text-align:right;white-space:nowrap;padding-left:10px;">
+            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+              <td bgcolor="#2c2770" style="background-color:#2c2770;border:1px solid #C9A961;border-radius:9px;padding:7px 13px;">
+                <div style="color:#C9A961;font-size:8.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">${t.issued}</div>
+                <div style="color:#ffffff;font-size:11.5px;font-weight:600;margin-top:2px;">${issuedDate}</div>
+              </td>
+            </tr></table>
           </td>
         </tr>
-
-        <!-- Body -->
-        <tr>
-          <td style="padding:26px 28px 8px;background-color:#ffffff;" bgcolor="#ffffff">
-            ${paragraphs}
-          </td>
-        </tr>
-
-        <!-- CTA -->
-        <tr>
-          <td style="padding:8px 28px 28px;text-align:center;background-color:#ffffff;" bgcolor="#ffffff">
-            <a href="https://yojanasahay.vercel.app" style="display:inline-block;background-color:#06038D;color:#ffffff;text-decoration:none;padding:13px 34px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:0.2px;border:1px solid rgba(201,169,97,0.5);">${t.cta} →</a>
-          </td>
-        </tr>
-
-        <!-- Footer -->
-        <tr>
-          <td style="padding:18px 28px;background-color:#f8f9fb;border-top:2px solid rgba(201,169,97,0.55);text-align:center;" bgcolor="#f8f9fb">
-            <p style="font-size:11px;color:#8a8a8a;margin:0 0 6px;line-height:1.5;">${t.footer}</p>
-            <p style="font-size:10.5px;color:#6b6b6b;margin:0 0 10px;line-height:1.55;">${t.help}</p>
-            <p style="font-size:10px;color:#b0b0b0;margin:0 0 14px;line-height:1.5;">${t.legal}</p>
-            <div style="border-top:1px solid #e6dcc4;margin:0 0 12px;width:60px;margin-left:auto;margin-right:auto;"></div>
-            <p style="font-size:11px;color:#3d3520;margin:0 0 3px;font-weight:700;">${isHindi ? "टीम YojanaSahay" : "Team YojanaSahay"}</p>
-            <p style="font-size:9.5px;color:#aaaaaa;margin:0;letter-spacing:0.2px;">© ${new Date().getFullYear()} YojanaSahay · ${isHindi ? "MIT लाइसेंस के तहत जारी" : "Released under the MIT License"}</p>
-          </td>
-        </tr>
-
       </table>
     </td>
   </tr>
+
+  <!-- Body -->
+  <tr>
+    <td bgcolor="#ffffff" style="background-color:#ffffff;padding:30px 32px 8px;">
+      ${paragraphs}
+    </td>
+  </tr>
+
+  <!-- CTA -->
+  <tr>
+    <td bgcolor="#ffffff" style="background-color:#ffffff;padding:8px 32px 32px;text-align:center;">
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>
+        <td bgcolor="#06038D" style="background-color:#06038D;border-radius:10px;border:1px solid rgba(201,169,97,0.5);">
+          <a href="https://yojanasahay.vercel.app" style="display:inline-block;color:#ffffff;text-decoration:none;padding:13px 34px;font-size:14px;font-weight:700;letter-spacing:0.2px;">${t.cta} →</a>
+        </td>
+      </tr></table>
+    </td>
+  </tr>
+
+  <!-- Footer -->
+  <tr>
+    <td bgcolor="#f8f9fb" style="background-color:#f8f9fb;padding:22px 32px;border-top:2px solid rgba(201,169,97,0.55);text-align:center;">
+      <p style="font-size:11px;color:#8a8a8a;margin:0 0 6px;line-height:1.5;">${t.footer}</p>
+      <p style="font-size:10.5px;color:#6b6b6b;margin:0 0 10px;line-height:1.55;">${t.help}</p>
+      <p style="font-size:10px;color:#b0b0b0;margin:0 0 14px;line-height:1.5;">${t.legal}</p>
+      <div style="border-top:1px solid #e6dcc4;margin:0 0 12px;width:60px;margin-left:auto;margin-right:auto;"></div>
+      <p style="font-size:11px;color:#3d3520;margin:0 0 3px;font-weight:700;">${isHindi ? "टीम YojanaSahay" : "Team YojanaSahay"}</p>
+      <p style="font-size:9.5px;color:#aaaaaa;margin:0;letter-spacing:0.2px;">© ${new Date().getFullYear()} YojanaSahay · ${isHindi ? "MIT लाइसेंस के तहत जारी" : "Released under the MIT License"}</p>
+    </td>
+  </tr>
+
 </table>
 </body>
 </html>`;
