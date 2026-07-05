@@ -9,21 +9,180 @@
  * GET  → admin-only: returns the last 20 runs from deadlineAlertRuns
  *         (requires Authorization: Bearer <Firebase ID token>, role === "admin")
  *
- * POST → triggers a run immediately. Two ways in:
- *   1. Vercel Cron (automatic daily) — identified by the "x-vercel-cron" header
- *      or a matching CRON_SECRET bearer token. Runs as trigger: "cron".
- *   2. Admin manual trigger from the Deadlines tab — identified by a valid
- *      Firebase ID token belonging to an admin. Runs as trigger: "manual".
+ * POST → admin/cron actions, routed by req.body.action:
+ *   (no action / default) → triggers a deadline-alert run immediately. Two ways in:
+ *     1. Vercel Cron (automatic daily) — identified by the "x-vercel-cron" header
+ *        or a matching CRON_SECRET bearer token. Runs as trigger: "cron".
+ *     2. Admin manual trigger from the Deadlines tab — identified by a valid
+ *        Firebase ID token belonging to an admin. Runs as trigger: "manual".
+ *   action: "draft" → admin-only. { toName, toEmail, notes, lang } → Groq drafts
+ *        { subject, body } from admin-supplied facts (see AI Compose block below).
+ *   action: "send"  → admin-only. { toName, toEmail, subject, body, lang } →
+ *        sends the (admin-approved) email via Gmail, logs to adminCustomEmails.
  *
  * vercel.json cron entry should point here:
  *   { "path": "/api/deadline-alerts", "schedule": "0 5 * * *" }
  *
  * No new env vars needed — reuses FIREBASE_*, GMAIL_USER, GMAIL_APP_PASSWORD,
- * and (optionally) CRON_SECRET for manual cron testing via curl.
+ * GROQ_* keys, and (optionally) CRON_SECRET for manual cron testing via curl.
  */
 
-import { getAdminDb, getAdminAuth }        from "./_lib/firebaseAdmin.js";
+import { getAdminDb, getAdminAuth, recordAiCall }        from "./_lib/firebaseAdmin.js";
 import { runDeadlineAlerts, DAILY_EMAIL_LIMIT } from "./_lib/deadlineAlerts.js";
+import { getNextStartIdx }      from "./_lib/groqRotation.js";
+import { logApiCallToHistory }  from "./_lib/apiCallHistory.js";
+import { FieldValue }           from "firebase-admin/firestore";
+import nodemailer               from "nodemailer";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AI Compose & Send — folded into this same file (not a separate function)
+// to stay within the Vercel Hobby plan's 12-serverless-function limit.
+// Reuses the identical Groq key-rotation pattern as _lib/deadlineAlerts.js.
+//
+// Hallucination guard: Groq is ONLY asked to write the framing/tone around
+// facts the admin already typed into `notes` — it never invents scheme
+// names, amounts, dates, or eligibility details.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const GROQ_ENDPOINT     = "https://api.groq.com/openai/v1/chat/completions";
+const COMPOSE_AI_MODEL  = "openai/gpt-oss-20b";
+const COMPOSE_MAX_TOKENS = 320;
+const COMPOSE_TEMPERATURE = 0.6;
+
+function loadGroqKeys() {
+  const seen = new Set();
+  const keys = [];
+  const verifyCandidates = [process.env.GROQ_VERIFY_KEY, process.env.GROQ_VERIFY_KEY_1, process.env.GROQ_VERIFY_KEY_2];
+  for (const k of verifyCandidates) {
+    const t = k && k.trim();
+    if (t && !seen.has(t)) { seen.add(t); keys.push(t); }
+  }
+  if (keys.length === 0) {
+    const fallback = [
+      process.env.GROQ_API_KEY, process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2,
+      process.env.GROQ_API_KEY_3, process.env.GROQ_API_KEY_4, process.env.GROQ_API_KEY_5,
+    ];
+    for (const k of fallback) {
+      const t = k && k.trim();
+      if (t && !seen.has(t)) { seen.add(t); keys.push(t); }
+    }
+  }
+  return keys;
+}
+
+function isKeyLevelFailure(status, errData) {
+  if (status === 401) return true;
+  const code = errData?.error?.code;
+  return code === "organization_restricted" || code === "invalid_api_key";
+}
+
+async function callGroq(keys, bodyObject) {
+  let lastError = null, count429 = 0;
+  const n = keys.length;
+  const startIdx = await getNextStartIdx(n);
+
+  for (let offset = 0; offset < n; offset++) {
+    const i = (startIdx + offset) % n;
+    const key = keys[i];
+    try {
+      const groqRes = await fetch(GROQ_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+        body: JSON.stringify(bodyObject),
+      });
+      if (groqRes.status === 429) {
+        const errData = await groqRes.json().catch(() => ({}));
+        lastError = errData; count429++;
+        continue;
+      }
+      const data = await groqRes.json();
+      if (isKeyLevelFailure(groqRes.status, data)) { lastError = data; continue; }
+      return { status: groqRes.status, data, keyIdx: i, count429 };
+    } catch (err) {
+      lastError = { message: err.message };
+    }
+  }
+  return { status: 429, data: { error: { message: "All Groq keys exhausted", details: lastError } }, keyIdx: -1, count429 };
+}
+
+async function generateEmailDraft({ toName, notes, lang }) {
+  const keys = loadGroqKeys();
+  if (keys.length === 0) return { error: "No Groq API keys configured" };
+  const isHindi = lang === "hi";
+
+  const system = isHindi
+    ? `आप YojanaSahay (भारतीय सरकारी योजना खोज ऐप) की आधिकारिक टीम की ओर से ईमेल लिखते हैं। आपको केवल वही तथ्य उपयोग करने हैं जो एडमिन नोट्स में दिए गए हैं — कभी भी कोई योजना का नाम, राशि, तारीख या पात्रता विवरण न बनाएं जो नोट्स में नहीं है। भाषा गर्मजोशी भरी, पेशेवर और संक्षिप्त हो (80-150 शब्द)। केवल इस JSON प्रारूप में उत्तर दें: {"subject": "...", "body": "..."} — body में पैराग्राफ के बीच खाली लाइन (\\n\\n) हो, कोई मार्कडाउन या HTML टैग न हो।`
+    : `You write emails on behalf of the official YojanaSahay team (an Indian government scheme discovery app). Use ONLY the facts given in the admin's notes below — never invent scheme names, amounts, dates, or eligibility details that aren't in the notes. Keep it warm, professional, and concise (80-150 words). Reply with ONLY this JSON shape: {"subject": "...", "body": "..."} — body should use blank lines (\\n\\n) between paragraphs, no markdown, no HTML tags, and should end with a soft invitation to open the YojanaSahay app.`;
+
+  const user = isHindi
+    ? `उपयोगकर्ता का नाम: ${toName || "उपयोगकर्ता"}\nएडमिन के नोट्स (केवल यही तथ्य उपयोग करें): ${notes}`
+    : `User's name: ${toName || "there"}\nAdmin's notes (use ONLY these facts): ${notes}`;
+
+  const { status, data, keyIdx, count429 } = await callGroq(keys, {
+    model: COMPOSE_AI_MODEL,
+    max_tokens: COMPOSE_MAX_TOKENS,
+    temperature: COMPOSE_TEMPERATURE,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+  });
+
+  if (status !== 200) return { error: "AI draft generation failed — try again, or write the email manually" };
+
+  recordAiCall({ service: "groq-verify", keyIdx, count429 }).catch(() => {});
+  logApiCallToHistory("groqVerifyCalls").catch(() => {});
+
+  const raw = data?.choices?.[0]?.message?.content?.trim();
+  if (!raw) return { error: "AI returned an empty response — try again" };
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.subject || !parsed.body) return { error: "AI response was missing subject/body — try again" };
+    return { subject: String(parsed.subject).trim(), body: String(parsed.body).trim() };
+  } catch {
+    return { error: "Could not parse AI response — try again" };
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function buildBrandedHtml(bodyText, isHindi = false) {
+  const paragraphs = bodyText
+    .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => `<p style="font-size:13px;color:#333;margin:0 0 12px;line-height:1.6;">${escapeHtml(p)}</p>`)
+    .join("");
+
+  return `
+  <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+    <div style="background:linear-gradient(135deg,#FF9933,#138808);padding:18px 20px;border-radius:10px 10px 0 0;">
+      <h2 style="color:#fff;margin:0;font-size:18px;">📩 ${isHindi ? "योजना सहाय टीम की ओर से" : "A note from Team Yojana Sahay"}</h2>
+    </div>
+    <div style="padding:18px 20px 6px;background:#fff;">
+      ${paragraphs}
+    </div>
+    <div style="padding:16px 20px;background:#fafafa;border-radius:0 0 10px 10px;text-align:center;">
+      <a href="https://yojanasahay.vercel.app" style="display:inline-block;background:#06038D;color:#fff;
+        text-decoration:none;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;">
+        ${isHindi ? "Yojana Sahay खोलें" : "Open Yojana Sahay"}
+      </a>
+      <p style="font-size:10.5px;color:#999;margin-top:12px;">
+        ${isHindi ? "यह ईमेल Yojana Sahay टीम द्वारा व्यक्तिगत रूप से भेजा गया है।" : "This email was sent to you personally by the Yojana Sahay team."}
+      </p>
+    </div>
+  </div>`;
+}
+
+function getTransporter() {
+  const user = process.env.GMAIL_USER?.trim();
+  const pass = process.env.GMAIL_APP_PASSWORD?.trim();
+  if (!user || !pass) throw new Error("GMAIL_USER / GMAIL_APP_PASSWORD not configured in env vars.");
+  return nodemailer.createTransport({ service: "gmail", auth: { user, pass } });
+}
 
 // ── Verify the caller is an admin via Firebase ID token ────────────────────
 async function verifyAdmin(req) {
@@ -115,7 +274,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── POST — trigger a run: cron (automatic) or admin (manual) ────────────
+  // ── POST — cron run, or an authenticated admin action ───────────────────
   if (isCronRequest(req)) {
     try {
       const result = await runDeadlineAlerts({ trigger: "cron", triggeredBy: null });
@@ -126,10 +285,81 @@ export default async function handler(req, res) {
     }
   }
 
-  // Not a cron request — must be an authenticated admin manual trigger
+  // Not a cron request — everything below requires an authenticated admin
   const auth = await verifyAdmin(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
+  const { action, toName, toEmail, notes, subject, body, lang } = req.body || {};
+
+  // ── action: "draft" — Groq writes subject+body from the admin's notes ────
+  if (action === "draft") {
+    if (!toEmail || !/^\S+@\S+\.\S+$/.test(toEmail)) {
+      return res.status(400).json({ error: "Valid toEmail is required" });
+    }
+    if (!notes || !notes.trim()) {
+      return res.status(400).json({ error: "notes is required to generate a draft" });
+    }
+    const result = await generateEmailDraft({ toName, notes, lang });
+    if (result.error) return res.status(502).json({ error: result.error });
+    return res.status(200).json(result);
+  }
+
+  // ── action: "send" — sends the admin-approved draft via Gmail ─────────────
+  // Shares the SAME daily quota counter (emailQuota/{dateKey}) as the cron job,
+  // so a busy day of AI-composed emails can't push total sends past Gmail's
+  // real ~500/day cap alongside the automated alerts.
+  if (action === "send") {
+    if (!toEmail || !/^\S+@\S+\.\S+$/.test(toEmail)) {
+      return res.status(400).json({ error: "Valid toEmail is required" });
+    }
+    if (!subject || !subject.trim()) return res.status(400).json({ error: "subject is required" });
+    if (!body || !body.trim())       return res.status(400).json({ error: "body is required" });
+
+    const dateKey  = new Date().toISOString().slice(0, 10);
+    const quotaRef = auth.db.collection("emailQuota").doc(dateKey);
+
+    try {
+      const quotaSnap = await quotaRef.get();
+      const quotaUsed = quotaSnap.exists ? (quotaSnap.data().count || 0) : 0;
+      if (quotaUsed >= DAILY_EMAIL_LIMIT) {
+        return res.status(429).json({ error: `Daily email quota reached (${quotaUsed}/${DAILY_EMAIL_LIMIT}). Try again after midnight IST, or wait for tomorrow's quota reset.` });
+      }
+
+      const transporter = getTransporter();
+      const html = buildBrandedHtml(body, lang === "hi");
+
+      await transporter.sendMail({
+        from: `"Yojana Sahay" <${process.env.GMAIL_USER}>`,
+        to: toEmail,
+        subject,
+        html,
+      });
+
+      // Same increment pattern as the cron job — write immediately after a
+      // successful send so a crash mid-request never loses count.
+      await quotaRef.set(
+        { count: FieldValue.increment(1), lastUpdated: FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+
+      await auth.db.collection("adminCustomEmails").add({
+        toName: toName || null,
+        toEmail,
+        subject,
+        body,
+        lang: lang || "en",
+        sentBy: auth.email || null,
+        sentAt: FieldValue.serverTimestamp(),
+      });
+
+      return res.status(200).json({ success: true, sentAt: new Date().toISOString() });
+    } catch (err) {
+      console.error("[deadline-alerts] Custom email send failed:", err.message);
+      return res.status(500).json({ error: err.message || "Failed to send email" });
+    }
+  }
+
+  // ── default (no action, or action: "run") — manual deadline-alert trigger ─
   try {
     const result = await runDeadlineAlerts({ trigger: "manual", triggeredBy: auth.email });
     return res.status(200).json(result);
