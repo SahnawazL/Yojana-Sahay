@@ -111,37 +111,61 @@ async function generateEmailDraft({ toName, notes, lang }) {
   const isHindi = lang === "hi";
 
   const system = isHindi
-    ? `आप YojanaSahay (भारतीय सरकारी योजना खोज ऐप) की आधिकारिक टीम की ओर से ईमेल लिखते हैं। आपको केवल वही तथ्य उपयोग करने हैं जो एडमिन नोट्स में दिए गए हैं — कभी भी कोई योजना का नाम, राशि, तारीख या पात्रता विवरण न बनाएं जो नोट्स में नहीं है। भाषा गर्मजोशी भरी, पेशेवर और संक्षिप्त हो (80-150 शब्द)। केवल इस JSON प्रारूप में उत्तर दें: {"subject": "...", "body": "..."} — body में पैराग्राफ के बीच खाली लाइन (\\n\\n) हो, कोई मार्कडाउन या HTML टैग न हो।`
-    : `You write emails on behalf of the official YojanaSahay team (an Indian government scheme discovery app). Use ONLY the facts given in the admin's notes below — never invent scheme names, amounts, dates, or eligibility details that aren't in the notes. Keep it warm, professional, and concise (80-150 words). Reply with ONLY this JSON shape: {"subject": "...", "body": "..."} — body should use blank lines (\\n\\n) between paragraphs, no markdown, no HTML tags, and should end with a soft invitation to open the YojanaSahay app.`;
+    ? `आप YojanaSahay (भारतीय सरकारी योजना खोज ऐप) की आधिकारिक टीम की ओर से ईमेल लिखते हैं। आपको केवल वही तथ्य उपयोग करने हैं जो एडमिन नोट्स में दिए गए हैं — कभी भी कोई योजना का नाम, राशि, तारीख या पात्रता विवरण न बनाएं जो नोट्स में नहीं है। भाषा गर्मजोशी भरी, पेशेवर और संक्षिप्त हो (80-150 शब्द)। अपने पूरे उत्तर को केवल एक मान्य JSON ऑब्जेक्ट के रूप में दें, बिना किसी अतिरिक्त टेक्स्ट, व्याख्या या मार्कडाउन कोड-फेंस के, ठीक इस प्रारूप में: {"subject": "...", "body": "..."} — body में पैराग्राफ के बीच खाली लाइन (\\n\\n) हो।`
+    : `You write emails on behalf of the official YojanaSahay team (an Indian government scheme discovery app). Use ONLY the facts given in the admin's notes below — never invent scheme names, amounts, dates, or eligibility details that aren't in the notes. Keep it warm, professional, and concise (80-150 words). Respond with your ENTIRE reply as a single valid JSON object, with no extra text, explanation, or markdown code fences, in exactly this shape: {"subject": "...", "body": "..."} — body should use blank lines (\\n\\n) between paragraphs, no markdown, and should end with a soft invitation to open the YojanaSahay app.`;
 
   const user = isHindi
     ? `उपयोगकर्ता का नाम: ${toName || "उपयोगकर्ता"}\nएडमिन के नोट्स (केवल यही तथ्य उपयोग करें): ${notes}`
     : `User's name: ${toName || "there"}\nAdmin's notes (use ONLY these facts): ${notes}`;
 
+  // NOTE: deliberately NOT sending response_format:{type:"json_object"} — not
+  // every Groq-hosted model honours that param the same way, and a rejected
+  // param would fail every key identically. We just ask firmly for JSON in
+  // the prompt and parse defensively below (stripping code fences etc).
   const { status, data, keyIdx, count429 } = await callGroq(keys, {
     model: COMPOSE_AI_MODEL,
     max_tokens: COMPOSE_MAX_TOKENS,
     temperature: COMPOSE_TEMPERATURE,
-    response_format: { type: "json_object" },
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },
     ],
   });
 
-  if (status !== 200) return { error: "AI draft generation failed — try again, or write the email manually" };
+  if (status !== 200) {
+    // Surface the REAL upstream reason instead of a generic message, so a
+    // failure is self-diagnosing from the dashboard/logs next time.
+    const upstreamMsg = data?.error?.message || data?.error?.details?.message || JSON.stringify(data?.error || data).slice(0, 200);
+    console.error("[deadline-alerts] Groq draft call failed:", status, upstreamMsg);
+    return { error: `AI draft generation failed (${status}): ${upstreamMsg}` };
+  }
 
   recordAiCall({ service: "groq-verify", keyIdx, count429 }).catch(() => {});
   logApiCallToHistory("groqVerifyCalls").catch(() => {});
 
   const raw = data?.choices?.[0]?.message?.content?.trim();
   if (!raw) return { error: "AI returned an empty response — try again" };
+
+  // Defensive JSON extraction: strip ```json fences if present, then fall
+  // back to grabbing the first {...} block in case the model added any
+  // stray text before/after the JSON despite instructions.
+  let cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace  = cleaned.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+  }
+
   try {
-    const parsed = JSON.parse(raw);
-    if (!parsed.subject || !parsed.body) return { error: "AI response was missing subject/body — try again" };
+    const parsed = JSON.parse(cleaned);
+    if (!parsed.subject || !parsed.body) {
+      console.error("[deadline-alerts] Groq JSON missing subject/body:", raw.slice(0, 300));
+      return { error: "AI response was missing subject/body — try again" };
+    }
     return { subject: String(parsed.subject).trim(), body: String(parsed.body).trim() };
-  } catch {
-    return { error: "Could not parse AI response — try again" };
+  } catch (err) {
+    console.error("[deadline-alerts] Could not parse Groq response as JSON:", raw.slice(0, 300));
+    return { error: "Could not parse AI response — try again, or write the email manually" };
   }
 }
 
