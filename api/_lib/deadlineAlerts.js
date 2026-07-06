@@ -25,6 +25,57 @@ import { FieldValue }  from "firebase-admin/firestore";
 import nodemailer      from "nodemailer";
 import { SCHEME_DB }   from "../../src/schemesData.js";
 
+// ── Live fetch of schemes-meta.json from GitHub ─────────────────────────────
+// schemesData.js never has a `lastDate` field by hand — that field is written
+// by the Tier-2 AI verifier (verify-scheme.js) into src/schemes-meta.json on
+// GitHub, and the FRONTEND (App.jsx) merges it onto SCHEME_DB at module init
+// via a plain `import schemesMeta from "./schemes-meta.json"`.
+//
+// The backend deliberately does NOT copy that static-import approach: a bundled
+// import only refreshes on a full redeploy, but the new rotating verifier
+// (schemeVerifyBatch.js) commits to this file every ~15-20 minutes. Forcing a
+// full site redeploy that often is wasteful and risks overlapping/queued
+// deployments. Instead we fetch the file fresh from GitHub's Contents API on
+// every run — the exact same call update-schemes-meta.js already makes to
+// read-before-merge — so this always sees the latest committed data instantly,
+// independent of the deploy cycle.
+async function fetchSchemesMetaFromGitHub() {
+  const token = process.env.GITHUB_TOKEN;
+  const repo  = process.env.GITHUB_REPO;
+  if (!token || !repo) {
+    console.warn("[deadlineAlerts] GITHUB_TOKEN/GITHUB_REPO not configured — skipping schemes-meta merge, deadlines will only reflect any hand-added lastDate fields in schemesData.js.");
+    return {};
+  }
+  const filePath = "src/schemes-meta.json";
+  const apiUrl   = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+  try {
+    const res = await fetch(apiUrl, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+    });
+    if (!res.ok) {
+      console.warn(`[deadlineAlerts] schemes-meta.json fetch failed (${res.status}) — continuing without meta merge this run.`);
+      return {};
+    }
+    const fileInfo = await res.json();
+    const decoded  = Buffer.from(fileInfo.content, "base64").toString("utf8");
+    return JSON.parse(decoded);
+  } catch (err) {
+    console.warn("[deadlineAlerts] schemes-meta.json fetch threw — continuing without meta merge this run:", err.message);
+    return {};
+  }
+}
+
+// Returns a NEW array of shallow-cloned scheme objects with schemes-meta.json
+// fields merged on top — deliberately does not mutate the imported SCHEME_DB
+// module singleton, since that's shared across warm serverless invocations.
+function mergeSchemeDbWithMeta(meta) {
+  return SCHEME_DB.map(scheme => {
+    const m = meta[scheme.id];
+    return m ? { ...scheme, ...m } : scheme;
+  });
+}
+
+
 const DAYS_WINDOW           = 7;  // first alert: deadline within this many days
 const URGENT_DAYS           = 2;  // second, more urgent reminder if still not applied by this point
 const MAX_SCHEMES_PER_EMAIL = 6;  // keep the digest readable
@@ -236,6 +287,51 @@ function buildEmailHtml(schemes, intro, isHindi = false) {
   </div>`;
 }
 
+// ── Build the HTML email body for a NEW SCHEME announcement ───────────────────
+// Distinct from buildEmailHtml (deadline countdown) — no "days left" framing,
+// just "this was just added, here's why it might apply to you."
+function buildNewSchemeEmailHtml(schemes, isHindi = false) {
+  const rows = schemes.map(({ scheme }) => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;">
+        <div style="font-weight:700;font-size:14px;color:#111;">
+          ${scheme.icon || "🆕"} ${scheme.name?.en || "Scheme"}
+        </div>
+        <div style="font-size:12px;color:#555;margin-top:3px;">
+          ${scheme.benefit?.en || scheme.description?.en || ""}
+        </div>
+      </td>
+    </tr>`).join("");
+
+  const introText = isHindi
+    ? "आपके लिए कुछ नई योजनाएँ जोड़ी गई हैं जिनके लिए आप योग्य हो सकते हैं — अभी देखें।"
+    : "New schemes were just added that you may qualify for — take a look.";
+
+  return `
+  <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+    <div style="background:linear-gradient(135deg,#0d0a9e,#06038D);padding:18px 20px;border-radius:10px 10px 0 0;">
+      <h2 style="color:#fff;margin:0;font-size:18px;">🆕 New Scheme${schemes.length > 1 ? "s" : ""} Added</h2>
+      <p style="color:#fff;opacity:0.9;margin:4px 0 0;font-size:12px;">Yojana Sahay — new schemes you may qualify for</p>
+    </div>
+    <div style="padding:14px 20px 4px;background:#fff;">
+      <p style="font-size:13px;color:#333;margin:0;line-height:1.5;">${introText}</p>
+    </div>
+    <table style="width:100%;border-collapse:collapse;background:#fff;">
+      ${rows}
+    </table>
+    <div style="padding:16px 20px;background:#fafafa;border-radius:0 0 10px 10px;text-align:center;">
+      <a href="https://yojanasahay.vercel.app" style="display:inline-block;background:#06038D;color:#fff;
+        text-decoration:none;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;">
+        Open Yojana Sahay to Explore
+      </a>
+      <p style="font-size:10.5px;color:#999;margin-top:12px;">
+        You're receiving this because you're signed in to Yojana Sahay and match these new schemes.
+      </p>
+    </div>
+  </div>`;
+}
+
+
 // ── Main runner — used by both the cron endpoint and the admin trigger ────────
 // trigger: "cron" | "manual"
 // triggeredBy: admin email string when trigger === "manual", else null
@@ -244,6 +340,13 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
   const transporter = getTransporter(); // throws early if env vars missing
   const groqKeys    = loadGroqKeys();   // empty array → generatePersonalizedIntro no-ops, template falls back automatically
 
+  // Fetch schemes-meta.json fresh from GitHub and merge it onto SCHEME_DB —
+  // this is what actually makes `scheme.lastDate` non-null for schemes the
+  // verifier has already checked. See fetchSchemesMetaFromGitHub() above for
+  // why this is a live fetch rather than a static bundled import.
+  const schemesMeta   = await fetchSchemesMetaFromGitHub();
+  const mergedSchemes = mergeSchemeDbWithMeta(schemesMeta);
+
   // ── Daily quota check-in ────────────────────────────────────────────────────
   const dateKey     = getTodayDateKey();
   const quotaRef    = db.collection("emailQuota").doc(dateKey);
@@ -251,8 +354,27 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
   let quotaUsed      = quotaSnap.exists ? (quotaSnap.data().count || 0) : 0;
   let quotaHit        = false; // true once we start refusing sends this run
 
-  let checked = 0, sent = 0, skipped = 0;
+  // ── Scheme registry — powers "new scheme just added" announcements ─────────
+  // We have no createdAt timestamp on scheme objects (they're hand-edited into
+  // schemesData.js), so "new" is defined relative to what we've SEEN before:
+  // any scheme id present in SCHEME_DB now but absent from the last-seen id
+  // list gets announced, then gets added to the list so it never re-fires.
+  //
+  // CRITICAL SAFETY CASE: on the very first run ever (registry doc doesn't
+  // exist yet), every scheme in SCHEME_DB would otherwise look "new" and blast
+  // an announcement for the entire catalog to all users at once. So a first
+  // run only SEEDS the registry silently — it announces nothing.
+  const registryRef      = db.collection("appMeta").doc("schemeRegistry");
+  const registrySnap     = await registryRef.get();
+  const isFirstRegistryRun = !registrySnap.exists;
+  const knownSchemeIds    = new Set(registrySnap.exists ? (registrySnap.data().ids || []) : []);
+  const currentSchemeIds  = mergedSchemes.map(s => s.id);
+  const newSchemeIds      = isFirstRegistryRun ? [] : currentSchemeIds.filter(id => !knownSchemeIds.has(id));
+  const newSchemes        = mergedSchemes.filter(s => newSchemeIds.includes(s.id));
+
+  let checked = 0, sent = 0, announced = 0, skipped = 0;
   const recipients = [];
+  const announcementRecipients = [];
 
   const usersSnap = await db.collection("users").get();
 
@@ -265,13 +387,16 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
     const profileAnswers = buildProfileAnswers(profile);
     if (!profileAnswers) { skipped++; continue; }
 
+    let didSomethingForThisUser = false;
+
+    // ── 1. Deadline countdown alerts (unchanged logic) ──────────────────────
     // Two separate tracking arrays on the user doc:
     //   alertedSchemeIds       — has EVER been sent a first alert for this scheme
     //   urgentAlertedSchemeIds — has been sent the closer-to-deadline final reminder
     const alreadyStandardAlerted = new Set(profile.alertedSchemeIds || []);
     const alreadyUrgentAlerted   = new Set(profile.urgentAlertedSchemeIds || []);
 
-    const matched = SCHEME_DB.filter(s => {
+    const matched = mergedSchemes.filter(s => {
       try { return s.match(profileAnswers); } catch { return false; }
     });
 
@@ -292,79 +417,140 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
       .sort((a, b) => a.days - b.days)
       .slice(0, MAX_SCHEMES_PER_EMAIL);
 
-    if (urgent.length === 0) { skipped++; continue; }
+    if (urgent.length > 0) {
+      if (quotaUsed >= DAILY_EMAIL_LIMIT) {
+        // Not marked as alerted, so they're retried automatically next run.
+        quotaHit = true;
+      } else {
+        // Note: language preference (yojana_lang) lives only in the user's browser
+        // localStorage, not on the Firestore profile, so scheduled/manual emails
+        // default to English for now.
+        const topScheme = urgent[0].scheme.name?.en || urgent[0].scheme.id;
+        const intro = await generatePersonalizedIntro(groqKeys, profile.name, topScheme, urgent[0].days, false, urgent[0].isReminder);
 
-    // ── Daily quota gate — stop sending once we're at the safety limit ────────
-    // Don't waste a Groq call generating an intro we won't be able to send.
-    if (quotaUsed >= DAILY_EMAIL_LIMIT) {
-      quotaHit = true;
-      skipped++;
-      continue; // not marked as alerted, so they're retried automatically next run
-    }
+        try {
+          const hasReminder = urgent.some(u => u.isReminder);
+          const subject = hasReminder
+            ? `⚠️ Final reminder: ${urgent.length} scheme deadline${urgent.length > 1 ? "s" : ""} closing very soon — Yojana Sahay`
+            : `⏳ ${urgent.length} scheme deadline${urgent.length > 1 ? "s" : ""} closing soon — Yojana Sahay`;
 
-    // ── AI-personalized intro line — falls back to plain default inside buildEmailHtml ──
-    // Note: language preference (yojana_lang) lives only in the user's browser localStorage,
-    // not on the Firestore profile, so scheduled/manual emails default to English for now.
-    const topScheme = urgent[0].scheme.name?.en || urgent[0].scheme.id;
-    const intro = await generatePersonalizedIntro(groqKeys, profile.name, topScheme, urgent[0].days, false, urgent[0].isReminder);
+          await transporter.sendMail({
+            from:    `"Yojana Sahay" <${process.env.GMAIL_USER}>`,
+            to:      email,
+            subject,
+            html:    buildEmailHtml(urgent, intro, false),
+          });
 
-    try {
-      const hasReminder = urgent.some(u => u.isReminder);
-      const subject = hasReminder
-        ? `⚠️ Final reminder: ${urgent.length} scheme deadline${urgent.length > 1 ? "s" : ""} closing very soon — Yojana Sahay`
-        : `⏳ ${urgent.length} scheme deadline${urgent.length > 1 ? "s" : ""} closing soon — Yojana Sahay`;
+          const urgentIdsThisSend = urgent.filter(u => u.days <= URGENT_DAYS).map(u => u.scheme.id);
 
-      await transporter.sendMail({
-        from:    `"Yojana Sahay" <${process.env.GMAIL_USER}>`,
-        to:      email,
-        subject,
-        html:    buildEmailHtml(urgent, intro, false),
-      });
+          const updatePayload = {
+            alertedSchemeIds:    FieldValue.arrayUnion(...urgent.map(u => u.scheme.id)),
+            lastDeadlineAlertAt: FieldValue.serverTimestamp(),
+          };
+          // FieldValue.arrayUnion() throws if called with zero elements — only attach
+          // this field when there's actually at least one urgent-tier scheme to record.
+          if (urgentIdsThisSend.length > 0) {
+            updatePayload.urgentAlertedSchemeIds = FieldValue.arrayUnion(...urgentIdsThisSend);
+          }
+          await userDoc.ref.update(updatePayload);
 
-      const urgentIdsThisSend = urgent.filter(u => u.days <= URGENT_DAYS).map(u => u.scheme.id);
+          quotaUsed++;
+          await quotaRef.set(
+            { count: FieldValue.increment(1), lastUpdated: FieldValue.serverTimestamp() },
+            { merge: true }
+          );
 
-      const updatePayload = {
-        alertedSchemeIds:    FieldValue.arrayUnion(...urgent.map(u => u.scheme.id)),
-        lastDeadlineAlertAt: FieldValue.serverTimestamp(),
-      };
-      // FieldValue.arrayUnion() throws if called with zero elements — only attach
-      // this field when there's actually at least one urgent-tier scheme to record.
-      if (urgentIdsThisSend.length > 0) {
-        updatePayload.urgentAlertedSchemeIds = FieldValue.arrayUnion(...urgentIdsThisSend);
+          recipients.push({
+            email,
+            schemeCount:    urgent.length,
+            soonestDays:    urgent[0].days,
+            schemes:        urgent.map(u => u.scheme.name?.en || u.scheme.id),
+            reminderCount:  urgent.filter(u => u.isReminder).length,
+            aiPersonalized: !!intro,
+            introText:      resolveIntroText(intro, false),
+          });
+          sent++;
+          didSomethingForThisUser = true;
+        } catch (mailErr) {
+          console.error(`[deadlineAlerts] Failed to email ${email}:`, mailErr.message);
+        }
       }
-      await userDoc.ref.update(updatePayload);
-
-      // Update the daily quota counter immediately after each successful send,
-      // so a crash mid-run never loses count or lets us silently over-send.
-      quotaUsed++;
-      await quotaRef.set(
-        { count: FieldValue.increment(1), lastUpdated: FieldValue.serverTimestamp() },
-        { merge: true }
-      );
-
-      recipients.push({
-        email,
-        schemeCount:    urgent.length,
-        soonestDays:    urgent[0].days,
-        schemes:        urgent.map(u => u.scheme.name?.en || u.scheme.id),
-        reminderCount:  urgent.filter(u => u.isReminder).length, // how many were the 2nd, escalated nudge
-        aiPersonalized: !!intro,
-        introText:      resolveIntroText(intro, false), // exact line the user actually received
-      });
-      sent++;
-    } catch (mailErr) {
-      console.error(`[deadlineAlerts] Failed to email ${email}:`, mailErr.message);
-      skipped++;
     }
+
+    // ── 2. New-scheme announcements ─────────────────────────────────────────
+    // announcedSchemeIds is its own tracking field, separate from alertedSchemeIds,
+    // so a scheme that's later given a lastDate can still trigger its own,
+    // independent deadline alert later even though it was already announced here.
+    if (newSchemes.length > 0) {
+      const alreadyAnnounced = new Set(profile.announcedSchemeIds || []);
+      const matchingNew = newSchemes
+        .filter(s => !alreadyAnnounced.has(s.id))
+        .filter(s => { try { return s.match(profileAnswers); } catch { return false; } })
+        .slice(0, MAX_SCHEMES_PER_EMAIL)
+        .map(scheme => ({ scheme }));
+
+      if (matchingNew.length > 0) {
+        if (quotaUsed >= DAILY_EMAIL_LIMIT) {
+          quotaHit = true;
+        } else {
+          try {
+            const subject = matchingNew.length > 1
+              ? `🆕 ${matchingNew.length} new schemes you may qualify for — Yojana Sahay`
+              : `🆕 New scheme you may qualify for: ${matchingNew[0].scheme.name?.en || "Yojana Sahay"}`;
+
+            await transporter.sendMail({
+              from:    `"Yojana Sahay" <${process.env.GMAIL_USER}>`,
+              to:      email,
+              subject,
+              html:    buildNewSchemeEmailHtml(matchingNew, false),
+            });
+
+            await userDoc.ref.update({
+              announcedSchemeIds:     FieldValue.arrayUnion(...matchingNew.map(m => m.scheme.id)),
+              lastNewSchemeAlertAt:   FieldValue.serverTimestamp(),
+            });
+
+            quotaUsed++;
+            await quotaRef.set(
+              { count: FieldValue.increment(1), lastUpdated: FieldValue.serverTimestamp() },
+              { merge: true }
+            );
+
+            announcementRecipients.push({
+              email,
+              schemeCount: matchingNew.length,
+              schemes:     matchingNew.map(m => m.scheme.name?.en || m.scheme.id),
+            });
+            announced++;
+            didSomethingForThisUser = true;
+          } catch (mailErr) {
+            console.error(`[deadlineAlerts] Failed to send new-scheme announcement to ${email}:`, mailErr.message);
+          }
+        }
+      }
+    }
+
+    if (!didSomethingForThisUser) skipped++;
   }
+
+  // ── Update the scheme registry so today's "new" schemes aren't new again ───
+  // Always runs (even on the seeding first run, even if nothing was announced)
+  // so the registry stays a complete, current snapshot of every known id.
+  await registryRef.set(
+    { ids: currentSchemeIds, updatedAt: FieldValue.serverTimestamp() },
+    { merge: true }
+  );
 
   // ── Log this run to Firestore so the Admin Dashboard can show history ───────
   const runDoc = {
     trigger,
     triggeredBy,
     runAt: FieldValue.serverTimestamp(),
-    checked, sent, skipped,
+    checked, sent, announced, skipped,
     recipients,
+    announcementRecipients,
+    newSchemeIds,          // which ids were treated as new this run (debugging aid)
+    isFirstRegistryRun,
     quotaUsed, quotaLimit: DAILY_EMAIL_LIMIT, quotaHit,
   };
   const runRef = await db.collection("deadlineAlertRuns").add(runDoc);
@@ -384,7 +570,8 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
   }
 
   return {
-    runId: runRef.id, trigger, triggeredBy, checked, sent, skipped, recipients,
+    runId: runRef.id, trigger, triggeredBy, checked, sent, announced, skipped,
+    recipients, announcementRecipients, newSchemeIds, isFirstRegistryRun,
     quotaUsed, quotaLimit: DAILY_EMAIL_LIMIT, quotaHit,
   };
 }
