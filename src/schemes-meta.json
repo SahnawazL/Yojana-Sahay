@@ -452,7 +452,7 @@
     "linkAlive": true
   },
   "daynrlm": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-06T23:50:55.571Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -483,11 +483,11 @@
     "linkAlive": true
   },
   "ddu_gky": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-06T23:51:11.898Z",
     "isActive": true,
-    "httpStatus": 200,
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "pmay_urban2": {
     "lastVerified": "2026-07-05T11:38:40.525Z",
@@ -576,7 +576,7 @@
     "linkAlive": true
   },
   "daynulm": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-06T23:51:00.341Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -672,7 +672,7 @@
     "linkAlive": true
   },
   "csss": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-06T23:50:50.887Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1531,49 +1531,49 @@
     "confidence": 0
   },
   "cg_higher_ed_scholarship": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
+    "lastVerified": "2026-07-06T23:47:14.447Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_solar_suryashakti": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
-    "linkAlive": true,
-    "httpStatus": 200,
+    "lastVerified": "2026-07-06T23:49:38.019Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "cg_shauchalay_nirman": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
-    "linkAlive": true,
-    "httpStatus": 200,
+    "lastVerified": "2026-07-06T23:49:23.970Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "cg_kaushal_vikas": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
+    "lastVerified": "2026-07-06T23:47:22.048Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_labour_card": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
-    "linkAlive": true,
-    "httpStatus": 200,
+    "lastVerified": "2026-07-06T23:47:38.901Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "cg_pre_matric_tribal": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
-    "linkAlive": true,
-    "httpStatus": 200,
-    "confidence": 0.5
-  },
-  "cg_saur_sujala": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
+    "lastVerified": "2026-07-06T23:48:54.340Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
+  "cg_saur_sujala": {
+    "lastVerified": "2026-07-06T23:49:15.377Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
   "cg_organic_farming": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
+    "lastVerified": "2026-07-06T23:48:46.655Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1585,16 +1585,16 @@
     "confidence": 0
   },
   "cg_msme_subsidy": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
+    "lastVerified": "2026-07-06T23:48:14.519Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_startup_niti": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
+    "lastVerified": "2026-07-06T23:49:42.524Z",
     "linkAlive": true,
     "httpStatus": 200,
-    "confidence": 0.5
+    "confidence": 0
   },
   "uk_nanda_gaura": {
     "lastVerified": "2026-06-22T17:24:12.092Z",
@@ -1891,14 +1891,14 @@
     "isActive": true
   },
   "chandigarh_post_matric_scholarship": {
-    "lastVerified": "2026-06-28T08:06:59.800Z",
+    "lastVerified": "2026-07-06T23:50:36.023Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 1,
+    "confidence": 0,
     "isActive": true
   },
   "chandigarh_chb_ews_housing": {
-    "lastVerified": "2026-06-28T08:06:59.800Z",
+    "lastVerified": "2026-07-06T23:50:21.409Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2617,7 +2617,7 @@
     "confidence": 0
   },
   "cg_mahtari_vandan": {
-    "lastVerified": "2026-06-28T08:10:35.506Z",
+    "lastVerified": "2026-07-06T23:47:54.795Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
