@@ -278,38 +278,34 @@ function buildPrompt(schemeName, state, pageText) {
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 
-export default async function handler(req, res) {
-
-  // Only POST
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  // Groq keys
+// verifySchemeCore() is the actual verification logic, extracted so it can be
+// called two ways: (1) over HTTP by the default handler below, for the admin's
+// manual "Verify Now" button and the browser-side bulk SchemeVerifier tool, and
+// (2) directly, in-process, by the automated rotating batch verifier in
+// _lib/schemeVerifyBatch.js — which needs to check many schemes per cron run
+// and can't afford an HTTP round-trip (plus its own cold start) for each one.
+//
+// Returns exactly the same shape the HTTP handler used to return in its res.json():
+//   { lastDate, isActive, confidence, httpStatus, error }
+export async function verifySchemeCore({ url, name, state = "national" }) {
   const groqKeys = loadGroqKeys();
   if (groqKeys.length === 0) {
-    return res.status(500).json({
-      error:
-        "No Groq API keys configured. " +
-        "Add GROQ_API_KEY in Vercel → Settings → Environment Variables, then redeploy.",
-    });
+    return {
+      lastDate: null, isActive: null, confidence: 0, httpStatus: 0,
+      error: "No Groq API keys configured. Add GROQ_API_KEY in Vercel → Settings → Environment Variables, then redeploy.",
+    };
   }
 
-  // Tavily key — dedicated TAVILY_VERIFY_KEY takes priority over shared chat key
   const tavilyKey = (process.env.TAVILY_VERIFY_KEY ?? process.env.TAVILY_API_KEY)?.trim();
   if (!tavilyKey) {
-    return res.status(500).json({
-      error:
-        "No Tavily API key configured. " +
-        "Add TAVILY_VERIFY_KEY (or TAVILY_API_KEY) in Vercel → Settings → Environment Variables, then redeploy.",
-    });
+    return {
+      lastDate: null, isActive: null, confidence: 0, httpStatus: 0,
+      error: "No Tavily API key configured. Add TAVILY_VERIFY_KEY (or TAVILY_API_KEY) in Vercel → Settings → Environment Variables, then redeploy.",
+    };
   }
 
-  // Input
-  const { url, name, state = "national", scope } = req.body ?? {};
-
   if (!url || !name) {
-    return res.status(400).json({ error: "Missing required fields: url, name" });
+    return { lastDate: null, isActive: null, confidence: 0, httpStatus: 0, error: "Missing required fields: url, name" };
   }
 
   console.log(`[verify-scheme] Checking: "${name}" (${state}) → ${url}`);
@@ -317,29 +313,28 @@ export default async function handler(req, res) {
   // ── Step 1: Fetch page via Tavily Extract ─────────────────────────────────
   const { text, httpStatus, error: fetchError } = await fetchPageText(url, tavilyKey);
 
-  // If page is dead or unreachable, skip the AI call and return early.
   if (!text) {
     console.warn(`[verify-scheme] Page fetch failed for "${name}": ${fetchError}`);
-    return res.status(200).json({
+    return {
       lastDate:   null,
       isActive:   httpStatus >= 400 ? false : null,
       confidence: httpStatus >= 400 ? 0.7   : 0,
-      httpStatus, // Fix 2: real 404/403/5xx (or 0 if unknown) for schemes-meta.json
+      httpStatus,
       error:      fetchError ?? "no page content",
-    });
+    };
   }
 
   // ── Step 2: AI extraction ─────────────────────────────────────────────────
-  recordAiCall({ service: "tavily-verify" }).catch(() => {}); // Tavily Extract just succeeded above
+  recordAiCall({ service: "tavily-verify" }).catch(() => {});
   logApiCallToHistory("tavilyVerifyCalls").catch(() => {});
 
   const { systemPrompt, userPrompt } = buildPrompt(name, state, text);
 
   const { status: groqStatus, data: groqData, keyIdx, count429 } = await callGroq(groqKeys, {
     model:           MODEL,
-    max_tokens:      80,   // full JSON response fits in ~25 tokens
-    temperature:     0.1,  // near-deterministic — extraction, not generation
-    response_format: { type: "json_object" }, // guarantees valid JSON
+    max_tokens:      80,
+    temperature:     0.1,
+    response_format: { type: "json_object" },
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user",   content: userPrompt   },
@@ -350,17 +345,11 @@ export default async function handler(req, res) {
     const msg = groqData?.error?.message ?? `Groq error ${groqStatus}`;
     console.error(`[verify-scheme] Groq failed for "${name}":`, msg);
     recordAiCall({ service: "groq-verify", keyIdx: -1, count429 }).catch(() => {});
-    return res.status(200).json({
-      lastDate:   null,
-      isActive:   null,
-      confidence: 0,
-      httpStatus, // page fetched fine (we got `text`); this is its real status
-      error:      msg,
-    });
+    return { lastDate: null, isActive: null, confidence: 0, httpStatus, error: msg };
   }
 
   // ── Step 3: Parse Groq's JSON reply ──────────────────────────────────────
-  recordAiCall({ service: "groq-verify", keyIdx, count429 }).catch(() => {}); // Groq call above returned 200
+  recordAiCall({ service: "groq-verify", keyIdx, count429 }).catch(() => {});
   logApiCallToHistory("groqVerifyCalls").catch(() => {});
 
   const raw = groqData?.choices?.[0]?.message?.content ?? "";
@@ -371,13 +360,7 @@ export default async function handler(req, res) {
     parsed = JSON.parse(clean);
   } catch {
     console.warn(`[verify-scheme] JSON parse failed for "${name}". Raw:`, raw.slice(0, 200));
-    return res.status(200).json({
-      lastDate:   null,
-      isActive:   null,
-      confidence: 0,
-      httpStatus, // page fetched fine (we got `text`); this is its real status
-      error:      "JSON parse failed — raw: " + raw.slice(0, 100),
-    });
+    return { lastDate: null, isActive: null, confidence: 0, httpStatus, error: "JSON parse failed — raw: " + raw.slice(0, 100) };
   }
 
   // ── Step 4: Sanitize + return ─────────────────────────────────────────────
@@ -386,16 +369,10 @@ export default async function handler(req, res) {
       ? Math.min(1, Math.max(0, parsed.confidence))
       : 0;
 
-  // Raw isActive from the model
   let isActive = typeof parsed.isActive === "boolean" ? parsed.isActive : null;
 
-  // Safety guard — if the model found no relevant information (confidence < 0.3)
-  // a "false" is just the model's default bias, not a real signal. Treat as null
-  // so we never wrongly mark a live scheme as closed due to an uninformative page.
   if (isActive === false && confidence < 0.3) {
-    console.warn(
-      `[verify-scheme] "${name}" → confidence=${confidence} too low to trust isActive=false; overriding to null`
-    );
+    console.warn(`[verify-scheme] "${name}" → confidence=${confidence} too low to trust isActive=false; overriding to null`);
     isActive = null;
   }
 
@@ -406,7 +383,7 @@ export default async function handler(req, res) {
         : null,
     isActive,
     confidence,
-    httpStatus, // Fix 2: page's real HTTP status (200 here, since extraction succeeded)
+    httpStatus,
     error: null,
   };
 
@@ -417,5 +394,21 @@ export default async function handler(req, res) {
     `confidence: ${result.confidence}`
   );
 
+  return result;
+}
+
+export default async function handler(req, res) {
+
+  // Only POST
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { url, name, state = "national" } = req.body ?? {};
+  if (!url || !name) {
+    return res.status(400).json({ error: "Missing required fields: url, name" });
+  }
+
+  const result = await verifySchemeCore({ url, name, state });
   return res.status(200).json(result);
 }

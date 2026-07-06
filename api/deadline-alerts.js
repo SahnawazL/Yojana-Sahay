@@ -29,6 +29,7 @@
 
 import { getAdminDb, getAdminAuth, recordAiCall }        from "./_lib/firebaseAdmin.js";
 import { runDeadlineAlerts, DAILY_EMAIL_LIMIT } from "./_lib/deadlineAlerts.js";
+import { runSchemeVerificationBatch }           from "./_lib/schemeVerifyBatch.js";
 import { getNextStartIdx }      from "./_lib/groqRotation.js";
 import { logApiCallToHistory }  from "./_lib/apiCallHistory.js";
 import { FieldValue }           from "firebase-admin/firestore";
@@ -433,6 +434,24 @@ export default async function handler(req, res) {
 
   // ── POST — cron run, or an authenticated admin action ───────────────────
   if (isCronRequest(req)) {
+    // Two different jobs share this same cron auth (x-vercel-cron header OR
+    // CRON_SECRET bearer token):
+    //   1. Vercel's own once-a-day cron → the full email pipeline (default).
+    //   2. An external scheduler (GitHub Actions, every ~15-20 min) → ONLY the
+    //      scheme-verification batch, distinguished by { action: "verifyBatch" }
+    //      in the POST body. This must NEVER fall through to runDeadlineAlerts,
+    //      or the frequent external pings would re-check/re-send deadline
+    //      emails every 15 minutes instead of once a day.
+    if (req.body?.action === "verifyBatch") {
+      try {
+        const result = await runSchemeVerificationBatch();
+        return res.status(200).json(result);
+      } catch (err) {
+        console.error("[deadline-alerts] Scheme verification batch failed:", err);
+        return res.status(500).json({ error: err.message });
+      }
+    }
+
     try {
       const result = await runDeadlineAlerts({ trigger: "cron", triggeredBy: null });
       return res.status(200).json(result);
