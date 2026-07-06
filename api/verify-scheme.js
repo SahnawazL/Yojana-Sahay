@@ -371,8 +371,12 @@ export async function verifySchemeCore({ url, name, state = "national" }) {
 
   let isActive = typeof parsed.isActive === "boolean" ? parsed.isActive : null;
 
-  if (isActive === false && confidence < 0.3) {
-    console.warn(`[verify-scheme] "${name}" → confidence=${confidence} too low to trust isActive=false; overriding to null`);
+  // Enforce the same rule we ask the model to follow ("if confidence is 0.0,
+  // isActive MUST be null") in code, not just in the prompt — models don't
+  // always obey it. This previously only guarded isActive===false, so a
+  // hallucinated isActive:true at confidence:0 slipped through untouched.
+  if (isActive !== null && confidence < 0.3) {
+    console.warn(`[verify-scheme] "${name}" → confidence=${confidence} too low to trust isActive=${isActive}; overriding to null`);
     isActive = null;
   }
 

@@ -408,8 +408,10 @@ export default async function handler(req, res) {
           runAt:       data.runAt?.toDate?.().toISOString() ?? null,
           checked:     data.checked,
           sent:        data.sent,
+          announced:   data.announced ?? 0,
           skipped:     data.skipped,
           recipients:  data.recipients ?? [],
+          announcementRecipients: data.announcementRecipients ?? [],
           quotaUsed:   data.quotaUsed ?? null,
           quotaLimit:  data.quotaLimit ?? null,
           quotaHit:    data.quotaHit ?? false,
@@ -502,7 +504,7 @@ export default async function handler(req, res) {
       const quotaSnap = await quotaRef.get();
       const quotaUsed = quotaSnap.exists ? (quotaSnap.data().count || 0) : 0;
       if (quotaUsed >= DAILY_EMAIL_LIMIT) {
-        return res.status(429).json({ error: `Daily email quota reached (${quotaUsed}/${DAILY_EMAIL_LIMIT}). Try again after midnight IST, or wait for tomorrow's quota reset.` });
+        return res.status(429).json({ error: `Daily email quota reached (${quotaUsed}/${DAILY_EMAIL_LIMIT}). Quota resets at UTC midnight (5:30 AM IST), or wait for tomorrow's quota reset.` });
       }
 
       const transporter = getTransporter();
