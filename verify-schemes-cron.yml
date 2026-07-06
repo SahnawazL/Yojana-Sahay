@@ -1,0 +1,25 @@
+name: Verify Schemes (rotating batch)
+
+# Runs every 15 minutes, forever, calling the EXISTING /api/deadline-alerts
+# endpoint with a special action flag — NOT Vercel's own cron (which only
+# supports once-a-day on the Hobby plan, far too slow for a 1100+ scheme
+# catalog). This costs nothing: GitHub Actions gives free scheduled minutes
+# on public repos, and this job finishes in under a second each time (it
+# just fires the request and moves on — Vercel does the actual work).
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {} # lets you also trigger it manually from the Actions tab, for testing
+
+jobs:
+  ping-verify-batch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger scheme verification batch
+        run: |
+          curl -sS -X POST "https://yojanasahay.vercel.app/api/deadline-alerts" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"action":"verifyBatch"}' \
+            --max-time 280 \
+            -w "\nHTTP status: %{http_code}\n"
