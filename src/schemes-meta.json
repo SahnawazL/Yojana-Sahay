@@ -504,7 +504,7 @@
     "linkAlive": true
   },
   "ignwps": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-07T17:37:48.053Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -570,10 +570,10 @@
     "linkAlive": true
   },
   "igndps": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
-    "httpStatus": 200,
+    "lastVerified": "2026-07-07T17:37:34.183Z",
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "daynulm": {
     "lastVerified": "2026-07-06T23:51:00.341Z",
@@ -2987,7 +2987,7 @@
     "isActive": true
   },
   "hp_widow_pension": {
-    "lastVerified": "2026-06-19T07:58:55.866Z",
+    "lastVerified": "2026-07-07T17:37:15.342Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2999,10 +2999,10 @@
     "confidence": 0
   },
   "hp_swavlamban": {
-    "lastVerified": "2026-06-19T07:58:55.866Z",
+    "lastVerified": "2026-07-07T17:36:54.902Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.5,
+    "confidence": 0,
     "isActive": true
   },
   "hp_indira_gandhi_scholarship": {
@@ -3013,9 +3013,9 @@
     "isActive": true
   },
   "hp_solar_pump": {
-    "lastVerified": "2026-06-19T07:58:55.866Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-07T17:36:24.734Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "hp_disabled_pension": {
@@ -3025,7 +3025,7 @@
     "confidence": 0
   },
   "hp_sc_post_matric": {
-    "lastVerified": "2026-06-19T07:58:55.866Z",
+    "lastVerified": "2026-07-07T17:36:07.730Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -3044,9 +3044,9 @@
     "confidence": 0
   },
   "hp_startup_policy": {
-    "lastVerified": "2026-06-19T07:58:55.866Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-07T17:36:38.236Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "hp_e_taxi": {
@@ -3080,31 +3080,31 @@
     "confidence": 0
   },
   "hp_svanidhi": {
-    "lastVerified": "2026-06-19T07:58:55.866Z",
+    "lastVerified": "2026-07-07T17:36:43.977Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_abua_awas": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:38:23.815Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_maiya_samman": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:39:28.303Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_mmkay": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:40:09.864Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.5
+    "confidence": 0
   },
   "jharkhand_abjkay": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:38:13.920Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3116,19 +3116,19 @@
     "confidence": 0
   },
   "jharkhand_jrfry": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:39:13.152Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_ekalyan_scholarship": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:39:00.498Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_bocw": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:38:42.782Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3146,13 +3146,13 @@
     "confidence": 0
   },
   "jharkhand_minority_scholarship": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:40:00.732Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_medha_chatravriti": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:39:37.805Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3176,7 +3176,7 @@
     "confidence": 0
   },
   "jharkhand_micro_irrigation": {
-    "lastVerified": "2026-06-27T08:08:07.420Z",
+    "lastVerified": "2026-07-07T17:39:48.216Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3390,7 +3390,7 @@
     "confidence": 0
   },
   "ishan_uday": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-07T17:37:59.029Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3407,7 +3407,7 @@
     "confidence": 0
   },
   "ig_pg_sgc": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-07T17:37:24.252Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3419,7 +3419,7 @@
     "confidence": 0
   },
   "inspire_she": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-07T17:37:53.417Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
