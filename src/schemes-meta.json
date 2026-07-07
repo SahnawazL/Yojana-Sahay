@@ -2758,9 +2758,9 @@
     "confidence": 0
   },
   "gujarat_icreate": {
-    "lastVerified": "2026-07-07T10:17:22.692Z",
+    "lastVerified": "2026-07-07T15:55:51.420Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "gujarat_surya_rooftop": {
