@@ -56,7 +56,7 @@ const SERPER_ORANGE = "#F97316";  // Serper URL finder — Google-search orange
 const IDLE_AMBER = "#F59E0B";   // three-state presence: idle = amber
 
 // ─── TAB LABELS ───────────────────────────────────────────────────────────────
-const TAB_LABELS = {
+export const TAB_LABELS = {
   home:"Home", overview:"Overview", users:"Users",
   analytics:"Analytics", activity:"Activity", usage:"Usage",
   schemes:"Schemes", reports:"Reports", cleanup:"Cleanup",
@@ -277,7 +277,7 @@ function Skeleton({ width = "100%", height = 12, radius = 4, dark, style }) {
 
 // ─── STATIC AI AGENTS ─────────────────────────────────────────────────────────
 // Human admins are tracked dynamically via Firestore. AI agents are defined here.
-const AI_AGENTS = [
+export const AI_AGENTS = [
   {
     id:          "groq-ai",
     name:        "Groq AI",
@@ -344,7 +344,7 @@ function toDate(ts) {
   return new Date(ts);
 }
 
-function timeAgo(ts) {
+export function timeAgo(ts) {
   const d = toDate(ts);
   if (!d) return "—";
   const mins = Math.floor((Date.now() - d.getTime()) / 60000);
@@ -355,7 +355,7 @@ function timeAgo(ts) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function sessionDuration(start, end) {
+export function sessionDuration(start, end) {
   const s = toDate(start);
   if (!s) return "—";
   const e = end ? (toDate(end) || new Date()) : new Date();
@@ -400,7 +400,7 @@ function isOnline(lastSeen, thresholdMins = HUMAN_ONLINE_MINS) {
 // Three-state presence: "online" | "idle" | "offline"
 // Human : online = <HUMAN_ONLINE_MINS · idle = HUMAN_ONLINE_MINS–HUMAN_IDLE_MINS · offline = beyond
 // AI    : online = <AI_ONLINE_MINS    · offline = beyond
-function getPresenceState(lastSeen, type = "human") {
+export function getPresenceState(lastSeen, type = "human") {
   const d = toDate(lastSeen);
   if (!d) return "offline";
   const minsAgo = (Date.now() - d.getTime()) / 60000;
@@ -2251,7 +2251,7 @@ function isWorkingDay(dateStr, workingDaysMode) {
 // One-off fetch (not a listener) for a date range — `date` is a plain string
 // field, so both inequalities resolve to a single-field range query; no extra
 // Firestore composite index is needed beyond what already exists for `date`.
-async function fetchAttendanceLogsRange(startStr, endStr) {
+export async function fetchAttendanceLogsRange(startStr, endStr) {
   const q = query(
     collection(db, "agentTimeLogs"),
     where("date", ">=", startStr),
@@ -2294,7 +2294,7 @@ function computePay(row, payMode, payRate) {
 // someone whose admin access was later revoked. Without this, running a
 // report for a past period could silently drop someone who actually worked
 // those days.
-function buildAttendanceReport(humanAgents, logs, startStr, endStr, workingDaysMode = "all") {
+export function buildAttendanceReport(humanAgents, logs, startStr, endStr, workingDaysMode = "all") {
   const days = dateRangeArray(startStr, endStr);
   const totalCalendarDays = days.length;
   // When workingDaysMode is "all" (the default), every day is a working day,
@@ -5054,10 +5054,20 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // MAIN EXPORT: AgentsTab
 // ═════════════════════════════════════════════════════════════════════════════
-export default function AgentsTab({ dark, isDesktop }) {
+// `humanAgents` (the adminPresence roster) is now lifted up to AdminDashboard
+// so it stays live and available there too — e.g. for the "Human Agents"
+// section of the full-dashboard PDF export, which AgentsTab has no reason to
+// know about. AdminDashboard owns the onSnapshot listener and passes the
+// roster + its loaded/error state down as props; everything else in this
+// tab (AI status, activity feed, time logs, filters) is still local.
+export default function AgentsTab({
+  dark, isDesktop,
+  humanAgents = [],
+  presenceLoaded: presenceLoadedProp = false,
+  presenceError = null,
+}) {
   const th = THEME[dark ? "dark" : "light"];
 
-  const [humanAgents, setHumanAgents] = useState([]);
   const [aiStatus,    setAiStatus]    = useState({});
   const [activities,  setActivities]  = useState([]);
   const [todayLogs,   setTodayLogs]   = useState([]);
@@ -5077,8 +5087,11 @@ export default function AgentsTab({ dark, isDesktop }) {
   // wrong without claiming to know which; *Loaded flags gate the "no X yet"
   // empty states so a slow first payload doesn't flash a false-empty message.
   const [connErrors,     setConnErrors]     = useState({});
-  const [presenceLoaded, setPresenceLoaded] = useState(false);
   const [activityLoaded, setActivityLoaded] = useState(false);
+  // presence loading/error now arrive as props from AdminDashboard's
+  // listener — mirrored into the same connErrors/loaded mechanism below so
+  // the existing banner UI doesn't need to change.
+  const presenceLoaded = presenceLoadedProp;
 
   const setListenerError = useCallback((source, err) => {
     setConnErrors(prev => {
@@ -5142,23 +5155,13 @@ export default function AgentsTab({ dark, isDesktop }) {
     return () => clearInterval(t);
   }, []);
 
-  // ── Listen: adminPresence → human agents ──────────────────────────────────
+  // ── adminPresence (human agents) is now fetched by AdminDashboard and
+  //    passed down as the `humanAgents`/`presenceLoaded`/`presenceError`
+  //    props above — just forward any error into the same connErrors banner
+  //    mechanism the other listeners below use, so the UI is unchanged.
   useEffect(() => {
-    const unsub = onSnapshot(
-      collection(db, "adminPresence"),
-      snap => {
-        setHumanAgents(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setPresenceLoaded(true);
-        setListenerError("presence", null);
-      },
-      err => {
-        console.warn("[AgentsTab] adminPresence listener failed:", err);
-        setPresenceLoaded(true); // stop showing skeletons — show the error banner instead
-        setListenerError("presence", err);
-      }
-    );
-    return unsub;
-  }, [setListenerError]);
+    setListenerError("presence", presenceError);
+  }, [presenceError, setListenerError]);
 
   // ── Listen: adminMeta/aiStatus → AI agent last-active timestamps ──────────
   useEffect(() => {

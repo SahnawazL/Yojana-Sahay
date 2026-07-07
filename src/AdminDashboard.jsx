@@ -12,7 +12,7 @@
 // and Cleanup tab for purging old resolved reports.
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDoc } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
@@ -20,7 +20,14 @@ import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
 import SchemeVerifier from "./SchemeVerifier.jsx";
-import AgentsTab, { useAgentPresence, useDailyTimeTracking, logAdminActivity } from "./AgentsTab.jsx";
+import AgentsTab, {
+  useAgentPresence, useDailyTimeTracking, logAdminActivity,
+  AI_AGENTS, getPresenceState, sessionDuration, TAB_LABELS,
+  fetchAttendanceLogsRange, buildAttendanceReport, getISTDateStr,
+} from "./AgentsTab.jsx";
+// AdminDashboard already has its own local timeAgo() (identical logic) —
+// reused as-is in the agents PDF section below instead of importing a
+// second copy under the same name.
 import NewsTab from "./NewsTab.jsx";
 import FAQFeedbackTab from "./FAQFeedbackTab.jsx";
 import DeadlineAlertsTab from "./DeadlineAlertsTab.jsx";
@@ -4588,7 +4595,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [exportStep,     setExportStep]   = useState(-1);
   const [exportDone,     setExportDone]   = useState(false);
   const [exportSections, setExportSections] = useState(
-    () => new Set(["overview","analytics","users","activity","schemes","reports"])
+    () => new Set(["overview","analytics","users","activity","usage","schemes","reports","agents"])
   );
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
@@ -4661,6 +4668,29 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     sessionUser?.displayName || sessionUser?.email,
     sessionUser?.email,
   );
+
+  // ── Human agents roster (adminPresence) — lifted up from AgentsTab so it's
+  //    live here too, for the "Human Agents" section of the full-dashboard
+  //    PDF export. AgentsTab receives this back down as a prop.
+  const [humanAgents,   setHumanAgents]   = useState([]);
+  const [presenceLoaded, setPresenceLoaded] = useState(false);
+  const [presenceError,  setPresenceError]  = useState(null);
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "adminPresence"),
+      snap => {
+        setHumanAgents(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setPresenceLoaded(true);
+        setPresenceError(null);
+      },
+      err => {
+        console.warn("[AdminDashboard] adminPresence listener failed:", err);
+        setPresenceLoaded(true);
+        setPresenceError(err);
+      }
+    );
+    return unsub;
+  }, []);
 
   // ── Log a real admin action to the Agents-tab activity feed ────────────────
   const logActivity = useCallback((action, tab, type = "view") => {
@@ -4943,17 +4973,25 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   , [users]);
 
   // ── Full Dashboard PDF Export (all sections, all fields) ─────────────────
-  const exportAllPDF = useCallback((sectionsToInclude, freshUsageData) => {
+  const exportAllPDF = useCallback((sectionsToInclude, freshUsageData, freshAgentsData) => {
     // Default to all sections if none specified
     const s = sectionsToInclude instanceof Set && sectionsToInclude.size > 0
       ? sectionsToInclude
-      : new Set(["overview","analytics","users","activity","schemes","reports"]);
+      : new Set(["overview","analytics","users","activity","usage","schemes","reports","agents"]);
+    // freshAgentsData = { monthReport, todayStr, monthStartStr }, built by
+    // handleExportAll just before this call (see there for why: same
+    // stale-closure reasoning as freshUsageData above — buildAttendanceReport
+    // needs logs fetched fresh for this export, not stale component state).
     // If the caller just fetched usage data itself (e.g. handleExportAll did
     // this because usageData was still null this session), use that directly
     // instead of the component's guestProfiles memo — the memo won't have
     // re-run yet inside this same synchronous export call, so reading it here
     // would silently produce an empty guest list even though fresh data exists.
     const exportGuestProfiles = freshUsageData ? deriveGuestProfiles(freshUsageData) : guestProfiles;
+    // Same staleness guard for the raw usage section (checker runs, searches,
+    // guest activity) — prefer the just-fetched object over the component's
+    // usageData state, which won't have re-rendered yet inside this call.
+    const exportUsageData = freshUsageData || usageData;
     const now      = Date.now();
     const dateStr  = new Date().toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric" });
     const timeStr  = new Date().toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", hour12:true });
@@ -4962,6 +5000,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     // ── Emoji-strip helper (safe for PDF) ────────────────────────────────
     function strip(str) {
       return (str || "").replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "").trim();
+    }
+
+    // ── "YYYY-MM-DD" → "8 Jul 2026" (agentTimeLogs date strings) ──────────
+    function fmtDateShort(dateStr) {
+      if (!dateStr) return "—";
+      const d = new Date(dateStr + "T00:00:00");
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" });
     }
 
     // ── Mini bar (premium dark style) ────────────────────────────────
@@ -5026,6 +5072,22 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       </div>`;
     }
 
+    // ── 7-day trend bar chart (techy vertical spark bars) ──────────────
+    function sparkChart(labels, values, color = "#4f8ef7") {
+      const max = Math.max(...values, 1);
+      return `<div class="spark-wrap">
+        ${values.map((v, i) => {
+          const h = v > 0 ? Math.max(Math.round((v / max) * 44), 3) : 1;
+          return `<div class="spark-col">
+            <div class="spark-val">${v}</div>
+            <div class="spark-bar" style="height:${h}px;background:${color}"></div>
+            <div class="spark-lbl">${labels[i]}</div>
+          </div>`;
+        }).join("")}
+      </div>`;
+    }
+
+
     // ── Cross-tab matrix ──────────────────────────────────────────────
     function crossTabBlock(title, data, rowKey, colKey, rowLabels, colLabels) {
       const rows = Object.keys(rowLabels);
@@ -5065,6 +5127,72 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     // ── Section header ────────────────────────────────────────────────
     function sectionHeader(icon, title, count = null) {
       return `<div class="section-title"><span class="s-icon">${icon}</span>${title}${count !== null ? ` <span class="badge">${count}</span>` : ""}</div>`;
+    }
+
+    // ── Occupation Pulse donut (conic-gradient, share of active users) ─
+    const OCC_COLORS = {
+      farmer: "#3dd68c", student: "#a78bfa", women: "#f472b6",
+      senior: "#fbbf24", business: "#4f8ef7", general: "#f7824f",
+    };
+    function occPulseDonut(stats, centerLabel = "ACTIVE\nTHIS WEEK") {
+      const activeTotal = stats.reduce((s, o) => s + o.active, 0);
+      let cursor = 0;
+      const stops = activeTotal
+        ? stats.map(o => {
+            const pct = o.active / activeTotal * 100;
+            const seg = `${o.color} ${cursor}% ${cursor + pct}%`;
+            cursor += pct;
+            return seg;
+          }).join(", ")
+        : "#1f2235 0% 100%";
+      const [l1, l2] = centerLabel.split("\n");
+      return `<div class="pulse-wrap">
+        <div class="donut" style="background:conic-gradient(${stops})">
+          <div class="donut-hole">
+            <div class="donut-num">${activeTotal}</div>
+            <div class="donut-label">${l1}${l2 ? `<br>${l2}` : ""}</div>
+          </div>
+        </div>
+        <div class="pulse-legend">
+          ${stats.map(o => {
+            const pct = activeTotal ? Math.round(o.active / activeTotal * 100) : 0;
+            return `<div class="pulse-legend-row">
+              <span class="pulse-dot" style="background:${o.color}"></span>
+              <span class="pulse-legend-name">${o.label}</span>
+              <span class="pulse-legend-val">${o.active}</span>
+              <span class="pulse-legend-pct">${pct}%</span>
+            </div>`;
+          }).join("")}
+        </div>
+      </div>`;
+    }
+
+    // ── Occupation Engagement Matrix (dual-layer signal bars) ──────────
+    function occEngagementMatrix(stats) {
+      const maxTotal = Math.max(...stats.map(o => o.total), 1);
+      return `<div class="breakdown eng-matrix">
+        <div class="bd-title">💼 Occupation Engagement Matrix <span class="bd-total">(reach vs. weekly-active)</span></div>
+        <table>
+          <thead><tr>
+            <th>Occupation</th><th style="width:90px">Signal</th>
+            <th style="width:34px">Total</th><th style="width:34px">Active</th><th style="width:40px">Rate</th>
+          </tr></thead>
+          <tbody>
+            ${stats.map((o, i) => {
+              const trackW  = Math.max(Math.round((o.total / maxTotal) * 84), 4);
+              const fillW   = o.total ? Math.round((o.active / o.total) * trackW) : 0;
+              const rateClr = o.rate >= 50 ? "#3dd68c" : o.rate >= 25 ? "#fbbf24" : "#f87171";
+              return `<tr class="${i % 2 === 0 ? "even" : "odd"}">
+                <td>${o.label}</td>
+                <td><span class="eng-track" style="width:${trackW}px"><span class="eng-fill" style="width:${fillW}px;background:${o.color}"></span></span></td>
+                <td style="text-align:right;font-weight:700;color:${o.color}">${o.total}</td>
+                <td style="text-align:right;font-weight:700">${o.active}</td>
+                <td style="text-align:right"><span class="rate-chip" style="color:${rateClr};border-color:${rateClr}55;background:${rateClr}1a">${o.rate}%</span></td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>`;
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -5285,6 +5413,19 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     const newMonthUsers = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds*1000) < 30*86400000);
     const dormant       = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds*1000) > 30*86400000);
 
+    // Occupation × Activity — reach vs. weekly-active, feeds the donut + matrix below
+    const occStats = Object.keys(OCC_LABELS)
+      .map(k => {
+        const cohort = users.filter(u => u.occupation === k);
+        const active = cohort.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds*1000) < 7*86400000).length;
+        return {
+          key: k, label: OCC_LABELS[k], color: OCC_COLORS[k] || "#4f8ef7",
+          total: cohort.length, active, rate: cohort.length ? Math.round(active/cohort.length*100) : 0,
+        };
+      })
+      .filter(o => o.total > 0)
+      .sort((a, b) => b.active - a.active);
+
     const activityHTML = `
       <div class="section page-break">
         ${sectionHeader("🕐", "Activity & Engagement")}
@@ -5305,6 +5446,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             ["📈 Monthly Retention",    users.length ? Math.round(activeMonth/users.length*100)+"%" : "—"],
           ], "#a78bfa")}
         </div>
+
+        ${occStats.length > 0 ? `
+        <div class="sub-title" style="margin-top:4px">Occupation Pulse — Who's Actually Active</div>
+        <div class="two-col">
+          ${occPulseDonut(occStats)}
+          ${occEngagementMatrix(occStats)}
+        </div>` : ""}
 
         <div class="sub-title" style="margin-top:10px">Recent Activity — Top 30 Most Recently Active Users</div>
         ${dataTable(
@@ -5354,6 +5502,122 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 OCC_LABELS[u.occupation] || u.occupation || "—",
                 formatDate(u.lastSeen),
                 Math.floor((now - u.lastSeen.seconds*1000) / 86400000) + " days",
+              ])
+            )
+        }
+      </div>`;
+
+    // ══════════════════════════════════════════════════════════════════
+    // SECTION 4.5 — PLATFORM USAGE (Checker runs, searches, guest activity)
+    // ══════════════════════════════════════════════════════════════════
+    // exportUsageData is derived up top (near exportGuestProfiles) as
+    // `freshUsageData || usageData` — same stale-closure guard as guests.
+    const checkerRuns     = Array.isArray(exportUsageData?.checkerRuns)     ? exportUsageData.checkerRuns     : [];
+    const schemeSearches  = Array.isArray(exportUsageData?.schemeSearches)  ? exportUsageData.schemeSearches  : [];
+    const stateSelections = Array.isArray(exportUsageData?.stateSelections) ? exportUsageData.stateSelections : [];
+    const totalRunsUsage    = exportUsageData?.checkerTotal || checkerRuns.length;
+    const totalSearchesUsage = exportUsageData?.searchTotal || schemeSearches.length;
+
+    const avgMatchedUsage = checkerRuns.length
+      ? (checkerRuns.reduce((s, r) => s + (r.matchedCount || 0), 0) / checkerRuns.length).toFixed(1)
+      : "—";
+    const maxMatchedUsage = checkerRuns.length ? Math.max(...checkerRuns.map(r => r.matchedCount || 0)) : 0;
+    const usersWithChecker = users.filter(u => u.matchedCount != null).length;
+    const checkerPctUsage  = users.length ? Math.round(usersWithChecker / users.length * 100) : 0;
+
+    // Guest activity — identical per-browser guest-id grouping logic to the
+    // live Usage tab (see UsageSection above), reimplemented here as a pure
+    // computation since that grouping isn't exposed as a shared function.
+    const guestMapUsage = {};
+    let legacyAnonCountUsage = 0;
+    const touchGuestUsage = (uid, ts, kind) => {
+      if (!uid) return;
+      if (uid === "anon") { legacyAnonCountUsage++; return; }
+      if (typeof uid !== "string" || !uid.startsWith("guest_")) return;
+      if (!guestMapUsage[uid]) guestMapUsage[uid] = { uid, runs:0, searches:0, states:0, first:ts, last:ts, lastMatched:null };
+      const g = guestMapUsage[uid];
+      g[kind]++;
+      if (ts && (!g.first || ts < g.first)) g.first = ts;
+      if (ts && (!g.last || ts > g.last)) { g.last = ts; if (kind === "runs") g.lastMatched = null; }
+    };
+    checkerRuns.forEach(r => {
+      touchGuestUsage(r.uid, r.ts, "runs");
+      const g = guestMapUsage[r.uid];
+      if (g && r.ts === g.last) g.lastMatched = r.matchedCount ?? null;
+    });
+    schemeSearches.forEach(r => touchGuestUsage(r.uid, r.ts, "searches"));
+    stateSelections.forEach(r => touchGuestUsage(r.uid, r.ts, "states"));
+    const guestListUsage = Object.values(guestMapUsage)
+      .map(g => ({ ...g, total: g.runs + g.searches + g.states }))
+      .sort((a, b) => b.total - a.total);
+
+    // Top search queries
+    const queryCountsUsage = {};
+    schemeSearches.forEach(r => {
+      if (!r.q) return;
+      const k = r.q.toLowerCase().trim();
+      queryCountsUsage[k] = (queryCountsUsage[k] || 0) + 1;
+    });
+    const topQueriesUsage = Object.entries(queryCountsUsage).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    // Who ran the checker, by declared occupation
+    const whoCountsUsage = {};
+    checkerRuns.forEach(r => { if (r.who) whoCountsUsage[r.who] = (whoCountsUsage[r.who] || 0) + 1; });
+    const whoEntriesUsage = Object.entries(whoCountsUsage).sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => [OCC_LABELS[k] || k, v]);
+
+    // 7-day checker-run trend
+    const spark7Usage = Array.from({ length: 7 }, (_, i) => {
+      const dayStart = now - (6 - i) * 86400000;
+      const dayEnd   = dayStart + 86400000;
+      return checkerRuns.filter(r => {
+        if (!r.ts) return false;
+        const ms = new Date(r.ts).getTime();
+        return ms >= dayStart && ms < dayEnd;
+      }).length;
+    });
+    const sparkLabelsUsage = ["6d","5d","4d","3d","2d","1d","Today"];
+
+    const usageHTML = `
+      <div class="section page-break">
+        ${sectionHeader("📈", "Platform Usage — Checker & Search Activity")}
+        <div class="three-col">
+          ${summaryTable([
+            ["🧮 Total Checker Runs",      totalRunsUsage],
+            ["🔍 Total Searches",          totalSearchesUsage],
+            ["✅ Users Who Used Checker",  `${usersWithChecker} (${checkerPctUsage}%)`],
+          ], "#4f8ef7")}
+          ${summaryTable([
+            ["🎯 Avg Matched Schemes",     avgMatchedUsage],
+            ["🏆 Max Matched Schemes",     maxMatchedUsage],
+            ["👤 Unique Guest Sessions",   guestListUsage.length],
+          ], "#3dd68c")}
+          ${summaryTable([
+            ["📅 Runs Today",              spark7Usage[6]],
+            ["📆 Runs (7-day total)",      spark7Usage.reduce((s,v) => s+v, 0)],
+            ["🕸️ Legacy / Unattributed",   legacyAnonCountUsage],
+          ], "#a78bfa")}
+        </div>
+
+        <div class="sub-title" style="margin-top:4px">Checker Runs — Last 7 Days</div>
+        ${sparkChart(sparkLabelsUsage, spark7Usage, "#4f8ef7")}
+
+        <div class="two-col" style="margin-top:10px">
+          ${breakdownBlock("🔎 Top Search Queries", topQueriesUsage, "#f7824f")}
+          ${breakdownBlock("👥 Who Ran the Checker", whoEntriesUsage, "#a78bfa")}
+        </div>
+
+        <div class="sub-title" style="margin-top:14px">👤 Guest Activity — Top 30 by Engagement <span class="badge">${guestListUsage.length}</span></div>
+        ${guestListUsage.length === 0
+          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">No guest activity recorded.</div>`
+          : dataTable(
+              ["#","Guest ID","Runs","Searches","States","Total","First Seen","Last Seen","Last Matched"],
+              guestListUsage.slice(0, 30).map((g, i) => [
+                i+1,
+                g.uid.replace("guest_", "").slice(0, 10) + "…",
+                g.runs, g.searches, g.states, g.total,
+                formatDateTime(g.first), formatDateTime(g.last),
+                g.lastMatched ?? "—",
               ])
             )
         }
@@ -5479,6 +5743,120 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       </div>`;
 
     // ══════════════════════════════════════════════════════════════════
+    // SECTION 7 — HUMAN AGENTS & TEAM
+    // ══════════════════════════════════════════════════════════════════
+    // This section covers HUMAN agents (sub-admins) only — full live roster,
+    // today's attendance and this-month's attendance summary. The heading
+    // below still states the *total* agent count (human + AI/automation)
+    // for clarity, since "agents" on this dashboard also includes the 5
+    // non-human Groq/Tavily/Serper agents tracked on the Team tab.
+    const totalAgentsAll   = humanAgents.length + AI_AGENTS.length;
+    const onlineHumanCount = humanAgents.filter(a => getPresenceState(a.lastSeen, "human") !== "offline").length;
+    const fullAdminCount   = humanAgents.filter(a => a.allowedTabs === null || a.allowedTabs === undefined).length;
+
+    // Month-to-date attendance report, built fresh (or empty if unavailable —
+    // e.g. the export was retried without "agents" reselected after a failed
+    // fetch; the section still renders the live roster either way).
+    const agentsReport   = freshAgentsData?.monthReport || null;
+    const agentsRows     = agentsReport?.rows || [];
+    const agentsTodayStr = freshAgentsData?.todayStr || isoDate;
+    // Per-agent lookup, keyed by uid, for both the today-table and the
+    // month-summary table below.
+    const agentsReportByUid = new Map(agentsRows.map(r => [r.uid, r]));
+
+    function fmtAllowedTabs(allowedTabs) {
+      if (allowedTabs === null || allowedTabs === undefined) return "ALL_TABS (Full Admin)";
+      if (!Array.isArray(allowedTabs) || allowedTabs.length === 0) return "—";
+      return allowedTabs.map(t => TAB_LABELS[t] || t).join(", ");
+    }
+
+    const agentsHTML = `
+      <div class="section page-break">
+        ${sectionHeader("🧑‍💼", `Human Agents & Team — ${totalAgentsAll} Total Agents Monitored`, humanAgents.length)}
+        <div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">
+          This dashboard tracks ${totalAgentsAll} agent${totalAgentsAll!==1?"s":""} in total — ${humanAgents.length} human sub-admin${humanAgents.length!==1?"s":""} and ${AI_AGENTS.length} AI / automation agent${AI_AGENTS.length!==1?"s":""}
+          (${AI_AGENTS.map(a => strip(a.name)).join(", ")}). Everything below covers <b>human agents only</b>; AI/automation agent health is reported separately on the Team tab.
+        </div>
+
+        <div class="three-col">
+          ${summaryTable([
+            ["👥 Human Agents",     humanAgents.length],
+            ["🟢 Online Now",       onlineHumanCount],
+            ["🛡️ Full Admins",      fullAdminCount],
+          ], "#4f8ef7")}
+          ${summaryTable([
+            ["🤖 AI / Automation Agents", AI_AGENTS.length],
+            ["📊 Total Agents (All Types)", totalAgentsAll],
+          ], "#a78bfa")}
+          ${summaryTable([
+            ["📅 Attendance Period",  agentsReport ? `${fmtDateShort(agentsReport.startStr)} – ${fmtDateShort(agentsReport.endStr)}` : "—"],
+            ["🗓️ Working Days So Far", agentsReport ? agentsReport.totalWorkingDays : "—"],
+          ], "#3dd68c")}
+        </div>
+
+        <div class="sub-title" style="margin-top:10px">Live Roster — Status, Access & Session</div>
+        ${dataTable(
+          ["#","Name","Email","Status","Device","Access","Last Seen","Current / Last Session"],
+          humanAgents.map((ag, i) => {
+            const state = getPresenceState(ag.lastSeen, "human");
+            const stateLabel = state === "online" ? "🟢 Online" : state === "idle" ? "🟡 Idle" : "⚪ Offline";
+            return [
+              i+1,
+              ag.name || "—",
+              ag.email || "—",
+              strip(stateLabel),
+              ag.deviceType === "mobile" ? "Mobile" : ag.deviceType === "desktop" ? "Desktop" : "Unknown",
+              fmtAllowedTabs(ag.allowedTabs),
+              timeAgo(ag.lastSeen),
+              state !== "offline" ? sessionDuration(ag.sessionStart, null) : (ag.lastSessionDuration || "—"),
+            ];
+          })
+        )}
+
+        <div class="sub-title" style="margin-top:14px">Today's Attendance — ${fmtDateShort(agentsTodayStr)}</div>
+        ${humanAgents.length === 0
+          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">No human agents on record.</div>`
+          : dataTable(
+              ["#","Name","In Time","Last Active","Hours Today","Status"],
+              humanAgents.map((ag, i) => {
+                const uid = ag.uid || ag.id;
+                const rep = agentsReportByUid.get(uid);
+                const todayDay = rep?.days?.find(d => d.date === agentsTodayStr) || null;
+                return [
+                  i+1,
+                  ag.name || "—",
+                  todayDay?.inTime || "—",
+                  todayDay?.lastTime || "—",
+                  todayDay ? todayDay.hours.toFixed(1) + "h" : "0.0h",
+                  todayDay ? todayDay.status : "Absent",
+                ];
+              })
+            )
+        }
+
+        <div class="sub-title" style="margin-top:14px">This Month's Attendance Summary</div>
+        ${agentsRows.length === 0
+          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">Attendance summary unavailable — logs were not fetched for this export.</div>`
+          : dataTable(
+              ["#","Name","Days Present","Full Days","Half Days","Days Absent","Attendance %","Total Hours","Avg Hrs/Day","Overtime","Shortfall"],
+              agentsRows.map((r, i) => [
+                i+1,
+                r.name || "—",
+                r.daysPresent,
+                r.daysFull,
+                r.daysHalf,
+                r.daysAbsent,
+                r.attendancePct.toFixed(0) + "%",
+                r.totalHours.toFixed(1) + "h",
+                r.avgHoursPerDay.toFixed(1) + "h",
+                r.overtimeHours.toFixed(1) + "h",
+                r.shortfallHours.toFixed(1) + "h",
+              ])
+            )
+        }
+      </div>`;
+
+    // ══════════════════════════════════════════════════════════════════
     // ASSEMBLE
     // ══════════════════════════════════════════════════════════════════
     // ── Build the section list label for the cover header ──────────────────
@@ -5487,8 +5865,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       s.has("analytics") && "Demographics & Analytics",
       s.has("users")     && "User Registry",
       s.has("activity")  && "Activity",
+      s.has("usage")     && "Platform Usage",
       s.has("schemes")   && "Schemes Coverage",
       s.has("reports")   && "Reports",
+      s.has("agents")    && "Human Agents & Team",
     ].filter(Boolean).join(" · ");
 
     const exportId = `YS-${isoDate.replace(/-/g,"")}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
@@ -5790,6 +6170,144 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     }
 
     /* ────────────────────────────────────────────────
+       OCCUPATION PULSE — donut chart + engagement matrix
+    ──────────────────────────────────────────────── */
+    .pulse-wrap {
+      display: flex;
+      gap: 14px;
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 10px 12px;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .pulse-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent1), var(--accent3), var(--accent4), var(--accent2));
+      opacity: 0.7;
+    }
+    .donut {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      position: relative;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px var(--border2);
+    }
+    .donut-hole {
+      position: absolute;
+      top: 9px; left: 9px; right: 9px; bottom: 9px;
+      background: var(--surface);
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .donut-num {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+    .donut-label {
+      font-family: var(--mono);
+      font-size: 5px;
+      color: var(--textSub);
+      letter-spacing: 1.2px;
+      text-align: center;
+      margin-top: 3px;
+      text-transform: uppercase;
+    }
+    .pulse-legend { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .pulse-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 7px;
+      color: var(--textMid);
+    }
+    .pulse-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .pulse-legend-name { flex: 1; }
+    .pulse-legend-val { font-weight: 700; color: var(--text); }
+    .pulse-legend-pct { color: var(--textSub); width: 28px; text-align: right; }
+
+    .eng-matrix .bd-title { display: flex; align-items: center; gap: 5px; }
+    .eng-track {
+      display: inline-block;
+      height: 6px;
+      background: var(--border2);
+      border-radius: 3px;
+      vertical-align: middle;
+      position: relative;
+      overflow: hidden;
+    }
+    .eng-fill {
+      display: block;
+      height: 6px;
+      border-radius: 3px;
+      box-shadow: 0 0 4px rgba(79,142,247,0.5);
+    }
+    .rate-chip {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 6.5px;
+      font-weight: 700;
+      padding: 1.5px 6px;
+      border-radius: 8px;
+      border: 1px solid;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    /* ────────────────────────────────────────────────
+       SPARK CHART — 7-day checker-run trend
+    ──────────────────────────────────────────────── */
+    .spark-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 82px;
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 10px 12px 6px;
+    }
+    .spark-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+    }
+    .spark-val {
+      font-family: var(--mono);
+      font-size: 6.5px;
+      color: var(--textMid);
+      margin-bottom: 3px;
+    }
+    .spark-bar {
+      width: 60%;
+      border-radius: 2px 2px 0 0;
+      box-shadow: 0 0 4px rgba(79,142,247,0.4);
+    }
+    .spark-lbl {
+      font-family: var(--mono);
+      font-size: 6px;
+      color: var(--textSub);
+      margin-top: 4px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ────────────────────────────────────────────────
        INFO BAR
     ──────────────────────────────────────────────── */
     .info-bar {
@@ -5919,8 +6437,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   ${s.has("analytics") ? analyticsHTML : ""}
   ${s.has("users")     ? usersHTML     : ""}
   ${s.has("activity")  ? activityHTML  : ""}
+  ${s.has("usage")     ? usageHTML     : ""}
   ${s.has("schemes")   ? schemesHTML   : ""}
   ${s.has("reports")   ? reportsHTML   : ""}
+  ${s.has("agents")    ? agentsHTML    : ""}
 
   <!-- ═══════════════════════════════════════════
        FIXED PAGE-NUMBER FOOTER
@@ -5934,7 +6454,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   <div class="footer">
     YojanaSahay Admin Dashboard &nbsp;·&nbsp; ${exportId} &nbsp;·&nbsp;
     ${dateStr} ${timeStr} &nbsp;·&nbsp;
-    ${users.length} users &nbsp;/&nbsp; ${reports.length} reports &nbsp;/&nbsp; ${allSchemes.length} schemes &nbsp;·&nbsp;
+    ${users.length} users &nbsp;/&nbsp; ${reports.length} reports &nbsp;/&nbsp; ${allSchemes.length} schemes &nbsp;/&nbsp; ${humanAgents.length} human agents &nbsp;·&nbsp;
     Confidential — For Authorised Admin Use Only
   </div>
 
@@ -5964,7 +6484,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       a.click();
     }
     setTimeout(() => URL.revokeObjectURL(url), 15000);
-  }, [users, reports, guestProfiles]);
+  }, [users, reports, guestProfiles, usageData, humanAgents]);
 
   // ── Export steps definition — only steps relevant to selected sections ──────
   const EXPORT_STEPS = useMemo(() => {
@@ -5983,27 +6503,53 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       steps.push({ label: "Rendering 24-column user registry table", dur: 720 });
     if (exportSections.has("activity"))
       steps.push({ label: "Compiling activity, dormancy & retention data", dur: 440 });
+    if (exportSections.has("usage"))
+      steps.push({ label: "Aggregating checker runs, searches & guest activity", dur: 460 });
     if (exportSections.has("schemes"))
       steps.push({ label: "Processing schemes coverage & user cross-reference", dur: 500 });
     if (exportSections.has("reports"))
       steps.push({ label: `Formatting ${reports.length} report${reports.length !== 1 ? "s" : ""} with reply history`, dur: 540 });
+    if (exportSections.has("agents"))
+      steps.push({ label: `Compiling ${humanAgents.length} human agent record${humanAgents.length !== 1 ? "s" : ""} & attendance`, dur: 500 });
     steps.push({ label: "Assembling HTML layout & print styles", dur: 780 });
     steps.push({ label: "Finalizing & packaging document", dur: 520 });
     return steps;
-  }, [exportSections, users.length, reports.length]);
+  }, [exportSections, users.length, reports.length, humanAgents.length]);
 
   // ── Animated export handler ────────────────────────────────────────────────
   const handleExportAll = useCallback(async () => {
-    // If the Analytics section is being exported and usage data was never
+    // If Analytics or Usage is being exported and usage data was never
     // fetched this session (admin went straight to Export without opening
     // Usage/Analytics first), fetch it now and hold onto the result directly —
-    // otherwise the component's guestProfiles memo won't have re-run yet by
-    // the time exportAllPDF runs below (same synchronous call chain), and
-    // guest checker answers would silently be missing from the PDF.
+    // otherwise the component's guestProfiles memo (and the raw usageData
+    // state itself) won't have re-run/re-rendered yet by the time
+    // exportAllPDF runs below (same synchronous call chain), and both guest
+    // checker answers AND the whole Platform Usage section would silently
+    // come up empty even though fresh data exists.
     let freshUsageData = null;
-    if (exportSections.has("analytics") && !usageData) {
+    if ((exportSections.has("analytics") || exportSections.has("usage")) && !usageData) {
       freshUsageData = await fetchUsage();
     }
+
+    // If Human Agents is being exported, fetch this month's agentTimeLogs
+    // (month start → today) and build the attendance report right here —
+    // same reasoning as freshUsageData above: humanAgents itself is already
+    // live (lifted up from AgentsTab), but the attendance logs are a
+    // one-off fetch, not a listener, so they must be pulled fresh per export
+    // rather than reused from some cached/stale state.
+    let freshAgentsData = null;
+    if (exportSections.has("agents")) {
+      const todayStrForExport = getISTDateStr();
+      const monthStartStr = todayStrForExport.slice(0, 7) + "-01";
+      try {
+        const logs = await fetchAttendanceLogsRange(monthStartStr, todayStrForExport);
+        const monthReport = buildAttendanceReport(humanAgents, logs, monthStartStr, todayStrForExport, "all");
+        freshAgentsData = { monthReport, todayStr: todayStrForExport, monthStartStr };
+      } catch (e) {
+        console.warn("[handleExportAll] failed to fetch agent attendance for export:", e);
+      }
+    }
+
     setExportModal(true);
     setExportStep(-1);
     setExportDone(false);
@@ -6018,11 +6564,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     await new Promise(r => setTimeout(r, 1100));
     setExportModal(false);
     await new Promise(r => setTimeout(r, 80));
-    exportAllPDF(exportSections, freshUsageData);
+    exportAllPDF(exportSections, freshUsageData, freshAgentsData);
 
     // Reset state after a short delay
     setTimeout(() => { setExportStep(-1); setExportDone(false); }, 600);
-  }, [EXPORT_STEPS, exportAllPDF, exportSections, usageData, fetchUsage]);
+  }, [EXPORT_STEPS, exportAllPDF, exportSections, usageData, fetchUsage, humanAgents]);
 
   // ─────────────────────────────────────────────────────────────────────────
   const ALL_TABS = [
@@ -7486,8 +8032,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           { id:"analytics", icon:"🧮", label:"Demographics",      desc:"Occupation, income, age, gender, cross-tab matrices" },
           { id:"users",     icon:"👥", label:"User Registry",     desc:"Full 24-column table of all registered users" },
           { id:"activity",  icon:"🕐", label:"Activity",          desc:"Recent activity, new joiners & dormant users" },
+          { id:"usage",     icon:"📈", label:"Platform Usage",    desc:"Checker runs, search queries, guest activity & 7-day trend" },
           { id:"schemes",   icon:"🗺️", label:"Schemes Coverage",  desc:"State-wise coverage table & tier summary" },
           { id:"reports",   icon:"📬", label:"Reports",           desc:"All reports with full reply history" },
+          { id:"agents",    icon:"🧑‍💼", label:"Human Agents & Team", desc:"Human agent roster, live status, today's & this month's attendance" },
         ];
         const selectedCount = exportSections.size;
         const allSelected   = selectedCount === EXPORT_SECTION_CONFIG.length;
@@ -7518,7 +8066,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           mono:   "'JetBrains Mono','Fira Code','Courier New',monospace",
         };
 
-        const SECTION_COLORS = [C.blue, C.green, C.amber, C.purple, C.red, "#f7824f"];
+        const SECTION_COLORS = [C.blue, C.green, C.amber, C.purple, C.red, "#f7824f", "#f472b6"];
 
         return (
           <>
@@ -7851,7 +8399,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
       {/* ══ AGENTS — Live Presence Monitor ══ */}
       {!loading && !error && activeSection === "agents" && (
-        <AgentsTab dark={dark} isDesktop={isDesktop} />
+        <AgentsTab
+          dark={dark} isDesktop={isDesktop}
+          humanAgents={humanAgents}
+          presenceLoaded={presenceLoaded}
+          presenceError={presenceError}
+        />
       )}
 
       {/* ══ NEWS — Scheme News Manager ══ */}
