@@ -45,7 +45,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "₹1,000–₹2,500/month stipend for girl students (Class 11 to PG) to prevent child marriage", hi: "बाल विवाह रोकने के लिए छात्राओं को ₹1,000–₹2,500/माह वजीफा" },
     tag:     { en: "Girl Student", hi: "छात्रा" },
     annual: 12000,
-    apply:   { en: "https://sebaonline.org", hi: "sebaonline.org" }, applyType: "online",
+    apply:   { en: "https://directorateofhighereducation.assam.gov.in/documents-detail/final-guideline-for-nijut-moina-scheme-2024-25", hi: "sebaonline.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","School / College Enrollment Certificate","Bank Account (girl's name)","Birth Certificate"],
                hi: ["आधार कार्ड","स्कूल/कॉलेज नामांकन प्रमाण","बैंक खाता (छात्रा के नाम)","जन्म प्रमाण पत्र"] },
     match: (a) => a.state === "Assam" && a.who === "student",
@@ -59,7 +59,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "Free scooty for girls scoring 75%+ in HSLC/HS · Free bicycle for other meritorious students", hi: "HSLC/HS में 75%+ लाने वाली छात्राओं को मुफ्त स्कूटी · अन्य को साइकिल" },
     tag:     { en: "Student / Girl", hi: "छात्रा" },
     annual: 60000,
-    apply:   { en: "https://sebaonline.org", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Anundoram Award
+    apply:   { en: "https://directorateofhighereducation.assam.gov.in/documents-detail/final-guideline-for-nijut-moina-scheme-2024-25", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Anundoram Award
     docs:    { en: ["Aadhaar Card","HSLC / HS Marksheet (75%+)","School Certificate","Bank Account"],
                hi: ["आधार कार्ड","HSLC/HS अंकसूची (75%+)","स्कूल प्रमाण पत्र","बैंक खाता"] },
     match: (a) => a.state === "Assam" && a.who === "student",
@@ -73,7 +73,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "₹1 Lakh cash + free laptop for students scoring Distinction in HSLC", hi: "HSLC में डिस्टिंक्शन पाने पर ₹1 लाख नकद + मुफ्त लैपटॉप" },
     tag:     { en: "Student / Merit", hi: "छात्र / मेधावी" },
     annual: 100000,
-    apply:   { en: "https://sebaonline.org", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Pragyan Bharati
+    apply:   { en: "https://cleartax.in/s/anundoram-borooah-laptop-award-scheme-arbas", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Pragyan Bharati
     docs:    { en: ["Aadhaar Card","HSLC Marksheet (Distinction)","School Certificate","Bank Account"],
                hi: ["आधार कार्ड","HSLC अंकसूची (डिस्टिंक्शन)","स्कूल प्रमाण पत्र","बैंक खाता"] },
     match: (a) => a.state === "Assam" && a.who === "student",
