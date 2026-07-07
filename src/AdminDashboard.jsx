@@ -3001,6 +3001,33 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   const topStates = Object.entries(stateCounts).sort((a, b) => b[1] - a[1]).slice(0, 6)
     .map(([label, value]) => ({ label, value }));
 
+  // ── Guest Activity — group anonymous-browser records by their local guest
+  // id (see getGuestId() in App.jsx) so repeat guest engagement is visible
+  // without ever touching the `users` collection or any personal identity —
+  // there isn't one to attach; it's just a per-browser random label. ──────────
+  const guestMap = {};
+  let legacyAnonCount = 0;
+  const touchGuest = (uid, ts, kind) => {
+    if (!uid) return;
+    if (uid === "anon") { legacyAnonCount++; return; } // pre-fix data — shared bucket, can't be split apart
+    if (typeof uid !== "string" || !uid.startsWith("guest_")) return; // real logged-in uid — not a guest
+    if (!guestMap[uid]) guestMap[uid] = { uid, runs: 0, searches: 0, states: 0, first: ts, last: ts, lastMatched: null };
+    const g = guestMap[uid];
+    g[kind]++;
+    if (ts && (!g.first || ts < g.first)) g.first = ts;
+    if (ts && (!g.last  || ts > g.last)) { g.last = ts; if (kind === "runs") g.lastMatched = null; }
+  };
+  checkerRuns.forEach(r => {
+    touchGuest(r.uid, r.ts, "runs");
+    const g = guestMap[r.uid];
+    if (g && r.ts === g.last) g.lastMatched = r.matchedCount ?? null;
+  });
+  schemeSearches.forEach(r => touchGuest(r.uid, r.ts, "searches"));
+  stateSelections.forEach(r => touchGuest(r.uid, r.ts, "states"));
+  const guestList = Object.values(guestMap)
+    .map(g => ({ ...g, total: g.runs + g.searches + g.states }))
+    .sort((a, b) => b.total - a.total);
+
   // Top search queries
   const queryCounts = {};
   schemeSearches.forEach(r => {
@@ -3156,6 +3183,79 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
           ))}
         </div>
       </div>
+
+      {/* ── SECTION 1.5: Guest Activity — anonymous browsers, kept separate from Users tab ── */}
+      {(guestList.length > 0 || legacyAnonCount > 0) && (
+        <div style={cardStyle}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: th.textMid, letterSpacing: 0.3 }}>
+              🕵️ GUEST ACTIVITY <span style={{ color: th.textSub, fontWeight: 600 }}>(not signed in)</span>
+            </div>
+            {guestList.length > 0 && (
+              <div style={{
+                fontSize: 9, fontWeight: 800, color: SAFFRON,
+                background: SAFFRON + "18", borderRadius: 8, padding: "2px 8px",
+              }}>
+                {guestList.length} browser{guestList.length === 1 ? "" : "s"}
+              </div>
+            )}
+          </div>
+
+          {guestList.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {guestList.slice(0, 8).map((g, i) => (
+                <div key={g.uid} style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: th.card2, borderRadius: 10, padding: "8px 10px", border: `1px solid ${th.border}`,
+                }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                    background: VIOLET + "22", color: VIOLET, fontSize: 9, fontWeight: 900,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>#{i + 1}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: th.text }}>
+                      Guest {g.uid.slice(6, 12)}
+                    </div>
+                    <div style={{
+                      fontSize: 9, color: th.textSub, marginTop: 1,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>
+                      {[
+                        g.runs > 0     && `${g.runs} run${g.runs === 1 ? "" : "s"}`,
+                        g.searches > 0 && `${g.searches} search${g.searches === 1 ? "" : "es"}`,
+                        g.states > 0   && `${g.states} state pick${g.states === 1 ? "" : "s"}`,
+                      ].filter(Boolean).join(" · ")}
+                    </div>
+                  </div>
+                  {g.lastMatched != null && (
+                    <div style={{
+                      fontSize: 9, fontWeight: 800, color: IND_GREEN,
+                      background: IND_GREEN + "18", borderRadius: 6, padding: "2px 6px", flexShrink: 0,
+                    }}>
+                      {g.lastMatched} matched
+                    </div>
+                  )}
+                  <div style={{ fontSize: 8.5, color: th.textMid, flexShrink: 0, textAlign: "right", minWidth: 50 }}>
+                    {fmtTime(g.last)}
+                  </div>
+                </div>
+              ))}
+              {guestList.length > 8 && (
+                <div style={{ fontSize: 9, color: th.textSub, textAlign: "center", marginTop: 2 }}>
+                  +{guestList.length - 8} more guest browser{guestList.length - 8 === 1 ? "" : "s"}
+                </div>
+              )}
+            </div>
+          )}
+
+          {legacyAnonCount > 0 && (
+            <div style={{ fontSize: 8.5, color: th.textSub, textAlign: "center", marginTop: guestList.length > 0 ? 8 : 0, fontStyle: "italic" }}>
+              + {legacyAnonCount} older guest entr{legacyAnonCount === 1 ? "y" : "ies"} from before per-guest tracking was added — counted above in the totals, but can't be split apart individually.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── SECTION 2: 7-day bar + Who (side by side) ── */}
       {checkerRuns.length > 0 && (

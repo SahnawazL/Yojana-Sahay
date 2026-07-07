@@ -21,8 +21,9 @@ import {
 } from "./schemesData.js";
 import schemesMeta from "./schemes-meta.json";
 import { auth, db } from "./firebase.js";
-import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, arrayUnion, increment } from "firebase/firestore";
+import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, getAuth, signInAnonymously } from "firebase/auth";
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, arrayUnion, increment, getFirestore } from "firebase/firestore";
+import { initializeApp, getApps } from "firebase/app";
 import AIChat from "./AIChat.jsx";
 import { generateResultsBrief } from "./groqClient.js";
 import AILockedScreen from "./AILockedScreen.jsx";
@@ -287,6 +288,74 @@ const googleSearchScheme = (name) => {
 // Scheme count  → SCHEME_DB.length (real, instant)
 // States        → 28 (static)
 // Indians Helped → appStats/usage → checkerTotal (real Firestore read)
+
+// ─── GUEST STATS WRITER — lets non-logged-in visitors count toward "Indians
+// Helped" too ──────────────────────────────────────────────────────────────
+// Firestore rules require request.auth != null to write appStats/usage, so a
+// guest's write used to fail silently. Rather than sign guests into the main
+// `auth` object (which ~20 places in this file treat as "user is logged in"
+// for showing profile photo, avatar, sign-out button, etc.), we spin up a
+// second, completely separate Firebase app instance — same project, same
+// database — with its own invisible anonymous session. Nothing about it is
+// ever shown in the UI, and it never touches `auth` or `db` used everywhere
+// else. It exists purely so appStats/usage writes succeed for guests too.
+let _statsSecondaryApp = null;
+function getStatsApp(){
+  if(_statsSecondaryApp) return _statsSecondaryApp;
+  _statsSecondaryApp = getApps().find(a=>a.name==="statsWriter")
+    || initializeApp(auth.app.options, "statsWriter");
+  return _statsSecondaryApp;
+}
+let _statsAuthReadyPromise = null;
+function ensureStatsAuthReady(){
+  const sAuth = getAuth(getStatsApp());
+  if(sAuth.currentUser) return Promise.resolve(sAuth);
+  if(!_statsAuthReadyPromise){
+    _statsAuthReadyPromise = signInAnonymously(sAuth)
+      .then(()=>sAuth)
+      .catch(()=>sAuth); // if it fails, we still resolve — the write below will just no-op via its own catch
+  }
+  return _statsAuthReadyPromise;
+}
+// ─── GUEST ID — a stable, local-only label so admin analytics can tell one
+// guest browser apart from another ──────────────────────────────────────────
+// This is NOT an auth identity and never touches Firebase Auth or the `users`
+// collection — it's just a random string kept in this browser's localStorage,
+// reused on repeat visits from the same browser/device. It only ever appears
+// inside appStats/usage records (checkerRuns/schemeSearches/stateSelections)
+// as the "uid" field for guests, purely so the admin dashboard can group a
+// guest's activity together instead of every guest looking identical.
+const GUEST_ID_KEY = "ys_guestId";
+function getGuestId(){
+  try{
+    let id = localStorage.getItem(GUEST_ID_KEY);
+    if(!id){
+      const rand = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`).replace(/-/g,"").slice(0,12);
+      id = `guest_${rand}`;
+      localStorage.setItem(GUEST_ID_KEY, id);
+    }
+    return id;
+  }catch{
+    return "anon"; // localStorage unavailable (private mode etc.) — falls back to old shared bucket
+  }
+}
+
+// Writes to appStats/usage in a way that works for BOTH logged-in users and
+// guests. Logged-in users already have a valid `auth.currentUser`, so we use
+// the normal `db`. Guests go through the isolated anonymous session above.
+// Safe to call anywhere the old `setDoc(doc(db,"appStats","usage"),...)` was used.
+async function writeAppStatsSafe(data){
+  try{
+    if(auth.currentUser){
+      await setDoc(doc(db,"appStats","usage"), data, {merge:true});
+      return;
+    }
+    const sAuth = await ensureStatsAuthReady();
+    if(!sAuth.currentUser) return; // anonymous sign-in failed (e.g. offline) — silently skip, same as before
+    const sdb = getFirestore(getStatsApp());
+    await setDoc(doc(sdb,"appStats","usage"), data, {merge:true});
+  }catch{ /* mirrors the original silent .catch(()=>{}) behavior */ }
+}
 
 // ─── LAST VERIFIED DATE — Freshness Badge ──────────────────────────────────────
 // Walks SCHEME_DB (already merged with schemesMeta at module init) and finds the
@@ -2166,10 +2235,10 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
     const q=deferredQuery.trim();
     if(q.length<3) return;
     try{
-      setDoc(doc(db,"appStats","usage"),{
-        schemeSearches:arrayUnion({q,uid:auth.currentUser?.uid||"anon",ts:new Date().toISOString()}),
+      writeAppStatsSafe({
+        schemeSearches:arrayUnion({q,uid:auth.currentUser?.uid||getGuestId(),ts:new Date().toISOString()}),
         searchTotal:increment(1),
-      },{merge:true}).catch(()=>{});
+      });
     }catch{}
   },[deferredQuery]);
 
@@ -2665,10 +2734,10 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
     setSelectedState(st);
     if(st && st!=="all"){
       try{
-        setDoc(doc(db,"appStats","usage"),{
-          stateSelections:arrayUnion({state:st,ts:new Date().toISOString()}),
+        writeAppStatsSafe({
+          stateSelections:arrayUnion({state:st,uid:auth.currentUser?.uid||getGuestId(),ts:new Date().toISOString()}),
           [`stateCount_${st.replace(/\s+/g,"_")}`]:increment(1),
-        },{merge:true}).catch(()=>{});
+        });
       }catch{}
     }
   },[]);
@@ -3745,7 +3814,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
     // ── Log checker run to appStats/usage for admin analytics ──
     try{
       const runRecord={
-        uid:uid||"anon",
+        uid:uid||getGuestId(),
         matchedCount:results.length,
         state:answers.state||null,
         who:answers.who||null,
@@ -3756,11 +3825,11 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
         ration:answers.ration||null,
         ts:new Date().toISOString(),
       };
-      setDoc(doc(db,"appStats","usage"),{
+      writeAppStatsSafe({
         checkerRuns:arrayUnion(runRecord),
         checkerTotal:increment(1),
         lastRun:new Date().toISOString(),
-      },{merge:true}).catch(()=>{});
+      });
     }catch{}
     // ── Cache check — skip API if we already have a brief for these exact answers ──
     try{
