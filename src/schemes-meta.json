@@ -2926,9 +2926,9 @@
     "confidence": 0
   },
   "haryana_e_karma": {
-    "lastVerified": "2026-07-07T12:42:11.148Z",
+    "lastVerified": "2026-07-07T15:57:31.991Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_solar_pump": {
