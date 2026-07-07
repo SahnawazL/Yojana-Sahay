@@ -3019,9 +3019,9 @@
     "confidence": 0
   },
   "hp_disabled_pension": {
-    "lastVerified": "2026-07-07T15:35:53.420Z",
+    "lastVerified": "2026-07-07T15:57:45.483Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "hp_sc_post_matric": {
