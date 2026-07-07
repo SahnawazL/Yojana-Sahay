@@ -531,7 +531,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free placement-linked skill training + ₹1,000–₹1,500/month stipend during training", hi: "मुफ्त कौशल प्रशिक्षण + प्रशिक्षण के दौरान ₹1,000–₹1,500/माह वजीफा" },
     tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
     annual: 18000,
-    apply:   { en: "https://kaushal.rural.gov.in", hi: "kaushal.rural.gov.in" }, applyType: "online",
+    apply:   { en: "https://haryanadp.gov.in/wp-content/uploads/2025/06/2023021741-second.pdf", hi: "kaushal.rural.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (15–35 years)","Educational Certificate","Bank Account","BPL/Ration Card"],
                hi: ["आधार कार्ड","आयु प्रमाण (15–35 वर्ष)","शैक्षणिक प्रमाण","बैंक खाता","BPL/राशन कार्ड"] },
     match: (a) => a.area === "rural" && ["18to35"].includes(a.age) && ["below1","1to3"].includes(a.income),
@@ -1843,7 +1843,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹1,25,000/year (maintenance + tuition reimbursement) for J&K/Ladakh students studying outside their UT", hi: "अपने केंद्र शासित प्रदेश से बाहर पढ़ने वाले J&K/लद्दाख छात्रों को ₹1,25,000/वर्ष (रखरखाव + ट्यूशन प्रतिपूर्ति)" },
     tag:     { en: "Student / J&K-Ladakh", hi: "छात्र / J&K-लद्दाख" },
     annual: 125000,
-    apply:   { en: "https://aicte.gov.in/bureaus/jk", hi: "aicte-india.org" }, applyType: "online",
+    apply:   { en: "https://www.indiascienceandtechnology.gov.in/nurturing-minds/scholarships/graduation/prime-ministers-special-scholarship-scheme-pmsss-jk", hi: "aicte-india.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Domicile Certificate (J&K/Ladakh)","Class 12 Mark Sheet","Admission Proof (outside UT)","Bank Account"],
                hi: ["आधार कार्ड","अधिवास प्रमाण पत्र (J&K/लद्दाख)","कक्षा 12 मार्कशीट","प्रवेश प्रमाण (UT के बाहर)","बैंक खाता"] },
     // Eligibility: domicile of J&K or Ladakh, studying outside the UT
