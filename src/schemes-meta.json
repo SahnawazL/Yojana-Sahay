@@ -3056,9 +3056,9 @@
     "linkAlive": true
   },
   "hp_fasal_bima": {
-    "lastVerified": "2026-07-07T15:36:19.408Z",
+    "lastVerified": "2026-07-07T15:58:31.624Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "hp_bocw_welfare": {
@@ -3074,9 +3074,9 @@
     "confidence": 0
   },
   "hp_free_coaching": {
-    "lastVerified": "2026-07-07T15:36:32.909Z",
+    "lastVerified": "2026-07-07T15:58:31.624Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "hp_svanidhi": {
