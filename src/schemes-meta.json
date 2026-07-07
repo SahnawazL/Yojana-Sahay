@@ -2860,9 +2860,9 @@
     "confidence": 0
   },
   "haryana_mmpsy": {
-    "lastVerified": "2026-07-07T12:43:05.690Z",
+    "lastVerified": "2026-07-07T15:57:21.520Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_old_age_allowance": {
