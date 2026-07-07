@@ -4796,6 +4796,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     }
   }, []);
 
+  // Fetch on mount too (not just when Usage/Analytics tab is opened) — the
+  // header now shows a guest count derived from this data, so it needs to
+  // be accurate immediately rather than showing 0 until the admin happens
+  // to visit one of those tabs.
+  useEffect(() => { fetchUsage(); }, [fetchUsage]);
+
   useEffect(() => {
     // Analytics tab also needs usageData now — it folds guest checker-run
     // answers (who/income/age/area/gender/ration) into the demographic charts.
@@ -6763,6 +6769,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 <span style={{ width:2, height:2, borderRadius:"50%", background:SAFFRON, opacity:0.4, flexShrink:0 }}/>
                 <span style={{ fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8, color:"rgba(255,255,255,0.38)" }}>
                   {loading ? "SYNCING…" : `${users.length} USERS · ${SCHEME_DB.length} SCHEMES`}
+                  {!loading && !usageLoading && guestProfiles.length > 0 && (
+                    <span style={{ color:"rgba(255,255,255,0.24)" }}> · +{guestProfiles.length} guest{guestProfiles.length!==1?"s":""}</span>
+                  )}
                 </span>
                 {!loading && latencyMs && (
                   <>
@@ -6997,6 +7006,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   <span style={{ width:2, height:2, borderRadius:"50%", background:SAFFRON, opacity:0.4 }}/>
                   <span style={{ fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8, color:"rgba(255,255,255,0.38)" }}>
                     {loading ? "SYNCING…" : `${users.length} USERS`}
+                    {!loading && !usageLoading && guestProfiles.length > 0 && (
+                      <span style={{ color:"rgba(255,255,255,0.24)" }}> · +{guestProfiles.length} guest{guestProfiles.length!==1?"s":""}</span>
+                    )}
                   </span>
                   {!loading && latencyMs && (
                     <>
