@@ -1278,9 +1278,9 @@
     "confidence": 0
   },
   "delhi_doorstep_services": {
-    "lastVerified": "2026-07-07T02:32:28.182Z",
+    "lastVerified": "2026-07-07T09:56:07.722Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0,
     "isActive": false
   },
