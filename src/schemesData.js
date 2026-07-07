@@ -606,7 +606,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹2 Lakh accident insurance + access to all labour welfare schemes", hi: "₹2 लाख दुर्घटना बीमा + सभी श्रम कल्याण योजनाओं तक पहुंच" },
     tag:     { en: "Labour / General", hi: "श्रमिक / सामान्य" },
     annual: 0,
-    apply:   { en: "https://eshram.gov.in", hi: "eshram.gov.in" }, applyType: "online",
+    apply:   { en: "https://eshram.gov.in/", hi: "eshram.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (Aadhaar-linked mobile)","Bank Account"],
                hi: ["आधार कार्ड (आधार से लिंक मोबाइल)","बैंक खाता"] },
     match: (a) => ["below1","1to3"].includes(a.income) && a.who !== "student",
@@ -1843,7 +1843,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹1,25,000/year (maintenance + tuition reimbursement) for J&K/Ladakh students studying outside their UT", hi: "अपने केंद्र शासित प्रदेश से बाहर पढ़ने वाले J&K/लद्दाख छात्रों को ₹1,25,000/वर्ष (रखरखाव + ट्यूशन प्रतिपूर्ति)" },
     tag:     { en: "Student / J&K-Ladakh", hi: "छात्र / J&K-लद्दाख" },
     annual: 125000,
-    apply:   { en: "https://www.indiascienceandtechnology.gov.in/nurturing-minds/scholarships/graduation/prime-ministers-special-scholarship-scheme-pmsss-jk", hi: "aicte-india.org" }, applyType: "online",
+    apply:   { en: "https://aicte.gov.in/bureaus/jk", hi: "aicte-india.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Domicile Certificate (J&K/Ladakh)","Class 12 Mark Sheet","Admission Proof (outside UT)","Bank Account"],
                hi: ["आधार कार्ड","अधिवास प्रमाण पत्र (J&K/लद्दाख)","कक्षा 12 मार्कशीट","प्रवेश प्रमाण (UT के बाहर)","बैंक खाता"] },
     // Eligibility: domicile of J&K or Ladakh, studying outside the UT
