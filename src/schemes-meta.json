@@ -895,15 +895,15 @@
     "confidence": 0
   },
   "kerala_karunya": {
-    "lastVerified": "2026-06-22T20:10:49.842Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-07-07T23:28:52.875Z",
+    "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_merit_scholarship": {
-    "lastVerified": "2026-06-22T20:06:42.874Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-07T23:29:30.879Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "kerala_asap": {
@@ -913,44 +913,44 @@
     "confidence": 0
   },
   "kerala_unemployment_allowance": {
-    "lastVerified": "2026-06-22T20:09:05.328Z",
+    "lastVerified": "2026-07-07T23:30:24.530Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_startup_mission": {
-    "lastVerified": "2026-06-22T20:06:42.874Z",
+    "lastVerified": "2026-07-07T23:30:19.397Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_minority_scholarship": {
-    "lastVerified": "2026-06-22T20:06:42.874Z",
+    "lastVerified": "2026-07-07T23:29:39.539Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_cmss_abroad": {
-    "lastVerified": "2026-06-22T20:06:42.874Z",
+    "lastVerified": "2026-07-07T23:28:18.781Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_pratibha_scholarship": {
-    "lastVerified": "2026-06-22T20:06:42.874Z",
+    "lastVerified": "2026-07-07T23:29:56.667Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_norka_pravasi": {
-    "lastVerified": "2026-06-22T20:06:42.874Z",
+    "lastVerified": "2026-07-07T23:29:48.194Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "kerala_cm_distress_relief": {
-    "lastVerified": "2026-06-22T20:06:42.874Z",
+    "lastVerified": "2026-07-07T23:28:13.165Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1840,13 +1840,13 @@
     "confidence": 0
   },
   "ladakh_himayat_skill": {
-    "lastVerified": "2026-06-22T20:03:26.164Z",
+    "lastVerified": "2026-07-07T23:30:59.652Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ladakh_sehat_health_insurance": {
-    "lastVerified": "2026-06-22T20:03:26.164Z",
+    "lastVerified": "2026-07-07T23:31:25.707Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1924,7 +1924,7 @@
     "confidence": 0
   },
   "khelo_india": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-07T23:30:43.598Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2437,11 +2437,10 @@
     "confidence": 0
   },
   "maha_ahilyadevi_mahila_startup": {
-    "lastVerified": "2026-06-22T19:55:55.636Z",
+    "lastVerified": "2026-07-07T23:31:50.057Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 1,
-    "lastDate": "2024-09-07",
+    "confidence": 0,
     "isActive": true
   },
   "maha_gems_jewellery_skill": {
@@ -2475,7 +2474,7 @@
     "confidence": 0
   },
   "maha_ambedkar_overseas_scholarship": {
-    "lastVerified": "2026-06-22T19:55:55.636Z",
+    "lastVerified": "2026-07-07T23:32:04.932Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2563,13 +2562,13 @@
     "confidence": 0
   },
   "maha_agri_infra_fund": {
-    "lastVerified": "2026-06-22T19:55:55.636Z",
-    "httpStatus": 403,
+    "lastVerified": "2026-07-07T23:31:44.813Z",
+    "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_ai_agriculture_policy": {
-    "lastVerified": "2026-06-22T19:55:55.636Z",
+    "lastVerified": "2026-07-07T23:31:55.765Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3186,11 +3185,10 @@
     "confidence": 0
   },
   "ladakh_sc_st_scholarship": {
-    "lastVerified": "2026-06-22T20:03:26.164Z",
+    "lastVerified": "2026-07-07T23:31:20.470Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 1,
-    "lastDate": "2022-11-15",
+    "confidence": 0,
     "isActive": true
   },
   "mp_prasuti": {
