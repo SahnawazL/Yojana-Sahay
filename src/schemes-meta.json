@@ -2806,9 +2806,9 @@
     "confidence": 0
   },
   "gujarat_beekeeping": {
-    "lastVerified": "2026-07-07T10:15:47.854Z",
+    "lastVerified": "2026-07-07T15:56:23.791Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "gujarat_widow_remarriage": {
@@ -2836,9 +2836,9 @@
     "confidence": 0
   },
   "gujarat_free_crop_insurance": {
-    "lastVerified": "2026-07-07T10:16:37.910Z",
+    "lastVerified": "2026-07-07T15:56:23.791Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "gujarat_cold_chain": {
