@@ -1297,9 +1297,9 @@
     "confidence": 0
   },
   "delhi_startup_policy": {
-    "lastVerified": "2026-07-07T06:34:52.121Z",
+    "lastVerified": "2026-07-07T09:55:58.719Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "delhi_marriage_assistance": {
