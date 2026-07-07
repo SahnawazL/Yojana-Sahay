@@ -427,7 +427,50 @@ export default async function handler(req, res) {
         limit: DAILY_EMAIL_LIMIT,
       };
 
-      return res.status(200).json({ runs, todayQuota });
+      // Scheme-verify batch history — the background job the GitHub Action
+      // pings every ~15-20 min. Previously invisible anywhere; now surfaced
+      // here so the dashboard can show when it last ran and how far the
+      // rotation has gotten through the catalog.
+      let verifyRuns = [];
+      let verifyCursor = null;
+      try {
+        const verifySnap = await auth.db.collection("schemeVerifyRuns")
+          .orderBy("runAt", "desc")
+          .limit(20)
+          .get();
+        verifyRuns = verifySnap.docs.map(d => {
+          const data = d.data();
+          return {
+            id: d.id,
+            runAt:         data.runAt?.toDate?.().toISOString() ?? null,
+            checked:       data.checked,
+            skippedNoUrl:  data.skippedNoUrl,
+            withResults:   data.withResults,
+            cursorBefore:  data.cursorBefore,
+            cursorAfter:   data.cursorAfter,
+            totalSchemes:  data.totalSchemes,
+            durationMs:    data.durationMs,
+            commitSuccess: data.commitSuccess,
+            commitError:   data.commitError ?? null,
+            checkedIds:    data.checkedIds ?? [],
+          };
+        });
+
+        const cursorSnap = await auth.db.collection("appMeta").doc("verifyCursor").get();
+        if (cursorSnap.exists) {
+          const c = cursorSnap.data();
+          verifyCursor = {
+            index:        c.index ?? 0,
+            totalSchemes: c.totalSchemes ?? 0,
+            updatedAt:    c.updatedAt ?? null,
+          };
+        }
+      } catch (err) {
+        console.error("[deadline-alerts] Failed to fetch verify-batch history:", err.message);
+        // Don't fail the whole GET over this — email run history above still works.
+      }
+
+      return res.status(200).json({ runs, todayQuota, verifyRuns, verifyCursor });
     } catch (err) {
       console.error("[deadline-alerts] Failed to fetch history:", err.message);
       return res.status(500).json({ error: "Could not load run history" });
@@ -447,6 +490,35 @@ export default async function handler(req, res) {
     if (req.body?.action === "verifyBatch") {
       try {
         const result = await runSchemeVerificationBatch();
+
+        // Log this run so it's visible in the admin dashboard — previously
+        // this batch ran silently every ~15-20 min with zero visibility
+        // anywhere: no Firestore record, no dashboard tab, nothing. The
+        // GitHub Action just discarded the HTTP response. Only keep the
+        // scheme ids checked here (not the full result payloads) to keep
+        // each log doc small; schemes-meta.json remains the source of truth
+        // for the actual verified data.
+        try {
+          const db = getAdminDb();
+          await db.collection("schemeVerifyRuns").add({
+            runAt:        new Date(),
+            checked:      result.checked,
+            skippedNoUrl: result.skippedNoUrl,
+            withResults:  result.withResults,
+            cursorBefore: result.cursorBefore,
+            cursorAfter:  result.cursorAfter,
+            totalSchemes: result.totalSchemes,
+            durationMs:   result.durationMs,
+            commitSuccess: !result.commitError,
+            commitError:  result.commitError ?? null,
+            checkedIds:   Object.keys(result.results || {}),
+          });
+        } catch (logErr) {
+          // Never let a logging failure turn a successful verification run
+          // into a 500 — the batch itself already succeeded and committed.
+          console.error("[deadline-alerts] Failed to log verifyBatch run:", logErr.message);
+        }
+
         return res.status(200).json(result);
       } catch (err) {
         console.error("[deadline-alerts] Scheme verification batch failed:", err);
