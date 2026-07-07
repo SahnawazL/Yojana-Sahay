@@ -517,11 +517,11 @@
     "linkAlive": true
   },
   "e_shram": {
-    "lastVerified": "2026-07-07T10:14:43.913Z",
+    "lastVerified": "2026-07-07T15:59:39.040Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmkmy": {
     "lastVerified": "2026-07-05T11:38:40.525Z",
@@ -3431,9 +3431,9 @@
     "confidence": 0
   },
   "pm_special_jk": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-07T15:59:39.040Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "cbse_single_girl": {
