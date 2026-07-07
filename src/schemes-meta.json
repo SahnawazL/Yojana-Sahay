@@ -2668,9 +2668,9 @@
     "isActive": true
   },
   "gujarat_mahila_utkarsh": {
-    "lastVerified": "2026-07-07T10:18:01.844Z",
+    "lastVerified": "2026-07-07T15:55:57.060Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "gujarat_ganga_swarupa": {
