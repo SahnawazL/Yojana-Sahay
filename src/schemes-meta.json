@@ -3032,9 +3032,9 @@
     "isActive": true
   },
   "hp_kaushal_vikas": {
-    "lastVerified": "2026-07-07T15:37:26.364Z",
+    "lastVerified": "2026-07-07T15:58:05.829Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "hp_obc_scholarship": {
