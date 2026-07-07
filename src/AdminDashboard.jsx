@@ -208,6 +208,35 @@ function groupBy(arr, key) {
   }, {});
 }
 
+// ── Guest checker-run answers, reshaped to look like a `users` profile row ──
+// Guests never get a Firestore users/{uid} doc, so there's no occupation/
+// income/age/area/gender/ration to read for them anywhere else — the ONLY
+// place that data exists is the answers they typed into the Eligibility
+// Checker itself, logged to appStats/usage.checkerRuns as {uid:"guest_…", ...}.
+// One guest can run the checker many times with different answers, so we
+// dedupe to their most recent run only — same as a registered user only
+// ever contributing one row (their current profile) to these charts.
+// Marital status and disability are NOT part of the checker questionnaire
+// (they're profile-setup-only fields), so guests can't be folded into
+// those two breakdowns — there's genuinely no data for it.
+// Pure function (no hooks) so it can be called both from the live-dashboard
+// useMemo AND from the PDF export path using freshly-fetched data, without
+// either one risking a stale-closure read of the other.
+function deriveGuestProfiles(usageDataObj) {
+  const runs = Array.isArray(usageDataObj?.checkerRuns) ? usageDataObj.checkerRuns : [];
+  const latestByGuest = {};
+  runs.forEach(r => {
+    if (typeof r.uid !== "string" || !r.uid.startsWith("guest_")) return; // skip real users + legacy "anon"
+    const prev = latestByGuest[r.uid];
+    if (!prev || (r.ts || "") > (prev.ts || "")) latestByGuest[r.uid] = r;
+  });
+  return Object.values(latestByGuest).map(r => ({
+    state: r.state, occupation: r.who, income: r.income,
+    age: r.age, area: r.area, gender: r.gender, ration: r.ration,
+    __guest: true,
+  }));
+}
+
 function formatDate(ts) {
   if (!ts) return "—";
   const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
@@ -4724,17 +4753,23 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     setUsageLoading(true);
     try {
       const snap = await getDoc(doc(db, "appStats", "usage"));
-      setUsageData(snap.exists() ? snap.data() : {});
+      const data = snap.exists() ? snap.data() : {};
+      setUsageData(data);
+      return data; // returned so callers (e.g. PDF export) can use it immediately,
+                   // without waiting on a re-render to see the updated state
     } catch (err) {
       console.error("Failed to load usage stats:", err);
       setUsageData({});
+      return {};
     } finally {
       setUsageLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (activeSection === "usage" && !usageData) fetchUsage();
+    // Analytics tab also needs usageData now — it folds guest checker-run
+    // answers (who/income/age/area/gender/ration) into the demographic charts.
+    if ((activeSection === "usage" || activeSection === "analytics") && !usageData) fetchUsage();
   }, [activeSection]);
 
 
@@ -4749,17 +4784,25 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
 
   // ── Computed stats ────────────────────────────────────────────────────────
+  // See deriveGuestProfiles() near groupBy() above for what this contains and why.
+  const guestProfiles = useMemo(() => deriveGuestProfiles(usageData), [usageData]);
+
   const stats = useMemo(() => {
     const now = Date.now();
     const ONE_DAY = 86400000;
     const ONE_WEEK = ONE_DAY * 7;
     const TWO_WEEKS = ONE_WEEK * 2;
 
-    const byState = groupBy(users, "state");
-    const byOcc   = groupBy(users, "occupation");
-    const byInc   = groupBy(users, "income");
-    const byAge   = groupBy(users, "age");
-    const byArea  = groupBy(users, "area");
+    // Registered users' profile fields + guests' checker answers, combined —
+    // used only for the demographic breakdowns below, never for account-only
+    // stats like signups, active/dormant counts, phone/photo/house.
+    const withGuests = [...users, ...guestProfiles];
+
+    const byState = groupBy(withGuests, "state");
+    const byOcc   = groupBy(withGuests, "occupation");
+    const byInc   = groupBy(withGuests, "income");
+    const byAge   = groupBy(withGuests, "age");
+    const byArea  = groupBy(withGuests, "area");
 
     const topStates = Object.entries(byState)
       .sort((a, b) => b[1] - a[1]).slice(0, 8)
@@ -4807,8 +4850,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     const housedUsers  = users.filter(u => u.house === "yes").length;
     const needHousing  = users.filter(u => u.house === "no").length;
 
-    const byGender  = groupBy(users, "gender");
-    const byRation  = groupBy(users, "ration");
+    const byGender  = groupBy(withGuests, "gender");
+    const byRation  = groupBy(withGuests, "ration");
+    // Marital status & disability come only from account profile setup, never
+    // from the checker questionnaire — guests have no value to contribute here.
     const byMarital = groupBy(users, "marital");
     const byDisab   = groupBy(users.map(u => ({...u, disability: u.disability==="none"||!u.disability?"none":u.disability})), "disability");
 
@@ -4843,8 +4888,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       googleUsers, withPhone, statesCount, housedUsers, needHousing, spark,
       genderData, rationData, maritalData, disabData,
       dormantCount,
+      withGuests, guestCount: guestProfiles.length,
     };
-  }, [users]);
+  }, [users, guestProfiles]);
 
   // ── Sort helper ───────────────────────────────────────────────────────────
   const handleSort = useCallback((field) => {
@@ -4897,11 +4943,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   , [users]);
 
   // ── Full Dashboard PDF Export (all sections, all fields) ─────────────────
-  const exportAllPDF = useCallback((sectionsToInclude) => {
+  const exportAllPDF = useCallback((sectionsToInclude, freshUsageData) => {
     // Default to all sections if none specified
     const s = sectionsToInclude instanceof Set && sectionsToInclude.size > 0
       ? sectionsToInclude
       : new Set(["overview","analytics","users","activity","schemes","reports"]);
+    // If the caller just fetched usage data itself (e.g. handleExportAll did
+    // this because usageData was still null this session), use that directly
+    // instead of the component's guestProfiles memo — the memo won't have
+    // re-run yet inside this same synchronous export call, so reading it here
+    // would silently produce an empty guest list even though fresh data exists.
+    const exportGuestProfiles = freshUsageData ? deriveGuestProfiles(freshUsageData) : guestProfiles;
     const now      = Date.now();
     const dateStr  = new Date().toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric" });
     const timeStr  = new Date().toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", hour12:true });
@@ -5089,16 +5141,23 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     // ══════════════════════════════════════════════════════════════════
     // SECTION 2 — DEMOGRAPHICS & ANALYTICS
     // ══════════════════════════════════════════════════════════════════
-    const byOcc     = groupBy(users, "occupation");
-    const byInc     = groupBy(users, "income");
-    const byAge     = groupBy(users, "age");
-    const byArea    = groupBy(users, "area");
-    const byGender  = groupBy(users, "gender");
-    const byRation  = groupBy(users, "ration");
+    // Same guest-inclusion logic as the live Analytics tab: guests never get
+    // a users/{uid} profile doc, so the only demographic answers they ever
+    // give are the ones typed into the Eligibility Checker itself (already
+    // captured in guestProfiles). Marital/disability/house/children/land/
+    // kisan-card/education/institution are profile-setup-only fields with no
+    // checker equivalent, so those stay registered-users-only below.
+    const withGuestsPdf = [...users, ...exportGuestProfiles];
+    const byOcc     = groupBy(withGuestsPdf, "occupation");
+    const byInc     = groupBy(withGuestsPdf, "income");
+    const byAge     = groupBy(withGuestsPdf, "age");
+    const byArea    = groupBy(withGuestsPdf, "area");
+    const byGender  = groupBy(withGuestsPdf, "gender");
+    const byRation  = groupBy(withGuestsPdf, "ration");
     const byMarital = groupBy(users, "marital");
     const byDisab   = groupBy(users.map(u => ({...u, disability: u.disability || "none"})), "disability");
     const byHouse   = groupBy(users, "house");
-    const byState   = groupBy(users, "state");
+    const byState   = groupBy(withGuestsPdf, "state");
     const byKids    = groupBy(users, "numChildren");
     const byLand    = groupBy(users.filter(u => u.occupation === "farmer"), "landHolding");
     const byKisan   = groupBy(users.filter(u => u.occupation === "farmer"), "kisanCard");
@@ -5108,6 +5167,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     const analyticsHTML = `
       <div class="section page-break">
         ${sectionHeader("🧮", "Demographics & Analytics")}
+        ${exportGuestProfiles.length > 0 ? `<div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">
+          Occupation, Income, Age, Area, Gender, Ration, State &amp; the two cross-tabs below include ${exportGuestProfiles.length} guest${exportGuestProfiles.length===1?"":"s"}' Eligibility Checker answers, not just signed-in users. Marital Status, Disability, Housing, Children, Land, KCC, Education &amp; Institution remain signed-in-users-only (no checker equivalent exists for guests).
+        </div>` : ""}
         <div class="two-col">
           ${breakdownBlock("💼 Occupation", Object.entries(byOcc).map(([k,v]) => [OCC_LABELS[k]||k, v]), "#4f8ef7")}
           ${breakdownBlock("💰 Income Range", Object.entries(byInc).map(([k,v]) => [INC_LABELS[k]||k, v]), "#f7824f")}
@@ -5144,11 +5206,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           ${breakdownBlock("🏫 Institution Type (Students)", Object.entries(byInst).map(([k,v]) => [strip(INST_LABELS[k]||k), v]), "#4f8ef7")}
         </div>
         ${sectionHeader("🔀", "Cross-Tab Analysis")}
-        ${crossTabBlock("Income vs Ration Card", users, "income", "ration",
+        ${crossTabBlock("Income vs Ration Card", withGuestsPdf, "income", "ration",
           { below1:"<1L", "1to3":"1-3L", "3to6":"3-6L", above6:">6L" },
           { none:"None", apl:"APL", bpl:"BPL", aay:"AAY" }
         )}
-        ${crossTabBlock("Occupation vs Area Type", users, "occupation", "area",
+        ${crossTabBlock("Occupation vs Area Type", withGuestsPdf, "occupation", "area",
           { farmer:"Farmer", student:"Student", women:"Homemaker", senior:"Senior", business:"Business", general:"General" },
           { rural:"Rural", urban:"Urban", semi:"Semi-Urban" }
         )}
@@ -5902,7 +5964,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       a.click();
     }
     setTimeout(() => URL.revokeObjectURL(url), 15000);
-  }, [users, reports]);
+  }, [users, reports, guestProfiles]);
 
   // ── Export steps definition — only steps relevant to selected sections ──────
   const EXPORT_STEPS = useMemo(() => {
@@ -5932,6 +5994,16 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
   // ── Animated export handler ────────────────────────────────────────────────
   const handleExportAll = useCallback(async () => {
+    // If the Analytics section is being exported and usage data was never
+    // fetched this session (admin went straight to Export without opening
+    // Usage/Analytics first), fetch it now and hold onto the result directly —
+    // otherwise the component's guestProfiles memo won't have re-run yet by
+    // the time exportAllPDF runs below (same synchronous call chain), and
+    // guest checker answers would silently be missing from the PDF.
+    let freshUsageData = null;
+    if (exportSections.has("analytics") && !usageData) {
+      freshUsageData = await fetchUsage();
+    }
     setExportModal(true);
     setExportStep(-1);
     setExportDone(false);
@@ -5946,11 +6018,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     await new Promise(r => setTimeout(r, 1100));
     setExportModal(false);
     await new Promise(r => setTimeout(r, 80));
-    exportAllPDF(exportSections);
+    exportAllPDF(exportSections, freshUsageData);
 
     // Reset state after a short delay
     setTimeout(() => { setExportStep(-1); setExportDone(false); }, 600);
-  }, [EXPORT_STEPS, exportAllPDF, exportSections]);
+  }, [EXPORT_STEPS, exportAllPDF, exportSections, usageData, fetchUsage]);
 
   // ─────────────────────────────────────────────────────────────────────────
   const ALL_TABS = [
@@ -7135,6 +7207,19 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       {!loading && !error && activeSection === "analytics" && (
         <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
 
+          {stats.guestCount > 0 && (
+            <div style={{
+              fontSize:10, color:th.textSub, textAlign:"center",
+              background:th.card2, border:`1px solid ${th.border}`,
+              borderRadius:10, padding:"6px 10px",
+            }}>
+              🕵️ Gender/Ration/Occupation/Income/Age/Area/State charts below include{" "}
+              <span style={{ fontWeight:800, color:VIOLET }}>{stats.guestCount}</span> guest
+              {stats.guestCount === 1 ? "'s" : "s'"} checker answers, not just signed-in users.
+              Marital status &amp; Disability stay signed-in-only (guests never set those up).
+            </div>
+          )}
+
           {/* Summary pills */}
           <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
             {[
@@ -7204,7 +7289,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               🔀 Occupation × Area
             </div>
             <CrossTab
-              data={users}
+              data={stats.withGuests}
               rowKey="occupation" colKey="area"
               rowLabels={OCC_LABELS} colLabels={AREA_LABELS}
               dark={dark}
@@ -7220,7 +7305,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               🔀 Income × Area
             </div>
             <CrossTab
-              data={users}
+              data={stats.withGuests}
               rowKey="income" colKey="area"
               rowLabels={INC_LABELS} colLabels={AREA_LABELS}
               dark={dark}
@@ -7236,7 +7321,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               🔀 Occupation × Income
             </div>
             <CrossTab
-              data={users}
+              data={stats.withGuests}
               rowKey="occupation" colKey="income"
               rowLabels={OCC_LABELS} colLabels={INC_LABELS}
               dark={dark}
@@ -7252,7 +7337,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               📍 All States
             </div>
             <BarChart
-              data={Object.entries(groupBy(users, "state"))
+              data={Object.entries(groupBy(stats.withGuests, "state"))
                 .sort((a, b) => b[1] - a[1])
                 .map(([label, value]) => ({ label, value }))}
               color={NAVY} dark={dark}
