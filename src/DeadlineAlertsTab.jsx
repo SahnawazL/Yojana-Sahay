@@ -156,6 +156,8 @@ function StatBox({ label, value, color, dark }) {
 export default function DeadlineAlertsTab({ dark, isDesktop }) {
   const [runs, setRuns]         = useState([]);
   const [todayQuota, setTodayQuota] = useState(null);
+  const [verifyRuns, setVerifyRuns]     = useState([]);
+  const [verifyCursor, setVerifyCursor] = useState(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
   const [triggering, setTriggering] = useState(false);
@@ -197,6 +199,8 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
       if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
       setRuns(data.runs || []);
       setTodayQuota(data.todayQuota || null);
+      setVerifyRuns(data.verifyRuns || []);
+      setVerifyCursor(data.verifyCursor || null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -503,6 +507,52 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
                 ⚠️ Approaching Gmail's daily sending safety limit ({todayQuota.limit}/day). Any users past this
                 limit are automatically retried on the next run — no emails are lost, just delayed.
               </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Scheme Verifier — the background batch job a GitHub Action pings
+          every ~15-20 min. Previously ran completely invisibly; this card
+          shows when it last ran and how far the rotation has gotten. */}
+      {(() => {
+        const latestVerify = verifyRuns[0];
+        const pct = verifyCursor && verifyCursor.totalSchemes
+          ? Math.round((verifyCursor.index / verifyCursor.totalSchemes) * 100)
+          : null;
+        return (
+          <div style={{
+            marginBottom: 16, padding: "12px 14px", borderRadius: 12,
+            background: th.card, border: `1.5px solid ${th.border}`,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: th.text, marginBottom: 8 }}>
+              🔄 Scheme Verifier (background)
+            </div>
+            {!latestVerify ? (
+              <div style={{ fontSize: 11.5, color: th.textSub }}>
+                No batch runs logged yet — the GitHub Action may not have pinged this endpoint yet, or it just hasn't run since this feature was added.
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: 11, color: th.textSub, marginBottom: 6 }}>
+                  Last check: {fmtDateTime(latestVerify.runAt)} · checked {latestVerify.checked} scheme{latestVerify.checked === 1 ? "" : "s"}
+                  {latestVerify.skippedNoUrl > 0 && ` (${latestVerify.skippedNoUrl} skipped, no URL)`}
+                  {latestVerify.commitSuccess === false && (
+                    <span style={{ color: RED, fontWeight: 700 }}> · commit failed: {latestVerify.commitError}</span>
+                  )}
+                </div>
+                {pct !== null && (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: th.textSub, marginBottom: 4 }}>
+                      <span>Catalog sweep progress</span>
+                      <span style={{ fontWeight: 700 }}>{verifyCursor.index} / {verifyCursor.totalSchemes}</span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 4, background: dark ? "#222" : "#e8e8e8", overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: PURPLE, borderRadius: 4, transition: "width 0.3s" }} />
+                    </div>
+                  </>
+                )}
+              </>
             )}
           </div>
         );
