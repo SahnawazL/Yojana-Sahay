@@ -2944,9 +2944,9 @@
     "confidence": 0
   },
   "haryana_farm_equipment": {
-    "lastVerified": "2026-07-07T12:42:21.412Z",
+    "lastVerified": "2026-07-07T15:57:04.917Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_micro_irrigation": {
