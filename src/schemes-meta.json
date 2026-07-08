@@ -410,11 +410,11 @@
     "linkAlive": true
   },
   "mgnrega": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T07:16:30.931Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "pmkvy": {
     "lastVerified": "2026-07-05T11:38:40.525Z",
@@ -678,7 +678,7 @@
     "linkAlive": true
   },
   "mcm_minority": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T07:15:24.351Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1030,13 +1030,13 @@
     "isActive": true
   },
   "mp_ladli": {
-    "lastVerified": "2026-06-22T20:00:55.297Z",
+    "lastVerified": "2026-07-08T07:18:07.842Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_kanya_vivah": {
-    "lastVerified": "2026-06-22T20:00:55.297Z",
+    "lastVerified": "2026-07-08T07:17:55.616Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1083,13 +1083,13 @@
     "confidence": 0
   },
   "mp_chirayu": {
-    "lastVerified": "2026-06-22T20:00:55.297Z",
+    "lastVerified": "2026-07-08T07:17:32.058Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_ladli_behna": {
-    "lastVerified": "2026-06-22T20:00:55.297Z",
+    "lastVerified": "2026-07-08T07:18:12.923Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1101,7 +1101,7 @@
     "confidence": 0
   },
   "mp_kalyani_sahayata": {
-    "lastVerified": "2026-06-22T20:00:55.297Z",
+    "lastVerified": "2026-07-08T07:17:50.148Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1113,9 +1113,10 @@
     "confidence": 0
   },
   "mp_gaon_ki_beti": {
-    "lastVerified": "2026-06-22T20:00:55.297Z",
+    "lastVerified": "2026-07-08T07:17:42.711Z",
     "httpStatus": 0,
-    "confidence": 0
+    "confidence": 0,
+    "linkAlive": false
   },
   "uk_vatsalya": {
     "lastVerified": "2026-06-22T17:24:12.092Z",
@@ -1714,63 +1715,63 @@
     "confidence": 0
   },
   "manipur_cm_kisan_samman": {
-    "lastVerified": "2026-06-22T19:47:45.623Z",
+    "lastVerified": "2026-07-08T07:14:42.734Z",
+    "linkAlive": false,
+    "httpStatus": 0,
+    "confidence": 0
+  },
+  "manipur_cm_health_insurance": {
+    "lastVerified": "2026-07-08T07:14:29.231Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
-  "manipur_cm_health_insurance": {
-    "lastVerified": "2026-06-22T19:47:45.623Z",
-    "linkAlive": false,
-    "httpStatus": 200,
-    "confidence": 0
-  },
   "manipur_cm_scholarship": {
-    "lastVerified": "2026-06-22T19:47:45.623Z",
+    "lastVerified": "2026-07-08T07:14:47.727Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "manipur_startup_manipur": {
-    "lastVerified": "2026-06-22T19:47:45.623Z",
+    "lastVerified": "2026-07-08T07:15:18.706Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_cm_kisan_samman": {
-    "lastVerified": "2026-06-22T19:45:58.005Z",
+    "lastVerified": "2026-07-08T07:15:39.462Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_mhis": {
-    "lastVerified": "2026-06-22T19:45:58.005Z",
+    "lastVerified": "2026-07-08T07:16:01.045Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_cm_scholarship": {
-    "lastVerified": "2026-06-22T19:45:58.005Z",
+    "lastVerified": "2026-07-08T07:15:48.751Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_msy_entrepreneur": {
-    "lastVerified": "2026-06-22T19:45:58.005Z",
+    "lastVerified": "2026-07-08T07:16:16.531Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "mizoram_health_insurance": {
-    "lastVerified": "2026-06-22T19:43:37.678Z",
-    "linkAlive": true,
-    "httpStatus": 403,
+    "lastVerified": "2026-07-08T07:16:53.453Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "mizoram_cm_scholarship": {
-    "lastVerified": "2026-06-22T19:43:37.678Z",
-    "linkAlive": true,
-    "httpStatus": 403,
+    "lastVerified": "2026-07-08T07:16:47.102Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "nagaland_health_scheme": {
@@ -3192,7 +3193,7 @@
     "confidence": 0
   },
   "mp_ladli_behna_awas": {
-    "lastVerified": "2026-06-22T20:00:55.297Z",
+    "lastVerified": "2026-07-08T07:18:18.103Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
