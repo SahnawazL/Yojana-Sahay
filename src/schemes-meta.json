@@ -760,7 +760,7 @@
     "linkAlive": true
   },
   "tn_vetri_nichayam": {
-    "lastVerified": "2026-06-22T17:45:04.191Z",
+    "lastVerified": "2026-07-08T20:10:12.425Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -985,37 +985,37 @@
     "confidence": 0
   },
   "ts_rythu_bandhu": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:13:03.535Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_aarogyasri": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:11:23.330Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_kalyana_lakshmi": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:12:26.291Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_shaadi_mubarak": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:13:14.855Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_epass_fee": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:12:11.007Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_task_skill": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:13:47.936Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1644,56 +1644,55 @@
     "confidence": 0
   },
   "ts_t_pride": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:13:36.271Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_prematric_scholarship": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:12:53.658Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_dalit_bandhu": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:12:06.175Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_stree_nidhi": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:13:23.857Z",
     "linkAlive": true,
     "httpStatus": 200,
-    "confidence": 1,
-    "lastDate": "2026-05-29"
+    "confidence": 0
   },
   "ts_micro_irrigation": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:12:37.404Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_overseas_scholarship": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:12:49.473Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_minority_scholarship": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:12:41.391Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_t_fiber": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:13:32.331Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_rajiv_yuva_vikasam": {
-    "lastVerified": "2026-06-22T17:42:15.522Z",
+    "lastVerified": "2026-07-08T20:12:59.000Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1789,19 +1788,19 @@
     "confidence": 0
   },
   "tripura_cm_krishak_samridhi": {
-    "lastVerified": "2026-06-22T17:35:47.335Z",
+    "lastVerified": "2026-07-08T20:10:39.147Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "tripura_mukhyamantri_swasthya": {
-    "lastVerified": "2026-06-22T17:35:47.335Z",
+    "lastVerified": "2026-07-08T20:11:01.713Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "tripura_cm_scholarship": {
-    "lastVerified": "2026-06-22T17:35:47.335Z",
+    "lastVerified": "2026-07-08T20:10:49.239Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1893,11 +1892,10 @@
     "isActive": true
   },
   "tn_stamp_duty_women": {
-    "lastVerified": "2026-06-22T17:45:04.191Z",
+    "lastVerified": "2026-07-08T20:09:42.325Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 1,
-    "lastDate": "2025-04-01",
+    "confidence": 0,
     "isActive": true
   },
   "chandigarh_post_matric_scholarship": {
@@ -3412,9 +3410,9 @@
     "confidence": 0
   },
   "top_class_sc": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-08T20:10:27.094Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "inspire_she": {
