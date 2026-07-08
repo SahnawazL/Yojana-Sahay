@@ -8078,7 +8078,19 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           mono:   "'JetBrains Mono','Fira Code','Courier New',monospace",
         };
 
-        const SECTION_COLORS = [C.blue, C.green, C.amber, C.purple, C.red, "#f7824f", "#f472b6"];
+        // Two full palettes — light-mode isn't just "the dark palette on a
+        // white card": #f7c948 amber or #3dd68c green at these tints read
+        // fine on near-black but wash out on white, so light mode uses
+        // darker/more saturated shades of the same hues for equivalent
+        // contrast instead of literally the same hex values.
+        const SECTION_COLORS_DARK  = [C.blue, C.green, C.amber, C.purple, C.red, "#f7824f", "#f472b6", "#22d3ee"];
+        const SECTION_COLORS_LIGHT = ["#2563eb", "#059669", "#b45309", "#7c3aed", "#dc2626", "#c2410c", "#db2777", "#0e7490"];
+        const SECTION_COLORS = dark ? SECTION_COLORS_DARK : SECTION_COLORS_LIGHT;
+        // Subtitle text — C.sub is used all over this tab for small uppercase
+        // labels; this is a dedicated, higher-contrast color just for the
+        // module description line so it stays readable on both themes
+        // without touching every other use of C.sub.
+        const descColor = dark ? "#9298bd" : "#565b76";
 
         return (
           <>
@@ -8227,7 +8239,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                         ? (dark ? `${color}12` : `${color}0d`)
                         : C.card,
                       border:`1px solid ${on ? color+"55" : C.border}`,
-                      borderRadius:10, padding:"10px 12px",
+                      borderRadius:10, padding:"11px 12px",
                       cursor:"pointer",
                       transition:"all 0.18s cubic-bezier(0.22,1,0.36,1)",
                       animationDelay:`${idx * 40}ms`,
@@ -8255,7 +8267,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                     {/* text */}
                     <div style={{ flex:1, minWidth:0, paddingLeft:4 }}>
                       <div style={{
-                        fontSize:12, fontWeight:800,
+                        fontSize:12.5, fontWeight:900, letterSpacing:0.3,
                         color: on ? color : C.text,
                         transition:"color 0.18s",
                         fontFamily:C.mono,
@@ -8263,10 +8275,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                         {label.toUpperCase()}
                       </div>
                       <div style={{
-                        fontSize:9, color:C.sub,
-                        marginTop:1, lineHeight:1.4,
+                        fontSize:9.5, color:descColor, fontWeight:500,
+                        marginTop:3, lineHeight:1.45,
                         fontFamily:"inherit",
-                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                        display:"-webkit-box",
+                        WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+                        overflow:"hidden",
                       }}>
                         {desc}
                       </div>
