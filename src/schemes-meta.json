@@ -363,7 +363,7 @@
     "linkAlive": true
   },
   "pmsby": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T13:09:03.318Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -376,17 +376,17 @@
     "linkAlive": true
   },
   "pmvishwakarma": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T13:09:22.146Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmsvanidhi": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
-    "httpStatus": 200,
+    "lastVerified": "2026-07-08T13:09:17.091Z",
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "sukanya": {
     "lastVerified": "2026-07-05T11:38:40.525Z",
@@ -396,9 +396,9 @@
     "linkAlive": true
   },
   "pmmvy": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T13:08:41.941Z",
     "isActive": true,
-    "httpStatus": 403,
+    "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
@@ -458,7 +458,7 @@
     "linkAlive": true
   },
   "pmpsmy": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T13:08:47.558Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -601,17 +601,17 @@
     "linkAlive": true
   },
   "pmvvy": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
-    "httpStatus": 200,
+    "lastVerified": "2026-07-08T13:09:28.651Z",
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "pmmsy": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T13:08:37.281Z",
     "isActive": true,
-    "httpStatus": 200,
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "startup_india": {
     "lastVerified": "2026-07-05T11:38:40.525Z",
@@ -620,7 +620,7 @@
     "linkAlive": true
   },
   "pms_sc_st": {
-    "lastVerified": "2026-07-05T11:39:04.719Z",
+    "lastVerified": "2026-07-08T13:08:58.425Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -646,7 +646,7 @@
     "linkAlive": false
   },
   "premat_st_scholarship": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T13:09:44.358Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -697,13 +697,13 @@
     "linkAlive": true
   },
   "premat_sc": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T13:09:38.514Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pms_obc": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T13:08:53.341Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -3242,21 +3242,21 @@
     "confidence": 0
   },
   "punjab_ashirwad": {
-    "lastVerified": "2026-06-22T19:31:52.549Z",
+    "lastVerified": "2026-07-08T13:10:43.780Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_atta_dal": {
-    "lastVerified": "2026-06-22T19:31:52.549Z",
+    "lastVerified": "2026-07-08T13:10:48.418Z",
     "httpStatus": 200,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "punjab_crop_insurance": {
-    "lastVerified": "2026-06-22T19:31:52.549Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-08T13:11:25.851Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "punjab_kisan_karj_mafi": {
@@ -3272,19 +3272,19 @@
     "confidence": 0
   },
   "punjab_gharkari_yojana": {
-    "lastVerified": "2026-06-22T19:31:52.549Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-08T13:12:30.644Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "punjab_budhapa_pension": {
-    "lastVerified": "2026-06-22T19:31:52.549Z",
+    "lastVerified": "2026-07-08T13:11:11.377Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_divyang_pension": {
-    "lastVerified": "2026-06-22T19:31:52.549Z",
+    "lastVerified": "2026-07-08T13:11:52.962Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3332,7 +3332,7 @@
     "confidence": 0
   },
   "punjab_bocw_welfare": {
-    "lastVerified": "2026-06-22T19:31:52.549Z",
+    "lastVerified": "2026-07-08T13:11:03.237Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3344,7 +3344,7 @@
     "confidence": 0
   },
   "punjab_disability_scholarship": {
-    "lastVerified": "2026-06-22T19:31:52.549Z",
+    "lastVerified": "2026-07-08T13:11:38.211Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3368,7 +3368,7 @@
     "confidence": 0
   },
   "puducherry_cm_scholarship": {
-    "lastVerified": "2026-06-22T19:38:01.944Z",
+    "lastVerified": "2026-07-08T13:09:55.958Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
@@ -3424,7 +3424,7 @@
     "confidence": 0
   },
   "pmss_defence": {
-    "lastVerified": "2026-07-05T11:38:40.525Z",
+    "lastVerified": "2026-07-08T13:09:09.103Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
