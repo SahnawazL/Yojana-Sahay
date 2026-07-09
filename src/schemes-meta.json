@@ -476,7 +476,7 @@
     "linkAlive": true
   },
   "jjm": {
-    "lastVerified": "2026-07-07T19:26:31.793Z",
+    "lastVerified": "2026-07-09T20:52:47.356Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -1804,37 +1804,37 @@
     "confidence": 0
   },
   "jk_kisan_samman": {
-    "lastVerified": "2026-07-07T19:27:06.456Z",
+    "lastVerified": "2026-07-09T20:53:20.928Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_apple_mission": {
-    "lastVerified": "2026-07-07T19:26:37.183Z",
+    "lastVerified": "2026-07-09T20:52:52.749Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_crop_insurance": {
-    "lastVerified": "2026-07-07T19:26:52.456Z",
+    "lastVerified": "2026-07-09T20:53:06.999Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_tejaswini": {
-    "lastVerified": "2026-07-07T19:27:48.520Z",
+    "lastVerified": "2026-07-09T20:54:04.497Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_sehat_health_insurance": {
-    "lastVerified": "2026-07-07T19:27:35.735Z",
+    "lastVerified": "2026-07-09T20:53:55.173Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_himayat": {
-    "lastVerified": "2026-07-07T19:27:01.415Z",
+    "lastVerified": "2026-07-09T20:53:15.925Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -1870,15 +1870,15 @@
     "linkAlive": true
   },
   "jk_super75_scholarship": {
-    "lastVerified": "2026-07-07T19:27:43.523Z",
+    "lastVerified": "2026-07-09T20:53:59.440Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jk_post_matric_sc_st": {
-    "lastVerified": "2026-07-07T19:27:22.232Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-09T20:53:44.931Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0,
     "isActive": true
   },
@@ -1979,9 +1979,9 @@
     "isActive": true
   },
   "karnataka_bhagyalakshmi": {
-    "lastVerified": "2026-07-07T19:28:45.075Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-07-09T20:54:50.095Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_vidyasiri": {
@@ -2015,19 +2015,19 @@
     "confidence": 0
   },
   "karnataka_ashraya": {
-    "lastVerified": "2026-07-07T19:28:24.189Z",
+    "lastVerified": "2026-07-09T20:54:34.243Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_arogya_karnataka": {
-    "lastVerified": "2026-07-07T19:28:18.147Z",
+    "lastVerified": "2026-07-09T20:54:28.146Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_devaraj_urs_loan": {
-    "lastVerified": "2026-07-07T19:29:09.518Z",
+    "lastVerified": "2026-07-09T20:55:12.446Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2093,7 +2093,7 @@
     "confidence": 0
   },
   "karnataka_ambedkar_pre_matric": {
-    "lastVerified": "2026-07-07T19:28:05.900Z",
+    "lastVerified": "2026-07-09T20:54:19.809Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2177,7 +2177,7 @@
     "confidence": 0
   },
   "karnataka_auto_driver_welfare": {
-    "lastVerified": "2026-07-07T19:28:31.252Z",
+    "lastVerified": "2026-07-09T20:54:38.191Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2237,7 +2237,7 @@
     "confidence": 0
   },
   "karnataka_cold_storage_subsidy": {
-    "lastVerified": "2026-07-07T19:28:57.306Z",
+    "lastVerified": "2026-07-09T20:55:01.857Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3093,7 +3093,7 @@
     "confidence": 0
   },
   "jharkhand_mmkay": {
-    "lastVerified": "2026-07-07T17:40:09.864Z",
+    "lastVerified": "2026-07-09T20:51:38.597Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3105,7 +3105,7 @@
     "confidence": 0
   },
   "jharkhand_protsahan_yojana": {
-    "lastVerified": "2026-07-07T19:25:43.051Z",
+    "lastVerified": "2026-07-09T20:52:01.581Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3129,49 +3129,49 @@
     "confidence": 0
   },
   "jharkhand_nalkoop": {
-    "lastVerified": "2026-07-07T19:25:17.952Z",
+    "lastVerified": "2026-07-09T20:51:44.011Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_sukhad_rahat": {
-    "lastVerified": "2026-07-07T19:26:14.410Z",
+    "lastVerified": "2026-07-09T20:52:27.536Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_minority_scholarship": {
-    "lastVerified": "2026-07-07T17:40:00.732Z",
+    "lastVerified": "2026-07-09T20:51:29.479Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_medha_chatravriti": {
-    "lastVerified": "2026-07-07T17:39:37.805Z",
+    "lastVerified": "2026-07-09T20:51:18.094Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_solar_jreda": {
-    "lastVerified": "2026-07-07T19:26:03.716Z",
+    "lastVerified": "2026-07-09T20:52:18.642Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_rojgar_srijan": {
-    "lastVerified": "2026-07-07T19:25:48.407Z",
+    "lastVerified": "2026-07-09T20:52:06.808Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_obc_scholarship": {
-    "lastVerified": "2026-07-07T19:25:29.218Z",
+    "lastVerified": "2026-07-09T20:51:49.102Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_micro_irrigation": {
-    "lastVerified": "2026-07-07T17:39:48.216Z",
+    "lastVerified": "2026-07-09T20:51:23.925Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
