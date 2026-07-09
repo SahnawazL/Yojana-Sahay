@@ -891,21 +891,21 @@
     "confidence": 0
   },
   "kerala_karunya": {
-    "lastVerified": "2026-07-07T23:28:52.875Z",
+    "lastVerified": "2026-07-09T23:47:17.278Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_merit_scholarship": {
-    "lastVerified": "2026-07-07T23:29:30.879Z",
+    "lastVerified": "2026-07-09T23:47:55.280Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "kerala_asap": {
-    "lastVerified": "2026-07-07T22:26:03.384Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-07-09T23:46:30.140Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "kerala_unemployment_allowance": {
@@ -921,13 +921,13 @@
     "confidence": 0
   },
   "kerala_minority_scholarship": {
-    "lastVerified": "2026-07-07T23:29:39.539Z",
+    "lastVerified": "2026-07-09T23:48:04.541Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_cmss_abroad": {
-    "lastVerified": "2026-07-07T23:28:18.781Z",
+    "lastVerified": "2026-07-09T23:46:43.430Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -946,7 +946,7 @@
     "confidence": 0
   },
   "kerala_cm_distress_relief": {
-    "lastVerified": "2026-07-07T23:28:13.165Z",
+    "lastVerified": "2026-07-09T23:46:38.811Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1985,7 +1985,7 @@
     "confidence": 0
   },
   "karnataka_vidyasiri": {
-    "lastVerified": "2026-07-07T22:25:18.117Z",
+    "lastVerified": "2026-07-09T23:46:00.268Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1997,13 +1997,13 @@
     "confidence": 0
   },
   "karnataka_sanchi_hosahalli": {
-    "lastVerified": "2026-07-07T22:22:55.863Z",
+    "lastVerified": "2026-07-09T23:44:06.306Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "karnataka_sandhya_suraksha": {
-    "lastVerified": "2026-07-07T22:23:05.066Z",
+    "lastVerified": "2026-07-09T23:44:15.764Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2033,13 +2033,13 @@
     "confidence": 0
   },
   "karnataka_skill_connect": {
-    "lastVerified": "2026-07-07T22:23:49.678Z",
+    "lastVerified": "2026-07-09T23:44:44.081Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_sericulture": {
-    "lastVerified": "2026-07-07T22:23:30.115Z",
+    "lastVerified": "2026-07-09T23:44:33.154Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2051,13 +2051,13 @@
     "confidence": 0
   },
   "karnataka_widow_pension": {
-    "lastVerified": "2026-07-07T22:25:24.192Z",
+    "lastVerified": "2026-07-09T23:46:04.784Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_stree_shakti": {
-    "lastVerified": "2026-07-07T22:24:16.398Z",
+    "lastVerified": "2026-07-09T23:45:08.967Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2075,7 +2075,7 @@
     "confidence": 0
   },
   "karnataka_yashasvini": {
-    "lastVerified": "2026-07-07T22:25:31.140Z",
+    "lastVerified": "2026-07-09T23:46:08.718Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2087,7 +2087,7 @@
     "confidence": 0
   },
   "karnataka_unorganised_worker": {
-    "lastVerified": "2026-07-07T22:25:09.510Z",
+    "lastVerified": "2026-07-09T23:45:52.226Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2099,25 +2099,25 @@
     "confidence": 0
   },
   "karnataka_sc_corporation_housing": {
-    "lastVerified": "2026-07-07T22:23:15.467Z",
+    "lastVerified": "2026-07-09T23:44:24.300Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_yuva_nidhi": {
-    "lastVerified": "2026-07-07T22:25:42.881Z",
+    "lastVerified": "2026-07-09T23:46:18.424Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_udyogini": {
-    "lastVerified": "2026-07-07T22:25:03.510Z",
+    "lastVerified": "2026-07-09T23:45:47.300Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "karnataka_suvarna_arogya_suraksha": {
-    "lastVerified": "2026-07-07T22:24:33.402Z",
+    "lastVerified": "2026-07-09T23:45:23.987Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2135,7 +2135,7 @@
     "confidence": 0
   },
   "karnataka_tribal_ashrama": {
-    "lastVerified": "2026-07-07T22:24:53.668Z",
+    "lastVerified": "2026-07-09T23:45:39.647Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2147,25 +2147,25 @@
     "confidence": 0
   },
   "karnataka_shaadi_bhagya": {
-    "lastVerified": "2026-07-07T22:23:35.509Z",
+    "lastVerified": "2026-07-09T23:44:38.460Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_solar_pump": {
-    "lastVerified": "2026-07-07T22:23:55.908Z",
+    "lastVerified": "2026-07-09T23:44:50.317Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "karnataka_surya_raitha": {
-    "lastVerified": "2026-07-07T22:24:27.118Z",
+    "lastVerified": "2026-07-09T23:45:19.359Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "karnataka_sports_scholarship": {
-    "lastVerified": "2026-07-07T22:24:05.585Z",
+    "lastVerified": "2026-07-09T23:44:58.562Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2225,13 +2225,13 @@
     "confidence": 0
   },
   "karnataka_transgender_welfare": {
-    "lastVerified": "2026-07-07T22:24:44.678Z",
+    "lastVerified": "2026-07-09T23:45:34.483Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_startup_policy": {
-    "lastVerified": "2026-07-07T22:24:11.179Z",
+    "lastVerified": "2026-07-09T23:45:04.056Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
