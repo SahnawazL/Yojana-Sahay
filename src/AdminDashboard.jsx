@@ -8884,7 +8884,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               .exp-row { animation: exp-slide .22s ease forwards; }
             `}</style>
 
-          <div style={{ padding:"14px 12px", display:"flex", flexDirection:"column", gap:12, fontFamily:C.mono }}>
+          <div style={{
+            padding: isDesktop ? "24px 32px 40px" : "14px 12px",
+            maxWidth: isDesktop ? 1200 : "100%",
+            margin: isDesktop ? "0 auto" : undefined,
+            display:"flex", flexDirection:"column", gap: isDesktop ? 18 : 12, fontFamily:C.mono,
+          }}>
 
             {/* ── TOP HEADER: terminal banner ───────────────────────── */}
             <div style={{
@@ -8972,6 +8977,16 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               </div>
             </div>
 
+            {/* ── DESKTOP: two-pane layout — modules left, sticky summary+trigger right.
+                 MOBILE: everything stacks in original single-column order. ── */}
+            <div style={{
+              display:"flex",
+              flexDirection: isDesktop ? "row" : "column",
+              alignItems:"flex-start",
+              gap: isDesktop ? 22 : 12,
+            }}>
+            <div style={{ flex: isDesktop ? "1.6 1 0" : "1 1 auto", minWidth:0, display:"flex", flexDirection:"column", gap:12, width:"100%" }}>
+
             {/* ── MODULE SELECTOR HEADER ──────────────────────────────── */}
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <div style={{ flex:1, display:"flex", alignItems:"center", gap:6 }}>
@@ -9005,7 +9020,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             </div>
 
             {/* ── SECTION TOGGLE ROWS ─────────────────────────────────── */}
-            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+            <div style={ isDesktop
+              ? { display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }
+              : { display:"flex", flexDirection:"column", gap:6 }
+            }>
               {EXPORT_SECTION_CONFIG.map(({ id, label, desc }, idx) => {
                 const on    = exportSections.has(id);
                 const color = SECTION_COLORS[idx % SECTION_COLORS.length];
@@ -9085,6 +9103,17 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 );
               })}
             </div>
+
+            </div>{/* end left pane (modules) */}
+
+            <div style={{
+              flex: isDesktop ? "1 1 0" : "1 1 auto",
+              minWidth: isDesktop ? 260 : undefined,
+              width:"100%",
+              display:"flex", flexDirection:"column", gap:12,
+              position: isDesktop ? "sticky" : undefined,
+              top: isDesktop ? 16 : undefined,
+            }}>
 
             {/* ── EXPORT TRIGGER ──────────────────────────────────────── */}
             {noneSelected ? (
@@ -9187,6 +9216,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 </div>
               </div>
             </div>
+
+            </div>{/* end right pane (trigger + note) */}
+
+            </div>{/* end two-pane layout */}
 
             <div style={{ height:16 }} />
           </div>
