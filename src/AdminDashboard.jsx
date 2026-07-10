@@ -2655,6 +2655,7 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
   const [error,    setError]    = useState(false);
   const [shake,    setShake]    = useState(false);
   const [focused,  setFocused]  = useState(false);
+  const [showPwd,  setShowPwd]  = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -2692,8 +2693,6 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
       inputRef.current?.focus();
     }
   }
-
-  const ringColor = error ? C.red : (focused ? C.accent : C.border);
 
   return (
     <div
@@ -2782,28 +2781,76 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
         <label style={{ fontSize: 8.5, fontWeight: 700, color: C.sub, letterSpacing: 1.4, textTransform: "uppercase" }}>
           Password
         </label>
-        <div style={{ position: "relative", marginTop: 7 }}>
-          <input
-            ref={inputRef}
-            type="password"
-            value={pwd}
-            onChange={e => { setPwd(e.target.value); if (error) setError(false); }}
-            onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") onCancel(); }}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder="••••••••••••"
-            autoComplete="current-password"
+        <div
+          style={{
+            position: "relative", marginTop: 7,
+            borderRadius: 12, padding: 1.4,
+            background: error
+              ? `linear-gradient(135deg, ${C.red}99, ${C.red}30)`
+              : focused
+                ? `linear-gradient(135deg, ${C.accent}, ${C.accent}35)`
+                : (dark
+                    ? "linear-gradient(135deg,#31354e,#1c1f30)"
+                    : "linear-gradient(135deg,#cfd4ea,#e3e6f3)"),
+            boxShadow: focused && !error
+              ? `0 0 0 4px ${C.accent}17, 0 6px 20px ${C.accent}22`
+              : error
+                ? `0 0 0 4px ${C.red}17`
+                : (dark ? "0 1px 2px rgba(0,0,0,0.35)" : "0 1px 3px rgba(20,24,50,0.06)"),
+            transition: "background 0.18s ease, box-shadow 0.18s ease",
+          }}
+        >
+          <div
             style={{
-              width: "100%", boxSizing: "border-box",
-              background: dark ? "#12141f" : "#f4f5fb",
-              border: `1px solid ${ringColor}`,
-              borderRadius: 10, padding: "12px 14px",
-              fontFamily: C.mono, fontSize: 13, color: C.text,
-              outline: "none", letterSpacing: 3,
-              boxShadow: focused && !error ? `0 0 0 3px ${C.accent}1a` : error ? `0 0 0 3px ${C.red}1a` : "none",
-              transition: "box-shadow 0.15s, border-color 0.15s",
+              display: "flex", alignItems: "center", gap: 9,
+              background: dark ? "#0d0f1a" : "#ffffff",
+              borderRadius: 10.6, padding: "0 12px",
             }}
-          />
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke={error ? C.red : (focused ? C.accent : C.sub)} strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transition: "stroke 0.15s" }}>
+              <rect x="4" y="10.5" width="16" height="10" rx="2.2" />
+              <path d="M7.5 10.5V7.2a4.5 4.5 0 0 1 9 0v3.3" />
+            </svg>
+            <input
+              ref={inputRef}
+              type={showPwd ? "text" : "password"}
+              value={pwd}
+              onChange={e => { setPwd(e.target.value); if (error) setError(false); }}
+              onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") onCancel(); }}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder="••••••••••••"
+              autoComplete="current-password"
+              style={{
+                flex: 1, minWidth: 0, boxSizing: "border-box",
+                background: "transparent", border: "none",
+                padding: "12px 0", fontFamily: C.mono, fontSize: 13, color: C.text,
+                outline: "none", letterSpacing: showPwd ? 0.5 : 3,
+              }}
+            />
+            <div
+              onClick={() => setShowPwd(s => !s)}
+              style={{
+                flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                width: 22, height: 22, cursor: "pointer", opacity: 0.75,
+              }}
+            >
+              {showPwd ? (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="2.8" />
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 3l18 18" />
+                  <path d="M10.6 5.2c.45-.06.92-.1 1.4-.1 6.4 0 10 7 10 7a17.9 17.9 0 0 1-3.2 4.1M6.5 6.6C4 8.3 2 12 2 12s3.6 7 10 7c1.4 0 2.66-.34 3.77-.86" />
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                </svg>
+              )}
+            </div>
+          </div>
         </div>
 
         {error && (
@@ -2858,6 +2905,7 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
 // / `onSelectTheme` control the THEME OF THE GENERATED PDF, which is an
 // independent choice from how the dashboard itself currently looks.
 function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectOrientation, pageSize, onSelectPageSize, dateRangeMode, onSelectDateRangeMode, dateStart, onDateStartChange, dateEnd, onDateEndChange, preparedBy, onPreparedByChange, onConfirm, onCancel, selectedCount }) {
+  const [focusField, setFocusField] = useState(null); // "start" | "end" | "prepared" | null
   const C = {
     overlay: "rgba(5,6,12,0.72)",
     card:    dark ? "#111320" : "#ffffff",
@@ -2867,6 +2915,19 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
     blue:    "#4f8ef7",
     mono:    "'JetBrains Mono','Fira Code','Courier New',monospace",
   };
+
+  // shared premium field-border style, dark/light aware
+  const fieldWrap = (id) => ({
+    borderRadius: 10.5, padding: 1.3,
+    background: focusField === id
+      ? `linear-gradient(135deg, ${C.blue}, ${C.blue}35)`
+      : (dark ? "linear-gradient(135deg,#2c2f47,#1b1e2f)" : "linear-gradient(135deg,#d2d7ec,#e5e8f4)"),
+    boxShadow: focusField === id
+      ? `0 0 0 3px ${C.blue}17, 0 4px 14px ${C.blue}1f`
+      : (dark ? "0 1px 2px rgba(0,0,0,0.3)" : "0 1px 2px rgba(20,24,50,0.05)"),
+    transition: "background 0.15s ease, box-shadow 0.15s ease",
+  });
+  const fieldInner = { background: dark ? "#0d0f1a" : "#ffffff", borderRadius: 9.2 };
 
   const THEME_OPTIONS = [
     { id: "dark",  label: "Dark",  emoji: "🌙", hint: "Black bg · light text" },
@@ -2901,9 +2962,12 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: C.card, border: `1px solid ${C.border}`, borderRadius: 16,
+          background: dark
+            ? "linear-gradient(180deg,#141729 0%,#0f1120 100%)"
+            : "linear-gradient(180deg,#ffffff 0%,#f8f9fc 100%)",
+          border: `1px solid ${C.border}`, borderRadius: 16,
           padding: 22, maxWidth: 340, width: "100%", fontFamily: C.mono,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+          boxShadow: "0 24px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(79,142,247,0.04)",
           maxHeight: "85vh", overflowY: "auto",
         }}
       >
@@ -3028,28 +3092,36 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
         </div>
         {dateRangeMode === "custom" && (
           <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-            <input
-              type="date"
-              value={dateStart}
-              max={dateEnd || undefined}
-              onChange={e => onDateStartChange(e.target.value)}
-              style={{
-                flex: 1, boxSizing: "border-box", padding: "8px 9px", borderRadius: 8,
-                border: `1px solid ${C.border}`, background: dark ? "#181a28" : "#f7f8fc",
-                color: C.text, fontSize: 9.5, fontFamily: C.mono, outline: "none",
-              }}
-            />
-            <input
-              type="date"
-              value={dateEnd}
-              min={dateStart || undefined}
-              onChange={e => onDateEndChange(e.target.value)}
-              style={{
-                flex: 1, boxSizing: "border-box", padding: "8px 9px", borderRadius: 8,
-                border: `1px solid ${C.border}`, background: dark ? "#181a28" : "#f7f8fc",
-                color: C.text, fontSize: 9.5, fontFamily: C.mono, outline: "none",
-              }}
-            />
+            <div style={{ flex: 1, ...fieldWrap("start") }}>
+              <input
+                type="date"
+                value={dateStart}
+                max={dateEnd || undefined}
+                onChange={e => onDateStartChange(e.target.value)}
+                onFocus={() => setFocusField("start")}
+                onBlur={() => setFocusField(f => f === "start" ? null : f)}
+                style={{
+                  ...fieldInner,
+                  width: "100%", boxSizing: "border-box", padding: "8px 9px",
+                  border: "none", color: C.text, fontSize: 9.5, fontFamily: C.mono, outline: "none",
+                }}
+              />
+            </div>
+            <div style={{ flex: 1, ...fieldWrap("end") }}>
+              <input
+                type="date"
+                value={dateEnd}
+                min={dateStart || undefined}
+                onChange={e => onDateEndChange(e.target.value)}
+                onFocus={() => setFocusField("end")}
+                onBlur={() => setFocusField(f => f === "end" ? null : f)}
+                style={{
+                  ...fieldInner,
+                  width: "100%", boxSizing: "border-box", padding: "8px 9px",
+                  border: "none", color: C.text, fontSize: 9.5, fontFamily: C.mono, outline: "none",
+                }}
+              />
+            </div>
           </div>
         )}
         <div style={{ fontSize: 8, color: C.sub, marginBottom: 22, lineHeight: 1.5 }}>
@@ -3064,20 +3136,29 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
         }}>
           Prepared By
         </div>
-        <input
-          type="text"
-          placeholder="Admin name for signature line…"
-          value={preparedBy}
-          onChange={e => onPreparedByChange(e.target.value)}
-          style={{
-            width: "100%", boxSizing: "border-box",
-            padding: "10px 11px", borderRadius: 9,
-            border: `1px solid ${preparedBy ? C.blue + "70" : C.border}`,
-            background: dark ? "#181a28" : "#f7f8fc",
-            color: C.text, fontSize: 11, fontFamily: C.mono,
-            outline: "none", marginBottom: 6,
-          }}
-        />
+        <div style={{ ...fieldWrap("prepared"), marginBottom: 6 }}>
+          <div style={{ ...fieldInner, display: "flex", alignItems: "center", gap: 8, padding: "0 10px" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke={focusField === "prepared" ? C.blue : C.sub} strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Admin name for signature line…"
+              value={preparedBy}
+              onChange={e => onPreparedByChange(e.target.value)}
+              onFocus={() => setFocusField("prepared")}
+              onBlur={() => setFocusField(f => f === "prepared" ? null : f)}
+              style={{
+                flex: 1, minWidth: 0, boxSizing: "border-box",
+                padding: "10px 0", border: "none", background: "transparent",
+                color: C.text, fontSize: 11, fontFamily: C.mono, outline: "none",
+              }}
+            />
+          </div>
+        </div>
         <div style={{ fontSize: 8, color: C.sub, marginBottom: 22, lineHeight: 1.5 }}>
           Printed on the "Prepared by" signature line — saved for next export.
         </div>
@@ -3098,7 +3179,10 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
             style={{
               flex: 2, textAlign: "center", padding: "11px", borderRadius: 10,
               cursor: "pointer", fontSize: 11, fontWeight: 800,
-              border: `1px solid ${C.blue}`, background: C.blue, color: "#fff",
+              border: `1px solid ${C.blue}`,
+              background: "linear-gradient(135deg,#4f8ef7 0%,#3b6fd9 100%)",
+              color: "#fff",
+              boxShadow: "0 6px 18px rgba(79,142,247,0.3)",
             }}
           >
             Compile + Export
@@ -7347,16 +7431,18 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         [data-active="false"]:hover{color:rgba(255,255,255,0.82)!important;border-bottom-color:rgba(255,153,51,0.4)!important}
       `}</style>
 
-      {/* ── Outer header shell with dot-grid texture ── */}
+      {/* ── Outer header shell with dot-grid texture — frosted glass ── */}
       <div style={{
         background:`
-          radial-gradient(ellipse 55% 90% at 12% 50%, rgba(255,153,51,0.09) 0%, transparent 60%),
-          radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px),
-          linear-gradient(160deg, #020c20 0%, #001f5c 50%, #020c20 100%)
+          radial-gradient(ellipse 55% 90% at 12% 50%, rgba(255,153,51,0.10) 0%, transparent 60%),
+          radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px),
+          linear-gradient(160deg, rgba(2,12,32,0.66) 0%, rgba(0,31,92,0.60) 50%, rgba(2,12,32,0.66) 100%)
         `,
         backgroundSize:"100% 100%, 28px 28px, 100% 100%",
+        backdropFilter:"blur(22px) saturate(160%)",
+        WebkitBackdropFilter:"blur(22px) saturate(160%)",
         flexShrink:0,
-        boxShadow:"0 6px 36px rgba(0,0,0,0.52)",
+        boxShadow:"0 6px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.08)",
         position:"sticky", top:0, zIndex:10,
         overflow:"hidden",
       }}>
@@ -7389,11 +7475,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             <div onClick={onClose} className="ys-back-btn" style={{
               width:32, height:32, borderRadius:9, flexShrink:0,
               background:"rgba(255,255,255,0.09)",
-              border:"1px solid rgba(255,255,255,0.16)",
-              backdropFilter:"blur(10px)",
+              border:"1px solid rgba(255,255,255,0.18)",
+              borderTop:"1px solid rgba(255,255,255,0.30)",
+              backdropFilter:"blur(20px) saturate(180%)",
+              WebkitBackdropFilter:"blur(20px) saturate(180%)",
               display:"flex", alignItems:"center", justifyContent:"center",
               cursor:"pointer", transition:"background 0.15s",
-              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10)",
+              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14), 0 4px 12px rgba(0,0,0,0.16)",
             }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                 stroke="rgba(255,255,255,0.85)" strokeWidth="2.5"
@@ -7556,12 +7644,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               return (
                 <div style={{
                   display:"flex", alignItems:"center", gap:1,
-                  background:"rgba(255,255,255,0.11)",
-                  border:"1px solid rgba(255,255,255,0.20)",
+                  background:"rgba(255,255,255,0.10)",
+                  border:"1px solid rgba(255,255,255,0.22)",
+                  borderTop:"1px solid rgba(255,255,255,0.32)",
                   borderRadius:20, padding:"5px 8px",
-                  backdropFilter:"blur(10px)",
+                  backdropFilter:"blur(20px) saturate(180%)",
+                  WebkitBackdropFilter:"blur(20px) saturate(180%)",
                   flexShrink:0,
-                  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10)",
+                  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.16), 0 4px 14px rgba(0,0,0,0.16)",
                 }}>
                   <span onClick={(e) => { e.stopPropagation(); if(activeSection==="home") return; const c2=tabIds.indexOf(activeSection); if(c2===0){navigateTab("home");return;} if(c2>0)navigateTab(tabIds[c2-1]); }}
                     style={{ fontSize:15,color:"rgba(255,255,255,0.65)",cursor:"pointer",lineHeight:1,padding:"0 3px",opacity:activeSection!=="home"?1:0.2,userSelect:"none" }}>‹</span>
@@ -7578,12 +7668,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             {/* Controls pill */}
             <div style={{
               display:"flex", alignItems:"center",
-              background:"rgba(0,0,0,0.30)",
-              border:"1px solid rgba(255,255,255,0.10)",
-              borderTop:"1px solid rgba(255,255,255,0.17)",
+              background:"rgba(255,255,255,0.09)",
+              border:"1px solid rgba(255,255,255,0.16)",
+              borderTop:"1px solid rgba(255,255,255,0.26)",
               borderRadius:10, overflow:"hidden",
-              backdropFilter:"blur(16px)",
-              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)",
+              backdropFilter:"blur(20px) saturate(180%)",
+              WebkitBackdropFilter:"blur(20px) saturate(180%)",
+              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14), 0 4px 14px rgba(0,0,0,0.18)",
               flexShrink:0,
             }}>
               <div className="ys-ctrl-btn" onClick={toggleDark}
@@ -7627,11 +7718,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               <div onClick={onClose} className="ys-back-btn" style={{
                 width:32, height:32, borderRadius:9, flexShrink:0,
                 background:"rgba(255,255,255,0.09)",
-                border:"1px solid rgba(255,255,255,0.16)",
-                backdropFilter:"blur(10px)",
+                border:"1px solid rgba(255,255,255,0.18)",
+                borderTop:"1px solid rgba(255,255,255,0.30)",
+                backdropFilter:"blur(20px) saturate(180%)",
+                WebkitBackdropFilter:"blur(20px) saturate(180%)",
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor:"pointer", transition:"background 0.15s",
-                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10)",
+                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14), 0 4px 12px rgba(0,0,0,0.16)",
               }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                   stroke="rgba(255,255,255,0.85)" strokeWidth="2.5"
@@ -7699,12 +7792,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               {/* Controls pill */}
               <div style={{
                 display:"flex", alignItems:"center",
-                background:"rgba(0,0,0,0.30)",
-                border:"1px solid rgba(255,255,255,0.10)",
-                borderTop:"1px solid rgba(255,255,255,0.17)",
+                background:"rgba(255,255,255,0.09)",
+                border:"1px solid rgba(255,255,255,0.16)",
+                borderTop:"1px solid rgba(255,255,255,0.26)",
                 borderRadius:10, overflow:"hidden",
-                backdropFilter:"blur(16px)",
-                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)",
+                backdropFilter:"blur(20px) saturate(180%)",
+                WebkitBackdropFilter:"blur(20px) saturate(180%)",
+                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14), 0 4px 14px rgba(0,0,0,0.18)",
                 flexShrink:0,
               }}>
                 <div className="ys-ctrl-btn" onClick={toggleDark}
@@ -7823,12 +7917,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   {/* Tab navigator pill */}
                   <div style={{
                     display:"flex", alignItems:"center", gap:1,
-                    background:"rgba(255,255,255,0.11)",
-                    border:"1px solid rgba(255,255,255,0.20)",
+                    background:"rgba(255,255,255,0.10)",
+                    border:"1px solid rgba(255,255,255,0.22)",
+                    borderTop:"1px solid rgba(255,255,255,0.32)",
                     borderRadius:20, padding:"6px 7px",
-                    backdropFilter:"blur(10px)",
+                    backdropFilter:"blur(20px) saturate(180%)",
+                    WebkitBackdropFilter:"blur(20px) saturate(180%)",
                     flexShrink:0,
-                    boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10)",
+                    boxShadow:"inset 0 1px 0 rgba(255,255,255,0.16), 0 4px 14px rgba(0,0,0,0.16)",
                   }}>
                     <span onClick={(e)=>{ e.stopPropagation(); if(activeSection==="home")return; const c2=tabIds.indexOf(activeSection); if(c2===0){navigateTab("home");return;} if(c2>0)navigateTab(tabIds[c2-1]); }}
                       style={{ fontSize:15,color:"rgba(255,255,255,0.65)",cursor:"pointer",lineHeight:1,padding:"0 2px",opacity:activeSection!=="home"?1:0.2,userSelect:"none" }}>‹</span>
