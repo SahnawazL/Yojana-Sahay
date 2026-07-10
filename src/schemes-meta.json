@@ -318,7 +318,7 @@
     "linkAlive": false
   },
   "scholarship": {
-    "lastVerified": "2026-07-08T17:09:50.094Z",
+    "lastVerified": "2026-07-10T21:03:00.988Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -389,7 +389,7 @@
     "linkAlive": false
   },
   "sukanya": {
-    "lastVerified": "2026-07-08T18:43:55.049Z",
+    "lastVerified": "2026-07-10T21:05:02.514Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -431,7 +431,7 @@
     "linkAlive": true
   },
   "standup_india": {
-    "lastVerified": "2026-07-08T18:43:44.516Z",
+    "lastVerified": "2026-07-10T21:04:52.275Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -445,11 +445,11 @@
     "linkAlive": false
   },
   "sbm_gramin": {
-    "lastVerified": "2026-07-08T17:09:39.108Z",
+    "lastVerified": "2026-07-10T21:02:47.757Z",
     "isActive": true,
-    "httpStatus": 200,
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "daynrlm": {
     "lastVerified": "2026-07-09T05:38:24.696Z",
@@ -511,7 +511,7 @@
     "linkAlive": true
   },
   "soil_health_card": {
-    "lastVerified": "2026-07-08T18:43:39.372Z",
+    "lastVerified": "2026-07-10T21:04:46.300Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -550,7 +550,7 @@
     "linkAlive": true
   },
   "surya_ghar": {
-    "lastVerified": "2026-07-08T18:44:04.061Z",
+    "lastVerified": "2026-07-10T21:05:11.565Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -614,7 +614,7 @@
     "linkAlive": false
   },
   "startup_india": {
-    "lastVerified": "2026-07-08T18:43:49.739Z",
+    "lastVerified": "2026-07-10T21:04:57.905Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -659,7 +659,7 @@
     "linkAlive": true
   },
   "seekho_kamao": {
-    "lastVerified": "2026-07-08T17:10:03.207Z",
+    "lastVerified": "2026-07-10T21:03:22.790Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -722,7 +722,7 @@
     "linkAlive": true
   },
   "tn_chief_minister_health": {
-    "lastVerified": "2026-07-08T18:44:24.192Z",
+    "lastVerified": "2026-07-10T21:05:31.720Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -1346,7 +1346,7 @@
     "confidence": 0
   },
   "rajasthan_chiranjeevi": {
-    "lastVerified": "2026-07-08T17:09:18.926Z",
+    "lastVerified": "2026-07-10T21:02:18.334Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -1365,9 +1365,9 @@
     "confidence": 0
   },
   "raj_wfh_mahila": {
-    "lastVerified": "2026-07-08T17:09:07.928Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-07-10T21:02:07.931Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
@@ -1414,7 +1414,7 @@
     "confidence": 0
   },
   "raj_vishwakarma_kamgar": {
-    "lastVerified": "2026-07-08T17:08:54.424Z",
+    "lastVerified": "2026-07-10T21:01:58.766Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1426,7 +1426,7 @@
     "linkAlive": false
   },
   "raj_yuva_sambal": {
-    "lastVerified": "2026-07-08T17:09:14.022Z",
+    "lastVerified": "2026-07-10T21:02:13.286Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1528,7 +1528,7 @@
     "confidence": 0
   },
   "rgnf": {
-    "lastVerified": "2026-07-08T17:09:27.445Z",
+    "lastVerified": "2026-07-10T21:02:27.255Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3438,7 +3438,7 @@
     "confidence": 0
   },
   "seed_dnt_coaching": {
-    "lastVerified": "2026-07-08T17:09:57.991Z",
+    "lastVerified": "2026-07-10T21:03:14.489Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
