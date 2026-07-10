@@ -2626,6 +2626,107 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
 }
 
 // ─── EXPORT MODAL ─────────────────────────────────────────────────────────────
+// ── Pre-export options popup — asks theme (and future options) before
+// the compile animation / actual PDF generation kicks off. `dark` here is
+// the ADMIN DASHBOARD's own theme (for styling this popup itself); `theme`
+// / `onSelectTheme` control the THEME OF THE GENERATED PDF, which is an
+// independent choice from how the dashboard itself currently looks.
+function ExportOptionsModal({ dark, theme, onSelectTheme, onConfirm, onCancel, selectedCount }) {
+  const C = {
+    overlay: "rgba(5,6,12,0.72)",
+    card:    dark ? "#111320" : "#ffffff",
+    border:  dark ? "#1f2235" : "#dde1f0",
+    text:    dark ? "#eef0f8" : "#1a1d2e",
+    sub:     dark ? "#8b90b0" : "#5a5f7a",
+    blue:    "#4f8ef7",
+    mono:    "'JetBrains Mono','Fira Code','Courier New',monospace",
+  };
+
+  const THEME_OPTIONS = [
+    { id: "dark",  label: "Dark",  emoji: "🌙", hint: "Black bg · light text" },
+    { id: "light", label: "Light", emoji: "☀️", hint: "White bg · dark text" },
+  ];
+
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed", inset: 0, background: C.overlay, zIndex: 9999,
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: C.card, border: `1px solid ${C.border}`, borderRadius: 16,
+          padding: 22, maxWidth: 340, width: "100%", fontFamily: C.mono,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+        }}
+      >
+        <div style={{ fontSize: 14, fontWeight: 800, color: C.text, marginBottom: 4 }}>
+          PDF Export Options
+        </div>
+        <div style={{ fontSize: 10, color: C.sub, marginBottom: 18, lineHeight: 1.5 }}>
+          {selectedCount} module{selectedCount !== 1 ? "s" : ""} selected · pick a report theme before compiling
+        </div>
+
+        <div style={{
+          fontSize: 9, fontWeight: 700, color: C.sub, letterSpacing: 1,
+          textTransform: "uppercase", marginBottom: 8,
+        }}>
+          Report Theme
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 22 }}>
+          {THEME_OPTIONS.map(opt => {
+            const on = theme === opt.id;
+            return (
+              <div
+                key={opt.id}
+                onClick={() => onSelectTheme(opt.id)}
+                style={{
+                  flex: 1, textAlign: "center", padding: "12px 8px", borderRadius: 10,
+                  cursor: "pointer", transition: "all 0.15s",
+                  border: `1.5px solid ${on ? C.blue : C.border}`,
+                  background: on ? `${C.blue}18` : "transparent",
+                }}
+              >
+                <div style={{ fontSize: 18, marginBottom: 4 }}>{opt.emoji}</div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: on ? C.blue : C.text }}>
+                  {opt.label}
+                </div>
+                <div style={{ fontSize: 8, color: C.sub, marginTop: 2 }}>{opt.hint}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <div
+            onClick={onCancel}
+            style={{
+              flex: 1, textAlign: "center", padding: "11px", borderRadius: 10,
+              cursor: "pointer", fontSize: 11, fontWeight: 700,
+              border: `1px solid ${C.border}`, color: C.sub,
+            }}
+          >
+            Cancel
+          </div>
+          <div
+            onClick={onConfirm}
+            style={{
+              flex: 2, textAlign: "center", padding: "11px", borderRadius: 10,
+              cursor: "pointer", fontSize: 11, fontWeight: 800,
+              border: `1px solid ${C.blue}`, background: C.blue, color: "#fff",
+            }}
+          >
+            Compile + Export
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
   const progress = done ? 100 : currentStep < 0 ? 2
     : Math.round(((currentStep + 1) / steps.length) * 100);
@@ -4597,6 +4698,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [exportSections, setExportSections] = useState(
     () => new Set(["overview","analytics","users","activity","usage","schemes","reports","agents"])
   );
+  // Pre-export options popup (theme choice etc.) shown before compiling
+  const [showExportOptions, setShowExportOptions] = useState(false);
+  const [pdfTheme,          setPdfTheme]          = useState("dark");
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
@@ -4979,11 +5083,33 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   , [users]);
 
   // ── Full Dashboard PDF Export (all sections, all fields) ─────────────────
-  const exportAllPDF = useCallback((sectionsToInclude, freshUsageData, freshAgentsData) => {
+  const exportAllPDF = useCallback((sectionsToInclude, freshUsageData, freshAgentsData, theme = "dark") => {
     // Default to all sections if none specified
     const s = sectionsToInclude instanceof Set && sectionsToInclude.size > 0
       ? sectionsToInclude
       : new Set(["overview","analytics","users","activity","usage","schemes","reports","agents"]);
+
+    // ── Report color palette — chosen once per export via the pre-export
+    // options popup. Light isn't just the dark palette inverted: accents are
+    // darker/more saturated versions of the same hues so they keep enough
+    // contrast on a white page (same reasoning as SECTION_COLORS_LIGHT in
+    // the Export tab's module selector).
+    const isLightPdf = theme === "light";
+    const T = isLightPdf ? {
+      bg:"#f7f8fc", surface:"#ffffff", card:"#ffffff", card2:"#eef1fa",
+      border:"#dde1f0", border2:"#c7cce0",
+      text:"#1a1d2e", textMid:"#5a5f7a", textSub:"#868bab",
+      accent1:"#2563eb", accent2:"#c2410c", accent3:"#059669", accent4:"#7c3aed", accent5:"#db2777",
+      red:"#dc2626", amber:"#b45309",
+      redRGB:"220,38,38", accent1RGB:"37,99,235", stripe:"rgba(0,0,0,0.035)",
+    } : {
+      bg:"#08090d", surface:"#0e1016", card:"#13151f", card2:"#191c28",
+      border:"#1f2235", border2:"#252840",
+      text:"#eef0f8", textMid:"#8b90b0", textSub:"#4a4f6a",
+      accent1:"#4f8ef7", accent2:"#f7824f", accent3:"#3dd68c", accent4:"#a78bfa", accent5:"#f472b6",
+      red:"#f87171", amber:"#fbbf24",
+      redRGB:"248,113,113", accent1RGB:"79,142,247", stripe:"rgba(255,255,255,0.015)",
+    };
     // freshAgentsData = { monthReport, todayStr, monthStartStr }, built by
     // handleExportAll just before this call (see there for why: same
     // stale-closure reasoning as freshUsageData above — buildAttendanceReport
@@ -5301,7 +5427,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     const analyticsHTML = `
       <div class="section page-break">
         ${sectionHeader("🧮", "Demographics & Analytics")}
-        ${exportGuestProfiles.length > 0 ? `<div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">
+        ${exportGuestProfiles.length > 0 ? `<div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">
           Occupation, Income, Age, Area, Gender, Ration, State &amp; the two cross-tabs below include ${exportGuestProfiles.length} guest${exportGuestProfiles.length===1?"":"s"}' Eligibility Checker answers, not just signed-in users. Marital Status, Disability, Housing, Children, Land, KCC, Education &amp; Institution remain signed-in-users-only (no checker equivalent exists for guests).
         </div>` : ""}
         <div class="two-col">
@@ -5328,13 +5454,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
       <div class="section page-break">
         ${sectionHeader("🌾", "Farmer-Specific Analytics")} 
-        <div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">${farmersCount} farmer${farmersCount!==1?"s":""} registered</div>
+        <div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">${farmersCount} farmer${farmersCount!==1?"s":""} registered</div>
         <div class="two-col">
           ${breakdownBlock("🌾 Land Holding (Farmers)", Object.entries(byLand).map(([k,v]) => [LAND_LABELS[k]||k, v]), "#3dd68c")}
           ${breakdownBlock("💳 Kisan Credit Card (Farmers)", Object.entries(byKisan).map(([k,v]) => [strip(KISAN_LABELS[k]||k), v]), "#f7824f")}
         </div>
         ${sectionHeader("🎓", "Student-Specific Analytics")}
-        <div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">${studentsCount} student${studentsCount!==1?"s":""} registered</div>
+        <div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">${studentsCount} student${studentsCount!==1?"s":""} registered</div>
         <div class="two-col">
           ${breakdownBlock("📚 Education Level (Students)", Object.entries(byEduc).map(([k,v]) => [EDUC_LABELS[k]||k, v]), "#a78bfa")}
           ${breakdownBlock("🏫 Institution Type (Students)", Object.entries(byInst).map(([k,v]) => [strip(INST_LABELS[k]||k), v]), "#4f8ef7")}
@@ -5404,7 +5530,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     const usersHTML = `
       <div class="section page-break">
         ${sectionHeader("👥", "Complete User Registry", users.length)}
-        <div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">All ${users.length} users · All profile fields · Sorted by registration order</div>
+        <div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">All ${users.length} users · All profile fields · Sorted by registration order</div>
         ${dataTable(uHeaders, uRows)}
       </div>`;
 
@@ -5779,7 +5905,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     const agentsHTML = `
       <div class="section page-break">
         ${sectionHeader("🧑‍💼", `Human Agents & Team — ${totalAgentsAll} Total Agents Monitored`, humanAgents.length)}
-        <div style="color:#4a4f6a;font-family:var(--mono);font-size:7.5px;margin-bottom:6px">
+        <div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">
           This dashboard tracks ${totalAgentsAll} agent${totalAgentsAll!==1?"s":""} in total — ${humanAgents.length} human sub-admin${humanAgents.length!==1?"s":""} and ${AI_AGENTS.length} AI / automation agent${AI_AGENTS.length!==1?"s":""}
           (${AI_AGENTS.map(a => strip(a.name)).join(", ")}). Everything below covers <b>human agents only</b>; AI/automation agent health is reported separately on the Team tab.
         </div>
@@ -5821,7 +5947,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
         <div class="sub-title" style="margin-top:14px">Today's Attendance — ${fmtDateShort(agentsTodayStr)}</div>
         ${humanAgents.length === 0
-          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">No human agents on record.</div>`
+          ? `<div style="color:${T.textSub};padding:8px 0;font-size:7.5px;font-style:italic">No human agents on record.</div>`
           : dataTable(
               ["#","Name","In Time","Last Active","Hours Today","Status"],
               humanAgents.map((ag, i) => {
@@ -5842,7 +5968,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
         <div class="sub-title" style="margin-top:14px">This Month's Attendance Summary</div>
         ${agentsRows.length === 0
-          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">Attendance summary unavailable — logs were not fetched for this export.</div>`
+          ? `<div style="color:${T.textSub};padding:8px 0;font-size:7.5px;font-style:italic">Attendance summary unavailable — logs were not fetched for this export.</div>`
           : dataTable(
               ["#","Name","Days Present","Full Days","Half Days","Days Absent","Attendance %","Total Hours","Avg Hrs/Day","Overtime","Shortfall"],
               agentsRows.map((r, i) => [
@@ -5887,22 +6013,22 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:       #08090d;
-      --surface:  #0e1016;
-      --card:     #13151f;
-      --card2:    #191c28;
-      --border:   #1f2235;
-      --border2:  #252840;
-      --text:     #eef0f8;
-      --textMid:  #8b90b0;
-      --textSub:  #4a4f6a;
-      --accent1:  #4f8ef7;   /* electric blue */
-      --accent2:  #f7824f;   /* saffron glow  */
-      --accent3:  #3dd68c;   /* green signal  */
-      --accent4:  #a78bfa;   /* violet        */
-      --accent5:  #f472b6;   /* pink          */
-      --red:      #f87171;
-      --amber:    #fbbf24;
+      --bg:       ${T.bg};
+      --surface:  ${T.surface};
+      --card:     ${T.card};
+      --card2:    ${T.card2};
+      --border:   ${T.border};
+      --border2:  ${T.border2};
+      --text:     ${T.text};
+      --textMid:  ${T.textMid};
+      --textSub:  ${T.textSub};
+      --accent1:  ${T.accent1};   /* electric blue */
+      --accent2:  ${T.accent2};   /* saffron glow  */
+      --accent3:  ${T.accent3};   /* green signal  */
+      --accent4:  ${T.accent4};   /* violet        */
+      --accent5:  ${T.accent5};   /* pink          */
+      --red:      ${T.red};
+      --amber:    ${T.amber};
       --mono:     'JetBrains Mono', monospace;
       --head:     'Syne', sans-serif;
       --body:     'DM Sans', sans-serif;
@@ -5969,8 +6095,8 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     }
     .cover-meta .confidential {
       display: inline-block;
-      background: rgba(248,113,113,0.12);
-      border: 1px solid rgba(248,113,113,0.3);
+      background: rgba(${T.redRGB},0.12);
+      border: 1px solid rgba(${T.redRGB},0.3);
       color: var(--red);
       font-size: 7px;
       font-weight: 700;
@@ -5981,8 +6107,8 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     }
     .sections-pill {
       display: inline-block;
-      background: rgba(79,142,247,0.1);
-      border: 1px solid rgba(79,142,247,0.2);
+      background: rgba(${T.accent1RGB},0.1);
+      border: 1px solid rgba(${T.accent1RGB},0.2);
       color: var(--accent1);
       font-size: 7px;
       padding: 2px 8px;
@@ -6030,8 +6156,8 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
     .badge {
       display: inline-block;
-      background: rgba(79,142,247,0.15);
-      border: 1px solid rgba(79,142,247,0.3);
+      background: rgba(${T.accent1RGB},0.15);
+      border: 1px solid rgba(${T.accent1RGB},0.3);
       color: var(--accent1);
       font-family: var(--mono);
       font-size: 7px;
@@ -6155,7 +6281,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     }
     .breakdown td { font-size: 7.5px; color: var(--textMid); }
     .breakdown tr.even { background: transparent; }
-    .breakdown tr.odd  { background: rgba(255,255,255,0.015); }
+    .breakdown tr.odd  { background: ${T.stripe}; }
 
     /* SVG bar */
     .bar-track {
@@ -6259,7 +6385,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       display: block;
       height: 6px;
       border-radius: 3px;
-      box-shadow: 0 0 4px rgba(79,142,247,0.5);
+      box-shadow: 0 0 4px rgba(${T.accent1RGB},0.5);
     }
     .rate-chip {
       display: inline-block;
@@ -6303,7 +6429,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     .spark-bar {
       width: 60%;
       border-radius: 2px 2px 0 0;
-      box-shadow: 0 0 4px rgba(79,142,247,0.4);
+      box-shadow: 0 0 4px rgba(${T.accent1RGB},0.4);
     }
     .spark-lbl {
       font-family: var(--mono);
@@ -6317,8 +6443,8 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
        INFO BAR
     ──────────────────────────────────────────────── */
     .info-bar {
-      background: rgba(79,142,247,0.06);
-      border: 1px solid rgba(79,142,247,0.15);
+      background: rgba(${T.accent1RGB},0.06);
+      border: 1px solid rgba(${T.accent1RGB},0.15);
       border-radius: 6px;
       padding: 7px 12px;
       font-family: var(--mono);
@@ -6354,19 +6480,19 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         content: "Page " counter(page) " of " counter(pages);
         font-family: 'JetBrains Mono', monospace;
         font-size: 7pt;
-        color: #4a4f6a;
+        color: ${T.textSub};
       }
       @bottom-left {
         content: "YojanaSahay · Confidential";
         font-family: 'JetBrains Mono', monospace;
         font-size: 7pt;
-        color: #252840;
+        color: ${T.border2};
       }
       @bottom-center {
         content: "${exportId}";
         font-family: 'JetBrains Mono', monospace;
         font-size: 7pt;
-        color: #252840;
+        color: ${T.border2};
       }
     }
 
@@ -6402,7 +6528,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     ──────────────────────────────────────────────── */
     @media print {
       body {
-        background: #08090d !important;
+        background: ${T.bg} !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         color-adjust: exact;
@@ -6570,11 +6696,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     await new Promise(r => setTimeout(r, 1100));
     setExportModal(false);
     await new Promise(r => setTimeout(r, 80));
-    exportAllPDF(exportSections, freshUsageData, freshAgentsData);
+    exportAllPDF(exportSections, freshUsageData, freshAgentsData, pdfTheme);
 
     // Reset state after a short delay
     setTimeout(() => { setExportStep(-1); setExportDone(false); }, 600);
-  }, [EXPORT_STEPS, exportAllPDF, exportSections, usageData, fetchUsage, humanAgents]);
+  }, [EXPORT_STEPS, exportAllPDF, exportSections, usageData, fetchUsage, humanAgents, pdfTheme]);
 
   // ─────────────────────────────────────────────────────────────────────────
   const ALL_TABS = [
@@ -8319,7 +8445,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               </div>
             ) : !loading && (users.length > 0 || reports.length > 0) ? (
               <div
-                onClick={exportModal ? undefined : handleExportAll}
+                onClick={exportModal ? undefined : () => setShowExportOptions(true)}
                 style={{
                   background: exportModal
                     ? C.surf
@@ -8368,7 +8494,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   <div style={{ fontFamily:C.mono, fontSize:9, color:C.blue, marginTop:3, opacity:0.8 }}>
                     {exportModal
                       ? "building sections · rendering layout · finalising…"
-                      : `${selectedCount} module${selectedCount!==1?"s":""} · landscape A4 · dark theme`}
+                      : `${selectedCount} module${selectedCount!==1?"s":""} · landscape A4 · ${pdfTheme} theme`}
                   </div>
                 </div>
 
@@ -8505,6 +8631,18 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       {/* User Detail Drawer */}
       {selectedUser && (
         <UserDrawer user={selectedUser} dark={dark} isDesktop={isDesktop} onClose={() => setSelectedUser(null)} />
+      )}
+
+      {/* Pre-Export Options Popup — theme choice, shown before compiling */}
+      {showExportOptions && (
+        <ExportOptionsModal
+          dark={dark}
+          theme={pdfTheme}
+          onSelectTheme={setPdfTheme}
+          selectedCount={exportSections.size}
+          onCancel={() => setShowExportOptions(false)}
+          onConfirm={() => { setShowExportOptions(false); handleExportAll(); }}
+        />
       )}
 
       {/* Export Progress Modal */}
