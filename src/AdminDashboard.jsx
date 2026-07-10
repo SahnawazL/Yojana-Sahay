@@ -74,6 +74,25 @@ const GROQ_MODEL = "llama-3.3-70b-versatile";
 const ADMIN_BUILD_VERSION = "2.6.0";
 const ADMIN_BUILD_ENV     = "PROD";
 
+// ── PDF Export Lock ──────────────────────────────────────────────────────
+// SHA-256 hash of the export password (NOT the plaintext password — the
+// raw string is never shipped in the bundle). To set/change the password:
+//   1. Open any browser console and run:
+//        await crypto.subtle.digest("SHA-256", new TextEncoder().encode("yourPasswordHere"))
+//          .then(b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join(""))
+//   2. Paste the resulting hex string below.
+// NOTE: this is a UI-level gate (stops a colleague/guest from casually
+// tapping export), not real server-side security — anyone who reads the
+// deployed JS can see this hash and brute-force weak passwords offline.
+// For genuine protection, verify the password against a Vercel serverless
+// function (secret stored in an env var) instead of comparing client-side.
+const EXPORT_PDF_PASSWORD_HASH = "085133f2d0c0bf6c5e036501d55f760d2ea52732c1a79f5b73e01fbaf7ca957a";
+
+async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 const OCC_LABELS = {
   farmer:"Farmer", student:"Student", women:"Homemaker",
   senior:"Senior Citizen", business:"Business Owner", general:"General",
@@ -2625,6 +2644,213 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
   );
 }
 
+// ─── EXPORT PASSWORD GATE ─────────────────────────────────────────────────────
+// Restricted-access checkpoint shown before the pre-export options popup.
+// Verifies against EXPORT_PDF_PASSWORD_HASH (SHA-256) so the plaintext
+// password never appears in the deployed bundle. See the comment above
+// EXPORT_PDF_PASSWORD_HASH for how to set/change it.
+function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
+  const [pwd,      setPwd]      = useState("");
+  const [checking, setChecking] = useState(false);
+  const [error,    setError]    = useState(false);
+  const [shake,    setShake]    = useState(false);
+  const [focused,  setFocused]  = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus(), 60);
+    return () => clearTimeout(t);
+  }, []);
+
+  const C = {
+    overlay: "rgba(6,7,14,0.78)",
+    card:    dark ? "#0c0e18" : "#ffffff",
+    border:  dark ? "#20233a" : "#dde1f0",
+    text:    dark ? "#f1f3fb" : "#1a1d2e",
+    sub:     dark ? "#7d82a3" : "#5a5f7a",
+    accent:  "#4f8ef7",
+    red:     "#EF4444",
+    mono:    "'JetBrains Mono','Fira Code','Courier New',monospace",
+  };
+
+  async function submit() {
+    if (!pwd || checking) return;
+    setChecking(true);
+    setError(false);
+    const hash = await sha256Hex(pwd);
+    // brief deliberate delay reads as a genuine verification step rather
+    // than an instant client-side check
+    await new Promise(r => setTimeout(r, 450));
+    setChecking(false);
+    if (hash === EXPORT_PDF_PASSWORD_HASH) {
+      onUnlock();
+    } else {
+      setError(true);
+      setShake(true);
+      setPwd("");
+      setTimeout(() => setShake(false), 380);
+      inputRef.current?.focus();
+    }
+  }
+
+  const ringColor = error ? C.red : (focused ? C.accent : C.border);
+
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed", inset: 0, background: C.overlay, zIndex: 10000,
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+        backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)",
+      }}
+    >
+      <style>{`
+        @keyframes gate-shake {
+          0%,100% { transform: translateX(0); }
+          20% { transform: translateX(-7px); }
+          40% { transform: translateX(6px); }
+          60% { transform: translateX(-4px); }
+          80% { transform: translateX(2px); }
+        }
+        @keyframes gate-glow {
+          0%,100% { opacity: 0.5; }
+          50% { opacity: 1; }
+        }
+      `}</style>
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          position: "relative",
+          background: dark
+            ? "linear-gradient(180deg,#0f1220 0%,#0a0c16 100%)"
+            : "linear-gradient(180deg,#ffffff 0%,#f7f8fc 100%)",
+          border: `1px solid ${error ? C.red+"55" : C.border}`,
+          borderRadius: 18,
+          padding: "28px 24px 24px",
+          maxWidth: 328, width: "100%", fontFamily: C.mono,
+          boxShadow: `0 24px 70px rgba(0,0,0,0.55), 0 0 0 1px rgba(79,142,247,0.04)`,
+          animation: shake ? "gate-shake 0.36s ease" : "none",
+        }}
+      >
+        {/* corner brackets — matches dashboard's HUD accents */}
+        {[
+          { top: 10, left: 10, borderTop: `1.5px solid ${C.accent}55`, borderLeft: `1.5px solid ${C.accent}55` },
+          { top: 10, right: 10, borderTop: `1.5px solid ${C.accent}55`, borderRight: `1.5px solid ${C.accent}55` },
+          { bottom: 10, left: 10, borderBottom: `1.5px solid ${C.accent}55`, borderLeft: `1.5px solid ${C.accent}55` },
+          { bottom: 10, right: 10, borderBottom: `1.5px solid ${C.accent}55`, borderRight: `1.5px solid ${C.accent}55` },
+        ].map((pos, i) => (
+          <div key={i} style={{ position: "absolute", width: 12, height: 12, ...pos, pointerEvents: "none" }} />
+        ))}
+
+        {/* eyebrow */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          marginBottom: 16,
+        }}>
+          <span style={{
+            width: 5, height: 5, borderRadius: "50%",
+            background: error ? C.red : C.accent,
+            boxShadow: `0 0 8px ${error ? C.red : C.accent}`,
+            animation: "gate-glow 1.8s ease-in-out infinite",
+          }} />
+          <span style={{ fontSize: 9, fontWeight: 700, color: C.sub, letterSpacing: 2.2, textTransform: "uppercase" }}>
+            Secure Access
+          </span>
+        </div>
+
+        {/* icon */}
+        <div style={{
+          width: 46, height: 46, borderRadius: 13, margin: "0 auto 16px",
+          background: dark ? "rgba(79,142,247,0.07)" : "rgba(79,142,247,0.06)",
+          border: `1px solid ${C.accent}30`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: `0 0 24px ${error ? "rgba(239,68,68,0.12)" : "rgba(79,142,247,0.14)"}`,
+        }}>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={error ? C.red : C.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2 4 5v6c0 5 3.4 9 8 11 4.6-2 8-6 8-11V5l-8-3Z" />
+            <path d="M9.5 12.2l1.8 1.8 3.2-3.6" />
+          </svg>
+        </div>
+
+        <div style={{ fontSize: 14, fontWeight: 800, color: C.text, textAlign: "center", letterSpacing: 0.2 }}>
+          Restricted Export
+        </div>
+        <div style={{ fontSize: 10, color: C.sub, textAlign: "center", marginTop: 6, marginBottom: 22, lineHeight: 1.65, padding: "0 8px" }}>
+          Verify your admin password to compile the confidential dashboard report.
+        </div>
+
+        <label style={{ fontSize: 8.5, fontWeight: 700, color: C.sub, letterSpacing: 1.4, textTransform: "uppercase" }}>
+          Password
+        </label>
+        <div style={{ position: "relative", marginTop: 7 }}>
+          <input
+            ref={inputRef}
+            type="password"
+            value={pwd}
+            onChange={e => { setPwd(e.target.value); if (error) setError(false); }}
+            onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") onCancel(); }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder="••••••••••••"
+            autoComplete="current-password"
+            style={{
+              width: "100%", boxSizing: "border-box",
+              background: dark ? "#12141f" : "#f4f5fb",
+              border: `1px solid ${ringColor}`,
+              borderRadius: 10, padding: "12px 14px",
+              fontFamily: C.mono, fontSize: 13, color: C.text,
+              outline: "none", letterSpacing: 3,
+              boxShadow: focused && !error ? `0 0 0 3px ${C.accent}1a` : error ? `0 0 0 3px ${C.red}1a` : "none",
+              transition: "box-shadow 0.15s, border-color 0.15s",
+            }}
+          />
+        </div>
+
+        {error && (
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 9.5, color: C.red, marginTop: 9, fontWeight: 600 }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={C.red} strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Incorrect password
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
+          <div
+            onClick={onCancel}
+            style={{
+              flex: 1, textAlign: "center", padding: "11px 0", borderRadius: 10,
+              border: `1px solid ${C.border}`, color: C.sub, fontSize: 10, fontWeight: 700,
+              cursor: "pointer", letterSpacing: 0.6, textTransform: "uppercase",
+            }}
+          >
+            Cancel
+          </div>
+          <div
+            onClick={submit}
+            style={{
+              flex: 1.5, textAlign: "center", padding: "11px 0", borderRadius: 10,
+              background: pwd
+                ? "linear-gradient(135deg,#4f8ef7 0%,#3b6fd9 100%)"
+                : (dark ? "#181b2a" : "#e8e9f2"),
+              color: pwd ? "#fff" : C.sub,
+              fontSize: 10, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase",
+              cursor: pwd ? "pointer" : "default",
+              opacity: checking ? 0.65 : 1,
+              boxShadow: pwd && !checking ? "0 6px 18px rgba(79,142,247,0.3)" : "none",
+              transition: "opacity 0.15s",
+            }}
+          >
+            {checking ? "Verifying…" : "Unlock"}
+          </div>
+        </div>
+
+        <div style={{ fontSize: 8.5, color: C.sub, textAlign: "center", marginTop: 16, opacity: 0.6, letterSpacing: 0.3 }}>
+          Verified locally on this device · not transmitted or logged
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── EXPORT MODAL ─────────────────────────────────────────────────────────────
 // ── Pre-export options popup — asks theme (and future options) before
 // the compile animation / actual PDF generation kicks off. `dark` here is
@@ -4856,6 +5082,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   );
   // Pre-export options popup (theme choice etc.) shown before compiling
   const [showExportOptions, setShowExportOptions] = useState(false);
+  // Restricted-access password gate — shown before showExportOptions, must
+  // be unlocked (per browser session; resets on reload) before an admin
+  // can reach the export options / compile a PDF.
+  const [showPdfPasswordGate, setShowPdfPasswordGate] = useState(false);
+  const [pdfExportUnlocked,   setPdfExportUnlocked]   = useState(false);
   const [pdfTheme,          setPdfTheme]          = useState("dark");
   // Page orientation + physical size — landscape/A4 remains the default
   // since that's what the layout (wide tables, cross-tab matrices) was
@@ -8755,7 +8986,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               </div>
             ) : !loading && (users.length > 0 || reports.length > 0) ? (
               <div
-                onClick={exportModal ? undefined : () => setShowExportOptions(true)}
+                onClick={exportModal ? undefined : () => (pdfExportUnlocked ? setShowExportOptions(true) : setShowPdfPasswordGate(true))}
                 style={{
                   background: exportModal
                     ? C.surf
@@ -8941,6 +9172,19 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       {/* User Detail Drawer */}
       {selectedUser && (
         <UserDrawer user={selectedUser} dark={dark} isDesktop={isDesktop} onClose={() => setSelectedUser(null)} />
+      )}
+
+      {/* Restricted-Access Password Gate — must unlock before export options */}
+      {showPdfPasswordGate && (
+        <ExportPasswordGateModal
+          dark={dark}
+          onCancel={() => setShowPdfPasswordGate(false)}
+          onUnlock={() => {
+            setPdfExportUnlocked(true);
+            setShowPdfPasswordGate(false);
+            setShowExportOptions(true);
+          }}
+        />
       )}
 
       {/* Pre-Export Options Popup — theme choice, shown before compiling */}
