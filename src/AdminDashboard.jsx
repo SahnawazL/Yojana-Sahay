@@ -2741,10 +2741,17 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
           <div key={i} style={{ position: "absolute", width: 12, height: 12, ...pos, pointerEvents: "none" }} />
         ))}
 
-        {/* eyebrow */}
+        {/* eyebrow — glass pill badge */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-          marginBottom: 16,
+          margin: "0 auto 16px", width: "fit-content",
+          padding: "5px 12px", borderRadius: 20,
+          background: dark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.55)",
+          border: `1px solid ${dark ? "rgba(255,255,255,0.14)" : "rgba(20,24,50,0.10)"}`,
+          borderTop: `1px solid ${dark ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.7)"}`,
+          backdropFilter: "blur(14px) saturate(160%)",
+          WebkitBackdropFilter: "blur(14px) saturate(160%)",
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,${dark ? 0.06 : 0.5})`,
         }}>
           <span style={{
             width: 5, height: 5, borderRadius: "50%",
@@ -2757,13 +2764,16 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
           </span>
         </div>
 
-        {/* icon */}
+        {/* icon — frosted glass circle */}
         <div style={{
           width: 46, height: 46, borderRadius: 13, margin: "0 auto 16px",
-          background: dark ? "rgba(79,142,247,0.07)" : "rgba(79,142,247,0.06)",
-          border: `1px solid ${C.accent}30`,
+          background: dark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.55)",
+          border: `1px solid ${error ? C.red + "40" : C.accent + "35"}`,
+          borderTop: `1px solid ${error ? C.red + "55" : C.accent + "50"}`,
+          backdropFilter: "blur(14px) saturate(160%)",
+          WebkitBackdropFilter: "blur(14px) saturate(160%)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: `0 0 24px ${error ? "rgba(239,68,68,0.12)" : "rgba(79,142,247,0.14)"}`,
+          boxShadow: `0 0 24px ${error ? "rgba(239,68,68,0.14)" : "rgba(79,142,247,0.16)"}, inset 0 1px 0 rgba(255,255,255,${dark ? 0.08 : 0.55})`,
         }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={error ? C.red : C.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2 4 5v6c0 5 3.4 9 8 11 4.6-2 8-6 8-11V5l-8-3Z" />
@@ -2929,6 +2939,20 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
   });
   const fieldInner = { background: dark ? "#0d0f1a" : "#ffffff", borderRadius: 9.2 };
 
+  // shared glass-pill style for Theme/Orientation/Page Size/Date Range chips
+  const pillGlass = (on) => ({
+    border: `1px solid ${on ? C.blue + "80" : (dark ? "rgba(255,255,255,0.14)" : "rgba(20,24,50,0.12)")}`,
+    borderTop: `1px solid ${on ? C.blue + "90" : (dark ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.65)")}`,
+    background: on
+      ? `linear-gradient(135deg, ${C.blue}2a, ${C.blue}12)`
+      : (dark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.55)"),
+    backdropFilter: "blur(14px) saturate(160%)",
+    WebkitBackdropFilter: "blur(14px) saturate(160%)",
+    boxShadow: on
+      ? `0 0 0 1px ${C.blue}22, 0 4px 14px ${C.blue}22, inset 0 1px 0 rgba(255,255,255,0.12)`
+      : `inset 0 1px 0 rgba(255,255,255,${dark ? 0.06 : 0.5})`,
+  });
+
   const THEME_OPTIONS = [
     { id: "dark",  label: "Dark",  emoji: "🌙", hint: "Black bg · light text" },
     { id: "light", label: "Light", emoji: "☀️", hint: "White bg · dark text" },
@@ -2971,11 +2995,21 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
           maxHeight: "85vh", overflowY: "auto",
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 800, color: C.text, marginBottom: 4 }}>
-          PDF Export Options
-        </div>
-        <div style={{ fontSize: 10, color: C.sub, marginBottom: 18, lineHeight: 1.5 }}>
-          {selectedCount} module{selectedCount !== 1 ? "s" : ""} selected · pick a report theme before compiling
+        <div style={{
+          margin: "-22px -22px 16px", padding: "16px 22px 14px",
+          borderRadius: "16px 16px 0 0",
+          background: dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.5)",
+          borderBottom: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(20,24,50,0.08)"}`,
+          backdropFilter: "blur(14px) saturate(160%)",
+          WebkitBackdropFilter: "blur(14px) saturate(160%)",
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,${dark ? 0.06 : 0.5})`,
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: C.text, marginBottom: 4 }}>
+            PDF Export Options
+          </div>
+          <div style={{ fontSize: 10, color: C.sub, lineHeight: 1.5 }}>
+            {selectedCount} module{selectedCount !== 1 ? "s" : ""} selected · pick a report theme before compiling
+          </div>
         </div>
 
         <div style={{
@@ -2994,8 +3028,7 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
                 style={{
                   flex: 1, textAlign: "center", padding: "12px 8px", borderRadius: 10,
                   cursor: "pointer", transition: "all 0.15s",
-                  border: `1.5px solid ${on ? C.blue : C.border}`,
-                  background: on ? `${C.blue}18` : "transparent",
+                  ...pillGlass(on),
                 }}
               >
                 <div style={{ fontSize: 18, marginBottom: 4 }}>{opt.emoji}</div>
@@ -3024,8 +3057,7 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
                 style={{
                   flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10,
                   cursor: "pointer", transition: "all 0.15s",
-                  border: `1.5px solid ${on ? C.blue : C.border}`,
-                  background: on ? `${C.blue}18` : "transparent",
+                  ...pillGlass(on),
                 }}
               >
                 <div style={{ fontSize: 15, marginBottom: 2 }}>{opt.emoji}</div>
@@ -3053,9 +3085,8 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
                 style={{
                   flex: 1, textAlign: "center", padding: "9px 8px", borderRadius: 10,
                   cursor: "pointer", transition: "all 0.15s",
-                  border: `1.5px solid ${on ? C.blue : C.border}`,
-                  background: on ? `${C.blue}18` : "transparent",
                   fontSize: 10.5, fontWeight: 800, color: on ? C.blue : C.text,
+                  ...pillGlass(on),
                 }}
               >
                 {opt.label}
@@ -3080,9 +3111,8 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
                 style={{
                   padding: "7px 10px", borderRadius: 8,
                   cursor: "pointer", transition: "all 0.15s",
-                  border: `1.5px solid ${on ? C.blue : C.border}`,
-                  background: on ? `${C.blue}18` : "transparent",
                   fontSize: 9.5, fontWeight: 800, color: on ? C.blue : C.text,
+                  ...pillGlass(on),
                 }}
               >
                 {opt.label}
@@ -7431,18 +7461,16 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         [data-active="false"]:hover{color:rgba(255,255,255,0.82)!important;border-bottom-color:rgba(255,153,51,0.4)!important}
       `}</style>
 
-      {/* ── Outer header shell with dot-grid texture — frosted glass ── */}
+      {/* ── Outer header shell with dot-grid texture ── */}
       <div style={{
         background:`
-          radial-gradient(ellipse 55% 90% at 12% 50%, rgba(255,153,51,0.10) 0%, transparent 60%),
-          radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px),
-          linear-gradient(160deg, rgba(2,12,32,0.66) 0%, rgba(0,31,92,0.60) 50%, rgba(2,12,32,0.66) 100%)
+          radial-gradient(ellipse 55% 90% at 12% 50%, rgba(255,153,51,0.09) 0%, transparent 60%),
+          radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px),
+          linear-gradient(160deg, #020c20 0%, #001f5c 50%, #020c20 100%)
         `,
         backgroundSize:"100% 100%, 28px 28px, 100% 100%",
-        backdropFilter:"blur(22px) saturate(160%)",
-        WebkitBackdropFilter:"blur(22px) saturate(160%)",
         flexShrink:0,
-        boxShadow:"0 6px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.08)",
+        boxShadow:"0 6px 36px rgba(0,0,0,0.52)",
         position:"sticky", top:0, zIndex:10,
         overflow:"hidden",
       }}>
@@ -7475,13 +7503,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             <div onClick={onClose} className="ys-back-btn" style={{
               width:32, height:32, borderRadius:9, flexShrink:0,
               background:"rgba(255,255,255,0.09)",
-              border:"1px solid rgba(255,255,255,0.18)",
-              borderTop:"1px solid rgba(255,255,255,0.30)",
-              backdropFilter:"blur(20px) saturate(180%)",
-              WebkitBackdropFilter:"blur(20px) saturate(180%)",
+              border:"1px solid rgba(255,255,255,0.16)",
+              backdropFilter:"blur(10px)",
               display:"flex", alignItems:"center", justifyContent:"center",
               cursor:"pointer", transition:"background 0.15s",
-              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14), 0 4px 12px rgba(0,0,0,0.16)",
+              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10)",
             }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                 stroke="rgba(255,255,255,0.85)" strokeWidth="2.5"
@@ -7644,14 +7670,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               return (
                 <div style={{
                   display:"flex", alignItems:"center", gap:1,
-                  background:"rgba(255,255,255,0.10)",
-                  border:"1px solid rgba(255,255,255,0.22)",
-                  borderTop:"1px solid rgba(255,255,255,0.32)",
+                  background:"rgba(255,255,255,0.11)",
+                  border:"1px solid rgba(255,255,255,0.20)",
                   borderRadius:20, padding:"5px 8px",
-                  backdropFilter:"blur(20px) saturate(180%)",
-                  WebkitBackdropFilter:"blur(20px) saturate(180%)",
+                  backdropFilter:"blur(10px)",
                   flexShrink:0,
-                  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.16), 0 4px 14px rgba(0,0,0,0.16)",
+                  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10)",
                 }}>
                   <span onClick={(e) => { e.stopPropagation(); if(activeSection==="home") return; const c2=tabIds.indexOf(activeSection); if(c2===0){navigateTab("home");return;} if(c2>0)navigateTab(tabIds[c2-1]); }}
                     style={{ fontSize:15,color:"rgba(255,255,255,0.65)",cursor:"pointer",lineHeight:1,padding:"0 3px",opacity:activeSection!=="home"?1:0.2,userSelect:"none" }}>‹</span>
@@ -7668,13 +7692,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             {/* Controls pill */}
             <div style={{
               display:"flex", alignItems:"center",
-              background:"rgba(255,255,255,0.09)",
-              border:"1px solid rgba(255,255,255,0.16)",
-              borderTop:"1px solid rgba(255,255,255,0.26)",
+              background:"rgba(0,0,0,0.30)",
+              border:"1px solid rgba(255,255,255,0.10)",
+              borderTop:"1px solid rgba(255,255,255,0.17)",
               borderRadius:10, overflow:"hidden",
-              backdropFilter:"blur(20px) saturate(180%)",
-              WebkitBackdropFilter:"blur(20px) saturate(180%)",
-              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14), 0 4px 14px rgba(0,0,0,0.18)",
+              backdropFilter:"blur(16px)",
+              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)",
               flexShrink:0,
             }}>
               <div className="ys-ctrl-btn" onClick={toggleDark}
@@ -7718,13 +7741,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               <div onClick={onClose} className="ys-back-btn" style={{
                 width:32, height:32, borderRadius:9, flexShrink:0,
                 background:"rgba(255,255,255,0.09)",
-                border:"1px solid rgba(255,255,255,0.18)",
-                borderTop:"1px solid rgba(255,255,255,0.30)",
-                backdropFilter:"blur(20px) saturate(180%)",
-                WebkitBackdropFilter:"blur(20px) saturate(180%)",
+                border:"1px solid rgba(255,255,255,0.16)",
+                backdropFilter:"blur(10px)",
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor:"pointer", transition:"background 0.15s",
-                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14), 0 4px 12px rgba(0,0,0,0.16)",
+                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10)",
               }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                   stroke="rgba(255,255,255,0.85)" strokeWidth="2.5"
@@ -7792,13 +7813,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               {/* Controls pill */}
               <div style={{
                 display:"flex", alignItems:"center",
-                background:"rgba(255,255,255,0.09)",
-                border:"1px solid rgba(255,255,255,0.16)",
-                borderTop:"1px solid rgba(255,255,255,0.26)",
+                background:"rgba(0,0,0,0.30)",
+                border:"1px solid rgba(255,255,255,0.10)",
+                borderTop:"1px solid rgba(255,255,255,0.17)",
                 borderRadius:10, overflow:"hidden",
-                backdropFilter:"blur(20px) saturate(180%)",
-                WebkitBackdropFilter:"blur(20px) saturate(180%)",
-                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14), 0 4px 14px rgba(0,0,0,0.18)",
+                backdropFilter:"blur(16px)",
+                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)",
                 flexShrink:0,
               }}>
                 <div className="ys-ctrl-btn" onClick={toggleDark}
@@ -7917,14 +7937,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   {/* Tab navigator pill */}
                   <div style={{
                     display:"flex", alignItems:"center", gap:1,
-                    background:"rgba(255,255,255,0.10)",
-                    border:"1px solid rgba(255,255,255,0.22)",
-                    borderTop:"1px solid rgba(255,255,255,0.32)",
+                    background:"rgba(255,255,255,0.11)",
+                    border:"1px solid rgba(255,255,255,0.20)",
                     borderRadius:20, padding:"6px 7px",
-                    backdropFilter:"blur(20px) saturate(180%)",
-                    WebkitBackdropFilter:"blur(20px) saturate(180%)",
+                    backdropFilter:"blur(10px)",
                     flexShrink:0,
-                    boxShadow:"inset 0 1px 0 rgba(255,255,255,0.16), 0 4px 14px rgba(0,0,0,0.16)",
+                    boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10)",
                   }}>
                     <span onClick={(e)=>{ e.stopPropagation(); if(activeSection==="home")return; const c2=tabIds.indexOf(activeSection); if(c2===0){navigateTab("home");return;} if(c2>0)navigateTab(tabIds[c2-1]); }}
                       style={{ fontSize:15,color:"rgba(255,255,255,0.65)",cursor:"pointer",lineHeight:1,padding:"0 2px",opacity:activeSection!=="home"?1:0.2,userSelect:"none" }}>‹</span>
