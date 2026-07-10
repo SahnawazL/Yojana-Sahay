@@ -2631,7 +2631,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
 // the ADMIN DASHBOARD's own theme (for styling this popup itself); `theme`
 // / `onSelectTheme` control the THEME OF THE GENERATED PDF, which is an
 // independent choice from how the dashboard itself currently looks.
-function ExportOptionsModal({ dark, theme, onSelectTheme, onConfirm, onCancel, selectedCount }) {
+function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectOrientation, pageSize, onSelectPageSize, dateRangeMode, onSelectDateRangeMode, dateStart, onDateStartChange, dateEnd, onDateEndChange, preparedBy, onPreparedByChange, onConfirm, onCancel, selectedCount }) {
   const C = {
     overlay: "rgba(5,6,12,0.72)",
     card:    dark ? "#111320" : "#ffffff",
@@ -2645,6 +2645,23 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, onConfirm, onCancel, s
   const THEME_OPTIONS = [
     { id: "dark",  label: "Dark",  emoji: "🌙", hint: "Black bg · light text" },
     { id: "light", label: "Light", emoji: "☀️", hint: "White bg · dark text" },
+  ];
+
+  const ORIENTATION_OPTIONS = [
+    { id: "landscape", label: "Landscape", emoji: "▭" },
+    { id: "portrait",  label: "Portrait",  emoji: "▯" },
+  ];
+  const PAGE_SIZE_OPTIONS = [
+    { id: "A4",     label: "A4" },
+    { id: "Letter", label: "Letter" },
+  ];
+
+  const DATE_RANGE_OPTIONS = [
+    { id: "all",    label: "All Time" },
+    { id: "7",      label: "7 Days" },
+    { id: "30",     label: "30 Days" },
+    { id: "90",     label: "90 Days" },
+    { id: "custom", label: "Custom" },
   ];
 
   return (
@@ -2661,6 +2678,7 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, onConfirm, onCancel, s
           background: C.card, border: `1px solid ${C.border}`, borderRadius: 16,
           padding: 22, maxWidth: 340, width: "100%", fontFamily: C.mono,
           boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+          maxHeight: "85vh", overflowY: "auto",
         }}
       >
         <div style={{ fontSize: 14, fontWeight: 800, color: C.text, marginBottom: 4 }}>
@@ -2698,6 +2716,144 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, onConfirm, onCancel, s
               </div>
             );
           })}
+        </div>
+
+        <div style={{
+          fontSize: 9, fontWeight: 700, color: C.sub, letterSpacing: 1,
+          textTransform: "uppercase", marginBottom: 8,
+        }}>
+          Orientation
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          {ORIENTATION_OPTIONS.map(opt => {
+            const on = orientation === opt.id;
+            return (
+              <div
+                key={opt.id}
+                onClick={() => onSelectOrientation(opt.id)}
+                style={{
+                  flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10,
+                  cursor: "pointer", transition: "all 0.15s",
+                  border: `1.5px solid ${on ? C.blue : C.border}`,
+                  background: on ? `${C.blue}18` : "transparent",
+                }}
+              >
+                <div style={{ fontSize: 15, marginBottom: 2 }}>{opt.emoji}</div>
+                <div style={{ fontSize: 10.5, fontWeight: 800, color: on ? C.blue : C.text }}>
+                  {opt.label}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{
+          fontSize: 9, fontWeight: 700, color: C.sub, letterSpacing: 1,
+          textTransform: "uppercase", marginBottom: 8,
+        }}>
+          Page Size
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 22 }}>
+          {PAGE_SIZE_OPTIONS.map(opt => {
+            const on = pageSize === opt.id;
+            return (
+              <div
+                key={opt.id}
+                onClick={() => onSelectPageSize(opt.id)}
+                style={{
+                  flex: 1, textAlign: "center", padding: "9px 8px", borderRadius: 10,
+                  cursor: "pointer", transition: "all 0.15s",
+                  border: `1.5px solid ${on ? C.blue : C.border}`,
+                  background: on ? `${C.blue}18` : "transparent",
+                  fontSize: 10.5, fontWeight: 800, color: on ? C.blue : C.text,
+                }}
+              >
+                {opt.label}
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{
+          fontSize: 9, fontWeight: 700, color: C.sub, letterSpacing: 1,
+          textTransform: "uppercase", marginBottom: 8,
+        }}>
+          Date Range
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: dateRangeMode === "custom" ? 10 : 14 }}>
+          {DATE_RANGE_OPTIONS.map(opt => {
+            const on = dateRangeMode === opt.id;
+            return (
+              <div
+                key={opt.id}
+                onClick={() => onSelectDateRangeMode(opt.id)}
+                style={{
+                  padding: "7px 10px", borderRadius: 8,
+                  cursor: "pointer", transition: "all 0.15s",
+                  border: `1.5px solid ${on ? C.blue : C.border}`,
+                  background: on ? `${C.blue}18` : "transparent",
+                  fontSize: 9.5, fontWeight: 800, color: on ? C.blue : C.text,
+                }}
+              >
+                {opt.label}
+              </div>
+            );
+          })}
+        </div>
+        {dateRangeMode === "custom" && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+            <input
+              type="date"
+              value={dateStart}
+              max={dateEnd || undefined}
+              onChange={e => onDateStartChange(e.target.value)}
+              style={{
+                flex: 1, boxSizing: "border-box", padding: "8px 9px", borderRadius: 8,
+                border: `1px solid ${C.border}`, background: dark ? "#181a28" : "#f7f8fc",
+                color: C.text, fontSize: 9.5, fontFamily: C.mono, outline: "none",
+              }}
+            />
+            <input
+              type="date"
+              value={dateEnd}
+              min={dateStart || undefined}
+              onChange={e => onDateEndChange(e.target.value)}
+              style={{
+                flex: 1, boxSizing: "border-box", padding: "8px 9px", borderRadius: 8,
+                border: `1px solid ${C.border}`, background: dark ? "#181a28" : "#f7f8fc",
+                color: C.text, fontSize: 9.5, fontFamily: C.mono, outline: "none",
+              }}
+            />
+          </div>
+        )}
+        <div style={{ fontSize: 8, color: C.sub, marginBottom: 22, lineHeight: 1.5 }}>
+          {dateRangeMode === "all"
+            ? "Includes the full historical dataset."
+            : "Filters Overview, Analytics, Users, Activity & Reports by when the record was created. Platform Usage, Schemes & Human Agents are unaffected — those already have their own scoping."}
+        </div>
+
+        <div style={{
+          fontSize: 9, fontWeight: 700, color: C.sub, letterSpacing: 1,
+          textTransform: "uppercase", marginBottom: 8,
+        }}>
+          Prepared By
+        </div>
+        <input
+          type="text"
+          placeholder="Admin name for signature line…"
+          value={preparedBy}
+          onChange={e => onPreparedByChange(e.target.value)}
+          style={{
+            width: "100%", boxSizing: "border-box",
+            padding: "10px 11px", borderRadius: 9,
+            border: `1px solid ${preparedBy ? C.blue + "70" : C.border}`,
+            background: dark ? "#181a28" : "#f7f8fc",
+            color: C.text, fontSize: 11, fontFamily: C.mono,
+            outline: "none", marginBottom: 6,
+          }}
+        />
+        <div style={{ fontSize: 8, color: C.sub, marginBottom: 22, lineHeight: 1.5 }}>
+          Printed on the "Prepared by" signature line — saved for next export.
         </div>
 
         <div style={{ display: "flex", gap: 8 }}>
@@ -4701,6 +4857,25 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   // Pre-export options popup (theme choice etc.) shown before compiling
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [pdfTheme,          setPdfTheme]          = useState("dark");
+  // Page orientation + physical size — landscape/A4 remains the default
+  // since that's what the layout (wide tables, cross-tab matrices) was
+  // built for, but portrait/Letter is now selectable for smaller printers
+  // or admins who prefer flipping through it like a regular document.
+  const [pdfOrientation,    setPdfOrientation]    = useState("landscape");
+  const [pdfPageSize,       setPdfPageSize]       = useState("A4");
+  // Date-range filter — restricts Users/Analytics/Overview/Activity/Reports
+  // sections to records created within the window. "all" = no filter (the
+  // full historical dataset, same as before this feature existed).
+  const [pdfDateRangeMode,  setPdfDateRangeMode]  = useState("all"); // all | 7 | 30 | 90 | custom
+  const [pdfDateStart,      setPdfDateStart]      = useState("");
+  const [pdfDateEnd,        setPdfDateEnd]        = useState("");
+  // "Prepared by" — printed on the signature line of the full-dashboard PDF.
+  // Shares the same localStorage key as the Agents tab's attendance-report
+  // exporter (agt_prepared_by) since it's the same admin's name either way —
+  // typed once, remembered everywhere.
+  const [preparedBy,        setPreparedBy]        = useState(() => {
+    try { return localStorage.getItem("agt_prepared_by") || ""; } catch { return ""; }
+  });
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
@@ -5083,11 +5258,27 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   , [users]);
 
   // ── Full Dashboard PDF Export (all sections, all fields) ─────────────────
-  const exportAllPDF = useCallback((sectionsToInclude, freshUsageData, freshAgentsData, theme = "dark") => {
+  // `users` and `reports` are passed in (already date-range-filtered by
+  // handleExportAll below) rather than read from the component's own
+  // `users`/`reports` state — this deliberately shadows those closure
+  // variables for the rest of this function, so every section below
+  // (Overview, Analytics, Users, Activity, Reports) automatically works
+  // off the filtered set without needing its own filtering logic. Platform
+  // Usage, Schemes and Human Agents intentionally keep reading their own
+  // separate data sources (exportUsageData, SCHEME_DB, freshAgentsData),
+  // since those already have their own scoping and were never meant to be
+  // truncated by a user/report date window.
+  const exportAllPDF = useCallback((sectionsToInclude, freshUsageData, freshAgentsData, theme = "dark", preparedByName = "", orientation = "landscape", pageSize = "A4", users, reports, dateRangeLabel = "All Time") => {
     // Default to all sections if none specified
     const s = sectionsToInclude instanceof Set && sectionsToInclude.size > 0
       ? sectionsToInclude
       : new Set(["overview","analytics","users","activity","usage","schemes","reports","agents"]);
+
+    // ── Logo watermark — same YojanaSahay ghost-seal used in the Agents
+    // tab's attendance PDF (WebP 180px, ~8KB base64), centered as a fixed
+    // body::after background seal on every page. grayscale + low opacity
+    // so it reads as a security watermark, not a visible logo.
+    const LOGO_DATA_URI = "data:image/webp;base64,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";
 
     // ── Report color palette — chosen once per export via the pre-export
     // options popup. Light isn't just the dark palette inverted: accents are
@@ -5132,6 +5323,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     // ── Emoji-strip helper (safe for PDF) ────────────────────────────────
     function strip(str) {
       return (str || "").replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "").trim();
+    }
+
+    // ── HTML-escape helper (safe for the "Prepared by" signature line,
+    // which is free-typed by the admin) ──────────────────────────────────
+    function escHtml(str) {
+      return (str || "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+      }[c]));
     }
 
     // ── "YYYY-MM-DD" → "8 Jul 2026" (agentTimeLogs date strings) ──────────
@@ -6045,6 +6244,30 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     }
 
     /* ────────────────────────────────────────────────
+       LOGO WATERMARK — fixed, centered ghost-seal on
+       every printed page (same treatment as the Agents
+       tab's attendance PDF). Slightly stronger opacity
+       on the light theme since a pale seal disappears
+       against white paper.
+    ──────────────────────────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 260px;
+      height: 260px;
+      background-image: url("${LOGO_DATA_URI}");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      filter: grayscale(100%) opacity(${isLightPdf ? "0.08" : "0.05"});
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ────────────────────────────────────────────────
        COVER HEADER
     ──────────────────────────────────────────────── */
     .cover {
@@ -6470,10 +6693,44 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     }
 
     /* ────────────────────────────────────────────────
+       SIGN-OFF — "Prepared by" / "Verified by" lines
+    ──────────────────────────────────────────────── */
+    .signoff {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 22px;
+      gap: 20px;
+      page-break-inside: avoid;
+    }
+    .signoff .sign-line { width: 44%; }
+    .signoff .sign-blank {
+      border-bottom: 1px solid var(--border2);
+      height: 26px;
+    }
+    .signoff .sign-name {
+      height: 26px;
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text);
+      border-bottom: 1px solid var(--border2);
+    }
+    .signoff .sign-label {
+      font-family: var(--mono);
+      font-size: 7px;
+      color: var(--textSub);
+      margin-top: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ────────────────────────────────────────────────
        PAGE NUMBERS via CSS counters
     ──────────────────────────────────────────────── */
     @page {
-      size: A4 landscape;
+      size: ${pageSize} ${orientation};
       margin: 12mm 10mm 14mm 10mm;
 
       @bottom-right {
@@ -6561,6 +6818,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         <strong style="color:var(--text)">${users.length}</strong> Users &nbsp;·&nbsp;
         <strong style="color:var(--text)">${reports.length}</strong> Reports
       </div>
+      <div>Date Range &nbsp;<strong style="color:var(--text)">${escHtml(dateRangeLabel)}</strong></div>
       <div class="confidential">Confidential — Do Not Share</div>
     </div>
   </div>
@@ -6573,6 +6831,22 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   ${s.has("schemes")   ? schemesHTML   : ""}
   ${s.has("reports")   ? reportsHTML   : ""}
   ${s.has("agents")    ? agentsHTML    : ""}
+
+  <!-- ═══════════════════════════════════════════
+       SIGN-OFF
+  ═══════════════════════════════════════════ -->
+  <div class="signoff">
+    <div class="sign-line">
+      ${preparedByName
+        ? `<div class="sign-name">${escHtml(preparedByName)}</div>`
+        : `<div class="sign-blank"></div>`}
+      <div class="sign-label">Prepared by (Admin)</div>
+    </div>
+    <div class="sign-line">
+      <div class="sign-blank"></div>
+      <div class="sign-label">Verified / Approved by</div>
+    </div>
+  </div>
 
   <!-- ═══════════════════════════════════════════
        FIXED PAGE-NUMBER FOOTER
@@ -6616,7 +6890,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       a.click();
     }
     setTimeout(() => URL.revokeObjectURL(url), 15000);
-  }, [users, reports, guestProfiles, usageData, humanAgents]);
+  }, [guestProfiles, usageData, humanAgents]);
 
   // ── Export steps definition — only steps relevant to selected sections ──────
   const EXPORT_STEPS = useMemo(() => {
@@ -6682,6 +6956,42 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       }
     }
 
+    // ── Date-range filter — computed here (not inside exportAllPDF) since
+    // `users`/`reports` are the component's live state at this point. The
+    // filtered arrays are passed down and shadow exportAllPDF's own
+    // `users`/`reports` params, so every section built off them (Overview,
+    // Analytics, Users, Activity, Reports) picks up the filter for free.
+    let dateFilteredUsers = users;
+    let dateFilteredReports = reports;
+    let dateRangeLabel = "All Time";
+    if (pdfDateRangeMode !== "all") {
+      const rangeNow = Date.now();
+      let rangeStart = null;
+      let rangeEnd   = rangeNow;
+      if (pdfDateRangeMode === "custom") {
+        rangeStart = pdfDateStart ? new Date(pdfDateStart + "T00:00:00").getTime() : null;
+        rangeEnd   = pdfDateEnd   ? new Date(pdfDateEnd   + "T23:59:59").getTime() : rangeNow;
+        if (rangeStart != null) {
+          const fmtShort = ms => new Date(ms).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" });
+          dateRangeLabel = `${fmtShort(rangeStart)} – ${fmtShort(rangeEnd)}`;
+        }
+      } else {
+        rangeStart = rangeNow - parseInt(pdfDateRangeMode, 10) * 86400000;
+        dateRangeLabel = `Last ${pdfDateRangeMode} Days`;
+      }
+      if (rangeStart != null) {
+        const createdInRange = (rec) => {
+          const ts = rec.createdAt;
+          const ms = ts?.seconds ? ts.seconds * 1000 : (ts ? new Date(ts).getTime() : null);
+          return ms != null && !isNaN(ms) && ms >= rangeStart && ms <= rangeEnd;
+        };
+        dateFilteredUsers   = users.filter(createdInRange);
+        dateFilteredReports = reports.filter(createdInRange);
+      } else {
+        dateRangeLabel = "All Time";
+      }
+    }
+
     setExportModal(true);
     setExportStep(-1);
     setExportDone(false);
@@ -6696,11 +7006,11 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     await new Promise(r => setTimeout(r, 1100));
     setExportModal(false);
     await new Promise(r => setTimeout(r, 80));
-    exportAllPDF(exportSections, freshUsageData, freshAgentsData, pdfTheme);
+    exportAllPDF(exportSections, freshUsageData, freshAgentsData, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, dateFilteredUsers, dateFilteredReports, dateRangeLabel);
 
     // Reset state after a short delay
     setTimeout(() => { setExportStep(-1); setExportDone(false); }, 600);
-  }, [EXPORT_STEPS, exportAllPDF, exportSections, usageData, fetchUsage, humanAgents, pdfTheme]);
+  }, [EXPORT_STEPS, exportAllPDF, exportSections, usageData, fetchUsage, humanAgents, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, pdfDateRangeMode, pdfDateStart, pdfDateEnd, users, reports]);
 
   // ─────────────────────────────────────────────────────────────────────────
   const ALL_TABS = [
@@ -8269,7 +8579,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                     <span style={{ color:C.green, fontSize:9, fontWeight:700 }}>ys@admin</span>
                     <span style={{ color:C.sub, fontSize:9 }}>~</span>
                     <span style={{ color:C.sub, fontSize:9 }}>$</span>
-                    <span style={{ color:"#e2e8ff", fontSize:9 }}>export --mode=pdf --format=A4-landscape</span>
+                    <span style={{ color:"#e2e8ff", fontSize:9 }}>{`export --mode=pdf --format=${pdfPageSize}-${pdfOrientation}`}</span>
                     <span style={{ color:C.blue, fontSize:9, animation:"exp-pulse 1.1s ease infinite" }}>▋</span>
                   </div>
                   <div style={{ color:"#fff", fontSize:14, fontWeight:800, letterSpacing:-0.3 }}>
@@ -8494,7 +8804,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   <div style={{ fontFamily:C.mono, fontSize:9, color:C.blue, marginTop:3, opacity:0.8 }}>
                     {exportModal
                       ? "building sections · rendering layout · finalising…"
-                      : `${selectedCount} module${selectedCount!==1?"s":""} · landscape A4 · ${pdfTheme} theme`}
+                      : `${selectedCount} module${selectedCount!==1?"s":""} · ${pdfOrientation} ${pdfPageSize} · ${pdfTheme} theme`}
                   </div>
                 </div>
 
@@ -8526,7 +8836,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 <div style={{ fontSize:9, color:C.sub, lineHeight:1.7 }}>
                   Opens as styled HTML in new tab.{" "}
                   <span style={{ color:C.text }}>Print → Save as PDF</span>
-                  {" "}(landscape A4). Document is marked{" "}
+                  {" "}({pdfOrientation} {pdfPageSize}). Document is marked{" "}
                   <span style={{ color:C.red, fontWeight:700 }}>CONFIDENTIAL</span>
                   {" "}— authorised admin use only.
                 </div>
@@ -8639,6 +8949,21 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           dark={dark}
           theme={pdfTheme}
           onSelectTheme={setPdfTheme}
+          orientation={pdfOrientation}
+          onSelectOrientation={setPdfOrientation}
+          pageSize={pdfPageSize}
+          onSelectPageSize={setPdfPageSize}
+          dateRangeMode={pdfDateRangeMode}
+          onSelectDateRangeMode={setPdfDateRangeMode}
+          dateStart={pdfDateStart}
+          onDateStartChange={setPdfDateStart}
+          dateEnd={pdfDateEnd}
+          onDateEndChange={setPdfDateEnd}
+          preparedBy={preparedBy}
+          onPreparedByChange={v => {
+            setPreparedBy(v);
+            try { localStorage.setItem("agt_prepared_by", v); } catch {}
+          }}
           selectedCount={exportSections.size}
           onCancel={() => setShowExportOptions(false)}
           onConfirm={() => { setShowExportOptions(false); handleExportAll(); }}
