@@ -517,7 +517,7 @@
     "linkAlive": false
   },
   "e_shram": {
-    "lastVerified": "2026-07-09T11:58:20.945Z",
+    "lastVerified": "2026-07-11T11:02:21.078Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -684,10 +684,10 @@
     "linkAlive": true
   },
   "free_coaching_sc": {
-    "lastVerified": "2026-07-09T11:58:29.816Z",
-    "httpStatus": 200,
+    "lastVerified": "2026-07-11T11:02:34.825Z",
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "pmfme": {
     "lastVerified": "2026-07-10T16:35:04.477Z",
@@ -1019,7 +1019,7 @@
     "confidence": 0
   },
   "goa_housing_board_affordable": {
-    "lastVerified": "2026-07-09T11:58:48.754Z",
+    "lastVerified": "2026-07-11T11:02:53.389Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -1141,7 +1141,7 @@
     "isActive": false
   },
   "delhi_vidhwa_pension": {
-    "lastVerified": "2026-07-09T11:58:01.647Z",
+    "lastVerified": "2026-07-11T11:02:01.552Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1153,13 +1153,13 @@
     "confidence": 0
   },
   "delhi_tirth_yatra": {
-    "lastVerified": "2026-07-09T11:57:47.603Z",
+    "lastVerified": "2026-07-11T11:01:49.002Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "delhi_old_age_pension": {
-    "lastVerified": "2026-07-09T08:57:10.739Z",
+    "lastVerified": "2026-07-11T10:58:59.417Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1171,19 +1171,19 @@
     "linkAlive": true
   },
   "delhi_pm_uday": {
-    "lastVerified": "2026-07-09T08:57:33.588Z",
+    "lastVerified": "2026-07-11T10:59:19.384Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sc_scholarship": {
-    "lastVerified": "2026-07-09T11:56:34.705Z",
+    "lastVerified": "2026-07-11T11:00:40.061Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_st_scholarship": {
-    "lastVerified": "2026-07-09T11:57:07.163Z",
+    "lastVerified": "2026-07-11T11:01:13.443Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1213,7 +1213,7 @@
     "confidence": 0
   },
   "delhi_pre_matric_sc_st": {
-    "lastVerified": "2026-07-09T08:58:20.550Z",
+    "lastVerified": "2026-07-11T11:00:04.882Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1255,19 +1255,19 @@
     "confidence": 0
   },
   "delhi_transgender_pension": {
-    "lastVerified": "2026-07-09T11:57:52.639Z",
+    "lastVerified": "2026-07-11T11:01:53.210Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "delhi_svnidhi_vendor": {
-    "lastVerified": "2026-07-09T11:57:41.893Z",
+    "lastVerified": "2026-07-11T11:01:44.767Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sports_scholarship": {
-    "lastVerified": "2026-07-09T11:57:02.180Z",
+    "lastVerified": "2026-07-11T11:01:08.879Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -1298,7 +1298,7 @@
     "confidence": 0
   },
   "delhi_startup_policy": {
-    "lastVerified": "2026-07-09T11:57:18.535Z",
+    "lastVerified": "2026-07-11T11:01:23.878Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1328,19 +1328,19 @@
     "confidence": 0
   },
   "delhi_sc_premier_institute_award": {
-    "lastVerified": "2026-07-09T11:56:29.072Z",
+    "lastVerified": "2026-07-11T11:00:35.302Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_pm_vishwakarma": {
-    "lastVerified": "2026-07-09T08:57:39.230Z",
+    "lastVerified": "2026-07-11T10:59:25.081Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sc_prematric": {
-    "lastVerified": "2026-07-09T11:56:23.476Z",
+    "lastVerified": "2026-07-11T11:00:30.956Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1630,7 +1630,7 @@
     "confidence": 0
   },
   "delhi_svnidhi": {
-    "lastVerified": "2026-07-09T11:57:32.066Z",
+    "lastVerified": "2026-07-11T11:01:40.258Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -3468,19 +3468,19 @@
     "confidence": 0
   },
   "delhi_pmkvy_skill": {
-    "lastVerified": "2026-07-09T08:58:05.108Z",
+    "lastVerified": "2026-07-11T10:59:49.210Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "delhi_pm_sym": {
-    "lastVerified": "2026-07-09T08:57:28.655Z",
+    "lastVerified": "2026-07-11T10:59:14.755Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "delhi_pmay_clss": {
-    "lastVerified": "2026-07-09T08:57:50.725Z",
+    "lastVerified": "2026-07-11T10:59:34.850Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3498,7 +3498,7 @@
     "linkAlive": true
   },
   "delhi_sports_excellence": {
-    "lastVerified": "2026-07-09T11:56:57.181Z",
+    "lastVerified": "2026-07-11T11:01:03.024Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
