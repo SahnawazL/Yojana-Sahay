@@ -4305,6 +4305,8 @@ const ICON_PATHS = {
   card: <><rect x="2" y="5.5" width="20" height="13" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></>,
   news: <><path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><line x1="16" y1="3" x2="16" y2="21"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="8" y1="14" x2="13" y2="14"/><line x1="8" y1="18" x2="11" y2="18"/></>,
   deadline: <><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></>,
+  agents: <><circle cx="9" cy="7.5" r="3.2"/><path d="M2.8 19.5v-1.3a4 4 0 0 1 4-4h4.4a4 4 0 0 1 4 4v1.3"/><circle cx="17.5" cy="8" r="2.3"/><path d="M15.8 12.2a4 4 0 0 1 5.4 3.75v1.05"/></>,
+  faq: <><path d="M12 16.3v.01" strokeWidth="2.6" strokeLinecap="round"/><path d="M9.3 9.2a2.7 2.7 0 1 1 4.75 1.75c-.6.7-1.55 1.15-1.9 1.95-.1.25-.15.55-.15.9"/><path d="M20.5 12A8.5 8.5 0 1 1 12 3.5"/><path d="M17 4.2v3.6h3.6"/></>,
 };
 
 function Icon({ name, size = 16, color = "currentColor", strokeWidth = 1.8, style }) {
