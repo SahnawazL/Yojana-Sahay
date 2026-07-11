@@ -2658,11 +2658,6 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
   const [showPwd,  setShowPwd]  = useState(false);
   const inputRef = useRef(null);
 
-  useEffect(() => {
-    const t = setTimeout(() => inputRef.current?.focus(), 60);
-    return () => clearTimeout(t);
-  }, []);
-
   const C = {
     overlay: "rgba(6,7,14,0.78)",
     card:    dark ? "#0c0e18" : "#ffffff",
@@ -2714,6 +2709,14 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
         @keyframes gate-glow {
           0%,100% { opacity: 0.5; }
           50% { opacity: 1; }
+        }
+        @keyframes gate-scan {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(320%); }
+        }
+        @keyframes gate-blink {
+          0%,49% { opacity: 1; }
+          50%,100% { opacity: 0; }
         }
       `}</style>
       <div
@@ -2788,9 +2791,18 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
           Verify your admin password to compile the confidential dashboard report.
         </div>
 
-        <label style={{ fontSize: 8.5, fontWeight: 700, color: C.sub, letterSpacing: 1.4, textTransform: "uppercase" }}>
-          Password
-        </label>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <label style={{ fontSize: 8.5, fontWeight: 700, color: C.sub, letterSpacing: 1.4, textTransform: "uppercase" }}>
+            Password
+          </label>
+          <span style={{
+            fontSize: 8.5, fontWeight: 700, color: focused ? C.accent : C.sub,
+            letterSpacing: 1, fontFamily: C.mono, opacity: 0.85,
+            transition: "color 0.15s",
+          }}>
+            [{String(pwd.length).padStart(2, "0")}/32]
+          </span>
+        </div>
         <div
           style={{
             position: "relative", marginTop: 7,
@@ -2812,11 +2824,20 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
         >
           <div
             style={{
+              position: "relative", overflow: "hidden",
               display: "flex", alignItems: "center", gap: 9,
               background: dark ? "#0d0f1a" : "#ffffff",
               borderRadius: 10.6, padding: "0 12px",
             }}
           >
+            {focused && !error && (
+              <div style={{
+                position: "absolute", top: 0, bottom: 0, left: 0, width: "26%",
+                background: `linear-gradient(90deg, transparent, ${C.accent}14, transparent)`,
+                animation: "gate-scan 1.8s linear infinite",
+                pointerEvents: "none",
+              }} />
+            )}
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
               stroke={error ? C.red : (focused ? C.accent : C.sub)} strokeWidth="2"
               strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transition: "stroke 0.15s" }}>
@@ -2862,6 +2883,20 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
             </div>
           </div>
         </div>
+
+        {!error && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 5, marginTop: 8,
+            fontSize: 8, fontWeight: 600, color: C.sub, letterSpacing: 1, opacity: 0.75,
+          }}>
+            <span style={{
+              width: 4, height: 4, borderRadius: "50%", flexShrink: 0,
+              background: checking ? C.accent : C.sub,
+              animation: checking ? "gate-glow 0.7s ease-in-out infinite" : "none",
+            }} />
+            {checking ? "VERIFYING · SHA-256 HANDSHAKE…" : "AES-256 · SESSION-BOUND ENCRYPTION"}
+          </div>
+        )}
 
         {error && (
           <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 9.5, color: C.red, marginTop: 9, fontWeight: 600 }}>
