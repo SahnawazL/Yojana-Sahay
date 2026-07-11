@@ -8380,7 +8380,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             {/* 2-col: Income + Area */}
             <div style={{ display:"flex", gap:12 }}>
               <div style={{
-                flex:1, background:th.card, border:`1.5px solid ${th.border}`,
+                flex:1, minWidth:0, background:th.card, border:`1.5px solid ${th.border}`,
                 borderRadius:16, padding:"14px 14px",
               }}>
                 <div style={{ fontSize:12, fontWeight:800, color:th.text, marginBottom:10 }}>
@@ -8389,7 +8389,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 <BarChart data={stats.incData} color={IND_GREEN} dark={dark} />
               </div>
               <div style={{
-                flex:1, background:th.card, border:`1.5px solid ${th.border}`,
+                flex:1, minWidth:0, background:th.card, border:`1.5px solid ${th.border}`,
                 borderRadius:16, padding:"14px 14px",
               }}>
                 <div style={{ fontSize:12, fontWeight:800, color:th.text, marginBottom:10 }}>
