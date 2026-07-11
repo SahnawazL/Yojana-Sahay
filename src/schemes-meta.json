@@ -897,7 +897,7 @@
     "confidence": 0
   },
   "kerala_merit_scholarship": {
-    "lastVerified": "2026-07-09T23:47:55.280Z",
+    "lastVerified": "2026-07-11T18:35:03.686Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -909,19 +909,19 @@
     "confidence": 0
   },
   "kerala_unemployment_allowance": {
-    "lastVerified": "2026-07-10T01:16:58.666Z",
+    "lastVerified": "2026-07-11T18:35:59.579Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_startup_mission": {
-    "lastVerified": "2026-07-10T01:16:51.340Z",
+    "lastVerified": "2026-07-11T18:35:50.262Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_minority_scholarship": {
-    "lastVerified": "2026-07-09T23:48:04.541Z",
+    "lastVerified": "2026-07-11T18:35:09.088Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -933,13 +933,13 @@
     "confidence": 0
   },
   "kerala_pratibha_scholarship": {
-    "lastVerified": "2026-07-10T01:16:28.837Z",
+    "lastVerified": "2026-07-11T18:35:27.004Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_norka_pravasi": {
-    "lastVerified": "2026-07-10T01:16:19.227Z",
+    "lastVerified": "2026-07-11T18:35:17.740Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
@@ -1840,13 +1840,13 @@
     "confidence": 0
   },
   "ladakh_himayat_skill": {
-    "lastVerified": "2026-07-10T01:17:32.030Z",
+    "lastVerified": "2026-07-11T18:36:34.760Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ladakh_sehat_health_insurance": {
-    "lastVerified": "2026-07-10T01:18:00.054Z",
+    "lastVerified": "2026-07-11T18:37:00.794Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1922,7 +1922,7 @@
     "confidence": 0
   },
   "khelo_india": {
-    "lastVerified": "2026-07-10T01:17:17.613Z",
+    "lastVerified": "2026-07-11T18:36:21.647Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2303,13 +2303,13 @@
     "confidence": 0
   },
   "maha_annasaheb_patil": {
-    "lastVerified": "2026-07-10T01:18:54.210Z",
+    "lastVerified": "2026-07-11T18:37:51.728Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_baliraja_sinchana": {
-    "lastVerified": "2026-07-10T01:19:12.169Z",
+    "lastVerified": "2026-07-11T18:38:08.357Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2358,7 +2358,7 @@
     "isActive": true
   },
   "maha_divyang_pension": {
-    "lastVerified": "2026-07-10T01:19:31.424Z",
+    "lastVerified": "2026-07-11T18:38:30.509Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2419,7 +2419,7 @@
     "confidence": 0
   },
   "maha_annapurna_lpg": {
-    "lastVerified": "2026-07-10T01:18:48.502Z",
+    "lastVerified": "2026-07-11T18:37:46.974Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2431,7 +2431,7 @@
     "confidence": 0
   },
   "maha_ahilyadevi_mahila_startup": {
-    "lastVerified": "2026-07-10T01:18:34.806Z",
+    "lastVerified": "2026-07-11T18:37:24.063Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -2450,7 +2450,7 @@
     "confidence": 0
   },
   "maha_bandhkam_kamgar": {
-    "lastVerified": "2026-07-10T01:19:16.354Z",
+    "lastVerified": "2026-07-11T18:38:15.121Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2468,7 +2468,7 @@
     "confidence": 0
   },
   "maha_ambedkar_overseas_scholarship": {
-    "lastVerified": "2026-07-10T01:18:44.209Z",
+    "lastVerified": "2026-07-11T18:37:38.128Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2554,13 +2554,13 @@
     "confidence": 0
   },
   "maha_agri_infra_fund": {
-    "lastVerified": "2026-07-10T01:18:23.214Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-07-11T18:37:19.425Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "maha_ai_agriculture_policy": {
-    "lastVerified": "2026-07-10T01:18:39.678Z",
+    "lastVerified": "2026-07-11T18:37:28.566Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2578,7 +2578,7 @@
     "confidence": 0
   },
   "maha_enam_maharashtra": {
-    "lastVerified": "2026-07-10T01:19:54.766Z",
+    "lastVerified": "2026-07-11T18:38:58.005Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2608,7 +2608,7 @@
     "confidence": 0
   },
   "maha_divyang_rojgar": {
-    "lastVerified": "2026-07-10T01:19:40.623Z",
+    "lastVerified": "2026-07-11T18:38:41.002Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3177,7 +3177,7 @@
     "confidence": 0
   },
   "ladakh_sc_st_scholarship": {
-    "lastVerified": "2026-07-10T01:17:54.329Z",
+    "lastVerified": "2026-07-11T18:36:56.306Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
