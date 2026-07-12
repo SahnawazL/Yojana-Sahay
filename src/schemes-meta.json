@@ -2650,7 +2650,7 @@
     "confidence": 0
   },
   "gujarat_vhali_dikri": {
-    "lastVerified": "2026-07-11T13:08:27.409Z",
+    "lastVerified": "2026-07-12T18:37:57.897Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2675,7 +2675,7 @@
     "confidence": 0
   },
   "gujarat_vriddha_sahay": {
-    "lastVerified": "2026-07-11T13:08:32.253Z",
+    "lastVerified": "2026-07-12T18:38:02.880Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2705,9 +2705,9 @@
     "confidence": 0
   },
   "gujarat_swavlamban": {
-    "lastVerified": "2026-07-11T13:08:14.581Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-12T18:37:45.111Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "gujarat_mukhyamantri_apprentice": {
@@ -2759,7 +2759,7 @@
     "confidence": 0
   },
   "gujarat_surya_rooftop": {
-    "lastVerified": "2026-07-11T11:59:42.008Z",
+    "lastVerified": "2026-07-12T18:37:39.890Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2807,7 +2807,7 @@
     "confidence": 0
   },
   "gujarat_widow_remarriage": {
-    "lastVerified": "2026-07-11T13:08:37.602Z",
+    "lastVerified": "2026-07-12T18:38:08.495Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2849,121 +2849,121 @@
     "confidence": 0
   },
   "haryana_saksham": {
-    "lastVerified": "2026-07-11T13:10:34.670Z",
+    "lastVerified": "2026-07-12T18:40:16.295Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_mmpsy": {
-    "lastVerified": "2026-07-11T13:10:14.217Z",
+    "lastVerified": "2026-07-12T18:39:55.794Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "haryana_old_age_allowance": {
-    "lastVerified": "2026-07-11T13:10:18.465Z",
+    "lastVerified": "2026-07-12T18:39:59.990Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_widow_allowance": {
-    "lastVerified": "2026-07-11T13:11:00.086Z",
+    "lastVerified": "2026-07-12T18:40:50.367Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_vivah_shagun": {
-    "lastVerified": "2026-07-11T13:10:55.886Z",
+    "lastVerified": "2026-07-12T18:40:46.144Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_bhavantar": {
-    "lastVerified": "2026-07-11T13:08:54.062Z",
+    "lastVerified": "2026-07-12T18:38:30.295Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_chirayu": {
-    "lastVerified": "2026-07-11T13:09:03.457Z",
+    "lastVerified": "2026-07-12T18:38:45.244Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_ambedkar_awas": {
-    "lastVerified": "2026-07-11T13:08:43.200Z",
+    "lastVerified": "2026-07-12T18:38:14.088Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_disability_allowance": {
-    "lastVerified": "2026-07-11T13:09:11.850Z",
+    "lastVerified": "2026-07-12T18:38:53.505Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_antyodaya": {
-    "lastVerified": "2026-07-11T13:08:48.336Z",
+    "lastVerified": "2026-07-12T18:38:25.398Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_meri_fasal": {
-    "lastVerified": "2026-07-11T13:09:55.799Z",
+    "lastVerified": "2026-07-12T18:39:37.723Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "haryana_pratibha": {
-    "lastVerified": "2026-07-11T13:10:30.394Z",
+    "lastVerified": "2026-07-12T18:40:11.892Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_e_karma": {
-    "lastVerified": "2026-07-11T13:09:16.121Z",
+    "lastVerified": "2026-07-12T18:38:57.747Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_solar_pump": {
-    "lastVerified": "2026-07-11T13:10:44.002Z",
+    "lastVerified": "2026-07-12T18:40:34.257Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_ladli": {
-    "lastVerified": "2026-07-11T13:09:35.659Z",
+    "lastVerified": "2026-07-12T18:39:17.218Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_farm_equipment": {
-    "lastVerified": "2026-07-11T13:09:27.312Z",
+    "lastVerified": "2026-07-12T18:39:08.882Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "haryana_micro_irrigation": {
-    "lastVerified": "2026-07-11T13:10:06.329Z",
+    "lastVerified": "2026-07-12T18:39:47.978Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "haryana_bocw": {
-    "lastVerified": "2026-07-11T13:08:58.912Z",
+    "lastVerified": "2026-07-12T18:38:40.740Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_sc_postmatric": {
-    "lastVerified": "2026-07-11T13:10:39.374Z",
+    "lastVerified": "2026-07-12T18:40:29.684Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_ddjay": {
-    "lastVerified": "2026-07-11T13:09:07.435Z",
+    "lastVerified": "2026-07-12T18:38:49.212Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3014,7 +3014,7 @@
     "confidence": 0
   },
   "hp_disabled_pension": {
-    "lastVerified": "2026-07-11T13:11:27.665Z",
+    "lastVerified": "2026-07-12T18:41:28.684Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3045,7 +3045,7 @@
     "confidence": 0
   },
   "hp_e_taxi": {
-    "lastVerified": "2026-07-11T13:11:35.751Z",
+    "lastVerified": "2026-07-12T18:41:36.769Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -3057,7 +3057,7 @@
     "confidence": 0
   },
   "hp_bocw_welfare": {
-    "lastVerified": "2026-07-11T13:11:15.675Z",
+    "lastVerified": "2026-07-12T18:41:11.369Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
