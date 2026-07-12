@@ -891,62 +891,62 @@
     "confidence": 0
   },
   "kerala_karunya": {
-    "lastVerified": "2026-07-11T17:43:39.769Z",
+    "lastVerified": "2026-07-12T23:30:21.820Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_merit_scholarship": {
-    "lastVerified": "2026-07-11T18:35:03.686Z",
+    "lastVerified": "2026-07-12T23:30:59.825Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "kerala_asap": {
-    "lastVerified": "2026-07-11T17:42:52.537Z",
+    "lastVerified": "2026-07-12T23:29:31.523Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_unemployment_allowance": {
-    "lastVerified": "2026-07-11T18:35:59.579Z",
+    "lastVerified": "2026-07-12T23:31:56.959Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_startup_mission": {
-    "lastVerified": "2026-07-11T18:35:50.262Z",
+    "lastVerified": "2026-07-12T23:31:51.686Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_minority_scholarship": {
-    "lastVerified": "2026-07-11T18:35:09.088Z",
+    "lastVerified": "2026-07-12T23:31:06.858Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_cmss_abroad": {
-    "lastVerified": "2026-07-11T17:43:06.234Z",
+    "lastVerified": "2026-07-12T23:29:46.294Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_pratibha_scholarship": {
-    "lastVerified": "2026-07-11T18:35:27.004Z",
+    "lastVerified": "2026-07-12T23:31:28.959Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_norka_pravasi": {
-    "lastVerified": "2026-07-11T18:35:17.740Z",
+    "lastVerified": "2026-07-12T23:31:15.046Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "kerala_cm_distress_relief": {
-    "lastVerified": "2026-07-11T17:43:01.593Z",
+    "lastVerified": "2026-07-12T23:29:41.305Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1840,15 +1840,15 @@
     "confidence": 0
   },
   "ladakh_himayat_skill": {
-    "lastVerified": "2026-07-11T18:36:34.760Z",
+    "lastVerified": "2026-07-12T23:32:31.605Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ladakh_sehat_health_insurance": {
-    "lastVerified": "2026-07-11T18:37:00.794Z",
-    "linkAlive": true,
-    "httpStatus": 200,
+    "lastVerified": "2026-07-12T23:33:06.342Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "an_youth_skill_ddet": {
@@ -1922,7 +1922,7 @@
     "confidence": 0
   },
   "khelo_india": {
-    "lastVerified": "2026-07-11T18:36:21.647Z",
+    "lastVerified": "2026-07-12T23:32:18.770Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2431,7 +2431,7 @@
     "confidence": 0
   },
   "maha_ahilyadevi_mahila_startup": {
-    "lastVerified": "2026-07-11T18:37:24.063Z",
+    "lastVerified": "2026-07-12T23:33:29.590Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -2554,7 +2554,7 @@
     "confidence": 0
   },
   "maha_agri_infra_fund": {
-    "lastVerified": "2026-07-11T18:37:19.425Z",
+    "lastVerified": "2026-07-12T23:33:25.155Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3177,7 +3177,7 @@
     "confidence": 0
   },
   "ladakh_sc_st_scholarship": {
-    "lastVerified": "2026-07-11T18:36:56.306Z",
+    "lastVerified": "2026-07-12T23:32:52.840Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
