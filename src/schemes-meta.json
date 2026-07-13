@@ -410,7 +410,7 @@
     "linkAlive": false
   },
   "mgnrega": {
-    "lastVerified": "2026-07-11T20:45:02.321Z",
+    "lastVerified": "2026-07-13T08:14:33.614Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -678,7 +678,7 @@
     "linkAlive": true
   },
   "mcm_minority": {
-    "lastVerified": "2026-07-11T20:43:53.170Z",
+    "lastVerified": "2026-07-13T08:13:28.648Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1026,13 +1026,13 @@
     "isActive": true
   },
   "mp_ladli": {
-    "lastVerified": "2026-07-11T21:33:35.807Z",
+    "lastVerified": "2026-07-13T08:16:07.975Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_kanya_vivah": {
-    "lastVerified": "2026-07-11T21:33:26.622Z",
+    "lastVerified": "2026-07-13T08:15:58.030Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1080,13 +1080,13 @@
     "confidence": 0
   },
   "mp_chirayu": {
-    "lastVerified": "2026-07-11T21:33:06.522Z",
+    "lastVerified": "2026-07-13T08:15:30.371Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_ladli_behna": {
-    "lastVerified": "2026-07-11T21:33:40.430Z",
+    "lastVerified": "2026-07-13T08:16:13.160Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1098,7 +1098,7 @@
     "confidence": 0
   },
   "mp_kalyani_sahayata": {
-    "lastVerified": "2026-07-11T21:33:21.157Z",
+    "lastVerified": "2026-07-13T08:15:49.806Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1110,7 +1110,7 @@
     "confidence": 0
   },
   "mp_gaon_ki_beti": {
-    "lastVerified": "2026-07-11T21:33:16.201Z",
+    "lastVerified": "2026-07-13T08:15:40.505Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -1714,61 +1714,61 @@
     "confidence": 0
   },
   "manipur_cm_kisan_samman": {
-    "lastVerified": "2026-07-11T20:43:18.586Z",
-    "linkAlive": true,
-    "httpStatus": 200,
+    "lastVerified": "2026-07-13T08:12:48.077Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "manipur_cm_health_insurance": {
-    "lastVerified": "2026-07-11T20:43:14.321Z",
+    "lastVerified": "2026-07-13T08:12:37.281Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "manipur_cm_scholarship": {
-    "lastVerified": "2026-07-11T20:43:22.788Z",
+    "lastVerified": "2026-07-13T08:12:52.993Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "manipur_startup_manipur": {
-    "lastVerified": "2026-07-11T20:43:48.942Z",
+    "lastVerified": "2026-07-13T08:13:20.607Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_cm_kisan_samman": {
-    "lastVerified": "2026-07-11T20:44:08.626Z",
-    "linkAlive": true,
-    "httpStatus": 200,
+    "lastVerified": "2026-07-13T08:13:45.651Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "meghalaya_mhis": {
-    "lastVerified": "2026-07-11T20:44:35.712Z",
+    "lastVerified": "2026-07-13T08:14:08.841Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_cm_scholarship": {
-    "lastVerified": "2026-07-11T20:44:22.976Z",
+    "lastVerified": "2026-07-13T08:13:55.775Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_msy_entrepreneur": {
-    "lastVerified": "2026-07-11T20:44:48.743Z",
+    "lastVerified": "2026-07-13T08:14:20.072Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "mizoram_health_insurance": {
-    "lastVerified": "2026-07-11T21:32:33.219Z",
+    "lastVerified": "2026-07-13T08:14:56.174Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "mizoram_cm_scholarship": {
-    "lastVerified": "2026-07-11T21:32:27.983Z",
+    "lastVerified": "2026-07-13T08:14:49.772Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -2345,13 +2345,13 @@
     "confidence": 0
   },
   "maha_yellow_ration": {
-    "lastVerified": "2026-07-11T20:43:01.712Z",
+    "lastVerified": "2026-07-13T08:12:16.520Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_yuva_karya": {
-    "lastVerified": "2026-07-11T20:43:05.923Z",
+    "lastVerified": "2026-07-13T08:12:21.585Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
