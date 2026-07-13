@@ -330,7 +330,7 @@
     "linkAlive": true
   },
   "ujjwala": {
-    "lastVerified": "2026-07-12T09:28:17.751Z",
+    "lastVerified": "2026-07-13T21:54:16.947Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -760,7 +760,7 @@
     "linkAlive": true
   },
   "tn_vetri_nichayam": {
-    "lastVerified": "2026-07-12T07:18:49.556Z",
+    "lastVerified": "2026-07-13T21:50:28.096Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -983,37 +983,37 @@
     "confidence": 0
   },
   "ts_rythu_bandhu": {
-    "lastVerified": "2026-07-12T09:27:21.834Z",
+    "lastVerified": "2026-07-13T21:53:20.193Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_aarogyasri": {
-    "lastVerified": "2026-07-12T09:25:37.079Z",
+    "lastVerified": "2026-07-13T21:51:43.733Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_kalyana_lakshmi": {
-    "lastVerified": "2026-07-12T09:26:40.235Z",
+    "lastVerified": "2026-07-13T21:52:44.397Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_shaadi_mubarak": {
-    "lastVerified": "2026-07-12T09:27:34.232Z",
+    "lastVerified": "2026-07-13T21:53:32.091Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_epass_fee": {
-    "lastVerified": "2026-07-12T09:26:24.697Z",
+    "lastVerified": "2026-07-13T21:52:28.820Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_task_skill": {
-    "lastVerified": "2026-07-12T09:27:58.511Z",
+    "lastVerified": "2026-07-13T21:53:58.170Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1642,55 +1642,55 @@
     "confidence": 0
   },
   "ts_t_pride": {
-    "lastVerified": "2026-07-12T09:27:53.492Z",
+    "lastVerified": "2026-07-13T21:53:53.657Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_prematric_scholarship": {
-    "lastVerified": "2026-07-12T09:27:07.428Z",
+    "lastVerified": "2026-07-13T21:53:11.829Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_dalit_bandhu": {
-    "lastVerified": "2026-07-12T09:26:17.317Z",
+    "lastVerified": "2026-07-13T21:52:24.220Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_stree_nidhi": {
-    "lastVerified": "2026-07-12T09:27:43.325Z",
+    "lastVerified": "2026-07-13T21:53:41.774Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_micro_irrigation": {
-    "lastVerified": "2026-07-12T09:26:48.803Z",
+    "lastVerified": "2026-07-13T21:52:55.723Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_overseas_scholarship": {
-    "lastVerified": "2026-07-12T09:27:02.366Z",
+    "lastVerified": "2026-07-13T21:53:07.916Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_minority_scholarship": {
-    "lastVerified": "2026-07-12T09:26:53.811Z",
+    "lastVerified": "2026-07-13T21:52:59.880Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_t_fiber": {
-    "lastVerified": "2026-07-12T09:27:48.660Z",
+    "lastVerified": "2026-07-13T21:53:46.897Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_rajiv_yuva_vikasam": {
-    "lastVerified": "2026-07-12T09:27:12.450Z",
+    "lastVerified": "2026-07-13T21:53:15.957Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1786,19 +1786,19 @@
     "confidence": 0
   },
   "tripura_cm_krishak_samridhi": {
-    "lastVerified": "2026-07-12T07:19:22.582Z",
+    "lastVerified": "2026-07-13T21:51:01.847Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "tripura_mukhyamantri_swasthya": {
-    "lastVerified": "2026-07-12T09:25:15.597Z",
+    "lastVerified": "2026-07-13T21:51:24.583Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "tripura_cm_scholarship": {
-    "lastVerified": "2026-07-12T09:25:03.133Z",
+    "lastVerified": "2026-07-13T21:51:07.336Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -3408,7 +3408,7 @@
     "confidence": 0
   },
   "top_class_sc": {
-    "lastVerified": "2026-07-12T07:19:04.930Z",
+    "lastVerified": "2026-07-13T21:50:43.057Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -3462,7 +3462,7 @@
     "confidence": 0
   },
   "tulip_internship": {
-    "lastVerified": "2026-07-12T09:28:09.180Z",
+    "lastVerified": "2026-07-13T21:54:08.767Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
