@@ -2291,7 +2291,7 @@
     "confidence": 0
   },
   "maha_shetkari": {
-    "lastVerified": "2026-07-11T20:41:14.886Z",
+    "lastVerified": "2026-07-13T04:47:27.085Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2315,13 +2315,13 @@
     "confidence": 0
   },
   "maha_rajarshi_shahu": {
-    "lastVerified": "2026-07-11T19:54:51.709Z",
+    "lastVerified": "2026-07-13T04:46:45.378Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_swadhar_gruh": {
-    "lastVerified": "2026-07-11T20:42:19.809Z",
+    "lastVerified": "2026-07-13T04:48:34.648Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2333,13 +2333,13 @@
     "confidence": 0
   },
   "maha_sanjay_gandhi": {
-    "lastVerified": "2026-07-11T19:55:09.911Z",
+    "lastVerified": "2026-07-13T04:47:05.497Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_shravan_bal": {
-    "lastVerified": "2026-07-11T20:41:39.769Z",
+    "lastVerified": "2026-07-13T04:47:52.051Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2364,26 +2364,26 @@
     "confidence": 0
   },
   "maha_tribal_scholarship": {
-    "lastVerified": "2026-07-11T20:42:33.716Z",
+    "lastVerified": "2026-07-13T04:48:53.042Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
     "isActive": true
   },
   "maha_nanaji_deshmukh": {
-    "lastVerified": "2026-07-11T19:54:00.425Z",
+    "lastVerified": "2026-07-13T04:45:50.459Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_pmay_slum": {
-    "lastVerified": "2026-07-11T19:54:37.454Z",
+    "lastVerified": "2026-07-13T04:46:30.110Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_rojgar_hami": {
-    "lastVerified": "2026-07-11T19:54:59.913Z",
+    "lastVerified": "2026-07-13T04:46:54.698Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2401,7 +2401,7 @@
     "confidence": 0
   },
   "maha_namo_shetkari": {
-    "lastVerified": "2026-07-11T19:53:54.602Z",
+    "lastVerified": "2026-07-13T04:45:45.414Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2413,7 +2413,7 @@
     "confidence": 0
   },
   "maha_smart_solar": {
-    "lastVerified": "2026-07-11T20:41:58.270Z",
+    "lastVerified": "2026-07-13T04:48:13.644Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2425,7 +2425,7 @@
     "confidence": 0
   },
   "maha_one_rupee_fasal_bima": {
-    "lastVerified": "2026-07-11T19:54:15.585Z",
+    "lastVerified": "2026-07-13T04:46:04.563Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2444,7 +2444,7 @@
     "confidence": 0
   },
   "maha_mukhyamantri_saur_krishi_vahini": {
-    "lastVerified": "2026-07-11T19:53:35.673Z",
+    "lastVerified": "2026-07-13T04:45:25.188Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2474,9 +2474,9 @@
     "confidence": 0
   },
   "maha_women_professional_fee": {
-    "lastVerified": "2026-07-11T20:42:56.012Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-07-13T04:49:12.481Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0,
     "isActive": true
   },
@@ -2487,50 +2487,50 @@
     "confidence": 0
   },
   "maha_shiv_chhatrapati_sports": {
-    "lastVerified": "2026-07-11T20:41:28.005Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-13T04:47:40.588Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "maha_pm_svanidhi": {
-    "lastVerified": "2026-07-11T19:54:32.513Z",
+    "lastVerified": "2026-07-13T04:46:23.987Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_sant_savata_mali_horticulture": {
-    "lastVerified": "2026-07-11T20:41:02.655Z",
+    "lastVerified": "2026-07-13T04:47:14.832Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_vjnt_scholarship": {
-    "lastVerified": "2026-07-11T20:42:42.509Z",
+    "lastVerified": "2026-07-13T04:49:06.656Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
     "isActive": true
   },
   "maha_sthalantar_kamgar": {
-    "lastVerified": "2026-07-11T20:42:07.426Z",
+    "lastVerified": "2026-07-13T04:48:23.142Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_slum_sanitation": {
-    "lastVerified": "2026-07-11T20:41:47.851Z",
+    "lastVerified": "2026-07-13T04:48:01.961Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "maha_mukhyamantri_udyojak": {
-    "lastVerified": "2026-07-11T19:53:40.485Z",
+    "lastVerified": "2026-07-13T04:45:31.134Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_teerth_darshan": {
-    "lastVerified": "2026-07-11T20:42:23.736Z",
+    "lastVerified": "2026-07-13T04:48:44.100Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2542,7 +2542,7 @@
     "confidence": 0
   },
   "maha_mjpjay": {
-    "lastVerified": "2026-07-11T19:53:26.444Z",
+    "lastVerified": "2026-07-13T04:45:16.428Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2572,7 +2572,7 @@
     "confidence": 0
   },
   "maha_pm_shram_yogi": {
-    "lastVerified": "2026-07-11T19:54:27.241Z",
+    "lastVerified": "2026-07-13T04:46:18.854Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2596,7 +2596,7 @@
     "confidence": 0
   },
   "maha_pmay_urban_2": {
-    "lastVerified": "2026-07-11T19:54:43.449Z",
+    "lastVerified": "2026-07-13T04:46:36.567Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
