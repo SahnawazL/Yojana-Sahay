@@ -3258,7 +3258,7 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
   );
 }
 
-function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
+function ExportModal({ steps, currentStep, done, totalUsers, totalReports, onDownload, onDismiss }) {
   const progress = done ? 100 : currentStep < 0 ? 2
     : Math.round(((currentStep + 1) / steps.length) * 100);
 
@@ -3306,12 +3306,16 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
       `}</style>
 
       {/* Backdrop */}
-      <div style={{
-        position:"fixed", inset:0, zIndex:99998,
-        background:"rgba(0,0,0,0.74)",
-        backdropFilter:"blur(10px)",
-        WebkitBackdropFilter:"blur(10px)",
-      }} />
+      <div
+        onClick={done ? onDismiss : undefined}
+        style={{
+          position:"fixed", inset:0, zIndex:99998,
+          background:"rgba(0,0,0,0.74)",
+          backdropFilter:"blur(10px)",
+          WebkitBackdropFilter:"blur(10px)",
+          cursor: done ? "pointer" : "default",
+        }}
+      />
 
       {/* Card */}
       <div style={{
@@ -3319,7 +3323,7 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
         display:"flex", alignItems:"center", justifyContent:"center",
         padding:20,
       }}>
-        <div className="ys-card" style={{
+        <div className="ys-card" onClick={e => e.stopPropagation()} style={{
           width:"100%", maxWidth:448,
           background:"linear-gradient(155deg,#0d1117 0%,#131920 55%,#0d1117 100%)",
           border:"1px solid rgba(255,255,255,0.07)",
@@ -3354,7 +3358,7 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
               </div>
               <div style={{ color:"rgba(255,255,255,0.38)", fontSize:11, marginTop:2 }}>
                 {done
-                  ? "Opening PDF in a new window…"
+                  ? "Tap Download below to open your PDF"
                   : `${totalUsers} users · ${totalReports} reports · all sections`}
               </div>
             </div>
@@ -3537,7 +3541,7 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
             </div>
             {done ? (
               <div className="ys-fslide" style={{ fontSize:10, color:IND_GREEN, fontWeight:700 }}>
-                ✓ &nbsp;yojanasetu_full_report_{today}.pdf &nbsp;— &nbsp;Ready to open
+                ✓ &nbsp;yojanasetu_full_report_{today}.pdf &nbsp;— &nbsp;Ready to download
               </div>
             ) : (
               <div style={{
@@ -3572,13 +3576,20 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports }) {
               {today}
             </div>
             {done ? (
-              <div className="ys-glow" style={{
-                fontSize:11, fontWeight:800, color:"#fff",
-                background:`linear-gradient(135deg,${IND_GREEN},#16a34a)`,
-                padding:"8px 18px", borderRadius:10,
-                boxShadow:`0 4px 16px rgba(19,136,8,0.4)`,
-              }}>
-                Opening PDF…
+              <div
+                onClick={onDownload}
+                className="ys-glow"
+                style={{
+                  fontSize:11, fontWeight:800, color:"#fff",
+                  background:`linear-gradient(135deg,${IND_GREEN},#16a34a)`,
+                  padding:"8px 18px", borderRadius:10,
+                  boxShadow:`0 4px 16px rgba(19,136,8,0.4)`,
+                  cursor:"pointer", display:"flex", alignItems:"center", gap:6,
+                  animation:"ys-glow 1.5s ease-in-out infinite, ys-ring 1.8s ease-in-out infinite",
+                }}
+              >
+                <span style={{ fontSize:13, lineHeight:1 }}>⬇</span>
+                Download PDF
               </div>
             ) : (
               <div style={{
@@ -5228,6 +5239,10 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [exportModal,    setExportModal]   = useState(false);
   const [exportStep,     setExportStep]   = useState(-1);
   const [exportDone,     setExportDone]   = useState(false);
+  // Set once the compile animation finishes; holds everything exportAllPDF
+  // needs so the actual PDF/print window only opens when the admin taps
+  // "Download PDF" — not automatically the instant compiling finishes.
+  const [pendingExport,  setPendingExport] = useState(null);
   const [exportSections, setExportSections] = useState(
     () => new Set(["overview","analytics","users","activity","usage","schemes","reports","agents"])
   );
@@ -7385,14 +7400,29 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
     await new Promise(r => setTimeout(r, 380));
     setExportDone(true);
-    await new Promise(r => setTimeout(r, 1100));
-    setExportModal(false);
-    await new Promise(r => setTimeout(r, 80));
-    exportAllPDF(exportSections, freshUsageData, freshAgentsData, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, dateFilteredUsers, dateFilteredReports, dateRangeLabel);
+    // Hold everything the actual PDF/print step needs — the admin now has to
+    // tap "Download PDF" on the ready-state modal to actually trigger it,
+    // rather than it opening automatically the instant compiling finishes.
+    setPendingExport({ freshUsageData, freshAgentsData, dateFilteredUsers, dateFilteredReports, dateRangeLabel });
+  }, [EXPORT_STEPS, exportSections, usageData, fetchUsage, humanAgents, pdfDateRangeMode, pdfDateStart, pdfDateEnd, users, reports]);
 
-    // Reset state after a short delay
+  // Fires when the admin taps "Download PDF" on the ready-state modal.
+  const handleDownloadReadyExport = useCallback(() => {
+    if (!pendingExport) return;
+    const { freshUsageData, freshAgentsData, dateFilteredUsers, dateFilteredReports, dateRangeLabel } = pendingExport;
+    exportAllPDF(exportSections, freshUsageData, freshAgentsData, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, dateFilteredUsers, dateFilteredReports, dateRangeLabel);
+    setExportModal(false);
+    setPendingExport(null);
     setTimeout(() => { setExportStep(-1); setExportDone(false); }, 600);
-  }, [EXPORT_STEPS, exportAllPDF, exportSections, usageData, fetchUsage, humanAgents, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, pdfDateRangeMode, pdfDateStart, pdfDateEnd, users, reports]);
+  }, [pendingExport, exportAllPDF, exportSections, pdfTheme, preparedBy, pdfOrientation, pdfPageSize]);
+
+  // Fires if the admin dismisses the ready-state modal (tap outside)
+  // without downloading — just closes it, no PDF/print window opens.
+  const handleDismissReadyExport = useCallback(() => {
+    setExportModal(false);
+    setPendingExport(null);
+    setTimeout(() => { setExportStep(-1); setExportDone(false); }, 600);
+  }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
   const ALL_TABS = [
@@ -9406,6 +9436,8 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           done={exportDone}
           totalUsers={users.length}
           totalReports={reports.length}
+          onDownload={handleDownloadReadyExport}
+          onDismiss={handleDismissReadyExport}
         />
       )}
 
