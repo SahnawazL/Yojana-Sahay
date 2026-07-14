@@ -361,7 +361,12 @@ async function writeAppStatsSafe(data){
     // permission-denied. Explicitly awaiting a fresh token closes that gap.
     await sAuth.currentUser.getIdToken(true);
     const sdb = getFirestore(getStatsApp());
-    await setDoc(doc(sdb,"appStats","usage"), data, {merge:true});
+    try{
+      await setDoc(doc(sdb,"appStats","usage"), data, {merge:true});
+    }catch(inner){
+      alert("STATS DEBUG: write failed — uid=" + sAuth.currentUser.uid + " isAnon=" + sAuth.currentUser.isAnonymous + " code=" + (inner?.code || inner?.message || inner)); // TEMP — remove after debugging
+      return;
+    }
   }catch(e){
     alert("STATS DEBUG: write failed — " + (e?.code || e?.message || e)); // TEMP — remove after debugging
   }
