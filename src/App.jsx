@@ -351,10 +351,15 @@ async function writeAppStatsSafe(data){
       return;
     }
     const sAuth = await ensureStatsAuthReady();
-    if(!sAuth.currentUser) return; // anonymous sign-in failed (e.g. offline) — silently skip, same as before
+    if(!sAuth.currentUser){
+      alert("STATS DEBUG: anon sign-in failed — sAuth.currentUser is null"); // TEMP — remove after debugging
+      return;
+    }
     const sdb = getFirestore(getStatsApp());
     await setDoc(doc(sdb,"appStats","usage"), data, {merge:true});
-  }catch{ /* mirrors the original silent .catch(()=>{}) behavior */ }
+  }catch(e){
+    alert("STATS DEBUG: write failed — " + (e?.code || e?.message || e)); // TEMP — remove after debugging
+  }
 }
 
 // ─── LAST VERIFIED DATE — Freshness Badge ──────────────────────────────────────
@@ -10168,6 +10173,12 @@ function YojanaSahayInner(){
           // If there IS a profile, we wait for the user's sheet choice before
           // committing or incrementing checkerRunId.
           if(!profile){ setCommittedCheckerAnswers(answers); setCheckerRunId(id=>id+1); }
+          // Optimistic "Indians Helped" bump — the Firestore checkerTotal write
+          // happens fire-and-forget inside EligibilityChecker itself, and the
+          // on-screen number otherwise only loads once at app mount. Without
+          // this, a guest could complete the checker and never see the count
+          // move in that session even though the database write succeeded.
+          setLiveCheckerTotal(t=>(t??0)+1);
         }}
           onExitFromResults={(answersAreFromProfile)=>{if(profile&&!answersAreFromProfile)setTimeout(()=>setShowUpdateProfileSheet(true),800);}}
           prefilledAnswers={profileAnswers||undefined}
