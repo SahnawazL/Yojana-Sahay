@@ -355,6 +355,11 @@ async function writeAppStatsSafe(data){
       alert("STATS DEBUG: anon sign-in failed — sAuth.currentUser is null"); // TEMP — remove after debugging
       return;
     }
+    // Force the ID token to be fully issued/attached before writing — right
+    // after signInAnonymously() resolves, Firestore can briefly still send
+    // requests as if signed out, which the rules correctly reject as
+    // permission-denied. Explicitly awaiting a fresh token closes that gap.
+    await sAuth.currentUser.getIdToken(true);
     const sdb = getFirestore(getStatsApp());
     await setDoc(doc(sdb,"appStats","usage"), data, {merge:true});
   }catch(e){
