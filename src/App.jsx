@@ -1805,8 +1805,9 @@ function CategorySheet({category,lang,onClose,dark=false,onOpenDetail=null}){
 
   return(
     <div onClick={e=>{if(e.target===e.currentTarget)onClose();}}
+      className="elig-overlay"
       style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
-      <div style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",maxHeight:"90vh",display:"flex",flexDirection:"column",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
+      <div className="sheet-90" style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",display:"flex",flexDirection:"column",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
 
         {/* Sheet Header — always visible immediately */}
         <div style={{background:th.card,borderRadius:"24px 24px 0 0",padding:"12px 20px 16px",flexShrink:0,borderBottom:`1px solid ${th.border}`}}>
@@ -1953,8 +1954,9 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
 
   return(
     <div onClick={e=>{if(e.target===e.currentTarget)onClose();}}
+      className="elig-overlay"
       style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
-      <div style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.card,borderRadius:"24px 24px 0 0",maxHeight:"85vh",overflowY:"auto",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
+      <div className="sheet-85" style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.card,borderRadius:"24px 24px 0 0",overflowY:"auto",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
         <div style={{display:"flex",justifyContent:"center",paddingTop:12}}>
           <div style={{width:40,height:4,background:th.handle,borderRadius:2}}/>
         </div>
@@ -2474,10 +2476,11 @@ function StatePickerSheet({selectedState,onSelect,onClose,lang,dark=false}){
 
   return(
     <div onClick={e=>{if(e.target===e.currentTarget)onClose();}}
+      className="elig-overlay"
       style={{position:"fixed",inset:0,zIndex:300,background:"rgba(0,0,0,0.55)",
         display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
-      <div style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.card,
-        borderRadius:"24px 24px 0 0",maxHeight:"82vh",display:"flex",flexDirection:"column",
+      <div className="sheet-82" style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.card,
+        borderRadius:"24px 24px 0 0",display:"flex",flexDirection:"column",
         transform:visible?"translateY(0)":"translateY(100%)",
         transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)"}}>
 
@@ -3886,8 +3889,9 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
 
   return(
     <div onClick={e=>{if(e.target===e.currentTarget){onClose();}}}
+      className="elig-overlay"
       style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
-      <div ref={scrollContainerRef} style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",maxHeight:"93vh",overflowY:"auto",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
+      <div ref={scrollContainerRef} className="elig-sheet" style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",overflowY:"auto",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
 
         {/* Sheet top — Premium Tricolor Stepper */}
         {/* Tricolor top stripe */}
@@ -8082,6 +8086,14 @@ const APP_STYLES = `
         .cp{animation:cp 2.5s ease-in-out infinite;}
         @keyframes cp{0%,100%{box-shadow:0 6px 24px rgba(19,136,8,0.3)}50%{box-shadow:0 6px 32px rgba(19,136,8,0.55)}}
         .app-root{height:100vh;height:100dvh;}
+        /* Eligibility checker bottom sheet: use dvh (visible viewport) instead of
+           vh (full viewport incl. area behind a shown mobile URL bar), so the
+           sticky header never renders above the actually-visible screen. */
+        .elig-overlay{height:100vh;height:100dvh;}
+        .elig-sheet{max-height:93vh;max-height:93dvh;}
+        .sheet-90{max-height:90vh;max-height:90dvh;}
+        .sheet-85{max-height:85vh;max-height:85dvh;}
+        .sheet-82{max-height:82vh;max-height:82dvh;}
         .bnav-wrap{flex-shrink:0;position:sticky;bottom:0;padding-bottom:max(20px,env(safe-area-inset-bottom,20px));}
         @keyframes fadeSlide{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
         /* ── Direction-aware question transitions ── */
