@@ -3555,6 +3555,19 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
   const [expandedId,setExpandedId]=useState(null);
   const [showEstimateInfo,setShowEstimateInfo]=useState(false); // "What These Numbers Mean" disclaimer expand/collapse
 
+  // ── Sticky-header compact subtitle reveal ───────────────────────────────
+  // The sticky top bar can show a small "icon + question text" line as a
+  // "you are here" reminder while scrolling through longer questions (e.g.
+  // the state picker). On short questions the big centered heading below is
+  // already fully visible, so showing both at once just duplicates the same
+  // text. This tracks scroll position and only reveals the sticky subtitle
+  // once the big heading has scrolled out from under the sticky bar.
+  const scrollContainerRef=useRef(null);
+  const stickyHeaderRef=useRef(null);
+  const bigHeadingRef=useRef(null);
+  const [showStickySubtitle,setShowStickySubtitle]=useState(false);
+
+
   const [results,setResults]=useState(()=>{
     if(prefilledAnswers) return SCHEME_DB.filter(s=>s.match(prefilledAnswers));
     try{
@@ -3569,6 +3582,31 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
   });
 
   useEffect(()=>{const id=setTimeout(()=>setVisible(true),30);return()=>clearTimeout(id);},[]);
+
+  // ── Track scroll position to reveal/hide the sticky-header subtitle ──────
+  // Reset to hidden on every step change (new question starts scrolled to
+  // top, so the big heading is visible again and the sticky line should not
+  // duplicate it) and re-measure whenever the container scrolls.
+  useEffect(()=>{
+    setShowStickySubtitle(false);
+    const container=scrollContainerRef.current;
+    if(!container) return;
+    container.scrollTop=0; // start each new question fully visible, not mid-scroll from the previous one
+    const onScroll=()=>{
+      const heading=bigHeadingRef.current;
+      const stickyHeader=stickyHeaderRef.current;
+      if(!heading||!stickyHeader){ setShowStickySubtitle(false); return; }
+      const headingBottom=heading.getBoundingClientRect().bottom;
+      const stickyBottom=stickyHeader.getBoundingClientRect().bottom;
+      // Once the big heading has scrolled up past the bottom edge of the
+      // sticky bar, it's no longer visible on screen — safe to show the
+      // compact subtitle without it looking like a duplicate.
+      setShowStickySubtitle(headingBottom<stickyBottom);
+    };
+    container.addEventListener("scroll",onScroll,{passive:true});
+    onScroll();
+    return()=>container.removeEventListener("scroll",onScroll);
+  },[step]);
 
   const q=step<TOTAL?queue[step]:null;
   const isStateQ=q?.type==="state";
@@ -3849,7 +3887,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
   return(
     <div onClick={e=>{if(e.target===e.currentTarget){onClose();}}}
       style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
-      <div style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",maxHeight:"93vh",overflowY:"auto",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
+      <div ref={scrollContainerRef} style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",maxHeight:"93vh",overflowY:"auto",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
 
         {/* Sheet top — Premium Tricolor Stepper */}
         {/* Tricolor top stripe */}
@@ -3858,7 +3896,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
           <div style={{flex:1,background:"#fff",borderLeft:"1px solid #f0e8dc",borderRight:"1px solid #dde8dd"}}/>
           <div style={{flex:1,background:IND_GREEN}}/>
         </div>
-        <div style={{background:th.card,padding:"12px 20px 16px",position:"sticky",top:0,zIndex:10,borderBottom:`1px solid ${th.border}`}}>
+        <div ref={stickyHeaderRef} style={{background:th.card,padding:"12px 20px 16px",position:"sticky",top:0,zIndex:10,borderBottom:`1px solid ${th.border}`}}>
           {/* Drag handle */}
           <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
             <div style={{width:38,height:3.5,background:th.handle2,borderRadius:2}}/>
@@ -3871,7 +3909,16 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
               </div>
               <div>
                 <div style={{fontSize:15,fontWeight:800,color:th.text,letterSpacing:-0.2,lineHeight:1,fontFamily:bf}}>{t.checkerTitle}</div>
-                <div style={{fontSize:10,fontWeight:700,marginTop:3,letterSpacing:0.25,fontFamily:bf,color:step<TOTAL?SAFFRON:IND_GREEN}}>
+                <div style={{
+                  fontSize:10,fontWeight:700,marginTop:3,letterSpacing:0.25,fontFamily:bf,
+                  color:step<TOTAL?SAFFRON:IND_GREEN,
+                  // On results (step===TOTAL) always show the "done" line — there's
+                  // no big duplicate heading there. On a question step, only reveal
+                  // once the big centered heading has scrolled out from under this
+                  // sticky bar, so the two never show the same text at once.
+                  opacity:step<TOTAL?(showStickySubtitle?1:0):1,
+                  transition:"opacity 0.2s ease",
+                }}>
                   {step<TOTAL?`${q?.icon}  ${q?.q}`:`✅  ${t.checkerSub}`}
                 </div>
               </div>
@@ -4063,7 +4110,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
         {/* Question step */}
         {step<TOTAL&&q&&(
           <div key={animKey} style={{padding:"20px 20px 32px",animation:`${direction==="fwd"?"q-enter-fwd":"q-enter-bwd"} 0.32s cubic-bezier(0.25,1,0.5,1) both`}}>
-            <div style={{textAlign:"center",marginBottom:20}}>
+            <div ref={bigHeadingRef} style={{textAlign:"center",marginBottom:20}}>
               <div style={{fontSize:42,marginBottom:10}}>{q.icon}</div>
               <div style={{fontSize:17,fontWeight:800,color:th.text,lineHeight:1.3,fontFamily:bf}}>{q.q}</div>
               <div style={{fontSize:12,color:th.textLight,marginTop:5}}>{q.hint}</div>
