@@ -369,6 +369,26 @@ const BRIEF_CACHE_KEY  = "yojana_brief_cache";
 const answerFingerprint = (ans) =>
   JSON.stringify(Object.keys(ans).sort().reduce((o,k)=>{o[k]=ans[k];return o;},{}));
 
+// ── AI brief truncation guard ───────────────────────────────────────────────
+// generateResultsBrief() can occasionally return a response cut off mid-
+// sentence (the model's output-token budget was hit before it finished).
+// A cut-off string like "...you can apply by visiting the" has no closing
+// punctuation, so we detect that and gracefully back up to the last complete
+// sentence rather than ever showing (or permanently caching) a dangling
+// fragment. Handles both English (. ! ?) and Hindi (।) sentence endings, and
+// forgives a trailing quote/paren/emoji after the punctuation.
+const briefLooksComplete = (s) => /[.!?।][)"'”’]?\s*[\u{1F300}-\u{1FAFF}\u2600-\u27BF]*\s*$/u.test((s||"").trim());
+const trimToLastSentence = (s) => {
+  const t=(s||"").trim();
+  if(briefLooksComplete(t)) return t;
+  let cut=-1;
+  for(const ch of [".","!","?","।"]){ const i=t.lastIndexOf(ch); if(i>cut) cut=i; }
+  // Only back up to a full sentence if that still leaves a substantial message;
+  // otherwise (e.g. the model was cut off before finishing even one sentence)
+  // just show what we have rather than an almost-empty card.
+  return cut>40 ? t.slice(0,cut+1) : t;
+};
+
 // ─── REVEAL SCREEN ICONS (stable — module level) ───────────────────────────────
 // Positions are % within the 300×260 icon-orbit container; anim = CSS keyframe name
 const REVEAL_ICONS = [
@@ -3744,7 +3764,10 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
       if(!saved) return null;
       const savedAns = (saved.answers && typeof saved.step==="number") ? saved.answers : saved;
       const cached   = JSON.parse(localStorage.getItem(BRIEF_CACHE_KEY)||"null");
-      if(cached?.brief && cached.answersKey===answerFingerprint(savedAns)) return cached.brief;
+      // Ignore a cached brief that was itself cut off mid-sentence (a stale
+      // truncated response from before this fix, or a rare token-limit hit) —
+      // fall through to null so the effect below fetches a fresh, complete one.
+      if(cached?.brief && cached.answersKey===answerFingerprint(savedAns) && briefLooksComplete(cached.brief)) return cached.brief;
     }catch{}
     return null;
   });
@@ -3845,29 +3868,39 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
         body:JSON.stringify(runRecord),
       }).catch(()=>{}); // best-effort — never blocks the results screen
     }catch{}
-    // ── Cache check — skip API if we already have a brief for these exact answers ──
+    // ── Cache check — skip API if we already have a COMPLETE brief for these exact answers ──
     try{
       const cached = JSON.parse(localStorage.getItem(BRIEF_CACHE_KEY)||"null");
-      if(cached?.brief && cached.answersKey===answerFingerprint(answers)){
+      if(cached?.brief && cached.answersKey===answerFingerprint(answers) && briefLooksComplete(cached.brief)){
         setBrief(cached.brief);   // restore silently — no loading state, no API call
         return;
       }
     }catch{}
-    // No cache hit → call the AI
+    // No usable cache hit → call the AI
     setBrief(null);
     setBriefLoading(true);
     generateResultsBrief(answers, [...results].sort((a,b)=>(b.annual||0)-(a.annual||0)), nearMiss, totalAnnual, lang)
       .then(text => {
         if(!cancelled){
-          setBrief(text);
+          const complete = briefLooksComplete(text);
+          // If the model's response was cut off mid-sentence (output-token
+          // limit hit), back up to the last complete sentence so we never
+          // show a dangling fragment like "...you can apply by visiting the".
+          const display = complete ? (text||"").trim() : trimToLastSentence(text);
+          setBrief(display);
           setBriefLoading(false);
-          // Persist so next open reuses this result without another API call
-          try{
-            localStorage.setItem(BRIEF_CACHE_KEY, JSON.stringify({
-              answersKey: answerFingerprint(answers),
-              brief: text,
-            }));
-          }catch{}
+          // Only persist a COMPLETE response. A truncated one is intentionally
+          // left uncached so the next time this screen opens, a fresh (hopefully
+          // complete) generation is tried again instead of the broken text
+          // being served forever from cache.
+          if(complete){
+            try{
+              localStorage.setItem(BRIEF_CACHE_KEY, JSON.stringify({
+                answersKey: answerFingerprint(answers),
+                brief: display,
+              }));
+            }catch{}
+          }
         }
       })
       .catch(()  => { if(!cancelled){ setBriefLoading(false); } });
@@ -3956,12 +3989,12 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
               </div>
               {/* Step label row */}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:7,paddingLeft:3,paddingRight:3}}>
-                <span style={{fontSize:9.5,fontWeight:700,color:ASHOKA_BLUE,letterSpacing:0.4,fontFamily:bf}}>
+                <span style={{fontSize:9.5,fontWeight:700,color:dark?"#7aa5ff":ASHOKA_BLUE,letterSpacing:0.4,fontFamily:bf,transition:"color 0.2s ease"}}>
                   {isHindi?`चरण ${step+1} / ${TOTAL}`:`STEP ${step+1} OF ${TOTAL}`}
                 </span>
                 <div style={{display:"flex",alignItems:"center",gap:4}}>
                   {q&&!t.questions.find(bq=>bq.id===q.id)&&(
-                    <span style={{fontSize:8.5,fontWeight:700,color:"#CC6600",background:"#FFF7ED",borderRadius:20,padding:"2px 7px",border:"1px solid #FFD8A8",letterSpacing:0.3}}>
+                    <span style={{fontSize:8.5,fontWeight:700,color:dark?"#FF9933":"#CC6600",background:dark?"rgba(255,153,51,0.14)":"#FFF7ED",borderRadius:20,padding:"2px 7px",border:`1px solid ${dark?"rgba(255,153,51,0.32)":"#FFD8A8"}`,letterSpacing:0.3,transition:"background 0.2s ease, color 0.2s ease, border-color 0.2s ease"}}>
                       {isHindi?"अतिरिक्त":"+ Smart"}
                     </span>
                   )}

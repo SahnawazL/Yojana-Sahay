@@ -598,7 +598,11 @@ Plain paragraph only. Exactly 4 sentences. No markdown.`;
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model:       MODEL,
-      max_tokens:  460, // 300 supported 3 sentences; 4 sentences scales to ~400 — set higher with buffer so the new honest 4th sentence never gets cut mid-word
+      max_tokens:  isHindi ? 900 : 650, // Previously a flat 460 for both languages — still got cut off mid-sentence
+                                         // in practice (see screenshot reports) despite the earlier 300→460 bump.
+                                         // Hindi (Devanagari) also costs more tokens per word than English for the
+                                         // same sentence count, so it needs more headroom, not the same budget —
+                                         // matches the ratio sendMessage() already uses below (800 vs 1200).
       temperature: 0.4,
       messages: [
         { role: "system", content: systemPrompt },
@@ -609,8 +613,17 @@ Plain paragraph only. Exactly 4 sentences. No markdown.`;
 
   if (!res.ok) throw new Error(`Brief API error (${res.status})`);
   const data = await res.json();
-  const content = data?.choices?.[0]?.message?.content;
+  const choice = data?.choices?.[0];
+  const content = choice?.message?.content;
   if (!content) throw new Error("Empty brief");
+  // If the model still hits the token limit despite the headroom above, the
+  // API itself tells us via finish_reason — log it so this is easy to spot
+  // and re-tune, instead of only ever noticing it from a user screenshot.
+  // (App.jsx also has its own text-based safety net that trims a truncated
+  // brief to the last complete sentence before ever displaying it.)
+  if (choice?.finish_reason === "length") {
+    console.warn(`[generateResultsBrief] Response hit max_tokens (${isHindi ? 900 : 650}) and was truncated by the API. Consider raising max_tokens further.`);
+  }
   // Strip any accidental CHIPS block or markdown
   return content.replace(/\n?CHIPS:\s*\[[\s\S]*?\]/g, "").replace(/[#*`]/g, "").trim();
 }
