@@ -517,7 +517,7 @@
     "linkAlive": false
   },
   "e_shram": {
-    "lastVerified": "2026-07-14T11:06:51.311Z",
+    "lastVerified": "2026-07-15T22:54:20.489Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -684,10 +684,10 @@
     "linkAlive": true
   },
   "free_coaching_sc": {
-    "lastVerified": "2026-07-14T11:07:03.548Z",
-    "httpStatus": 200,
+    "lastVerified": "2026-07-15T22:54:34.246Z",
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "pmfme": {
     "lastVerified": "2026-07-15T04:47:54.719Z",
@@ -1019,7 +1019,7 @@
     "confidence": 0
   },
   "goa_housing_board_affordable": {
-    "lastVerified": "2026-07-14T11:07:24.109Z",
+    "lastVerified": "2026-07-15T22:54:52.912Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -1141,7 +1141,7 @@
     "isActive": false
   },
   "delhi_vidhwa_pension": {
-    "lastVerified": "2026-07-14T11:06:30.125Z",
+    "lastVerified": "2026-07-15T22:53:58.969Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1153,7 +1153,7 @@
     "confidence": 0
   },
   "delhi_tirth_yatra": {
-    "lastVerified": "2026-07-14T11:06:16.984Z",
+    "lastVerified": "2026-07-15T22:53:45.246Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1183,7 +1183,7 @@
     "confidence": 0
   },
   "delhi_st_scholarship": {
-    "lastVerified": "2026-07-14T11:05:44.545Z",
+    "lastVerified": "2026-07-15T22:53:12.332Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1255,13 +1255,13 @@
     "confidence": 0
   },
   "delhi_transgender_pension": {
-    "lastVerified": "2026-07-14T11:06:21.721Z",
+    "lastVerified": "2026-07-15T22:53:50.462Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "delhi_svnidhi_vendor": {
-    "lastVerified": "2026-07-14T11:06:11.846Z",
+    "lastVerified": "2026-07-15T22:53:40.228Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1298,7 +1298,7 @@
     "confidence": 0
   },
   "delhi_startup_policy": {
-    "lastVerified": "2026-07-14T11:05:54.770Z",
+    "lastVerified": "2026-07-15T22:53:23.212Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1630,9 +1630,9 @@
     "confidence": 0
   },
   "delhi_svnidhi": {
-    "lastVerified": "2026-07-14T11:06:06.678Z",
-    "linkAlive": false,
-    "httpStatus": 0,
+    "lastVerified": "2026-07-15T22:53:35.374Z",
+    "linkAlive": true,
+    "httpStatus": 200,
     "confidence": 0
   },
   "mp_nishakt_vivah": {
@@ -2626,7 +2626,7 @@
     "confidence": 0
   },
   "gujarat_amrutum": {
-    "lastVerified": "2026-07-14T11:07:48.227Z",
+    "lastVerified": "2026-07-15T22:55:14.912Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2644,7 +2644,7 @@
     "confidence": 0
   },
   "gujarat_ikhedut": {
-    "lastVerified": "2026-07-14T12:40:13.502Z",
+    "lastVerified": "2026-07-15T22:57:12.727Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2669,7 +2669,7 @@
     "confidence": 0
   },
   "gujarat_ganga_swarupa": {
-    "lastVerified": "2026-07-14T12:39:22.612Z",
+    "lastVerified": "2026-07-15T22:56:20.884Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2687,7 +2687,7 @@
     "confidence": 0
   },
   "gujarat_dr_ambedkar_awas": {
-    "lastVerified": "2026-07-14T12:38:58.136Z",
+    "lastVerified": "2026-07-15T22:56:00.750Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2717,9 +2717,9 @@
     "confidence": 0
   },
   "gujarat_drip_irrigation": {
-    "lastVerified": "2026-07-14T12:39:05.713Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-07-15T22:56:04.753Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "gujarat_machhi_mar": {
@@ -2741,19 +2741,19 @@
     "confidence": 0
   },
   "gujarat_bocw": {
-    "lastVerified": "2026-07-14T11:08:09.763Z",
+    "lastVerified": "2026-07-15T22:55:37.058Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_ghb_housing": {
-    "lastVerified": "2026-07-14T12:39:30.142Z",
+    "lastVerified": "2026-07-15T22:56:28.153Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_icreate": {
-    "lastVerified": "2026-07-14T12:40:04.568Z",
+    "lastVerified": "2026-07-15T22:57:06.367Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2783,7 +2783,7 @@
     "confidence": 0
   },
   "gujarat_gsdm_skill": {
-    "lastVerified": "2026-07-14T12:39:39.433Z",
+    "lastVerified": "2026-07-15T22:56:42.025Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2795,13 +2795,13 @@
     "confidence": 0
   },
   "gujarat_horticulture": {
-    "lastVerified": "2026-07-14T12:39:49.406Z",
+    "lastVerified": "2026-07-15T22:56:50.443Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_beekeeping": {
-    "lastVerified": "2026-07-14T11:08:05.232Z",
+    "lastVerified": "2026-07-15T22:55:31.914Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2813,13 +2813,13 @@
     "confidence": 0
   },
   "gujarat_divyang_employment": {
-    "lastVerified": "2026-07-14T12:38:52.668Z",
+    "lastVerified": "2026-07-15T22:55:56.829Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_cm_pratibha": {
-    "lastVerified": "2026-07-14T11:08:21.332Z",
+    "lastVerified": "2026-07-15T22:55:48.162Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2831,13 +2831,13 @@
     "confidence": 0
   },
   "gujarat_free_crop_insurance": {
-    "lastVerified": "2026-07-14T12:39:16.657Z",
+    "lastVerified": "2026-07-15T22:56:15.922Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "gujarat_cold_chain": {
-    "lastVerified": "2026-07-14T11:08:28.748Z",
+    "lastVerified": "2026-07-15T22:55:52.351Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
