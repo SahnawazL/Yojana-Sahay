@@ -21,9 +21,8 @@ import {
 } from "./schemesData.js";
 import schemesMeta from "./schemes-meta.json";
 import { auth, db } from "./firebase.js";
-import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, getAuth, signInAnonymously } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, arrayUnion, increment, getFirestore } from "firebase/firestore";
-import { initializeApp, getApps } from "firebase/app";
+import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment } from "firebase/firestore";
 import AIChat from "./AIChat.jsx";
 import { generateResultsBrief } from "./groqClient.js";
 import AILockedScreen from "./AILockedScreen.jsx";
@@ -289,34 +288,6 @@ const googleSearchScheme = (name) => {
 // States        → 28 (static)
 // Indians Helped → appStats/usage → checkerTotal (real Firestore read)
 
-// ─── GUEST STATS WRITER — lets non-logged-in visitors count toward "Indians
-// Helped" too ──────────────────────────────────────────────────────────────
-// Firestore rules require request.auth != null to write appStats/usage, so a
-// guest's write used to fail silently. Rather than sign guests into the main
-// `auth` object (which ~20 places in this file treat as "user is logged in"
-// for showing profile photo, avatar, sign-out button, etc.), we spin up a
-// second, completely separate Firebase app instance — same project, same
-// database — with its own invisible anonymous session. Nothing about it is
-// ever shown in the UI, and it never touches `auth` or `db` used everywhere
-// else. It exists purely so appStats/usage writes succeed for guests too.
-let _statsSecondaryApp = null;
-function getStatsApp(){
-  if(_statsSecondaryApp) return _statsSecondaryApp;
-  _statsSecondaryApp = getApps().find(a=>a.name==="statsWriter")
-    || initializeApp(auth.app.options, "statsWriter");
-  return _statsSecondaryApp;
-}
-let _statsAuthReadyPromise = null;
-function ensureStatsAuthReady(){
-  const sAuth = getAuth(getStatsApp());
-  if(sAuth.currentUser) return Promise.resolve(sAuth);
-  if(!_statsAuthReadyPromise){
-    _statsAuthReadyPromise = signInAnonymously(sAuth)
-      .then(()=>sAuth)
-      .catch(()=>sAuth); // if it fails, we still resolve — the write below will just no-op via its own catch
-  }
-  return _statsAuthReadyPromise;
-}
 // ─── GUEST ID — a stable, local-only label so admin analytics can tell one
 // guest browser apart from another ──────────────────────────────────────────
 // This is NOT an auth identity and never touches Firebase Auth or the `users`
@@ -340,37 +311,24 @@ function getGuestId(){
   }
 }
 
-// Writes to appStats/usage in a way that works for BOTH logged-in users and
-// guests. Logged-in users already have a valid `auth.currentUser`, so we use
-// the normal `db`. Guests go through the isolated anonymous session above.
-// Safe to call anywhere the old `setDoc(doc(db,"appStats","usage"),...)` was used.
-async function writeAppStatsSafe(data){
+// ─── STATS LOGGER — routes ALL appStats/usage writes (checker runs, search
+// tracking, state-filter tracking) through the single /api/log-checker-run
+// serverless function, using firebase-admin on the server. Works identically
+// for guests and logged-in users with zero dependency on client auth or
+// Firestore security rules, so it can never silently fail the way the old
+// direct-client-write + anonymous-session approach did.
+// Kept as ONE endpoint (not three) to stay within Vercel's free-tier
+// 12-serverless-function limit — this file is already the 12th function.
+function logAppStat(type, payload){
   try{
-    if(auth.currentUser){
-      await setDoc(doc(db,"appStats","usage"), data, {merge:true});
-      return;
-    }
-    const sAuth = await ensureStatsAuthReady();
-    if(!sAuth.currentUser){
-      alert("STATS DEBUG: anon sign-in failed — sAuth.currentUser is null"); // TEMP — remove after debugging
-      return;
-    }
-    // Force the ID token to be fully issued/attached before writing — right
-    // after signInAnonymously() resolves, Firestore can briefly still send
-    // requests as if signed out, which the rules correctly reject as
-    // permission-denied. Explicitly awaiting a fresh token closes that gap.
-    await sAuth.currentUser.getIdToken(true);
-    const sdb = getFirestore(getStatsApp());
-    try{
-      await setDoc(doc(sdb,"appStats","usage"), data, {merge:true});
-    }catch(inner){
-      alert("STATS DEBUG: write failed — uid=" + sAuth.currentUser.uid + " isAnon=" + sAuth.currentUser.isAnonymous + " code=" + (inner?.code || inner?.message || inner)); // TEMP — remove after debugging
-      return;
-    }
-  }catch(e){
-    alert("STATS DEBUG: write failed — " + (e?.code || e?.message || e)); // TEMP — remove after debugging
-  }
+    fetch("/api/log-checker-run",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({type, ...payload}),
+    }).catch(()=>{}); // best-effort — never blocks the UI
+  }catch{}
 }
+
 
 // ─── LAST VERIFIED DATE — Freshness Badge ──────────────────────────────────────
 // Walks SCHEME_DB (already merged with schemesMeta at module init) and finds the
@@ -2246,15 +2204,13 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
   },[deferredQuery]);
 
   // ── Track search queries (debounced via deferredQuery, min 3 chars) ──────
+  // Routed through /api/log-checker-run (type:"search") — server-side via
+  // firebase-admin, so it works for guests with no dependency on Firestore
+  // client rules. See logAppStat() near the top of this file.
   useEffect(()=>{
     const q=deferredQuery.trim();
     if(q.length<3) return;
-    try{
-      writeAppStatsSafe({
-        schemeSearches:arrayUnion({q,uid:auth.currentUser?.uid||getGuestId(),ts:new Date().toISOString()}),
-        searchTotal:increment(1),
-      });
-    }catch{}
+    logAppStat("search",{q,uid:auth.currentUser?.uid||getGuestId()});
   },[deferredQuery]);
 
   // Filtered results — runs only when deferred query settles (not on every keystroke)
@@ -2745,15 +2701,12 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
   const [closingSoonOnly,setClosingSoonOnly]=useState(false);
 
   // ── Track state selections ────────────────────────────────────────────────
+  // Routed through /api/log-checker-run (type:"state") — same server-side
+  // pattern as search tracking above.
   const handleStateSelect=useCallback((st)=>{
     setSelectedState(st);
     if(st && st!=="all"){
-      try{
-        writeAppStatsSafe({
-          stateSelections:arrayUnion({state:st,uid:auth.currentUser?.uid||getGuestId(),ts:new Date().toISOString()}),
-          [`stateCount_${st.replace(/\s+/g,"_")}`]:increment(1),
-        });
-      }catch{}
+      logAppStat("state",{state:st,uid:auth.currentUser?.uid||getGuestId()});
     }
   },[]);
 
@@ -3827,8 +3780,14 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
       }catch{}
     }
     // ── Log checker run to appStats/usage for admin analytics ──
+    // Routed through /api/log-checker-run (firebase-admin, server-side)
+    // instead of a direct client Firestore write — this works identically
+    // for guests and logged-in users with zero dependency on client auth
+    // or security rules, so it can't silently fail the way the old
+    // anonymous-session approach did.
     try{
       const runRecord={
+        type:"checker",
         uid:uid||getGuestId(),
         matchedCount:results.length,
         state:answers.state||null,
@@ -3838,13 +3797,12 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
         area:answers.area||null,
         gender:answers.gender||null,
         ration:answers.ration||null,
-        ts:new Date().toISOString(),
       };
-      writeAppStatsSafe({
-        checkerRuns:arrayUnion(runRecord),
-        checkerTotal:increment(1),
-        lastRun:new Date().toISOString(),
-      });
+      fetch("/api/log-checker-run",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(runRecord),
+      }).catch(()=>{}); // best-effort — never blocks the results screen
     }catch{}
     // ── Cache check — skip API if we already have a brief for these exact answers ──
     try{
