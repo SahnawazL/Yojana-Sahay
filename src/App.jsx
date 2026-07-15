@@ -3590,6 +3590,57 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
   const bigHeadingRef=useRef(null);
   const [showStickySubtitle,setShowStickySubtitle]=useState(false);
 
+  // ── Swipe-down-to-close (header only) ─────────────────────────────────
+  // Tracks a vertical drag that starts on the sticky header. Deliberately
+  // scoped to the header element (touchAction:"none" there only) so it
+  // never intercepts or fights with the normal up/down scroll of the
+  // question/results content below it.
+  const headerTouchStartY=useRef(null);
+  const headerTouchLastY=useRef(null);
+  const headerIsDragging=useRef(false);
+  const [headerDragY,setHeaderDragY]=useState(0);
+  const [headerDragActive,setHeaderDragActive]=useState(false); // disables the snap transition while actively dragging
+
+  const closeChecker=()=>{
+    if(step===TOTAL){onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>answers[k]!==prefilledAnswers[k]));}
+    onClose();
+  };
+
+  const onHeaderTouchStart=(e)=>{
+    headerTouchStartY.current=e.touches[0].clientY;
+    headerTouchLastY.current=e.touches[0].clientY;
+    headerIsDragging.current=false;
+  };
+  const onHeaderTouchMove=(e)=>{
+    if(headerTouchStartY.current==null)return;
+    const y=e.touches[0].clientY;
+    headerTouchLastY.current=y;
+    const delta=y-headerTouchStartY.current;
+    if(delta>6){ // small threshold so a tap (e.g. the ✕ button) never gets treated as a drag
+      headerIsDragging.current=true;
+      setHeaderDragActive(true);
+      setHeaderDragY(delta);
+    }
+  };
+  const onHeaderTouchEnd=()=>{
+    if(headerIsDragging.current){
+      const delta=(headerTouchLastY.current??0)-(headerTouchStartY.current??0);
+      setHeaderDragActive(false);
+      if(delta>90){
+        // Leave headerDragY where the finger left it — closeChecker() flips
+        // `visible` to false, which switches the sheet to translateY(100%);
+        // the transition then carries it smoothly the rest of the way down
+        // instead of snapping back to 0 first.
+        closeChecker();
+      }else{
+        setHeaderDragY(0); // below threshold — snap back open
+      }
+    }
+    headerTouchStartY.current=null;
+    headerTouchLastY.current=null;
+    headerIsDragging.current=false;
+  };
+
 
   const [results,setResults]=useState(()=>{
     if(prefilledAnswers) return SCHEME_DB.filter(s=>s.match(prefilledAnswers));
@@ -3924,7 +3975,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
     <div onClick={e=>{if(e.target===e.currentTarget){onClose();}}}
       className="elig-overlay"
       style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
-      <div ref={scrollContainerRef} className="elig-sheet" style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",overflowY:"auto",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
+      <div ref={scrollContainerRef} className="elig-sheet" style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",overflowY:"auto",transform:visible?`translateY(${headerDragY}px)`:"translateY(100%)",transition:headerDragActive?"none":"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
 
         {/* Sheet top — Premium Tricolor Stepper */}
         {/* Tricolor top stripe */}
@@ -3933,7 +3984,12 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
           <div style={{flex:1,background:"#fff",borderLeft:"1px solid #f0e8dc",borderRight:"1px solid #dde8dd"}}/>
           <div style={{flex:1,background:IND_GREEN}}/>
         </div>
-        <div ref={stickyHeaderRef} style={{background:th.card,padding:"12px 20px 16px",position:"sticky",top:0,zIndex:10,borderBottom:`1px solid ${th.border}`}}>
+        <div ref={stickyHeaderRef}
+          onTouchStart={onHeaderTouchStart}
+          onTouchMove={onHeaderTouchMove}
+          onTouchEnd={onHeaderTouchEnd}
+          onTouchCancel={onHeaderTouchEnd}
+          style={{background:th.card,padding:"12px 20px 16px",position:"sticky",top:0,zIndex:10,borderBottom:`1px solid ${th.border}`,touchAction:"none"}}>
           {/* Drag handle */}
           <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
             <div style={{width:38,height:3.5,background:th.handle2,borderRadius:2}}/>
@@ -3960,7 +4016,7 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
                 </div>
               </div>
             </div>
-            <div onClick={()=>{if(step===TOTAL){onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>answers[k]!==prefilledAnswers[k]));}onClose();}} style={{width:30,height:30,borderRadius:"50%",background:th.pillBg,border:`1.5px solid ${th.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:12,color:th.textSub,fontWeight:700}}>✕</div>
+            <div onClick={closeChecker} style={{width:30,height:30,borderRadius:"50%",background:th.pillBg,border:`1.5px solid ${th.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:12,color:th.textSub,fontWeight:700}}>✕</div>
           </div>
           {/* Premium numbered stepper — replaces both old bars */}
           {step<TOTAL&&(
