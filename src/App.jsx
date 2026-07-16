@@ -8654,6 +8654,26 @@ function YojanaSahayInner(){
     };
   }, []);
 
+  // Measures the nav bar's own real rendered height so the wrapper can
+  // animate its height down to exactly that value (and back), rather than
+  // guessing a fixed number — keeps this correct even if fonts, safe-area
+  // insets, or language text length ever change the bar's natural size.
+  const bnavContentRef = useRef(null);
+  const [navHeight, setNavHeight] = useState(null);
+
+  useEffect(() => {
+    const el = bnavContentRef.current;
+    if (!el) return;
+    const update = () => setNavHeight(el.offsetHeight);
+    update();
+    let ro;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(update);
+      ro.observe(el);
+    }
+    return () => { if (ro) ro.disconnect(); };
+  }, []);
+
   // Always reveal the nav right after switching tabs — landing on a tab
   // with a hidden nav (from wherever the previous tab was scrolled to)
   // would strand the user with no way to tap between tabs.
@@ -9884,13 +9904,20 @@ function YojanaSahayInner(){
       </div>
 
       {/* ── FINAL PREMIUM BOTTOM NAV ──
-           Outer div clips the nav's own natural height with overflow:hidden
-           (no fixed height set, so it just matches the un-transformed nav's
-           box) — the nav slides down inside that box on scroll-down and is
-           cleanly clipped away, rather than spilling past app-root and
-           creating stray page-level scroll space. */}
-      <div style={{overflow:"hidden",flexShrink:0}}>
-      <div className="bnav-wrap" style={{
+           The outer div's HEIGHT itself animates down to 0 (measured from
+           the inner bar's real rendered height) instead of just sliding the
+           bar visually — that's what actually frees up the reserved layout
+           space as it hides, so the content above reclaims it instead of
+           leaving a blank strip where the nav used to sit. The inner bar
+           fades out slightly faster than the collapse so it's invisible
+           before it'd otherwise look "squished" by the shrinking box. */}
+      <div style={{
+        overflow:"hidden",
+        flexShrink:0,
+        height: navHeight == null ? "auto" : (navHidden ? 0 : navHeight),
+        transition: navHeight == null ? "none" : "height 0.32s cubic-bezier(0.4,0,0.2,1)",
+      }}>
+      <div ref={bnavContentRef} className="bnav-wrap" style={{
         /* Frosted glass surface */
         background: dark
           ? "rgba(18,18,20,0.94)"
@@ -9899,8 +9926,8 @@ function YojanaSahayInner(){
         WebkitBackdropFilter:"blur(24px)",
         /* Light-catching inner top border */
         borderTop:`1px solid ${dark?"rgba(255,255,255,0.09)":"rgba(0,0,0,0.06)"}`,
-        transform: navHidden ? "translateY(100%)" : "translateY(0)",
-        transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
+        opacity: navHidden ? 0 : 1,
+        transition: "opacity 0.2s ease",
         /* Depth shadow */
         boxShadow: dark
           ? "0 -1px 0 rgba(255,255,255,0.04), 0 -12px 40px rgba(0,0,0,0.5)"
