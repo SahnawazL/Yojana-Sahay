@@ -318,7 +318,7 @@
     "linkAlive": false
   },
   "scholarship": {
-    "lastVerified": "2026-07-15T11:08:53.340Z",
+    "lastVerified": "2026-07-16T22:20:10.562Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -445,7 +445,7 @@
     "linkAlive": true
   },
   "sbm_gramin": {
-    "lastVerified": "2026-07-15T11:08:40.076Z",
+    "lastVerified": "2026-07-16T22:19:58.092Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -659,7 +659,7 @@
     "linkAlive": true
   },
   "seekho_kamao": {
-    "lastVerified": "2026-07-15T11:09:11.741Z",
+    "lastVerified": "2026-07-16T22:20:23.492Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -1346,26 +1346,26 @@
     "confidence": 0
   },
   "rajasthan_chiranjeevi": {
-    "lastVerified": "2026-07-15T11:08:19.092Z",
+    "lastVerified": "2026-07-16T22:19:32.428Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
     "isActive": true
   },
   "raj_palanhar": {
-    "lastVerified": "2026-07-15T09:24:35.829Z",
+    "lastVerified": "2026-07-16T22:18:10.851Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_rajshri": {
-    "lastVerified": "2026-07-15T11:07:10.781Z",
+    "lastVerified": "2026-07-16T22:18:30.637Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "raj_wfh_mahila": {
-    "lastVerified": "2026-07-15T11:08:06.167Z",
+    "lastVerified": "2026-07-16T22:19:24.209Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
@@ -1384,67 +1384,67 @@
     "linkAlive": false
   },
   "raj_kalibai_scooty": {
-    "lastVerified": "2026-07-15T09:23:41.508Z",
+    "lastVerified": "2026-07-16T22:17:12.920Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_devnarayan_scooty": {
-    "lastVerified": "2026-07-15T09:23:05.041Z",
+    "lastVerified": "2026-07-16T22:16:36.170Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_tarbandi": {
-    "lastVerified": "2026-07-15T11:07:38.028Z",
+    "lastVerified": "2026-07-16T22:18:56.476Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_krishak_sathi": {
-    "lastVerified": "2026-07-15T09:23:58.425Z",
+    "lastVerified": "2026-07-16T22:17:30.689Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_dugdh_sambal": {
-    "lastVerified": "2026-07-15T09:23:09.953Z",
+    "lastVerified": "2026-07-16T22:16:40.969Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_vishwakarma_kamgar": {
-    "lastVerified": "2026-07-15T11:08:01.371Z",
+    "lastVerified": "2026-07-16T22:19:16.877Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "raj_ssp_pension": {
-    "lastVerified": "2026-07-15T11:07:31.608Z",
+    "lastVerified": "2026-07-16T22:18:50.539Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "raj_yuva_sambal": {
-    "lastVerified": "2026-07-15T11:08:14.037Z",
+    "lastVerified": "2026-07-16T22:19:28.491Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_jan_awas": {
-    "lastVerified": "2026-07-15T09:23:32.867Z",
+    "lastVerified": "2026-07-16T22:17:04.670Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_sinchai_pipeline": {
-    "lastVerified": "2026-07-15T11:07:25.660Z",
+    "lastVerified": "2026-07-16T22:18:44.633Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_mlupy": {
-    "lastVerified": "2026-07-15T09:24:17.693Z",
+    "lastVerified": "2026-07-16T22:17:52.754Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1456,13 +1456,13 @@
     "confidence": 0
   },
   "raj_vishesh_yogyajan": {
-    "lastVerified": "2026-07-15T11:07:54.336Z",
+    "lastVerified": "2026-07-16T22:19:09.942Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_gargi_puraskar": {
-    "lastVerified": "2026-07-15T09:23:15.605Z",
+    "lastVerified": "2026-07-16T22:16:46.376Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -1474,7 +1474,7 @@
     "confidence": 0
   },
   "raj_teerth_yatra": {
-    "lastVerified": "2026-07-15T11:07:45.840Z",
+    "lastVerified": "2026-07-16T22:19:03.760Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1486,31 +1486,31 @@
     "confidence": 0
   },
   "raj_rsldc_skill": {
-    "lastVerified": "2026-07-15T11:07:15.497Z",
+    "lastVerified": "2026-07-16T22:18:34.873Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_kisan_mitra_urja": {
-    "lastVerified": "2026-07-15T09:23:52.539Z",
+    "lastVerified": "2026-07-16T22:17:24.331Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "raj_polyhouse": {
-    "lastVerified": "2026-07-15T09:24:49.191Z",
+    "lastVerified": "2026-07-16T22:18:19.270Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_hamari_beti": {
-    "lastVerified": "2026-07-15T09:23:20.686Z",
+    "lastVerified": "2026-07-16T22:16:51.376Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "raj_minority_scholarship": {
-    "lastVerified": "2026-07-15T09:24:07.055Z",
+    "lastVerified": "2026-07-16T22:17:39.250Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1528,7 +1528,7 @@
     "confidence": 0
   },
   "rgnf": {
-    "lastVerified": "2026-07-15T11:08:28.383Z",
+    "lastVerified": "2026-07-16T22:19:46.509Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3438,7 +3438,7 @@
     "confidence": 0
   },
   "seed_dnt_coaching": {
-    "lastVerified": "2026-07-15T11:09:02.842Z",
+    "lastVerified": "2026-07-16T22:20:19.093Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
