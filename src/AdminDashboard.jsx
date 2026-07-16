@@ -3339,7 +3339,25 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports, onDow
           }} />
 
           {/* ── Header ── */}
-          <div style={{ padding:"20px 24px 14px", display:"flex", alignItems:"center", gap:14 }}>
+          <div style={{ padding:"20px 24px 14px", display:"flex", alignItems:"center", gap:14, position:"relative" }}>
+            {done && (
+              <div
+                onClick={onDismiss}
+                title="Close (download later)"
+                style={{
+                  position:"absolute", top:10, right:14,
+                  width:26, height:26, borderRadius:"50%",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  background:"rgba(255,255,255,0.06)",
+                  border:"1px solid rgba(255,255,255,0.08)",
+                  color:"rgba(255,255,255,0.55)",
+                  fontSize:13, fontWeight:700, lineHeight:1,
+                  cursor:"pointer",
+                }}
+              >
+                ✕
+              </div>
+            )}
             <div style={{
               width:48, height:48, borderRadius:14, flexShrink:0,
               background:"linear-gradient(135deg,#192240,#0d1830)",
@@ -3570,26 +3588,41 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports, onDow
             borderTop:"1px solid rgba(255,255,255,0.05)",
             padding:"12px 24px",
             display:"flex", alignItems:"center", justifyContent:"space-between",
+            flexWrap:"wrap", rowGap:10, columnGap:10,
           }}>
             <div style={{ fontSize:8.5, color:"rgba(255,255,255,0.18)", lineHeight:1.6, fontWeight:500 }}>
               Yojana Sahay Admin &nbsp;·&nbsp; Confidential<br />
               {today}
             </div>
             {done ? (
-              <div
-                onClick={onDownload}
-                className="ys-glow"
-                style={{
-                  fontSize:11, fontWeight:800, color:"#fff",
-                  background:`linear-gradient(135deg,${IND_GREEN},#16a34a)`,
-                  padding:"8px 18px", borderRadius:10,
-                  boxShadow:`0 4px 16px rgba(19,136,8,0.4)`,
-                  cursor:"pointer", display:"flex", alignItems:"center", gap:6,
-                  animation:"ys-glow 1.5s ease-in-out infinite, ys-ring 1.8s ease-in-out infinite",
-                }}
-              >
-                <span style={{ fontSize:13, lineHeight:1 }}>⬇</span>
-                Download PDF
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <div
+                  onClick={onDismiss}
+                  style={{
+                    fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.55)",
+                    background:"rgba(255,255,255,0.06)",
+                    border:"1px solid rgba(255,255,255,0.1)",
+                    padding:"8px 14px", borderRadius:10,
+                    cursor:"pointer",
+                  }}
+                >
+                  Download Later
+                </div>
+                <div
+                  onClick={onDownload}
+                  className="ys-glow"
+                  style={{
+                    fontSize:11, fontWeight:800, color:"#fff",
+                    background:`linear-gradient(135deg,${IND_GREEN},#16a34a)`,
+                    padding:"8px 18px", borderRadius:10,
+                    boxShadow:`0 4px 16px rgba(19,136,8,0.4)`,
+                    cursor:"pointer", display:"flex", alignItems:"center", gap:6,
+                    animation:"ys-glow 1.5s ease-in-out infinite, ys-ring 1.8s ease-in-out infinite",
+                  }}
+                >
+                  <span style={{ fontSize:13, lineHeight:1 }}>⬇</span>
+                  Download PDF
+                </div>
               </div>
             ) : (
               <div style={{
@@ -5275,6 +5308,38 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   });
   const [usageData,     setUsageData]     = useState(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
+
+  // ── Export tab: per-module sub-filters ──────────────────────────────────
+  // Narrow WHICH rows go into the user-derived sections (Overview/Analytics/
+  // Users/Activity) and the Reports section, on top of the date-range filter
+  // above. "all" = no extra narrowing (same behaviour as before this existed).
+  const [exportUserState,    setExportUserState]    = useState("all");
+  const [exportUserOcc,      setExportUserOcc]      = useState("all");
+  const [exportReportStatus, setExportReportStatus] = useState("all");
+
+  // ── Export tab: saved presets ────────────────────────────────────────────
+  // A named snapshot of section selection + every filter/option, so a
+  // recurring report (e.g. "Monthly Board Report") is one tap instead of
+  // re-picking everything each time. Persisted locally per-browser.
+  const [exportPresets, setExportPresets] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("ys_admin_export_presets") || "[]"); }
+    catch { return []; }
+  });
+
+  // ── Export tab: recent exports log ───────────────────────────────────────
+  // A short local audit trail of past downloads — what was exported, when,
+  // and by whom — so an admin can sanity-check "did I already send this."
+  // Purely a client-side convenience log, not a server-verified record.
+  const [exportHistory, setExportHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("ys_admin_export_history") || "[]"); }
+    catch { return []; }
+  });
+  // Small UI-only state for the "save current selection as a preset" input —
+  // kept at top level (not inside the export tab's inline render block)
+  // since that block only runs when activeSection === "export", and hooks
+  // can't be called conditionally.
+  const [showPresetInput, setShowPresetInput] = useState(false);
+  const [newPresetName,   setNewPresetName]   = useState("");
 
   // ── Scheme News (News tab) ────────────────────────────────────────────────
 
@@ -7289,15 +7354,149 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     setTimeout(() => URL.revokeObjectURL(url), 15000);
   }, [guestProfiles, usageData, humanAgents]);
 
-  // ── Export steps definition — only steps relevant to selected sections ──────
+  // ── Shared date-range + sub-filter computation ───────────────────────────
+  // Powers the live count badges/preview in the Export tab AND the actual
+  // PDF export (handleExportAll below) from the exact same computation —
+  // so whatever the admin sees previewed is guaranteed to be what ends up
+  // in the PDF, never a stale or slightly-different count.
+  const exportFilteredData = useMemo(() => {
+    let outUsers = users;
+    let outReports = reports;
+    let dateRangeLabel = "All Time";
+
+    if (pdfDateRangeMode !== "all") {
+      const rangeNow = Date.now();
+      let rangeStart = null;
+      let rangeEnd   = rangeNow;
+      if (pdfDateRangeMode === "custom") {
+        rangeStart = pdfDateStart ? new Date(pdfDateStart + "T00:00:00").getTime() : null;
+        rangeEnd   = pdfDateEnd   ? new Date(pdfDateEnd   + "T23:59:59").getTime() : rangeNow;
+        if (rangeStart != null) {
+          const fmtShort = ms => new Date(ms).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" });
+          dateRangeLabel = `${fmtShort(rangeStart)} – ${fmtShort(rangeEnd)}`;
+        }
+      } else {
+        rangeStart = rangeNow - parseInt(pdfDateRangeMode, 10) * 86400000;
+        dateRangeLabel = `Last ${pdfDateRangeMode} Days`;
+      }
+      if (rangeStart != null) {
+        const createdInRange = (rec) => {
+          const ts = rec.createdAt;
+          const ms = ts?.seconds ? ts.seconds * 1000 : (ts ? new Date(ts).getTime() : null);
+          return ms != null && !isNaN(ms) && ms >= rangeStart && ms <= rangeEnd;
+        };
+        outUsers   = outUsers.filter(createdInRange);
+        outReports = outReports.filter(createdInRange);
+      } else {
+        dateRangeLabel = "All Time";
+      }
+    }
+
+    // Per-module sub-filters — narrow further, on top of the date range above.
+    if (exportUserState !== "all")    outUsers = outUsers.filter(u => u.state === exportUserState);
+    if (exportUserOcc   !== "all")    outUsers = outUsers.filter(u => u.occupation === exportUserOcc);
+    if (exportReportStatus !== "all") outReports = outReports.filter(r => r.status === exportReportStatus);
+
+    return { users: outUsers, reports: outReports, dateRangeLabel };
+  }, [users, reports, pdfDateRangeMode, pdfDateStart, pdfDateEnd, exportUserState, exportUserOcc, exportReportStatus]);
+
+  // ── Live per-module counts — what the badges/preview show right now ─────
+  const exportSectionCounts = useMemo(() => ({
+    overview:  exportFilteredData.users.length,
+    analytics: exportFilteredData.users.length + guestProfiles.length,
+    users:     exportFilteredData.users.length,
+    activity:  exportFilteredData.users.length,
+    usage:     usageData ? (Array.isArray(usageData.checkerRuns) ? usageData.checkerRuns.length : 0) : null, // null = not fetched this session yet
+    schemes:   Array.isArray(SCHEME_DB) ? SCHEME_DB.length : Object.keys(SCHEME_DB || {}).length,
+    reports:   exportFilteredData.reports.length,
+    agents:    humanAgents.length,
+  }), [exportFilteredData, guestProfiles, usageData, humanAgents]);
+
+  // ── Rough size/page estimate — clearly a heuristic, not exact ────────────
+  // ~rows-per-page constants per section type, based on how exportAllPDF
+  // actually lays each one out (dense tables vs. narrative pages), plus a
+  // flat ~26KB/page for this style of text-heavy styled-HTML document.
+  const estimateExportSize = useCallback((sectionsSet, counts) => {
+    let pages = 0;
+    if (sectionsSet.has("overview"))  pages += 2;
+    if (sectionsSet.has("analytics")) pages += 4;
+    if (sectionsSet.has("users"))     pages += Math.max(1, Math.ceil(counts.users / 35));
+    if (sectionsSet.has("activity"))  pages += 2;
+    if (sectionsSet.has("usage"))     pages += 3;
+    if (sectionsSet.has("schemes"))   pages += Math.max(1, Math.ceil(counts.schemes / 50));
+    if (sectionsSet.has("reports"))   pages += Math.max(1, Math.ceil(counts.reports / 10)); // reply history makes these denser
+    if (sectionsSet.has("agents"))    pages += 2 + Math.ceil(counts.agents / 20);
+    if (pages === 0) return null;
+    const kb = pages * 26;
+    const sizeLabel = kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`;
+    return { pages, sizeLabel };
+  }, []);
+
+  // ── Saved presets — save/apply/delete ────────────────────────────────────
+  const saveExportPreset = useCallback((name) => {
+    const trimmed = (name || "").trim();
+    if (!trimmed) return;
+    const preset = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name: trimmed,
+      sections: Array.from(exportSections),
+      dateRangeMode: pdfDateRangeMode, dateStart: pdfDateStart, dateEnd: pdfDateEnd,
+      theme: pdfTheme, orientation: pdfOrientation, pageSize: pdfPageSize,
+      userState: exportUserState, userOcc: exportUserOcc, reportStatus: exportReportStatus,
+    };
+    setExportPresets(prev => {
+      const next = [...prev, preset];
+      try { localStorage.setItem("ys_admin_export_presets", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, [exportSections, pdfDateRangeMode, pdfDateStart, pdfDateEnd, pdfTheme, pdfOrientation, pdfPageSize, exportUserState, exportUserOcc, exportReportStatus]);
+
+  const applyExportPreset = useCallback((preset) => {
+    setExportSections(new Set(preset.sections || []));
+    setPdfDateRangeMode(preset.dateRangeMode ?? "all");
+    setPdfDateStart(preset.dateStart ?? "");
+    setPdfDateEnd(preset.dateEnd ?? "");
+    setPdfTheme(preset.theme ?? "dark");
+    setPdfOrientation(preset.orientation ?? "landscape");
+    setPdfPageSize(preset.pageSize ?? "A4");
+    setExportUserState(preset.userState ?? "all");
+    setExportUserOcc(preset.userOcc ?? "all");
+    setExportReportStatus(preset.reportStatus ?? "all");
+  }, []);
+
+  const deleteExportPreset = useCallback((id) => {
+    setExportPresets(prev => {
+      const next = prev.filter(p => p.id !== id);
+      try { localStorage.setItem("ys_admin_export_presets", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  // ── Recent exports log — appended right after a real download ───────────
+  const logExportToHistory = useCallback((entry) => {
+    setExportHistory(prev => {
+      const next = [{ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, ts: Date.now(), ...entry }, ...prev].slice(0, 10);
+      try { localStorage.setItem("ys_admin_export_history", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  const clearExportHistory = useCallback(() => {
+    setExportHistory([]);
+    try { localStorage.removeItem("ys_admin_export_history"); } catch {}
+  }, []);
+
+
   const EXPORT_STEPS = useMemo(() => {
+    const fUsers = exportFilteredData.users;
+    const fReports = exportFilteredData.reports;
     const steps = [
       { label: "Initializing export engine", dur: 300 },
     ];
     if (exportSections.has("overview"))
       steps.push({ label: "Building overview & welfare metrics", dur: 420 });
     if (exportSections.has("analytics")) {
-      steps.push({ label: `Collecting ${users.length} full user profiles`, dur: 480 });
+      steps.push({ label: `Collecting ${fUsers.length} full user profiles`, dur: 480 });
       steps.push({ label: "Computing demographics & 8 breakdowns", dur: 560 });
       steps.push({ label: "Generating farmer & student analytics", dur: 400 });
       steps.push({ label: "Building cross-tab matrices", dur: 460 });
@@ -7311,13 +7510,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     if (exportSections.has("schemes"))
       steps.push({ label: "Processing schemes coverage & user cross-reference", dur: 500 });
     if (exportSections.has("reports"))
-      steps.push({ label: `Formatting ${reports.length} report${reports.length !== 1 ? "s" : ""} with reply history`, dur: 540 });
+      steps.push({ label: `Formatting ${fReports.length} report${fReports.length !== 1 ? "s" : ""} with reply history`, dur: 540 });
     if (exportSections.has("agents"))
       steps.push({ label: `Compiling ${humanAgents.length} human agent record${humanAgents.length !== 1 ? "s" : ""} & attendance`, dur: 500 });
     steps.push({ label: "Assembling HTML layout & print styles", dur: 780 });
     steps.push({ label: "Finalizing & packaging document", dur: 520 });
     return steps;
-  }, [exportSections, users.length, reports.length, humanAgents.length]);
+  }, [exportSections, exportFilteredData, humanAgents.length]);
 
   // ── Animated export handler ────────────────────────────────────────────────
   const handleExportAll = useCallback(async () => {
@@ -7353,41 +7552,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
       }
     }
 
-    // ── Date-range filter — computed here (not inside exportAllPDF) since
-    // `users`/`reports` are the component's live state at this point. The
-    // filtered arrays are passed down and shadow exportAllPDF's own
-    // `users`/`reports` params, so every section built off them (Overview,
-    // Analytics, Users, Activity, Reports) picks up the filter for free.
-    let dateFilteredUsers = users;
-    let dateFilteredReports = reports;
-    let dateRangeLabel = "All Time";
-    if (pdfDateRangeMode !== "all") {
-      const rangeNow = Date.now();
-      let rangeStart = null;
-      let rangeEnd   = rangeNow;
-      if (pdfDateRangeMode === "custom") {
-        rangeStart = pdfDateStart ? new Date(pdfDateStart + "T00:00:00").getTime() : null;
-        rangeEnd   = pdfDateEnd   ? new Date(pdfDateEnd   + "T23:59:59").getTime() : rangeNow;
-        if (rangeStart != null) {
-          const fmtShort = ms => new Date(ms).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" });
-          dateRangeLabel = `${fmtShort(rangeStart)} – ${fmtShort(rangeEnd)}`;
-        }
-      } else {
-        rangeStart = rangeNow - parseInt(pdfDateRangeMode, 10) * 86400000;
-        dateRangeLabel = `Last ${pdfDateRangeMode} Days`;
-      }
-      if (rangeStart != null) {
-        const createdInRange = (rec) => {
-          const ts = rec.createdAt;
-          const ms = ts?.seconds ? ts.seconds * 1000 : (ts ? new Date(ts).getTime() : null);
-          return ms != null && !isNaN(ms) && ms >= rangeStart && ms <= rangeEnd;
-        };
-        dateFilteredUsers   = users.filter(createdInRange);
-        dateFilteredReports = reports.filter(createdInRange);
-      } else {
-        dateRangeLabel = "All Time";
-      }
-    }
+    // Date range + sub-filters already computed once, shared with the live
+    // badges/preview above (exportFilteredData) — reused here as-is so the
+    // PDF always matches exactly what was just previewed.
+    const dateFilteredUsers   = exportFilteredData.users;
+    const dateFilteredReports = exportFilteredData.reports;
+    const dateRangeLabel      = exportFilteredData.dateRangeLabel;
 
     setExportModal(true);
     setExportStep(-1);
@@ -7404,17 +7574,24 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     // tap "Download PDF" on the ready-state modal to actually trigger it,
     // rather than it opening automatically the instant compiling finishes.
     setPendingExport({ freshUsageData, freshAgentsData, dateFilteredUsers, dateFilteredReports, dateRangeLabel });
-  }, [EXPORT_STEPS, exportSections, usageData, fetchUsage, humanAgents, pdfDateRangeMode, pdfDateStart, pdfDateEnd, users, reports]);
+  }, [EXPORT_STEPS, exportSections, usageData, fetchUsage, humanAgents, exportFilteredData]);
 
   // Fires when the admin taps "Download PDF" on the ready-state modal.
   const handleDownloadReadyExport = useCallback(() => {
     if (!pendingExport) return;
     const { freshUsageData, freshAgentsData, dateFilteredUsers, dateFilteredReports, dateRangeLabel } = pendingExport;
     exportAllPDF(exportSections, freshUsageData, freshAgentsData, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, dateFilteredUsers, dateFilteredReports, dateRangeLabel);
+    logExportToHistory({
+      sections: Array.from(exportSections),
+      userCount: dateFilteredUsers.length,
+      reportCount: dateFilteredReports.length,
+      dateRangeLabel,
+      preparedBy,
+    });
     setExportModal(false);
     setPendingExport(null);
     setTimeout(() => { setExportStep(-1); setExportDone(false); }, 600);
-  }, [pendingExport, exportAllPDF, exportSections, pdfTheme, preparedBy, pdfOrientation, pdfPageSize]);
+  }, [pendingExport, exportAllPDF, exportSections, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, logExportToHistory]);
 
   // Fires if the admin dismisses the ready-state modal (tap outside)
   // without downloading — just closes it, no PDF/print window opens.
@@ -9094,9 +9271,12 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               {EXPORT_SECTION_CONFIG.map(({ id, label, desc }, idx) => {
                 const on    = exportSections.has(id);
                 const color = SECTION_COLORS[idx % SECTION_COLORS.length];
+                const count = exportSectionCounts[id];
+                const countLabel = count === null ? "not fetched" : count.toLocaleString("en-IN");
+                const hasSubFilter = id === "users" || id === "reports";
                 return (
+                  <React.Fragment key={id}>
                   <div
-                    key={id}
                     className="exp-row"
                     onClick={() => toggleSection(id)}
                     style={{
@@ -9152,6 +9332,19 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                       </div>
                     </div>
 
+                    {/* live count badge — reflects current date range + sub-filters,
+                        so this is always exactly what would land in the PDF */}
+                    <div style={{
+                      flexShrink:0, fontFamily:C.mono, fontSize:9, fontWeight:800,
+                      color: count === null ? C.sub : (on ? color : C.sub),
+                      background: count === null ? "transparent" : (dark ? `${color}14` : `${color}0d`),
+                      border: count === null ? "none" : `1px solid ${color}35`,
+                      borderRadius:6, padding: count === null ? 0 : "3px 7px",
+                      whiteSpace:"nowrap",
+                    }}>
+                      {countLabel}
+                    </div>
+
                     {/* checkbox */}
                     <div style={{
                       width:18, height:18, borderRadius:5, flexShrink:0,
@@ -9167,11 +9360,52 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                       )}
                     </div>
                   </div>
+
+                  {/* inline sub-filters — only shown for Users/Reports while selected,
+                      since those are the modules a status/state/occupation filter
+                      meaningfully narrows */}
+                  {on && hasSubFilter && (
+                    <div
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        display:"flex", gap:6, flexWrap:"wrap",
+                        padding:"2px 4px 4px 30px", marginTop:-2,
+                        gridColumn: isDesktop ? "1 / -1" : undefined,
+                      }}
+                    >
+                      {id === "users" && (
+                        <>
+                          <select value={exportUserOcc} onChange={e => setExportUserOcc(e.target.value)}
+                            style={{ flex:"1 1 120px", padding:"5px 6px", borderRadius:7, border:`1px solid ${C.border}`,
+                              background:C.card, color:C.text, fontSize:9.5, fontFamily:C.mono, outline:"none" }}>
+                            <option value="all">All Occupations</option>
+                            {Object.entries(OCC_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                          </select>
+                          <select value={exportUserState} onChange={e => setExportUserState(e.target.value)}
+                            style={{ flex:"1 1 120px", padding:"5px 6px", borderRadius:7, border:`1px solid ${C.border}`,
+                              background:C.card, color:C.text, fontSize:9.5, fontFamily:C.mono, outline:"none" }}>
+                            <option value="all">All States</option>
+                            {allStates.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </>
+                      )}
+                      {id === "reports" && (
+                        <select value={exportReportStatus} onChange={e => setExportReportStatus(e.target.value)}
+                          style={{ flex:"1 1 120px", padding:"5px 6px", borderRadius:7, border:`1px solid ${C.border}`,
+                            background:C.card, color:C.text, fontSize:9.5, fontFamily:C.mono, outline:"none" }}>
+                          <option value="all">All Statuses</option>
+                          {Object.entries(STATUS_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                        </select>
+                      )}
+                    </div>
+                  )}
+                  </React.Fragment>
                 );
               })}
             </div>
 
             </div>{/* end left pane (modules) */}
+
 
             <div style={{
               flex: isDesktop ? "1 1 0" : "1 1 auto",
@@ -9181,6 +9415,102 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               position: isDesktop ? "sticky" : undefined,
               top: isDesktop ? 16 : undefined,
             }}>
+
+            {/* ── SAVED PRESETS ────────────────────────────────────────── */}
+            <div style={{
+              background:C.card, border:`1px solid ${C.border}`,
+              borderRadius:10, padding:"10px 12px",
+            }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: exportPresets.length || showPresetInput ? 8 : 0 }}>
+                <div style={{ fontFamily:C.mono, fontSize:9, fontWeight:700, color:C.sub, letterSpacing:0.5, textTransform:"uppercase" }}>
+                  ⚡ Presets
+                </div>
+                <div
+                  onClick={() => setShowPresetInput(v => !v)}
+                  style={{
+                    fontFamily:C.mono, fontSize:9, fontWeight:700, cursor:"pointer",
+                    color: C.blue, letterSpacing:0.3,
+                  }}
+                >
+                  {showPresetInput ? "cancel" : "+ save current"}
+                </div>
+              </div>
+
+              {showPresetInput && (
+                <div style={{ display:"flex", gap:6, marginBottom: exportPresets.length ? 8 : 0 }}>
+                  <input
+                    autoFocus
+                    value={newPresetName}
+                    onChange={e => setNewPresetName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" && newPresetName.trim()) {
+                        saveExportPreset(newPresetName);
+                        setNewPresetName("");
+                        setShowPresetInput(false);
+                      }
+                    }}
+                    placeholder="e.g. Monthly Board Report"
+                    style={{
+                      flex:1, padding:"6px 8px", borderRadius:7,
+                      border:`1px solid ${C.border}`, background: dark ? "#0a0c14" : "#fff",
+                      color:C.text, fontSize:10.5, fontFamily:C.mono, outline:"none",
+                    }}
+                  />
+                  <div
+                    onClick={() => {
+                      if (!newPresetName.trim()) return;
+                      saveExportPreset(newPresetName);
+                      setNewPresetName("");
+                      setShowPresetInput(false);
+                    }}
+                    style={{
+                      padding:"6px 12px", borderRadius:7, cursor:"pointer",
+                      background: `${C.green}18`, border:`1px solid ${C.green}50`,
+                      color:C.green, fontSize:10, fontWeight:700, fontFamily:C.mono,
+                      display:"flex", alignItems:"center",
+                    }}
+                  >
+                    Save
+                  </div>
+                </div>
+              )}
+
+              {exportPresets.length > 0 && (
+                <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                  {exportPresets.map(preset => (
+                    <div key={preset.id} style={{
+                      display:"flex", alignItems:"center", gap:8,
+                      background: dark ? "#0a0c14" : "#f4f5fb",
+                      border:`1px solid ${C.border}`, borderRadius:7,
+                      padding:"6px 8px",
+                    }}>
+                      <div
+                        onClick={() => applyExportPreset(preset)}
+                        style={{ flex:1, minWidth:0, cursor:"pointer" }}
+                      >
+                        <div style={{ fontSize:10.5, fontWeight:700, color:C.text, fontFamily:C.mono, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                          {preset.name}
+                        </div>
+                        <div style={{ fontSize:8.5, color:C.sub, marginTop:1, fontFamily:C.mono }}>
+                          {(preset.sections || []).length} module{(preset.sections || []).length !== 1 ? "s" : ""} · {preset.orientation} {preset.pageSize}
+                        </div>
+                      </div>
+                      <div
+                        onClick={() => deleteExportPreset(preset.id)}
+                        title="Delete preset"
+                        style={{
+                          flexShrink:0, width:18, height:18, borderRadius:5,
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          color:C.red, fontSize:11, fontWeight:700, cursor:"pointer",
+                        }}
+                      >
+                        ✕
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* ── EXPORT TRIGGER ──────────────────────────────────────── */}
             {noneSelected ? (
@@ -9247,6 +9577,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                       ? "building sections · rendering layout · finalising…"
                       : `${selectedCount} module${selectedCount!==1?"s":""} · ${pdfOrientation} ${pdfPageSize} · ${pdfTheme} theme`}
                   </div>
+                  {!exportModal && (() => {
+                    const est = estimateExportSize(exportSections, exportSectionCounts);
+                    return est ? (
+                      <div style={{ fontFamily:C.mono, fontSize:8.5, color:C.sub, marginTop:2 }}>
+                        ~{est.pages} page{est.pages !== 1 ? "s" : ""} · ~{est.sizeLabel} (estimate)
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
 
                 {!exportModal && (
@@ -9283,6 +9621,49 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 </div>
               </div>
             </div>
+
+            {/* ── RECENT EXPORTS ───────────────────────────────────────── */}
+            {exportHistory.length > 0 && (
+              <div style={{
+                background:C.card, border:`1px solid ${C.border}`,
+                borderRadius:10, padding:"10px 12px",
+              }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                  <div style={{ fontFamily:C.mono, fontSize:9, fontWeight:700, color:C.sub, letterSpacing:0.5, textTransform:"uppercase" }}>
+                    🕘 Recent Exports
+                  </div>
+                  <div
+                    onClick={clearExportHistory}
+                    style={{ fontFamily:C.mono, fontSize:9, fontWeight:700, cursor:"pointer", color:C.sub }}
+                  >
+                    clear
+                  </div>
+                </div>
+                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                  {exportHistory.map(entry => {
+                    const d = new Date(entry.ts);
+                    const when = d.toLocaleDateString("en-IN", { day:"numeric", month:"short" }) + " · " +
+                      d.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit" });
+                    return (
+                      <div key={entry.id} style={{
+                        background: dark ? "#0a0c14" : "#f4f5fb",
+                        border:`1px solid ${C.border}`, borderRadius:7,
+                        padding:"7px 9px",
+                      }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", fontSize:9.5, fontWeight:700, color:C.text, fontFamily:C.mono }}>
+                          <span>{(entry.sections || []).length} module{(entry.sections || []).length !== 1 ? "s" : ""}</span>
+                          <span style={{ color:C.sub, fontWeight:500 }}>{when}</span>
+                        </div>
+                        <div style={{ fontSize:8.5, color:C.sub, marginTop:2, fontFamily:C.mono }}>
+                          {entry.userCount.toLocaleString("en-IN")} users · {entry.reportCount.toLocaleString("en-IN")} reports · {entry.dateRangeLabel}
+                          {entry.preparedBy ? ` · by ${entry.preparedBy}` : ""}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             </div>{/* end right pane (trigger + note) */}
 
