@@ -3616,11 +3616,15 @@ function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilled
     const y=e.touches[0].clientY;
     headerTouchLastY.current=y;
     const delta=y-headerTouchStartY.current;
-    if(delta>6){ // small threshold so a tap (e.g. the ✕ button) never gets treated as a drag
+    if(!headerIsDragging.current){
+      if(delta<=6)return; // small threshold so a tap (e.g. the ✕ button) never gets treated as a drag
       headerIsDragging.current=true;
       setHeaderDragActive(true);
-      setHeaderDragY(delta);
     }
+    // Once dragging has started, keep following the finger on every move —
+    // including back upward — so the sheet doesn't freeze mid-drag; clamp
+    // at 0 so it can never be dragged above its resting position.
+    setHeaderDragY(Math.max(0,delta));
   };
   const onHeaderTouchEnd=()=>{
     if(headerIsDragging.current){
@@ -8590,6 +8594,74 @@ function YojanaSahayInner(){
     scroller.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  // ── SMART BOTTOM NAV — hides on scroll-down, reveals on scroll-up ───────
+  // Each tab (Home / Search / Schemes / Profile / AI) owns its own inner
+  // scrollable element, so a single listener on one fixed container won't
+  // see any of it directly — `scroll` events don't bubble. Instead we
+  // attach one delegated listener on app-root using the CAPTURE phase,
+  // which *does* see scroll events targeting any descendant, whichever
+  // tab (or modal) happens to be scrolling. A per-element WeakMap tracks
+  // each scroller's last position so direction is computed independently
+  // per container, and a rAF throttle keeps this cheap during momentum
+  // scrolling.
+  const appRootRef = useRef(null);
+  const [navHidden, setNavHidden] = useState(false);
+  const navHiddenRef = useRef(false);
+  const navScrollYRef = useRef(new WeakMap());
+  const navScrollRafRef = useRef(null);
+  const navScrollTargetRef = useRef(null);
+
+  useEffect(() => {
+    const root = appRootRef.current;
+    if (!root) return;
+
+    const processScroll = () => {
+      navScrollRafRef.current = null;
+      const el = navScrollTargetRef.current;
+      if (!el) return;
+      const map = navScrollYRef.current;
+      const prevY = map.has(el) ? map.get(el) : el.scrollTop;
+      const currentY = el.scrollTop;
+      map.set(el, currentY);
+      const delta = currentY - prevY;
+
+      if (currentY <= 8) {
+        // Always show once back near the top — hiding here would feel broken.
+        if (navHiddenRef.current) { navHiddenRef.current = false; setNavHidden(false); }
+        return;
+      }
+      if (Math.abs(delta) < 4) return; // ignore rubber-band/jitter micro-moves
+      if (delta > 0 && !navHiddenRef.current) {
+        navHiddenRef.current = true; setNavHidden(true);   // scrolling down → hide
+      } else if (delta < 0 && navHiddenRef.current) {
+        navHiddenRef.current = false; setNavHidden(false); // scrolling up → show
+      }
+    };
+
+    const handleScroll = (e) => {
+      const el = e.target;
+      if (!(el instanceof HTMLElement) || el === root) return;
+      navScrollTargetRef.current = el;
+      if (navScrollRafRef.current == null) {
+        navScrollRafRef.current = requestAnimationFrame(processScroll);
+      }
+    };
+
+    root.addEventListener("scroll", handleScroll, true);
+    return () => {
+      root.removeEventListener("scroll", handleScroll, true);
+      if (navScrollRafRef.current != null) cancelAnimationFrame(navScrollRafRef.current);
+    };
+  }, []);
+
+  // Always reveal the nav right after switching tabs — landing on a tab
+  // with a hidden nav (from wherever the previous tab was scrolled to)
+  // would strand the user with no way to tap between tabs.
+  useEffect(() => {
+    navHiddenRef.current = false;
+    setNavHidden(false);
+  }, [activeTab]);
+
   const handleTouchStart = useCallback((e) => {
     if (showAdmin || showChecker || showFAQ || selectedScheme || selectedCategory) return;
     const t = e.touches[0];
@@ -9051,7 +9123,7 @@ function YojanaSahayInner(){
   mountedTabsRef.current.add(activeTab);
 
   return(
-    <div className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0.7:1,transition:"opacity 0.12s,background 0.3s"}}>
+    <div ref={appRootRef} className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0.7:1,transition:"opacity 0.12s,background 0.3s"}}>
       <style>{APP_STYLES}</style>
 
       {/* ── Offline banner — slides in from top when device has no network ── */}
@@ -9811,7 +9883,13 @@ function YojanaSahayInner(){
         )}
       </div>
 
-      {/* ── FINAL PREMIUM BOTTOM NAV ── */}
+      {/* ── FINAL PREMIUM BOTTOM NAV ──
+           Outer div clips the nav's own natural height with overflow:hidden
+           (no fixed height set, so it just matches the un-transformed nav's
+           box) — the nav slides down inside that box on scroll-down and is
+           cleanly clipped away, rather than spilling past app-root and
+           creating stray page-level scroll space. */}
+      <div style={{overflow:"hidden",flexShrink:0}}>
       <div className="bnav-wrap" style={{
         /* Frosted glass surface */
         background: dark
@@ -9821,6 +9899,8 @@ function YojanaSahayInner(){
         WebkitBackdropFilter:"blur(24px)",
         /* Light-catching inner top border */
         borderTop:`1px solid ${dark?"rgba(255,255,255,0.09)":"rgba(0,0,0,0.06)"}`,
+        transform: navHidden ? "translateY(100%)" : "translateY(0)",
+        transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
         /* Depth shadow */
         boxShadow: dark
           ? "0 -1px 0 rgba(255,255,255,0.04), 0 -12px 40px rgba(0,0,0,0.5)"
@@ -9901,6 +9981,7 @@ function YojanaSahayInner(){
             </div>
           );
         })}
+      </div>
       </div>
 
       {/* ── OVERLAYS ── */}
