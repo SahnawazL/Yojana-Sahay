@@ -298,14 +298,14 @@
     "linkAlive": true
   },
   "pmawas_rural": {
-    "lastVerified": "2026-07-15T04:47:11.758Z",
+    "lastVerified": "2026-07-16T19:04:08.770Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmawas_urban": {
-    "lastVerified": "2026-07-15T04:47:22.697Z",
+    "lastVerified": "2026-07-16T19:04:19.077Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -403,7 +403,7 @@
     "linkAlive": true
   },
   "pmfby": {
-    "lastVerified": "2026-07-15T04:47:49.699Z",
+    "lastVerified": "2026-07-16T19:04:45.006Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -424,7 +424,7 @@
     "linkAlive": false
   },
   "pmegp": {
-    "lastVerified": "2026-07-15T04:47:38.807Z",
+    "lastVerified": "2026-07-16T19:04:34.776Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -438,7 +438,7 @@
     "linkAlive": true
   },
   "nfsa_pds": {
-    "lastVerified": "2026-07-15T01:51:57.779Z",
+    "lastVerified": "2026-07-16T19:01:10.253Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -490,14 +490,14 @@
     "linkAlive": true
   },
   "pmay_urban2": {
-    "lastVerified": "2026-07-15T04:47:33.793Z",
+    "lastVerified": "2026-07-16T19:04:29.986Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pm_poshan": {
-    "lastVerified": "2026-07-15T04:46:31.993Z",
+    "lastVerified": "2026-07-16T19:03:34.598Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -531,19 +531,19 @@
     "linkAlive": true
   },
   "nmmss": {
-    "lastVerified": "2026-07-15T01:52:28.525Z",
+    "lastVerified": "2026-07-16T19:01:38.121Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pm_yasasvi": {
-    "lastVerified": "2026-07-15T04:47:06.366Z",
+    "lastVerified": "2026-07-16T19:04:03.682Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pm_kusum": {
-    "lastVerified": "2026-07-15T04:46:27.077Z",
+    "lastVerified": "2026-07-16T19:03:28.769Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -556,14 +556,14 @@
     "linkAlive": false
   },
   "nikshay_poshan": {
-    "lastVerified": "2026-07-15T01:52:11.844Z",
+    "lastVerified": "2026-07-16T19:01:25.006Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pm_svamitva": {
-    "lastVerified": "2026-07-15T04:46:55.762Z",
+    "lastVerified": "2026-07-16T19:03:55.016Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -583,7 +583,7 @@
     "linkAlive": true
   },
   "pm_internship": {
-    "lastVerified": "2026-07-15T01:54:25.097Z",
+    "lastVerified": "2026-07-16T19:03:20.477Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -595,7 +595,7 @@
     "linkAlive": false
   },
   "pm_vidyalaxmi": {
-    "lastVerified": "2026-07-15T04:47:00.575Z",
+    "lastVerified": "2026-07-16T19:03:59.161Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -666,10 +666,10 @@
     "linkAlive": true
   },
   "pm_daksh": {
-    "lastVerified": "2026-07-15T01:54:14.974Z",
-    "httpStatus": 0,
+    "lastVerified": "2026-07-16T19:03:12.025Z",
+    "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "csss": {
     "lastVerified": "2026-07-15T19:57:01.983Z",
@@ -952,32 +952,32 @@
     "confidence": 0
   },
   "odisha_cm_kisan": {
-    "lastVerified": "2026-07-15T01:53:02.589Z",
+    "lastVerified": "2026-07-16T19:02:03.749Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_kalia": {
-    "lastVerified": "2026-07-15T01:53:22.331Z",
+    "lastVerified": "2026-07-16T19:02:22.616Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_subhadra": {
-    "lastVerified": "2026-07-15T01:53:47.471Z",
+    "lastVerified": "2026-07-16T19:02:47.397Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "odisha_mission_shakti": {
-    "lastVerified": "2026-07-15T01:53:33.890Z",
+    "lastVerified": "2026-07-16T19:02:34.223Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "odisha_godabarisha_laptop": {
-    "lastVerified": "2026-07-15T01:53:13.993Z",
+    "lastVerified": "2026-07-16T19:02:14.258Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1522,7 +1522,7 @@
     "confidence": 0
   },
   "nlm": {
-    "lastVerified": "2026-07-15T01:52:22.725Z",
+    "lastVerified": "2026-07-16T19:01:33.318Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1696,13 +1696,13 @@
     "confidence": 0
   },
   "odisha_samrudha_krushak": {
-    "lastVerified": "2026-07-15T01:53:41.761Z",
+    "lastVerified": "2026-07-16T19:02:41.681Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "odisha_gjay": {
-    "lastVerified": "2026-07-15T01:53:09.832Z",
+    "lastVerified": "2026-07-16T19:02:10.296Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -1910,9 +1910,9 @@
     "confidence": 0
   },
   "nfobc": {
-    "lastVerified": "2026-07-15T01:51:39.854Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-07-16T19:00:54.014Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "aif": {
@@ -1928,9 +1928,9 @@
     "confidence": 0
   },
   "pm_smile": {
-    "lastVerified": "2026-07-15T04:46:45.495Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-07-16T19:03:39.415Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "aicte_pragati": {
@@ -3378,7 +3378,7 @@
     "confidence": 0
   },
   "nsigse": {
-    "lastVerified": "2026-07-15T01:52:48.907Z",
+    "lastVerified": "2026-07-16T19:01:52.381Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3390,13 +3390,13 @@
     "confidence": 0
   },
   "nos_overseas": {
-    "lastVerified": "2026-07-15T01:52:37.862Z",
+    "lastVerified": "2026-07-16T19:01:45.716Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "nfst": {
-    "lastVerified": "2026-07-15T01:52:07.175Z",
+    "lastVerified": "2026-07-16T19:01:20.643Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -3426,9 +3426,9 @@
     "confidence": 0
   },
   "pm_special_jk": {
-    "lastVerified": "2026-07-15T04:46:50.683Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-07-16T19:03:45.919Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "cbse_single_girl": {
@@ -3450,13 +3450,13 @@
     "confidence": 0
   },
   "nfpwd": {
-    "lastVerified": "2026-07-15T01:51:51.409Z",
+    "lastVerified": "2026-07-16T19:01:04.028Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "nats_apprenticeship": {
-    "lastVerified": "2026-07-15T01:51:19.351Z",
+    "lastVerified": "2026-07-16T19:00:37.627Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
