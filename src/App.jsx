@@ -8610,6 +8610,24 @@ function YojanaSahayInner(){
   const navScrollYRef = useRef(new WeakMap());
   const navScrollRafRef = useRef(null);
   const navScrollTargetRef = useRef(null);
+  // While the nav's own hide/show height-collapse animation is running, it
+  // resizes the sibling tab content (flex:1) frame by frame. If the user
+  // was scrolled near the bottom, that resize forces the browser to clamp
+  // scrollTop back into range — firing a *real* scroll event that isn't
+  // actually the user's finger. Left unchecked, that event gets read as
+  // "scrolled up/down" and flips navHidden again, which resizes again,
+  // which clamps again — a feedback loop that looks like shaking. This
+  // lock window (set whenever we flip navHidden) tells the listener to
+  // keep tracking position but ignore it for state-flip purposes until
+  // just after the transition settles.
+  const navTransitionLockUntilRef = useRef(0);
+  const NAV_TRANSITION_MS = 320;
+  const NAV_LOCK_BUFFER_MS = 120; // extra margin past the CSS transition length
+  const setNavHiddenLocked = useCallback((next) => {
+    navHiddenRef.current = next;
+    setNavHidden(next);
+    navTransitionLockUntilRef.current = (typeof performance !== "undefined" ? performance.now() : Date.now()) + NAV_TRANSITION_MS + NAV_LOCK_BUFFER_MS;
+  }, []);
 
   useEffect(() => {
     const root = appRootRef.current;
@@ -8625,16 +8643,28 @@ function YojanaSahayInner(){
       map.set(el, currentY);
       const delta = currentY - prevY;
 
+      const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+      if (now < navTransitionLockUntilRef.current) return; // ignore our own animation's resize-clamp scrolls
+
       if (currentY <= 8) {
         // Always show once back near the top — hiding here would feel broken.
-        if (navHiddenRef.current) { navHiddenRef.current = false; setNavHidden(false); }
+        if (navHiddenRef.current) setNavHiddenLocked(false);
+        return;
+      }
+      // Always show once there's nothing further to scroll — otherwise you
+      // could land at the end of a list with the nav hidden and no easy
+      // way to bring it back short of scrolling up first.
+      const hasScrollable = el.scrollHeight > el.clientHeight + 1;
+      const nearBottom = hasScrollable && (el.scrollHeight - (currentY + el.clientHeight)) < 8;
+      if (nearBottom) {
+        if (navHiddenRef.current) setNavHiddenLocked(false);
         return;
       }
       if (Math.abs(delta) < 4) return; // ignore rubber-band/jitter micro-moves
       if (delta > 0 && !navHiddenRef.current) {
-        navHiddenRef.current = true; setNavHidden(true);   // scrolling down → hide
+        setNavHiddenLocked(true);  // scrolling down → hide
       } else if (delta < 0 && navHiddenRef.current) {
-        navHiddenRef.current = false; setNavHidden(false); // scrolling up → show
+        setNavHiddenLocked(false); // scrolling up → show
       }
     };
 
@@ -8651,6 +8681,23 @@ function YojanaSahayInner(){
     return () => {
       root.removeEventListener("scroll", handleScroll, true);
       if (navScrollRafRef.current != null) cancelAnimationFrame(navScrollRafRef.current);
+    };
+  }, [setNavHiddenLocked]);
+
+  // Respects the OS-level "reduce motion" accessibility setting — some
+  // users have this on system-wide, and for them the nav should just snap
+  // to its new state instantly instead of animating.
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mq.matches);
+    const onChange = (e) => setPrefersReducedMotion(e.matches);
+    if (mq.addEventListener) mq.addEventListener("change", onChange);
+    else if (mq.addListener) mq.addListener(onChange); // older Safari
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", onChange);
+      else if (mq.removeListener) mq.removeListener(onChange);
     };
   }, []);
 
@@ -8678,9 +8725,8 @@ function YojanaSahayInner(){
   // with a hidden nav (from wherever the previous tab was scrolled to)
   // would strand the user with no way to tap between tabs.
   useEffect(() => {
-    navHiddenRef.current = false;
-    setNavHidden(false);
-  }, [activeTab]);
+    setNavHiddenLocked(false);
+  }, [activeTab, setNavHiddenLocked]);
 
   const handleTouchStart = useCallback((e) => {
     if (showAdmin || showChecker || showFAQ || selectedScheme || selectedCategory) return;
@@ -9915,7 +9961,7 @@ function YojanaSahayInner(){
         overflow:"hidden",
         flexShrink:0,
         height: navHeight == null ? "auto" : (navHidden ? 0 : navHeight),
-        transition: navHeight == null ? "none" : "height 0.32s cubic-bezier(0.4,0,0.2,1)",
+        transition: (navHeight == null || prefersReducedMotion) ? "none" : "height 0.32s cubic-bezier(0.4,0,0.2,1)",
       }}>
       <div ref={bnavContentRef} className="bnav-wrap" style={{
         /* Frosted glass surface */
@@ -9927,7 +9973,7 @@ function YojanaSahayInner(){
         /* Light-catching inner top border */
         borderTop:`1px solid ${dark?"rgba(255,255,255,0.09)":"rgba(0,0,0,0.06)"}`,
         opacity: navHidden ? 0 : 1,
-        transition: "opacity 0.2s ease",
+        transition: prefersReducedMotion ? "none" : "opacity 0.2s ease",
         /* Depth shadow */
         boxShadow: dark
           ? "0 -1px 0 rgba(255,255,255,0.04), 0 -12px 40px rgba(0,0,0,0.5)"
