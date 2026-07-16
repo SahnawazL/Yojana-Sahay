@@ -2949,7 +2949,7 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
 // the ADMIN DASHBOARD's own theme (for styling this popup itself); `theme`
 // / `onSelectTheme` control the THEME OF THE GENERATED PDF, which is an
 // independent choice from how the dashboard itself currently looks.
-function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectOrientation, pageSize, onSelectPageSize, dateRangeMode, onSelectDateRangeMode, dateStart, onDateStartChange, dateEnd, onDateEndChange, preparedBy, onPreparedByChange, onConfirm, onCancel, selectedCount }) {
+function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectOrientation, pageSize, onSelectPageSize, dateRangeLabel, preparedBy, onPreparedByChange, onConfirm, onCancel, selectedCount }) {
   const [focusField, setFocusField] = useState(null); // "start" | "end" | "prepared" | null
   const C = {
     overlay: "rgba(5,6,12,0.72)",
@@ -3000,14 +3000,6 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
   const PAGE_SIZE_OPTIONS = [
     { id: "A4",     label: "A4" },
     { id: "Letter", label: "Letter" },
-  ];
-
-  const DATE_RANGE_OPTIONS = [
-    { id: "all",    label: "All Time" },
-    { id: "7",      label: "7 Days" },
-    { id: "30",     label: "30 Days" },
-    { id: "90",     label: "90 Days" },
-    { id: "custom", label: "Custom" },
   ];
 
   return (
@@ -3136,63 +3128,17 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
         }}>
           Date Range
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: dateRangeMode === "custom" ? 10 : 14 }}>
-          {DATE_RANGE_OPTIONS.map(opt => {
-            const on = dateRangeMode === opt.id;
-            return (
-              <div
-                key={opt.id}
-                onClick={() => onSelectDateRangeMode(opt.id)}
-                style={{
-                  padding: "7px 10px", borderRadius: 8,
-                  cursor: "pointer", transition: "all 0.15s",
-                  fontSize: 9.5, fontWeight: 800, color: on ? C.blue : C.text,
-                  ...pillGlass(on),
-                }}
-              >
-                {opt.label}
-              </div>
-            );
-          })}
-        </div>
-        {dateRangeMode === "custom" && (
-          <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-            <div style={{ flex: 1, ...fieldWrap("start") }}>
-              <input
-                type="date"
-                value={dateStart}
-                max={dateEnd || undefined}
-                onChange={e => onDateStartChange(e.target.value)}
-                onFocus={() => setFocusField("start")}
-                onBlur={() => setFocusField(f => f === "start" ? null : f)}
-                style={{
-                  ...fieldInner,
-                  width: "100%", boxSizing: "border-box", padding: "8px 9px",
-                  border: "none", color: C.text, fontSize: 9.5, fontFamily: C.mono, outline: "none",
-                }}
-              />
-            </div>
-            <div style={{ flex: 1, ...fieldWrap("end") }}>
-              <input
-                type="date"
-                value={dateEnd}
-                min={dateStart || undefined}
-                onChange={e => onDateEndChange(e.target.value)}
-                onFocus={() => setFocusField("end")}
-                onBlur={() => setFocusField(f => f === "end" ? null : f)}
-                style={{
-                  ...fieldInner,
-                  width: "100%", boxSizing: "border-box", padding: "8px 9px",
-                  border: "none", color: C.text, fontSize: 9.5, fontFamily: C.mono, outline: "none",
-                }}
-              />
-            </div>
-          </div>
-        )}
-        <div style={{ fontSize: 8, color: C.sub, marginBottom: 22, lineHeight: 1.5 }}>
-          {dateRangeMode === "all"
-            ? "Includes the full historical dataset."
-            : "Filters Overview, Analytics, Users, Activity & Reports by when the record was created. Platform Usage, Schemes & Human Agents are unaffected — those already have their own scoping."}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8, marginBottom: 22,
+          padding: "9px 11px", borderRadius: 10,
+          background: dark ? "rgba(79,142,247,0.08)" : "rgba(79,142,247,0.06)",
+          border: `1px solid ${C.blue}30`,
+        }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <div style={{ fontSize: 10, fontWeight: 700, color: C.text }}>{dateRangeLabel}</div>
+          <div style={{ fontSize: 8, color: C.sub, marginLeft: "auto" }}>set on main screen</div>
         </div>
 
         <div style={{
@@ -3253,6 +3199,160 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
             Compile + Export
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Data Preview Modal ───────────────────────────────────────────────────
+// Read-only inspection of exactly what the current Export tab filters
+// (date range + per-module sub-filters) match — a paginated Users table
+// and a Reports-by-status breakdown — computed from the same
+// exportFilteredData used for the live count badges and the real PDF.
+// No HTML generation, no print dialog: just the matched rows, in-app.
+const PREVIEW_PAGE_SIZE = 8;
+
+function DataPreviewModal({ dark, users, reports, dateRangeLabel, activeTab, onTabChange, page, onPageChange, onClose }) {
+  const C = {
+    overlay: "rgba(5,6,12,0.72)",
+    card:    dark ? "#111320" : "#ffffff",
+    border:  dark ? "#1f2235" : "#dde1f0",
+    text:    dark ? "#eef0f8" : "#1a1d2e",
+    sub:     dark ? "#8b90b0" : "#5a5f7a",
+    blue:    "#4f8ef7",
+    mono:    "'JetBrains Mono','Fira Code','Courier New',monospace",
+  };
+
+  const statusCounts = reports.reduce((acc, r) => {
+    const k = r.status || "open";
+    acc[k] = (acc[k] || 0) + 1;
+    return acc;
+  }, {});
+
+  const rows       = activeTab === "users" ? users : reports;
+  const totalPages = Math.max(1, Math.ceil(rows.length / PREVIEW_PAGE_SIZE));
+  const safePage   = Math.min(page, totalPages - 1);
+  const pageRows   = rows.slice(safePage * PREVIEW_PAGE_SIZE, safePage * PREVIEW_PAGE_SIZE + PREVIEW_PAGE_SIZE);
+
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, background:C.overlay, zIndex:9999,
+      display:"flex", alignItems:"center", justifyContent:"center", padding:16,
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: dark ? "linear-gradient(180deg,#141729 0%,#0f1120 100%)" : "linear-gradient(180deg,#ffffff 0%,#f8f9fc 100%)",
+        border:`1px solid ${C.border}`, borderRadius:16, padding:20,
+        maxWidth:480, width:"100%", maxHeight:"85vh", display:"flex", flexDirection:"column",
+        fontFamily:C.mono, boxShadow:"0 24px 70px rgba(0,0,0,0.45)",
+      }}>
+        {/* header */}
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:4 }}>
+          <div>
+            <div style={{ fontSize:14, fontWeight:800, color:C.text }}>Data Preview</div>
+            <div style={{ fontSize:9.5, color:C.sub, marginTop:2 }}>
+              {dateRangeLabel} · same filters as the export, no PDF generated
+            </div>
+          </div>
+          <div onClick={onClose} style={{ cursor:"pointer", color:C.sub, fontSize:16, lineHeight:1, padding:2 }}>✕</div>
+        </div>
+
+        {/* tabs */}
+        <div style={{ display:"flex", gap:6, margin:"14px 0 12px" }}>
+          {[["users", `Users · ${users.length}`], ["reports", `Reports · ${reports.length}`]].map(([id, label]) => {
+            const on = activeTab === id;
+            return (
+              <div key={id} onClick={() => { onTabChange(id); onPageChange(0); }} style={{
+                flex:1, textAlign:"center", padding:"8px 6px", borderRadius:8, cursor:"pointer",
+                fontSize:10, fontWeight:800, color: on ? C.blue : C.text,
+                background: on ? `${C.blue}18` : (dark ? "#0a0c14" : "#f4f5fb"),
+                border:`1px solid ${on ? C.blue+"60" : C.border}`,
+              }}>
+                {label}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* reports-by-status breakdown — only on the Reports tab */}
+        {activeTab === "reports" && (
+          <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+            {Object.entries(STATUS_META).map(([k, meta]) => (
+              <div key={k} style={{
+                flex:1, textAlign:"center", padding:"7px 4px", borderRadius:8,
+                background: dark ? "#0a0c14" : "#f4f5fb", border:`1px solid ${C.border}`,
+              }}>
+                <div style={{ fontSize:13, fontWeight:800, color:meta.color }}>{statusCounts[k] || 0}</div>
+                <div style={{ fontSize:7.5, color:C.sub, marginTop:1 }}>{meta.emoji} {meta.label}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* scrollable row list */}
+        <div style={{ flex:1, overflowY:"auto", display:"flex", flexDirection:"column", gap:5, minHeight:0 }}>
+          {pageRows.length === 0 && (
+            <div style={{ textAlign:"center", color:C.sub, fontSize:10, padding:"20px 0" }}>
+              No {activeTab} match the current filters.
+            </div>
+          )}
+          {activeTab === "users" && pageRows.map((u, i) => (
+            <div key={u.id || i} style={{
+              display:"flex", alignItems:"center", gap:8, padding:"7px 9px",
+              borderRadius:7, border:`1px solid ${C.border}`, background: dark ? "#0a0c14" : "#f4f5fb",
+            }}>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:10.5, fontWeight:700, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {u.name || "Unknown"}
+                </div>
+                <div style={{ fontSize:8.5, color:C.sub, marginTop:1 }}>
+                  {u.state || "?"} · {OCC_LABELS[u.occupation] || "?"}
+                </div>
+              </div>
+              <div style={{ fontSize:8.5, color:C.sub, flexShrink:0 }}>{formatDate(u.createdAt)}</div>
+            </div>
+          ))}
+          {activeTab === "reports" && pageRows.map((r, i) => {
+            const meta = STATUS_META[r.status] || STATUS_META.open;
+            return (
+              <div key={r.id || i} style={{
+                display:"flex", alignItems:"center", gap:8, padding:"7px 9px",
+                borderRadius:7, border:`1px solid ${C.border}`, background: dark ? "#0a0c14" : "#f4f5fb",
+              }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:10, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {r.message || "—"}
+                  </div>
+                  <div style={{ fontSize:8.5, color:C.sub, marginTop:1 }}>{formatDate(r.createdAt)}</div>
+                </div>
+                <div style={{
+                  flexShrink:0, fontSize:8, fontWeight:800, color:meta.color,
+                  background: dark ? `${meta.color}18` : meta.bg, borderRadius:6, padding:"3px 7px",
+                }}>
+                  {meta.emoji} {meta.label}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* pagination */}
+        {rows.length > PREVIEW_PAGE_SIZE && (
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10 }}>
+            <div onClick={() => onPageChange(Math.max(0, safePage - 1))} style={{
+              padding:"6px 12px", borderRadius:7, cursor: safePage > 0 ? "pointer" : "default",
+              opacity: safePage > 0 ? 1 : 0.35, border:`1px solid ${C.border}`, fontSize:9.5, fontWeight:700, color:C.text,
+            }}>
+              ‹ Prev
+            </div>
+            <div style={{ fontSize:9, color:C.sub }}>Page {safePage + 1} of {totalPages}</div>
+            <div onClick={() => onPageChange(Math.min(totalPages - 1, safePage + 1))} style={{
+              padding:"6px 12px", borderRadius:7, cursor: safePage < totalPages - 1 ? "pointer" : "default",
+              opacity: safePage < totalPages - 1 ? 1 : 0.35, border:`1px solid ${C.border}`, fontSize:9.5, fontWeight:700, color:C.text,
+            }}>
+              Next ›
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -5340,6 +5440,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   // can't be called conditionally.
   const [showPresetInput, setShowPresetInput] = useState(false);
   const [newPresetName,   setNewPresetName]   = useState("");
+
+  // ── Export tab: data preview panel ───────────────────────────────────────
+  // Lets an admin inspect the exact rows the current filters match — same
+  // exportFilteredData used by the badges AND the real PDF — without ever
+  // generating HTML/print output. Purely a read-only in-app table/summary.
+  const [showDataPreview, setShowDataPreview] = useState(false);
+  const [previewTab,      setPreviewTab]      = useState("users"); // "users" | "reports"
+  const [previewPage,     setPreviewPage]     = useState(0);
 
   // ── Scheme News (News tab) ────────────────────────────────────────────────
 
@@ -9221,6 +9329,63 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               </div>
             </div>
 
+            {/* ── DATE RANGE — moved here from the pre-export popup: changing it
+                 now updates the live count badges, sub-filters, and preview
+                 below instantly, instead of only mattering after compiling. ── */}
+            {(() => {
+              const DATE_RANGE_OPTIONS = [
+                { id:"all",    label:"All Time" },
+                { id:"7",      label:"7 Days"   },
+                { id:"30",     label:"30 Days"  },
+                { id:"90",     label:"90 Days"  },
+                { id:"custom", label:"Custom"   },
+              ];
+              return (
+                <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:10, padding:"10px 12px" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8 }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <span style={{ fontFamily:C.mono, fontSize:9, fontWeight:700, color:C.sub, letterSpacing:1, textTransform:"uppercase" }}>
+                      Date Range
+                    </span>
+                    <span style={{ fontFamily:C.mono, fontSize:8.5, color:C.blue, marginLeft:"auto" }}>
+                      {exportFilteredData.dateRangeLabel}
+                    </span>
+                  </div>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                    {DATE_RANGE_OPTIONS.map(opt => {
+                      const on = pdfDateRangeMode === opt.id;
+                      return (
+                        <div key={opt.id} onClick={() => setPdfDateRangeMode(opt.id)} style={{
+                          padding:"6px 10px", borderRadius:7, cursor:"pointer",
+                          fontFamily:C.mono, fontSize:9.5, fontWeight:800,
+                          color: on ? C.blue : C.text,
+                          background: on ? `${C.blue}18` : (dark ? "#0a0c14" : "#f4f5fb"),
+                          border:`1px solid ${on ? C.blue+"60" : C.border}`,
+                          transition:"all 0.15s",
+                        }}>
+                          {opt.label}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {pdfDateRangeMode === "custom" && (
+                    <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                      <input type="date" value={pdfDateStart} max={pdfDateEnd || undefined}
+                        onChange={e => setPdfDateStart(e.target.value)}
+                        style={{ flex:1, padding:"6px 8px", borderRadius:7, border:`1px solid ${C.border}`,
+                          background:C.card, color:C.text, fontSize:9.5, fontFamily:C.mono, outline:"none" }} />
+                      <input type="date" value={pdfDateEnd} min={pdfDateStart || undefined}
+                        onChange={e => setPdfDateEnd(e.target.value)}
+                        style={{ flex:1, padding:"6px 8px", borderRadius:7, border:`1px solid ${C.border}`,
+                          background:C.card, color:C.text, fontSize:9.5, fontFamily:C.mono, outline:"none" }} />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* ── DESKTOP: two-pane layout — modules left, sticky summary+trigger right.
                  MOBILE: everything stacks in original single-column order. ── */}
             <div style={{
@@ -9512,6 +9677,26 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               )}
             </div>
 
+            {/* ── PREVIEW DATA — inspect exactly what's matched, same filters,
+                 no HTML/print pipeline involved ── */}
+            {!noneSelected && (users.length > 0 || reports.length > 0) && (
+              <div
+                onClick={() => { setPreviewPage(0); setShowDataPreview(true); }}
+                style={{
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+                  padding:"10px 14px", borderRadius:10, cursor:"pointer",
+                  border:`1px solid ${C.border}`, background:C.card,
+                  fontFamily:C.mono, fontSize:10.5, fontWeight:800, color:C.text,
+                  transition:"all 0.15s",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                Preview Data
+              </div>
+            )}
+
             {/* ── EXPORT TRIGGER ──────────────────────────────────────── */}
             {noneSelected ? (
               <div style={{
@@ -9782,6 +9967,21 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         />
       )}
 
+      {/* Data Preview — inspect matched rows without generating a PDF */}
+      {showDataPreview && (
+        <DataPreviewModal
+          dark={dark}
+          users={exportFilteredData.users}
+          reports={exportFilteredData.reports}
+          dateRangeLabel={exportFilteredData.dateRangeLabel}
+          activeTab={previewTab}
+          onTabChange={setPreviewTab}
+          page={previewPage}
+          onPageChange={setPreviewPage}
+          onClose={() => setShowDataPreview(false)}
+        />
+      )}
+
       {/* Pre-Export Options Popup — theme choice, shown before compiling */}
       {showExportOptions && (
         <ExportOptionsModal
@@ -9792,12 +9992,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           onSelectOrientation={setPdfOrientation}
           pageSize={pdfPageSize}
           onSelectPageSize={setPdfPageSize}
-          dateRangeMode={pdfDateRangeMode}
-          onSelectDateRangeMode={setPdfDateRangeMode}
-          dateStart={pdfDateStart}
-          onDateStartChange={setPdfDateStart}
-          dateEnd={pdfDateEnd}
-          onDateEndChange={setPdfDateEnd}
+          dateRangeLabel={exportFilteredData.dateRangeLabel}
           preparedBy={preparedBy}
           onPreparedByChange={v => {
             setPreparedBy(v);
