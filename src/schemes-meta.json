@@ -1534,73 +1534,73 @@
     "confidence": 0
   },
   "cg_dr_khoobasuram_health": {
-    "lastVerified": "2026-07-15T18:47:49.742Z",
+    "lastVerified": "2026-07-17T10:25:12.213Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_higher_ed_scholarship": {
-    "lastVerified": "2026-07-15T18:48:12.401Z",
+    "lastVerified": "2026-07-17T10:25:36.659Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_solar_suryashakti": {
-    "lastVerified": "2026-07-15T19:55:36.968Z",
+    "lastVerified": "2026-07-17T10:28:22.466Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_shauchalay_nirman": {
-    "lastVerified": "2026-07-15T19:55:22.359Z",
+    "lastVerified": "2026-07-17T10:28:07.839Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_kaushal_vikas": {
-    "lastVerified": "2026-07-15T18:48:24.624Z",
+    "lastVerified": "2026-07-17T10:25:50.136Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_labour_card": {
-    "lastVerified": "2026-07-15T19:53:25.614Z",
+    "lastVerified": "2026-07-17T10:26:08.848Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_pre_matric_tribal": {
-    "lastVerified": "2026-07-15T19:54:49.344Z",
+    "lastVerified": "2026-07-17T10:27:31.559Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_saur_sujala": {
-    "lastVerified": "2026-07-15T19:55:10.929Z",
+    "lastVerified": "2026-07-17T10:27:53.163Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_organic_farming": {
-    "lastVerified": "2026-07-15T19:54:38.263Z",
-    "linkAlive": false,
-    "httpStatus": 0,
+    "lastVerified": "2026-07-17T10:27:18.837Z",
+    "linkAlive": true,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_drip_sprinkler": {
-    "lastVerified": "2026-07-15T18:47:53.900Z",
+    "lastVerified": "2026-07-17T10:25:17.209Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_msme_subsidy": {
-    "lastVerified": "2026-07-15T19:53:56.758Z",
+    "lastVerified": "2026-07-17T10:26:44.473Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_startup_niti": {
-    "lastVerified": "2026-07-15T19:55:46.014Z",
+    "lastVerified": "2026-07-17T10:28:27.342Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1904,7 +1904,7 @@
     "isActive": true
   },
   "chandigarh_chb_ews_housing": {
-    "lastVerified": "2026-07-15T19:56:30.287Z",
+    "lastVerified": "2026-07-17T10:29:12.312Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2620,7 +2620,7 @@
     "confidence": 0
   },
   "cg_mahtari_vandan": {
-    "lastVerified": "2026-07-15T19:53:41.185Z",
+    "lastVerified": "2026-07-17T10:26:24.171Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
