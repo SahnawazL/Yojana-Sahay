@@ -1128,13 +1128,13 @@
     "confidence": 0
   },
   "delhi_mohalla": {
-    "lastVerified": "2026-07-15T21:53:43.329Z",
+    "lastVerified": "2026-07-17T13:15:30.030Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_mahila_samman": {
-    "lastVerified": "2026-07-15T21:53:06.533Z",
+    "lastVerified": "2026-07-17T13:14:55.212Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -1147,7 +1147,7 @@
     "linkAlive": true
   },
   "delhi_ladli": {
-    "lastVerified": "2026-07-15T21:52:55.484Z",
+    "lastVerified": "2026-07-17T13:14:46.614Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1159,7 +1159,7 @@
     "linkAlive": true
   },
   "delhi_old_age_pension": {
-    "lastVerified": "2026-07-15T21:54:24.857Z",
+    "lastVerified": "2026-07-17T13:16:14.114Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1171,13 +1171,13 @@
     "linkAlive": true
   },
   "delhi_pm_uday": {
-    "lastVerified": "2026-07-15T21:54:52.527Z",
+    "lastVerified": "2026-07-17T13:16:34.486Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sc_scholarship": {
-    "lastVerified": "2026-07-15T21:56:18.607Z",
+    "lastVerified": "2026-07-17T13:17:55.301Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1189,7 +1189,7 @@
     "confidence": 0
   },
   "delhi_obc_scholarship": {
-    "lastVerified": "2026-07-15T21:54:16.680Z",
+    "lastVerified": "2026-07-17T13:16:05.305Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1201,7 +1201,7 @@
     "confidence": 0
   },
   "delhi_kaushal_vikas": {
-    "lastVerified": "2026-07-15T20:56:37.154Z",
+    "lastVerified": "2026-07-17T13:14:30.864Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1213,7 +1213,7 @@
     "confidence": 0
   },
   "delhi_pre_matric_sc_st": {
-    "lastVerified": "2026-07-15T21:55:43.666Z",
+    "lastVerified": "2026-07-17T13:17:20.087Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1237,7 +1237,7 @@
     "linkAlive": true
   },
   "delhi_muva": {
-    "lastVerified": "2026-07-15T21:53:50.084Z",
+    "lastVerified": "2026-07-17T13:15:37.553Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1292,7 +1292,7 @@
     "confidence": 0
   },
   "delhi_minority_scholarship": {
-    "lastVerified": "2026-07-15T21:53:35.087Z",
+    "lastVerified": "2026-07-17T13:15:19.409Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1304,7 +1304,7 @@
     "confidence": 0
   },
   "delhi_marriage_assistance": {
-    "lastVerified": "2026-07-15T21:53:11.554Z",
+    "lastVerified": "2026-07-17T13:15:01.105Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1316,31 +1316,31 @@
     "confidence": 0
   },
   "delhi_obc_prematric": {
-    "lastVerified": "2026-07-15T21:54:07.305Z",
+    "lastVerified": "2026-07-17T13:15:54.532Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_minority_coaching": {
-    "lastVerified": "2026-07-15T21:53:22.944Z",
+    "lastVerified": "2026-07-17T13:15:07.125Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sc_premier_institute_award": {
-    "lastVerified": "2026-07-15T21:56:13.675Z",
+    "lastVerified": "2026-07-17T13:17:50.535Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_pm_vishwakarma": {
-    "lastVerified": "2026-07-15T21:55:02.202Z",
+    "lastVerified": "2026-07-17T13:16:39.059Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sc_prematric": {
-    "lastVerified": "2026-07-15T21:56:09.768Z",
+    "lastVerified": "2026-07-17T13:17:45.991Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3468,19 +3468,19 @@
     "confidence": 0
   },
   "delhi_pmkvy_skill": {
-    "lastVerified": "2026-07-15T21:55:28.775Z",
+    "lastVerified": "2026-07-17T13:17:02.988Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "delhi_pm_sym": {
-    "lastVerified": "2026-07-15T21:54:41.612Z",
+    "lastVerified": "2026-07-17T13:16:30.229Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "delhi_pmay_clss": {
-    "lastVerified": "2026-07-15T21:55:14.249Z",
+    "lastVerified": "2026-07-17T13:16:48.806Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3492,7 +3492,7 @@
     "confidence": 0
   },
   "delhi_nfbs": {
-    "lastVerified": "2026-07-15T21:53:54.796Z",
+    "lastVerified": "2026-07-17T13:15:42.383Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -3513,12 +3513,12 @@
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true,
-    "lastVerified": "2026-07-15T20:56:18.410Z"
+    "lastVerified": "2026-07-17T13:14:13.445Z"
   },
   "delhi_old_age_home": {
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true,
-    "lastVerified": "2026-07-15T21:54:20.934Z"
+    "lastVerified": "2026-07-17T13:16:09.902Z"
   }
 }
