@@ -1,6 +1,6 @@
 {
   "assam_orunodoi": {
-    "lastVerified": "2026-07-15T18:44:46.762Z",
+    "lastVerified": "2026-07-17T08:34:25.788Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
@@ -14,14 +14,14 @@
     "confidence": 0
   },
   "assam_nijut_moina": {
-    "lastVerified": "2026-07-15T18:44:32.140Z",
+    "lastVerified": "2026-07-17T08:34:14.779Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_pragyan_bharati": {
-    "lastVerified": "2026-07-15T18:44:51.536Z",
+    "lastVerified": "2026-07-17T08:34:30.722Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
@@ -35,13 +35,13 @@
     "confidence": 0
   },
   "assam_krishi_sajuli": {
-    "lastVerified": "2026-07-15T17:40:50.781Z",
+    "lastVerified": "2026-07-17T08:33:30.675Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_swanirbhar_naari": {
-    "lastVerified": "2026-07-15T18:45:30.805Z",
+    "lastVerified": "2026-07-17T08:35:05.042Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
@@ -55,7 +55,7 @@
     "confidence": 0
   },
   "assam_mukhyamantri_atmanirbhar": {
-    "lastVerified": "2026-07-15T18:44:26.961Z",
+    "lastVerified": "2026-07-17T08:34:08.632Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -68,7 +68,7 @@
     "confidence": 0
   },
   "assam_svayem": {
-    "lastVerified": "2026-07-15T18:45:21.458Z",
+    "lastVerified": "2026-07-17T08:35:00.306Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
@@ -81,14 +81,14 @@
     "confidence": 0
   },
   "assam_kushal_konwar_pension": {
-    "lastVerified": "2026-07-15T17:40:55.710Z",
+    "lastVerified": "2026-07-17T08:33:35.892Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_lakhpati_baideo": {
-    "lastVerified": "2026-07-15T17:41:02.990Z",
+    "lastVerified": "2026-07-17T08:33:40.532Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -100,14 +100,14 @@
     "confidence": 0
   },
   "assam_sarothi": {
-    "lastVerified": "2026-07-15T18:44:56.124Z",
+    "lastVerified": "2026-07-17T08:34:35.247Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_jibon_prerana": {
-    "lastVerified": "2026-07-15T17:40:42.124Z",
+    "lastVerified": "2026-07-17T08:33:25.264Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -119,14 +119,14 @@
     "confidence": 0
   },
   "assam_silpi_pension": {
-    "lastVerified": "2026-07-15T18:45:08.736Z",
+    "lastVerified": "2026-07-17T08:34:44.804Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_shishu_seva": {
-    "lastVerified": "2026-07-15T18:45:00.616Z",
+    "lastVerified": "2026-07-17T08:34:40.132Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
@@ -140,13 +140,13 @@
     "confidence": 0
   },
   "assam_mmua": {
-    "lastVerified": "2026-07-15T18:44:19.886Z",
+    "lastVerified": "2026-07-17T08:34:01.686Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_mmlsay": {
-    "lastVerified": "2026-07-15T17:41:16.566Z",
+    "lastVerified": "2026-07-17T08:33:54.658Z",
     "isActive": true,
     "httpStatus": 0,
     "linkAlive": false,
@@ -179,113 +179,113 @@
     "confidence": 0
   },
   "assam_sports_scholarship": {
-    "lastVerified": "2026-07-15T18:45:16.994Z",
+    "lastVerified": "2026-07-17T08:34:56.090Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
     "isActive": false
   },
   "assam_obc_scholarship": {
-    "lastVerified": "2026-07-15T18:44:41.186Z",
+    "lastVerified": "2026-07-17T08:34:19.958Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_solar_pump": {
-    "lastVerified": "2026-07-15T18:45:12.985Z",
+    "lastVerified": "2026-07-17T08:34:49.316Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "bihar_kanya_utthan": {
-    "lastVerified": "2026-07-15T18:46:20.997Z",
+    "lastVerified": "2026-07-17T08:35:56.838Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_medhavritti": {
-    "lastVerified": "2026-07-15T18:46:43.739Z",
+    "lastVerified": "2026-07-17T08:36:25.141Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_mahila_udyami": {
-    "lastVerified": "2026-07-15T18:46:39.775Z",
+    "lastVerified": "2026-07-17T08:36:21.169Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "bihar_sc_st_udyami": {
-    "lastVerified": "2026-07-15T18:46:56.028Z",
+    "lastVerified": "2026-07-17T08:36:37.774Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "bihar_yuva_udyami": {
-    "lastVerified": "2026-07-15T18:47:12.672Z",
+    "lastVerified": "2026-07-17T08:36:55.275Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "bihar_laghu_udyami": {
-    "lastVerified": "2026-07-15T18:46:35.370Z",
+    "lastVerified": "2026-07-17T08:36:16.545Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "bihar_student_credit_card": {
-    "lastVerified": "2026-07-15T18:47:00.585Z",
+    "lastVerified": "2026-07-17T08:36:42.315Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_swayam_bhatta": {
-    "lastVerified": "2026-07-15T18:47:04.513Z",
+    "lastVerified": "2026-07-17T08:36:46.522Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_kushal_yuva": {
-    "lastVerified": "2026-07-15T18:46:31.131Z",
+    "lastVerified": "2026-07-17T08:36:12.304Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_fasal_sahayata": {
-    "lastVerified": "2026-07-15T18:46:06.677Z",
+    "lastVerified": "2026-07-17T08:35:44.494Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_krishi_input": {
-    "lastVerified": "2026-07-15T18:46:25.773Z",
+    "lastVerified": "2026-07-17T08:36:01.318Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_diesel_anudan": {
-    "lastVerified": "2026-07-15T18:46:02.729Z",
+    "lastVerified": "2026-07-17T08:35:40.464Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_gram_parivahan": {
-    "lastVerified": "2026-07-15T18:46:10.621Z",
+    "lastVerified": "2026-07-17T08:35:49.004Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_vridhjan_pension": {
-    "lastVerified": "2026-07-15T18:47:08.458Z",
+    "lastVerified": "2026-07-17T08:36:51.044Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -312,7 +312,7 @@
     "linkAlive": false
   },
   "ayushman": {
-    "lastVerified": "2026-07-15T18:45:45.041Z",
+    "lastVerified": "2026-07-17T08:35:19.606Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -337,7 +337,7 @@
     "linkAlive": true
   },
   "betibachao": {
-    "lastVerified": "2026-07-15T18:45:49.301Z",
+    "lastVerified": "2026-07-17T08:35:27.301Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1864,7 +1864,7 @@
     "confidence": 0
   },
   "bihar_minority_scholarship": {
-    "lastVerified": "2026-07-15T18:46:47.963Z",
+    "lastVerified": "2026-07-17T08:36:29.361Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -2614,9 +2614,9 @@
     "confidence": 0
   },
   "cg_dr_khoobasuram": {
-    "lastVerified": "2026-07-15T18:47:44.855Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-07-17T08:37:18.591Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "cg_mahtari_vandan": {
@@ -3432,7 +3432,7 @@
     "confidence": 0
   },
   "cbse_single_girl": {
-    "lastVerified": "2026-07-15T18:47:17.353Z",
+    "lastVerified": "2026-07-17T08:36:59.953Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
