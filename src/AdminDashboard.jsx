@@ -3243,21 +3243,28 @@ function DataPreviewModal({ dark, users, reports, dateRangeLabel, activeTab, onT
         background: dark ? "linear-gradient(180deg,#141729 0%,#0f1120 100%)" : "linear-gradient(180deg,#ffffff 0%,#f8f9fc 100%)",
         border:`1px solid ${C.border}`, borderRadius:16, padding:20,
         maxWidth:480, width:"100%", maxHeight:"85vh", display:"flex", flexDirection:"column",
-        fontFamily:C.mono, boxShadow:"0 24px 70px rgba(0,0,0,0.45)",
+        fontFamily:C.mono, boxShadow:"0 24px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(79,142,247,0.04)",
       }}>
-        {/* header */}
-        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:4 }}>
+        {/* header — same glass bar treatment as the Export Options popup */}
+        <div style={{
+          margin:"-20px -20px 14px", padding:"16px 20px 14px",
+          borderRadius:"16px 16px 0 0",
+          background: dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.5)",
+          borderBottom:`1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(20,24,50,0.08)"}`,
+          backdropFilter:"blur(14px) saturate(160%)", WebkitBackdropFilter:"blur(14px) saturate(160%)",
+          display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8,
+        }}>
           <div>
             <div style={{ fontSize:14, fontWeight:800, color:C.text }}>Data Preview</div>
-            <div style={{ fontSize:9.5, color:C.sub, marginTop:2 }}>
+            <div style={{ fontSize:9.5, color:C.sub, marginTop:3, lineHeight:1.4 }}>
               {dateRangeLabel} · same filters as the export, no PDF generated
             </div>
           </div>
-          <div onClick={onClose} style={{ cursor:"pointer", color:C.sub, fontSize:16, lineHeight:1, padding:2 }}>✕</div>
+          <div onClick={onClose} style={{ cursor:"pointer", color:C.sub, fontSize:16, lineHeight:1, padding:2, flexShrink:0 }}>✕</div>
         </div>
 
         {/* tabs */}
-        <div style={{ display:"flex", gap:6, margin:"14px 0 12px" }}>
+        <div style={{ display:"flex", gap:6, margin:"0 0 12px" }}>
           {[["users", `Users · ${users.length}`], ["reports", `Reports · ${reports.length}`]].map(([id, label]) => {
             const on = activeTab === id;
             return (
@@ -9329,63 +9336,6 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               </div>
             </div>
 
-            {/* ── DATE RANGE — moved here from the pre-export popup: changing it
-                 now updates the live count badges, sub-filters, and preview
-                 below instantly, instead of only mattering after compiling. ── */}
-            {(() => {
-              const DATE_RANGE_OPTIONS = [
-                { id:"all",    label:"All Time" },
-                { id:"7",      label:"7 Days"   },
-                { id:"30",     label:"30 Days"  },
-                { id:"90",     label:"90 Days"  },
-                { id:"custom", label:"Custom"   },
-              ];
-              return (
-                <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:10, padding:"10px 12px" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8 }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                    <span style={{ fontFamily:C.mono, fontSize:9, fontWeight:700, color:C.sub, letterSpacing:1, textTransform:"uppercase" }}>
-                      Date Range
-                    </span>
-                    <span style={{ fontFamily:C.mono, fontSize:8.5, color:C.blue, marginLeft:"auto" }}>
-                      {exportFilteredData.dateRangeLabel}
-                    </span>
-                  </div>
-                  <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                    {DATE_RANGE_OPTIONS.map(opt => {
-                      const on = pdfDateRangeMode === opt.id;
-                      return (
-                        <div key={opt.id} onClick={() => setPdfDateRangeMode(opt.id)} style={{
-                          padding:"6px 10px", borderRadius:7, cursor:"pointer",
-                          fontFamily:C.mono, fontSize:9.5, fontWeight:800,
-                          color: on ? C.blue : C.text,
-                          background: on ? `${C.blue}18` : (dark ? "#0a0c14" : "#f4f5fb"),
-                          border:`1px solid ${on ? C.blue+"60" : C.border}`,
-                          transition:"all 0.15s",
-                        }}>
-                          {opt.label}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {pdfDateRangeMode === "custom" && (
-                    <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                      <input type="date" value={pdfDateStart} max={pdfDateEnd || undefined}
-                        onChange={e => setPdfDateStart(e.target.value)}
-                        style={{ flex:1, padding:"6px 8px", borderRadius:7, border:`1px solid ${C.border}`,
-                          background:C.card, color:C.text, fontSize:9.5, fontFamily:C.mono, outline:"none" }} />
-                      <input type="date" value={pdfDateEnd} min={pdfDateStart || undefined}
-                        onChange={e => setPdfDateEnd(e.target.value)}
-                        style={{ flex:1, padding:"6px 8px", borderRadius:7, border:`1px solid ${C.border}`,
-                          background:C.card, color:C.text, fontSize:9.5, fontFamily:C.mono, outline:"none" }} />
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-
             {/* ── DESKTOP: two-pane layout — modules left, sticky summary+trigger right.
                  MOBILE: everything stacks in original single-column order. ── */}
             <div style={{
@@ -9581,6 +9531,61 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
               top: isDesktop ? 16 : undefined,
             }}>
 
+            {/* ── DATE RANGE ───────────────────────────────────────────── */}
+            {/* Lives in the sticky pane next to Presets/Trigger since it's an
+                export-time filter, not a module toggle — moved out of the
+                pre-export popup so changing it updates the live count badges
+                and Data Preview instantly, instead of only after compiling. */}
+            <div style={{
+              background:C.card, border:`1px solid ${C.border}`,
+              borderRadius:10, padding:"10px 12px",
+            }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                <div style={{ fontFamily:C.mono, fontSize:9, fontWeight:700, color:C.sub, letterSpacing:0.5, textTransform:"uppercase" }}>
+                  🗓 Date Range
+                </div>
+                <div style={{ fontFamily:C.mono, fontSize:9, fontWeight:700, color:C.blue, letterSpacing:0.3 }}>
+                  {exportFilteredData.dateRangeLabel}
+                </div>
+              </div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                {[
+                  { id:"all",    label:"All Time" },
+                  { id:"7",      label:"7D"        },
+                  { id:"30",     label:"30D"       },
+                  { id:"90",     label:"90D"       },
+                  { id:"custom", label:"Custom"    },
+                ].map(opt => {
+                  const on = pdfDateRangeMode === opt.id;
+                  return (
+                    <div key={opt.id} onClick={() => setPdfDateRangeMode(opt.id)} style={{
+                      flex:"1 1 auto", textAlign:"center",
+                      padding:"5px 8px", borderRadius:6, cursor:"pointer",
+                      fontFamily:C.mono, fontSize:9, fontWeight:700, letterSpacing:0.2,
+                      color: on ? C.blue : C.sub,
+                      background: on ? `${C.blue}18` : "transparent",
+                      border:`1px solid ${on ? C.blue+"50" : C.border}`,
+                      transition:"all 0.15s",
+                    }}>
+                      {opt.label}
+                    </div>
+                  );
+                })}
+              </div>
+              {pdfDateRangeMode === "custom" && (
+                <div style={{ display:"flex", gap:6, marginTop:8 }}>
+                  <input type="date" value={pdfDateStart} max={pdfDateEnd || undefined}
+                    onChange={e => setPdfDateStart(e.target.value)}
+                    style={{ flex:1, minWidth:0, padding:"5px 6px", borderRadius:7, border:`1px solid ${C.border}`,
+                      background: dark ? "#0a0c14" : "#fff", color:C.text, fontSize:9.5, fontFamily:C.mono, outline:"none" }} />
+                  <input type="date" value={pdfDateEnd} min={pdfDateStart || undefined}
+                    onChange={e => setPdfDateEnd(e.target.value)}
+                    style={{ flex:1, minWidth:0, padding:"5px 6px", borderRadius:7, border:`1px solid ${C.border}`,
+                      background: dark ? "#0a0c14" : "#fff", color:C.text, fontSize:9.5, fontFamily:C.mono, outline:"none" }} />
+                </div>
+              )}
+            </div>
+
             {/* ── SAVED PRESETS ────────────────────────────────────────── */}
             <div style={{
               background:C.card, border:`1px solid ${C.border}`,
@@ -9678,22 +9683,23 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             </div>
 
             {/* ── PREVIEW DATA — inspect exactly what's matched, same filters,
-                 no HTML/print pipeline involved ── */}
+                 no HTML/print pipeline involved. Deliberately lighter-weight
+                 than the Compile+Export CTA below it — secondary action. ── */}
             {!noneSelected && (users.length > 0 || reports.length > 0) && (
               <div
                 onClick={() => { setPreviewPage(0); setShowDataPreview(true); }}
                 style={{
-                  display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-                  padding:"10px 14px", borderRadius:10, cursor:"pointer",
-                  border:`1px solid ${C.border}`, background:C.card,
-                  fontFamily:C.mono, fontSize:10.5, fontWeight:800, color:C.text,
-                  transition:"all 0.15s",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                  padding:"8px 12px", borderRadius:9, cursor:"pointer",
+                  border:`1px dashed ${C.border}`, background:"transparent",
+                  fontFamily:C.mono, fontSize:9.5, fontWeight:700, color:C.sub,
+                  letterSpacing:0.3, transition:"all 0.15s",
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.sub} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>
                 </svg>
-                Preview Data
+                Preview Data — no PDF generated
               </div>
             )}
 
