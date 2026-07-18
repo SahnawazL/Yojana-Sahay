@@ -349,6 +349,76 @@ const LAST_VERIFIED_LABEL = LAST_VERIFIED_DATE
   ? LAST_VERIFIED_DATE.toLocaleDateString("en-IN", {day:"numeric", month:"short", year:"numeric"})
   : null;
 
+// ─── SMART FRESHNESS LABEL — relative + absolute, trust-building time text ──────
+// Mimics the pattern used by GitHub/banking apps: a live relative phrase
+// ("Just now", "12m ago", "3h ago") that decays into an absolute date once
+// it's old enough to lose meaning as a relative claim. Ticks live via the
+// <LastVerifiedTime> component below so it never goes stale on a long-open tab.
+function getSmartFreshnessLabel(date, isHindi) {
+  if (!date) return { primary: null, exact: null };
+  const now = Date.now();
+  const diffSec = Math.floor((now - date.getTime()) / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
+
+  const exactTime = date.toLocaleTimeString("en-IN", {hour:"numeric", minute:"2-digit", hour12:true});
+  const exactDate = date.toLocaleDateString("en-IN", {day:"numeric", month:"short", year:"numeric"});
+  const exact = `${exactDate}, ${exactTime}`;
+
+  let primary;
+  if (diffSec < 45) {
+    primary = isHindi ? "अभी-अभी" : "Just now";
+  } else if (diffMin < 60) {
+    primary = isHindi ? `${diffMin} मिनट पहले` : `${diffMin}m ago`;
+  } else if (diffHr < 24) {
+    primary = isHindi ? `${diffHr} घंटे पहले` : `${diffHr}h ago`;
+  } else if (diffDay === 1) {
+    primary = isHindi ? `कल, ${exactTime}` : `Yesterday, ${exactTime}`;
+  } else if (diffDay < 7) {
+    primary = isHindi ? `${diffDay} दिन पहले` : `${diffDay}d ago`;
+  } else {
+    primary = exact;
+  }
+  return { primary, exact };
+}
+
+// Small live-ticking wrapper: re-renders every 30s so "2m ago" naturally
+// becomes "3m ago", "1h ago" etc. without a page refresh — reinforces that
+// the platform is actively monitoring, not just showing a fixed string.
+function LastVerifiedTime({date, dark, isHindi}) {
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    if (!date) return;
+    const id = setInterval(() => forceTick(t => t + 1), 30000);
+    return () => clearInterval(id);
+  }, [date]);
+
+  const {primary, exact} = getSmartFreshnessLabel(date, isHindi);
+  if (!primary) return null;
+
+  return (
+    <>
+      <div style={{
+        fontSize:11,fontWeight:800,letterSpacing:-0.2,
+        color:dark?"#D9B84A":"#1B2A4A",
+        fontFamily:"'Noto Sans',sans-serif",
+      }}>
+        {primary}
+      </div>
+      {primary!==exact&&(
+        <div style={{
+          fontSize:7,fontWeight:600,letterSpacing:0.1,
+          color:dark?"rgba(217,184,74,0.5)":"rgba(27,42,74,0.38)",
+          fontFamily:"'Noto Sans',sans-serif",marginTop:1,whiteSpace:"nowrap",
+        }}>
+          {exact}
+        </div>
+      )}
+    </>
+  );
+}
+
 // ─── VERIFICATION STATS — for smart trust banner across scheme lists ────────────
 // Runs once at module init using the already-merged SCHEME_DB.
 const VERIFICATION_STATS = (()=>{
@@ -9505,13 +9575,7 @@ function YojanaSahayInner(){
                   }}>
                     {isHindi?"अंतिम जाँच":"Last Verified"}
                   </div>
-                  <div style={{
-                    fontSize:11,fontWeight:800,letterSpacing:-0.2,
-                    color:dark?"#D9B84A":"#1B2A4A",
-                    fontFamily:"'Noto Sans',sans-serif",
-                  }}>
-                    {LAST_VERIFIED_LABEL}
-                  </div>
+                  <LastVerifiedTime date={LAST_VERIFIED_DATE} dark={dark} isHindi={isHindi}/>
                 </div>
 
               </div>
