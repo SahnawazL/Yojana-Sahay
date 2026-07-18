@@ -709,7 +709,7 @@
     "linkAlive": true
   },
   "tn_pudhumai_penn": {
-    "lastVerified": "2026-07-16T23:26:48.038Z",
+    "lastVerified": "2026-07-18T13:00:01.537Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -735,7 +735,7 @@
     "isActive": true
   },
   "tn_solar_green_house": {
-    "lastVerified": "2026-07-16T23:27:02.333Z",
+    "lastVerified": "2026-07-18T13:00:17.798Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -747,20 +747,20 @@
     "linkAlive": true
   },
   "tn_scst_free_coaching": {
-    "lastVerified": "2026-07-16T23:26:52.256Z",
+    "lastVerified": "2026-07-18T13:00:07.051Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "tn_needs_entrepreneur": {
-    "lastVerified": "2026-07-16T23:26:32.377Z",
+    "lastVerified": "2026-07-18T12:59:45.336Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "tn_vetri_nichayam": {
-    "lastVerified": "2026-07-17T00:58:00.203Z",
+    "lastVerified": "2026-07-18T13:00:57.571Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -989,13 +989,13 @@
     "confidence": 0
   },
   "ts_aarogyasri": {
-    "lastVerified": "2026-07-17T00:59:09.095Z",
+    "lastVerified": "2026-07-18T13:02:12.159Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_kalyana_lakshmi": {
-    "lastVerified": "2026-07-17T01:00:13.392Z",
+    "lastVerified": "2026-07-18T13:03:15.255Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1007,7 +1007,7 @@
     "confidence": 0
   },
   "ts_epass_fee": {
-    "lastVerified": "2026-07-17T00:59:56.931Z",
+    "lastVerified": "2026-07-18T13:03:00.224Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1648,13 +1648,13 @@
     "confidence": 0
   },
   "ts_prematric_scholarship": {
-    "lastVerified": "2026-07-17T01:00:40.195Z",
+    "lastVerified": "2026-07-18T13:03:39.938Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_dalit_bandhu": {
-    "lastVerified": "2026-07-17T00:59:49.658Z",
+    "lastVerified": "2026-07-18T13:02:56.066Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1666,19 +1666,19 @@
     "confidence": 0
   },
   "ts_micro_irrigation": {
-    "lastVerified": "2026-07-17T01:00:21.967Z",
+    "lastVerified": "2026-07-18T13:03:23.407Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_overseas_scholarship": {
-    "lastVerified": "2026-07-17T01:00:35.594Z",
+    "lastVerified": "2026-07-18T13:03:36.005Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_minority_scholarship": {
-    "lastVerified": "2026-07-17T01:00:27.034Z",
+    "lastVerified": "2026-07-18T13:03:27.817Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1690,7 +1690,7 @@
     "confidence": 0
   },
   "ts_rajiv_yuva_vikasam": {
-    "lastVerified": "2026-07-17T01:00:45.765Z",
+    "lastVerified": "2026-07-18T13:03:45.967Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1786,19 +1786,19 @@
     "confidence": 0
   },
   "tripura_cm_krishak_samridhi": {
-    "lastVerified": "2026-07-17T00:58:27.132Z",
-    "linkAlive": true,
-    "httpStatus": 200,
+    "lastVerified": "2026-07-18T13:01:29.564Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "tripura_mukhyamantri_swasthya": {
-    "lastVerified": "2026-07-17T00:58:48.395Z",
+    "lastVerified": "2026-07-18T13:01:49.884Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "tripura_cm_scholarship": {
-    "lastVerified": "2026-07-17T00:58:36.469Z",
+    "lastVerified": "2026-07-18T13:01:34.199Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1890,7 +1890,7 @@
     "isActive": true
   },
   "tn_stamp_duty_women": {
-    "lastVerified": "2026-07-16T23:27:10.396Z",
+    "lastVerified": "2026-07-18T13:00:28.250Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -3408,7 +3408,7 @@
     "confidence": 0
   },
   "top_class_sc": {
-    "lastVerified": "2026-07-17T00:58:14.354Z",
+    "lastVerified": "2026-07-18T13:01:12.029Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
