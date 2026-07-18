@@ -318,10 +318,10 @@
     "linkAlive": false
   },
   "scholarship": {
-    "lastVerified": "2026-07-16T22:20:10.562Z",
+    "lastVerified": "2026-07-18T11:51:14.436Z",
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "mudra": {
     "lastVerified": "2026-07-18T04:16:21.669Z",
