@@ -1,14 +1,22 @@
 name: Verify Schemes (rotating batch)
 
-# Runs every 15 minutes, forever, calling the EXISTING /api/deadline-alerts
-# endpoint with a special action flag — NOT Vercel's own cron (which only
-# supports once-a-day on the Hobby plan, far too slow for a 1100+ scheme
-# catalog). This costs nothing: GitHub Actions gives free scheduled minutes
-# on public repos, and this job finishes in under a second each time (it
-# just fires the request and moves on — Vercel does the actual work).
+# Runs ONCE A DAY, calling the EXISTING /api/deadline-alerts endpoint with a
+# special action flag — NOT Vercel's own cron (which only supports once-a-day
+# on the Hobby plan anyway, so no loss there).
+#
+# WHY ONCE A DAY, NOT EVERY 15 MIN: each run checks a fixed small batch of
+# schemes (see SCHEMES_PER_RUN math in schemeVerifyBatch.js), sized so a full
+# lap across the ~1100+ scheme catalog takes ~60 days. That keeps total Tavily
+# Extract usage around ~550-600 calls/month — safely under the 1000/month
+# Tavily cap, with headroom left for manual "Verify Now" checks in the admin
+# dashboard, which share the same key/budget.
+#
+# This costs nothing: GitHub Actions gives free scheduled minutes on public
+# repos, and this job finishes in under a second each time (it just fires the
+# request and moves on — Vercel does the actual work).
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "0 21 * * *" # 21:00 UTC = ~2:30 AM IST — low-traffic window
   workflow_dispatch: {} # lets you also trigger it manually from the Actions tab, for testing
 
 jobs:
