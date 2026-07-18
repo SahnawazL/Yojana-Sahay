@@ -428,7 +428,7 @@ export default async function handler(req, res) {
       };
 
       // Scheme-verify batch history — the background job the GitHub Action
-      // pings every ~15-20 min. Previously invisible anywhere; now surfaced
+      // pings once a day. Previously invisible anywhere; now surfaced
       // here so the dashboard can show when it last ran and how far the
       // rotation has gotten through the catalog.
       let verifyRuns = [];
@@ -482,11 +482,11 @@ export default async function handler(req, res) {
     // Two different jobs share this same cron auth (x-vercel-cron header OR
     // CRON_SECRET bearer token):
     //   1. Vercel's own once-a-day cron → the full email pipeline (default).
-    //   2. An external scheduler (GitHub Actions, every ~15-20 min) → ONLY the
+    //   2. An external scheduler (GitHub Actions, once a day) → ONLY the
     //      scheme-verification batch, distinguished by { action: "verifyBatch" }
     //      in the POST body. This must NEVER fall through to runDeadlineAlerts,
-    //      or the frequent external pings would re-check/re-send deadline
-    //      emails every 15 minutes instead of once a day.
+    //      or a misconfigured external ping would re-check/re-send deadline
+    //      emails instead of just running the scheme-verify batch.
     if (req.body?.action === "verifyBatch") {
       try {
         const result = await runSchemeVerificationBatch();
