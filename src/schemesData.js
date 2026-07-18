@@ -350,7 +350,7 @@ export const SCHEME_DB = [
     benefit: { en: "Full crop loss insurance at just 1.5–2% premium", hi: "केवल 1.5–2% प्रीमियम पर पूरी फसल बीमा" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 0,
-    apply:   { en: "https://pmfby.gov.in", hi: "pmfby.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmfby.gov.in/", hi: "pmfby.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra)","Bank Passbook","Sowing Certificate"],
                hi: ["आधार कार्ड","खसरा/जमीन के कागज़","बैंक पासबुक","बुवाई प्रमाण पत्र"] },
     match: (a) => a.who === "farmer",
@@ -1745,7 +1745,7 @@ export const SCHEME_DB = [
     benefit: { en: "Full tuition + living allowance + airfare for Master's/PhD abroad (SC/ST/DNT/landless labourer families)", hi: "SC/ST/DNT/भूमिहीन श्रमिक परिवारों के लिए विदेश में मास्टर्स/PhD हेतु पूर्ण ट्यूशन + निर्वाह भत्ता + हवाई किराया" },
     tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
     annual: 1000000,
-    apply:   { en: "https://nosmsje.gov.in", hi: "nosmsje.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjustice.gov.in/schemes/28", hi: "nosmsje.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST/DNT)","Foreign University Admission Letter","Income Certificate","Passport","Bank Passbook"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST/DNT)","विदेशी विश्वविद्यालय प्रवेश पत्र","आय प्रमाण पत्र","पासपोर्ट","बैंक पासबुक"] },
     // Eligibility: SC/ST/DNT student, family income within cap, admitted abroad
