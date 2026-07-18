@@ -330,7 +330,7 @@
     "linkAlive": true
   },
   "ujjwala": {
-    "lastVerified": "2026-07-17T04:06:17.896Z",
+    "lastVerified": "2026-07-18T14:22:59.949Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -343,10 +343,10 @@
     "linkAlive": true
   },
   "vriddhapension": {
-    "lastVerified": "2026-07-18T11:51:01.921Z",
+    "lastVerified": "2026-07-18T14:25:04.706Z",
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "pmjdy": {
     "lastVerified": "2026-07-18T08:16:45.011Z",
@@ -780,93 +780,93 @@
     "linkAlive": true
   },
   "up_kanya": {
-    "lastVerified": "2026-07-17T04:07:56.261Z",
+    "lastVerified": "2026-07-18T14:24:19.433Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "up_samuhik_vivah": {
-    "lastVerified": "2026-07-17T04:08:16.198Z",
+    "lastVerified": "2026-07-18T14:24:32.729Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_vidhva": {
-    "lastVerified": "2026-07-17T04:08:21.171Z",
+    "lastVerified": "2026-07-18T14:24:38.089Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_vridha_pension": {
-    "lastVerified": "2026-07-17T04:08:31.198Z",
+    "lastVerified": "2026-07-18T14:24:46.813Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_divyang_pension": {
-    "lastVerified": "2026-07-17T04:07:36.852Z",
+    "lastVerified": "2026-07-18T14:24:06.544Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_parivarik_labh": {
-    "lastVerified": "2026-07-17T04:08:11.673Z",
+    "lastVerified": "2026-07-18T14:24:28.789Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_free_tablet": {
-    "lastVerified": "2026-07-17T04:07:45.826Z",
+    "lastVerified": "2026-07-18T14:24:10.831Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_abhyudaya": {
-    "lastVerified": "2026-07-17T04:07:17.721Z",
+    "lastVerified": "2026-07-18T14:23:52.962Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_internship": {
-    "lastVerified": "2026-07-17T04:07:50.882Z",
+    "lastVerified": "2026-07-18T14:24:15.224Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_vishwakarma_shram": {
-    "lastVerified": "2026-07-17T04:08:25.946Z",
+    "lastVerified": "2026-07-18T14:24:42.348Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_kanyashree": {
-    "lastVerified": "2026-07-17T04:09:16.883Z",
+    "lastVerified": "2026-07-18T14:25:28.632Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_rupashree": {
-    "lastVerified": "2026-07-17T04:09:35.589Z",
+    "lastVerified": "2026-07-18T14:25:45.007Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_student_credit_card": {
-    "lastVerified": "2026-07-17T04:09:52.454Z",
+    "lastVerified": "2026-07-18T14:25:57.878Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_shikshashree": {
-    "lastVerified": "2026-07-17T04:09:43.732Z",
+    "lastVerified": "2026-07-18T14:25:53.166Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "wb_aikyashree": {
-    "lastVerified": "2026-07-17T04:08:55.993Z",
+    "lastVerified": "2026-07-18T14:25:09.655Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -885,7 +885,7 @@
     "isActive": true
   },
   "wb_krishak_bandhu": {
-    "lastVerified": "2026-07-17T04:09:21.100Z",
+    "lastVerified": "2026-07-18T14:25:32.783Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -983,7 +983,7 @@
     "confidence": 0
   },
   "ts_rythu_bandhu": {
-    "lastVerified": "2026-07-17T01:00:49.948Z",
+    "lastVerified": "2026-07-18T14:22:02.763Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1001,7 +1001,7 @@
     "confidence": 0
   },
   "ts_shaadi_mubarak": {
-    "lastVerified": "2026-07-17T01:01:01.766Z",
+    "lastVerified": "2026-07-18T14:22:15.481Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1013,7 +1013,7 @@
     "confidence": 0
   },
   "ts_task_skill": {
-    "lastVerified": "2026-07-17T01:01:24.793Z",
+    "lastVerified": "2026-07-18T14:22:40.478Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1116,13 +1116,13 @@
     "linkAlive": false
   },
   "uk_vatsalya": {
-    "lastVerified": "2026-07-17T04:07:11.821Z",
+    "lastVerified": "2026-07-18T14:23:48.785Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "uk_medhavi_chhatravriti": {
-    "lastVerified": "2026-07-17T04:06:33.106Z",
+    "lastVerified": "2026-07-18T14:23:13.388Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1606,25 +1606,25 @@
     "confidence": 0
   },
   "uk_nanda_gaura": {
-    "lastVerified": "2026-07-17T04:06:38.605Z",
+    "lastVerified": "2026-07-18T14:23:18.119Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "uk_atal_ayushman": {
-    "lastVerified": "2026-07-17T04:06:24.231Z",
+    "lastVerified": "2026-07-18T14:23:04.963Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "uk_saur_swarojgar": {
-    "lastVerified": "2026-07-17T04:07:01.834Z",
+    "lastVerified": "2026-07-18T14:23:40.854Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "uk_swarozgar_yojana": {
-    "lastVerified": "2026-07-17T04:07:07.687Z",
+    "lastVerified": "2026-07-18T14:23:45.055Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1642,7 +1642,7 @@
     "confidence": 0
   },
   "ts_t_pride": {
-    "lastVerified": "2026-07-17T01:01:18.956Z",
+    "lastVerified": "2026-07-18T14:22:34.737Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1660,7 +1660,7 @@
     "confidence": 0
   },
   "ts_stree_nidhi": {
-    "lastVerified": "2026-07-17T01:01:10.316Z",
+    "lastVerified": "2026-07-18T14:22:24.195Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1684,7 +1684,7 @@
     "confidence": 0
   },
   "ts_t_fiber": {
-    "lastVerified": "2026-07-17T01:01:14.786Z",
+    "lastVerified": "2026-07-18T14:22:29.483Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -3196,13 +3196,13 @@
     "confidence": 0
   },
   "uk_post_matric_scholarship": {
-    "lastVerified": "2026-07-17T04:06:56.003Z",
+    "lastVerified": "2026-07-18T14:23:32.632Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "wb_lakshmir_bhandar": {
-    "lastVerified": "2026-07-17T04:09:31.317Z",
+    "lastVerified": "2026-07-18T14:25:40.442Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -3214,25 +3214,25 @@
     "confidence": 0
   },
   "wb_jai_bangla_pension": {
-    "lastVerified": "2026-07-17T04:09:10.916Z",
+    "lastVerified": "2026-07-18T14:25:24.687Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_bal_seva": {
-    "lastVerified": "2026-07-17T04:07:28.031Z",
+    "lastVerified": "2026-07-18T14:23:57.686Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_yuva_udyami": {
-    "lastVerified": "2026-07-17T04:08:36.200Z",
+    "lastVerified": "2026-07-18T14:24:51.367Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_khet_suraksha": {
-    "lastVerified": "2026-07-17T04:08:05.476Z",
+    "lastVerified": "2026-07-18T14:24:24.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3462,7 +3462,7 @@
     "confidence": 0
   },
   "tulip_internship": {
-    "lastVerified": "2026-07-17T01:01:35.217Z",
+    "lastVerified": "2026-07-18T14:22:51.381Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
