@@ -403,11 +403,11 @@
     "linkAlive": true
   },
   "pmfby": {
-    "lastVerified": "2026-07-18T08:16:17.597Z",
+    "lastVerified": "2026-07-18T11:51:38.854Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "mgnrega": {
     "lastVerified": "2026-07-18T04:13:37.710Z",
@@ -3390,9 +3390,9 @@
     "confidence": 0
   },
   "nos_overseas": {
-    "lastVerified": "2026-07-18T06:20:07.458Z",
+    "lastVerified": "2026-07-18T11:51:38.854Z",
     "httpStatus": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "nfst": {
