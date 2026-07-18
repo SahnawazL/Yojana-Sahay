@@ -291,7 +291,7 @@
     "linkAlive": true
   },
   "pmkisan": {
-    "lastVerified": "2026-07-16T20:11:22.984Z",
+    "lastVerified": "2026-07-18T08:17:02.778Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -305,7 +305,7 @@
     "linkAlive": true
   },
   "pmawas_urban": {
-    "lastVerified": "2026-07-16T19:04:19.077Z",
+    "lastVerified": "2026-07-18T08:15:55.460Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -349,21 +349,21 @@
     "linkAlive": false
   },
   "pmjdy": {
-    "lastVerified": "2026-07-16T20:11:09.537Z",
+    "lastVerified": "2026-07-18T08:16:45.011Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmjjby": {
-    "lastVerified": "2026-07-16T20:11:17.697Z",
+    "lastVerified": "2026-07-18T08:16:57.661Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmsby": {
-    "lastVerified": "2026-07-16T20:12:32.900Z",
+    "lastVerified": "2026-07-18T08:18:14.443Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -376,14 +376,14 @@
     "linkAlive": true
   },
   "pmvishwakarma": {
-    "lastVerified": "2026-07-16T20:12:46.186Z",
+    "lastVerified": "2026-07-18T08:18:35.949Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmsvanidhi": {
-    "lastVerified": "2026-07-16T20:12:41.627Z",
+    "lastVerified": "2026-07-18T08:18:23.658Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -396,14 +396,14 @@
     "linkAlive": true
   },
   "pmmvy": {
-    "lastVerified": "2026-07-16T20:12:15.708Z",
+    "lastVerified": "2026-07-18T08:17:56.877Z",
     "isActive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "pmfby": {
-    "lastVerified": "2026-07-16T19:04:45.006Z",
+    "lastVerified": "2026-07-18T08:16:17.597Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -417,14 +417,14 @@
     "linkAlive": false
   },
   "pmkvy": {
-    "lastVerified": "2026-07-16T20:11:49.789Z",
+    "lastVerified": "2026-07-18T08:17:35.364Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "pmegp": {
-    "lastVerified": "2026-07-16T19:04:34.776Z",
+    "lastVerified": "2026-07-18T08:16:05.943Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -458,19 +458,19 @@
     "linkAlive": true
   },
   "pmpsmy": {
-    "lastVerified": "2026-07-16T20:12:20.193Z",
+    "lastVerified": "2026-07-18T08:18:01.386Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmjay_senior": {
-    "lastVerified": "2026-07-16T20:11:04.146Z",
+    "lastVerified": "2026-07-18T08:16:40.029Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmgsy": {
-    "lastVerified": "2026-07-16T20:10:59.100Z",
+    "lastVerified": "2026-07-18T08:16:35.191Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -490,7 +490,7 @@
     "linkAlive": true
   },
   "pmay_urban2": {
-    "lastVerified": "2026-07-16T19:04:29.986Z",
+    "lastVerified": "2026-07-18T08:16:01.099Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -524,7 +524,7 @@
     "linkAlive": false
   },
   "pmkmy": {
-    "lastVerified": "2026-07-16T20:11:28.216Z",
+    "lastVerified": "2026-07-18T08:17:11.131Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -601,13 +601,13 @@
     "linkAlive": true
   },
   "pmvvy": {
-    "lastVerified": "2026-07-16T20:12:55.629Z",
+    "lastVerified": "2026-07-18T08:18:46.023Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "pmmsy": {
-    "lastVerified": "2026-07-16T20:12:06.447Z",
+    "lastVerified": "2026-07-18T08:17:52.683Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -620,7 +620,7 @@
     "linkAlive": true
   },
   "pms_sc_st": {
-    "lastVerified": "2026-07-16T20:12:28.632Z",
+    "lastVerified": "2026-07-18T08:18:09.816Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -633,26 +633,26 @@
     "linkAlive": true
   },
   "pmkmy_kisan": {
-    "lastVerified": "2026-07-16T20:11:32.465Z",
+    "lastVerified": "2026-07-18T08:17:16.471Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmksy": {
-    "lastVerified": "2026-07-16T20:11:39.390Z",
+    "lastVerified": "2026-07-18T08:17:25.036Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "premat_st_scholarship": {
-    "lastVerified": "2026-07-16T20:13:08.375Z",
+    "lastVerified": "2026-07-18T08:18:58.371Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmlvmy": {
-    "lastVerified": "2026-07-16T20:11:56.175Z",
+    "lastVerified": "2026-07-18T08:17:41.952Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -690,20 +690,20 @@
     "linkAlive": true
   },
   "pmfme": {
-    "lastVerified": "2026-07-16T20:10:46.716Z",
+    "lastVerified": "2026-07-18T08:16:22.868Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "premat_sc": {
-    "lastVerified": "2026-07-16T20:13:03.623Z",
+    "lastVerified": "2026-07-18T08:18:53.879Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pms_obc": {
-    "lastVerified": "2026-07-16T20:12:24.446Z",
+    "lastVerified": "2026-07-18T08:18:05.596Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -3238,7 +3238,7 @@
     "confidence": 0
   },
   "punjab_ashirwad": {
-    "lastVerified": "2026-07-16T20:14:05.057Z",
+    "lastVerified": "2026-07-18T08:19:49.880Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3364,7 +3364,7 @@
     "confidence": 0
   },
   "puducherry_cm_scholarship": {
-    "lastVerified": "2026-07-16T20:13:21.383Z",
+    "lastVerified": "2026-07-18T08:19:06.747Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
@@ -3420,7 +3420,7 @@
     "confidence": 0
   },
   "pmss_defence": {
-    "lastVerified": "2026-07-16T20:12:37.375Z",
+    "lastVerified": "2026-07-18T08:18:19.392Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
