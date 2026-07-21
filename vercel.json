@@ -1,7 +1,10 @@
 {
   "rewrites": [
     { "source": "/admin", "destination": "/index.html" },
-    { "source": "/(.*)",  "destination": "/index.html" }
+    {
+      "source": "/((?!sitemap\\.xml|robots\\.txt|manifest\\.json|sw\\.js|schemes/|yojana/|icons/|og-image\\.png|.*\\.(?:xml|txt|json|js|css|png|jpg|jpeg|svg|ico|webp)$).*)",
+      "destination": "/index.html"
+    }
   ],
   "crons": [
     {
