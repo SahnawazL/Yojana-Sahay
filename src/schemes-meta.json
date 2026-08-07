@@ -1960,19 +1960,19 @@
     "confidence": 0
   },
   "karnataka_krishi_bhagya": {
-    "lastVerified": "2026-07-17T20:47:25.008Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-07T21:31:55.423Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "karnataka_raitha_siri": {
-    "lastVerified": "2026-07-17T20:49:47.696Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-07T21:34:38.473Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "karnataka_gruha_lakshmi": {
-    "lastVerified": "2026-07-17T20:46:47.496Z",
+    "lastVerified": "2026-08-07T21:31:15.572Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -1991,7 +1991,7 @@
     "confidence": 0
   },
   "karnataka_postmatric_scholarship": {
-    "lastVerified": "2026-07-17T20:49:39.432Z",
+    "lastVerified": "2026-08-07T21:34:21.472Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2045,7 +2045,7 @@
     "confidence": 0
   },
   "karnataka_horticulture_subsidy": {
-    "lastVerified": "2026-07-17T20:47:02.644Z",
+    "lastVerified": "2026-08-07T21:31:26.293Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2063,13 +2063,13 @@
     "confidence": 0
   },
   "karnataka_morarji_desai": {
-    "lastVerified": "2026-07-17T20:48:29.860Z",
+    "lastVerified": "2026-08-07T21:32:56.841Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "karnataka_rajiv_gandhi_loan": {
-    "lastVerified": "2026-07-17T20:49:51.684Z",
+    "lastVerified": "2026-08-07T21:34:44.936Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2081,7 +2081,7 @@
     "confidence": 0
   },
   "karnataka_jeevandayini": {
-    "lastVerified": "2026-07-17T20:47:16.557Z",
+    "lastVerified": "2026-08-07T21:31:38.420Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2123,13 +2123,13 @@
     "confidence": 0
   },
   "karnataka_matsya_bhagya": {
-    "lastVerified": "2026-07-17T20:47:56.011Z",
+    "lastVerified": "2026-08-07T21:32:26.426Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "karnataka_handloom_weaver": {
-    "lastVerified": "2026-07-17T20:46:52.820Z",
+    "lastVerified": "2026-08-07T21:31:20.900Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2141,7 +2141,7 @@
     "confidence": 0
   },
   "karnataka_minorities_scholarship": {
-    "lastVerified": "2026-07-17T20:48:16.360Z",
+    "lastVerified": "2026-08-07T21:32:43.339Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2171,9 +2171,9 @@
     "confidence": 0
   },
   "karnataka_rajiv_gandhi_svagriha": {
-    "lastVerified": "2026-07-17T20:50:05.186Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-08-07T21:34:50.945Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "karnataka_auto_driver_welfare": {
@@ -2183,13 +2183,13 @@
     "confidence": 0
   },
   "karnataka_pm_svanidhi": {
-    "lastVerified": "2026-07-17T20:49:11.916Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-07T21:33:47.376Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "karnataka_pm_vishwakarma": {
-    "lastVerified": "2026-07-17T20:49:17.946Z",
+    "lastVerified": "2026-08-07T21:33:57.215Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2207,13 +2207,13 @@
     "confidence": 0
   },
   "karnataka_organic_farming": {
-    "lastVerified": "2026-07-17T20:49:03.785Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-07T21:33:38.246Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "karnataka_micro_irrigation": {
-    "lastVerified": "2026-07-17T20:48:04.512Z",
+    "lastVerified": "2026-08-07T21:32:31.244Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2255,9 +2255,9 @@
     "confidence": 0
   },
   "karnataka_msme_subsidy": {
-    "lastVerified": "2026-07-17T20:48:37.773Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-07T21:33:03.808Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "karnataka_fasal_bima": {
@@ -2267,13 +2267,13 @@
     "confidence": 0
   },
   "karnataka_obc_prematric": {
-    "lastVerified": "2026-07-17T20:48:59.045Z",
+    "lastVerified": "2026-08-07T21:33:24.746Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_obc_hostel": {
-    "lastVerified": "2026-07-17T20:48:53.421Z",
+    "lastVerified": "2026-08-07T21:33:19.775Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
