@@ -891,62 +891,62 @@
     "confidence": 0
   },
   "kerala_karunya": {
-    "lastVerified": "2026-07-17T21:48:22.103Z",
+    "lastVerified": "2026-08-09T21:25:16.813Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_merit_scholarship": {
-    "lastVerified": "2026-07-17T22:33:41.012Z",
+    "lastVerified": "2026-08-09T21:25:46.548Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_asap": {
-    "lastVerified": "2026-07-17T21:47:28.031Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-09T21:24:18.998Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "kerala_unemployment_allowance": {
-    "lastVerified": "2026-07-17T22:34:28.476Z",
+    "lastVerified": "2026-08-09T21:26:45.841Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_startup_mission": {
-    "lastVerified": "2026-07-17T22:34:24.138Z",
+    "lastVerified": "2026-08-09T21:26:40.809Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_minority_scholarship": {
-    "lastVerified": "2026-07-17T22:33:44.971Z",
+    "lastVerified": "2026-08-09T21:25:56.340Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_cmss_abroad": {
-    "lastVerified": "2026-07-17T21:47:47.292Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-09T21:24:42.542Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "kerala_pratibha_scholarship": {
-    "lastVerified": "2026-07-17T22:34:01.546Z",
+    "lastVerified": "2026-08-09T21:26:18.113Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_norka_pravasi": {
-    "lastVerified": "2026-07-17T22:33:53.155Z",
+    "lastVerified": "2026-08-09T21:26:08.639Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "kerala_cm_distress_relief": {
-    "lastVerified": "2026-07-17T21:47:42.541Z",
+    "lastVerified": "2026-08-09T21:24:29.038Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1840,15 +1840,15 @@
     "confidence": 0
   },
   "ladakh_himayat_skill": {
-    "lastVerified": "2026-07-17T22:35:02.424Z",
+    "lastVerified": "2026-08-09T21:27:13.857Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ladakh_sehat_health_insurance": {
-    "lastVerified": "2026-07-17T22:35:29.088Z",
-    "linkAlive": true,
-    "httpStatus": 200,
+    "lastVerified": "2026-08-09T21:27:47.040Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "an_youth_skill_ddet": {
@@ -1922,7 +1922,7 @@
     "confidence": 0
   },
   "khelo_india": {
-    "lastVerified": "2026-07-17T22:34:47.910Z",
+    "lastVerified": "2026-08-09T21:27:04.838Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1985,7 +1985,7 @@
     "confidence": 0
   },
   "karnataka_vidyasiri": {
-    "lastVerified": "2026-07-17T21:46:53.402Z",
+    "lastVerified": "2026-08-09T21:23:40.111Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2051,7 +2051,7 @@
     "confidence": 0
   },
   "karnataka_widow_pension": {
-    "lastVerified": "2026-07-17T21:46:57.928Z",
+    "lastVerified": "2026-08-09T21:23:45.662Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2075,7 +2075,7 @@
     "confidence": 0
   },
   "karnataka_yashasvini": {
-    "lastVerified": "2026-07-17T21:47:01.861Z",
+    "lastVerified": "2026-08-09T21:23:52.836Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2105,7 +2105,7 @@
     "confidence": 0
   },
   "karnataka_yuva_nidhi": {
-    "lastVerified": "2026-07-17T21:47:12.505Z",
+    "lastVerified": "2026-08-09T21:24:04.608Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3177,7 +3177,7 @@
     "confidence": 0
   },
   "ladakh_sc_st_scholarship": {
-    "lastVerified": "2026-07-17T22:35:24.487Z",
+    "lastVerified": "2026-08-09T21:27:33.539Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
