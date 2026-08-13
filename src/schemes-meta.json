@@ -410,7 +410,7 @@
     "linkAlive": true
   },
   "mgnrega": {
-    "lastVerified": "2026-07-18T04:13:37.710Z",
+    "lastVerified": "2026-08-13T21:37:46.482Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -678,7 +678,7 @@
     "linkAlive": true
   },
   "mcm_minority": {
-    "lastVerified": "2026-07-18T01:07:54.448Z",
+    "lastVerified": "2026-08-13T21:36:40.038Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1026,25 +1026,25 @@
     "isActive": true
   },
   "mp_ladli": {
-    "lastVerified": "2026-07-18T04:15:01.908Z",
+    "lastVerified": "2026-08-13T21:39:29.820Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_kanya_vivah": {
-    "lastVerified": "2026-07-18T04:14:53.152Z",
+    "lastVerified": "2026-08-13T21:39:16.696Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_mmvy": {
-    "lastVerified": "2026-07-18T04:15:19.136Z",
+    "lastVerified": "2026-08-13T21:39:50.387Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "mp_sambal": {
-    "lastVerified": "2026-07-18T04:15:38.926Z",
+    "lastVerified": "2026-08-13T21:40:04.734Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1080,13 +1080,13 @@
     "confidence": 0
   },
   "mp_chirayu": {
-    "lastVerified": "2026-07-18T04:14:33.042Z",
+    "lastVerified": "2026-08-13T21:38:45.681Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_ladli_behna": {
-    "lastVerified": "2026-07-18T04:15:07.218Z",
+    "lastVerified": "2026-08-13T21:39:34.811Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1098,7 +1098,7 @@
     "confidence": 0
   },
   "mp_kalyani_sahayata": {
-    "lastVerified": "2026-07-18T04:14:47.804Z",
+    "lastVerified": "2026-08-13T21:39:07.042Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1110,7 +1110,7 @@
     "confidence": 0
   },
   "mp_gaon_ki_beti": {
-    "lastVerified": "2026-07-18T04:14:42.832Z",
+    "lastVerified": "2026-08-13T21:38:55.404Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -1636,7 +1636,7 @@
     "confidence": 0
   },
   "mp_nishakt_vivah": {
-    "lastVerified": "2026-07-18T04:15:23.464Z",
+    "lastVerified": "2026-08-13T21:39:54.742Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1738,37 +1738,37 @@
     "confidence": 0
   },
   "meghalaya_cm_kisan_samman": {
-    "lastVerified": "2026-07-18T01:08:09.873Z",
+    "lastVerified": "2026-08-13T21:36:55.280Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_mhis": {
-    "lastVerified": "2026-07-18T04:13:13.068Z",
+    "lastVerified": "2026-08-13T21:37:18.028Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_cm_scholarship": {
-    "lastVerified": "2026-07-18T04:13:00.598Z",
+    "lastVerified": "2026-08-13T21:37:05.335Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_msy_entrepreneur": {
-    "lastVerified": "2026-07-18T04:13:24.291Z",
+    "lastVerified": "2026-08-13T21:37:32.297Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "mizoram_health_insurance": {
-    "lastVerified": "2026-07-18T04:13:59.312Z",
-    "linkAlive": false,
-    "httpStatus": 0,
+    "lastVerified": "2026-08-13T21:38:08.673Z",
+    "linkAlive": true,
+    "httpStatus": 200,
     "confidence": 0
   },
   "mizoram_cm_scholarship": {
-    "lastVerified": "2026-07-18T04:13:53.998Z",
+    "lastVerified": "2026-08-13T21:38:02.651Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -3184,13 +3184,13 @@
     "isActive": true
   },
   "mp_prasuti": {
-    "lastVerified": "2026-07-18T04:15:33.318Z",
+    "lastVerified": "2026-08-13T21:39:59.751Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_ladli_behna_awas": {
-    "lastVerified": "2026-07-18T04:15:12.256Z",
+    "lastVerified": "2026-08-13T21:39:40.136Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
