@@ -324,7 +324,7 @@
     "linkAlive": false
   },
   "mudra": {
-    "lastVerified": "2026-07-18T04:16:21.669Z",
+    "lastVerified": "2026-08-14T21:18:48.463Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -438,11 +438,11 @@
     "linkAlive": true
   },
   "nfsa_pds": {
-    "lastVerified": "2026-07-18T06:19:28.817Z",
+    "lastVerified": "2026-08-14T21:20:29.015Z",
     "isActive": true,
-    "httpStatus": 200,
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "sbm_gramin": {
     "lastVerified": "2026-07-18T11:52:14.208Z",
@@ -531,7 +531,7 @@
     "linkAlive": true
   },
   "nmmss": {
-    "lastVerified": "2026-07-18T06:19:58.905Z",
+    "lastVerified": "2026-08-14T21:20:54.363Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -556,7 +556,7 @@
     "linkAlive": false
   },
   "nikshay_poshan": {
-    "lastVerified": "2026-07-18T06:19:44.495Z",
+    "lastVerified": "2026-08-14T21:20:43.694Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -627,7 +627,7 @@
     "linkAlive": true
   },
   "naps": {
-    "lastVerified": "2026-07-18T06:18:42.777Z",
+    "lastVerified": "2026-08-14T21:19:39.489Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1050,31 +1050,31 @@
     "confidence": 0
   },
   "mp_vridha_pension": {
-    "lastVerified": "2026-07-18T04:16:11.811Z",
+    "lastVerified": "2026-08-14T21:18:38.007Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_vidhwa_pension": {
-    "lastVerified": "2026-07-18T04:16:02.284Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-14T21:18:22.353Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "mp_sikho_kamao": {
-    "lastVerified": "2026-07-18T04:15:44.250Z",
+    "lastVerified": "2026-08-14T21:17:57.430Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_yuva_udyami": {
-    "lastVerified": "2026-07-18T04:16:15.997Z",
+    "lastVerified": "2026-08-14T21:18:43.163Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_swarojgar": {
-    "lastVerified": "2026-07-18T04:15:49.310Z",
+    "lastVerified": "2026-08-14T21:18:02.990Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1092,7 +1092,7 @@
     "confidence": 0
   },
   "mp_viklang_pension": {
-    "lastVerified": "2026-07-18T04:16:07.658Z",
+    "lastVerified": "2026-08-14T21:18:32.792Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1104,7 +1104,7 @@
     "confidence": 0
   },
   "mp_udyam_kranti": {
-    "lastVerified": "2026-07-18T04:15:57.402Z",
+    "lastVerified": "2026-08-14T21:18:12.184Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1522,7 +1522,7 @@
     "confidence": 0
   },
   "nlm": {
-    "lastVerified": "2026-07-18T06:19:54.142Z",
+    "lastVerified": "2026-08-14T21:20:48.958Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1774,13 +1774,13 @@
     "confidence": 0
   },
   "nagaland_health_scheme": {
-    "lastVerified": "2026-07-18T04:16:41.940Z",
+    "lastVerified": "2026-08-14T21:19:13.685Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "nagaland_cm_scholarship": {
-    "lastVerified": "2026-07-18T04:16:30.065Z",
+    "lastVerified": "2026-08-14T21:18:58.124Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1910,7 +1910,7 @@
     "confidence": 0
   },
   "nfobc": {
-    "lastVerified": "2026-07-18T06:19:11.452Z",
+    "lastVerified": "2026-08-14T21:20:09.914Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3396,7 +3396,7 @@
     "confidence": 0
   },
   "nfst": {
-    "lastVerified": "2026-07-18T06:19:38.249Z",
+    "lastVerified": "2026-08-14T21:20:38.556Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -3450,13 +3450,13 @@
     "confidence": 0
   },
   "nfpwd": {
-    "lastVerified": "2026-07-18T06:19:22.222Z",
+    "lastVerified": "2026-08-14T21:20:15.513Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "nats_apprenticeship": {
-    "lastVerified": "2026-07-18T06:18:54.904Z",
+    "lastVerified": "2026-08-14T21:19:51.591Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
