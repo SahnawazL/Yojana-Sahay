@@ -291,7 +291,7 @@
     "linkAlive": true
   },
   "pmkisan": {
-    "lastVerified": "2026-07-18T08:17:02.778Z",
+    "lastVerified": "2026-08-16T21:13:39.937Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -305,7 +305,7 @@
     "linkAlive": true
   },
   "pmawas_urban": {
-    "lastVerified": "2026-07-18T08:15:55.460Z",
+    "lastVerified": "2026-08-16T21:12:29.438Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -349,14 +349,14 @@
     "linkAlive": false
   },
   "pmjdy": {
-    "lastVerified": "2026-07-18T08:16:45.011Z",
+    "lastVerified": "2026-08-16T21:13:25.243Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmjjby": {
-    "lastVerified": "2026-07-18T08:16:57.661Z",
+    "lastVerified": "2026-08-16T21:13:34.951Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -396,18 +396,18 @@
     "linkAlive": true
   },
   "pmmvy": {
-    "lastVerified": "2026-07-18T08:17:56.877Z",
-    "isActive": true,
-    "httpStatus": 200,
-    "confidence": 0,
-    "linkAlive": true
-  },
-  "pmfby": {
-    "lastVerified": "2026-07-18T11:51:38.854Z",
+    "lastVerified": "2026-08-16T21:14:33.888Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
+  },
+  "pmfby": {
+    "lastVerified": "2026-08-16T21:12:56.814Z",
+    "isActive": true,
+    "httpStatus": 0,
+    "confidence": 0,
+    "linkAlive": false
   },
   "mgnrega": {
     "lastVerified": "2026-08-13T21:37:46.482Z",
@@ -417,14 +417,14 @@
     "linkAlive": false
   },
   "pmkvy": {
-    "lastVerified": "2026-07-18T08:17:35.364Z",
+    "lastVerified": "2026-08-16T21:14:09.910Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "pmegp": {
-    "lastVerified": "2026-07-18T08:16:05.943Z",
+    "lastVerified": "2026-08-16T21:12:45.724Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -458,19 +458,19 @@
     "linkAlive": true
   },
   "pmpsmy": {
-    "lastVerified": "2026-07-18T08:18:01.386Z",
+    "lastVerified": "2026-08-16T21:14:38.801Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmjay_senior": {
-    "lastVerified": "2026-07-18T08:16:40.029Z",
+    "lastVerified": "2026-08-16T21:13:19.521Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmgsy": {
-    "lastVerified": "2026-07-18T08:16:35.191Z",
+    "lastVerified": "2026-08-16T21:13:14.493Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -490,7 +490,7 @@
     "linkAlive": true
   },
   "pmay_urban2": {
-    "lastVerified": "2026-07-18T08:16:01.099Z",
+    "lastVerified": "2026-08-16T21:12:40.502Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -524,7 +524,7 @@
     "linkAlive": false
   },
   "pmkmy": {
-    "lastVerified": "2026-07-18T08:17:11.131Z",
+    "lastVerified": "2026-08-16T21:13:45.045Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -607,7 +607,7 @@
     "linkAlive": false
   },
   "pmmsy": {
-    "lastVerified": "2026-07-18T08:17:52.683Z",
+    "lastVerified": "2026-08-16T21:14:27.410Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -633,14 +633,14 @@
     "linkAlive": true
   },
   "pmkmy_kisan": {
-    "lastVerified": "2026-07-18T08:17:16.471Z",
+    "lastVerified": "2026-08-16T21:13:49.751Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmksy": {
-    "lastVerified": "2026-07-18T08:17:25.036Z",
+    "lastVerified": "2026-08-16T21:13:59.363Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -652,7 +652,7 @@
     "linkAlive": true
   },
   "pmlvmy": {
-    "lastVerified": "2026-07-18T08:17:41.952Z",
+    "lastVerified": "2026-08-16T21:14:16.804Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -690,7 +690,7 @@
     "linkAlive": false
   },
   "pmfme": {
-    "lastVerified": "2026-07-18T08:16:22.868Z",
+    "lastVerified": "2026-08-16T21:13:01.953Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -703,7 +703,7 @@
     "linkAlive": true
   },
   "pms_obc": {
-    "lastVerified": "2026-07-18T08:18:05.596Z",
+    "lastVerified": "2026-08-16T21:14:43.871Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
