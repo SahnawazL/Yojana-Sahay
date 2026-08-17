@@ -363,7 +363,7 @@
     "linkAlive": true
   },
   "pmsby": {
-    "lastVerified": "2026-07-18T08:18:14.443Z",
+    "lastVerified": "2026-08-17T21:18:22.450Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -376,17 +376,17 @@
     "linkAlive": true
   },
   "pmvishwakarma": {
-    "lastVerified": "2026-07-18T08:18:35.949Z",
+    "lastVerified": "2026-08-17T21:18:50.770Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmsvanidhi": {
-    "lastVerified": "2026-07-18T08:18:23.658Z",
-    "httpStatus": 200,
+    "lastVerified": "2026-08-17T21:18:38.367Z",
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "sukanya": {
     "lastVerified": "2026-07-18T11:54:15.595Z",
@@ -601,7 +601,7 @@
     "linkAlive": true
   },
   "pmvvy": {
-    "lastVerified": "2026-07-18T08:18:46.023Z",
+    "lastVerified": "2026-08-17T21:19:01.386Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -620,11 +620,11 @@
     "linkAlive": true
   },
   "pms_sc_st": {
-    "lastVerified": "2026-07-18T08:18:09.816Z",
+    "lastVerified": "2026-08-17T21:18:11.432Z",
     "isActive": true,
-    "httpStatus": 200,
+    "httpStatus": 0,
     "confidence": 0,
-    "linkAlive": true
+    "linkAlive": false
   },
   "naps": {
     "lastVerified": "2026-08-14T21:19:39.489Z",
@@ -646,7 +646,7 @@
     "linkAlive": false
   },
   "premat_st_scholarship": {
-    "lastVerified": "2026-07-18T08:18:58.371Z",
+    "lastVerified": "2026-08-17T21:19:24.041Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -697,7 +697,7 @@
     "linkAlive": true
   },
   "premat_sc": {
-    "lastVerified": "2026-07-18T08:18:53.879Z",
+    "lastVerified": "2026-08-17T21:19:11.244Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -3238,19 +3238,19 @@
     "confidence": 0
   },
   "punjab_ashirwad": {
-    "lastVerified": "2026-07-18T08:19:49.880Z",
+    "lastVerified": "2026-08-17T21:20:20.290Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_atta_dal": {
-    "lastVerified": "2026-07-18T09:53:03.686Z",
+    "lastVerified": "2026-08-17T21:20:26.258Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_crop_insurance": {
-    "lastVerified": "2026-07-18T09:53:39.396Z",
+    "lastVerified": "2026-08-17T21:21:07.119Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -3268,19 +3268,19 @@
     "confidence": 0
   },
   "punjab_gharkari_yojana": {
-    "lastVerified": "2026-07-18T09:54:42.711Z",
+    "lastVerified": "2026-08-17T21:22:07.057Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "punjab_budhapa_pension": {
-    "lastVerified": "2026-07-18T09:53:25.104Z",
+    "lastVerified": "2026-08-17T21:20:51.930Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_divyang_pension": {
-    "lastVerified": "2026-07-18T09:54:05.608Z",
+    "lastVerified": "2026-08-17T21:21:29.541Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3328,7 +3328,7 @@
     "confidence": 0
   },
   "punjab_bocw_welfare": {
-    "lastVerified": "2026-07-18T09:53:16.475Z",
+    "lastVerified": "2026-08-17T21:20:40.252Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3340,7 +3340,7 @@
     "confidence": 0
   },
   "punjab_disability_scholarship": {
-    "lastVerified": "2026-07-18T09:53:52.077Z",
+    "lastVerified": "2026-08-17T21:21:20.757Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3364,7 +3364,7 @@
     "confidence": 0
   },
   "puducherry_cm_scholarship": {
-    "lastVerified": "2026-07-18T08:19:06.747Z",
+    "lastVerified": "2026-08-17T21:19:32.941Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
@@ -3420,7 +3420,7 @@
     "confidence": 0
   },
   "pmss_defence": {
-    "lastVerified": "2026-07-18T08:18:19.392Z",
+    "lastVerified": "2026-08-17T21:18:27.804Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
