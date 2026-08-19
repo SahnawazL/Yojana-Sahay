@@ -1353,13 +1353,13 @@
     "isActive": true
   },
   "raj_palanhar": {
-    "lastVerified": "2026-07-18T10:59:27.375Z",
+    "lastVerified": "2026-08-19T21:20:00.472Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_rajshri": {
-    "lastVerified": "2026-07-18T10:59:43.212Z",
+    "lastVerified": "2026-08-19T21:20:20.592Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1384,31 +1384,31 @@
     "linkAlive": false
   },
   "raj_kalibai_scooty": {
-    "lastVerified": "2026-07-18T10:58:40.848Z",
+    "lastVerified": "2026-08-19T21:19:05.163Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_devnarayan_scooty": {
-    "lastVerified": "2026-07-18T10:58:05.915Z",
+    "lastVerified": "2026-08-19T21:18:22.467Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_tarbandi": {
-    "lastVerified": "2026-07-18T11:00:11.894Z",
+    "lastVerified": "2026-08-19T21:20:46.717Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_krishak_sathi": {
-    "lastVerified": "2026-07-18T10:58:51.042Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-19T21:19:22.934Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "raj_dugdh_sambal": {
-    "lastVerified": "2026-07-18T10:58:10.087Z",
+    "lastVerified": "2026-08-19T21:18:29.112Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1420,7 +1420,7 @@
     "confidence": 0
   },
   "raj_ssp_pension": {
-    "lastVerified": "2026-07-18T11:00:06.321Z",
+    "lastVerified": "2026-08-19T21:20:40.917Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -1432,19 +1432,19 @@
     "confidence": 0
   },
   "raj_jan_awas": {
-    "lastVerified": "2026-07-18T10:58:32.445Z",
+    "lastVerified": "2026-08-19T21:18:52.542Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_sinchai_pipeline": {
-    "lastVerified": "2026-07-18T11:00:00.381Z",
+    "lastVerified": "2026-08-19T21:20:34.708Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_mlupy": {
-    "lastVerified": "2026-07-18T10:59:09.465Z",
+    "lastVerified": "2026-08-19T21:19:44.325Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1462,7 +1462,7 @@
     "confidence": 0
   },
   "raj_gargi_puraskar": {
-    "lastVerified": "2026-07-18T10:58:15.149Z",
+    "lastVerified": "2026-08-19T21:18:34.532Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -1474,43 +1474,43 @@
     "confidence": 0
   },
   "raj_teerth_yatra": {
-    "lastVerified": "2026-07-18T11:00:18.961Z",
+    "lastVerified": "2026-08-19T21:20:55.412Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_dadups": {
-    "lastVerified": "2026-07-18T10:57:58.457Z",
+    "lastVerified": "2026-08-19T21:18:16.800Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "raj_rsldc_skill": {
-    "lastVerified": "2026-07-18T10:59:50.618Z",
+    "lastVerified": "2026-08-19T21:20:25.313Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_kisan_mitra_urja": {
-    "lastVerified": "2026-07-18T10:58:45.275Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-19T21:19:16.444Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "raj_polyhouse": {
-    "lastVerified": "2026-07-18T10:59:35.711Z",
+    "lastVerified": "2026-08-19T21:20:09.269Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "raj_hamari_beti": {
-    "lastVerified": "2026-07-18T10:58:20.217Z",
+    "lastVerified": "2026-08-19T21:18:40.328Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
   },
   "raj_minority_scholarship": {
-    "lastVerified": "2026-07-18T10:58:59.167Z",
+    "lastVerified": "2026-08-19T21:19:33.200Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
