@@ -343,7 +343,7 @@
     "linkAlive": true
   },
   "vriddhapension": {
-    "lastVerified": "2026-07-18T14:25:04.706Z",
+    "lastVerified": "2026-08-23T21:16:22.351Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -780,62 +780,62 @@
     "linkAlive": true
   },
   "up_kanya": {
-    "lastVerified": "2026-07-18T14:24:19.433Z",
+    "lastVerified": "2026-08-23T21:15:04.081Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "up_samuhik_vivah": {
-    "lastVerified": "2026-07-18T14:24:32.729Z",
+    "lastVerified": "2026-08-23T21:15:26.061Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_vidhva": {
-    "lastVerified": "2026-07-18T14:24:38.089Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-23T21:15:39.565Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "up_vridha_pension": {
-    "lastVerified": "2026-07-18T14:24:46.813Z",
+    "lastVerified": "2026-08-23T21:16:02.772Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_divyang_pension": {
-    "lastVerified": "2026-07-18T14:24:06.544Z",
+    "lastVerified": "2026-08-23T21:14:40.290Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_parivarik_labh": {
-    "lastVerified": "2026-07-18T14:24:28.789Z",
+    "lastVerified": "2026-08-23T21:15:21.008Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_free_tablet": {
-    "lastVerified": "2026-07-18T14:24:10.831Z",
+    "lastVerified": "2026-08-23T21:14:50.243Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_abhyudaya": {
-    "lastVerified": "2026-07-18T14:23:52.962Z",
+    "lastVerified": "2026-08-23T21:14:29.667Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_internship": {
-    "lastVerified": "2026-07-18T14:24:15.224Z",
+    "lastVerified": "2026-08-23T21:14:55.440Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_vishwakarma_shram": {
-    "lastVerified": "2026-07-18T14:24:42.348Z",
+    "lastVerified": "2026-08-23T21:15:52.263Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -866,7 +866,7 @@
     "confidence": 0
   },
   "wb_aikyashree": {
-    "lastVerified": "2026-07-18T14:25:09.655Z",
+    "lastVerified": "2026-08-23T21:16:28.119Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1116,7 +1116,7 @@
     "linkAlive": false
   },
   "uk_vatsalya": {
-    "lastVerified": "2026-07-18T14:23:48.785Z",
+    "lastVerified": "2026-08-23T21:14:23.756Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1618,13 +1618,13 @@
     "confidence": 0
   },
   "uk_saur_swarojgar": {
-    "lastVerified": "2026-07-18T14:23:40.854Z",
+    "lastVerified": "2026-08-23T21:14:14.561Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "uk_swarozgar_yojana": {
-    "lastVerified": "2026-07-18T14:23:45.055Z",
+    "lastVerified": "2026-08-23T21:14:19.658Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -3196,7 +3196,7 @@
     "confidence": 0
   },
   "uk_post_matric_scholarship": {
-    "lastVerified": "2026-07-18T14:23:32.632Z",
+    "lastVerified": "2026-08-23T21:14:09.534Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -3220,19 +3220,19 @@
     "confidence": 0
   },
   "up_bal_seva": {
-    "lastVerified": "2026-07-18T14:23:57.686Z",
+    "lastVerified": "2026-08-23T21:14:34.944Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_yuva_udyami": {
-    "lastVerified": "2026-07-18T14:24:51.367Z",
+    "lastVerified": "2026-08-23T21:16:08.085Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_khet_suraksha": {
-    "lastVerified": "2026-07-18T14:24:24.234Z",
+    "lastVerified": "2026-08-23T21:15:15.534Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
