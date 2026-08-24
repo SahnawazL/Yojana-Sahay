@@ -589,7 +589,7 @@
     "linkAlive": true
   },
   "annapurna": {
-    "lastVerified": "2026-07-18T15:30:11.704Z",
+    "lastVerified": "2026-08-24T21:24:24.488Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -841,27 +841,27 @@
     "confidence": 0
   },
   "wb_kanyashree": {
-    "lastVerified": "2026-07-18T14:25:28.632Z",
+    "lastVerified": "2026-08-24T21:21:13.994Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_rupashree": {
-    "lastVerified": "2026-07-18T14:25:45.007Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-24T21:21:42.983Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "wb_student_credit_card": {
-    "lastVerified": "2026-07-18T14:25:57.878Z",
+    "lastVerified": "2026-08-24T21:22:05.288Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_shikshashree": {
-    "lastVerified": "2026-07-18T14:25:53.166Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-24T21:21:59.985Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "isActive": true,
     "confidence": 0
   },
@@ -872,20 +872,20 @@
     "confidence": 0
   },
   "wb_yuvashree": {
-    "lastVerified": "2026-07-18T15:28:35.631Z",
+    "lastVerified": "2026-08-24T21:22:35.655Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_utkarsh_bangla": {
-    "lastVerified": "2026-07-18T15:28:30.709Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-08-24T21:22:25.791Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0,
     "isActive": true
   },
   "wb_krishak_bandhu": {
-    "lastVerified": "2026-07-18T14:25:32.783Z",
+    "lastVerified": "2026-08-24T21:21:19.562Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1852,15 +1852,15 @@
     "confidence": 0
   },
   "an_youth_skill_ddet": {
-    "lastVerified": "2026-07-18T15:30:00.095Z",
+    "lastVerified": "2026-08-24T21:24:17.753Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "an_pmjay_health": {
-    "lastVerified": "2026-07-18T15:29:27.886Z",
-    "linkAlive": true,
-    "httpStatus": 200,
+    "lastVerified": "2026-08-24T21:23:48.091Z",
+    "linkAlive": false,
+    "httpStatus": 0,
     "confidence": 0
   },
   "bihar_minority_scholarship": {
@@ -1916,7 +1916,7 @@
     "confidence": 0
   },
   "aif": {
-    "lastVerified": "2026-07-18T15:29:07.568Z",
+    "lastVerified": "2026-08-24T21:23:13.939Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1934,21 +1934,21 @@
     "confidence": 0
   },
   "aicte_pragati": {
-    "lastVerified": "2026-07-18T15:28:56.791Z",
+    "lastVerified": "2026-08-24T21:23:03.189Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "aicte_saksham": {
-    "lastVerified": "2026-07-18T15:29:02.482Z",
+    "lastVerified": "2026-08-24T21:23:08.734Z",
     "httpStatus": 200,
     "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
   "agniveer": {
-    "lastVerified": "2026-07-18T15:28:51.144Z",
+    "lastVerified": "2026-08-24T21:22:57.419Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3202,7 +3202,7 @@
     "confidence": 0
   },
   "wb_lakshmir_bhandar": {
-    "lastVerified": "2026-07-18T14:25:40.442Z",
+    "lastVerified": "2026-08-24T21:21:29.480Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -3214,7 +3214,7 @@
     "confidence": 0
   },
   "wb_jai_bangla_pension": {
-    "lastVerified": "2026-07-18T14:25:24.687Z",
+    "lastVerified": "2026-08-24T21:21:04.151Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3371,9 +3371,9 @@
     "confidence": 0
   },
   "an_sc_st_scholarship": {
-    "lastVerified": "2026-07-18T15:29:45.987Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-08-24T21:24:03.979Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "isActive": true,
     "confidence": 0
   },
@@ -3444,7 +3444,7 @@
     "confidence": 0
   },
   "ambedkar_interest_subsidy": {
-    "lastVerified": "2026-07-18T15:29:12.496Z",
+    "lastVerified": "2026-08-24T21:23:24.089Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
