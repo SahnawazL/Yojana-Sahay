@@ -7,7 +7,7 @@
     "confidence": 0
   },
   "assam_atal_amrit": {
-    "lastVerified": "2026-07-18T15:32:09.212Z",
+    "lastVerified": "2026-08-25T21:21:27.015Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
@@ -28,14 +28,14 @@
     "confidence": 0
   },
   "assam_anundoram": {
-    "lastVerified": "2026-07-18T15:31:43.627Z",
+    "lastVerified": "2026-08-25T21:20:44.398Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_krishi_sajuli": {
-    "lastVerified": "2026-07-18T16:27:55.148Z",
+    "lastVerified": "2026-08-25T21:22:42.645Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -48,7 +48,7 @@
     "confidence": 0
   },
   "assam_amrit_briksha": {
-    "lastVerified": "2026-07-18T15:31:38.715Z",
+    "lastVerified": "2026-08-25T21:20:38.889Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
@@ -62,7 +62,7 @@
     "isActive": true
   },
   "assam_arundhati_gold": {
-    "lastVerified": "2026-07-18T15:32:04.968Z",
+    "lastVerified": "2026-08-25T21:21:21.941Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -75,28 +75,28 @@
     "confidence": 0
   },
   "assam_aponar_apon_ghar": {
-    "lastVerified": "2026-07-18T15:31:48.580Z",
+    "lastVerified": "2026-08-25T21:20:56.036Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_kushal_konwar_pension": {
-    "lastVerified": "2026-07-18T16:28:00.426Z",
+    "lastVerified": "2026-08-25T21:22:47.579Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_lakhpati_baideo": {
-    "lastVerified": "2026-07-18T16:28:05.278Z",
+    "lastVerified": "2026-08-25T21:22:55.522Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_indira_miri_widow": {
-    "lastVerified": "2026-07-18T16:27:40.001Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-08-25T21:22:27.422Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "assam_sarothi": {
@@ -107,13 +107,13 @@
     "confidence": 0
   },
   "assam_jibon_prerana": {
-    "lastVerified": "2026-07-18T16:27:49.777Z",
+    "lastVerified": "2026-08-25T21:22:37.574Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_abhinandan_loan": {
-    "lastVerified": "2026-07-18T15:31:25.779Z",
+    "lastVerified": "2026-08-25T21:20:25.265Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -133,46 +133,46 @@
     "confidence": 0
   },
   "assam_covid_widow": {
-    "lastVerified": "2026-07-18T16:27:17.509Z",
+    "lastVerified": "2026-08-25T21:22:05.185Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_mmua": {
-    "lastVerified": "2026-07-18T16:28:22.797Z",
+    "lastVerified": "2026-08-25T21:23:15.481Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_mmlsay": {
-    "lastVerified": "2026-07-18T16:28:18.635Z",
+    "lastVerified": "2026-08-25T21:23:09.748Z",
     "isActive": true,
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "assam_basundhara": {
-    "lastVerified": "2026-07-18T15:32:23.225Z",
+    "lastVerified": "2026-08-25T21:21:39.949Z",
     "isActive": false,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "assam_arohan": {
-    "lastVerified": "2026-07-18T15:32:00.460Z",
+    "lastVerified": "2026-08-25T21:21:12.882Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_bigyan_pratibha": {
-    "lastVerified": "2026-07-18T16:27:01.203Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-08-25T21:21:49.852Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "assam_disability_pension": {
-    "lastVerified": "2026-07-18T16:27:26.498Z",
+    "lastVerified": "2026-08-25T21:22:17.144Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
@@ -370,7 +370,7 @@
     "linkAlive": true
   },
   "apy": {
-    "lastVerified": "2026-07-18T15:30:48.309Z",
+    "lastVerified": "2026-08-25T21:19:46.365Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
