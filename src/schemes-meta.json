@@ -204,55 +204,55 @@
     "linkAlive": true
   },
   "bihar_medhavritti": {
-    "lastVerified": "2026-07-18T16:30:41.062Z",
+    "lastVerified": "2026-08-28T05:02:44.348Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_mahila_udyami": {
-    "lastVerified": "2026-07-18T16:30:37.055Z",
+    "lastVerified": "2026-08-28T05:02:38.877Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "bihar_sc_st_udyami": {
-    "lastVerified": "2026-07-18T16:30:53.637Z",
+    "lastVerified": "2026-08-28T05:02:58.215Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "bihar_yuva_udyami": {
-    "lastVerified": "2026-07-18T17:29:38.948Z",
+    "lastVerified": "2026-08-28T05:03:19.748Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "bihar_laghu_udyami": {
-    "lastVerified": "2026-07-18T16:30:32.610Z",
+    "lastVerified": "2026-08-28T05:02:31.275Z",
     "isActive": true,
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "bihar_student_credit_card": {
-    "lastVerified": "2026-07-18T16:31:00.601Z",
+    "lastVerified": "2026-08-28T05:03:03.634Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_swayam_bhatta": {
-    "lastVerified": "2026-07-18T17:29:26.697Z",
+    "lastVerified": "2026-08-28T05:03:09.294Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_kushal_yuva": {
-    "lastVerified": "2026-07-18T16:30:28.374Z",
+    "lastVerified": "2026-08-28T05:02:21.657Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -285,7 +285,7 @@
     "linkAlive": true
   },
   "bihar_vridhjan_pension": {
-    "lastVerified": "2026-07-18T17:29:33.621Z",
+    "lastVerified": "2026-08-28T05:03:14.918Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1534,13 +1534,13 @@
     "confidence": 0
   },
   "cg_dr_khoobasuram_health": {
-    "lastVerified": "2026-07-18T17:30:10.098Z",
+    "lastVerified": "2026-08-28T05:03:55.480Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_higher_ed_scholarship": {
-    "lastVerified": "2026-07-18T17:30:34.163Z",
+    "lastVerified": "2026-08-28T05:04:25.503Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1558,16 +1558,17 @@
     "confidence": 0
   },
   "cg_kaushal_vikas": {
-    "lastVerified": "2026-07-18T17:30:42.274Z",
+    "lastVerified": "2026-08-28T05:04:36.885Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_labour_card": {
-    "lastVerified": "2026-07-18T17:31:00.107Z",
+    "lastVerified": "2026-08-28T05:04:49.798Z",
     "linkAlive": false,
-    "httpStatus": 0,
-    "confidence": 0
+    "httpStatus": 404,
+    "confidence": 0.7,
+    "isActive": false
   },
   "cg_pre_matric_tribal": {
     "lastVerified": "2026-07-18T17:32:23.465Z",
@@ -1588,13 +1589,13 @@
     "confidence": 0
   },
   "cg_drip_sprinkler": {
-    "lastVerified": "2026-07-18T17:30:14.960Z",
+    "lastVerified": "2026-08-28T05:04:00.518Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_msme_subsidy": {
-    "lastVerified": "2026-07-18T17:31:38.069Z",
+    "lastVerified": "2026-08-28T05:05:25.381Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1864,7 +1865,7 @@
     "confidence": 0
   },
   "bihar_minority_scholarship": {
-    "lastVerified": "2026-07-18T16:30:45.290Z",
+    "lastVerified": "2026-08-28T05:02:49.595Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -2614,13 +2615,13 @@
     "confidence": 0
   },
   "cg_dr_khoobasuram": {
-    "lastVerified": "2026-07-18T17:30:05.133Z",
+    "lastVerified": "2026-08-28T05:03:50.344Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "cg_mahtari_vandan": {
-    "lastVerified": "2026-07-18T17:31:16.864Z",
+    "lastVerified": "2026-08-28T05:05:05.338Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3432,7 +3433,7 @@
     "confidence": 0
   },
   "cbse_single_girl": {
-    "lastVerified": "2026-07-18T17:29:45.897Z",
+    "lastVerified": "2026-08-28T05:03:24.627Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
