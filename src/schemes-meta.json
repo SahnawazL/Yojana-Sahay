@@ -452,7 +452,7 @@
     "linkAlive": false
   },
   "daynrlm": {
-    "lastVerified": "2026-07-18T18:30:09.640Z",
+    "lastVerified": "2026-08-29T03:01:05.122Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -483,7 +483,7 @@
     "linkAlive": true
   },
   "ddu_gky": {
-    "lastVerified": "2026-07-18T18:30:21.308Z",
+    "lastVerified": "2026-08-29T03:01:16.714Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -576,7 +576,7 @@
     "linkAlive": false
   },
   "daynulm": {
-    "lastVerified": "2026-07-18T18:30:15.140Z",
+    "lastVerified": "2026-08-29T03:01:10.225Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -672,7 +672,7 @@
     "linkAlive": true
   },
   "csss": {
-    "lastVerified": "2026-07-18T18:30:03.262Z",
+    "lastVerified": "2026-08-29T03:00:59.599Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1195,7 +1195,7 @@
     "confidence": 0
   },
   "delhi_bocw": {
-    "lastVerified": "2026-07-18T18:31:05.067Z",
+    "lastVerified": "2026-08-29T03:01:59.977Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1243,7 +1243,7 @@
     "confidence": 0
   },
   "delhi_ayushman_arogya": {
-    "lastVerified": "2026-07-18T18:31:00.522Z",
+    "lastVerified": "2026-08-29T03:01:52.659Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1273,7 +1273,7 @@
     "linkAlive": false
   },
   "delhi_apprenticeship": {
-    "lastVerified": "2026-07-18T18:30:44.718Z",
+    "lastVerified": "2026-08-29T03:01:36.666Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1546,13 +1546,13 @@
     "confidence": 0
   },
   "cg_solar_suryashakti": {
-    "lastVerified": "2026-07-18T17:33:12.514Z",
+    "lastVerified": "2026-08-29T02:59:36.987Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_shauchalay_nirman": {
-    "lastVerified": "2026-07-18T17:32:57.931Z",
+    "lastVerified": "2026-08-29T02:59:22.319Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -1571,19 +1571,19 @@
     "isActive": false
   },
   "cg_pre_matric_tribal": {
-    "lastVerified": "2026-07-18T17:32:23.465Z",
-    "linkAlive": false,
-    "httpStatus": 0,
+    "lastVerified": "2026-08-29T02:58:48.414Z",
+    "linkAlive": true,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_saur_sujala": {
-    "lastVerified": "2026-07-18T17:32:45.098Z",
+    "lastVerified": "2026-08-29T02:59:10.008Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_organic_farming": {
-    "lastVerified": "2026-07-18T17:32:11.307Z",
+    "lastVerified": "2026-08-29T02:58:39.776Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1601,10 +1601,11 @@
     "confidence": 0
   },
   "cg_startup_niti": {
-    "lastVerified": "2026-07-18T17:33:20.652Z",
-    "linkAlive": true,
-    "httpStatus": 200,
-    "confidence": 0
+    "lastVerified": "2026-08-29T02:59:43.564Z",
+    "linkAlive": false,
+    "httpStatus": 404,
+    "confidence": 0.7,
+    "isActive": false
   },
   "uk_nanda_gaura": {
     "lastVerified": "2026-08-22T21:17:01.529Z",
@@ -1898,14 +1899,14 @@
     "isActive": true
   },
   "chandigarh_post_matric_scholarship": {
-    "lastVerified": "2026-07-18T18:29:47.924Z",
+    "lastVerified": "2026-08-29T03:00:43.774Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
     "isActive": true
   },
   "chandigarh_chb_ews_housing": {
-    "lastVerified": "2026-07-18T18:29:32.149Z",
+    "lastVerified": "2026-08-29T03:00:28.014Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3487,7 +3488,7 @@
     "confidence": 0
   },
   "delhi_ambedkar_awas": {
-    "lastVerified": "2026-07-18T18:30:40.269Z",
+    "lastVerified": "2026-08-29T03:01:31.725Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
