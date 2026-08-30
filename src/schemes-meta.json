@@ -1159,7 +1159,7 @@
     "linkAlive": true
   },
   "delhi_old_age_pension": {
-    "lastVerified": "2026-07-18T19:45:34.784Z",
+    "lastVerified": "2026-08-30T23:02:30.659Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1171,25 +1171,25 @@
     "linkAlive": true
   },
   "delhi_pm_uday": {
-    "lastVerified": "2026-07-18T19:46:03.160Z",
+    "lastVerified": "2026-08-30T23:02:53.379Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sc_scholarship": {
-    "lastVerified": "2026-07-31T21:59:30.205Z",
+    "lastVerified": "2026-08-30T23:04:11.593Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_st_scholarship": {
-    "lastVerified": "2026-07-31T21:59:57.846Z",
+    "lastVerified": "2026-08-30T23:04:39.328Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_obc_scholarship": {
-    "lastVerified": "2026-07-18T19:45:26.345Z",
+    "lastVerified": "2026-08-30T23:02:20.289Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1213,7 +1213,7 @@
     "confidence": 0
   },
   "delhi_pre_matric_sc_st": {
-    "lastVerified": "2026-07-18T19:46:47.979Z",
+    "lastVerified": "2026-08-30T23:03:35.633Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1267,7 +1267,7 @@
     "confidence": 0
   },
   "delhi_sports_scholarship": {
-    "lastVerified": "2026-07-31T21:59:52.998Z",
+    "lastVerified": "2026-08-30T23:04:34.499Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -1298,7 +1298,7 @@
     "confidence": 0
   },
   "delhi_startup_policy": {
-    "lastVerified": "2026-07-31T22:00:09.336Z",
+    "lastVerified": "2026-08-30T23:04:49.611Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1316,7 +1316,7 @@
     "confidence": 0
   },
   "delhi_obc_prematric": {
-    "lastVerified": "2026-07-18T19:45:21.552Z",
+    "lastVerified": "2026-08-30T23:02:15.310Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1328,19 +1328,19 @@
     "confidence": 0
   },
   "delhi_sc_premier_institute_award": {
-    "lastVerified": "2026-07-31T21:59:24.710Z",
+    "lastVerified": "2026-08-30T23:04:06.825Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_pm_vishwakarma": {
-    "lastVerified": "2026-07-18T19:46:07.103Z",
+    "lastVerified": "2026-08-30T23:02:58.838Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sc_prematric": {
-    "lastVerified": "2026-07-31T21:59:19.436Z",
+    "lastVerified": "2026-08-30T23:04:01.910Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1632,7 +1632,7 @@
     "confidence": 0
   },
   "delhi_svnidhi": {
-    "lastVerified": "2026-07-31T22:00:26.239Z",
+    "lastVerified": "2026-08-30T23:05:01.512Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -3470,19 +3470,19 @@
     "confidence": 0
   },
   "delhi_pmkvy_skill": {
-    "lastVerified": "2026-07-18T19:46:33.048Z",
+    "lastVerified": "2026-08-30T23:03:19.203Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "delhi_pm_sym": {
-    "lastVerified": "2026-07-18T19:45:53.806Z",
+    "lastVerified": "2026-08-30T23:02:48.384Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "delhi_pmay_clss": {
-    "lastVerified": "2026-07-18T19:46:18.103Z",
+    "lastVerified": "2026-08-30T23:03:04.603Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3494,13 +3494,13 @@
     "confidence": 0
   },
   "delhi_nfbs": {
-    "lastVerified": "2026-07-18T19:45:09.645Z",
+    "lastVerified": "2026-08-30T23:02:03.201Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "delhi_sports_excellence": {
-    "lastVerified": "2026-07-31T21:59:46.775Z",
+    "lastVerified": "2026-08-30T23:04:28.222Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3521,6 +3521,6 @@
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true,
-    "lastVerified": "2026-07-18T19:45:30.555Z"
+    "lastVerified": "2026-08-30T23:02:25.503Z"
   }
 }
