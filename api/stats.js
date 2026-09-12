@@ -1,9 +1,12 @@
 /**
  * GET /api/stats
  *
- * Same-origin proxy for the "Indians Helped" counter on the home screen.
+ * Same-origin proxy for the "Indians Helped" counter on the home screen —
+ * PLUS a public, read-only "scheme health" snapshot (total schemes tracked +
+ * % of links currently verified live) used by the portfolio site's project
+ * card and by anything else that wants a live stat instead of a hardcoded one.
  *
- * WHY THIS EXISTS:
+ * WHY THIS EXISTS (checkerTotal part):
  * The client used to read appStats/usage directly from Firestore using the
  * Firebase Web SDK. That call goes to firestore.googleapis.com, which
  * Instagram / Facebook / Threads in-app browsers frequently block or
@@ -18,7 +21,19 @@
  * The client (App.jsx) calls this first, and only falls back to the direct
  * Firestore SDK read if this endpoint itself is unreachable.
  *
- * REQUIRED SETUP (one-time, in the Vercel dashboard):
+ * WHY THIS EXISTS (scheme health part):
+ * schemes-meta.json (the "GitHub-as-database" verification results file,
+ * see api/update-schemes-meta.js) lives in this repo, not in Firestore.
+ * To surface a live "N schemes tracked · X% link health" stat elsewhere
+ * (e.g. the portfolio site), this endpoint reads that same file straight
+ * from GitHub via the Contents API — reusing the GITHUB_TOKEN / GITHUB_REPO
+ * env vars already configured for update-schemes-meta.js. No new env vars.
+ *
+ * CORS: this endpoint is read-only, non-sensitive aggregate data, so it's
+ * allowed cross-origin (Access-Control-Allow-Origin: *) so other sites
+ * (like the portfolio) can fetch it directly.
+ *
+ * REQUIRED SETUP (one-time, in the Vercel dashboard) — unchanged from before:
  *   1. Firebase console → Project settings → Service accounts →
  *      "Generate new private key" → downloads a JSON file.
  *   2. In Vercel → your project → Settings → Environment Variables, add:
@@ -36,6 +51,8 @@
 
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+
+const SCHEMES_META_PATH = "src/schemes-meta.json";
 
 function getAdminApp() {
   if (getApps().length) return getApps()[0];
@@ -55,7 +72,69 @@ function getAdminApp() {
   });
 }
 
+/**
+ * Reads schemes-meta.json straight from GitHub (same file, same auth,
+ * same pattern as commitSchemesMeta's "Step 1" in update-schemes-meta.js)
+ * and reduces it to a small public-safe summary.
+ *
+ * Deliberately isolated in its own try/catch so a GitHub hiccup NEVER
+ * turns this into a 500 for the checkerTotal counter, which other code
+ * depends on working.
+ */
+async function getSchemeHealthStats() {
+  try {
+    const token = process.env.GITHUB_TOKEN;
+    const repo = process.env.GITHUB_REPO;
+    if (!repo) throw new Error("GITHUB_REPO not configured");
+
+    const apiUrl = `https://api.github.com/repos/${repo}/contents/${SCHEMES_META_PATH}`;
+    const headers = { Accept: "application/vnd.github+json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const ghRes = await fetch(apiUrl, { headers });
+    if (!ghRes.ok) throw new Error(`GitHub contents fetch failed: ${ghRes.status}`);
+
+    const fileInfo = await ghRes.json();
+    const decoded = Buffer.from(fileInfo.content, "base64").toString("utf8");
+    const meta = JSON.parse(decoded);
+
+    const ids = Object.keys(meta);
+    const total = ids.length;
+    if (total === 0) {
+      return { schemeCount: 0, linkHealthPercent: null, lastVerifiedAt: null };
+    }
+
+    let activeCount = 0;
+    let latestMs = null;
+    for (const id of ids) {
+      const entry = meta[id] || {};
+      if (entry.isActive === true) activeCount++;
+      if (entry.lastVerified) {
+        const t = new Date(entry.lastVerified).getTime();
+        if (!Number.isNaN(t) && (latestMs === null || t > latestMs)) latestMs = t;
+      }
+    }
+
+    return {
+      schemeCount: total,
+      linkHealthPercent: Math.round((activeCount / total) * 100),
+      lastVerifiedAt: latestMs ? new Date(latestMs).toISOString() : null,
+    };
+  } catch (err) {
+    console.error("[/api/stats] scheme health fetch failed:", err?.message || err);
+    return { schemeCount: null, linkHealthPercent: null, lastVerifiedAt: null };
+  }
+}
+
 export default async function handler(req, res) {
+  // Read-only, non-sensitive aggregate stats — safe to expose cross-origin
+  // so other sites (e.g. the portfolio project card) can fetch this directly.
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
   // Small CDN-level cache so a traffic spike doesn't hammer Firestore —
   // the counter doesn't need to be second-accurate.
   res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=120");
@@ -67,7 +146,12 @@ export default async function handler(req, res) {
     const data = snap.exists ? snap.data() : {};
     const checkerTotal = typeof data.checkerTotal === "number" ? data.checkerTotal : 0;
 
-    res.status(200).json({ checkerTotal });
+    // Scheme health is fetched separately and can never fail this whole
+    // response — if GitHub is briefly unreachable, checkerTotal (which the
+    // app itself depends on) must still come back successfully.
+    const schemeHealth = await getSchemeHealthStats();
+
+    res.status(200).json({ checkerTotal, ...schemeHealth });
   } catch (err) {
     // Never leak internals to the client — just signal failure so the
     // frontend falls back to a direct Firestore read.
