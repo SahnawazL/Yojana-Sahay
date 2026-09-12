@@ -10,7 +10,7 @@
  * Requires EligibilityChecker to be exported from App.jsx (see the one-line
  * change noted in APP_JSX_PATCH.txt).
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { EligibilityChecker } from "./App.jsx";
 
 // Must match the constants defined in App.jsx (STORAGE_KEY / BRIEF_CACHE_KEY).
@@ -28,6 +28,26 @@ export default function EmbedChecker() {
   const [runId, setRunId] = useState(0);
   const [lang, setLang] = useState("en");
   const [dark] = useState(prefersDark);
+
+  // Dismiss the pure-CSS #html-splash from index.html — this normally
+  // happens inside App.jsx's own mount effect, but /embed renders
+  // EmbedChecker instead of the full App, so that effect never runs.
+  // Without this, the splash overlay (z-index 99999, full-screen) sits
+  // on top of the checker forever, even though it's rendering fine
+  // underneath it.
+  useEffect(() => {
+    const el = document.getElementById("html-splash");
+    if (!el) return;
+    el.style.transition = "opacity 0.35s ease";
+    el.style.opacity = "0";
+    const t = setTimeout(() => {
+      el.remove();
+      try {
+        sessionStorage.setItem("ys_splashed", "1");
+      } catch {}
+    }, 380);
+    return () => clearTimeout(t);
+  }, []);
 
   // Mirrors the checker's own internal retake() behaviour: clear saved
   // answers + cached AI brief, then force a full remount via key change
