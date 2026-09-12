@@ -8136,7 +8136,7 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
 }
 
 // ─── APP STYLES (module-level — allocated once, never recreated on re-render) ──
-const APP_STYLES = `
+export const APP_STYLES = `
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
         .fu{opacity:0;transform:translateY(20px);transition:all 0.5s cubic-bezier(0.22,1,0.36,1);}

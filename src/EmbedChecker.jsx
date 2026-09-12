@@ -11,7 +11,7 @@
  * change noted in APP_JSX_PATCH.txt).
  */
 import { useState, useCallback, useEffect } from "react";
-import { EligibilityChecker } from "./App.jsx";
+import { EligibilityChecker, APP_STYLES } from "./App.jsx";
 
 // Must match the constants defined in App.jsx (STORAGE_KEY / BRIEF_CACHE_KEY).
 // Duplicated here rather than exporting them too, to keep the App.jsx diff
@@ -74,6 +74,15 @@ export default function EmbedChecker() {
         fontFamily: "'Noto Sans', system-ui, sans-serif",
       }}
     >
+      {/* App.jsx's main component normally injects this stylesheet — it
+          defines .elig-overlay / .elig-sheet (the checker's scrollable
+          bottom-sheet height) and every @keyframes animation used by
+          SchemeCard and the results screen. EmbedChecker bypasses that
+          component, so without this the sheet has no height constraint,
+          overflows past the viewport, and only its bottom edge (near-miss
+          + buttons) ends up visible. */}
+      <style>{APP_STYLES}</style>
+
       {/* Minimal language toggle — the only chrome this embed keeps */}
       <div
         style={{
