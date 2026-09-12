@@ -3570,7 +3570,7 @@ function ShowMoreBtn({ expanded, hiddenCount, moreText, lessText, onToggle, dark
 }
 
 // ─── ELIGIBILITY CHECKER ───────────────────────────────────────────────────────
-function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilledAnswers,dark=false,onOpenDetail=null}){
+export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,prefilledAnswers,dark=false,onOpenDetail=null}){
   const th=THEME[dark?"dark":"light"];
   const t=T[lang];
   const isHindi=lang==="hi";
