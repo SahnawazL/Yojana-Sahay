@@ -29,6 +29,21 @@
  * from GitHub via the Contents API — reusing the GITHUB_TOKEN / GITHUB_REPO
  * env vars already configured for update-schemes-meta.js. No new env vars.
  *
+ * ── FIX (schemeCount) ────────────────────────────────────────────────────
+ * schemes-meta.json only ever gets an entry for a scheme AFTER it has gone
+ * through the Tier-1/Tier-2 verifier — i.e. it tracks the "verifiable /
+ * active verify queue" subset (online schemes with a real URL), not every
+ * scheme in the app. Offline-only schemes (bank/CSC/in-person) are
+ * correctly never queued for verification, so they were never in
+ * schemes-meta.json either — which meant `schemeCount` (previously
+ * `Object.keys(meta).length`) was silently undercounting the real total
+ * everywhere this stat is shown (portfolio hero bar, project card, case
+ * study). schemeCount now comes from SCHEME_DB.length — the actual live
+ * scheme database (national schemes + every state's schemes spread in via
+ * stateSchemes.js) — which is the true total regardless of verification
+ * status. schemes-meta.json is still used, unchanged, for linkHealthPercent
+ * and lastVerifiedAt, since those specifically describe the verify queue.
+ *
  * CORS: this endpoint is read-only, non-sensitive aggregate data, so it's
  * allowed cross-origin (Access-Control-Allow-Origin: *) so other sites
  * (like the portfolio) can fetch it directly.
@@ -51,6 +66,7 @@
 
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { SCHEME_DB } from "../src/schemesData.js";
 
 const SCHEMES_META_PATH = "src/schemes-meta.json";
 
@@ -77,11 +93,21 @@ function getAdminApp() {
  * same pattern as commitSchemesMeta's "Step 1" in update-schemes-meta.js)
  * and reduces it to a small public-safe summary.
  *
+ * schemeCount is NOT derived from this file — see the FIX note up top.
+ * It comes from SCHEME_DB.length (the real, live total), so it's correct
+ * even before the health-stats fetch below runs, and even if this whole
+ * function falls through to its catch block.
+ *
  * Deliberately isolated in its own try/catch so a GitHub hiccup NEVER
  * turns this into a 500 for the checkerTotal counter, which other code
  * depends on working.
  */
 async function getSchemeHealthStats() {
+  // The real total. Independent of GitHub/meta — always accurate even if
+  // the fetch below fails, so schemeCount never silently reports 0 or the
+  // wrong (verify-queue-sized) number again.
+  const schemeCount = SCHEME_DB.length;
+
   try {
     const token = process.env.GITHUB_TOKEN;
     const repo = process.env.GITHUB_REPO;
@@ -97,11 +123,10 @@ async function getSchemeHealthStats() {
     const fileInfo = await ghRes.json();
     const decoded = Buffer.from(fileInfo.content, "base64").toString("utf8");
     const meta = JSON.parse(decoded);
-
     const ids = Object.keys(meta);
-    const total = ids.length;
-    if (total === 0) {
-      return { schemeCount: 0, linkHealthPercent: null, lastVerifiedAt: null };
+
+    if (ids.length === 0) {
+      return { schemeCount, linkHealthPercent: null, lastVerifiedAt: null };
     }
 
     // Only count entries the two-tier verifier has actually RESOLVED
@@ -128,13 +153,15 @@ async function getSchemeHealthStats() {
     }
 
     return {
-      schemeCount: total,
+      schemeCount,
       linkHealthPercent: resolvedCount > 0 ? Math.round((activeCount / resolvedCount) * 100) : null,
       lastVerifiedAt: latestMs ? new Date(latestMs).toISOString() : null,
     };
   } catch (err) {
     console.error("[/api/stats] scheme health fetch failed:", err?.message || err);
-    return { schemeCount: null, linkHealthPercent: null, lastVerifiedAt: null };
+    // schemeCount still comes back correctly even on a GitHub failure —
+    // only linkHealthPercent/lastVerifiedAt are unavailable.
+    return { schemeCount, linkHealthPercent: null, lastVerifiedAt: null };
   }
 }
 
