@@ -104,11 +104,23 @@ async function getSchemeHealthStats() {
       return { schemeCount: 0, linkHealthPercent: null, lastVerifiedAt: null };
     }
 
+    // Only count entries the two-tier verifier has actually RESOLVED
+    // (isActive === true or === false) toward the health percentage.
+    // Entries still pending verification (isActive missing/null) are
+    // excluded from both sides of the ratio — including them in the
+    // denominator without ever being able to count toward the numerator
+    // unfairly drags the percentage down and doesn't reflect real link health.
     let activeCount = 0;
+    let resolvedCount = 0;
     let latestMs = null;
     for (const id of ids) {
       const entry = meta[id] || {};
-      if (entry.isActive === true) activeCount++;
+      if (entry.isActive === true) {
+        activeCount++;
+        resolvedCount++;
+      } else if (entry.isActive === false) {
+        resolvedCount++;
+      }
       if (entry.lastVerified) {
         const t = new Date(entry.lastVerified).getTime();
         if (!Number.isNaN(t) && (latestMs === null || t > latestMs)) latestMs = t;
@@ -117,7 +129,7 @@ async function getSchemeHealthStats() {
 
     return {
       schemeCount: total,
-      linkHealthPercent: Math.round((activeCount / total) * 100),
+      linkHealthPercent: resolvedCount > 0 ? Math.round((activeCount / resolvedCount) * 100) : null,
       lastVerifiedAt: latestMs ? new Date(latestMs).toISOString() : null,
     };
   } catch (err) {
