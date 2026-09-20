@@ -318,7 +318,7 @@
     "linkAlive": false
   },
   "scholarship": {
-    "lastVerified": "2026-08-20T21:21:39.130Z",
+    "lastVerified": "2026-09-20T22:50:19.858Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -389,7 +389,7 @@
     "linkAlive": false
   },
   "sukanya": {
-    "lastVerified": "2026-08-20T21:23:34.169Z",
+    "lastVerified": "2026-09-20T22:52:11.638Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -431,7 +431,7 @@
     "linkAlive": true
   },
   "standup_india": {
-    "lastVerified": "2026-08-20T21:23:23.637Z",
+    "lastVerified": "2026-09-20T22:51:58.257Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -445,11 +445,11 @@
     "linkAlive": false
   },
   "sbm_gramin": {
-    "lastVerified": "2026-08-20T21:21:24.796Z",
+    "lastVerified": "2026-09-20T22:50:06.561Z",
     "isActive": true,
-    "httpStatus": 0,
+    "httpStatus": 200,
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true
   },
   "daynrlm": {
     "lastVerified": "2026-08-29T03:01:05.122Z",
@@ -511,7 +511,7 @@
     "linkAlive": true
   },
   "soil_health_card": {
-    "lastVerified": "2026-08-20T21:23:13.810Z",
+    "lastVerified": "2026-09-20T22:51:53.306Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -550,7 +550,7 @@
     "linkAlive": true
   },
   "surya_ghar": {
-    "lastVerified": "2026-08-20T21:23:43.726Z",
+    "lastVerified": "2026-09-20T22:52:20.473Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -614,7 +614,7 @@
     "linkAlive": false
   },
   "startup_india": {
-    "lastVerified": "2026-08-20T21:23:29.191Z",
+    "lastVerified": "2026-09-20T22:52:03.449Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -659,7 +659,7 @@
     "linkAlive": true
   },
   "seekho_kamao": {
-    "lastVerified": "2026-08-20T21:21:53.964Z",
+    "lastVerified": "2026-09-20T22:50:34.424Z",
     "isActive": true,
     "httpStatus": 0,
     "confidence": 0,
@@ -715,14 +715,14 @@
     "linkAlive": true
   },
   "tn_magalir_urimai": {
-    "lastVerified": "2026-08-21T21:16:44.876Z",
+    "lastVerified": "2026-09-20T22:54:00.940Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "tn_chief_minister_health": {
-    "lastVerified": "2026-08-20T21:24:04.041Z",
+    "lastVerified": "2026-09-20T22:52:40.665Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -741,7 +741,7 @@
     "linkAlive": true
   },
   "tn_housing_board_ews": {
-    "lastVerified": "2026-08-21T21:16:17.054Z",
+    "lastVerified": "2026-09-20T22:53:34.850Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -767,13 +767,13 @@
     "linkAlive": true
   },
   "tn_gig_worker_insurance": {
-    "lastVerified": "2026-08-21T21:16:06.356Z",
+    "lastVerified": "2026-09-20T22:53:24.749Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "tn_kakkum_karangal": {
-    "lastVerified": "2026-08-21T21:16:33.437Z",
+    "lastVerified": "2026-09-20T22:53:50.371Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -3440,7 +3440,7 @@
     "confidence": 0
   },
   "seed_dnt_coaching": {
-    "lastVerified": "2026-08-20T21:21:47.491Z",
+    "lastVerified": "2026-09-20T22:50:28.065Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
