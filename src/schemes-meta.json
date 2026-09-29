@@ -452,7 +452,7 @@
     "linkAlive": true
   },
   "daynrlm": {
-    "lastVerified": "2026-08-29T03:01:05.122Z",
+    "lastVerified": "2026-09-29T00:47:22.572Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -483,7 +483,7 @@
     "linkAlive": true
   },
   "ddu_gky": {
-    "lastVerified": "2026-08-29T03:01:16.714Z",
+    "lastVerified": "2026-09-29T00:47:39.560Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -576,7 +576,7 @@
     "linkAlive": false
   },
   "daynulm": {
-    "lastVerified": "2026-08-29T03:01:10.225Z",
+    "lastVerified": "2026-09-29T00:47:27.588Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -672,7 +672,7 @@
     "linkAlive": true
   },
   "csss": {
-    "lastVerified": "2026-08-29T03:00:59.599Z",
+    "lastVerified": "2026-09-29T00:47:17.286Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1195,7 +1195,7 @@
     "confidence": 0
   },
   "delhi_bocw": {
-    "lastVerified": "2026-08-29T03:01:59.977Z",
+    "lastVerified": "2026-09-29T00:48:22.846Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1231,7 +1231,7 @@
     "confidence": 0
   },
   "delhi_disability_scholarship": {
-    "lastVerified": "2026-08-29T22:56:59.191Z",
+    "lastVerified": "2026-09-29T00:49:17.147Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1243,7 +1243,7 @@
     "confidence": 0
   },
   "delhi_ayushman_arogya": {
-    "lastVerified": "2026-08-29T03:01:52.659Z",
+    "lastVerified": "2026-09-29T00:48:15.126Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1273,7 +1273,7 @@
     "linkAlive": false
   },
   "delhi_apprenticeship": {
-    "lastVerified": "2026-08-29T03:01:36.666Z",
+    "lastVerified": "2026-09-29T00:47:59.363Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1310,7 +1310,7 @@
     "linkAlive": true
   },
   "delhi_dilli_yogshala": {
-    "lastVerified": "2026-08-29T22:56:50.501Z",
+    "lastVerified": "2026-09-29T00:49:08.155Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1546,13 +1546,13 @@
     "confidence": 0
   },
   "cg_solar_suryashakti": {
-    "lastVerified": "2026-08-29T02:59:36.987Z",
+    "lastVerified": "2026-09-29T00:45:49.577Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "cg_shauchalay_nirman": {
-    "lastVerified": "2026-08-29T02:59:22.319Z",
+    "lastVerified": "2026-09-29T00:45:34.990Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -1577,7 +1577,7 @@
     "confidence": 0
   },
   "cg_saur_sujala": {
-    "lastVerified": "2026-08-29T02:59:10.008Z",
+    "lastVerified": "2026-09-29T00:45:23.428Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -1601,7 +1601,7 @@
     "confidence": 0
   },
   "cg_startup_niti": {
-    "lastVerified": "2026-08-29T02:59:43.564Z",
+    "lastVerified": "2026-09-29T00:45:56.186Z",
     "linkAlive": false,
     "httpStatus": 404,
     "confidence": 0.7,
@@ -1899,14 +1899,14 @@
     "isActive": true
   },
   "chandigarh_post_matric_scholarship": {
-    "lastVerified": "2026-08-29T03:00:43.774Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-09-29T00:47:01.409Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0,
     "isActive": true
   },
   "chandigarh_chb_ews_housing": {
-    "lastVerified": "2026-08-29T03:00:28.014Z",
+    "lastVerified": "2026-09-29T00:46:39.901Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3488,7 +3488,7 @@
     "confidence": 0
   },
   "delhi_ambedkar_awas": {
-    "lastVerified": "2026-08-29T03:01:31.725Z",
+    "lastVerified": "2026-09-29T00:47:54.439Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -3509,7 +3509,7 @@
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true,
-    "lastVerified": "2026-08-29T22:56:45.568Z"
+    "lastVerified": "2026-09-29T00:49:02.929Z"
   },
   "delhi_inter_caste_marriage": {
     "confidence": 0,
