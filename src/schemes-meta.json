@@ -1128,13 +1128,13 @@
     "confidence": 0
   },
   "delhi_mohalla": {
-    "lastVerified": "2026-08-29T23:00:08.599Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-09-30T00:03:53.624Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "delhi_mahila_samman": {
-    "lastVerified": "2026-08-29T22:59:34.556Z",
+    "lastVerified": "2026-09-30T00:03:21.370Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -1147,7 +1147,7 @@
     "linkAlive": true
   },
   "delhi_ladli": {
-    "lastVerified": "2026-08-29T22:59:24.562Z",
+    "lastVerified": "2026-09-30T00:03:11.428Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1165,7 +1165,7 @@
     "linkAlive": true
   },
   "delhi_divyang_pension": {
-    "lastVerified": "2026-08-29T22:57:07.724Z",
+    "lastVerified": "2026-09-30T00:00:52.356Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1189,7 +1189,7 @@
     "confidence": 0
   },
   "delhi_obc_scholarship": {
-    "lastVerified": "2026-08-30T23:02:20.289Z",
+    "lastVerified": "2026-09-30T00:04:23.179Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1201,13 +1201,13 @@
     "confidence": 0
   },
   "delhi_kaushal_vikas": {
-    "lastVerified": "2026-08-29T22:59:09.032Z",
+    "lastVerified": "2026-09-30T00:02:53.893Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "delhi_dsidc_sc_loan": {
-    "lastVerified": "2026-08-29T22:57:31.805Z",
+    "lastVerified": "2026-09-30T00:01:18.363Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1219,13 +1219,13 @@
     "confidence": 0
   },
   "delhi_ews_scholarship": {
-    "lastVerified": "2026-08-29T22:57:58.345Z",
+    "lastVerified": "2026-09-30T00:01:43.854Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_free_coaching": {
-    "lastVerified": "2026-08-29T22:58:17.998Z",
+    "lastVerified": "2026-09-30T00:02:03.289Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1237,7 +1237,7 @@
     "linkAlive": true
   },
   "delhi_muva": {
-    "lastVerified": "2026-08-29T23:00:15.544Z",
+    "lastVerified": "2026-09-30T00:04:01.006Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -1249,7 +1249,7 @@
     "confidence": 0
   },
   "delhi_ews_dda_flat": {
-    "lastVerified": "2026-08-29T22:57:52.875Z",
+    "lastVerified": "2026-09-30T00:01:38.500Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1279,20 +1279,20 @@
     "confidence": 0
   },
   "delhi_doorstep_services": {
-    "lastVerified": "2026-08-29T22:57:22.847Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-09-30T00:01:09.358Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0,
     "isActive": false
   },
   "delhi_ev_subsidy": {
-    "lastVerified": "2026-08-29T22:57:47.578Z",
+    "lastVerified": "2026-09-30T00:01:33.711Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_minority_scholarship": {
-    "lastVerified": "2026-08-29T23:00:00.554Z",
+    "lastVerified": "2026-09-30T00:03:43.991Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1304,7 +1304,7 @@
     "confidence": 0
   },
   "delhi_marriage_assistance": {
-    "lastVerified": "2026-08-29T22:59:39.565Z",
+    "lastVerified": "2026-09-30T00:03:26.326Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1316,13 +1316,13 @@
     "confidence": 0
   },
   "delhi_obc_prematric": {
-    "lastVerified": "2026-08-30T23:02:15.310Z",
+    "lastVerified": "2026-09-30T00:04:18.401Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_minority_coaching": {
-    "lastVerified": "2026-08-29T22:59:48.783Z",
+    "lastVerified": "2026-09-30T00:03:31.673Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3494,7 +3494,7 @@
     "confidence": 0
   },
   "delhi_nfbs": {
-    "lastVerified": "2026-08-30T23:02:03.201Z",
+    "lastVerified": "2026-09-30T00:04:06.213Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -3515,7 +3515,7 @@
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true,
-    "lastVerified": "2026-08-29T22:58:51.089Z"
+    "lastVerified": "2026-09-30T00:02:36.625Z"
   },
   "delhi_old_age_home": {
     "confidence": 0,
