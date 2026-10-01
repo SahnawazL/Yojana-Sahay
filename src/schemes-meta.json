@@ -1153,13 +1153,13 @@
     "confidence": 0
   },
   "delhi_tirth_yatra": {
-    "lastVerified": "2026-09-01T00:15:50.226Z",
+    "lastVerified": "2026-10-01T00:19:41.806Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "delhi_old_age_pension": {
-    "lastVerified": "2026-08-30T23:02:30.659Z",
+    "lastVerified": "2026-10-01T00:17:03.903Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1171,19 +1171,19 @@
     "linkAlive": true
   },
   "delhi_pm_uday": {
-    "lastVerified": "2026-08-30T23:02:53.379Z",
+    "lastVerified": "2026-10-01T00:17:23.885Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sc_scholarship": {
-    "lastVerified": "2026-08-30T23:04:11.593Z",
+    "lastVerified": "2026-10-01T00:18:42.419Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_st_scholarship": {
-    "lastVerified": "2026-08-30T23:04:39.328Z",
+    "lastVerified": "2026-10-01T00:19:09.912Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1213,7 +1213,7 @@
     "confidence": 0
   },
   "delhi_pre_matric_sc_st": {
-    "lastVerified": "2026-08-30T23:03:35.633Z",
+    "lastVerified": "2026-10-01T00:18:05.947Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1255,19 +1255,19 @@
     "confidence": 0
   },
   "delhi_transgender_pension": {
-    "lastVerified": "2026-09-01T00:15:55.011Z",
+    "lastVerified": "2026-10-01T00:19:46.916Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "delhi_svnidhi_vendor": {
-    "lastVerified": "2026-09-01T00:15:45.345Z",
+    "lastVerified": "2026-10-01T00:19:36.662Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sports_scholarship": {
-    "lastVerified": "2026-08-30T23:04:34.499Z",
+    "lastVerified": "2026-10-01T00:19:05.090Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -1298,9 +1298,9 @@
     "confidence": 0
   },
   "delhi_startup_policy": {
-    "lastVerified": "2026-08-30T23:04:49.611Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-10-01T00:19:14.967Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "delhi_marriage_assistance": {
@@ -1328,19 +1328,19 @@
     "confidence": 0
   },
   "delhi_sc_premier_institute_award": {
-    "lastVerified": "2026-08-30T23:04:06.825Z",
+    "lastVerified": "2026-10-01T00:18:37.044Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_pm_vishwakarma": {
-    "lastVerified": "2026-08-30T23:02:58.838Z",
+    "lastVerified": "2026-10-01T00:17:29.213Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_sc_prematric": {
-    "lastVerified": "2026-08-30T23:04:01.910Z",
+    "lastVerified": "2026-10-01T00:18:32.057Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1632,7 +1632,7 @@
     "confidence": 0
   },
   "delhi_svnidhi": {
-    "lastVerified": "2026-08-30T23:05:01.512Z",
+    "lastVerified": "2026-10-01T00:19:31.736Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -3470,19 +3470,19 @@
     "confidence": 0
   },
   "delhi_pmkvy_skill": {
-    "lastVerified": "2026-08-30T23:03:19.203Z",
+    "lastVerified": "2026-10-01T00:17:49.788Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "delhi_pm_sym": {
-    "lastVerified": "2026-08-30T23:02:48.384Z",
+    "lastVerified": "2026-10-01T00:17:19.164Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "delhi_pmay_clss": {
-    "lastVerified": "2026-08-30T23:03:04.603Z",
+    "lastVerified": "2026-10-01T00:17:35.031Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3500,7 +3500,7 @@
     "linkAlive": true
   },
   "delhi_sports_excellence": {
-    "lastVerified": "2026-08-30T23:04:28.222Z",
+    "lastVerified": "2026-10-01T00:18:58.840Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3521,6 +3521,6 @@
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true,
-    "lastVerified": "2026-08-30T23:02:25.503Z"
+    "lastVerified": "2026-10-01T00:16:57.959Z"
   }
 }
