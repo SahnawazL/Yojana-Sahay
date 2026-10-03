@@ -2634,13 +2634,13 @@
     "confidence": 0
   },
   "gujarat_manav_garima": {
-    "lastVerified": "2026-09-01T22:56:21.848Z",
+    "lastVerified": "2026-10-03T00:05:43.105Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_kisan_sahay": {
-    "lastVerified": "2026-09-01T22:55:47.105Z",
+    "lastVerified": "2026-10-03T00:05:03.889Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2658,14 +2658,14 @@
     "confidence": 0
   },
   "gujarat_namo_lakshmi": {
-    "lastVerified": "2026-09-01T22:56:58.345Z",
+    "lastVerified": "2026-10-03T00:06:15.834Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
     "isActive": true
   },
   "gujarat_mahila_utkarsh": {
-    "lastVerified": "2026-09-01T22:56:16.388Z",
+    "lastVerified": "2026-10-03T00:05:35.031Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2683,9 +2683,9 @@
     "confidence": 0
   },
   "gujarat_pandit_dindayal_awas": {
-    "lastVerified": "2026-09-01T22:57:23.812Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-10-03T00:06:42.585Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "gujarat_dr_ambedkar_awas": {
@@ -2695,25 +2695,25 @@
     "confidence": 0
   },
   "gujarat_namo_saraswati": {
-    "lastVerified": "2026-09-01T22:57:03.485Z",
+    "lastVerified": "2026-10-03T00:06:22.686Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_postmatric_sc": {
-    "lastVerified": "2026-09-01T22:57:38.004Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-10-03T00:06:52.528Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "gujarat_swavlamban": {
-    "lastVerified": "2026-09-02T22:55:44.297Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-10-03T00:07:35.703Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "gujarat_mukhyamantri_apprentice": {
-    "lastVerified": "2026-09-01T22:56:49.659Z",
+    "lastVerified": "2026-10-03T00:06:04.960Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2725,19 +2725,19 @@
     "confidence": 0
   },
   "gujarat_machhi_mar": {
-    "lastVerified": "2026-09-01T22:56:02.884Z",
+    "lastVerified": "2026-10-03T00:05:21.527Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_prematric_sc": {
-    "lastVerified": "2026-09-01T22:57:43.129Z",
+    "lastVerified": "2026-10-03T00:07:00.474Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_kanyadan": {
-    "lastVerified": "2026-09-01T22:55:41.556Z",
+    "lastVerified": "2026-10-03T00:04:58.695Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2761,27 +2761,27 @@
     "confidence": 0
   },
   "gujarat_surya_rooftop": {
-    "lastVerified": "2026-09-02T22:55:34.984Z",
+    "lastVerified": "2026-10-03T00:07:30.628Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_pashu_sahay": {
-    "lastVerified": "2026-09-01T22:57:28.674Z",
+    "lastVerified": "2026-10-03T00:06:47.416Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_organic_farming": {
-    "lastVerified": "2026-09-01T22:57:10.310Z",
+    "lastVerified": "2026-10-03T00:06:34.549Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_minority_scholarship": {
-    "lastVerified": "2026-09-01T22:56:41.746Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-10-03T00:05:56.648Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "gujarat_gsdm_skill": {
@@ -2791,7 +2791,7 @@
     "confidence": 0
   },
   "gujarat_ma_amrutum_plus": {
-    "lastVerified": "2026-09-01T22:55:51.902Z",
+    "lastVerified": "2026-10-03T00:05:13.361Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2827,7 +2827,7 @@
     "confidence": 0
   },
   "gujarat_rte_reimburse": {
-    "lastVerified": "2026-09-02T22:55:11.454Z",
+    "lastVerified": "2026-10-03T00:07:06.209Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
@@ -2845,7 +2845,7 @@
     "confidence": 0
   },
   "gujarat_minority_loan": {
-    "lastVerified": "2026-09-01T22:56:28.244Z",
+    "lastVerified": "2026-10-03T00:05:49.831Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
