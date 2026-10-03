@@ -2652,7 +2652,7 @@
     "confidence": 0
   },
   "gujarat_vhali_dikri": {
-    "lastVerified": "2026-09-02T22:56:00.860Z",
+    "lastVerified": "2026-10-03T23:27:05.455Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2677,7 +2677,7 @@
     "confidence": 0
   },
   "gujarat_vriddha_sahay": {
-    "lastVerified": "2026-09-02T22:56:06.597Z",
+    "lastVerified": "2026-10-03T23:27:10.575Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2809,7 +2809,7 @@
     "confidence": 0
   },
   "gujarat_widow_remarriage": {
-    "lastVerified": "2026-09-02T22:56:11.941Z",
+    "lastVerified": "2026-10-03T23:27:16.129Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2851,19 +2851,19 @@
     "confidence": 0
   },
   "haryana_saksham": {
-    "lastVerified": "2026-09-03T22:54:43.427Z",
+    "lastVerified": "2026-10-03T23:29:33.608Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_mmpsy": {
-    "lastVerified": "2026-09-02T22:58:13.144Z",
+    "lastVerified": "2026-10-03T23:29:07.653Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "haryana_old_age_allowance": {
-    "lastVerified": "2026-09-03T22:54:23.170Z",
+    "lastVerified": "2026-10-03T23:29:12.248Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2881,49 +2881,49 @@
     "confidence": 0
   },
   "haryana_bhavantar": {
-    "lastVerified": "2026-09-02T22:56:46.856Z",
+    "lastVerified": "2026-10-03T23:27:43.955Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_chirayu": {
-    "lastVerified": "2026-09-02T22:56:57.556Z",
+    "lastVerified": "2026-10-03T23:27:54.447Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_ambedkar_awas": {
-    "lastVerified": "2026-09-02T22:56:25.443Z",
-    "httpStatus": 0,
-    "linkAlive": false,
+    "lastVerified": "2026-10-03T23:27:21.522Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "haryana_disability_allowance": {
-    "lastVerified": "2026-09-02T22:57:08.877Z",
+    "lastVerified": "2026-10-03T23:28:05.634Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_antyodaya": {
-    "lastVerified": "2026-09-02T22:56:36.381Z",
+    "lastVerified": "2026-10-03T23:27:35.415Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_meri_fasal": {
-    "lastVerified": "2026-09-02T22:57:51.671Z",
+    "lastVerified": "2026-10-03T23:28:49.339Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "haryana_pratibha": {
-    "lastVerified": "2026-09-03T22:54:35.649Z",
+    "lastVerified": "2026-10-03T23:29:25.083Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_e_karma": {
-    "lastVerified": "2026-09-02T22:57:13.845Z",
+    "lastVerified": "2026-10-03T23:28:10.807Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2935,25 +2935,25 @@
     "confidence": 0
   },
   "haryana_ladli": {
-    "lastVerified": "2026-09-02T22:57:34.102Z",
+    "lastVerified": "2026-10-03T23:28:31.614Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_farm_equipment": {
-    "lastVerified": "2026-09-02T22:57:25.117Z",
+    "lastVerified": "2026-10-03T23:28:22.425Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "haryana_micro_irrigation": {
-    "lastVerified": "2026-09-02T22:58:01.795Z",
+    "lastVerified": "2026-10-03T23:29:00.268Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "haryana_bocw": {
-    "lastVerified": "2026-09-02T22:56:52.036Z",
+    "lastVerified": "2026-10-03T23:27:49.107Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2965,7 +2965,7 @@
     "confidence": 0
   },
   "haryana_ddjay": {
-    "lastVerified": "2026-09-02T22:57:03.737Z",
+    "lastVerified": "2026-10-03T23:28:00.356Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
