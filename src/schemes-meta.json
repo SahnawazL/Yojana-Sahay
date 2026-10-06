@@ -504,7 +504,7 @@
     "linkAlive": true
   },
   "ignwps": {
-    "lastVerified": "2026-09-04T22:42:29.363Z",
+    "lastVerified": "2026-10-06T01:37:54.088Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -570,7 +570,7 @@
     "linkAlive": true
   },
   "igndps": {
-    "lastVerified": "2026-09-04T22:42:24.088Z",
+    "lastVerified": "2026-10-06T01:37:41.971Z",
     "httpStatus": 0,
     "confidence": 0,
     "linkAlive": false
@@ -2984,7 +2984,7 @@
     "isActive": false
   },
   "hp_widow_pension": {
-    "lastVerified": "2026-09-04T22:42:04.848Z",
+    "lastVerified": "2026-10-06T01:37:22.449Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2996,7 +2996,7 @@
     "confidence": 0
   },
   "hp_swavlamban": {
-    "lastVerified": "2026-09-04T22:41:47.760Z",
+    "lastVerified": "2026-10-06T01:37:05.020Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0,
@@ -3041,9 +3041,9 @@
     "confidence": 0
   },
   "hp_startup_policy": {
-    "lastVerified": "2026-09-04T22:41:28.630Z",
-    "httpStatus": 200,
-    "linkAlive": true,
+    "lastVerified": "2026-10-06T01:36:45.992Z",
+    "httpStatus": 0,
+    "linkAlive": false,
     "confidence": 0
   },
   "hp_e_taxi": {
@@ -3077,31 +3077,31 @@
     "confidence": 0
   },
   "hp_svanidhi": {
-    "lastVerified": "2026-09-04T22:41:34.258Z",
+    "lastVerified": "2026-10-06T01:36:51.518Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_abua_awas": {
-    "lastVerified": "2026-09-04T22:43:06.299Z",
+    "lastVerified": "2026-10-06T01:38:23.979Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_maiya_samman": {
-    "lastVerified": "2026-09-04T22:44:03.306Z",
+    "lastVerified": "2026-10-06T01:39:20.407Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_mmkay": {
-    "lastVerified": "2026-09-05T22:31:59.695Z",
+    "lastVerified": "2026-10-06T01:39:48.456Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_abjkay": {
-    "lastVerified": "2026-09-04T22:43:00.900Z",
+    "lastVerified": "2026-10-06T01:38:18.760Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3113,19 +3113,19 @@
     "confidence": 0
   },
   "jharkhand_jrfry": {
-    "lastVerified": "2026-09-04T22:43:54.564Z",
+    "lastVerified": "2026-10-06T01:39:11.614Z",
     "httpStatus": 0,
     "linkAlive": false,
     "confidence": 0
   },
   "jharkhand_ekalyan_scholarship": {
-    "lastVerified": "2026-09-04T22:43:40.706Z",
+    "lastVerified": "2026-10-06T01:38:58.215Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_bocw": {
-    "lastVerified": "2026-09-04T22:43:23.838Z",
+    "lastVerified": "2026-10-06T01:38:41.142Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3143,13 +3143,13 @@
     "confidence": 0
   },
   "jharkhand_minority_scholarship": {
-    "lastVerified": "2026-09-05T22:31:54.209Z",
+    "lastVerified": "2026-10-06T01:39:43.218Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_medha_chatravriti": {
-    "lastVerified": "2026-09-04T22:44:12.240Z",
+    "lastVerified": "2026-10-06T01:39:29.547Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3173,7 +3173,7 @@
     "confidence": 0
   },
   "jharkhand_micro_irrigation": {
-    "lastVerified": "2026-09-05T22:31:48.518Z",
+    "lastVerified": "2026-10-06T01:39:37.878Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3386,7 +3386,7 @@
     "confidence": 0
   },
   "ishan_uday": {
-    "lastVerified": "2026-09-04T22:42:43.480Z",
+    "lastVerified": "2026-10-06T01:38:07.272Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3404,7 +3404,7 @@
     "linkAlive": false
   },
   "ig_pg_sgc": {
-    "lastVerified": "2026-09-04T22:42:13.111Z",
+    "lastVerified": "2026-10-06T01:37:31.383Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3416,7 +3416,7 @@
     "confidence": 0
   },
   "inspire_she": {
-    "lastVerified": "2026-09-04T22:42:38.055Z",
+    "lastVerified": "2026-10-06T01:38:02.215Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
