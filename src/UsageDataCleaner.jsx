@@ -31,7 +31,15 @@ const THEME = {
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
-const PASSWORD = "SHZ@home2026";
+// SHA-256 of the cleanup password (same one ResolvedReportsCleaner uses).
+// The plain-text password used to sit here, readable by anyone in the
+// public JS bundle and the public GitHub repo.
+const PASSWORD_HASH = "051f67acb3b4d3ed6e7ef098a9afc184b90e8337742097030960b89a7f2ce190";
+
+async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
 
 const RANGE_OPTIONS = [
   { label: "3 Months",  months: 3  },
@@ -86,8 +94,9 @@ export default function UsageDataCleaner({ dark = false, onDeleteDone }) {
   const addLog = (line) => setLogLines(prev => [...prev, line]);
 
   // ── Unlock ────────────────────────────────────────────────────────────────
-  function handleUnlock() {
-    if (pwInput.trim() === PASSWORD) {
+  async function handleUnlock() {
+    const ok = pwInput.trim() ? (await sha256Hex(pwInput.trim())) === PASSWORD_HASH : false;
+    if (ok) {
       setPwError("");
       setPwInput("");
       setPhase("unlocked");
