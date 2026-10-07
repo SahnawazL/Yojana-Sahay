@@ -129,21 +129,20 @@ async function getSchemeHealthStats() {
       return { schemeCount, linkHealthPercent: null, lastVerifiedAt: null };
     }
 
-    // Only count entries the two-tier verifier has actually RESOLVED
-    // (isActive === true or === false) toward the health percentage.
-    // Entries still pending verification (isActive missing/null) are
-    // excluded from both sides of the ratio — including them in the
-    // denominator without ever being able to count toward the numerator
-    // unfairly drags the percentage down and doesn't reflect real link health.
+    // Link health = links the verifier has actually RESOLVED as live or
+    // dead (linkAlive true/false). This used to read `isActive`, which is
+    // the AI's "applications open?" verdict, not link health — so closed
+    // schemes counted as broken links and the percentage was meaningless.
+    // Inconclusive checks (no linkAlive) are left out of both sides.
     let activeCount = 0;
     let resolvedCount = 0;
     let latestMs = null;
     for (const id of ids) {
       const entry = meta[id] || {};
-      if (entry.isActive === true) {
+      if (entry.linkAlive === true) {
         activeCount++;
         resolvedCount++;
-      } else if (entry.isActive === false) {
+      } else if (entry.linkAlive === false) {
         resolvedCount++;
       }
       if (entry.lastVerified) {

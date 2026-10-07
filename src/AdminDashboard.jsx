@@ -68,7 +68,7 @@ const EJS_REPLY_TID   = "template_xvl9ir3";   // Admin → User reply template
 const EJS_PUBLIC_KEY  = "aV7SknFp6qPFayUkX";
 // Groq calls go through the Vercel serverless route /api/chat (same as groqClient.js)
 // — API keys live in Vercel env vars, never in frontend code.
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GROQ_MODEL = "openai/gpt-oss-120b"; // llama-3.3-70b-versatile was shut down by Groq on 16 Aug 2026
 
 // ─── ADMIN BUILD INFO ─────────────────────────────────────────────────────────
 const ADMIN_BUILD_VERSION = "2.6.0";

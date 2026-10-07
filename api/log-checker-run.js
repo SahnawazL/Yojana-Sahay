@@ -57,6 +57,25 @@ const ALLOWED_RUN_FIELDS = [
   "uid", "matchedCount", "state", "who", "income", "age", "area", "gender", "ration",
 ];
 
+// appStats/usage is ONE Firestore document and every event used to be
+// arrayUnion()-ed onto it forever. Firestore caps a document at 1 MiB, so
+// after a few thousand events every write — including the checkerTotal
+// counter the home screen shows — would start failing permanently. The
+// detail arrays now keep only the most recent entries (totals are separate
+// counters and keep counting).
+const MAX_ENTRIES = { checkerRuns: 1500, schemeSearches: 1500, stateSelections: 1000 };
+
+async function appendCapped(db, ref, arrayField, record, extraUpdates) {
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists ? snap.data() : {};
+    const prev = Array.isArray(data[arrayField]) ? data[arrayField] : [];
+    const next = prev.concat([record]).slice(-MAX_ENTRIES[arrayField]);
+    tx.set(ref, { [arrayField]: next, ...extraUpdates }, { merge: true });
+    return data;
+  });
+}
+
 function safeUid(uid) {
   return typeof uid === "string" && uid.length > 0 && uid.length <= 100 ? uid : "guest_unknown";
 }
@@ -95,23 +114,19 @@ export default async function handler(req, res) {
       for (const key of ALLOWED_RUN_FIELDS) {
         runRecord[key] = key in body ? body[key] : null;
       }
+      for (const key of ALLOWED_RUN_FIELDS) {
+        const v = runRecord[key];
+        if (v != null && typeof v !== "number") runRecord[key] = String(v).slice(0, 60);
+      }
       runRecord.uid = safeUid(runRecord.uid);
-      runRecord.matchedCount = typeof runRecord.matchedCount === "number" ? runRecord.matchedCount : 0;
+      runRecord.matchedCount = Number.isFinite(Number(runRecord.matchedCount)) ? Math.max(0, Math.min(5000, Number(runRecord.matchedCount))) : 0;
       runRecord.ts = new Date().toISOString();
 
-      await ref.set(
-        {
-          checkerRuns: FieldValue.arrayUnion(runRecord),
-          checkerTotal: FieldValue.increment(1),
-          lastRun: runRecord.ts,
-        },
-        { merge: true }
-      );
-
-      const snap = await ref.get();
-      const checkerTotal = snap.exists && typeof snap.data().checkerTotal === "number"
-        ? snap.data().checkerTotal
-        : null;
+      const before = await appendCapped(db, ref, "checkerRuns", runRecord, {
+        checkerTotal: FieldValue.increment(1),
+        lastRun: runRecord.ts,
+      });
+      const checkerTotal = typeof before.checkerTotal === "number" ? before.checkerTotal + 1 : null;
 
       res.status(200).json({ ok: true, checkerTotal });
       return;
@@ -126,13 +141,7 @@ export default async function handler(req, res) {
       }
       const record = { q, uid: safeUid(body.uid), ts: new Date().toISOString() };
 
-      await ref.set(
-        {
-          schemeSearches: FieldValue.arrayUnion(record),
-          searchTotal: FieldValue.increment(1),
-        },
-        { merge: true }
-      );
+      await appendCapped(db, ref, "schemeSearches", record, { searchTotal: FieldValue.increment(1) });
 
       res.status(200).json({ ok: true });
       return;
@@ -145,15 +154,9 @@ export default async function handler(req, res) {
         res.status(200).json({ ok: true, skipped: true });
         return;
       }
-      const record = { state: body.state, uid: safeUid(body.uid), ts: new Date().toISOString() };
+      const record = { state: String(body.state).slice(0, 60), uid: safeUid(body.uid), ts: new Date().toISOString() };
 
-      await ref.set(
-        {
-          stateSelections: FieldValue.arrayUnion(record),
-          [`stateCount_${stateKey}`]: FieldValue.increment(1),
-        },
-        { merge: true }
-      );
+      await appendCapped(db, ref, "stateSelections", record, { [`stateCount_${stateKey}`]: FieldValue.increment(1) });
 
       res.status(200).json({ ok: true });
       return;

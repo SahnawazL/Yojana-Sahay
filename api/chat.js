@@ -213,6 +213,91 @@ async function callGroq(keys, bodyObject) {
   };
 }
 
+// ── Request sanitising ───────────────────────────────────────────────────────
+// This endpoint is public (the citizen chat uses it), and it used to forward
+// req.body to Groq untouched — any site could use it as a free proxy for any
+// model, any max_tokens and any tools on these keys. Only the fields the app
+// actually sends are passed through now, with sane limits.
+const ALLOWED_MODELS = new Set(["openai/gpt-oss-120b", "openai/gpt-oss-20b"]);
+const DEFAULT_MODEL  = "openai/gpt-oss-120b";
+// Models Groq has shut down → their official replacement, so an old cached
+// client bundle keeps working instead of failing with "model not found".
+const MODEL_REPLACEMENTS = {
+  "llama-3.3-70b-versatile": "openai/gpt-oss-120b",
+  "llama-3.1-8b-instant":    "openai/gpt-oss-20b",
+  "qwen/qwen3-32b":          "openai/gpt-oss-120b",
+};
+const MAX_MESSAGES      = 24;
+const MAX_MESSAGE_CHARS = 16000;
+const MAX_OUTPUT_TOKENS = 1600;
+// gpt-oss models spend hidden reasoning tokens out of the same completion
+// budget; without headroom, answers were cut off mid-sentence.
+const REASONING_HEADROOM = 1024;
+
+function sanitizeChatRequest(body) {
+  if (!body || typeof body !== "object") return { error: "Invalid request body" };
+  const requested = typeof body.model === "string" ? body.model : DEFAULT_MODEL;
+  const mapped    = MODEL_REPLACEMENTS[requested] ?? requested;
+  const model     = ALLOWED_MODELS.has(mapped) ? mapped : DEFAULT_MODEL;
+
+  if (!Array.isArray(body.messages) || body.messages.length === 0) return { error: "messages must be a non-empty array" };
+  const messages = body.messages.slice(-MAX_MESSAGES).map(m => ({
+    role:    ["system", "user", "assistant"].includes(m?.role) ? m.role : "user",
+    content: String(m?.content ?? "").slice(0, MAX_MESSAGE_CHARS),
+  })).filter(m => m.content.trim());
+  if (messages.length === 0) return { error: "messages are empty" };
+
+  const wanted = Number(body.max_tokens ?? body.max_completion_tokens) || 800;
+  const outTokens = Math.min(MAX_OUTPUT_TOKENS, Math.max(64, wanted));
+  const temperature = Math.min(1.5, Math.max(0, Number(body.temperature ?? 0.5) || 0));
+
+  const isReasoning = model.startsWith("openai/gpt-oss");
+  return {
+    body: {
+      model,
+      messages,
+      temperature,
+      ...(isReasoning
+        ? { max_completion_tokens: outTokens + REASONING_HEADROOM, reasoning_effort: "low" }
+        : { max_tokens: outTokens }),
+    },
+  };
+}
+
+// Light per-IP limit using the existing Vercel KV store (skipped when KV is
+// not configured). 30 requests per minute is far above normal chat use.
+const RATE_LIMIT_PER_MIN = 30;
+async function isRateLimited(req) {
+  const url = process.env.KV_REST_API_URL, token = process.env.KV_REST_API_TOKEN;
+  if (!url || !token) return false;
+  const ip = String(req.headers["x-forwarded-for"] ?? req.socket?.remoteAddress ?? "unknown").split(",")[0].trim();
+  const key = `chat_rl:${ip}:${Math.floor(Date.now() / 60000)}`;
+  try {
+    const r = await fetch(`${url}/pipeline`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify([["INCR", key], ["EXPIRE", key, "90"]]),
+    });
+    if (!r.ok) return false;
+    const out = await r.json();
+    const count = Number(out?.[0]?.result ?? 0);
+    return count > RATE_LIMIT_PER_MIN;
+  } catch {
+    return false; // never block chat because the limiter is down
+  }
+}
+
+// Assistant messages echoed back to Groq after a tool call must only carry
+// fields Groq accepts — gpt-oss replies include a `reasoning` field that
+// Groq rejects when sent back.
+function cleanAssistantMessage(msg) {
+  return {
+    role: "assistant",
+    content: msg?.content ?? "",
+    ...(Array.isArray(msg?.tool_calls) ? { tool_calls: msg.tool_calls } : {}),
+  };
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -230,7 +315,15 @@ export default async function handler(req, res) {
     });
   }
 
-  const requestBody = req.body;
+  if (await isRateLimited(req)) {
+    return res.status(429).json({ error: { message: "Too many messages — please wait a minute and try again." } });
+  }
+
+  const sanitized = sanitizeChatRequest(req.body);
+  if (sanitized.error) {
+    return res.status(400).json({ error: { message: sanitized.error } });
+  }
+  const requestBody = sanitized.body;
 
   // ── STEP 1: First Groq call — WITH web_search tool ──────────────────────────
   const firstCallBody = {
@@ -304,10 +397,9 @@ export default async function handler(req, res) {
       const secondCallBody = {
         ...requestBody,
         // tools intentionally omitted — Groq won't attempt a second search
-        max_tokens: 1600,
         messages: [
           ...requestBody.messages,
-          firstChoice.message,
+          cleanAssistantMessage(firstChoice.message),
           {
             role:         "tool",
             tool_call_id: toolCall.id,
