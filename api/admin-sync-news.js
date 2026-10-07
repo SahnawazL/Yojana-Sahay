@@ -49,7 +49,9 @@ export default async function handler(req, res) {
     }
 
     const data    = userSnap.data() ?? {};
-    const isAdmin = data.role === "admin" || data.isAdmin === true;
+    // Full admin, or a restricted admin who was given the News tab.
+    const isAdmin = data.role === "admin" || data.isAdmin === true ||
+      (Array.isArray(data.adminTabs) && data.adminTabs.includes("news"));
 
     if (!isAdmin) {
       console.warn("[admin-sync-news] Non-admin attempted sync:", decodedToken.email);

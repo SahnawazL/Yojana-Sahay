@@ -346,7 +346,11 @@ function getTransporter() {
 }
 
 // ── Verify the caller is an admin via Firebase ID token ────────────────────
-async function verifyAdmin(req) {
+// tabs: restricted admins (users/{uid}.adminTabs) are allowed when they have
+// ANY of these tabs. Full admins (isAdmin: true) are always allowed. Before,
+// restricted admins got 403 inside the Deadlines and Agents tabs they had
+// been given.
+async function verifyAdmin(req, tabs = []) {
   const authHeader = req.headers["authorization"] ?? "";
   const idToken    = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
   if (!idToken) return { ok: false, status: 401, error: "Missing Authorization header" };
@@ -366,7 +370,8 @@ async function verifyAdmin(req) {
 
     const data    = userSnap.data() ?? {};
     const isAdmin = data.role === "admin" || data.isAdmin === true;
-    if (!isAdmin) {
+    const hasTab  = Array.isArray(data.adminTabs) && tabs.some(t => data.adminTabs.includes(t));
+    if (!isAdmin && !hasTab) {
       console.warn("[deadline-alerts] Non-admin attempted access:", decodedToken.email);
       return { ok: false, status: 403, error: "Forbidden — admin access required" };
     }
@@ -470,7 +475,8 @@ export default async function handler(req, res) {
 
   // ── GET — admin-only run history ──────────────────────────────────────────
   if (req.method === "GET") {
-    const auth = await verifyAdmin(req);
+    // Read-only history — used by the Deadlines tab and the Agents tab cards.
+    const auth = await verifyAdmin(req, ["deadlines", "agents"]);
     if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
     try {
@@ -608,7 +614,9 @@ export default async function handler(req, res) {
   }
 
   // Not a cron request — everything below requires an authenticated admin
-  const auth = await verifyAdmin(req);
+  // Actions: running agents needs the Agents tab; e-mail actions need Deadlines.
+  const tabsFor = req.body?.action === "runAgent" ? ["agents"] : ["deadlines"];
+  const auth = await verifyAdmin(req, tabsFor);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
   const { action, toName, toEmail, notes, subject, body, lang } = req.body || {};
