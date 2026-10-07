@@ -28,7 +28,7 @@ import {
   getRedirectResult, signInWithEmailAndPassword, sendPasswordResetEmail, signOut,
   setPersistence, browserLocalPersistence,
 } from "firebase/auth";
-import { onSnapshot, doc } from "firebase/firestore";
+import { onSnapshot, doc, getDocFromServer } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 
@@ -63,6 +63,54 @@ function authErrorText(err) {
   if (code === "auth/unauthorized-domain") return "This domain isn't allowed for sign-in. Add it in Firebase → Authentication → Settings → Authorized domains.";
   if (code === "auth/user-disabled") return "This account has been disabled.";
   return err?.message || "Sign-in failed. Please try again.";
+}
+
+// What the role check found, in plain words.
+function describeDoc(user, data, fromCache) {
+  const show = v => (v === undefined ? "missing" : JSON.stringify(v));
+  const hints = [];
+  if (!data) hints.push(`No document users/${user.uid} — the admin doc must use this exact ID (Firestore → users → document ID = UID).`);
+  else {
+    if (data.isAdmin !== undefined && data.isAdmin !== true) {
+      hints.push(typeof data.isAdmin === "string"
+        ? 'isAdmin is the TEXT "true" — change its type to boolean true.'
+        : `isAdmin is ${show(data.isAdmin)} — set it to boolean true.`);
+    }
+    if (data.isAdmin === undefined && data.role === "admin") hints.push('This doc has role: "admin" but no isAdmin field — add isAdmin: true (boolean). Your Firestore rules check isAdmin.');
+    if (data.isAdmin === undefined && data.role !== "admin" && !Array.isArray(data.adminTabs)) hints.push("No isAdmin field on this account's document — this is probably a different account (different UID) from your admin one.");
+  }
+  return {
+    uid: user.uid,
+    provider: user.providerData?.map(p => p.providerId).join(", ") || "—",
+    exists: !!data,
+    isAdmin: data ? show(data.isAdmin) : "—",
+    adminTabs: data ? show(data.adminTabs) : "—",
+    source: fromCache ? "phone cache" : "server",
+    hints,
+  };
+}
+
+function DiagBox({ diag }) {
+  const row = (k, v) => (
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "3px 0" }}>
+      <span style={{ color: "#8a93a8" }}>{k}</span>
+      <span style={{ color: "#e2e8ff", fontFamily: "monospace", wordBreak: "break-all", textAlign: "right" }}>{v}</span>
+    </div>
+  );
+  return (
+    <div style={{ marginTop: 16, textAlign: "left", background: "#141826", border: "1px solid #2a3042", borderRadius: 12, padding: "10px 12px", fontSize: 12 }}>
+      {row("UID", diag.uid)}
+      {row("Sign-in method", diag.provider)}
+      {row("User doc", diag.exists ? "found" : "not found")}
+      {row("isAdmin", diag.isAdmin)}
+      {row("adminTabs", diag.adminTabs)}
+      {row("Checked from", diag.source)}
+      {diag.error && row("Error", diag.error)}
+      {diag.hints?.map((h, i) => (
+        <div key={i} style={{ color: "#fbbf24", marginTop: 6, lineHeight: 1.5 }}>⚠ {h}</div>
+      ))}
+    </div>
+  );
 }
 
 // ── Shared screen shell ─────────────────────────────────────────────────────
@@ -203,6 +251,10 @@ export default function AdminPage() {
   const [user, setUser]       = useState(null);
   const [signInError, setSignInError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+  // What the role check actually saw — shown on the "No admin access" screen
+  // so a wrong account / wrong field type is obvious.
+  const [diag, setDiag] = useState(null);
+  const [rechecking, setRechecking] = useState(false);
   const roleUnsubRef = useRef(null);
 
   // Keep the session across browser restarts (this is Firebase's web default,
@@ -227,9 +279,18 @@ export default function AdminPage() {
       roleUnsubRef.current = onSnapshot(
         doc(db, "users", u.uid),
         (snap) => {
-          // A cache-only "missing" doc while offline is not proof of anything.
-          if (!snap.exists() && snap.metadata?.fromCache) return;
-          const r = roleFromUserDoc(snap.exists() ? snap.data() : null);
+          const data = snap.exists() ? snap.data() : null;
+          const fromCache = !!snap.metadata?.fromCache;
+          setDiag(describeDoc(u, data, fromCache));
+          const r = roleFromUserDoc(data);
+          // The phone's offline cache can hold an OLD copy of the user doc
+          // (from before isAdmin was set). A "no" from the cache is not
+          // trusted — wait for the server's answer (the listener fires again
+          // when it arrives). A "yes" from the cache is fine to show early.
+          if (!r && fromCache) {
+            if (!readRoleCache(u.uid)) setStatus("verifying");
+            return;
+          }
           writeRoleCache(u.uid, r);
           // Same role → keep the same object so the dashboard doesn't re-render
           // its tab list every time the user doc changes (lastSeen etc.).
@@ -246,6 +307,32 @@ export default function AdminPage() {
     });
     return () => { unsubAuth(); roleUnsubRef.current?.(); };
   }, [retryKey]);
+
+  // Force a fresh server read (bypasses the offline cache).
+  const recheck = async () => {
+    if (!user) return;
+    setRechecking(true);
+    try {
+      const snap = await getDocFromServer(doc(db, "users", user.uid));
+      const data = snap.exists() ? snap.data() : null;
+      setDiag(describeDoc(user, data, false));
+      const r = roleFromUserDoc(data);
+      writeRoleCache(user.uid, r);
+      if (r) { setRole(r); setStatus("allowed"); }
+    } catch (err) {
+      setDiag(d => ({ ...(d || describeDoc(user, null, false)), error: err?.code || err?.message || "read failed" }));
+    } finally {
+      setRechecking(false);
+    }
+  };
+
+  // Server never answered (offline) — after a while show the real state
+  // instead of spinning forever.
+  useEffect(() => {
+    if (status !== "verifying") return;
+    const t = setTimeout(() => setStatus(s => (s === "verifying" ? "error" : s)), 15000);
+    return () => clearTimeout(t);
+  }, [status]);
 
   const switchAccount = async () => {
     try { await signOut(auth); } catch { /* ignore */ }
@@ -271,7 +358,9 @@ export default function AdminPage() {
     return (
       <Shell>
         <Header icon="🔒" title="No admin access" sub={<>You're signed in as <strong style={{ color: "#e2e8ff" }}>{user?.email || user?.phoneNumber || "this account"}</strong>, which isn't an admin account.</>} />
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20 }}>
+        {diag && <DiagBox diag={diag} />}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
+          <button className="ys-adm-btn" onClick={recheck} disabled={rechecking} style={{ background: "#14532d", color: "#fff" }}>{rechecking ? "Checking server…" : "↻ Check again (from server)"}</button>
           <button className="ys-adm-btn" onClick={switchAccount} style={{ background: "#003580", color: "#fff" }}>Use another account</button>
           <button className="ys-adm-btn" onClick={() => { window.location.href = "/"; }} style={{ background: "#1b2133", color: "#e2e8ff", border: "1px solid #2a3042" }}>← Go to App</button>
         </div>
