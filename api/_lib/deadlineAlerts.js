@@ -97,7 +97,10 @@ function getTodayDateKey() {
 // ── AI-personalized intro line — same fast model as refresh-news/verify-scheme ─
 const GROQ_ENDPOINT  = "https://api.groq.com/openai/v1/chat/completions";
 const AI_MODEL       = "openai/gpt-oss-20b"; // fast + cheap, one short sentence per user
-const AI_MAX_TOKENS  = 80;
+// gpt-oss reasons before answering and that reasoning shares this budget —
+// at 80 tokens it never got to the sentence, so every email used the plain
+// fallback line. Low effort + headroom lets the personalised line through.
+const AI_MAX_TOKENS  = 400;
 const AI_TEMPERATURE = 0.6; // a little warmth, still fast and on-topic
 
 // ── Load Groq keys — dedicated verify pool first, same key-rotation pattern used elsewhere ─
@@ -173,7 +176,8 @@ async function generatePersonalizedIntro(keys, name, topScheme, days, isHindi, i
 
     const { status, data, keyIdx, count429 } = await callGroq(keys, {
       model: AI_MODEL,
-      max_tokens: AI_MAX_TOKENS,
+      max_completion_tokens: AI_MAX_TOKENS,
+      reasoning_effort: "low",
       temperature: AI_TEMPERATURE,
       messages: [
         { role: "system", content: "You write single, warm, encouraging sentences for a government welfare app. No markdown, no quotes, just plain text." },
@@ -184,8 +188,10 @@ async function generatePersonalizedIntro(keys, name, topScheme, days, isHindi, i
     if (status === 200) {
       recordAiCall({ service: "groq-verify", keyIdx, count429 }).catch(() => {});
       logApiCallToHistory("groqVerifyCalls").catch(() => {});
-      const text = data?.choices?.[0]?.message?.content?.trim();
-      return text || null;
+      const text = data?.choices?.[0]?.message?.content?.trim().replace(/^["“]|["”]$/g, "");
+      // One plain sentence only — reject anything long or containing markup.
+      if (!text || text.length > 220 || /[<>]/.test(text)) return null;
+      return text;
     }
     return null;
   } catch {
@@ -220,6 +226,8 @@ function buildProfileAnswers(profile) {
     ...(profile.occupation === "farmer"  && profile.landHolding    ? { landHolding: profile.landHolding }       : {}),
     ...(profile.occupation === "student" && profile.educationLevel ? { educationLevel: profile.educationLevel } : {}),
     ...(profile.income === "below1"      && profile.ration         ? { rationCard: profile.ration }             : {}),
+    ...(profile.disability ? { disability: profile.disability } : {}),
+    ...(profile.gender     ? { gender: profile.gender }         : {}),
   };
 }
 
@@ -242,6 +250,12 @@ function resolveIntroText(intro, isHindi = false) {
       : "Schemes you qualify for are closing soon — apply now to avoid missing out.");
 }
 
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 // ── Build the HTML email body ──────────────────────────────────────────────────
 // intro: AI-generated personalized sentence (or null → falls back to a plain default)
 // schemes: [{ scheme, days, isReminder }] — isReminder = true means this is the
@@ -251,7 +265,7 @@ function buildEmailHtml(schemes, intro, isHindi = false) {
     <tr>
       <td style="padding:10px 12px;border-bottom:1px solid #eee;">
         <div style="font-weight:700;font-size:14px;color:#111;">
-          ${scheme.icon || "📋"} ${scheme.name?.en || "Scheme"}
+          ${scheme.icon || "📋"} ${escapeHtml(scheme.name?.en || "Scheme")}
           ${isReminder ? `<span style="margin-left:6px;font-size:9.5px;font-weight:800;letter-spacing:0.3px;
             color:#DC2626;background:rgba(220,38,38,0.1);padding:2px 6px;border-radius:20px;">FINAL REMINDER</span>` : ""}
         </div>
@@ -261,7 +275,8 @@ function buildEmailHtml(schemes, intro, isHindi = false) {
       </td>
     </tr>`).join("");
 
-  const introText = resolveIntroText(intro, isHindi);
+  // The intro mixes the user's own profile name and AI output — escape it.
+  const introText = escapeHtml(resolveIntroText(intro, isHindi));
 
   return `
   <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
@@ -295,10 +310,10 @@ function buildNewSchemeEmailHtml(schemes, isHindi = false) {
     <tr>
       <td style="padding:10px 12px;border-bottom:1px solid #eee;">
         <div style="font-weight:700;font-size:14px;color:#111;">
-          ${scheme.icon || "🆕"} ${scheme.name?.en || "Scheme"}
+          ${scheme.icon || "🆕"} ${escapeHtml(scheme.name?.en || "Scheme")}
         </div>
         <div style="font-size:12px;color:#555;margin-top:3px;">
-          ${scheme.benefit?.en || scheme.description?.en || ""}
+          ${escapeHtml(scheme.benefit?.en || scheme.description?.en || "")}
         </div>
       </td>
     </tr>`).join("");
@@ -536,8 +551,14 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
   // ── Update the scheme registry so today's "new" schemes aren't new again ───
   // Always runs (even on the seeding first run, even if nothing was announced)
   // so the registry stays a complete, current snapshot of every known id.
+  // If the daily email quota ran out, some users never got today's
+  // new-scheme announcement. Keep those ids "new" so the next run retries
+  // them (each user's announcedSchemeIds already prevents duplicates).
+  const registryIds = quotaHit && newSchemeIds.length > 0
+    ? currentSchemeIds.filter(id => !newSchemeIds.includes(id))
+    : currentSchemeIds;
   await registryRef.set(
-    { ids: currentSchemeIds, updatedAt: FieldValue.serverTimestamp() },
+    { ids: registryIds, updatedAt: FieldValue.serverTimestamp() },
     { merge: true }
   );
 

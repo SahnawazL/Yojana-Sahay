@@ -30,16 +30,24 @@ import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore, Timestamp }       from "firebase-admin/firestore";
 
 // ── Firebase Admin init (safe — reuses existing app across hot reloads) ───────
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId:   process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey:  (process.env.FIREBASE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n"),
-    }),
-  });
+// Initialised lazily inside the handler: a top-level cert() call throws at
+// import time when an env var is missing, which also crashed every route
+// that imports this module (admin-sync-news) with an opaque error.
+let db = null;
+function getDb() {
+  if (db) return db;
+  if (!getApps().length) {
+    initializeApp({
+      credential: cert({
+        projectId:   process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey:  (process.env.FIREBASE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n"),
+      }),
+    });
+  }
+  db = getFirestore();
+  return db;
 }
-const db = getFirestore();
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const GROQ_URL    = "https://api.groq.com/openai/v1/chat/completions";
@@ -78,6 +86,15 @@ function loadGroqKeys() {
 // Near-duplicate detection is handled by the schemeKey 14-day window instead.
 function makeTitleHash(title) {
   return title.toLowerCase().replace(/\s+/g, " ").trim().slice(0, 70);
+}
+
+// ── Decode the HTML entities Google News leaves in titles (&amp; &#39; …) ─────
+function decodeEntities(str) {
+  return str
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
 }
 
 // ── Strip "— Source Name" suffix Google News appends to every title ───────────
@@ -132,7 +149,7 @@ function parseRSSItems(xml) {
 
     const pubDate = block.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]?.trim() ?? "";
 
-    const title = stripSource(rawTitle.trim());
+    const title = stripSource(decodeEntities(rawTitle.trim()));
     if (title.length < 10) continue; // skip empty / malformed entries
 
     items.push({ title, link: link.trim(), pubDate });
@@ -195,7 +212,11 @@ async function groqFilterAndSummarise(items, groqKeys) {
         },
         body: JSON.stringify({
           model:       MODEL,
-          max_tokens:  1300,
+          // gpt-oss is a reasoning model — its hidden reasoning shares this
+          // budget. 1300 tokens truncated the JSON for 8 bilingual items,
+          // the parse failed and the run silently added nothing.
+          max_completion_tokens: 4000,
+          reasoning_effort:      "low",
           temperature: 0.3,
           messages: [
             { role: "system", content: systemPrompt },
@@ -204,8 +225,8 @@ async function groqFilterAndSummarise(items, groqKeys) {
         }),
       });
 
-      if (res.status === 429) {
-        console.warn("[refresh-news] Groq 429 — trying next key…");
+      if (res.status === 429 || res.status === 401 || res.status === 403) {
+        console.warn(`[refresh-news] Groq ${res.status} — trying next key…`);
         continue;
       }
 
@@ -215,13 +236,19 @@ async function groqFilterAndSummarise(items, groqKeys) {
       }
 
       const data = await res.json();
-      const raw  = data?.choices?.[0]?.message?.content ?? "[]";
+      const raw  = data?.choices?.[0]?.message?.content || "[]";
 
       // Model may return { items: [...] } or { results: [...] } or directly [...] — unwrap if needed
       let parsed;
       try {
         const clean = raw.replace(/```json|```/g, "").trim();
-        const obj   = JSON.parse(clean);
+        let obj;
+        try { obj = JSON.parse(clean); }
+        catch {
+          const m = clean.match(/\[[\s\S]*\]/); // tolerate stray text around the array
+          if (!m) throw new Error("no JSON array");
+          obj = JSON.parse(m[0]);
+        }
         // Model may return { items: [...] } or { results: [...] } or directly [...]
         parsed = Array.isArray(obj)
           ? obj
@@ -277,6 +304,13 @@ export default async function handler(req, res) {
   }
 
   console.log("[refresh-news] ▶ Cron started at", new Date().toISOString());
+
+  try {
+    getDb();
+  } catch (err) {
+    console.error("[refresh-news] Firebase Admin init failed:", err.message);
+    return res.status(500).json({ error: "Firebase Admin not configured (FIREBASE_* env vars)." });
+  }
 
   // ── Step 1b — Run-interval guard ────────────────────────────────────────────
   // Prevents duplicate accumulation during manual testing and accidental double-runs.
@@ -428,7 +462,7 @@ export default async function handler(req, res) {
       desc_hi:     result.desc_hi.slice(0, 220),
       scope:       typeof result.scope === "string" ? result.scope.slice(0, 40) : "",
       schemeKey:   typeof result.schemeKey === "string" ? result.schemeKey.slice(0, 40).trim() : "",
-      url:         source.link || "",
+      url:         decodeEntities(source.link || ""),
       source:      "Google News",
       active:      true,
       titleHash:   source.titleHash,

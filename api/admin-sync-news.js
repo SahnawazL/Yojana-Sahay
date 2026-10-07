@@ -14,6 +14,7 @@
  * No new env vars needed — reuses FIREBASE_* + CRON_SECRET already set.
  */
 
+import refreshNewsHandler from "./refresh-news.js";
 import { getAdminDb, getAdminAuth } from "./_lib/firebaseAdmin.js";
 
 export default async function handler(req, res) {
@@ -66,27 +67,24 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server misconfiguration: missing CRON_SECRET" });
   }
 
-  const host     = req.headers["host"] ?? "";
-  const protocol = host.startsWith("localhost") ? "http" : "https";
-  const syncUrl  = `${protocol}://${host}/api/refresh-news?force=true`;
-
-  let refreshRes;
+  // Run the refresh in-process instead of fetch()-ing our own URL. The old
+  // code built that URL from the request's Host header and sent CRON_SECRET
+  // to it — a spoofed Host would have received the secret.
+  let status = 200, payload = null;
+  const fakeRes = {
+    status(code) { status = code; return this; },
+    json(body)   { payload = body; return this; },
+    setHeader()  { return this; },
+  };
   try {
-    refreshRes = await fetch(syncUrl, {
-      headers: { "Authorization": `Bearer ${cronSecret}` },
-    });
+    await refreshNewsHandler(
+      { method: "GET", headers: { authorization: `Bearer ${cronSecret}` }, query: { force: "true" } },
+      fakeRes
+    );
   } catch (err) {
-    console.error("[admin-sync-news] Failed to reach /api/refresh-news:", err.message);
-    return res.status(502).json({ error: "Could not reach refresh-news endpoint" });
+    console.error("[admin-sync-news] refresh-news failed:", err.message);
+    return res.status(500).json({ error: `News refresh failed: ${err.message}` });
   }
 
-  // ── 5. Forward response to client ─────────────────────────────────────────
-  let payload;
-  try {
-    payload = await refreshRes.json();
-  } catch {
-    payload = { message: "Sync triggered — no JSON response" };
-  }
-
-  return res.status(refreshRes.status).json(payload);
+  return res.status(status).json(payload ?? { message: "Sync finished — no details returned" });
 }
