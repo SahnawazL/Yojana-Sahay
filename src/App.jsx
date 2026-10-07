@@ -9023,36 +9023,47 @@ function YojanaSahayInner(){
   // refreshes/navigation within the SAME browser tab, but clears automatically
   // when the tab actually closes — exactly the boundary of "one session".
   useEffect(()=>{
-    let sessionStart;
-    try{
-      sessionStart = sessionStorage.getItem("ys_session_start");
-      if(!sessionStart){
-        sessionStart = String(Date.now());
-        sessionStorage.setItem("ys_session_start", sessionStart);
-      }
-    }catch{ sessionStart = String(Date.now()); }
-    const startMs = Number(sessionStart);
-    let flushedMs = 0; // how much of this session has already been added to totalActiveDuration — prevents double-counting on repeated background/foreground toggles
+    // Counts only VISIBLE time, and keeps both the session's active time and
+    // what has already been written in sessionStorage. The old version
+    // measured wall-clock time since the tab opened (so hours spent in the
+    // background counted as "active"), and reset its flushed counter on
+    // every page refresh, re-adding the whole session to the lifetime total.
+    const ss = {
+      get:(k)=>{ try{ return Number(sessionStorage.getItem(k)||0)||0; }catch{ return 0; } },
+      set:(k,v)=>{ try{ sessionStorage.setItem(k,String(v)); }catch{} },
+    };
+    let activeMs   = ss.get("ys_session_active");   // visible time banked so far this session
+    let flushedMs  = ss.get("ys_session_flushed");  // portion already added to totalActiveDuration
+    let visibleSince = document.visibilityState==="visible" ? Date.now() : null;
+    const currentActive = () => activeMs + (visibleSince ? Date.now() - visibleSince : 0);
+    const bank = () => {
+      if(visibleSince){ activeMs += Date.now() - visibleSince; visibleSince = Date.now(); }
+      ss.set("ys_session_active", activeMs);
+    };
 
     const flush = () => {
       const user = auth.currentUser;
       if(!user) return; // only track for signed-in users — guests have no Firestore doc to write to
-      const elapsed = Date.now() - startMs;
-      const delta = elapsed - flushedMs;
+      const total = currentActive();
+      const delta = total - flushedMs;
       if(delta < 1000) return; // skip no-op flushes under 1s
-      flushedMs = elapsed;
+      flushedMs = total;
+      ss.set("ys_session_flushed", flushedMs);
       updateDoc(doc(db,"users",user.uid),{
-        lastSessionDuration: elapsed,           // this session's running total — overwritten each flush
+        lastSessionDuration: total,             // this session's active time — overwritten each flush
         totalActiveDuration: increment(delta),  // lifetime total — only the NEW delta is added
       }).catch(()=>{});
     };
 
     // Flush when the tab goes to background — the most reliable signal we
     // have that the user has (probably) stopped actively using the app.
-    const onVisibility = () => { if(document.visibilityState==="hidden") flush(); };
+    const onVisibility = () => {
+      if(document.visibilityState==="hidden"){ bank(); visibleSince=null; flush(); }
+      else if(!visibleSince){ visibleSince=Date.now(); }
+    };
     // pagehide covers tab close / swipe-away on mobile, which doesn't always
     // fire visibilitychange first.
-    const onPageHide = () => flush();
+    const onPageHide = () => { bank(); flush(); };
 
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pagehide", onPageHide);
@@ -9061,7 +9072,7 @@ function YojanaSahayInner(){
     // without firing any lifecycle event, this caps lost active time to
     // at most 60 seconds instead of losing the whole session.
     const heartbeat = setInterval(()=>{
-      if(document.visibilityState==="visible") flush();
+      if(document.visibilityState==="visible"){ bank(); flush(); }
     }, 60000);
 
     return ()=>{
