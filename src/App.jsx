@@ -317,6 +317,14 @@ function deadlineTs(d){
   if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return Date.parse(`${d}T23:59:59.999+05:30`);
   return new Date(d).getTime();
 }
+// Is the scheme's LINK reachable? true / false / undefined (unknown).
+// isActive is "applications open/closed", not link health — a closed scheme
+// used to show a red "Dead Link". A known isActive does prove the AI read the
+// page, so the link itself works.
+function linkState(s){
+  if(s.linkAlive===true||s.linkAlive===false) return s.linkAlive;
+  return typeof s.isActive==="boolean"?true:undefined;
+}
 // Whole calendar days (IST) from today to the deadline: 0 = closes today.
 function deadlineDaysLeft(d, now=Date.now()){
   const end=deadlineTs(d);
@@ -1406,7 +1414,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
             {/* ── Status badge — combines URL liveness (Tier 1) + application status (Tier 2 AI) ── */}
             {(()=>{
               if(!isOnline) return null;
-              const st=scheme.linkAlive??scheme.isActive;
+              const st=linkState(scheme);
               const http=scheme.httpStatus??0;
               const hasBeenChecked=scheme.lastVerified!=null;
               const _now=Date.now();
@@ -1592,7 +1600,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
               {/* ── URL Status detail panel — shown for dead/unverified online schemes ── */}
               {isOnline&&(()=>{
                 // Fix 3: linkAlive is the pure URL-liveness signal (Tier 1).
-                const st=scheme.linkAlive??scheme.isActive;
+                const st=linkState(scheme);
                 const http=scheme.httpStatus??0;
                 const hasBeenChecked=scheme.lastVerified!=null;
                 const nowTs=Date.now();
@@ -1803,7 +1811,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                 onClick={()=>{
                   haptic();
                   // Dead link interceptor — 404 = page gone, redirect to Google search
-                  if(applyUrl&&(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404){
+                  if(applyUrl&&linkState(scheme)===false&&scheme.httpStatus===404){
                     googleSearchScheme(scheme.name.en);
                     return;
                   }
@@ -1811,7 +1819,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                   else googleSearchScheme(scheme.name.en);
                 }}
                 style={{
-                  background:applyUrl&&(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404
+                  background:applyUrl&&linkState(scheme)===false&&scheme.httpStatus===404
                     ?"linear-gradient(135deg,#6B7280,#9CA3AF)"
                     :applyUrl
                       ?`linear-gradient(135deg,${scheme.color},${scheme.color}cc)`
@@ -1820,18 +1828,18 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                   display:"flex",alignItems:"center",justifyContent:"space-between",
                   cursor:"pointer",
                   boxShadow:applyUrl?`0 4px 16px ${scheme.color}40`:"0 4px 16px rgba(37,99,235,0.35)",
-                  opacity:(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404?0.85:1,
+                  opacity:linkState(scheme)===false&&scheme.httpStatus===404?0.85:1,
                 }}>
                 <div>
                   <div style={{fontSize:12,fontWeight:800,color:"#fff",fontFamily:bf}}>
-                    {(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404
+                    {linkState(scheme)===false&&scheme.httpStatus===404
                       ?(isHindi?"गूगल पर सही लिंक खोजें":"Search Google for Correct Link")
                       :scheme.lastDate&&deadlineTs(scheme.lastDate)<Date.now()
                         ?(isHindi?"आधिकारिक वेबसाइट देखें":"Check Official Website")
                         :t.applyLabel}
                   </div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:3}}>
-                    {(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404
+                    {linkState(scheme)===false&&scheme.httpStatus===404
                       ?"🔎 "+scheme.name.en
                       :applyUrl?"🌐 "+scheme.apply[lang]:"🔎 Find on Google"}
                   </div>
@@ -1842,7 +1850,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                   display:"flex",alignItems:"center",justifyContent:"center",
                   border:"1.5px solid rgba(255,255,255,0.3)",
                 }}>
-                  {(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404?"🔎":applyUrl?"↗":"🔍"}
+                  {linkState(scheme)===false&&scheme.httpStatus===404?"🔎":applyUrl?"↗":"🔍"}
                 </div>
               </div>
 
@@ -2957,7 +2965,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
     const arr=[...base];
     // Rank: active(2) > unverified(1) > expired/dead(0) — used as the default order
     // and as a tie-breaker so dead/expired schemes never float to the top.
-    const sc=s=>{const la=s.linkAlive??s.isActive;return la===true?2:la===false||(s.lastDate&&deadlineTs(s.lastDate)<now)?0:1;};
+    const sc=s=>{const la=linkState(s);return la===true?2:la===false||(s.lastDate&&deadlineTs(s.lastDate)<now)?0:1;};
     if(deferredSortBy==="deadline"){
       arr.sort((a,b)=>{
         const ad=a.lastDate?deadlineTs(a.lastDate):Infinity;

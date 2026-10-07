@@ -7,9 +7,9 @@
 //
 // Merge rules per field (new value → stored value):
 //   lastVerified        always overwritten
-//   lastDate, linkAlive explicit null CLEARS the stored value (the caller has
-//                       confirmed there is no deadline / the link check was
-//                       inconclusive); undefined/missing keeps it
+//   lastDate, linkAlive, explicit null CLEARS the stored value (the caller
+//   isActive            read the page and it no longer states a deadline /
+//                       a "closed" status); undefined/missing keeps it
 //   everything else     null/undefined keeps the stored value
 //
 // Safety:
@@ -25,7 +25,7 @@ import { updateRepoFile } from "./_lib/githubCommit.js";
 
 const FILE_PATH = "src/schemes-meta.json";
 const ALLOWED_FIELDS = new Set(["lastVerified", "lastDate", "linkAlive", "httpStatus", "isActive", "confidence"]);
-const CLEAR_ON_NULL  = new Set(["lastDate", "linkAlive"]);
+const CLEAR_ON_NULL  = new Set(["lastDate", "linkAlive", "isActive"]);
 const MAX_ENTRIES    = 3000;
 
 export function mergeSchemesMeta(currentData, results) {

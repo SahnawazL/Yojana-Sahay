@@ -85,6 +85,7 @@ export function outcomeToMetaEntry(outcome, nowIso = new Date().toISOString()) {
   if (!outcome.errorKind) {
     entry.confidence = outcome.confidence ?? 0;
     if (outcome.isActive != null) entry.isActive = outcome.isActive;
+    else if ((outcome.confidence ?? 0) >= 0.5) entry.isActive = null; // clears a stale "closed"
     if (outcome.lastDate) entry.lastDate = outcome.lastDate;
     else if ((outcome.confidence ?? 0) >= 0.5) entry.lastDate = null; // page clearly read, no deadline any more
   }
