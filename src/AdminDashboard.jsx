@@ -5596,9 +5596,12 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
   useEffect(() => {
     if (!sessionUser?.uid) return;
     try {
-      const key = `ys_admin_login_logged_${sessionUser.uid}`;
-      if (sessionStorage.getItem(key)) return;
-      sessionStorage.setItem(key, "1");
+      // At most once per 30 min per admin — reloads, new browser tabs and
+      // re-sign-ins used to add a "LOGIN" line every time.
+      const key  = `ys_admin_login_logged_${sessionUser.uid}`;
+      const last = Number(localStorage.getItem(key) || 0);
+      if (Date.now() - last < 30 * 60 * 1000) return;
+      localStorage.setItem(key, String(Date.now()));
     } catch { /* storage blocked — still log */ }
     logActivity("Opened the admin dashboard", "home", "login");
   }, [sessionUser?.uid, logActivity]);

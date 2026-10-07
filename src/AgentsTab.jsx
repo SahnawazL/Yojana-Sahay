@@ -2093,6 +2093,17 @@ const WatchdogCard = React.memo(function WatchdogCard({ dark, isDesktop }) {
     if (d?.health) setState(prev => ({ loading:false, error:null, health: { ...(prev.health ?? {}), ...d.health, source: "admin" } }));
   }, []);
 
+  // First open with no snapshot (or one older than 13 h — the GitHub watchdog
+  // runs every 6 h) → run a check automatically instead of showing "No check yet".
+  const autoChecked = useRef(false);
+  useEffect(() => {
+    if (state.loading || state.error || autoChecked.current || runner.running) return;
+    const at = state.health?.checkedAt ? new Date(state.health.checkedAt).getTime() : 0;
+    if (at && Date.now() - at < 13 * 3600 * 1000) return;
+    autoChecked.current = true;
+    runner.run("health", "Health check", onHealth);
+  }, [state.loading, state.error, state.health, runner, onHealth]);
+
   const h = state.health;
   const checkedAt = h?.checkedAt ? new Date(h.checkedAt) : null;
   // The watchdog runs every 6 h — no snapshot for 13 h means it isn't running.
@@ -5128,7 +5139,8 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
   const maxDayTotal  = useMemo(() => Math.max(1, ...fullGrid.map(d => d.dayTotal)), [fullGrid]);
   const peakDay      = useMemo(() => fullGrid.find(d => d.dayTotal === maxDayTotal), [fullGrid, maxDayTotal]);
   const daysWithData = useMemo(() => fullGrid.filter(d => d.dayTotal > 0).length, [fullGrid]);
-  const hovered      = hoveredIdx !== null ? fullGrid[hoveredIdx] : null;
+  // Nothing tapped → show today's breakdown instead of nothing / a stale tap.
+  const hovered      = hoveredIdx !== null ? fullGrid[hoveredIdx] : (fullGrid[fullGrid.length - 1] ?? null);
   const CHART_H      = isDesktop ? 100 : 72; // px
 
   return (

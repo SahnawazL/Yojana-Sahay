@@ -265,7 +265,11 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
   }, [editFormEn, editFormHi, editFormUrl, editFormScope, editingId, handleCancelEdit]);
 
   // ── Sync Now (calls /api/admin-sync-news — Firebase-auth gated proxy) ─────
+  const syncBusyRef = useRef(false);
   const handleSyncNews = useCallback(async () => {
+    // Two quick taps used to start two syncs (state updates are async).
+    if (syncBusyRef.current) return;
+    syncBusyRef.current = true;
     setNewsSyncing(true);
     setNewsSyncMsg("");
     try {
@@ -294,6 +298,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
       setNewsSyncMsg("✗ Sync failed — check console");
       console.error("[NewsTab] Sync failed:", err);
     } finally {
+      syncBusyRef.current = false;
       setNewsSyncing(false);
       if (syncMsgTimerRef.current) clearTimeout(syncMsgTimerRef.current);
       syncMsgTimerRef.current = setTimeout(() => setNewsSyncMsg(""), 8000);

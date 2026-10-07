@@ -80,9 +80,10 @@ async function searchWeb(query) {
   try {
     const res = await fetch(TAVILY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      // Tavily authenticates with a Bearer header (body api_key is no longer documented).
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${tavilyKey.trim()}` },
+      signal:  AbortSignal.timeout(15000),
       body: JSON.stringify({
-        api_key:             tavilyKey,
         query,
         max_results:         3,       // 3 results = enough context, low token cost
         search_depth:        "basic", // "basic" is free tier; "advanced" costs 2 credits
