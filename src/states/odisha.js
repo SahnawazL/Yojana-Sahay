@@ -74,7 +74,9 @@ export const ODISHA_SCHEMES = [
     apply:   { en: "https://subhadra.odisha.gov.in", hi: "subhadra.odisha.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (mandatory)", "Aadhaar-linked Bank Account (single-holder, DBT-enabled)", "NFSA / SFSS Ration Card OR Income Certificate (family income < ₹2.5 lakh)", "Mobile Number (Aadhaar-linked)", "e-KYC completion on the portal"],
                hi: ["आधार कार्ड (अनिवार्य)", "आधार-लिंक्ड बैंक खाता (एकल धारक, DBT-सक्षम)", "NFSA / SFSS राशन कार्ड या आय प्रमाण पत्र (पारिवारिक आय ₹2.5 लाख से कम)", "मोबाइल नंबर (आधार-लिंक्ड)", "पोर्टल पर e-KYC पूर्ण"] },
-    match: (a) => a.state === "Odisha" && a.who === "women" && ["below1","1to3","3to6"].includes(a.income),
+    eligibilityText: { en: ["Women aged 21–60 living in Odisha", "Covered by an NFSA / state food-security card, or family income up to ₹2.5 lakh a year", "Not a government employee or income-tax payer"],
+                       hi: ["ओडिशा की 21–60 वर्ष की महिलाएं", "NFSA / राज्य खाद्य सुरक्षा कार्ड वाले, या परिवार की सालाना आय ₹2.5 लाख तक", "सरकारी कर्मचारी या आयकर दाता न हों"] },
+    match: (a) => a.state === "Odisha" && a.who === "women" && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
   {

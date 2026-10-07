@@ -24,7 +24,9 @@ export const WEST_BENGAL_SCHEMES = [
     apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/lakshmir-bhandar-scheme_lbs-wb.html", hi: "socialsecurity.wb.gov.in · दुआरे सरकार कैम्प से भी" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Voter ID (West Bengal)","Ration Card","Bank Account (woman's name, Aadhaar-linked)","SC/ST Caste Certificate (for ₹1,000 slab)","Passport Photo"],
                hi: ["आधार कार्ड","मतदाता पहचान पत्र (पश्चिम बंगाल)","राशन कार्ड","बैंक खाता (महिला के नाम, आधार-लिंक्ड)","SC/ST जाति प्रमाण पत्र (₹1,000 स्लैब के लिए)","पासपोर्ट फोटो"] },
-    match: (a) => a.state === "West Bengal" && a.who === "women",
+    eligibilityText: { en: ["Women aged 25–60 living in West Bengal", "Enrolled in Swasthya Sathi (the family health card)", "Not a permanent government employee or pensioner"],
+                       hi: ["पश्चिम बंगाल की 25–60 वर्ष की महिलाएं", "स्वास्थ्य साथी (परिवार स्वास्थ्य कार्ड) में नामांकित", "स्थायी सरकारी कर्मचारी या पेंशनभोगी न हों"] },
+    match: (a) => a.state === "West Bengal" && a.who === "women" && ["18to35","35to60"].includes(a.age),
   },
 
   {
@@ -216,6 +218,8 @@ export const WEST_BENGAL_SCHEMES = [
     apply:   { en: "https://krishakbandhu.net", hi: "krishakbandhu.net" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Parcha / Khatian)","Bank Account (Aadhaar-linked)","Voter ID (West Bengal)","Mobile Number (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","भूमि अभिलेख (परचा / खतियान)","बैंक खाता (आधार-लिंक्ड)","मतदाता ID (पश्चिम बंगाल)","मोबाइल नंबर (आधार-लिंक्ड)","पासपोर्ट फोटो"] },
+    eligibilityText: { en: ["Farmers in West Bengal — landowners, registered sharecroppers (bargadars) and forest patta holders", "Full benefit for 1 acre or more; smaller holdings get a proportionate amount (minimum ₹4,000 a year)", "Apply through the Krishak Bandhu portal or the block agriculture office"],
+                       hi: ["पश्चिम बंगाल के किसान — भू-स्वामी, पंजीकृत बटाईदार (बरगादार) और वन पट्टा धारक", "1 एकड़ या अधिक पर पूरा लाभ; कम ज़मीन पर अनुपात में (न्यूनतम ₹4,000 प्रति वर्ष)", "कृषक बंधु पोर्टल या प्रखंड कृषि कार्यालय से आवेदन करें"] },
     match: (a) => a.state === "West Bengal" && a.who === "farmer",
   },
 

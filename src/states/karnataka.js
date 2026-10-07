@@ -66,6 +66,8 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.govtschemes.in/karnataka-gruha-lakshmi-scheme", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card (BPL)", "Bank Account (women's name)", "Domicile Certificate"],
                hi: ["आधार कार्ड", "राशन कार्ड (BPL)", "बैंक खाता (महिला के नाम)", "अधिवास प्रमाण"] },
+    eligibilityText: { en: ["The woman head of the family as named on the ration card (APL, BPL or Antyodaya)", "Neither she nor her husband pays income tax or files GST returns", "One beneficiary per family"],
+                       hi: ["राशन कार्ड (APL, BPL या अंत्योदय) में दर्ज परिवार की महिला मुखिया", "वह या उसका पति आयकर या GST रिटर्न न भरते हों", "प्रति परिवार एक लाभार्थी"] },
     match: (a) => a.state === "Karnataka" && a.who === "women" && ["below1", "1to3"].includes(a.income),
   },
 

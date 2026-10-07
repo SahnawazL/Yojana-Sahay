@@ -204,7 +204,9 @@ export const MADHYA_PRADESH_SCHEMES = [
     apply:   { en: "https://cmladlibahna.mp.gov.in", hi: "cmladlibahna.mp.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Samagra ID", "Bank Account (Aadhaar-linked)", "Marriage Certificate / Self-declaration", "MP Domicile Proof"],
                hi: ["आधार कार्ड", "समग्र ID", "बैंक खाता (आधार लिंक)", "विवाह प्रमाण पत्र / स्व-घोषणा", "म.प्र. निवास प्रमाण"] },
-    match: (a) => a.state === "Madhya Pradesh" && a.who === "women" && ["18to35", "35to60"].includes(a.age),
+    eligibilityText: { en: ["Married women aged 21–60 living in Madhya Pradesh — widows, divorced and abandoned women included", "Family income below ₹2.5 lakh a year; no income-tax payer or government employee in the family", "Family land under 5 acres and no four-wheeler (tractor allowed)"],
+                       hi: ["मध्य प्रदेश की 21–60 वर्ष की विवाहित महिलाएं — विधवा, तलाकशुदा और परित्यक्ता भी", "परिवार की सालाना आय ₹2.5 लाख से कम; परिवार में कोई आयकर दाता या सरकारी कर्मचारी न हो", "परिवार की ज़मीन 5 एकड़ से कम और चार-पहिया वाहन न हो (ट्रैक्टर छोड़कर)"] },
+    match: (a) => a.state === "Madhya Pradesh" && a.who === "women" && ["18to35", "35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
   {

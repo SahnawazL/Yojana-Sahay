@@ -48,6 +48,8 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://nashik.gov.in/en/scheme/mukhyamantri-mazi-ladki-bahin-yojana", hi: "ladakibahin.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","Bank Account (women's name)","Income Certificate","Maharashtra Domicile"],
                hi: ["आधार कार्ड","राशन कार्ड","बैंक खाता (महिला के नाम)","आय प्रमाण","महाराष्ट्र अधिवास प्रमाण"] },
+    eligibilityText: { en: ["Women aged 21–65 living in Maharashtra — married, widowed, divorced, abandoned, or one unmarried woman per family", "Family income up to ₹2.5 lakh a year; no income-tax payer or government employee in the family", "No four-wheeler in the family (tractor allowed)"],
+                       hi: ["महाराष्ट्र की 21–65 वर्ष की महिलाएं — विवाहित, विधवा, तलाकशुदा, परित्यक्ता या परिवार की एक अविवाहित महिला", "परिवार की सालाना आय ₹2.5 लाख तक; परिवार में कोई आयकर दाता या सरकारी कर्मचारी न हो", "परिवार में चार-पहिया वाहन न हो (ट्रैक्टर छोड़कर)"] },
     match: (a) => a.state === "Maharashtra" && a.who === "women" && ["below1","1to3"].includes(a.income),
   },
 

@@ -40,6 +40,8 @@ export const TAMIL_NADU_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Ration Card", "Bank Account", "Income Certificate"],
                hi: ["आधार कार्ड", "राशन कार्ड", "बैंक खाता", "आय प्रमाण पत्र"] },
     // Eligibility: TN women (18–60), income below ₹3 lakh
+    eligibilityText: { en: ["Women heads of family aged 21+ living in Tamil Nadu", "Family income below ₹2.5 lakh a year", "Land under 5 acres (wet) or 10 acres (dry), and home electricity use under 3,600 units a year"],
+                       hi: ["तमिलनाडु की 21+ वर्ष की परिवार की महिला मुखिया", "परिवार की सालाना आय ₹2.5 लाख से कम", "ज़मीन 5 एकड़ (सिंचित) या 10 एकड़ (असिंचित) से कम, और घर की बिजली खपत 3,600 यूनिट/वर्ष से कम"] },
     match: (a) => a.state === "Tamil Nadu" && a.who === "women" && ["below1", "1to3"].includes(a.income),
   },
 

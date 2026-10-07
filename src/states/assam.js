@@ -20,6 +20,8 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/aos", hi: "assam.gov.in/scheme-page/154" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","Bank Account (women's name)","Income Certificate"],
                hi: ["आधार कार्ड","राशन कार्ड","बैंक खाता (महिला के नाम)","आय प्रमाण पत्र"] },
+    eligibilityText: { en: ["A woman member of a family living in Assam", "Family income up to ₹2 lakh a year", "Not for families with a government employee, elected representative or a four-wheeler"],
+                       hi: ["असम में रहने वाले परिवार की एक महिला सदस्य", "परिवार की सालाना आय ₹2 लाख तक", "सरकारी कर्मचारी, जनप्रतिनिधि या चार-पहिया वाहन वाले परिवार पात्र नहीं"] },
     match: (a) => a.state === "Assam" && a.who === "women" && ["below1","1to3"].includes(a.income),
   },
 

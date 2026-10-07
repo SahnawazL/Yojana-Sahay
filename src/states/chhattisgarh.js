@@ -66,7 +66,9 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "https://www.govtschemes.in/chhattisgarh-mahtari-vandan-scheme", hi: "mahtarivandan.cgstate.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Marriage Certificate","Bank Passbook","Domicile Certificate"],
                hi: ["आधार कार्ड","विवाह प्रमाण पत्र","बैंक पासबुक","निवास प्रमाण पत्र"] },
-    match: (a) => a.state === "Chhattisgarh" && a.who === "women",
+    eligibilityText: { en: ["Married women aged 21+ living in Chhattisgarh — widows, divorced and abandoned women included", "No income-tax payer in the family", "Not a government employee or elected representative"],
+                       hi: ["छत्तीसगढ़ की 21+ वर्ष की विवाहित महिलाएं — विधवा, तलाकशुदा और परित्यक्ता भी", "परिवार में कोई आयकर दाता न हो", "सरकारी कर्मचारी या जनप्रतिनिधि न हों"] },
+    match: (a) => a.state === "Chhattisgarh" && a.who === "women" && a.age !== "below18",
   },
 
   {

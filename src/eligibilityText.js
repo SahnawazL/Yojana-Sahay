@@ -144,7 +144,8 @@ export function whoCanApply(scheme, lang = "en") {
   const custom = scheme?.eligibilityText?.[lang] ?? scheme?.eligibilityText?.en;
   if (Array.isArray(custom) && custom.length) {
     const t = L[lang] ?? L.en;
-    return scheme.scope === "state" && scheme.state ? [t.resident(scheme.state), ...custom] : [...custom];
+    const saysState = (scheme.eligibilityText.en ?? []).join(" ").includes(scheme.state ?? "\u0000");
+    return scheme.scope === "state" && scheme.state && !saysState ? [t.resident(scheme.state), ...custom] : [...custom];
   }
   const e = eligibilityProfile(scheme);
   if (!e) return null;
