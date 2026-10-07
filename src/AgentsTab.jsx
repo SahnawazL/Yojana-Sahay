@@ -2579,7 +2579,21 @@ const FirebaseUsageCard = React.memo(function FirebaseUsageCard({ dark, isDeskto
         )}
 
         {/* One-time setup needed */}
-        {d && !ok && d.setup && (
+        {d && !ok && d.setup?.kind === "billing" && (
+          <div style={{ background:th.card2, border:`1px solid ${th.border}`, borderRadius:10, padding:"11px 12px" }}>
+            <div style={{ fontSize:fs(11, isDesktop), fontWeight:800, color:th.text, marginBottom:6 }}>Live numbers need the paid plan</div>
+            <div style={{ fontSize:fs(10.5, isDesktop), color:th.textMid, lineHeight:1.6 }}>
+              Your Firebase is on the <b>free plan</b>. Google shares usage numbers with apps only on the paid (Blaze) plan, so this card can't show them here.
+              You can still see them anytime in the Firebase console. It's one tap below.
+            </div>
+            <a href={d.setup.link} target="_blank" rel="noopener noreferrer"
+              style={{ display:"inline-block", marginTop:9, fontSize:fs(10.5, isDesktop), fontWeight:800, color:"#fff", background:"#F59E0B", padding:"6px 12px", borderRadius:8, textDecoration:"none" }}>
+              Open usage in Firebase ↗
+            </a>
+            <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:7 }}>If you ever move to the Blaze plan, this card starts showing the numbers by itself.</div>
+          </div>
+        )}
+        {d && !ok && d.setup && d.setup.kind !== "billing" && (
           <div style={{ background:`${IDLE_AMBER}12`, border:`1px solid ${IDLE_AMBER}40`, borderRadius:10, padding:"11px 12px" }}>
             <div style={{ fontSize:fs(11, isDesktop), fontWeight:800, color:th.text, marginBottom:6 }}>One quick setup step needed</div>
             {d.setup.kind === "api" ? (

@@ -66,6 +66,10 @@ async function monitoring(token, project, params) {
   const data = await res.json().catch(() => ({}));
   if (res.ok) return data.timeSeries ?? [];
   const msg = data?.error?.message ?? `HTTP ${res.status}`;
+  if (res.status === 403 && /requires billing|BILLING_DISABLED/i.test(JSON.stringify(data))) {
+    // Free (Spark) plan: Google only shares these numbers with Blaze projects.
+    throw new SetupNeeded("billing", msg, `https://console.firebase.google.com/project/${project}/usage`);
+  }
   if (res.status === 403 && /has not been used|is disabled|SERVICE_DISABLED/i.test(JSON.stringify(data))) {
     throw new SetupNeeded("api", msg, `https://console.cloud.google.com/apis/library/monitoring.googleapis.com?project=${project}`);
   }
