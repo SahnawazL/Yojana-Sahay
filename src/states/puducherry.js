@@ -90,7 +90,7 @@ export const PUDUCHERRY_SCHEMES = [
     apply:   { en: "Dept. of Social Welfare, Puducherry (offline application)", hi: "समाज कल्याण विभाग, पुदुच्चेरी (ऑफलाइन आवेदन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ — issued by Medical Board, Puducherry)", "Residence Proof (Puducherry domicile — minimum 5 years)", "BPL Ration Card or Income Certificate", "Bank Account Passbook (Aadhaar-linked)", "Passport Photo"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+ — पुदुच्चेरी मेडिकल बोर्ड द्वारा जारी)", "निवास प्रमाण (पुदुच्चेरी — न्यूनतम 5 वर्ष)", "BPL राशन कार्ड या आय प्रमाण पत्र", "बैंक पासबुक (आधार-लिंक्ड)", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Puducherry" && a.who === "disabled" && ["below1","1to3"].includes(a.income),
+    match: (a) => a.state === "Puducherry" && (a.disability == null || a.disability !== "none") && ["below1","1to3"].includes(a.income),
   },
 
   // ── STUDENT / EDUCATION ───────────────────────────────────────────────────

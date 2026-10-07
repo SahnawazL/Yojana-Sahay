@@ -2136,23 +2136,41 @@ export function getSchemesForCategory(filterKey) {
   };
   const stateKeywords = STATE_TAG_KEYWORDS[filterKey] || [];
 
-  if (filterKey === "senior") {
-    return SCHEME_DB.filter(s => {
-      if (s.scope === "national") {
-        return s.match({ who: "senior", income: "below1", age: "above60", area: "rural", house: "yes", state: "" });
-      }
-      const tagLower = s.tag.en.toLowerCase();
-      return stateKeywords.some(kw => tagLower.includes(kw));
-    });
-  }
+  // National schemes are tested with match() — but most national matchers
+  // never look at `who` (Ayushman, Jan Dhan, MGNREGA, PMGKAY…), so they used
+  // to appear under EVERY persona category: "Student" listed dialysis and
+  // fish-farming schemes. A national scheme now belongs to a persona category
+  // only if it is persona-specific (a general citizen with the same profile
+  // would NOT match) or its name/tag clearly names that persona.
+  const NATIONAL_PERSONA_KEYWORDS = {
+    farmer:   ["farmer", "kisan", "krishi", "agri", "crop", "fasal", "soil", "irrigation", "fisher", "livestock", "dairy"],
+    student:  ["student", "education", "scholarship", "merit", "school", "college", "fellowship", "vidya", "shiksha"],
+    women:    ["women", "woman", "girl", "mahila", "maternity", "matru", "widow", "beti", "ujjwala", "sukanya", "naari", "lakhpati"],
+    senior:   ["senior", "pension", "old age", "elderly", "vayo"],
+    business: ["business", "entrepreneur", "enterprise", "msme", "vendor", "startup", "mudra", "artisan", "vishwakarma", "employment generation"],
+  };
+  const safe = (fn) => { try { return !!fn(); } catch { return false; } };
+  const nationalInCategory = (s) => {
+    const personaAge = filterKey === "senior" ? "above60" : "18to35";
+    const base = { income: "below1", area: "rural", house: "yes", state: "" };
+    if (!safe(() => s.match({ ...base, who: filterKey, age: personaAge }))) return false;
+    const text = `${s.tag.en} ${s.name.en}`.toLowerCase();
+    if ((NATIONAL_PERSONA_KEYWORDS[filterKey] || []).some(kw => text.includes(kw))) return true;
+    // Student: schemes tagged for the class / ITI / skill sub-filters belong here too
+    if (filterKey === "student" && Array.isArray(s.keywords) && s.keywords.length > 0) return true;
+    const generic = safe(() => s.match({ ...base, who: "general", age: "18to35" }));
+    return !generic;
+  };
 
   return SCHEME_DB.filter(s => {
     if (s.scope === "national") {
-      return s.match({ who: filterKey, income: "below1", age: "18to35", area: "rural", house: "yes", state: "" });
+      return nationalInCategory(s);
     }
     // State schemes: match by tag keyword instead of s.match()
     const tagLower = s.tag.en.toLowerCase();
-    return stateKeywords.some(kw => tagLower.includes(kw));
+    if (stateKeywords.some(kw => tagLower.includes(kw))) return true;
+    // Student: include state schemes tagged for the class / ITI / skill sub-filters
+    return filterKey === "student" && Array.isArray(s.keywords) && s.keywords.length > 0;
   });
 }
 

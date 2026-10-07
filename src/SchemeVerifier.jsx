@@ -2091,7 +2091,7 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
   };
 
   // For a fix that's stuck permanently failing the re-check (e.g. the URL
-  // that got committed is itself broken — like a leftover "https://https://"
+  // that got committed is itself broken — like a leftover "https://"
   // corruption from before the patcher's substring-replace bug was fixed).
   // Re-checking the same bad URL forever never helps — this clears the
   // dead-end Firestore record and starts a genuinely fresh search instead.

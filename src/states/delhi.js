@@ -685,7 +685,7 @@ export const DELHI_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "Class 10 Marksheet", "Income Certificate (below ₹2L)", "Bank Passbook", "College Bonafide"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "कक्षा 10 अंकतालिका", "आय प्रमाण पत्र (₹2L से कम)", "बैंक पासबुक", "कॉलेज बोनाफाइड"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Delhi" && a.who === "student" && a.caste === "minority" && (a.income === "below1" || a.income === "1to3"),
+    match: (a) => a.state === "Delhi" && a.who === "student" && (a.income === "below1" || a.income === "1to3"),
   },
 
   {
@@ -699,7 +699,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "minorities.delhi.gov.in", hi: "minorities.delhi.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "Business Plan", "Delhi Domicile", "Income Certificate", "Bank Statement"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "व्यवसाय योजना", "दिल्ली अधिवास", "आय प्रमाण पत्र", "बैंक विवरण"] },
-    match: (a) => a.state === "Delhi" && a.caste === "minority" && (a.who === "business" || a.who === "general") && (a.income === "below1" || a.income === "1to3"),
+    match: (a) => a.state === "Delhi" && (a.who === "business" || a.who === "general") && (a.income === "below1" || a.income === "1to3"),
   },
 
   // ── URBAN HOMELESS ───────────────────────────────────────────────────────────
@@ -909,7 +909,7 @@ export const DELHI_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "Class 12 / Graduation Marksheet", "Income Certificate (below ₹6L)", "Delhi Domicile"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "कक्षा 12 / स्नातक अंकतालिका", "आय प्रमाण पत्र (₹6L से कम)", "दिल्ली अधिवास"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Delhi" && a.who === "student" && a.caste === "minority" && (a.age === "18to35"),
+    match: (a) => a.state === "Delhi" && a.who === "student" && (a.age === "18to35"),
   },
 
   // ── ROAD ACCIDENT RELIEF ─────────────────────────────────────────────────────
@@ -1166,7 +1166,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "minorities.delhi.gov.in", hi: "minorities.delhi.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "College / University Admission Letter", "Income Certificate (below ₹6L)", "Delhi Domicile", "Passport-size Photo"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "कॉलेज / विश्वविद्यालय प्रवेश पत्र", "आय प्रमाण पत्र (₹6L से कम)", "दिल्ली अधिवास", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Delhi" && a.who === "student" && a.caste === "minority",
+    match: (a) => a.state === "Delhi" && a.who === "student",
   },
 
   // ── WINTER RELIEF ─────────────────────────────────────────────────────────────

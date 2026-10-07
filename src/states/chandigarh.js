@@ -74,7 +74,7 @@ export const CHANDIGARH_SCHEMES = [
     apply:   { en: "Dept. of Social Welfare, UT Chandigarh (offline)", hi: "समाज कल्याण विभाग, UT चंडीगढ़ (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ — issued by Civil Surgeon / Medical Board)", "Residence Proof (Chandigarh)", "Income Certificate (family income < ₹2 lakh/year)", "Bank Account Passbook (Aadhaar-linked)", "Passport Photo"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+ — सिविल सर्जन / मेडिकल बोर्ड द्वारा जारी)", "निवास प्रमाण (चंडीगढ़)", "आय प्रमाण पत्र (पारिवारिक आय ₹2 लाख/वर्ष से कम)", "बैंक पासबुक (आधार-लिंक्ड)", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Chandigarh" && a.who === "disabled" && ["below1","1to3"].includes(a.income),
+    match: (a) => a.state === "Chandigarh" && (a.disability == null || a.disability !== "none") && ["below1","1to3"].includes(a.income),
   },
 
   // ── STUDENT / EDUCATION ───────────────────────────────────────────────────

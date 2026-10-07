@@ -128,7 +128,7 @@ export const MANIPUR_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/OBC/Minority)", "Class 12 Marksheet / Graduation Certificate", "Income Certificate (family income < ₹8 lakh/year)", "Residence Proof (Manipur)", "Bank Account (Aadhaar-linked)", "Passport Photo"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC/अल्पसंख्यक)", "कक्षा 12 अंकसूची / स्नातक प्रमाण पत्र", "आय प्रमाण पत्र (पारिवारिक आय < ₹8 लाख/वर्ष)", "निवास प्रमाण (मणिपुर)", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Manipur" && a.who === "student" && (a.caste === "ST" || a.caste === "SC" || a.caste === "OBC"),
+    match: (a) => a.state === "Manipur" && a.who === "student" && (a.caste === "st" || a.caste === "sc" || a.caste === "obc"),
   },
 
   // ── SOCIAL PENSION ────────────────────────────────────────────────────────
@@ -182,7 +182,7 @@ export const MANIPUR_SCHEMES = [
     apply:   { en: "hillareas.manipur.gov.in / nearest Sub-Divisional Office in hill district", hi: "hillareas.manipur.gov.in / पहाड़ी जिले में निकटतम उपमंडल कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "ST Certificate issued by Manipur Govt.", "Residence Proof within hill district", "Income Certificate / BPL Card", "Bank Account (Aadhaar-linked)", "For students: School Enrollment Certificate", "Passport Photo"],
                hi: ["आधार कार्ड", "मणिपुर सरकार द्वारा जारी ST प्रमाण पत्र", "पहाड़ी जिले के अंदर निवास प्रमाण", "आय प्रमाण पत्र / BPL कार्ड", "बैंक खाता (आधार-लिंक्ड)", "छात्रों के लिए: विद्यालय नामांकन प्रमाण पत्र", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Manipur" && (a.caste === "ST" || a.caste === "SC"),
+    match: (a) => a.state === "Manipur" && (a.caste === "st" || a.caste === "sc"),
   },
 
   // ── YOUTH / EMPLOYMENT ────────────────────────────────────────────────────
@@ -200,7 +200,7 @@ export const MANIPUR_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/strtupmpr", hi: "startup.manipur.gov.in / जिला उद्योग केंद्र (DIC)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof", "Educational Qualification Certificate", "Business Plan / Project Report", "Residence Proof (Manipur)", "Bank Account (Aadhaar-linked)", "Caste Certificate (ST/SC/OBC for additional subsidy)", "Passport Photo"],
                hi: ["आधार कार्ड", "आयु प्रमाण", "शैक्षिक योग्यता प्रमाण पत्र", "व्यवसाय योजना / परियोजना रिपोर्ट", "निवास प्रमाण (मणिपुर)", "बैंक खाता (आधार-लिंक्ड)", "जाति प्रमाण पत्र (ST/SC/OBC अतिरिक्त सब्सिडी के लिए)", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Manipur" && (a.who === "unemployed" || a.who === "youth") && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => a.state === "Manipur" && (a.who === "general" || a.who === "business") && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
   // ADD MORE MANIPUR SCHEMES ABOVE THIS LINE ↓

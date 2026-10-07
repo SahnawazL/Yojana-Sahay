@@ -107,7 +107,7 @@ export const UTTAR_PRADESH_SCHEMES = [
     apply:   { en: "https://depwd.gov.in", hi: "sspy-up.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+, issued by CMO/Medical Board)", "BPL Ration Card or Income Certificate", "Bank Account (Aadhaar-linked)", "Age Proof (Voter ID / Birth Certificate)", "UP Residence / Domicile Proof", "Passport Photo"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+, CMO/चिकित्सा बोर्ड से)", "BPL राशन कार्ड या आय प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड)", "आयु प्रमाण (मतदाता ID / जन्म प्रमाण पत्र)", "UP निवास प्रमाण", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Uttar Pradesh" && a.who === "disabled" && ["below1","1to3"].includes(a.income),
+    match: (a) => a.state === "Uttar Pradesh" && (a.disability == null || a.disability !== "none") && ["below1","1to3"].includes(a.income),
   },
 
   {

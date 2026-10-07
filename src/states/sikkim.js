@@ -147,7 +147,7 @@ export const SIKKIM_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Sikkim Subject Certificate (mandatory)", "Class X & XII Mark Sheets", "College / University Admission Letter", "Income Certificate (family annual income)", "Bank Account (Aadhaar-linked, student's own account preferred)", "Caste Certificate (if applicable)", "Passport Photo", "Previous year's marks / result for renewal"],
                hi: ["आधार कार्ड", "सिक्किम सब्जेक्ट प्रमाण पत्र (अनिवार्य)", "कक्षा X और XII की अंकतालिका", "कॉलेज / विश्वविद्यालय प्रवेश पत्र", "आय प्रमाण पत्र (पारिवारिक वार्षिक आय)", "बैंक खाता (आधार-लिंक्ड, छात्र का स्वयं का खाता अधिमान्य)", "जाति प्रमाण पत्र (यदि लागू)", "पासपोर्ट फोटो", "नवीनीकरण के लिए पिछले वर्ष की अंकतालिका / परिणाम"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Sikkim" && (a.who === "student" || a.who === "general") && a.age >= 17 && a.age <= 30,
+    match: (a) => a.state === "Sikkim" && (a.who === "student" || a.who === "general") && ["below18","18to35"].includes(a.age),
   },
 
   // ── HEALTH ────────────────────────────────────────────────────────────────
@@ -183,7 +183,7 @@ export const SIKKIM_SCHEMES = [
     apply:   { en: "Nearest Block Development Office (BDO) / District Social Welfare Office (offline)", hi: "निकटतम ब्लॉक विकास कार्यालय (BDO) / जिला समाज कल्याण कार्यालय (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Sikkim Subject Certificate", "Age Proof — Birth Certificate / Voter ID / Aadhaar (for Old Age)", "Death Certificate of Husband (for Widow pension)", "Disability Certificate from CMO / Medical Board (for Disability pension)", "Income Certificate (BPL / No-income declaration)", "Bank Account (Aadhaar-linked)", "Residence / Domicile Certificate (Sikkim)", "Passport Photo"],
                hi: ["आधार कार्ड", "सिक्किम सब्जेक्ट प्रमाण पत्र", "आयु प्रमाण — जन्म प्रमाण पत्र / मतदाता ID / आधार (वृद्धावस्था के लिए)", "पति का मृत्यु प्रमाण पत्र (विधवा पेंशन के लिए)", "CMO / मेडिकल बोर्ड से दिव्यांगता प्रमाण पत्र (दिव्यांगता पेंशन के लिए)", "आय प्रमाण पत्र (BPL / कोई आय नहीं घोषणा)", "बैंक खाता (आधार-लिंक्ड)", "निवास / अधिवास प्रमाण पत्र (सिक्किम)", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Sikkim" && (a.age >= 60 || a.who === "widow" || a.who === "disabled"),
+    match: (a) => a.state === "Sikkim" && (a.age === "above60" || a.who === "senior" || (a.disability != null && a.disability !== "none")),
   },
 
   // ── TOURISM / HOMESTAY ────────────────────────────────────────────────────
@@ -237,7 +237,7 @@ export const SIKKIM_SCHEMES = [
     apply:   { en: "socialwelfare.sikkim.gov.in / District Social Welfare Office (offline)", hi: "socialwelfare.sikkim.gov.in / जिला समाज कल्याण कार्यालय (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ issued by CMO / Medical Board)", "Sikkim Subject Certificate", "Residence / Domicile Certificate (Sikkim)", "Income Certificate", "Bank Account (Aadhaar-linked)", "Passport Photo", "For students: School / College Enrollment Certificate", "UDID Card (Unique Disability ID) if available"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+ CMO / मेडिकल बोर्ड द्वारा जारी)", "सिक्किम सब्जेक्ट प्रमाण पत्र", "निवास / अधिवास प्रमाण पत्र (सिक्किम)", "आय प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "छात्रों के लिए: विद्यालय / महाविद्यालय नामांकन प्रमाण पत्र", "UDID कार्ड (उपलब्ध होने पर)"] },
-    match: (a) => a.state === "Sikkim" && a.who === "disabled",
+    match: (a) => a.state === "Sikkim" && (a.disability == null || a.disability !== "none") && ["below1","1to3","3to6"].includes(a.income),
   },
 
   // ── ANIMAL HUSBANDRY / DAIRY ──────────────────────────────────────────────
@@ -292,7 +292,7 @@ export const SIKKIM_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Sikkim Subject Certificate (mandatory)", "Educational Qualification Certificate (minimum Class VIII pass)", "Age Proof (Birth Certificate / Voter ID)", "Residence Certificate (Sikkim)", "Bank Account (Aadhaar-linked)", "Caste Certificate (for priority admission — SC/ST/OBC)", "Disability Certificate (if applicable)", "Passport Photo"],
                hi: ["आधार कार्ड", "सिक्किम सब्जेक्ट प्रमाण पत्र (अनिवार्य)", "शैक्षिक योग्यता प्रमाण पत्र (न्यूनतम कक्षा VIII उत्तीर्ण)", "आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID)", "निवास प्रमाण पत्र (सिक्किम)", "बैंक खाता (आधार-लिंक्ड)", "जाति प्रमाण पत्र (SC/ST/OBC प्राथमिकता प्रवेश के लिए)", "दिव्यांगता प्रमाण पत्र (यदि लागू)", "पासपोर्ट फोटो"] },
     keywords: ["skill","dropout"],
-    match: (a) => a.state === "Sikkim" && (a.who === "unemployed" || a.who === "student" || a.who === "general") && a.age >= 18 && a.age <= 40,
+    match: (a) => a.state === "Sikkim" && (a.who === "student" || a.who === "general") && ["18to35","35to60"].includes(a.age),
   },
 
   // ── SPORTS & YOUTH DEVELOPMENT ────────────────────────────────────────────
@@ -310,7 +310,7 @@ export const SIKKIM_SCHEMES = [
     apply:   { en: "sportsyouth.sikkim.gov.in / District Sports Officer (offline)", hi: "sportsyouth.sikkim.gov.in / जिला खेल अधिकारी (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Sikkim Subject Certificate", "Age Proof / Birth Certificate", "School / College Enrollment Certificate", "Sports Achievement Certificates (district/state/national)", "Recommendation Letter from School Sports Teacher / District Sports Officer", "Bank Account (Aadhaar-linked)", "Passport Photo"],
                hi: ["आधार कार्ड", "सिक्किम सब्जेक्ट प्रमाण पत्र", "आयु प्रमाण / जन्म प्रमाण पत्र", "विद्यालय / महाविद्यालय नामांकन प्रमाण पत्र", "खेल उपलब्धि प्रमाण पत्र (जिला/राज्य/राष्ट्रीय)", "विद्यालय खेल शिक्षक / जिला खेल अधिकारी से अनुशंसा पत्र", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Sikkim" && (a.who === "student" || a.who === "general" || a.who === "unemployed") && a.age >= 10 && a.age <= 30,
+    match: (a) => a.state === "Sikkim" && (a.who === "student" || a.who === "general") && ["below18","18to35"].includes(a.age),
   },
 
   // ── FOOD SECURITY / PDS ───────────────────────────────────────────────────
@@ -364,7 +364,7 @@ export const SIKKIM_SCHEMES = [
     apply:   { en: "socialwelfare.sikkim.gov.in / District Social Welfare Office (offline)", hi: "socialwelfare.sikkim.gov.in / जिला समाज कल्याण कार्यालय (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card (bride and parents)", "Sikkim Subject Certificate", "BPL / Income Certificate (family annual income below ₹1.5 lakh)", "Bride's Age Proof — Birth Certificate / Class X Certificate (must be 18+)", "Groom's Age Proof (must be 21+)", "Marriage Certificate / Registration (or invitation card at time of application)", "Caste Certificate (for SC/ST enhanced grant)", "Bank Account (Aadhaar-linked, in bride's or family's name)", "Passport Photo (bride)", "Disability Certificate (if applicable)"],
                hi: ["आधार कार्ड (दुल्हन और माता-पिता)", "सिक्किम सब्जेक्ट प्रमाण पत्र", "BPL / आय प्रमाण पत्र (पारिवारिक वार्षिक आय ₹1.5 लाख से कम)", "दुल्हन का आयु प्रमाण — जन्म प्रमाण पत्र / कक्षा X प्रमाण पत्र (18+ होना चाहिए)", "दूल्हे का आयु प्रमाण (21+ होना चाहिए)", "विवाह प्रमाण पत्र / पंजीकरण (या आवेदन के समय निमंत्रण कार्ड)", "जाति प्रमाण पत्र (SC/ST उन्नत अनुदान के लिए)", "बैंक खाता (आधार-लिंक्ड, दुल्हन या परिवार के नाम)", "पासपोर्ट फोटो (दुल्हन)", "दिव्यांगता प्रमाण पत्र (यदि लागू)"] },
-    match: (a) => a.state === "Sikkim" && a.gender === "female" && ["below1","1to3"].includes(a.income) && a.age >= 18 && a.age <= 45,
+    match: (a) => a.state === "Sikkim" && (a.who === "women" || a.gender === "female") && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age),
   },
 
   // ADD MORE SIKKIM SCHEMES ABOVE THIS LINE ↓

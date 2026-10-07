@@ -140,7 +140,7 @@ export const JAMMU_KASHMIR_SCHEMES = [
     apply:   { en: "jksocialwelfare.nic.in / District Social Welfare Officer (offline)", hi: "jksocialwelfare.nic.in / जिला समाज कल्याण अधिकारी (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ — issued by CMO / Medical Board, J&K)", "Domicile Certificate (J&K)", "BPL Ration Card or Income Certificate", "Bank Account Passbook (Aadhaar-linked)", "Passport Photo"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+ — CMO / मेडिकल बोर्ड, J&K द्वारा जारी)", "अधिवास प्रमाण पत्र (J&K)", "BPL राशन कार्ड या आय प्रमाण पत्र", "बैंक पासबुक (आधार-लिंक्ड)", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Jammu & Kashmir" && a.who === "disabled" && ["below1","1to3"].includes(a.income),
+    match: (a) => a.state === "Jammu & Kashmir" && (a.disability == null || a.disability !== "none") && ["below1","1to3"].includes(a.income),
   },
 
   // ── HEALTH ────────────────────────────────────────────────────────────────

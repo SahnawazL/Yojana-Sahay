@@ -178,7 +178,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/aag", hi: "finance.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Income Certificate (family income ≤ ₹20 lakh/year)","Bank Loan Sanction Letter","Property Documents","Residence Proof","Declaration of first home purchase"],
                hi: ["आधार कार्ड","आय प्रमाण (पारिवारिक आय ≤ ₹20 लाख/वर्ष)","बैंक लोन स्वीकृति पत्र","संपत्ति दस्तावेज़","निवास प्रमाण","पहले घर की खरीद की घोषणा"] },
-    match: (a) => a.state === "Assam" && a.housing === "no",
+    match: (a) => a.state === "Assam" && (a.house === "no" || a.house === "kutcha"),
   },
 
   {
@@ -192,7 +192,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://socialjustice.assam.gov.in", hi: "socialjustice.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (60+ years)","Bank Account","BPL / Income Certificate","Residence Proof","Declaration of no other pension"],
                hi: ["आधार कार्ड","आयु प्रमाण (60+ वर्ष)","बैंक खाता","BPL/आय प्रमाण पत्र","निवास प्रमाण","किसी अन्य पेंशन न होने की घोषणा"] },
-    match: (a) => a.state === "Assam" && a.age === "60plus",
+    match: (a) => a.state === "Assam" && (a.age === "above60" || a.who === "senior"),
   },
 
   {
@@ -278,7 +278,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://culturalaffairs.assam.gov.in", hi: "culturalaffairs.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","PAN Card","Age Proof (60+ years)","Recognition / Award Proof Certificate (field of art/culture)","Bank Account","Passport Photo","Identity Proof (Voter ID / Passport / Driving License)"],
                hi: ["आधार कार्ड","PAN कार्ड","आयु प्रमाण (60+ वर्ष)","कला/संस्कृति क्षेत्र में मान्यता/पुरस्कार प्रमाण पत्र","बैंक खाता","पासपोर्ट फोटो","पहचान प्रमाण (मतदाता ID/पासपोर्ट/ड्राइविंग लाइसेंस)"] },
-    match: (a) => a.state === "Assam" && a.age === "60plus",
+    match: (a) => a.state === "Assam" && (a.age === "above60" || a.who === "senior"),
   },
 
   {
@@ -350,7 +350,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://basundhara.assam.gov.in", hi: "basundhara.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card / PAN Card (for login)","Existing Land Documents / Patta","Revenue Receipt","Caste Certificate (SC/ST applicants)","Residence Proof","Relevant deed / ownership documents (varies by service)"],
                hi: ["आधार कार्ड/PAN कार्ड (लॉगिन के लिए)","मौजूदा भूमि दस्तावेज़/पट्टा","राजस्व रसीद","जाति प्रमाण पत्र (SC/ST)","निवास प्रमाण","संबंधित विलेख/स्वामित्व दस्तावेज़ (सेवा अनुसार)"] },
-    match: (a) => a.state === "Assam" && (a.who === "farmer" || a.housing === "no"),
+    match: (a) => a.state === "Assam" && (a.who === "farmer" || a.house === "no" || a.house === "kutcha"),
   },
 
   {
@@ -393,7 +393,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "finance.assam.gov.in", hi: "finance.assam.gov.in" }, applyType: "offline", // ⚠️ offline — apply through SBI + employer NOC
     docs:    { en: ["Employee ID / Service Book","Salary Certificate (DDO certified)","Aadhaar Card","Bank Account (salary account at SBI)","Property / Land Documents","Approved Building Plan","Income Certificate","No Objection Certificate (employer)","Age & Domicile Proof"],
                hi: ["कर्मचारी पहचान पत्र/सर्विस बुक","वेतन प्रमाण पत्र (DDO प्रमाणित)","आधार कार्ड","बैंक खाता (SBI वेतन खाता)","संपत्ति/भूमि दस्तावेज़","अनुमोदित भवन योजना","आय प्रमाण पत्र","नियोक्ता से अनापत्ति प्रमाण पत्र","आयु व अधिवास प्रमाण"] },
-    match: (a) => a.state === "Assam" && a.housing === "no",
+    match: (a) => a.state === "Assam" && (a.house === "no" || a.house === "kutcha"),
   },
 
   {
@@ -450,7 +450,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://socialjustice.assam.gov.in", hi: "socialjustice.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (40%+ from Govt. Medical Board)","Bank Account (Aadhaar-linked)","BPL / Income Certificate","Residence Proof","Declaration of no other pension"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (40%+ सरकारी मेडिकल बोर्ड से)","बैंक खाता (आधार-लिंक्ड)","BPL/आय प्रमाण पत्र","निवास प्रमाण","अन्य पेंशन न होने की घोषणा"] },
-    match: (a) => a.state === "Assam" && a.disability === true,
+    match: (a) => a.state === "Assam" && (a.disability == null || a.disability !== "none") && ["below1","1to3"].includes(a.income),
   },
 
   {

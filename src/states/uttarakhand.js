@@ -17,7 +17,7 @@ export const UTTARAKHAND_SCHEMES = [
     benefit: { en: "₹3,000/month + free education & healthcare for children orphaned by COVID/any cause", hi: "COVID/किसी कारण से अनाथ बच्चों को ₹3,000/माह + मुफ्त शिक्षा व स्वास्थ्य" },
     tag:     { en: "Child / Women", hi: "बच्चे / महिला" },
     annual: 36000,
-    apply:   { en: "https://https://wecd.uk.gov.in", hi: "wecd.uk.gov.in" }, applyType: "online",
+    apply:   { en: "https://wecd.uk.gov.in", hi: "wecd.uk.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parents' Death Certificate","Child's Birth Certificate","Guardian ID","Bank Account"],
                hi: ["आधार कार्ड","माता-पिता का मृत्यु प्रमाण","बच्चे का जन्म प्रमाण","अभिभावक पहचान पत्र","बैंक खाता"] },
     match: (a) => a.state === "Uttarakhand" && ["below1","1to3"].includes(a.income),

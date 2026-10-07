@@ -165,7 +165,7 @@ export const TRIPURA_SCHEMES = [
     apply:   { en: "ttaadc.nic.in / nearest TTAADC Block Development Office", hi: "ttaadc.nic.in / निकटतम TTAADC ब्लॉक विकास कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "ST (Scheduled Tribe) Certificate issued by Tripura Govt.", "Residence Proof within TTAADC area", "Income Certificate (BPL preferred)", "Bank Account (Aadhaar-linked)", "Passport Photo", "For students: School Enrollment Certificate"],
                hi: ["आधार कार्ड", "त्रिपुरा सरकार द्वारा जारी ST (अनुसूचित जनजाति) प्रमाण पत्र", "TTAADC क्षेत्र के अंदर निवास प्रमाण", "आय प्रमाण पत्र (BPL प्राथमिक)", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "छात्रों के लिए: विद्यालय नामांकन प्रमाण पत्र"] },
-    match: (a) => a.state === "Tripura" && (a.caste === "ST" || a.caste === "SC"),
+    match: (a) => a.state === "Tripura" && (a.caste === "st" || a.caste === "sc"),
   },
 
   // ── YOUTH / EMPLOYMENT ────────────────────────────────────────────────────
@@ -183,7 +183,7 @@ export const TRIPURA_SCHEMES = [
     apply:   { en: "industry.tripura.gov.in / District Industries Centre (DIC) office", hi: "industry.tripura.gov.in / जिला उद्योग केंद्र (DIC) कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Age Proof (Birth Certificate / Voter ID)", "Educational Qualification Certificate (min. Class 8 pass for some components)", "Residence Proof (Tripura)", "Project Report / Business Plan", "Bank Account (Aadhaar-linked)", "Caste Certificate (SC/ST/OBC for higher subsidy)", "Passport Photo", "No Objection Certificate (if applicable)"],
                hi: ["आधार कार्ड", "आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID)", "शैक्षिक योग्यता प्रमाण पत्र (कुछ घटकों के लिए न्यूनतम कक्षा 8 उत्तीर्ण)", "निवास प्रमाण (त्रिपुरा)", "परियोजना रिपोर्ट / व्यवसाय योजना", "बैंक खाता (आधार-लिंक्ड)", "जाति प्रमाण पत्र (SC/ST/OBC अधिक सब्सिडी के लिए)", "पासपोर्ट फोटो", "अनापत्ति प्रमाण पत्र (यदि लागू हो)"] },
-    match: (a) => a.state === "Tripura" && (a.who === "unemployed" || a.who === "youth") && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => a.state === "Tripura" && (a.who === "general" || a.who === "business") && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
   // ADD MORE TRIPURA SCHEMES ABOVE THIS LINE ↓

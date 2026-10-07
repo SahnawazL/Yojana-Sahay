@@ -165,7 +165,7 @@ export const MEGHALAYA_SCHEMES = [
     apply:   { en: "khadc.nic.in / jhadc.nic.in / ghadc.nic.in — respective ADC office", hi: "khadc.nic.in / jhadc.nic.in / ghadc.nic.in — संबंधित ADC कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "ST Certificate (Khasi / Jaintia / Garo / other recognised tribe of Meghalaya)", "Residence Proof within ADC jurisdiction", "Income Certificate / BPL Card", "Bank Account (Aadhaar-linked)", "For students: School / College Enrollment Certificate", "Passport Photo"],
                hi: ["आधार कार्ड", "ST प्रमाण पत्र (खासी / जयंतिया / गारो / मेघालय की अन्य मान्यता प्राप्त जनजाति)", "ADC क्षेत्राधिकार में निवास प्रमाण", "आय प्रमाण पत्र / BPL कार्ड", "बैंक खाता (आधार-लिंक्ड)", "छात्रों के लिए: विद्यालय / महाविद्यालय नामांकन प्रमाण पत्र", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Meghalaya" && (a.caste === "ST" || a.caste === "SC"),
+    match: (a) => a.state === "Meghalaya" && (a.caste === "st" || a.caste === "sc"),
   },
 
   // ── YOUTH / EMPLOYMENT ────────────────────────────────────────────────────
@@ -183,7 +183,7 @@ export const MEGHALAYA_SCHEMES = [
     apply:   { en: "https://mbda.gov.in", hi: "mbda.gov.in / जिला उद्योग केंद्र (DIC) शिलांग या जिला कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof", "Educational Qualification Certificate", "Business Plan / Project Report", "Residence Proof (Meghalaya)", "Bank Account (Aadhaar-linked)", "ST / SC / OBC Certificate (for additional subsidy)", "Passport Photo"],
                hi: ["आधार कार्ड", "आयु प्रमाण", "शैक्षिक योग्यता प्रमाण पत्र", "व्यवसाय योजना / परियोजना रिपोर्ट", "निवास प्रमाण (मेघालय)", "बैंक खाता (आधार-लिंक्ड)", "ST / SC / OBC प्रमाण पत्र (अतिरिक्त सब्सिडी के लिए)", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Meghalaya" && (a.who === "unemployed" || a.who === "youth") && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => a.state === "Meghalaya" && (a.who === "general" || a.who === "business") && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
   // ── RURAL CONNECTIVITY ────────────────────────────────────────────────────

@@ -297,6 +297,12 @@ const googleSearchScheme = (name) => {
 // as the "uid" field for guests, purely so the admin dashboard can group a
 // guest's activity together instead of every guest looking identical.
 const GUEST_ID_KEY = "ys_guestId";
+// A single malformed match() in a state data file must never blank the whole
+// results screen — treat a throwing matcher as "not eligible".
+function safeMatch(scheme,answers){
+  try{ return !!scheme.match(answers); }catch{ return false; }
+}
+
 function getGuestId(){
   try{
     let id = localStorage.getItem(GUEST_ID_KEY);
@@ -3596,7 +3602,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
   },[t]);
 
   // Filter SCHEME_DB using match() functions — single source of truth
-  const initResults=useCallback((ans)=>SCHEME_DB.filter(s=>s.match(ans)),[]);
+  const initResults=useCallback((ans)=>SCHEME_DB.filter(s=>safeMatch(s,ans)),[]);
 
   const [answers,setAnswers]=useState(()=>{
     if(prefilledAnswers) return prefilledAnswers;
@@ -3717,7 +3723,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
 
 
   const [results,setResults]=useState(()=>{
-    if(prefilledAnswers) return SCHEME_DB.filter(s=>s.match(prefilledAnswers));
+    if(prefilledAnswers) return SCHEME_DB.filter(s=>safeMatch(s,prefilledAnswers));
     try{
       const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
       if(!saved) return [];
@@ -3725,7 +3731,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
       const ans=isNew?saved.answers:saved;
       const builtQ=buildQueue(ans);
       const savedStep=isNew?saved.step:builtQ.length;
-      return savedStep===builtQ.length?SCHEME_DB.filter(s=>s.match(ans)):[];
+      return savedStep===builtQ.length?SCHEME_DB.filter(s=>safeMatch(s,ans)):[];
     }catch{return [];}
   });
 
@@ -5406,8 +5412,11 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       ...(profile.kisanCard?{kisanCard:profile.kisanCard}:{}),
       ...(profile.ration&&profile.ration!=="none"?{rationCard:profile.ration}:{}),
       ...(profile.educationLevel?{educationLevel:profile.educationLevel}:{}),
+      // Disability / gender let disability-pension & women-only state schemes match precisely
+      ...(profile.disability?{disability:profile.disability}:{}),
+      ...(profile.gender?{gender:profile.gender}:{}),
     };
-    return SCHEME_DB.filter(s=>s.match(ans)).length;
+    return SCHEME_DB.filter(s=>{try{return s.match(ans);}catch{return false;}}).length;
   },[profile]);
 
   const filteredStates=useMemo(()=>INDIA_STATES.filter(s=>s.toLowerCase().includes(stateSearch.toLowerCase())),[stateSearch]);
@@ -9160,12 +9169,14 @@ function YojanaSahayInner(){
     ...(profile.occupation==="farmer"&&profile.landHolding?{landHolding:profile.landHolding}:{}),
     ...(profile.occupation==="student"&&profile.educationLevel?{educationLevel:profile.educationLevel}:{}),
     ...(profile.income==="below1"&&profile.ration?{rationCard:profile.ration}:{}),
+    ...(profile.disability?{disability:profile.disability}:{}),
+    ...(profile.gender?{gender:profile.gender}:{}),
   }:null,[profile]);
 
   // Top 3 matched schemes for home "Matched for You" section
   const matchedSchemes=useMemo(()=>{
     if(!profileAnswers)return[];
-    return SCHEME_DB.filter(s=>s.match(profileAnswers)).slice(0,3);
+    return SCHEME_DB.filter(s=>safeMatch(s,profileAnswers)).slice(0,3);
   },[profileAnswers]);
 
   // All matched schemes — used for BenefitCalculatorCard and DocumentVaultCard.
@@ -9175,7 +9186,7 @@ function YojanaSahayInner(){
   const allMatchedSchemes=useMemo(()=>{
     const answers=committedCheckerAnswers||profileAnswers;
     if(!answers)return[];
-    return SCHEME_DB.filter(s=>s.match(answers));
+    return SCHEME_DB.filter(s=>safeMatch(s,answers));
   },[committedCheckerAnswers,profileAnswers]);
 
   const navItems=useMemo(()=>[
