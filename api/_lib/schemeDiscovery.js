@@ -49,10 +49,12 @@ import { logApiCallToHistory } from "./apiCallHistory.js";
 import { createProgress } from "./agentProgress.js";
 
 export const MAX_NEW_PER_RUN  = Math.max(0, Number(process.env.DISCOVERY_PER_RUN ?? 3) || 0);
-const REGIONS_PER_RUN         = 2;
+const REGIONS_PER_RUN         = 2;   // minimum; keeps going (up to MAX_REGIONS_PER_RUN) until it finds new schemes
+const MAX_REGIONS_PER_RUN     = 6;
 const AUTO_PUBLISH_CONFIDENCE = 0.85;
 const PICK_MODEL              = "openai/gpt-oss-20b";
-const DRAFT_MODEL             = "openai/gpt-oss-120b";
+// 20b: ~4x the free-tier token allowance of 120b — 120b hit the per-minute limit after 1–2 drafts.
+const DRAFT_MODEL             = "openai/gpt-oss-20b";
 const MAX_RUNTIME_MS          = 240_000;
 
 export const REGIONS = ["national", ...INDIA_STATES];
@@ -173,7 +175,7 @@ export function ruleStats(matchSrc, state, elig = {}) {
 
 // ── Page excerpt for drafting ────────────────────────────────────────────────
 const DRAFT_KEYWORDS = /(eligib|benefit|assistance|amount|₹|rs\.?\s*\d|documents?\s*required|how to apply|apply online|objective|who can apply|beneficiar|last date|पात्रता|लाभ|दस्तावेज|आवेदन)/gi;
-export function draftExcerpt(raw, maxChars = 7000) {
+export function draftExcerpt(raw, maxChars = 4500) {
   const text = String(raw || "").replace(/!\[[^\]]*\]\([^)]*\)/g, " ").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ").trim();
   if (text.length <= maxChars) return text;
   let out = text.slice(0, 2500);
@@ -187,7 +189,13 @@ export function draftExcerpt(raw, maxChars = 7000) {
 }
 
 // ── Groq helpers ─────────────────────────────────────────────────────────────
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function groqJson(model, system, user, maxTokens) {
+  let r = await groqJsonOnce(model, system, user, maxTokens);
+  if (r.rateLimited) { await sleep(25_000); r = await groqJsonOnce(model, system, user, maxTokens); } // per-minute window resets
+  return r;
+}
+async function groqJsonOnce(model, system, user, maxTokens) {
   const keys = loadGroqKeys();
   if (!keys.length) return { error: "No Groq keys configured", config: true };
   const r = await callGroq(keys, {
@@ -502,9 +510,10 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
   let st = {};
   try { st = (await stateRef?.get())?.data() ?? {}; } catch { /* ignore */ }
   const cursor = Number.isInteger(st.cursor) ? st.cursor : 0;
-  const regions = forcedRegions ?? Array.from({ length: REGIONS_PER_RUN }, (_, i) => REGIONS[(cursor + i) % REGIONS.length]);
+  const regions = forcedRegions ?? Array.from({ length: MAX_REGIONS_PER_RUN }, (_, i) => REGIONS[(cursor + i) % REGIONS.length]);
+  let regionsSearched = 0;
   out.regions = regions;
-  progress.step(`Regions this run: ${regions.map(r => r === "national" ? "Central government" : r).join(" + ")}`);
+  progress.step(`Searching for new schemes, starting with ${regions[0] === "national" ? "Central government" : regions[0]} (moves on to more regions if nothing new turns up)`);
   const seen = typeof st.seen === "object" && st.seen ? st.seen : {}; // normName → { at, outcome }
 
   // Existing drafts count as "known" too.
@@ -523,6 +532,10 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
 
   for (const region of regions) {
     if (toResearch.length >= maxNew) break;
+    // At least REGIONS_PER_RUN regions; more only while nothing new has turned up.
+    if (!forcedRegions && regionsSearched >= REGIONS_PER_RUN && toResearch.length > 0) break;
+    if (Date.now() - startedAt > MAX_RUNTIME_MS / 2) break; // leave time for research
+    regionsSearched++;
     const where = region === "national" ? "India central government" : `${region} government`;
     progress.step(`Searching news + government sites for ${region === "national" ? "Central" : region} schemes…`);
     // 1. Search (news = newly launched; web = established but missing)
@@ -589,7 +602,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
 
       progress.step("  ↳ AI is writing the entry in English + Hindi (benefit, documents, eligibility)…");
       const { system, user } = draftPrompt(c, c.region, page.text, sourceUrl);
-      const d = await groqJson(DRAFT_MODEL, system, user, 2200);
+      const d = await groqJson(DRAFT_MODEL, system, user, 1800);
       if (d.error) {
         out.errors.push(`${c.name}: drafting failed — ${d.error}`);
         if (d.rateLimited) { out.stopReason = "rate_limit: Groq keys busy"; break; }
@@ -647,9 +660,10 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
   // 6. Save rotation + seen list (keep the newest 600)
   const seenTrim = Object.fromEntries(Object.entries(seen).sort((a, b) => String(b[1].at).localeCompare(String(a[1].at))).slice(0, 600));
   try {
-    await stateRef?.set({ cursor: forcedRegions ? cursor : (cursor + regions.length) % REGIONS.length, seen: seenTrim, updatedAt: new Date() }, { merge: false });
+    await stateRef?.set({ cursor: forcedRegions ? cursor : (cursor + regionsSearched) % REGIONS.length, seen: seenTrim, updatedAt: new Date() }, { merge: false });
   } catch { /* ignore */ }
 
+  if (!forcedRegions) out.regions = regions.slice(0, regionsSearched);
   out.durationMs = Date.now() - startedAt;
   log.log?.(`[scheme-discovery] ${regions.join(", ")} · candidates ${out.candidates} · dup ${out.duplicates} · published ${out.published.length} · drafts ${out.drafted.length} · rejected ${out.rejected.length}`);
   return out;
