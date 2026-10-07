@@ -1,6 +1,6 @@
 # YojanaSahay
 
-> YojanaSahay is a free, independent civic technology platform that helps Indian citizens discover and access government welfare schemes they are legally entitled to. It covers 3,000+ Central and State Government schemes across all 28+ Indian states and union territories — with a bilingual AI assistant, eligibility checker, and report system — completely free of cost.
+> YojanaSahay is a free, independent civic technology platform that helps Indian citizens discover and access government welfare schemes they are legally entitled to. It covers 1,100+ Central and State Government schemes across all 28+ Indian states and union territories — with a bilingual AI assistant, eligibility checker, and report system — completely free of cost.
 
 ## About
 
@@ -22,7 +22,7 @@
 
 ## Core Features
 
-- **Scheme Search:** Browse and search 3,000+ Central and State Government welfare schemes filtered by category, state, and beneficiary type
+- **Scheme Search:** Browse and search 1,100+ Central and State Government welfare schemes filtered by category, state, and beneficiary type
 - **Eligibility Checker:** A 6-step guided questionnaire that matches citizens to schemes they qualify for, based on state, age, income, category, gender, and occupation
 - **AI Assistant:** Real-time bilingual AI (Hindi + English) powered by Groq — answers scheme queries, compares schemes, explains eligibility, and provides next steps
 - **Profile System:** Save your profile once; the eligibility checker and AI use it to personalise results automatically

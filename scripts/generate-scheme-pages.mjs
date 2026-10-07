@@ -30,6 +30,26 @@ const SITE_URL   = "https://yojanasahay.vercel.app";
 // NOT have "type":"module", rename this file to generate-scheme-pages.mjs and
 // update the prebuild script path accordingly.
 const { SCHEME_DB } = await import("../src/schemesData.js");
+let META = {};
+try { META = JSON.parse(fs.readFileSync(path.join(ROOT, "src", "schemes-meta.json"), "utf8")); } catch { /* optional */ }
+
+// Real "last checked" date per scheme (from the link verifier) — used both on
+// the page and as the sitemap <lastmod>, so Google sees honest dates instead
+// of every page claiming to change on every deploy.
+function checkedDate(id) {
+  const v = META[id]?.lastVerified;
+  return v && /^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0, 10) : null;
+}
+const stateSlug = st => "list-" + String(st || "india").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const hubFile = s => (s.scope === "state" && s.state ? stateSlug(s.state) : "list-central");
+// Schemes grouped by hub, for "more schemes" links + state list pages.
+const HUBS = new Map();
+for (const s of SCHEME_DB) {
+  if (!s?.id || !s?.name?.en) continue;
+  const k = hubFile(s);
+  if (!HUBS.has(k)) HUBS.set(k, { key: k, state: s.scope === "state" ? s.state : null, schemes: [] });
+  HUBS.get(k).schemes.push(s);
+}
 
 // ── Slug helper ────────────────────────────────────────────────────────────────
 // Use the scheme's own `id` field — already unique, already URL-safe (lowercase,
@@ -86,6 +106,14 @@ function renderPage(scheme, lang) {
     : `${name}: ${benefit}. ${ministry ? "By " + ministry + ". " : ""}Check eligibility and learn how to apply for free.`;
 
   const docsListItems = docs.map(d => `        <li>${esc(d)}</li>`).join("\n");
+  const checked  = checkedDate(scheme.id);
+  const hub      = HUBS.get(hubFile(scheme));
+  const hubName  = hub?.state ? hub.state : (isHindi ? "केंद्र सरकार" : "Central Government");
+  const hubHref  = `/${langPath}/${hubFile(scheme)}.html`;
+  const related  = (hub?.schemes ?? []).filter(x => x.id !== scheme.id).slice(0, 8);
+  const applyText = scheme.applyType === "offline" || !applyUrl
+    ? (scheme.apply?.[lang] || scheme.apply?.en || "")
+    : (isHindi ? "आधिकारिक सरकारी वेबसाइट पर ऑनलाइन आवेदन करें (नीचे लिंक)।" : "Apply online on the official government website (link below).");
 
   // GovernmentService structured data — helps Google understand this is an
   // official-style benefit page, distinct from a generic article.
@@ -170,6 +198,10 @@ function renderPage(scheme, lang) {
     display:block; text-align:center; text-decoration:none;
     color:#1d4ed8; font-size:13.5px; margin-top:18px; font-weight:600;
   }
+  .crumbs{ font-size:12.5px; color:#78716c; margin-bottom:12px; }
+  .crumbs a, .related a{ color:#c2410c; text-decoration:none; }
+  .how{ font-size:14.5px; line-height:1.6; color:#44403c; margin:0; }
+  .checked{ font-size:12px; color:#a8a29e; text-align:center; margin-top:18px; }
   footer{ margin-top:40px; font-size:12px; color:#a8a29e; text-align:center; }
   footer a{ color:#a8a29e; }
   @media (prefers-color-scheme: dark){
@@ -182,6 +214,7 @@ function renderPage(scheme, lang) {
 </head>
 <body>
   <div class="wrap">
+    <nav class="crumbs"><a href="/">YojanaSahay</a> › <a href="${hubHref}">${esc(hubName)}</a></nav>
     <span class="badge">${esc(stateLabel)} · ${esc(tag)}</span>
     <h1>${esc(name)}</h1>
     ${ministry ? `<div class="ministry">${esc(ministry)}</div>` : ""}
@@ -197,6 +230,10 @@ function renderPage(scheme, lang) {
 ${docsListItems}
     </ul>` : ""}
 
+    ${applyText && !/^https?:/i.test(applyText) ? `
+    <h2>${isHindi ? "आवेदन कैसे करें" : "How to Apply"}</h2>
+    <p class="how">${esc(applyText)}</p>` : ""}
+
     <a class="cta" href="${deepLink}">
       ${isHindi ? "YojanaSahay ऐप में खोलें और पात्रता जांचें →" : "Open in YojanaSahay App & Check Eligibility →"}
     </a>
@@ -208,6 +245,15 @@ ${docsListItems}
       ${isHindi ? "आधिकारिक वेबसाइट पर जाएं ↗" : "Visit Official Government Website ↗"}
     </a>` : ""}
 
+    ${related.length ? `
+    <h2>${isHindi ? `${esc(hubName)} की और योजनाएं` : `More schemes — ${esc(hubName)}`}</h2>
+    <ul class="related">
+${related.map(r => `      <li><a href="/${langPath}/${slugify(r.id)}.html">${esc(r.name[lang] || r.name.en)}</a></li>`).join("\n")}
+    </ul>
+    <a class="cta-sub" href="${hubHref}">${isHindi ? `सभी ${hub.schemes.length} योजनाएं देखें →` : `See all ${hub.schemes.length} schemes →`}</a>` : ""}
+
+    ${checked ? `<p class="checked">${isHindi ? "आधिकारिक लिंक अंतिम बार जांचा गया" : "Official link last checked"}: ${checked}</p>` : ""}
+
     <footer>
       ${isHindi ? "YojanaSahay भारत सरकार से संबद्ध नहीं है। यह एक स्वतंत्र नागरिक तकनीक मंच है।" : "YojanaSahay is an independent civic-tech platform, not affiliated with the Government of India."}
       <br/><a href="${SITE_URL}/">yojanasahay.vercel.app</a>
@@ -215,6 +261,59 @@ ${docsListItems}
   </div>
 </body>
 </html>`;
+}
+
+// ── State / Central list pages ───────────────────────────────────────────────
+function renderHub(hub, lang, allHubs) {
+  const isHindi = lang === "hi";
+  const langPath = isHindi ? "yojana" : "schemes";
+  const place = hub.state ?? (isHindi ? "केंद्र सरकार" : "Central Government");
+  const title = isHindi
+    ? `${place} की सरकारी योजनाएं (${hub.schemes.length}) – पात्रता और आवेदन | YojanaSahay`
+    : `${place} Government Schemes List (${hub.schemes.length}) – Eligibility & Apply | YojanaSahay`;
+  const desc = isHindi
+    ? `${place} की ${hub.schemes.length} सरकारी योजनाओं की सूची — लाभ, ज़रूरी दस्तावेज़ और आवेदन का तरीका। मुफ्त में पात्रता जांचें।`
+    : `List of ${hub.schemes.length} ${place} government schemes — benefits, required documents and how to apply. Check your eligibility free.`;
+  const url = `${SITE_URL}/${langPath}/${hub.key}.html`;
+  const items = hub.schemes.map(x => `      <li><a href="/${langPath}/${slugify(x.id)}.html">${esc(x.name[lang] || x.name.en)}</a><span> — ${esc(x.benefit?.[lang] || x.benefit?.en || "")}</span></li>`).join("\n");
+  const others = allHubs.filter(h => h.key !== hub.key).map(h => `<a href="/${langPath}/${h.key}.html">${esc(h.state ?? (isHindi ? "केंद्र सरकार" : "Central"))}</a>`).join(" · ");
+  return `<!DOCTYPE html>
+<html lang="${isHindi ? "hi" : "en"}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(desc)}" />
+<link rel="canonical" href="${url}" />
+<link rel="alternate" hreflang="en-IN" href="${SITE_URL}/schemes/${hub.key}.html" />
+<link rel="alternate" hreflang="hi-IN" href="${SITE_URL}/yojana/${hub.key}.html" />
+<link rel="alternate" hreflang="x-default" href="${SITE_URL}/schemes/${hub.key}.html" />
+<meta name="robots" content="index, follow" />
+<link rel="icon" href="/favicon.ico" />
+<style>
+  :root{color-scheme:light dark;} *{box-sizing:border-box;}
+  body{margin:0;font-family:'Noto Sans',-apple-system,system-ui,sans-serif;background:#fafaf9;color:#1c1917;}
+  .wrap{max-width:720px;margin:0 auto;padding:28px 20px 60px;}
+  h1{font-size:24px;line-height:1.3;margin:0 0 8px;font-weight:800;} p.lead{color:#57534e;font-size:14.5px;line-height:1.6;}
+  ul{padding-left:20px;} li{font-size:14.5px;line-height:1.6;margin:8px 0;color:#44403c;}
+  li a{color:#c2410c;font-weight:700;text-decoration:none;} li span{color:#57534e;}
+  .cta{display:block;text-align:center;text-decoration:none;background:#FF9933;color:#fff;font-weight:700;padding:14px;border-radius:12px;margin:22px 0;}
+  .others{font-size:13px;line-height:2;color:#78716c;} .others a{color:#78716c;}
+  .crumbs{font-size:12.5px;color:#78716c;margin-bottom:12px;} .crumbs a{color:#c2410c;text-decoration:none;}
+  @media (prefers-color-scheme: dark){ body{background:#111;color:#f5f5f4;} li,li span{color:#d6d3d1;} p.lead{color:#a8a29e;} }
+</style>
+</head>
+<body><div class="wrap">
+  <nav class="crumbs"><a href="/">YojanaSahay</a> › ${esc(place)}</nav>
+  <h1>${esc(isHindi ? `${place} की सरकारी योजनाएं` : `${place} Government Schemes`)}</h1>
+  <p class="lead">${esc(desc)}</p>
+  <a class="cta" href="${SITE_URL}/">${isHindi ? "ऐप में अपनी पात्रता जांचें →" : "Check which ones you qualify for →"}</a>
+  <ul>
+${items}
+  </ul>
+  <h2 style="font-size:15px">${isHindi ? "अन्य राज्य" : "Other states"}</h2>
+  <p class="others">${others}</p>
+</div></body></html>`;
 }
 
 // ── Run generator ────────────────────────────────────────────────────────────
@@ -227,11 +326,18 @@ function main() {
   const sitemapEntries = [];
 
   // Homepage entry first
-  sitemapEntries.push({
-    loc: `${SITE_URL}/`,
-    priority: "1.0",
-    changefreq: "weekly",
-  });
+  sitemapEntries.push({ loc: `${SITE_URL}/` });
+
+  const hubs = [...HUBS.values()].sort((a, b) => (a.state === null ? -1 : b.state === null ? 1 : a.state.localeCompare(b.state)));
+  const ids = new Set(SCHEME_DB.map(x => slugify(x.id ?? "")));
+  for (const hub of hubs) {
+    if (ids.has(hub.key)) throw new Error(`List page ${hub.key} clashes with a scheme id`);
+    fs.writeFileSync(path.join(schemesDir, `${hub.key}.html`), renderHub(hub, "en", hubs), "utf8");
+    fs.writeFileSync(path.join(yojanaDir,   `${hub.key}.html`), renderHub(hub, "hi", hubs), "utf8");
+    const last = hub.schemes.map(x => checkedDate(x.id)).filter(Boolean).sort().pop() ?? null;
+    sitemapEntries.push({ loc: `${SITE_URL}/schemes/${hub.key}.html`, lastmod: last });
+    sitemapEntries.push({ loc: `${SITE_URL}/yojana/${hub.key}.html`,  lastmod: last });
+  }
 
   let count = 0;
   for (const scheme of SCHEME_DB) {
@@ -244,27 +350,25 @@ function main() {
     fs.writeFileSync(path.join(schemesDir, `${slug}.html`), enHtml, "utf8");
     fs.writeFileSync(path.join(yojanaDir,   `${slug}.html`), hiHtml, "utf8");
 
-    sitemapEntries.push({ loc: `${SITE_URL}/schemes/${slug}.html`, priority: "0.8", changefreq: "monthly" });
-    sitemapEntries.push({ loc: `${SITE_URL}/yojana/${slug}.html`,  priority: "0.8", changefreq: "monthly" });
+    const lastmod = checkedDate(scheme.id);
+    sitemapEntries.push({ loc: `${SITE_URL}/schemes/${slug}.html`, lastmod });
+    sitemapEntries.push({ loc: `${SITE_URL}/yojana/${slug}.html`,  lastmod });
 
     count++;
   }
 
   // ── Write sitemap.xml ──────────────────────────────────────────────────────
-  const today = new Date().toISOString().slice(0, 10);
+  // Only real dates: a page's lastmod is when its official link was last
+  // checked. The homepage gets none (Google works it out itself).
   const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${sitemapEntries.map(e => `  <url>
-    <loc>${e.loc}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>${e.changefreq}</changefreq>
-    <priority>${e.priority}</priority>
-  </url>`).join("\n")}
+${sitemapEntries.map(e => `  <url><loc>${e.loc}</loc>${e.lastmod ? `<lastmod>${e.lastmod}</lastmod>` : ""}</url>`).join("\n")}
 </urlset>
 `;
   fs.writeFileSync(path.join(ROOT, "public", "sitemap.xml"), sitemapXml, "utf8");
 
   console.log(`✓ Generated ${count} schemes × 2 languages = ${count * 2} static pages`);
+  console.log(`✓ ${hubs.length} state/central list pages × 2 languages`);
   console.log(`✓ sitemap.xml updated with ${sitemapEntries.length} URLs`);
 }
 

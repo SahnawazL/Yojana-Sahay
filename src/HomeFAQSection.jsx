@@ -145,6 +145,20 @@ import { useState, useEffect, useRef } from "react";
 import { db } from "./firebase";
 import { doc, setDoc, serverTimestamp, collection, getDocs, query, where } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { SCHEME_DB } from "./schemesData.js";
+
+// Plain links to the static "schemes by state" pages — lets Google (and
+// people) reach every scheme page from the home page.
+const STATE_LISTS = (() => {
+  const m = new Map();
+  for (const s of SCHEME_DB) {
+    if (s?.scope !== "state" || !s.state) continue;
+    m.set(s.state, (m.get(s.state) ?? 0) + 1);
+  }
+  const slug = st => "list-" + st.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return [{ label: "Central", hi: "केंद्र सरकार", key: "list-central" },
+    ...[...m.keys()].sort().map(st => ({ label: st, hi: st, key: slug(st) }))];
+})();
 
 // ── Resolve the current voter's identity — FALLBACK ONLY ──────────────────
 // This is kept as a last-resort safety net for logFeedback.
@@ -1700,6 +1714,21 @@ export default function HomeFAQSection({ lang, dark }) {
             {isHindi ? "48 घंटे में जवाब" : "Reply in 48h"}
           </div>
         </div>
+
+        <nav aria-label={isHindi ? "राज्य के अनुसार योजनाएं" : "Schemes by state"} style={{ marginTop: 18 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: dark ? "#aaa" : "#555", fontFamily: bf, marginBottom: 8, letterSpacing: 0.3 }}>
+            {isHindi ? "राज्य के अनुसार योजनाएं देखें" : "Browse schemes by state"}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 8px" }}>
+            {STATE_LISTS.map(l => (
+              <a key={l.key} href={`/${isHindi ? "yojana" : "schemes"}/${l.key}.html`}
+                style={{ fontSize: 11, fontFamily: bf, color: dark ? "#ccc" : "#444", textDecoration: "none",
+                  border: `1px solid ${dark ? "#333" : "#e2e2e2"}`, borderRadius: 99, padding: "3px 9px" }}>
+                {isHindi ? l.hi : l.label}
+              </a>
+            ))}
+          </div>
+        </nav>
 
       </div>
     </div>

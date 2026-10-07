@@ -45,3 +45,5 @@ logs/
 
 # Coverage
 coverage/
+public/schemes/
+public/yojana/
