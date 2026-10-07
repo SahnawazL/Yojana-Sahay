@@ -62,6 +62,7 @@ export const TAB_LABELS = {
   analytics:"Analytics", activity:"Activity", usage:"Usage",
   schemes:"Schemes", reports:"Reports", cleanup:"Cleanup",
   verify:"Verify", export:"Export", agents:"Agents",
+  deadlines:"Deadlines", news:"News", faq:"FAQ Feedback",
   aichat:"AI Chat",
 };
 
@@ -454,7 +455,10 @@ function getAnomalyFlag(agent, todayLog) {
   const secs = todayLog.secondsActive || 0;
   if (secs > ANOMALY_OVERTIME_S)
     return { label: "Overtime", detail: `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m logged today`, color: "#F59E0B" };
-  if (secs < ANOMALY_UNDER_S)
+  // "Under 1h" only means something once the agent has stopped for the day —
+  // flagging it while they're still online fired a toast + chime for every
+  // agent within their first hour of every single day.
+  if (secs < ANOMALY_UNDER_S && getPresenceState(agent.lastSeen, "human") === "offline")
     return { label: "Under 1h", detail: `Only ${Math.floor(secs / 60)}m logged today`, color: "#F59E0B" };
   return null;
 }
@@ -554,8 +558,31 @@ export async function logAdminActivity(agentId, agentName, action, tab, type = "
 //   import AgentsTab, { useAgentPresence } from "./AgentsTab.jsx";
 //   // inside AdminDashboard function body (allowedTabs is the existing login-gate prop):
 //   useAgentPresence(sessionUser?.uid, sessionUser?.displayName, sessionUser?.email, activeSection, isDesktop, allowedTabs);
+// Last real interaction on this page (module-level so every hook instance
+// shares it). Presence used to heartbeat every 30s no matter what, so an
+// agent who left the dashboard open and walked away stayed "ONLINE" all day
+// and the "idle — no interaction for 2+ min" state could never actually
+// happen. Heartbeats now pause while the tab is hidden or untouched.
+let lastPresenceInteractionAt = Date.now();
+const PRESENCE_IDLE_AFTER_MS = 2 * 60 * 1000;
+
 export function useAgentPresence(uid, name, email, activeTab, isDesktop, allowedTabs = null) {
   const mountedRef = useRef(false);
+
+  useEffect(() => {
+    if (!uid) return;
+    const mark = () => { lastPresenceInteractionAt = Date.now(); };
+    const events = ["mousemove", "mousedown", "touchstart", "keydown", "scroll", "click"];
+    events.forEach(ev => window.addEventListener(ev, mark, { passive: true }));
+    // Coming back to the tab counts as activity — refresh presence right away.
+    const onVis = () => { if (document.visibilityState === "visible") { mark(); beatRef.current?.(); } };
+    document.addEventListener("visibilitychange", onVis);
+    mark();
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, mark));
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [uid]);
   const intervalRef = useRef(null);
   // Local mirror of this session's start time. serverTimestamp() resolves
   // asynchronously server-side and can't be read back client-side, so we
@@ -612,7 +639,12 @@ export function useAgentPresence(uid, name, email, activeTab, isDesktop, allowed
         sessionStart: serverTimestamp(),
       }, { merge: false }).catch(() => {});
     }
-    intervalRef.current = setInterval(() => beatRef.current(), PRESENCE_TICK_MS);
+    intervalRef.current = setInterval(() => {
+      const hidden = typeof document !== "undefined" && document.visibilityState === "hidden";
+      const idle   = Date.now() - lastPresenceInteractionAt > PRESENCE_IDLE_AFTER_MS;
+      if (hidden || idle) return; // let lastSeen age → card shows IDLE, then OFFLINE
+      beatRef.current();
+    }, PRESENCE_TICK_MS);
     return () => {
       clearInterval(intervalRef.current);
       // Mark offline + record how long this session lasted (best-effort —
@@ -714,15 +746,36 @@ async function deleteOlderThan(collectionName, field, cutoffValue, opts = {}) {
 
 // Call this once in AdminDashboard, alongside useAgentPresence:
 //   useDailyTimeTracking(sessionUser?.uid, sessionUser?.displayName || sessionUser?.email, sessionUser?.email);
+// With the dashboard open in two tabs/windows, every tab credited the same
+// minutes, so attendance (and pay) doubled. Only the tab the agent most
+// recently interacted with credits time; others stay silent.
+const TT_ACTIVE_TAB_KEY = "ys_tt_active_tab";
+const TT_TAB_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+function claimActiveTab() {
+  try { localStorage.setItem(TT_ACTIVE_TAB_KEY, TT_TAB_ID); } catch {}
+}
+function isActiveTab() {
+  try {
+    const owner = localStorage.getItem(TT_ACTIVE_TAB_KEY);
+    return !owner || owner === TT_TAB_ID;
+  } catch { return true; }
+}
+
 export function useDailyTimeTracking(uid, name, email) {
   const lastInteractionRef = useRef(Date.now());
   const lastTickRef        = useRef(Date.now());
   const dateStrRef         = useRef(getISTDateStr());
+  const lastClaimRef       = useRef(0);
 
   // Track real interaction — ref only, no re-renders
   useEffect(() => {
     if (!uid) return;
-    const mark = () => { lastInteractionRef.current = Date.now(); };
+    const mark = () => {
+      const now = Date.now();
+      lastInteractionRef.current = now;
+      if (now - lastClaimRef.current > 5000) { lastClaimRef.current = now; claimActiveTab(); }
+    };
     const events = ["mousemove", "mousedown", "touchstart", "keydown", "scroll", "click"];
     events.forEach(ev => window.addEventListener(ev, mark, { passive: true }));
     mark(); // count the moment they land on the dashboard as activity
@@ -765,6 +818,7 @@ export function useDailyTimeTracking(uid, name, email) {
 
       const idle = (now - lastInteractionRef.current) > IDLE_THRESHOLD_MS;
       if (idle) return; // dashboard open but untouched — don't count it
+      if (!isActiveTab()) return; // another tab of this dashboard is the one in use
 
       const creditSec = Math.max(0, Math.round(Math.min(elapsedMs, MAX_CREDIT_MS) / 1000));
       if (creditSec <= 0) return;
@@ -1134,8 +1188,14 @@ function NoticeBoard({ activities, humanAgents, dark, isDesktop, loading }) {
 // Shows K1–K5 pills: green+pulse = currently active, amber = 429'd today,
 // gray = untouched today. Data comes from enriched AI agent fields.
 // ═════════════════════════════════════════════════════════════════════════════
-function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount = 5, dark, isDesktop }) {
+function GroqKeyGrid({ activeKeyIdx, keys429Today, keyCount: configuredCount = 5, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
+  // Never hide a key the server actually used (e.g. a 6th chat key).
+  const keyCount = Math.max(
+    configuredCount,
+    (activeKeyIdx ?? -1) + 1,
+    ...((keys429Today || []).map(k => Number(k) + 1).filter(Number.isFinite)),
+  );
   return (
     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 7 }}>
       {Array.from({ length: keyCount }, (_, i) => {
@@ -5288,7 +5348,7 @@ export default function AgentsTab({
   const [todayLogs,   setTodayLogs]   = useState([]);
   const [filter,      setFilter]      = useState("all");
   const [search,      setSearch]      = useState("");
-  const [, forceRender]               = useState(0); // 30-s tick
+  const [tick, forceRender]           = useState(0); // 30-s tick
   // IST date string as state (not a plain render-time variable) so the
   // agentTimeLogs listener below can resubscribe when the day rolls over —
   // otherwise a dashboard left open past midnight keeps querying yesterday's
@@ -5499,7 +5559,13 @@ export default function AgentsTab({
       return { ...ag, anomaly: getAnomalyFlag(ag, todayLog) };
     }),
     ...enrichedAI.map(ag => ({ ...ag, anomaly: getAnomalyFlag(ag, null) })),
-  ], [humanAgents, enrichedAI, todayLogs]);
+  // `tick` is a dependency on purpose: presence (online → idle → offline) and
+  // the "silent" anomalies depend on the CLOCK, not just on data changes.
+  // Without it, an agent who closed the dashboard (so no more heartbeats and
+  // no data change) stayed "online" in the counts, sort and filters forever,
+  // and memoised AgentCards never re-rendered to show them going offline.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [humanAgents, enrichedAI, todayLogs, tick]);
 
   // ── Currently-active anomalies (for the persistent banner) ───────────────
   const activeAnomalies = useMemo(() => allAgents.filter(a => a.anomaly), [allAgents]);
