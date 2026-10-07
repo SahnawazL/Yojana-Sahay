@@ -2284,9 +2284,7 @@ function AttendanceSection({ humanAgents, dark, isDesktop, loading }) {
   }, [selectedDate]);
 
   const shiftDate = (deltaDays) => {
-    const d = new Date(`${selectedDate}T00:00:00+05:30`);
-    d.setDate(d.getDate() + deltaDays);
-    const next = getISTDateStr(d);
+    const next = shiftISTDateStr(selectedDate, deltaDays);
     if (next > todayStr) return; // no peeking into the future
     setSelectedDate(next);
   };
@@ -2306,7 +2304,7 @@ function AttendanceSection({ humanAgents, dark, isDesktop, loading }) {
   });
 
   const dateLabel = new Date(`${selectedDate}T00:00:00+05:30`).toLocaleDateString("en-IN", {
-    weekday: "short", day: "2-digit", month: "short", year: "numeric",
+    timeZone: "Asia/Kolkata", weekday: "short", day: "2-digit", month: "short", year: "numeric",
   });
 
   return (
@@ -2462,10 +2460,11 @@ function AttendanceSection({ humanAgents, dark, isDesktop, loading }) {
 const FULL_DAY_HOURS = DAILY_TARGET_SECONDS / 3600; // 8 — same target as the live view
 const HALF_DAY_HOURS  = FULL_DAY_HOURS / 2;          // 4
 
+// Pure millisecond arithmetic anchored at IST noon — setDate()/getDate()
+// use the DEVICE's timezone, which shifted dates on non-IST devices.
 function shiftISTDateStr(dateStr, deltaDays) {
-  const d = new Date(`${dateStr}T00:00:00+05:30`);
-  d.setDate(d.getDate() + deltaDays);
-  return getISTDateStr(d);
+  const noonIST = Date.parse(`${dateStr}T12:00:00+05:30`);
+  return getISTDateStr(new Date(noonIST + deltaDays * 86400000));
 }
 
 function firstOfMonthISTStr(dateStr) {
@@ -3747,15 +3746,13 @@ function ActivityLogSection({ dark, isDesktop }) {
   }, [selectedDate]);
 
   const shiftDate = (deltaDays) => {
-    const d = new Date(`${selectedDate}T00:00:00+05:30`);
-    d.setDate(d.getDate() + deltaDays);
-    const next = getISTDateStr(d);
+    const next = shiftISTDateStr(selectedDate, deltaDays);
     if (next > todayStr) return; // no peeking into the future
     setSelectedDate(next);
   };
 
   const dateLabel = new Date(`${selectedDate}T00:00:00+05:30`).toLocaleDateString("en-IN", {
-    weekday: "short", day: "2-digit", month: "short", year: "numeric",
+    timeZone: "Asia/Kolkata", weekday: "short", day: "2-digit", month: "short", year: "numeric",
   });
 
   return (
@@ -4799,9 +4796,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
 
   // 30-day window — anchored to IST so it matches the serverless date key
   const thirtyDaysAgo = useMemo(() => {
-    const d = new Date(`${todayStr}T00:00:00+05:30`);
-    d.setDate(d.getDate() - 29);
-    return getISTDateStr(d);
+    return shiftISTDateStr(todayStr, -29);
   }, [todayStr]);
 
   // Real-time listener — resubscribes on day rollover (todayStr changes via 30s tick)
@@ -4835,9 +4830,7 @@ function ApiCallHistoryPanel({ dark, isDesktop, aiStatus, todayStr }) {
 
     const days = [];
     for (let i = 0; i < 30; i++) {
-      const d = new Date(`${thirtyDaysAgo}T00:00:00+05:30`);
-      d.setDate(d.getDate() + i);
-      const ds  = getISTDateStr(d);
+      const ds  = shiftISTDateStr(thirtyDaysAgo, i);
       const rec = map[ds] || {};
 
       // Base values from Firestore history
