@@ -22,7 +22,7 @@ import {
 import schemesMeta from "./schemes-meta.json";
 import { auth, db } from "./firebase.js";
 import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment, deleteField } from "firebase/firestore";
 import AIChat from "./AIChat.jsx";
 import { generateResultsBrief } from "./groqClient.js";
 import AILockedScreen from "./AILockedScreen.jsx";
@@ -324,6 +324,25 @@ function deadlineDaysLeft(d, now=Date.now()){
   const istToday=new Date(now+5.5*3600*1000).toISOString().slice(0,10);
   const todayEnd=Date.parse(`${istToday}T23:59:59.999+05:30`);
   return Math.round((end-todayEnd)/DAY_MS);
+}
+
+// ONE definition of "this profile as eligibility answers". The profile tab's
+// scheme count and the home "Matched for you" list each built their own
+// version (different caste default, ration rule and adaptive fields), so the
+// two numbers disagreed for the same user.
+function buildProfileAnswers(profile){
+  if(!profile) return null;
+  return {
+    who:profile.occupation, income:profile.income, house:profile.house,
+    age:profile.age, area:profile.area, state:profile.state,
+    caste:profile.caste||"general",
+    ...(profile.occupation==="farmer"&&profile.landHolding?{landHolding:profile.landHolding}:{}),
+    ...(profile.occupation==="farmer"&&profile.kisanCard?{kisanCard:profile.kisanCard}:{}),
+    ...(profile.occupation==="student"&&profile.educationLevel?{educationLevel:profile.educationLevel}:{}),
+    ...(profile.ration&&profile.ration!=="none"?{rationCard:profile.ration}:{}),
+    ...(profile.disability?{disability:profile.disability}:{}),
+    ...(profile.gender?{gender:profile.gender}:{}),
+  };
 }
 
 // A single malformed match() in a state data file must never blank the whole
@@ -5198,6 +5217,11 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   };
 
   const handleSetup3Next=()=>{
+    // Must match the button's canSave — the handler is the real gate, and the
+    // greyed button still calls it. Income/age/area/house were skipped here,
+    // so a profile could be saved with invented defaults (₹1–3 L, 18–35,
+    // rural, no house) and matched against the wrong schemes.
+    if(!setupIncome||!setupAge||!setupArea||!setupHouse)return;
     if(!setupRation||!setupDisability||!setupMarital)return;
     setStage("setup4");
   };
@@ -5205,6 +5229,8 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   const handleSetup4Save=async()=>{
     if(!setupNumChildren)return;
     if(setupNumChildren!=="0"&&!setupHasGirls)return;
+    if(setupCat==="farmer"&&(!setupLandHolding||!setupKisanCard))return;
+    if(setupCat==="student"&&(!setupEducationLevel||!setupInstitutionType))return;
     const isNewUser=!profile;
     const profileData={
       name:setupName.trim(),phone,gender:setupGender,
@@ -5232,6 +5258,12 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         await setDoc(doc(db,"users",uid),{
           ...profileData,
           uid,
+          // merge:true keeps fields from a previous occupation (a farmer who
+          // became a student kept landHolding/kisanCard and they kept feeding
+          // into scheme matching after reload) — clear the ones that no
+          // longer apply.
+          ...(setupCat!=="farmer"?{landHolding:deleteField(),kisanCard:deleteField()}:{}),
+          ...(setupCat!=="student"?{educationLevel:deleteField(),institutionType:deleteField()}:{}),
           ...(isNewUser?{createdAt:serverTimestamp()}:{}),
           lastSeen:serverTimestamp(),
         },{merge:true});
@@ -5448,21 +5480,8 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   // Matched scheme count for dashboard
   const matchedCount=useMemo(()=>{
     if(!profile)return 0;
-    const ans={
-      who:profile.occupation,income:profile.income,
-      house:profile.house,age:profile.age,
-      area:profile.area,state:profile.state,
-      caste:profile.caste||"general",
-      // Adaptive fields included so match() sees the full picture
-      ...(profile.landHolding?{landHolding:profile.landHolding}:{}),
-      ...(profile.kisanCard?{kisanCard:profile.kisanCard}:{}),
-      ...(profile.ration&&profile.ration!=="none"?{rationCard:profile.ration}:{}),
-      ...(profile.educationLevel?{educationLevel:profile.educationLevel}:{}),
-      // Disability / gender let disability-pension & women-only state schemes match precisely
-      ...(profile.disability?{disability:profile.disability}:{}),
-      ...(profile.gender?{gender:profile.gender}:{}),
-    };
-    return SCHEME_DB.filter(s=>{try{return s.match(ans);}catch{return false;}}).length;
+    const ans=buildProfileAnswers(profile);
+    return SCHEME_DB.filter(s=>safeMatch(s,ans)).length;
   },[profile]);
 
   const filteredStates=useMemo(()=>INDIA_STATES.filter(s=>s.toLowerCase().includes(stateSearch.toLowerCase())),[stateSearch]);
@@ -9214,21 +9233,7 @@ function YojanaSahayInner(){
     return isHindi?`₹${Math.round(amt)} तक`:`Up to ₹${Math.round(amt)}`;
   },[isHindi]);
 
-  const profileAnswers=useMemo(()=>profile?{
-    who:profile.occupation,
-    income:profile.income,
-    house:profile.house,
-    age:profile.age,
-    area:profile.area,
-    state:profile.state,
-    caste:profile.caste,
-    // Adaptive fields — only included when they exist and are relevant
-    ...(profile.occupation==="farmer"&&profile.landHolding?{landHolding:profile.landHolding}:{}),
-    ...(profile.occupation==="student"&&profile.educationLevel?{educationLevel:profile.educationLevel}:{}),
-    ...(profile.income==="below1"&&profile.ration?{rationCard:profile.ration}:{}),
-    ...(profile.disability?{disability:profile.disability}:{}),
-    ...(profile.gender?{gender:profile.gender}:{}),
-  }:null,[profile]);
+  const profileAnswers=useMemo(()=>profile?buildProfileAnswers(profile):null,[profile]);
 
   // Top 3 matched schemes for home "Matched for You" section
   const matchedSchemes=useMemo(()=>{

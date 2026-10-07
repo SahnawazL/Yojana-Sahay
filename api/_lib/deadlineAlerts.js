@@ -214,6 +214,8 @@ function getTransporter() {
 
 // ── Build the profileAnswers object exactly like App.jsx does ─────────────────
 function buildProfileAnswers(profile) {
+  // Must stay identical to buildProfileAnswers() in src/App.jsx so emails
+  // only mention schemes the app itself shows the user.
   if (!profile || !profile.occupation) return null;
   return {
     who:    profile.occupation,
@@ -222,10 +224,11 @@ function buildProfileAnswers(profile) {
     age:    profile.age,
     area:   profile.area,
     state:  profile.state,
-    caste:  profile.caste,
+    caste:  profile.caste || "general",
     ...(profile.occupation === "farmer"  && profile.landHolding    ? { landHolding: profile.landHolding }       : {}),
+    ...(profile.occupation === "farmer"  && profile.kisanCard      ? { kisanCard: profile.kisanCard }           : {}),
     ...(profile.occupation === "student" && profile.educationLevel ? { educationLevel: profile.educationLevel } : {}),
-    ...(profile.income === "below1"      && profile.ration         ? { rationCard: profile.ration }             : {}),
+    ...(profile.ration && profile.ration !== "none"                ? { rationCard: profile.ration }             : {}),
     ...(profile.disability ? { disability: profile.disability } : {}),
     ...(profile.gender     ? { gender: profile.gender }         : {}),
   };
