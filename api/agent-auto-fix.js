@@ -23,6 +23,8 @@
 // No Groq / Tavily calls. URL repair spends at most URL_REPAIR_PER_RUN (default 3)
 // Serper searches a day.
 //
+// POST { action: "discover" } (same CRON_SECRET) → Scheme Discovery agent,
+// see _lib/schemeDiscovery.js. Called daily by verify-schemes-cron.yml.
 // POST { action: "health" } (same CRON_SECRET) → Watchdog health check, see
 // _lib/agentHealth.js. Called by .github/workflows/agents-watchdog.yml.
 //
@@ -36,6 +38,7 @@
 import { runAutoFixAgent } from "./_lib/autoFixAgent.js";
 import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import { getAdminDb } from "./_lib/firebaseAdmin.js";
+import { runAndLogDiscovery } from "./_lib/schemeDiscovery.js";
 
 export default async function handler(req, res) {
   // ── Auth: only Vercel Cron / the GitHub watchdog (CRON_SECRET) ────────────
@@ -63,6 +66,16 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error("[watchdog] health check failed:", err);
       return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── Scheme Discovery (daily, GitHub Actions) ─────────────────────────────
+  if (req.method === "POST" && req.body?.action === "discover") {
+    try {
+      const result = await runAndLogDiscovery({ db: getAdminDb(), trigger: req.body?.trigger === "watchdog" ? "watchdog" : "cron" });
+      return res.status(200).json({ success: true, result });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
     }
   }
 

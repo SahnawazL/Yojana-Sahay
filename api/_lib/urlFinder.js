@@ -59,11 +59,11 @@ export function sameUrl(a, b) {
 }
 
 // Search results that can never be a scheme's apply page.
-const JUNK_HOSTS = /(^|\.)(youtube\.com|facebook\.com|twitter\.com|x\.com|instagram\.com|linkedin\.com|wikipedia\.org|quora\.com|reddit\.com|scribd\.com)$/i;
+export const JUNK_HOSTS = /(^|\.)(youtube\.com|facebook\.com|twitter\.com|x\.com|instagram\.com|linkedin\.com|wikipedia\.org|quora\.com|reddit\.com|scribd\.com)$/i;
 
-async function serperSearch(query, serperKey, maxResults = 7) {
+export async function serperSearch(query, serperKey, maxResults = 7, { type = "search" } = {}) {
   try {
-    const res = await fetch(SERPER_SEARCH, {
+    const res = await fetch(type === "news" ? "https://google.serper.dev/news" : SERPER_SEARCH, {
       method:  "POST",
       headers: { "Content-Type": "application/json", "X-API-KEY": serperKey },
       body: JSON.stringify({ q: query, num: maxResults, gl: "in", hl: "en" }),
@@ -84,8 +84,8 @@ async function serperSearch(query, serperKey, maxResults = 7) {
     recordAiCall({ service: "serper-verify" }).catch(() => {});
     logApiCallToHistory("serperCalls").catch(() => {});
     return {
-      results: (data.organic ?? [])
-        .map(r => ({ url: r.link?.trim() ?? "", title: r.title ?? "" }))
+      results: (type === "news" ? (data.news ?? []) : (data.organic ?? []))
+        .map(r => ({ url: r.link?.trim() ?? "", title: r.title ?? "", snippet: r.snippet ?? "", date: r.date ?? null }))
         .filter(r => r.url),
       error: null,
     };

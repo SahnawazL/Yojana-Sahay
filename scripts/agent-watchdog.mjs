@@ -51,6 +51,7 @@ const RERUNS = {
   deadlineAlerts: () => app("/api/deadline-alerts", { body: {} }),
   autoFix:        () => app("/api/agent-auto-fix",  { body: { trigger: "watchdog" } }),
   news:           () => app("/api/refresh-news?force=true", { method: "GET" }),
+  discover:       () => app("/api/agent-auto-fix",  { body: { action: "discover", trigger: "watchdog" } }),
 };
 
 async function health(report) {

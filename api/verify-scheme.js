@@ -54,7 +54,7 @@ const MAX_COMPLETION_TOKENS = 700;
 // Falls back to the shared GROQ_API_KEY pool only if no verify-specific
 // keys are configured — so the app degrades gracefully during initial setup.
 
-function loadGroqKeys() {
+export function loadGroqKeys() {
   const seen = new Set();
   const keys = [];
 
@@ -105,7 +105,7 @@ function isKeyLevelFailure(status, errData) {
 
 // ── Groq caller with key rotation (now uses shared KV counter via getNextStartIdx) ──
 
-async function callGroq(keys, bodyObject) {
+export async function callGroq(keys, bodyObject) {
   let lastError = null;
   let count429  = 0; // how many keys 429'd before a success (or before exhaustion)
   const failedKeys = []; // REAL indices of the keys that 429'd — the old telemetry assumed 0..count429-1
@@ -275,7 +275,7 @@ export function isRealDate(ymd) {
 //   billed — true when Tavily actually extracted the page (failed URLs are
 //            not charged by Tavily, so they don't count against the budget).
 
-async function fetchPageText(url, tavilyKey) {
+export async function fetchPageText(url, tavilyKey, { excerpt = buildPageExcerpt } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
@@ -309,11 +309,11 @@ async function fetchPageText(url, tavilyKey) {
       return { text: null, httpStatus: extractHttpStatusFromError(errMsg), billed: false, error: errMsg };
     }
 
-    const excerpt = buildPageExcerpt(result.raw_content ?? "");
-    if (!excerpt) {
+    const text = excerpt(result.raw_content ?? "");
+    if (!text) {
       return { text: null, httpStatus: 200, billed: true, error: "page has no readable text" };
     }
-    return { text: excerpt, httpStatus: 200, billed: true, error: null };
+    return { text, httpStatus: 200, billed: true, error: null };
 
   } catch (err) {
     clearTimeout(timer);
@@ -355,7 +355,7 @@ function buildPrompt(schemeName, state, pageText) {
   return { systemPrompt, userPrompt };
 }
 
-function parseModelJson(raw) {
+export function parseModelJson(raw) {
   const clean = String(raw || "").replace(/```json|```/g, "").trim();
   try { return JSON.parse(clean); } catch { /* fall through */ }
   const m = clean.match(/\{[\s\S]*\}/); // tolerate stray text around the object

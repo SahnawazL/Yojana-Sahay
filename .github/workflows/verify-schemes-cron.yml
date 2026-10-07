@@ -31,3 +31,21 @@ jobs:
             -d '{"action":"verifyBatch"}' \
             --max-time 280 \
             -w "\nHTTP status: %{http_code}\n"
+
+  # Scheme Discovery agent — finds new government schemes, adds confident ones
+  # automatically and queues the rest for approval in Admin → Agents.
+  # Separate job = separate serverless invocation (own 300 s budget).
+  discover-schemes:
+    # After the verify batch, so the two don't compete for the same Groq keys.
+    needs: ping-verify-batch
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger scheme discovery
+        run: |
+          curl -sS --fail-with-body -X POST "https://yojanasahay.vercel.app/api/agent-auto-fix" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"action":"discover"}' \
+            --max-time 290 \
+            -w "\nHTTP status: %{http_code}\n"

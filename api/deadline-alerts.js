@@ -37,6 +37,7 @@ import nodemailer               from "nodemailer";
 import { runAutoFixAgent }      from "./_lib/autoFixAgent.js";
 import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import refreshNewsHandler       from "./refresh-news.js";
+import { runAndLogDiscovery, listSchemeDrafts, reviewSchemeDraft } from "./_lib/schemeDiscovery.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AI Compose & Send — folded into this same file (not a separate function)
@@ -375,7 +376,7 @@ async function verifyAdmin(req, tabs = []) {
       console.warn("[deadline-alerts] Non-admin attempted access:", decodedToken.email);
       return { ok: false, status: 403, error: "Forbidden — admin access required" };
     }
-    return { ok: true, db, email: decodedToken.email ?? decodedToken.uid };
+    return { ok: true, db, email: decodedToken.email ?? decodedToken.uid, full: isAdmin };
   } catch (err) {
     console.error("[deadline-alerts] Firestore role check failed:", err.message);
     return { ok: false, status: 500, error: "Role verification failed" };
@@ -615,7 +616,7 @@ export default async function handler(req, res) {
 
   // Not a cron request — everything below requires an authenticated admin
   // Actions: running agents needs the Agents tab; e-mail actions need Deadlines.
-  const tabsFor = req.body?.action === "runAgent" ? ["agents"] : ["deadlines"];
+  const tabsFor = ["runAgent", "schemeDrafts"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
   const auth = await verifyAdmin(req, tabsFor);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
@@ -636,11 +637,36 @@ export default async function handler(req, res) {
       if (job === "autoFix")        return res.status(200).json({ ok: true, result: await runAutoFixAgent({ trigger: "manual" }) });
       if (job === "verifyBatch")    return res.status(200).json({ ok: true, result: await runAndLogVerifyBatch("manual") });
       if (job === "news")           return res.status(200).json({ ok: true, result: await runNewsRefresh() });
+      if (job === "discover")       return res.status(200).json({ ok: true, result: await runAndLogDiscovery({ db: auth.db, trigger: "manual" }) });
       if (job === "deadlineAlerts") return res.status(200).json({ ok: true, result: await runDeadlineAlerts({ trigger: "manual", triggeredBy: auth.email ?? null }) });
       return res.status(400).json({ error: `Unknown job: ${String(job).slice(0, 40)}` });
     } catch (err) {
       console.error(`[deadline-alerts] runAgent ${job} failed:`, err);
       return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── action: "schemeDrafts" — Scheme Discovery review queue ──────────────
+  //   { op: "list" } · { op: "approve" | "reject" | "remove", id }
+  if (action === "schemeDrafts") {
+    try {
+      const op = req.body?.op ?? "list";
+      if (op === "list") {
+        let lastRun = null;
+        try {
+          const runs = await auth.db.collection("agentRuns").orderBy("createdAt", "desc").limit(20).get();
+          const doc = runs.docs.map(d => d.data()).find(d => d.agent === "scheme-discovery");
+          if (doc) lastRun = { ...doc, createdAt: doc.createdAt?.toDate?.().toISOString?.() ?? null };
+        } catch { /* ignore */ }
+        return res.status(200).json({ drafts: await listSchemeDrafts(auth.db), lastRun, canPublish: !!auth.full });
+      }
+      // Changing what's published on the site is for full admins only.
+      if (!auth.full) return res.status(403).json({ error: "Only a full admin can approve, reject or remove schemes." });
+      const out = await reviewSchemeDraft(auth.db, { id: req.body?.id, op, by: auth.email ?? null });
+      return res.status(200).json(out);
+    } catch (err) {
+      console.error("[deadline-alerts] schemeDrafts failed:", err.message);
+      return res.status(400).json({ error: err.message });
     }
   }
 

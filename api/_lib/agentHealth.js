@@ -12,7 +12,7 @@
 //              lastRunAt, rerun: "verifyBatch"|"deadlineAlerts"|"autoFix"|"news"|null }
 //
 // `rerun` tells the watchdog (scripts/agent-watchdog.mjs, run by GitHub
-// Actions every 6 h) which job to re-trigger itself. Problems a re-run can't
+// Actions every 6 h) which job to re-trigger itself (incl. "discover"). Problems a re-run can't
 // fix (bad key, missing env var) get rerun:null and are reported as a GitHub
 // issue instead.
 //
@@ -84,6 +84,21 @@ export function judgeAutoFix(run) {
   const bits = [`${run.autoFixed ?? 0} https fixes`];
   if (rep) bits.push(`${rep.fixed?.length ?? 0} dead links repaired`, `${rep.recovered?.length ?? 0} came back online`);
   return { ...r, status: "ok", detail: `${bits.join(", ")}, ${fmtAge(at)}.`, rerun: null };
+}
+
+export function judgeDiscovery(run) {
+  const base = { id: "discover", name: "Scheme Discovery", kind: "job" };
+  if (!run) return { ...base, status: "warn", detail: "Has not run yet — first run is scheduled daily (or tap ▶ Run).", lastRunAt: null, rerun: "discover" };
+  const at = toMs(run.createdAt) ?? toMs(run.finishedAt);
+  const r = { ...base, lastRunAt: at ? new Date(at).toISOString() : null };
+  if (ageH(at) > DAILY_GRACE_H) return { ...r, status: "fail", detail: `Last run ${fmtAge(at)} — the daily run was missed.`, rerun: "discover" };
+  if (run.crashed) return { ...r, status: "fail", detail: `Last run crashed: ${run.error ?? "unknown error"}`, rerun: "discover" };
+  const stop = String(run.stopReason ?? "");
+  if (/^config/i.test(stop)) return { ...r, status: "fail", detail: `Needs setup: ${stop.replace(/^config:\s*/, "")}`, rerun: null };
+  if (/^budget/i.test(stop)) return { ...r, status: "warn", detail: "Monthly Tavily budget reached — discovery resumes on the 1st.", rerun: null };
+  if (/^rate_limit/i.test(stop)) return { ...r, status: "warn", detail: "Stopped early: Groq rate limit.", rerun: null };
+  const p = run.published?.length ?? 0, d = run.drafted?.length ?? 0;
+  return { ...r, status: "ok", detail: `Checked ${(run.regions ?? []).join(", ") || "—"}: ${p} added, ${d} awaiting approval, ${run.duplicates ?? 0} already known (${fmtAge(at)}).`, rerun: null };
 }
 
 export function judgeNews(cfg) {
@@ -179,11 +194,12 @@ export async function getAgentHealth(db) {
   const readFail = (id, name) => err => ({ id, name, kind: "job", status: "warn", detail: `Could not read run log: ${err.message}`, lastRunAt: null, rerun: null });
 
   let autoFixRun = null;
-  const [verify, alerts, autoFix, news, groqVerify, groqChat, github, tavily] = await Promise.all([
+  const [verify, alerts, autoFix, news, discover, groqVerify, groqChat, github, tavily] = await Promise.all([
     safe(async () => judgeVerifyBatch(await latest(db, "schemeVerifyRuns", "runAt")), readFail("verifyBatch", "Background Verifier")),
     safe(async () => judgeDeadlineAlerts(await latest(db, "deadlineAlertRuns", "runAt")), readFail("deadlineAlerts", "Deadline Alert E-mails")),
     safe(async () => judgeAutoFix(autoFixRun = await latest(db, "agentRuns", "createdAt", d => !d.agent || d.agent === "agent-auto-fix")), readFail("autoFix", "Auto-Fix + URL Repair")),
     safe(async () => judgeNews((await db.collection("_config").doc("news").get()).data() ?? null), readFail("news", "Scheme News Refresh")),
+    safe(async () => judgeDiscovery(await latest(db, "agentRuns", "createdAt", d => d.agent === "scheme-discovery")), readFail("discover", "Scheme Discovery")),
     judgeGroqPool("groqVerify", "Groq verify keys", envKeys(["GROQ_VERIFY_KEY", "GROQ_VERIFY_KEY_1", "GROQ_VERIFY_KEY_2"]).length
       ? envKeys(["GROQ_VERIFY_KEY", "GROQ_VERIFY_KEY_1", "GROQ_VERIFY_KEY_2"])
       : envKeys(["GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "GROQ_API_KEY_4", "GROQ_API_KEY_5"]), "GROQ_VERIFY_KEY"),
@@ -193,7 +209,7 @@ export async function getAgentHealth(db) {
   ]);
 
   const items = [
-    verify, alerts, autoFix, news,
+    verify, alerts, autoFix, news, discover,
     groqVerify, groqChat, github, tavily,
     judgePresence("serper", "Serper (URL search)", ["SERPER_API_KEY"], "SERPER_API_KEY missing — dead links can't be repaired automatically."),
     judgePresence("gmail", "Gmail (alert sender)", ["GMAIL_APP_PASSWORD"], "GMAIL_USER / GMAIL_APP_PASSWORD missing — deadline e-mails can't be sent."),

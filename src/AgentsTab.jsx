@@ -2060,6 +2060,214 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Scheme Discovery Card
+// ─────────────────────────────────────────────────────────────────────────────
+// The Scheme Discovery agent (_lib/schemeDiscovery.js) finds schemes that
+// aren't in the app yet. Confident ones (official .gov.in source, all checks
+// passed) are added automatically; the rest wait here for Approve / Reject.
+// Agent-added schemes can be removed again with one tap.
+// ═════════════════════════════════════════════════════════════════════════════
+const DISCOVERY_FIELD_LABEL = { who: "Who", income: "Income", age: "Age", area: "Area", house: "House", caste: "Caste", educationLevel: "Education", rationCard: "Ration card", landHolding: "Land", gender: "Gender", disability: "Disability" };
+
+function eligibilitySummary(e = {}) {
+  const bits = Object.entries(e).map(([k, v]) => `${DISCOVERY_FIELD_LABEL[k] ?? k}: ${Array.isArray(v) ? v.join(", ") : v === true ? "required" : v}`);
+  return bits.length ? bits.join(" · ") : "Everyone in the region";
+}
+
+const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const runner = useRunAgent();
+  const [state, setState] = useState({ loading: true, error: null, drafts: [], lastRun: null, canPublish: false });
+  const [busyId, setBusyId] = useState(null);
+  const [msg, setMsg] = useState(null);
+  const [openId, setOpenId] = useState(null);
+  const [showAllAdded, setShowAllAdded] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const data = await adminJson("/api/deadline-alerts", { action: "schemeDrafts", op: "list" });
+      setState({ loading: false, error: null, drafts: data.drafts ?? [], lastRun: data.lastRun ?? null, canPublish: !!data.canPublish });
+    } catch (err) {
+      setState(prev => ({ ...prev, loading: false, error: err.message }));
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 5 * 60 * 1000);
+    return () => clearInterval(t);
+  }, [load]);
+
+  const act = useCallback(async (id, op, name) => {
+    if (op === "remove" && !window.confirm(`Remove "${name}" from the app?\n(The site updates in ~2 minutes.)`)) return;
+    if (op === "approve" && !window.confirm(`Publish "${name}" to the app now?`)) return;
+    setBusyId(id); setMsg(null);
+    setAdminTask(`discovery-${id}`, { tab: "agents", label: op === "approve" ? `Publishing ${name}` : op === "remove" ? `Removing ${name}` : `Rejecting ${name}` });
+    try {
+      await adminJson("/api/deadline-alerts", { action: "schemeDrafts", op, id });
+      setMsg({ ok: true, text: op === "approve" ? `"${name}" published — live in ~2 minutes.` : op === "remove" ? `"${name}" removed — site updates in ~2 minutes.` : `"${name}" rejected.` });
+      logMyActivity(`${op === "approve" ? "Approved" : op === "remove" ? "Removed" : "Rejected"} scheme: ${name}`, "agents", op === "reject" ? "update" : "update");
+      await load();
+    } catch (err) {
+      setMsg({ ok: false, text: `${name}: ${err.message}` });
+    } finally {
+      setBusyId(null);
+      setAdminTask(`discovery-${id}`, null);
+    }
+  }, [load]);
+
+  const pending = state.drafts.filter(d => d.status === "pending");
+  const added   = state.drafts.filter(d => d.status === "published");
+  const run     = state.lastRun;
+  const lastAt  = run?.createdAt ? new Date(run.createdAt) : null;
+  const overdue = !!lastAt && Date.now() - lastAt.getTime() > 30 * 3600 * 1000;
+  const failed  = !!run && (run.crashed || /^config/i.test(run.stopReason ?? ""));
+  const statusLabel = state.loading ? "Loading…" : !run ? "Not run yet" : failed ? "Needs attention" : overdue ? "Overdue" : pending.length ? `${pending.length} to review` : "Healthy";
+  const statusColor = !run ? th.textSub : failed ? "#EF4444" : (overdue || pending.length) ? IDLE_AMBER : IND_GREEN;
+
+  const btn = (label, onClick, color, disabled) => (
+    <div
+      {...activatable(() => { if (!disabled) onClick(); }, label)}
+      onClick={() => { if (!disabled) onClick(); }}
+      aria-disabled={disabled}
+      style={{ cursor: disabled ? "default" : "pointer", padding:"4px 10px", borderRadius:7, fontSize:fs(9.5, isDesktop), fontWeight:800, color:"#fff", background: color, opacity: disabled ? 0.5 : 1, userSelect:"none", whiteSpace:"nowrap" }}
+    >{label}</div>
+  );
+
+  const DraftRow = ({ d, mode }) => {
+    const s = d.scheme ?? {};
+    const open = openId === d.id;
+    return (
+      <div style={{ borderTop:`1px solid ${th.border}`, padding:"8px 0" }}>
+        <div style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+          <span style={{ fontSize:16, lineHeight:1.2 }}>{s.icon ?? "📋"}</span>
+          <div style={{ minWidth:0, flex:1, cursor:"pointer" }} onClick={() => setOpenId(open ? null : d.id)}>
+            <div style={{ fontSize:fs(11, isDesktop), fontWeight:800, color:th.text, lineHeight:1.35 }}>{s.name?.en}</div>
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginTop:1 }}>
+              {s.state ?? "Central"} · {s.tag?.en}{mode === "added" ? ` · ${d.publishedBy === "agent" ? "auto-added" : "approved"} ${timeAgo(d.publishedAt)}` : ` · confidence ${Math.round((d.confidence ?? 0) * 100)}%`}
+            </div>
+            <div style={{ fontSize:fs(10, isDesktop), color:th.textMid, marginTop:2, lineHeight:1.4 }}>{s.benefit?.en}</div>
+          </div>
+          <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+            {mode === "pending" && state.canPublish && btn(busyId === d.id ? "…" : "Approve", () => act(d.id, "approve", s.name?.en), IND_GREEN, !!busyId)}
+            {mode === "pending" && state.canPublish && btn("Reject", () => act(d.id, "reject", s.name?.en), "#64748B", !!busyId)}
+            {mode === "added" && state.canPublish && btn(busyId === d.id ? "…" : "Remove", () => act(d.id, "remove", s.name?.en), "#DC2626", !!busyId)}
+          </div>
+        </div>
+        {mode === "pending" && d.problems?.length > 0 && (
+          <div style={{ fontSize:fs(9.5, isDesktop), color:IDLE_AMBER, marginTop:4, marginLeft:24, lineHeight:1.45 }}>
+            Not auto-added: {d.problems.join(" · ")}
+          </div>
+        )}
+        {open && (
+          <div style={{ marginTop:6, marginLeft:24, fontSize:fs(9.5, isDesktop), color:th.textMid, lineHeight:1.55, wordBreak:"break-word" }}>
+            <div><strong>हिंदी:</strong> {s.name?.hi} — {s.benefit?.hi}</div>
+            <div><strong>Eligible:</strong> {eligibilitySummary(d.eligibility)}</div>
+            <div><strong>Documents:</strong> {(s.docs?.en ?? []).join(", ")}</div>
+            <div><strong>Benefit / year:</strong> ₹{Number(s.annual || 0).toLocaleString("en-IN")} · {s.applyType}{s.lastDate ? ` · last date ${s.lastDate}` : ""}</div>
+            {d.evidence && <div><strong>From the page:</strong> “{d.evidence}”</div>}
+            <div>
+              <a href={s.source} target="_blank" rel="noopener noreferrer" style={{ color:CYAN }}>Source page ↗</a>
+              {s.apply?.en && s.apply.en !== s.source && <> · <a href={s.apply.en} target="_blank" rel="noopener noreferrer" style={{ color:CYAN }}>Apply link ↗</a></>}
+              {d.commitUrl && <> · <a href={d.commitUrl} target="_blank" rel="noopener noreferrer" style={{ color:CYAN }}>GitHub commit ↗</a></>}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ position:"relative", background: th.card, border:`1px solid ${th.border}`, borderRadius:12, overflow:"hidden" }}>
+      <div style={{ height:2.5, background:`linear-gradient(90deg, #8B5CF6, #8B5CF640)`, boxShadow:"0 0 8px #8B5CF680" }} />
+      <div style={{ padding:"13px 14px" }}>
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:8, gap:8 }}>
+          <div style={{ minWidth:0 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+              <div style={{ width:24, height:24, borderRadius:7, flexShrink:0, background:"#8B5CF618", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <IconSearch size={13} color="#8B5CF6" />
+              </div>
+              <div style={{ fontSize:fs(13, isDesktop), fontWeight:800, color:th.text }}>Scheme Discovery</div>
+            </div>
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginTop:3, marginLeft:31 }}>
+              Finds new schemes daily · Serper + Tavily + Groq · auto-adds confident ones
+            </div>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+            <RunNowButton job="discover" label="Scheme Discovery" runner={runner} dark={dark} isDesktop={isDesktop} onDone={load}
+              title="Search 2 more regions for new schemes now (~1–3 min)" />
+            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:20, background:`${statusColor}18`, border:`1px solid ${statusColor}40` }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:statusColor }} />
+              <span style={{ fontSize:fs(9, isDesktop), fontWeight:700, color:statusColor }}>{statusLabel}</span>
+            </div>
+          </div>
+        </div>
+
+        <RunMessage runner={runner} isDesktop={isDesktop} />
+        {msg && <div role="status" style={{ fontSize:fs(9.5, isDesktop), color: msg.ok ? IND_GREEN : "#EF4444", marginBottom:8, lineHeight:1.45 }}>{msg.text}</div>}
+
+        {state.loading ? (
+          <Skeleton height={90} radius={10} dark={dark} />
+        ) : state.error ? (
+          <div style={{ padding:"12px", color:"#EF4444", fontSize:fs(10.5, isDesktop), border:`1px dashed ${th.border}`, borderRadius:10, lineHeight:1.5 }}>
+            Couldn't load discovery data: {state.error}
+          </div>
+        ) : (
+          <>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8, marginBottom:8 }}>
+              {[
+                { label:"Added", value: added.length, color: IND_GREEN },
+                { label:"To review", value: pending.length, color: pending.length ? SAFFRON : th.textSub },
+                { label:"Last run", value: run ? `${run.published?.length ?? 0}+${run.drafted?.length ?? 0}` : "—", color: th.textMid },
+              ].map(t => (
+                <div key={t.label} style={{ background: th.card2, borderRadius:10, padding:"9px 8px", border:`1px solid ${th.border}` }}>
+                  <div style={{ fontSize:fs(17, isDesktop), fontWeight:800, color:t.color, fontFamily:"monospace" }}>{t.value}</div>
+                  <div style={{ fontSize:fs(8, isDesktop), color:th.textSub, marginTop:2, fontWeight:700, textTransform:"uppercase", letterSpacing:0.3 }}>{t.label}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginBottom:6, lineHeight:1.5 }}>
+              {run
+                ? <>Last run <strong style={{ color:th.textMid }}>{timeAgo(lastAt)}</strong> · {(run.regions ?? []).map(r => r === "national" ? "Central" : r).join(", ")} · {run.candidates ?? 0} found, {run.duplicates ?? 0} already in app{run.stopReason ? ` · stopped: ${run.stopReason}` : ""}</>
+                : "First run happens with the nightly schedule — or tap ▶ Run."}
+              {!state.canPublish && <div style={{ color:IDLE_AMBER }}>Only a full admin can approve or remove schemes.</div>}
+            </div>
+            {run?.errors?.length > 0 && (
+              <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginBottom:6, lineHeight:1.45, wordBreak:"break-word" }}>
+                Notes: {run.errors.slice(0, 3).join(" · ")}{run.errors.length > 3 ? ` · +${run.errors.length - 3} more` : ""}
+              </div>
+            )}
+
+            {pending.length > 0 && (
+              <>
+                <div style={{ fontSize:fs(8.5, isDesktop), fontWeight:800, color:SAFFRON, textTransform:"uppercase", letterSpacing:0.3, marginTop:6 }}>Waiting for approval</div>
+                {pending.map(d => <DraftRow key={d.id} d={d} mode="pending" />)}
+              </>
+            )}
+            {added.length > 0 && (
+              <>
+                <div style={{ fontSize:fs(8.5, isDesktop), fontWeight:800, color:th.textSub, textTransform:"uppercase", letterSpacing:0.3, marginTop:10 }}>Added by the agent</div>
+                {(showAllAdded ? added : added.slice(0, 5)).map(d => <DraftRow key={d.id} d={d} mode="added" />)}
+                {added.length > 5 && (
+                  <div onClick={() => setShowAllAdded(v => !v)} style={{ fontSize:fs(9.5, isDesktop), color:CYAN, cursor:"pointer", marginTop:4 }}>
+                    {showAllAdded ? "Show fewer" : `Show all ${added.length}`}
+                  </div>
+                )}
+              </>
+            )}
+            {pending.length === 0 && added.length === 0 && (
+              <div style={{ padding:"12px", textAlign:"center", color:th.textSub, fontSize:fs(10.5, isDesktop), border:`1px dashed ${th.border}`, borderRadius:10 }}>
+                Nothing found yet. New schemes will appear here.
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
 // COMPONENT: Watchdog Card
 // ─────────────────────────────────────────────────────────────────────────────
 // Shows the latest health snapshot (appMeta/agentHealth) written by the
@@ -2067,7 +2275,7 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
 // "Check now". Every job + API key with its status, what the watchdog re-ran
 // on its own, and links to the GitHub issues it keeps in sync.
 // ═════════════════════════════════════════════════════════════════════════════
-const WATCH_JOB_LABEL = { verifyBatch: "Background verify batch", deadlineAlerts: "Deadline e-mails", autoFix: "Auto-Fix", news: "News refresh" };
+const WATCH_JOB_LABEL = { verifyBatch: "Background verify batch", deadlineAlerts: "Deadline e-mails", autoFix: "Auto-Fix", news: "News refresh", discover: "Scheme Discovery" };
 
 const WatchdogCard = React.memo(function WatchdogCard({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
@@ -6274,6 +6482,7 @@ export default function AgentsTab({
       >
         <div style={{ display:"grid", gap:12, gridTemplateColumns: isDesktop ? "repeat(auto-fit, minmax(320px, 1fr))" : "1fr" }}>
           <WatchdogCard dark={dark} isDesktop={isDesktop} />
+          <SchemeDiscoveryCard dark={dark} isDesktop={isDesktop} />
           <AutoFixAgentCard run={autoFixRun} loading={autoFixLoading} dark={dark} isDesktop={isDesktop} />
           <VerifyBatchAgentCard dark={dark} isDesktop={isDesktop} />
         </div>
