@@ -26,7 +26,7 @@ import { readRepoFile, commitPatches } from "./githubCommit.js";
 import { commitSchemesMeta } from "../update-schemes-meta.js";
 import { normalizeSchemeUrl, isPublicHttpUrl } from "./urlTools.js";
 import { getUrlIssueFilePath } from "./urlIssues.js";
-import { findUrlCandidates, registrableDomain, domainScore } from "./urlFinder.js";
+import { findUrlCandidates, registrableDomain, domainScore, isNonOfficialUrl } from "./urlFinder.js";
 import { pingUrlServer } from "../ping-url.js";
 
 const MAX_SEARCHES_PER_RUN = Math.max(0, Number(process.env.URL_REPAIR_PER_RUN ?? 3) || 0);
@@ -60,14 +60,15 @@ export function titleMatch(name, title) {
 }
 
 // Decide whether a candidate is safe to commit without a human.
-export function pickAutoFix(scheme, oldUrl, candidates) {
+export function pickAutoFix(scheme, oldUrl, candidates, { officialOnly = false } = {}) {
   const name    = scheme.name?.en || scheme.id;
-  const oldSite = registrableDomain(oldUrl);
+  const oldSite = officialOnly ? null : registrableDomain(oldUrl);
   for (const c of candidates) {
     if (c.alive !== true || !(c.httpStatus >= 200 && c.httpStatus < 400)) continue;
     const match    = titleMatch(name, c.title);
     const sameSite = !!oldSite && registrableDomain(c.url) === oldSite;
     const official = domainScore(c.url) >= 0.9;
+    if (officialOnly && isNonOfficialUrl(c.url)) continue;
     if (sameSite && match >= 0.34) return { ...c, match, reason: "same site, page moved" };
     if (official && match >= 0.6)  return { ...c, match, reason: "official site, title matches scheme" };
   }
@@ -93,7 +94,14 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   );
   out.deadFound = dead.length;
   progress.step(`${dead.length} scheme link(s) are recorded as dead`);
-  if (dead.length === 0) return out;
+  // Live links that point to a blog / bank / news site instead of a government page.
+  const deadIds = new Set(dead.map(s => s.id));
+  const unofficial = SCHEME_DB.filter(s =>
+    !deadIds.has(s.id) && s.applyType !== "offline" && isNonOfficialUrl(normalizeSchemeUrl(s.apply?.en) ?? "")
+  );
+  out.unofficialFound = unofficial.length;
+  if (unofficial.length) progress.step(`${unofficial.length} apply link(s) point to a non-government site — replacing with official pages when found`);
+  if (dead.length === 0 && unofficial.length === 0) return out;
 
   // Per-scheme retry bookkeeping (best effort — works without Firestore too).
   let attempts = {};
@@ -149,6 +157,40 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
         id: s.id, name: s.name?.en ?? s.id, scope: s.scope, state: s.state ?? null,
         type: "DEAD_LINK", rawUrl: s.apply.en,
         candidates: candidates.slice(0, 3).map(c => ({ url: c.url, title: c.title, alive: c.alive, confidence: c.confidence })),
+      });
+    }
+  }
+
+  // Non-official links: same budget, only after dead links had their turn.
+  unofficial.sort((a, b) => (attempts[a.id] ?? 0) - (attempts[b.id] ?? 0));
+  for (const s of unofficial) {
+    if (out.searchesUsed >= MAX_SEARCHES_PER_RUN || out.stopReason) break;
+    if (attempts[s.id] && daysAgo(attempts[s.id]) < RETRY_AFTER_DAYS) { out.skippedCooldown++; continue; }
+    const oldUrl = normalizeSchemeUrl(s.apply.en);
+    progress.step(`Looking for the official page instead of ${registrableDomain(oldUrl)}: ${s.name?.en ?? s.id}`);
+    out.searchesUsed++;
+    attempts[s.id] = Date.now();
+    const { candidates, searchError, config } = await findUrlCandidates({
+      name: s.name?.en ?? s.id,
+      ministry: s.ministry?.en ?? (typeof s.ministry === "string" ? s.ministry : ""),
+      oldUrl,
+      state: s.scope === "national" ? "national" : (s.state ?? ""),
+    });
+    if (searchError) {
+      out.errors.push(`${s.id}: ${searchError}`);
+      delete attempts[s.id];
+      if (config || /rate-limit/i.test(searchError)) { out.stopReason = searchError; break; }
+      continue;
+    }
+    const pick = pickAutoFix(s, oldUrl, candidates, { officialOnly: true });
+    progress.step(pick ? `  ↳ found official ${pick.url} — will replace` : `  ↳ no certain official page — sent for review`, pick ? "ok" : "warn");
+    if (pick && isPublicHttpUrl(pick.url) && domainScore(pick.url) >= 0.9) {
+      patches.push({ id: s.id, oldUrl: s.apply.en, newUrl: pick.url, file: getUrlIssueFilePath(s), _pick: { ...pick, reason: "official page replaces non-government link" }, _name: s.name?.en ?? s.id });
+    } else {
+      out.needsReview.push({
+        id: s.id, name: s.name?.en ?? s.id, scope: s.scope, state: s.state ?? null,
+        type: "NON_OFFICIAL", rawUrl: s.apply.en,
+        candidates: candidates.filter(c => domainScore(c.url) >= 0.9).slice(0, 3).map(c => ({ url: c.url, title: c.title, alive: c.alive, confidence: c.confidence })),
       });
     }
   }

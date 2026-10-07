@@ -19,7 +19,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "Cashless hospital treatment up to ₹25 lakh per family a year at empanelled hospitals", hi: "सूचीबद्ध अस्पतालों में प्रति परिवार प्रति वर्ष ₹25 लाख तक कैशलेस इलाज" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 2500000,
-    apply:   { en: "https://www.bajajfinserv.in/insurance/mukhyamantri-chiranjeevi-swasthya-yojana", hi: "https://www.bajajfinserv.in/insurance/mukhyamantri-chiranjeevi-swasthya-yojana" }, applyType: "online",
+    apply:   { en: "Register with your Jan Aadhaar card at the nearest e-Mitra centre", hi: "नज़दीकी ई-मित्र केंद्र पर जन आधार कार्ड से पंजीकरण करें" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Income Certificate"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "आय प्रमाण"] },
     eligibilityText: { en: ["Families living in Rajasthan", "Free for NFSA (food-security), SECC, small & marginal farmer and contract-worker families", "Other families can join by paying a yearly premium"],

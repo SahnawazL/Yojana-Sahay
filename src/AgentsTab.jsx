@@ -2025,8 +2025,9 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
     TEXT_ONLY: "No URL (text only)",
     NO_URL:    "URL missing",
     DEAD_LINK: "Dead link",
+    NON_OFFICIAL: "Non-government link",
   };
-  const ISSUE_COLOR = { MULTI_URL: SAFFRON, TEXT_ONLY: "#EF4444", NO_URL: "#EF4444", DEAD_LINK: "#EF4444" };
+  const ISSUE_COLOR = { MULTI_URL: SAFFRON, TEXT_ONLY: "#EF4444", NO_URL: "#EF4444", DEAD_LINK: "#EF4444", NON_OFFICIAL: SAFFRON };
   const rep = run?.repair ?? null;
 
   const hasRun    = !!run;

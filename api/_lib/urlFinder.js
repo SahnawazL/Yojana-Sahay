@@ -61,6 +61,14 @@ export function sameUrl(a, b) {
 // Search results that can never be a scheme's apply page.
 export const JUNK_HOSTS = /(^|\.)(youtube\.com|facebook\.com|twitter\.com|x\.com|instagram\.com|linkedin\.com|wikipedia\.org|quora\.com|reddit\.com|scribd\.com)$/i;
 
+// Blogs, banks, news and aggregator sites — fine to read, never the place to
+// send a citizen to apply. Apply links on these get replaced by the URL Repair
+// agent with an official page when one is found.
+export const NON_OFFICIAL_HOSTS = /(^|\.)(govtschemes\.in|schemesinindia\.in|bajajfinserv\.in|indiascholarships\.in|economictimes\.indiatimes\.com|globaldrishti\.in|dtnext\.in|cleartax\.in|icici\.bank\.in|airtel\.in|buddy4study\.com|c4scourses\.in|mittigoldorganic\.com|msmeloans\.in|joinditto\.in|leasewarehouse\.in|policybazaar\.com|paisabazaar\.com|sarkariyojana\.com|pmmodiyojana\.in|yojanaguru\.in|jagranjosh\.com|adda247\.com|indiatoday\.in|ndtv\.com|timesofindia\.indiatimes\.com|hindustantimes\.com|news18\.com|bankbazaar\.com)$/i;
+export function isNonOfficialUrl(url) {
+  try { return NON_OFFICIAL_HOSTS.test(new URL(url).hostname); } catch { return false; }
+}
+
 export async function serperSearch(query, serperKey, maxResults = 7, { type = "search" } = {}) {
   try {
     const res = await fetch(type === "news" ? "https://google.serper.dev/news" : SERPER_SEARCH, {

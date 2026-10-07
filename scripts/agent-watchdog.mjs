@@ -134,8 +134,8 @@ export function healthIssueBody(h, reruns) {
 export function reviewIssueBody(items) {
   const lines = items.slice(0, 60).map(it => {
     const cands = (it.candidates ?? []).map(c => `  - ${c.alive === true ? "🟢" : c.alive === false ? "🔴" : "⚪"} ${c.url}${c.title ? ` — _${String(c.title).slice(0, 80)}_` : ""}`).join("\n");
-    const what = { DEAD_LINK: "dead link", MULTI_URL: "several URLs in one field", TEXT_ONLY: "text instead of a URL", NO_URL: "no URL" }[it.type] ?? it.type;
-    return `- [ ] **${it.name}** (\`${it.id}\`${it.state ? `, ${it.state}` : ""}) — ${what}${it.rawUrl ? `: ${it.rawUrl}` : ""}${it.type === "DEAD_LINK" ? `\n${cands || "  - no candidates found"}` : ""}`;
+    const what = { DEAD_LINK: "dead link", MULTI_URL: "several URLs in one field", TEXT_ONLY: "text instead of a URL", NO_URL: "no URL", NON_OFFICIAL: "links to a non-government site" }[it.type] ?? it.type;
+    return `- [ ] **${it.name}** (\`${it.id}\`${it.state ? `, ${it.state}` : ""}) — ${what}${it.rawUrl ? `: ${it.rawUrl}` : ""}${["DEAD_LINK", "NON_OFFICIAL"].includes(it.type) ? `\n${cands || "  - no official page found yet"}` : ""}`;
   });
   return [
     "The Auto-Fix agent found these scheme links but could not fix them **safely** on its own.",
