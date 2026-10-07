@@ -636,4 +636,22 @@ export const KERALA_SCHEMES = [
   //   match: (a) => a.state === "Kerala",
   // },
 
+  // <auto-scheme id="kerala_prathibha_scholarship"> added by Scheme Discovery agent on 2026-10-07 · source: https://kscste.kerala.gov.in/prathibha-scholarship-programme/
+  {
+    id: "kerala_prathibha_scholarship",
+    icon: "📚", color: "#003580", scope: "state", state: "Kerala",
+    ministry: { en: "Kerala State Council for Science, Technology and Environment (KSCSTE)", hi: "केरल राज्य विज्ञान, प्रौद्योगिकी और पर्यावरण परिषद" },
+    name:    { en: "Prathibha Scholarship Programme", hi: "प्रतिभा स्कॉलरशिप प्रोग्राम" },
+    benefit: { en: "₹12,000‑₹60,000 per year scholarship for science degrees", hi: "विज्ञान डिग्री के लिए ₹12,000‑₹60,000 वार्षिक छात्रवृत्ति" },
+    tag:     { en: "Scholarship / Science", hi: "छात्रवृत्ति / विज्ञान" },
+    annual: 12000,
+    apply:   { en: "https://kscste.kerala.gov.in/prathibha-scholarship-programme/", hi: "https://kscste.kerala.gov.in/prathibha-scholarship-programme/" }, applyType: "online",
+    docs:    { en: ["Student Data‑sheet","Higher Secondary Mark list","Community Certificate (if SC/ST)","Place of Origin certificate","Terms & Conditions","E‑payment form"],
+               hi: ["छात्र डेटा‑शीट","हायर सेकेंडरी मार्क सूची","समुदाय प्रमाणपत्र (यदि एससी/एसटी)","उत्पत्ति प्रमाणपत्र","नियम एवं शर्तें","ई‑पेमेंट फ़ॉर्म"] },
+    keywords: ["class12"],
+    autoAdded: "2026-10-07", source: "https://kscste.kerala.gov.in/prathibha-scholarship-programme/",
+    match: (a) => a.state === "Kerala" && a.who === "student" && ["general","sc","st"].includes(a.caste) && a.educationLevel === "class9to12",
+  },
+  // </auto-scheme id="kerala_prathibha_scholarship">
+
 ];
