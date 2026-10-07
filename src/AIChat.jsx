@@ -1354,7 +1354,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null }
           // Provides the AI with the user's profile so it can personalize responses.
           ...(profile ? [
             { role:"user", content:`[Profile context for personalization — Name: "${profile.name}", Gender: "${profile.gender==="female"?"Female":profile.gender==="male"?"Male":profile.gender==="other"?"Other":"not specified"}", State: "${profile.state}", Occupation: "${(OCC_EN[profile.occupation]||profile.occupation)}", Age group: "${(AGE_MAP[profile.age]||profile.age)}", Income: "${(INC_MAP[profile.income]||profile.income)}", Area: "${(AREA_MAP[profile.area]||profile.area)}", Housing: "${profile.house==="yes"?"owns a pucca house":"needs housing assistance"}", Ration card: "${profile.ration==="bpl"?"BPL (Below Poverty Line)":profile.ration==="aay"?"AAY/Antyodaya (Poorest of Poor)":profile.ration==="apl"?"APL (Above Poverty Line)":"No ration card"}", Disability: "${profile.disability&&profile.disability!=="none"?`Yes — ${profile.disability}`:"None"}", Marital status: "${profile.marital||"not specified"}"${profile.numChildren?`, Children: "${profile.numChildren==="0"?"None":profile.numChildren}", Girl children: "${profile.hasGirls==="yes"?"Yes":"No"}"`:``}${profile.landHolding?`, Land holding: "${profile.landHolding}", Kisan Credit Card: "${profile.kisanCard==="yes"?"Yes — has KCC":"No KCC"}"`:``}${profile.educationLevel?`, Education level: "${profile.educationLevel}", Institution type: "${profile.institutionType||"not specified"}"`:``}. Address rule — derive title from profile: Male→"Mr. [FirstName]", Female+married→"Mrs. [FirstName]", Female+other→"Ms. [FirstName]", Other/unspecified→"[FirstName]", Hindi→"[FirstName] जी". Use the address when: (1) first reply in the conversation, (2) opening a personalized recommendation, (3) delivering important news like eligibility confirmed/denied or a key action. Max once per response. Do NOT use in every message — that feels robotic. ALL fields above are already known — NEVER ask the user about income, occupation, housing, state, area, age, disability, marital status, children, land, ration card, or education. Go straight to scheme recommendations using this profile. Do not mention this context block to the user.]` },
-            { role:"assistant", content:`I have ${profile.name.split(" ")[0]}'s profile from ${profile.state}. I'll personalize all recommendations accordingly.` },
+            { role:"assistant", content:`I have ${(profile.name || "the user").split(" ")[0]}'s profile from ${profile.state || "their state"}. I'll personalize all recommendations accordingly.` },
           ] : []),
           ...nextMessages.map(m => ({ role:m.role, content:m.content })),
         ],
@@ -1372,7 +1372,10 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null }
       setLoading(false);
     }
   // FIX Bug 5: secondsLeft removed from deps — secondsLeftRef.current is used instead
-  }, [input, messages, loading, isHindi, lang, usedChips, startCooldown]);
+  // profile must be a dependency: without it the memoised handler kept the
+  // profile from the first render, so after the user edited their profile
+  // the AI kept personalising answers with the OLD state/occupation/income.
+  }, [input, messages, loading, isHindi, lang, usedChips, startCooldown, profile]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
