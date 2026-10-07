@@ -1072,7 +1072,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "40–50% subsidy (higher for SC/ST/women) on tractors, rotavators, seed drills, sprayers, threshers & sugarcane harvesters via MahaDBT portal. Up to ₹35L on sugarcane harvester. First-come-first-served from 2025–26.", hi: "MahaDBT पोर्टलमार्फत ट्रॅक्टर, रोटाव्हेटर, सीड ड्रिल, फवारणी यंत्र, थ्रेशर व ऊस तोडणी यंत्रावर 40–50% अनुदान (SC/ST/महिलांना अधिक). ऊस तोडणी यंत्रावर ₹35L पर्यंत. 2025–26 पासून 'प्रथम अर्ज प्रथम प्राधान्य'." },
     tag:     { en: "Farmer / Farm Machinery / Mechanisation", hi: "किसान / शेती यंत्रे / यांत्रिकीकरण" },
     annual: 0,
-    apply:   { en: "mahadbt.maharashtra.gov.in (Farmer portal)", hi: "mahadbt.maharashtra.gov.in (शेतकरी पोर्टल)" }, applyType: "online",
+    apply:   { en: "https://mahadbt.maharashtra.gov.in/", hi: "mahadbt.maharashtra.gov.in (शेतकरी पोर्टल)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract & 8A", "Caste Certificate (SC/ST for higher subsidy)", "Income Certificate", "Quotations for Machinery (from authorised dealer)", "Bank Passbook"],
                hi: ["आधार कार्ड", "7/12 उतारा व 8अ", "जाति प्रमाण (SC/ST अधिक सब्सिडी हेतु)", "आय प्रमाण", "यंत्राचे कोटेशन (अधिकृत डीलरकडून)", "बैंक पासबुक"] },
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",

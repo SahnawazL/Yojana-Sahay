@@ -160,7 +160,7 @@ export const CHANDIGARH_SCHEMES = [
                hi: "चंडीगढ़ निवासियों के लिए इलेक्ट्रीशियन, प्लंबिंग, IT, ब्यूटी एंड वेलनेस, रिटेल, निर्माण, आतिथ्य और स्वास्थ्य सेवा जैसे व्यवसायों में निःशुल्क अल्पकालिक कौशल प्रशिक्षण (3–6 माह); ITI और मान्यता प्राप्त प्रशिक्षण केंद्रों पर प्रशिक्षण; प्रशिक्षण के बाद प्लेसमेंट सहायता और रोजगार मेले; प्रशिक्षण के दौरान वजीफा/भत्ता; NCVT/NSDC द्वारा मान्यता प्राप्त प्रमाण पत्र" },
     tag:     { en: "Skill / Employment / Youth", hi: "कौशल / रोजगार / युवा" },
     annual: 0,
-    apply:   { en: "chandigarh.gov.in/skill or nearest ITI, Chandigarh", hi: "chandigarh.gov.in/skill या निकटतम ITI, चंडीगढ़" }, applyType: "online",
+    apply:   { en: "Nearest ITI, Chandigarh (details: chandigarh.gov.in)", hi: "chandigarh.gov.in/skill या निकटतम ITI, चंडीगढ़" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Residence Proof (Chandigarh domicile)", "Educational Certificates (as per course eligibility)", "Passport Photo", "Bank Account (Aadhaar-linked — for stipend)", "Mobile Number"],
                hi: ["आधार कार्ड", "निवास प्रमाण (चंडीगढ़)", "शैक्षिक प्रमाण पत्र (पाठ्यक्रम पात्रता के अनुसार)", "पासपोर्ट फोटो", "बैंक खाता (आधार-लिंक्ड — वजीफे के लिए)", "मोबाइल नंबर"] },
     keywords: ["skill","dropout"],

@@ -336,8 +336,10 @@ export function buildScheme(ai, { candidate, region, sourceUrl, pageText, scheme
   const benefit  = { en: str(ai.benefit?.en, 110), hi: str(ai.benefit?.hi, 110) };
   const category = CATEGORY_LIST.includes(ai.category) ? ai.category : "General";
   const tag      = { en: str(ai.tag?.en, 60) || category, hi: str(ai.tag?.hi, 60) };
-  const docsEn   = (Array.isArray(ai.docs?.en) ? ai.docs.en : []).map(d => str(d, 60)).filter(Boolean).slice(0, 6);
-  const docsHi   = (Array.isArray(ai.docs?.hi) ? ai.docs.hi : []).map(d => str(d, 60)).filter(Boolean).slice(0, 6);
+  // Page attachments ("Guidelines.pdf", "Government order") are not documents a citizen brings.
+  const NOT_A_DOC = /\.(pdf|docx?|xlsx?|jpe?g|png)\b|government order|guideline|highlight|notification|brochure/i;
+  const docsEn   = (Array.isArray(ai.docs?.en) ? ai.docs.en : []).map(d => str(d, 60)).filter(d => d && !NOT_A_DOC.test(d)).slice(0, 6);
+  const docsHi   = (Array.isArray(ai.docs?.hi) ? ai.docs.hi : []).map(d => str(d, 60)).filter(d => d && !NOT_A_DOC.test(d)).slice(0, 6);
   const docs     = docsEn.length && docsEn.length === docsHi.length ? { en: docsEn, hi: docsHi } : { en: ["Aadhaar Card"], hi: ["आधार कार्ड"] };
   if (!(docsEn.length && docsEn.length === docsHi.length)) problems.push("documents list missing or English/Hindi mismatch — set to Aadhaar only");
 

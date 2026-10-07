@@ -74,7 +74,7 @@ export const GOA_SCHEMES = [
                hi: "SC/ST/OBC छात्रों को कक्षा 11 और उससे ऊपर (इंजीनियरिंग, चिकित्सा, कानून, MBA सहित) की पूर्ण ट्यूशन फीस प्रतिपूर्ति + रखरखाव भत्ता; रखरखाव भत्ता ₹300–₹1,200/माह (पाठ्यक्रम स्तर व हॉस्टलर/दिन-विद्वान के अनुसार); केंद्र + राज्य संयुक्त वित्त पोषण" },
     tag:     { en: "Student / SC-ST-OBC / Scholarship", hi: "छात्र / SC-ST-OBC / छात्रवृत्ति" },
     annual: 14400,
-    apply:   { en: "scholarships.gov.in (National Scholarship Portal)", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल)" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in/", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/OBC — issued by Goa govt.)", "Income Certificate (OBC: ≤ ₹2.5 lakh / SC/ST: ≤ ₹6 lakh)", "Class 10 Marksheet / Certificate", "Current Course Admission Proof / Fee Receipt", "Bank Account (student's, Aadhaar-linked)", "Goa Domicile Certificate", "Passport Photo", "Mobile Number & Email"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC — गोवा सरकार द्वारा जारी)", "आय प्रमाण पत्र (OBC: ₹2.5 लाख तक / SC/ST: ₹6 लाख तक)", "कक्षा 10 अंकसूची / प्रमाण पत्र", "वर्तमान पाठ्यक्रम प्रवेश प्रमाण / फीस रसीद", "बैंक खाता (छात्र का, आधार-लिंक्ड)", "गोवा डोमिसाइल प्रमाण पत्र", "पासपोर्ट फोटो", "मोबाइल नंबर व ईमेल"] },
     keywords: ["class10","class12"],

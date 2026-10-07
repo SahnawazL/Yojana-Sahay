@@ -72,7 +72,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "पूरे परिवार के लिए ₹5 लाख/वर्ष कैशलेस अस्पताल भर्ती; महिला के नाम पर स्मार्ट कार्ड; 1,600+ सूचीबद्ध अस्पताल (सरकारी + निजी); कोई प्रीमियम नहीं; पहले से बीमारियां भी कवर; केंद्रीय सरकारी कर्मचारियों को छोड़ सभी WB परिवारों के लिए" },
     tag:     { en: "Health / Cashless Treatment", hi: "स्वास्थ्य / कैशलेस इलाज" },
     annual: 500000,
-    apply:   { en: "swasthyasathi.gov.in · also via Duare Sarkar camps", hi: "swasthyasathi.gov.in · दुआरे सरकार कैम्प से भी" }, applyType: "online",
+    apply:   { en: "https://swasthyasathi.gov.in/", hi: "swasthyasathi.gov.in · दुआरे सरकार कैम्प से भी" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (family members)","Ration Card / Voter ID","Bank Account (woman's name)","Family Photo","Residence Proof (West Bengal)"],
                hi: ["आधार कार्ड (परिवार के सदस्यों का)","राशन कार्ड / मतदाता ID","बैंक खाता (महिला के नाम)","पारिवारिक फोटो","निवास प्रमाण (पश्चिम बंगाल)"] },
     match: (a) => a.state === "West Bengal",
