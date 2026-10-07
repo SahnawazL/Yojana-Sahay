@@ -309,6 +309,7 @@ async function extractDateViaAI(scheme, signal = null) {
       // failure — and the failed run then wiped good deadlines.
       error:      data.error ?? null,
       errorKind:  data.errorKind ?? (data.error ? "ai" : null),
+      note:       data.note ?? null,
     };
   } catch (err) {
     if (err.name === "AbortError") throw err;
@@ -579,6 +580,7 @@ export async function runVerification({
             result.lastDate   = ai.lastDate;
             result.isActive   = ai.isActive;
             result.confidence = ai.confidence;
+            if (ai.note) result.note = result.note ? `${result.note} · ${ai.note}` : ai.note;
           }
 
           // Tavily's crawler reaches pages Vercel's direct ping can't — use
@@ -718,6 +720,10 @@ export async function writeSchemeResults(results) {
     if (r.tier === 2 && !r.aiSkipped && !r.aiError && r.confidence != null) {
       entry.confidence = r.confidence;
       if (r.isActive != null) entry.isActive = r.isActive;
+      // Page clearly read but it no longer says "closed" → clear an old
+      // isActive:false, or the scheme shows "Closed" forever (e.g. after it
+      // reopens with a new deadline).
+      else if (r.confidence >= 0.5) entry.isActive = null;
       if (r.lastDate) entry.lastDate = r.lastDate;
       else if (r.confidence >= 0.5) entry.lastDate = null; // page clearly read, no deadline any more
     }

@@ -199,7 +199,7 @@ function extractHttpStatusFromError(message) {
 // off, so the AI reported "no deadline" and the stale date got wiped. Now we
 // keep the top of the page (scheme title / intro) plus windows around every
 // date-ish keyword, within the same token budget.
-const DATE_KEYWORDS = /(last\s*date|deadline|closing\s*date|apply\s*(?:before|by|till|until)|application\s*(?:period|window|closes?|ends?)|due\s*date|extended|portal\s*(?:is\s*)?(?:open|closed)|applications?\s*(?:are\s*)?(?:open|closed|invited)|अंतिम\s*तिथि|अंतिम\s*तारीख|आवेदन\s*की\s*तिथि)/gi;
+const DATE_KEYWORDS = /(last\s*date|last\s*day|deadline|closing\s*date|closes?\s*on|on\s*or\s*before|apply\s*(?:before|by|till|until)|application\s*(?:period|window|closes?|ends?|start)|(?:submission|registration)\s*(?:date|closes?|ends?|deadline|open)|due\s*date|extended|portal\s*(?:is\s*)?(?:open|closed)|applications?\s*(?:are\s*)?(?:open|closed|invited)|अंतिम\s*(?:तिथि|तारीख|दिनांक)|आवेदन\s*की\s*(?:तिथि|तारीख)|आवेदन\s*(?:शुरू|बंद))/gi;
 
 export function buildPageExcerpt(rawText, maxChars = MAX_PAGE_CHARS) {
   const text = String(rawText || "")
@@ -242,7 +242,25 @@ export function buildPageExcerpt(rawText, maxChars = MAX_PAGE_CHARS) {
   return out.slice(0, maxChars);
 }
 
-function isRealDate(ymd) {
+// Today's date in India (YYYY-MM-DD). Deadlines are Indian calendar days, and
+// UTC is still "yesterday" until 05:30 IST.
+export function istToday(now = Date.now()) {
+  return new Date(now + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+// A "latest" deadline more than a year in the past is an archived cycle on a
+// stale page — saving it would mark a running scheme as "Closed" on the site.
+const STALE_DEADLINE_DAYS = 365;
+export function isStaleDeadline(ymd, now = Date.now()) {
+  const end = Date.parse(`${ymd}T23:59:59.999+05:30`);
+  return Number.isFinite(end) && now - end > STALE_DEADLINE_DAYS * 86400000;
+}
+
+// Below this confidence a date is a guess; a guess must never replace a
+// stored deadline (and the callers only clear one at >= 0.5).
+export const MIN_DATE_CONFIDENCE = 0.5;
+
+export function isRealDate(ymd) {
   if (typeof ymd !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return false;
   const d = new Date(`${ymd}T00:00:00Z`);
   if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== ymd) return false;
@@ -264,9 +282,11 @@ async function fetchPageText(url, tavilyKey) {
   try {
     const res = await fetch(TAVILY_EXTRACT, {
       method:  "POST",
-      headers: { "Content-Type": "application/json" },
+      // Tavily authenticates with a Bearer header (the old body api_key is
+      // no longer documented and can be rejected with 401).
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${tavilyKey}` },
       signal:  controller.signal,
-      body: JSON.stringify({ api_key: tavilyKey, urls: [url] }),
+      body: JSON.stringify({ urls: [url], extract_depth: "basic", format: "text", timeout: 15 }),
     });
     clearTimeout(timer);
 
@@ -308,15 +328,19 @@ async function fetchPageText(url, tavilyKey) {
 // ── Groq prompt builder ───────────────────────────────────────────────────────
 
 function buildPrompt(schemeName, state, pageText) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = istToday();
   const systemPrompt =
     "You extract facts about Indian government welfare schemes from webpage text. " +
     "Respond ONLY with a JSON object: " +
     '{"lastDate":"YYYY-MM-DD" or null,"isActive":true|false|null,"confidence":0.0-1.0}\n' +
     `Today is ${today}.\n` +
     "lastDate — the CURRENT application closing / last date to apply for THIS scheme, as YYYY-MM-DD. " +
-    "Ignore dates of news items, notifications, circulars, copyright footers and other schemes. " +
-    "If several cycles are listed, use the latest one. null if no closing date is stated.\n" +
+    "Indian pages write numeric dates DAY first: 05/06/2026 or 05-06-2026 means 5 June 2026, never May 6. " +
+    "If a deadline was extended, use the extended date. If several cycles are listed, use the latest one. " +
+    "Ignore start/opening dates, exam or result dates, dates of news items, notifications, circulars, " +
+    "'last updated' stamps, copyright footers and dates of other schemes. " +
+    "If the day or the year is not stated, return null rather than guessing. " +
+    "null if no closing date is stated.\n" +
     "isActive — true ONLY if the text clearly says applications are currently open; " +
     "false ONLY if it clearly says the scheme or its applications are closed, discontinued or expired; " +
     "otherwise null. Do NOT return false just because the page does not say 'open'.\n" +
@@ -401,6 +425,7 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
     model:                 MODEL,
     max_completion_tokens: MAX_COMPLETION_TOKENS,
     reasoning_effort:      "low",
+    include_reasoning:     false,
     temperature:           0.1,
     response_format:       { type: "json_object" },
     messages: [
@@ -444,13 +469,28 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
   // Enforce "confidence 0 → isActive null" in code; models don't always obey.
   if (isActive !== null && confidence < 0.3) isActive = null;
 
+  let lastDate = typeof parsed.lastDate === "string" ? parsed.lastDate.trim() : null;
+  let note = null;
+  if (lastDate && !isRealDate(lastDate)) { note = `AI date "${lastDate.slice(0, 20)}" was not a valid date — ignored`; lastDate = null; }
+  if (lastDate && confidence < MIN_DATE_CONFIDENCE) { note = `AI date ${lastDate} had low confidence (${confidence}) — ignored`; lastDate = null; }
+  let effectiveConfidence = confidence;
+  if (lastDate && isStaleDeadline(lastDate)) {
+    note = `Only an old deadline (${lastDate}) is listed — page looks outdated, not saved`;
+    lastDate = null;
+    // Callers clear a stored deadline when lastDate is null at confidence
+    // >= 0.5. An outdated page is not proof the deadline is gone, so report
+    // it below that bar and the stored value is kept.
+    effectiveConfidence = Math.min(confidence, MIN_DATE_CONFIDENCE - 0.01);
+  }
+
   const result = {
-    lastDate:   isRealDate(parsed.lastDate) ? parsed.lastDate : null,
+    lastDate,
     isActive,
-    confidence,
+    confidence: effectiveConfidence,
     httpStatus: page.httpStatus,
     error:      null,
     errorKind:  null,
+    ...(note ? { note } : {}),
   };
 
   console.log(
