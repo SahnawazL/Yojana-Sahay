@@ -47,6 +47,18 @@ function esc(str = "") {
     .replace(/"/g, "&quot;");
 }
 
+// Turn an apply value into a usable absolute URL, or null for plain text.
+function officialUrl(raw) {
+  if (!raw || typeof raw !== "string") return null;
+  const t = raw.trim();
+  let candidate = /^https?:\/\//i.test(t) ? t.split(/\s/)[0] : t.split(/[\s(—–,]/)[0];
+  if (!/^https?:\/\//i.test(candidate)) {
+    if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(candidate)) return null;
+    candidate = `https://${candidate}`;
+  }
+  try { return new URL(candidate).href; } catch { return null; }
+}
+
 // ── Page template ───────────────────────────────────────────────────────────────
 function renderPage(scheme, lang) {
   const isHindi = lang === "hi";
@@ -55,7 +67,10 @@ function renderPage(scheme, lang) {
   const ministry = scheme.ministry?.[lang] || scheme.ministry?.en || "";
   const tag      = scheme.tag[lang]      || scheme.tag.en;
   const docs     = scheme.docs?.[lang]   || scheme.docs?.en || [];
-  const applyUrl = scheme.apply?.[lang]  || scheme.apply?.en || "";
+  // Prefer the English value (it's the verified, full URL); the Hindi field
+  // is often a bare or outdated domain. Plain-text values like "Nearest bank
+  // branch" used to become a broken "https://Nearest bank branch" link.
+  const applyUrl = officialUrl(scheme.apply?.en) || officialUrl(scheme.apply?.[lang]) || "";
   const slug     = slugify(scheme.id);
   const langPath = isHindi ? "yojana" : "schemes";
   const pageUrl  = `${SITE_URL}/${langPath}/${slug}.html`;
@@ -189,7 +204,7 @@ ${docsListItems}
       ${isHindi ? "या सभी योजनाएं ब्राउज़ करें" : "or browse all schemes"}
     </a>
 
-    ${applyUrl ? `<a class="official" href="https://${applyUrl.replace(/^https?:\/\//,"")}" rel="nofollow noopener" target="_blank">
+    ${applyUrl ? `<a class="official" href="${esc(applyUrl)}" rel="nofollow noopener" target="_blank">
       ${isHindi ? "आधिकारिक वेबसाइट पर जाएं ↗" : "Visit Official Government Website ↗"}
     </a>` : ""}
 

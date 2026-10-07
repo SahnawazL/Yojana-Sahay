@@ -68,7 +68,11 @@ export default defineConfig({
           // Fix for Bug 2: was accidentally skipped by the "vercel" hostname check.
           // Now: tries network → if offline or slow, returns last cached response.
           {
-            urlPattern:  /^\/api\//,
+            // Workbox tests a RegExp against the FULL URL ("https://…/api/stats"),
+            // so the old /^\/api\// never matched anything. Only the public,
+            // read-only stats endpoint is cached — admin endpoints return
+            // signed-in data and must never be served from a shared cache.
+            urlPattern:  /^https:\/\/[^/]+\/api\/stats(?:\?.*)?$/,
             handler:     "NetworkFirst",
             options: {
               cacheName:             "ys-api-cache",
