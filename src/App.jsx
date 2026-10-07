@@ -273,14 +273,24 @@ const haptic = (pattern = 50) => { try { navigator.vibrate?.(pattern); } catch {
 
 // ─── URL HELPERS ───────────────────────────────────────────────────────────────
 // Prevents double https:// if the stored URL already includes a protocol
+// Turns a scheme's apply value into a URL the browser can open, or null.
+// Values like "mss.edu.in (Maharashtra State Skills University)" or
+// "Nearest CSC centre" used to become "https://mss.edu.in (Maharashtra…"
+// / "https://Nearest CSC centre" — a broken link. Null makes callers fall
+// back to a Google search instead.
 const safeApplyUrl = (url) => {
-  if (!url) return null;
-  if (/^https?:\/\//i.test(url)) return url;
-  return `https://${url}`;
+  if (!url || typeof url !== "string") return null;
+  const t = url.trim();
+  let candidate = /^https?:\/\//i.test(t) ? t.split(/\s/)[0] : t.split(/[\s(—–,]/)[0];
+  if (!/^https?:\/\//i.test(candidate)) {
+    if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(candidate)) return null;
+    candidate = `https://${candidate}`;
+  }
+  try { return new URL(candidate).href; } catch { return null; }
 };
 // Opens a Google search for the scheme so offline/CSC schemes are still actionable
 const googleSearchScheme = (name) => {
-  window.open(`https://www.google.com/search?q=${encodeURIComponent(name+" scheme apply")}`, "_blank");
+  window.open(`https://www.google.com/search?q=${encodeURIComponent(name+" scheme apply")}`, "_blank", "noopener");
 };
 
 // ─── STAT TARGETS are now computed live inside YojanaSahay() ──────────────────
@@ -1757,7 +1767,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                     googleSearchScheme(scheme.name.en);
                     return;
                   }
-                  if(applyUrl) window.open(applyUrl,"_blank");
+                  if(applyUrl) window.open(applyUrl,"_blank","noopener");
                   else googleSearchScheme(scheme.name.en);
                 }}
                 style={{
@@ -2134,7 +2144,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
             <div style={{width:22,height:22,borderRadius:"50%",background:scheme.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10.5,fontWeight:900,color:"#fff",fontFamily:"'Noto Sans',sans-serif"}}>2</div>
             <div style={{fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf}}>{isHindi?"पोर्टल पर आवेदन करें":"Apply & Submit"}</div>
           </div>
-          <div onClick={()=>{haptic();if(applyUrl)window.open(applyUrl,"_blank");else googleSearchScheme(scheme.name.en);}}
+          <div onClick={()=>{haptic();if(applyUrl)window.open(applyUrl,"_blank","noopener");else googleSearchScheme(scheme.name.en);}}
             style={{background:applyUrl?`linear-gradient(135deg,${scheme.color},${scheme.color}cc)`:"linear-gradient(135deg,#1D4ED8,#2563eb)",borderRadius:16,padding:18,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",boxShadow:applyUrl?`0 6px 20px ${scheme.color}40`:"0 6px 20px rgba(37,99,235,0.35)"}}>
             <div>
               <div style={{fontSize:14,fontWeight:800,color:"#fff",fontFamily:bf}}>{t.applyLabel}</div>
