@@ -30,6 +30,7 @@ const SITE_URL   = "https://yojanasahay.vercel.app";
 // NOT have "type":"module", rename this file to generate-scheme-pages.mjs and
 // update the prebuild script path accordingly.
 const { SCHEME_DB } = await import("../src/schemesData.js");
+const { whoCanApply } = await import("../src/eligibilityText.js");
 let META = {};
 try { META = JSON.parse(fs.readFileSync(path.join(ROOT, "src", "schemes-meta.json"), "utf8")); } catch { /* optional */ }
 
@@ -104,9 +105,11 @@ function renderPage(scheme, lang) {
   const description = isHindi
     ? `${name}: ${benefit}. ${ministry ? ministry + " द्वारा। " : ""}पात्रता जांचें और मुफ्त में आवेदन करने का तरीका जानें।`
     : `${name}: ${benefit}. ${ministry ? "By " + ministry + ". " : ""}Check eligibility and learn how to apply for free.`;
+  // (who-can-apply lines are added to the page body below)
 
   const docsListItems = docs.map(d => `        <li>${esc(d)}</li>`).join("\n");
   const checked  = checkedDate(scheme.id);
+  const whoLines = whoCanApply(scheme, lang) ?? [];
   const hub      = HUBS.get(hubFile(scheme));
   const hubName  = hub?.state ? hub.state : (isHindi ? "केंद्र सरकार" : "Central Government");
   const hubHref  = `/${langPath}/${hubFile(scheme)}.html`;
@@ -201,6 +204,7 @@ function renderPage(scheme, lang) {
   .crumbs{ font-size:12.5px; color:#78716c; margin-bottom:12px; }
   .crumbs a, .related a{ color:#c2410c; text-decoration:none; }
   .how{ font-size:14.5px; line-height:1.6; color:#44403c; margin:0; }
+  .note{ font-size:12px; color:#a8a29e; margin:6px 0 0; }
   .checked{ font-size:12px; color:#a8a29e; text-align:center; margin-top:18px; }
   footer{ margin-top:40px; font-size:12px; color:#a8a29e; text-align:center; }
   footer a{ color:#a8a29e; }
@@ -223,6 +227,13 @@ function renderPage(scheme, lang) {
       <div class="label">${isHindi ? "लाभ" : "Benefit"}</div>
       <div class="value">${esc(benefit)}</div>
     </div>
+
+    ${whoLines.length ? `
+    <h2>${isHindi ? "कौन आवेदन कर सकता है" : "Who Can Apply"}</h2>
+    <ul>
+${whoLines.map(l => `        <li>${esc(l)}</li>`).join("\n")}
+    </ul>
+    <p class="note">${isHindi ? "संक्षेप में — पूरी शर्तें आधिकारिक वेबसाइट पर देखें।" : "In short — check the official website for the full rules."}</p>` : ""}
 
     ${docs.length ? `
     <h2>${isHindi ? "आवश्यक दस्तावेज़" : "Required Documents"}</h2>

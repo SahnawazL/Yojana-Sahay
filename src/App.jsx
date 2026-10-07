@@ -11,6 +11,7 @@
  * See the LICENSE file in the project root for full license terms.
  */
 
+import { whoCanApply } from "./eligibilityText.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import {
   INDIA_STATES,
@@ -1567,6 +1568,27 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                 </div>
               </div>
             )}
+
+            {/* Who can apply — plain words, read off the scheme's own match rule */}
+            {expanded&&(()=>{
+              const lines=whoCanApply(scheme,lang);
+              if(!lines?.length) return null;
+              return (
+                <div style={{padding:"14px 16px 0"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:th.textSub,letterSpacing:0.7,marginBottom:8,textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{fontSize:14}}>👤</span>{lang==="hi"?"कौन आवेदन कर सकता है":"Who can apply"}
+                  </div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                    {lines.map((l,i)=>(
+                      <span key={i} style={{fontSize:11.5,fontFamily:bf,color:th.text,lineHeight:1.35,background:scheme.color+"14",border:`1px solid ${scheme.color}30`,borderRadius:8,padding:"4px 9px"}}>{l}</span>
+                    ))}
+                  </div>
+                  <div style={{fontSize:10,color:th.textSub,marginTop:6,fontFamily:bf}}>
+                    {lang==="hi"?"संक्षेप में — पूरी शर्तें आधिकारिक वेबसाइट पर देखें।":"In short — check the official website for the full rules."}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Documents */}
             <div style={{padding:"14px 16px 10px"}}>
