@@ -476,7 +476,7 @@
     "linkAlive": true
   },
   "jjm": {
-    "lastVerified": "2026-09-05T22:33:15.672Z",
+    "lastVerified": "2026-10-07T00:17:52.332Z",
     "isActive": true,
     "httpStatus": 200,
     "confidence": 0,
@@ -1806,37 +1806,37 @@
     "confidence": 0
   },
   "jk_kisan_samman": {
-    "lastVerified": "2026-09-05T22:33:49.993Z",
+    "lastVerified": "2026-10-07T00:18:20.232Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_apple_mission": {
-    "lastVerified": "2026-09-05T22:33:21.099Z",
+    "lastVerified": "2026-10-07T00:17:57.704Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_crop_insurance": {
-    "lastVerified": "2026-09-05T22:33:35.233Z",
-    "linkAlive": false,
-    "httpStatus": 0,
+    "lastVerified": "2026-10-07T00:18:06.304Z",
+    "linkAlive": true,
+    "httpStatus": 200,
     "confidence": 0
   },
   "jk_tejaswini": {
-    "lastVerified": "2026-09-05T22:34:30.387Z",
+    "lastVerified": "2026-10-07T00:18:55.613Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_sehat_health_insurance": {
-    "lastVerified": "2026-09-05T22:34:15.140Z",
+    "lastVerified": "2026-10-07T00:18:40.237Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
   },
   "jk_himayat": {
-    "lastVerified": "2026-09-05T22:33:44.161Z",
+    "lastVerified": "2026-10-07T00:18:15.230Z",
     "linkAlive": false,
     "httpStatus": 0,
     "confidence": 0
@@ -1872,13 +1872,13 @@
     "linkAlive": false
   },
   "jk_super75_scholarship": {
-    "lastVerified": "2026-09-05T22:34:24.968Z",
+    "lastVerified": "2026-10-07T00:18:49.353Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jk_post_matric_sc_st": {
-    "lastVerified": "2026-09-05T22:34:05.798Z",
+    "lastVerified": "2026-10-07T00:18:35.713Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0,
@@ -2017,13 +2017,13 @@
     "confidence": 0
   },
   "karnataka_ashraya": {
-    "lastVerified": "2026-09-06T22:36:22.996Z",
+    "lastVerified": "2026-10-07T00:19:26.603Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_arogya_karnataka": {
-    "lastVerified": "2026-09-06T22:36:15.824Z",
+    "lastVerified": "2026-10-07T00:19:19.953Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2095,7 +2095,7 @@
     "confidence": 0
   },
   "karnataka_ambedkar_pre_matric": {
-    "lastVerified": "2026-09-05T22:34:46.179Z",
+    "lastVerified": "2026-10-07T00:19:11.401Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2179,7 +2179,7 @@
     "confidence": 0
   },
   "karnataka_auto_driver_welfare": {
-    "lastVerified": "2026-09-06T22:36:30.633Z",
+    "lastVerified": "2026-10-07T00:19:31.648Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3107,7 +3107,7 @@
     "confidence": 0
   },
   "jharkhand_protsahan_yojana": {
-    "lastVerified": "2026-09-05T22:32:30.687Z",
+    "lastVerified": "2026-10-07T00:17:06.574Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3131,13 +3131,13 @@
     "confidence": 0
   },
   "jharkhand_nalkoop": {
-    "lastVerified": "2026-09-05T22:32:04.788Z",
+    "lastVerified": "2026-10-07T00:16:49.161Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_sukhad_rahat": {
-    "lastVerified": "2026-09-05T22:33:03.194Z",
+    "lastVerified": "2026-10-07T00:17:39.796Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3155,19 +3155,19 @@
     "confidence": 0
   },
   "jharkhand_solar_jreda": {
-    "lastVerified": "2026-09-05T22:32:50.731Z",
+    "lastVerified": "2026-10-07T00:17:25.718Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_rojgar_srijan": {
-    "lastVerified": "2026-09-05T22:32:35.988Z",
+    "lastVerified": "2026-10-07T00:17:11.894Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_obc_scholarship": {
-    "lastVerified": "2026-09-05T22:32:15.571Z",
+    "lastVerified": "2026-10-07T00:16:54.198Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
