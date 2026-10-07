@@ -45,6 +45,10 @@ import {
   buildSummary,
   loadCheckpoint,
   clearCheckpoint,
+  flushPendingResults,
+  clearPendingResults,
+  checkpointIsLive,
+  watchCheckpoint,
   getVerifiableCount,
   getStatesInDB,
   getDBStats,
@@ -4428,6 +4432,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const dbStats           = useMemo(() => getDBStats(), []);
   const [availableStates,  setAvailableStates]  = useState([]);
   const [checkpoint,       setCheckpoint]       = useState(null);
+  // A scan running in ANOTHER tab / device (live checkpoint heartbeat), and the
+  // "saved N results from an interrupted run" notice.
+  const [remoteRun,        setRemoteRun]        = useState(null);
+  const [recoveredMsg,     setRecoveredMsg]     = useState(null);
   const [checkpointLoaded, setCheckpointLoaded] = useState(false);
 
   // ── Run state ─────────────────────────────────────────────────────────────
@@ -4839,11 +4847,40 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // ── Init: load states + checkpoint ───────────────────────────────────────
   useEffect(() => {
     setAvailableStates(getStatesInDB());
-    loadCheckpoint().then(cp => {
+    loadCheckpoint().then(async cp => {
+      if (checkpointIsLive(cp)) {
+        setRemoteRun(cp); // another tab/device is mid-run — leave its pending results alone
+      } else if (cp?.pendingResults && Object.keys(cp.pendingResults).length) {
+        // The last run was closed / crashed before saving — save its results now.
+        const n = Object.keys(cp.pendingResults).length;
+        try {
+          await flushPendingResults(cp);
+          setRecoveredMsg({ ok: true, text: `Saved ${n} result${n === 1 ? "" : "s"} from a run that was interrupted (tab closed or reloaded) — nothing was lost.` });
+        } catch (err) {
+          setRecoveredMsg({ ok: false, text: `${n} result${n === 1 ? "" : "s"} from an interrupted run couldn't be saved yet (${err.message}). They're kept and retried next time.` });
+        }
+      }
       const valid = cp && !cp.cleared && !cp.isComplete && cp.completedIndex > 0 && cp.completedIndex < cp.total;
       setCheckpoint(valid ? cp : null);
       setCheckpointLoaded(true);
     });
+  }, []);
+
+  // Watch for a scan running in another tab / device (heartbeat every ≤ 60 s).
+  const runningRef = useRef(false);
+  useEffect(() => { runningRef.current = running; }, [running]);
+  useEffect(() => {
+    let last = null;
+    const unsub = watchCheckpoint(cp => {
+      last = cp;
+      if (runningRef.current) { setRemoteRun(null); return; }
+      setRemoteRun(checkpointIsLive(cp) ? cp : null);
+      const valid = cp && !cp.cleared && !cp.isComplete && cp.completedIndex > 0 && cp.completedIndex < cp.total;
+      if (!checkpointIsLive(cp)) setCheckpoint(valid ? cp : null);
+    });
+    // Heartbeats stop when that tab closes — re-evaluate staleness periodically.
+    const t = setInterval(() => { if (!runningRef.current) setRemoteRun(checkpointIsLive(last) ? last : null); }, 30_000);
+    return () => { unsub(); clearInterval(t); };
   }, []);
 
   // Fix 6: debounce search to avoid re-filtering 400+ results on every keystroke
@@ -4859,6 +4896,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // pills produced, which checked the wrong schemes.
   const handleStart = useCallback(async (resume = null) => {
     if (running) return;
+    if (remoteRun && !window.confirm(
+      `A verification is already running in another tab or device (${remoteRun.completedIndex}/${remoteRun.total}).\n\nStarting here too would check the same schemes twice and use extra Tavily credits. Start anyway?`
+    )) return;
     const resumeFrom   = resume?.completedIndex ?? 0;
     const runScope     = resume?.scopeFilter    ?? scopeFilter;
     const runPriority  = resume?.priorityFilter ?? priorityFilter;
@@ -4887,6 +4927,8 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       setCurrentScheme(null);   // prevent stale scheme name flash on new run
       setReVerifyMap({});
       setReVerifyDone(false);
+      // Never wipe results an interrupted run still holds — save them first.
+      try { const old = await loadCheckpoint(); if (!checkpointIsLive(old)) await flushPendingResults(old); } catch { /* retried next open */ }
       await clearCheckpoint();
       setCheckpoint(null);
     } else {
@@ -5021,7 +5063,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       );
       setSaveStatus("saving");
       writeSchemeResults(finalSnap)
-        .then(() => setSaveStatus("saved"))
+        .then(() => { setSaveStatus("saved"); return clearPendingResults({ running: false }); })
         .catch(err => {
           console.error("[SchemeVerifier] Save to repo failed:", err);
           setSaveStatus("error");
@@ -5051,7 +5093,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         return [...untouched, ...stillDead];
       });
     }
-  }, [running, scopeFilter, priorityFilter, tier]);
+  }, [running, scopeFilter, priorityFilter, tier, remoteRun]);
 
   // ── PAUSE — abort but keep checkpoint so Resume banner appears ────────────
   const handlePause = useCallback(() => {
@@ -6415,8 +6457,30 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         )}
       </div>
 
+      {/* ══ RUN IN ANOTHER TAB / DEVICE ══════════════════════════════════════ */}
+      {remoteRun && !running && (
+        <div role="status" style={{ background: dark ? "rgba(6,182,212,0.08)" : "rgba(6,182,212,0.09)", border: "1.5px solid rgba(6,182,212,0.45)", borderRadius: 12, padding: "12px 14px", display: "flex", gap: 10, alignItems: "center" }}>
+          <span style={{ width: 11, height: 11, borderRadius: "50%", border: "2px solid rgba(6,182,212,0.3)", borderTopColor: "#06B6D4", animation: "ys-spin 0.9s linear infinite", flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: th.text }}>A verification is running in another tab or on another device</div>
+            <div style={{ fontSize: 10, color: th.textMid, marginTop: 2 }}>
+              {remoteRun.completedIndex} / {remoteRun.total} done{remoteRun.tier ? ` · Tier ${remoteRun.tier === "both" ? "1+2" : remoteRun.tier}` : ""}
+              {remoteRun.scopeFilter ? ` · ${remoteRun.scopeFilter}` : ""}
+              {(() => { const at = remoteRun.savedAt?.toMillis?.() ?? (remoteRun.savedAt?.seconds ? remoteRun.savedAt.seconds * 1000 : null); return at ? ` · last update ${Math.max(0, Math.round((Date.now() - at) / 1000))}s ago` : ""; })()}
+              {" "}· progress updates here live. If that tab is closed, you can resume it here.
+            </div>
+          </div>
+        </div>
+      )}
+      {recoveredMsg && (
+        <div role="status" style={{ background: recoveredMsg.ok ? "rgba(19,136,8,0.08)" : "rgba(229,62,62,0.08)", border: `1px solid ${recoveredMsg.ok ? "rgba(19,136,8,0.3)" : "rgba(229,62,62,0.3)"}`, borderRadius: 10, padding: "9px 12px", fontSize: 11, fontWeight: 600, color: recoveredMsg.ok ? "#138808" : "#E53E3E", display: "flex", gap: 8, alignItems: "center" }}>
+          <span style={{ flex: 1 }}>{recoveredMsg.text}</span>
+          <span {...a11yClickable(() => setRecoveredMsg(null))} style={{ cursor: "pointer", opacity: 0.7 }}>✕</span>
+        </div>
+      )}
+
       {/* ══ CHECKPOINT BANNER ════════════════════════════════════════════════ */}
-      {checkpointLoaded && checkpoint && !running && results.length === 0 && (
+      {checkpointLoaded && checkpoint && !running && !remoteRun && results.length === 0 && (
         <div style={{
           background:   dark ? "rgba(255,153,51,0.07)" : "rgba(255,153,51,0.09)",
           border:       `1.5px solid ${SAFFRON}50`,
@@ -6432,10 +6496,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: th.text }}>
-              Previous run paused
+              {checkpoint.running ? "Previous run was interrupted (tab closed or reloaded)" : "Previous run paused"}
             </div>
             <div style={{ fontSize: 10, color: th.textMid, marginTop: 2 }}>
-              {checkpoint.completedIndex} / {checkpoint.total} done
+              {checkpoint.completedIndex} / {checkpoint.total} done{checkpoint.tier ? ` · Tier ${checkpoint.tier === "both" ? "1+2" : checkpoint.tier}` : ""} · results so far are saved · Resume continues from here
               {checkpoint.scopeFilter && ` · ${checkpoint.scopeFilter}`}
               {checkpoint.priorityFilter && checkpoint.priorityFilter !== "all"
                 && ` · priority: ${checkpoint.priorityFilter}`}
@@ -6457,7 +6521,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               Resume
             </div>
             <div
-              {...a11yClickable(async () => { await clearCheckpoint(); setCheckpoint(null); })}
+              {...a11yClickable(async () => {
+                try { await flushPendingResults(await loadCheckpoint()); } catch { /* kept for next time */ }
+                await clearCheckpoint(); setCheckpoint(null);
+              })}
               style={{
                 padding:      "6px 12px",
                 borderRadius: 8,

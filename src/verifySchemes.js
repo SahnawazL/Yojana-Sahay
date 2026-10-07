@@ -59,6 +59,7 @@ import {
   updateDoc,
   deleteField,
   serverTimestamp,
+  onSnapshot,
 } from "firebase/firestore";
 import schemesMeta from "./schemes-meta.json";
 import { adminJson } from "./adminFetch.js";
@@ -354,6 +355,45 @@ export async function loadCheckpoint() {
 }
 
 
+// ─── CHECKPOINT: interrupted-run recovery ─────────────────────────────────────
+// A checkpoint whose heartbeat (savedAt) is older than this while it still
+// says running=true belongs to a tab/browser that was closed mid-run.
+export const CHECKPOINT_LIVE_MS = 3 * 60 * 1000;
+
+export function checkpointIsLive(cp) {
+  if (!cp || cp.cleared || !cp.running) return false;
+  const at = cp.savedAt?.toMillis?.() ?? (cp.savedAt?.seconds ? cp.savedAt.seconds * 1000 : 0);
+  return Date.now() - at < CHECKPOINT_LIVE_MS;
+}
+
+// Commit results an interrupted run never saved, then drop them from the doc.
+export async function flushPendingResults(cp) {
+  const pending = cp?.pendingResults;
+  const n = pending ? Object.keys(pending).length : 0;
+  if (!n) return 0;
+  await commitMetaPayload(pending);
+  await clearPendingResults({ running: false });
+  return n;
+}
+
+// Called after a run's results were committed — they're no longer pending.
+export async function clearPendingResults(extra = {}) {
+  try {
+    await setDoc(doc(db, ...CHECKPOINT_PATH), { pendingResults: deleteField(), ...extra }, { merge: true });
+  } catch (err) {
+    console.warn("[verifySchemes] clearing pending results failed:", err.message);
+  }
+}
+
+// Live view of the checkpoint (other tab / device running a scan).
+export function watchCheckpoint(cb) {
+  try {
+    return onSnapshot(doc(db, ...CHECKPOINT_PATH), snap => cb(snap.exists() ? snap.data() : null), () => {});
+  } catch {
+    return () => {};
+  }
+}
+
 // ─── CHECKPOINT: CLEAR ────────────────────────────────────────────────────────
 // Call this when starting a fresh run (user chooses not to resume).
 
@@ -498,7 +538,14 @@ export async function runVerification({
   let aiDelayMs  = TIER2_DELAY_MS;
   let completed  = resumeFrom;   // index of the next unprocessed scheme
 
-  const saveProgress = async () => {
+  // Results are only committed to GitHub when the run ends. Until then each
+  // checkpoint also stores the results checked since the previous checkpoint
+  // (pendingResults, merged into the doc), so a closed tab / crashed browser /
+  // reload never loses work — SchemeVerifier saves them on the next open.
+  let savedResultCount = 0;
+  let lastSaveAt = Date.now();
+  const saveProgress = async ({ running = true } = {}) => {
+    const fresh = results.slice(savedResultCount);
     const checkpoint = {
       scopeFilter,
       priorityFilter,
@@ -507,9 +554,15 @@ export async function runVerification({
       total,
       isComplete:     completed >= total,
       summary:        buildSummary(results),
+      running:        running && completed < total,
+      checkedThisRun: results.length,
     };
+    const pending = buildMetaPayload(fresh);
+    if (Object.keys(pending).length) checkpoint.pendingResults = pending;
     if (!queueIdsSaved) { checkpoint.queueIds = queueIds; queueIdsSaved = true; }
     await saveCheckpoint(checkpoint);
+    savedResultCount = results.length;
+    lastSaveAt = Date.now();
     onBatchSaved(checkpoint);
   };
 
@@ -630,7 +683,9 @@ export async function runVerification({
       break;
     }
 
-    if (completed % BATCH_SIZE === 0 || completed === total) {
+    // Every 10 schemes, and at least once a minute (slow Tier 2 runs) — the
+    // timestamp doubles as a heartbeat so other tabs/devices can see it's live.
+    if (completed % BATCH_SIZE === 0 || completed === total || Date.now() - lastSaveAt > 60_000) {
       await saveProgress();
     }
 
@@ -647,7 +702,7 @@ export async function runVerification({
 
   // Save the exact stopping point on Pause (or the final state on skip-out).
   if (completed < total && completed > resumeFrom && signal?.aborted && shouldSaveOnAbort()) {
-    await saveProgress();
+    await saveProgress({ running: false });
   }
 
   return results;
@@ -695,10 +750,20 @@ export function loadSchemeOverlay() {
 // auto-redeploy (1-2 min).
 
 export async function writeSchemeResults(results) {
-  if (!Array.isArray(results) || results.length === 0) return { success: true, updated: 0 };
+  const payload = buildMetaPayload(results);
+  if (Object.keys(payload).length === 0) return { success: true, updated: 0 };
+  return commitMetaPayload(payload);
+}
 
-  const now     = new Date().toISOString();
+export async function commitMetaPayload(payload) {
+  if (!payload || Object.keys(payload).length === 0) return { success: true, updated: 0 };
+  return adminJson("/api/update-schemes-meta", { results: payload });  // { success, updated }
+}
+
+// results → { [schemeId]: schemes-meta entry } (only facts actually learned).
+export function buildMetaPayload(results, now = new Date().toISOString()) {
   const payload = {};
+  if (!Array.isArray(results)) return payload;
 
   for (const r of results) {
     const id = r.scheme?.id;
@@ -734,9 +799,7 @@ export async function writeSchemeResults(results) {
 
     payload[id] = entry;
   }
-
-  if (Object.keys(payload).length === 0) return { success: true, updated: 0 };
-  return adminJson("/api/update-schemes-meta", { results: payload });  // { success, updated }
+  return payload;
 }
 
 
