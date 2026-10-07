@@ -1392,9 +1392,9 @@
     "confidence": 0
   },
   "cg_labour_card": {
-    "lastVerified": "2026-09-27T23:33:36.065Z",
-    "linkAlive": false,
-    "httpStatus": 404,
+    "lastVerified": "2026-10-07T11:10:41.735Z",
+    "linkAlive": true,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_pre_matric_tribal": {
@@ -1426,9 +1426,9 @@
     "confidence": 0
   },
   "cg_startup_niti": {
-    "lastVerified": "2026-09-29T00:45:56.186Z",
-    "linkAlive": false,
-    "httpStatus": 404,
+    "lastVerified": "2026-10-07T11:10:41.735Z",
+    "linkAlive": true,
+    "httpStatus": 200,
     "confidence": 0
   },
   "uk_nanda_gaura": {
@@ -2702,9 +2702,9 @@
     "confidence": 0
   },
   "hp_himcare": {
-    "lastVerified": "2026-10-04T23:47:28.258Z",
-    "httpStatus": 404,
-    "linkAlive": false,
+    "lastVerified": "2026-10-07T11:10:41.735Z",
+    "httpStatus": 200,
+    "linkAlive": true,
     "confidence": 0
   },
   "hp_widow_pension": {
