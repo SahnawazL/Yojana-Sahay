@@ -388,6 +388,21 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed. Use GET or POST." });
   }
 
+  // ── GET from Vercel Cron — run the daily alerts ───────────────────────────
+  // Vercel Cron always calls with GET (Authorization: Bearer $CRON_SECRET).
+  // The GET branch below used to treat that as an admin history request, try
+  // to verify CRON_SECRET as a Firebase ID token, and answer 401 — so the
+  // scheduled daily deadline emails never actually ran.
+  if (req.method === "GET" && isCronRequest(req)) {
+    try {
+      const result = await runDeadlineAlerts({ trigger: "cron", triggeredBy: null });
+      return res.status(200).json(result);
+    } catch (err) {
+      console.error("[deadline-alerts] Cron (GET) run failed:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   // ── GET — admin-only run history ──────────────────────────────────────────
   if (req.method === "GET") {
     const auth = await verifyAdmin(req);
