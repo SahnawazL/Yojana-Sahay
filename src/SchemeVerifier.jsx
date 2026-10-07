@@ -61,6 +61,7 @@ import {
   pingUrl,
 } from "./verifySchemes.js";
 import { adminJson } from "./adminFetch.js";
+import { setAdminTask } from "./adminTasks.js";
 
 // ── SCHEME_DB — needed for URL Issues pre-scan (no verification run required) ─
 import { SCHEME_DB } from "./schemesData.js";
@@ -4438,6 +4439,19 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [liveStats,     setLiveStats]     = useState(null);  // { active, dead, noResponse, errors } — updates every scheme
   const [runDone,       setRunDone]       = useState(false);
   const [wasAborted,    setWasAborted]    = useState(false);
+
+  // Announce the run to the dashboard so it shows "running in background"
+  // while you're in another tab (and warns before the dashboard is closed).
+  useEffect(() => {
+    if (!running) { setAdminTask("verify-run", null); return; }
+    const pct = progress?.total ? Math.round((progress.index / progress.total) * 100) : null;
+    setAdminTask("verify-run", {
+      tab: "verify",
+      label: `Verifying schemes (Tier ${tier === "both" ? "1+2" : tier})`,
+      detail: progress?.total ? `${progress.index}/${progress.total} · ${pct}%` : "starting…",
+    });
+  }, [running, progress, tier]);
+  useEffect(() => () => setAdminTask("verify-run", null), []);
   const [saveStatus,    setSaveStatus]    = useState(null); // null | "saving" | "saved" | "error"
   const [throttle,      setThrottle]      = useState(null);  // null | { delayMs, index, total, reason? } — rate-guard between AI calls
   const [runNotices,    setRunNotices]    = useState([]);    // [{ level, message }] — budget / key / rate-limit problems this run

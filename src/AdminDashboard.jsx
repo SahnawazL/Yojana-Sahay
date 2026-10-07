@@ -31,6 +31,7 @@ import AgentsTab, {
 import NewsTab from "./NewsTab.jsx";
 import FAQFeedbackTab from "./FAQFeedbackTab.jsx";
 import DeadlineAlertsTab from "./DeadlineAlertsTab.jsx";
+import { useAdminTasks } from "./adminTasks.js";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -5344,6 +5345,25 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 const PAGE_SIZE = 20;
 
+// ── Keep-alive tab pane ───────────────────────────────────────────────────────
+// Every tab used to be mounted only while it was on screen: switching away
+// destroyed it, so a running verification vanished (its loop kept going
+// invisibly while a fresh, empty Verify screen appeared), filters/pages/forms
+// reset, and every return re-fetched everything.
+// Now a tab is mounted on first visit and only HIDDEN afterwards. While hidden
+// it renders its last children (same element objects → React skips
+// re-rendering the subtree), so background tabs cost nothing until they're
+// shown again — but their own state updates (a run's progress) still apply.
+function TabPane({ active, children }) {
+  const frozen = useRef(children);
+  if (active) frozen.current = children;
+  return (
+    <div style={{ display: active ? "contents" : "none" }} aria-hidden={active ? undefined : true}>
+      {frozen.current}
+    </div>
+  );
+}
+
 export default function AdminDashboard({ onClose, dark: darkProp = false, allowedTabs = null }) {
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("admin_dark_mode");
@@ -5375,6 +5395,18 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
   const [sortDir,       setSortDir]       = useState("desc");
   const [page,          setPage]          = useState(1);
   const [activeSection, setActiveSection] = useState("home");
+  // Tabs opened at least once stay mounted (see TabPane).
+  const [visitedTabs, setVisitedTabs] = useState(() => new Set(["home"]));
+  useEffect(() => {
+    setVisitedTabs(prev => (prev.has(activeSection) ? prev : new Set(prev).add(activeSection)));
+  }, [activeSection]);
+  const keepTab = (id) => activeSection === id || visitedTabs.has(id);
+  // Per-tab scroll position, restored when you come back to a tab.
+  const tabScrollRef = useRef({});
+  // Long-running work in any tab (verification run, agent jobs…).
+  const bgTasks = useAdminTasks();
+  const bgTasksRef = useRef(bgTasks);
+  bgTasksRef.current = bgTasks;
   const [selectedUser,  setSelectedUser]  = useState(null);
   const [exportModal,    setExportModal]   = useState(false);
   const [exportStep,     setExportStep]   = useState(-1);
@@ -7761,6 +7793,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     if (nextIdx === -1 || nextIdx === currIdx) return;
     const goFwd = nextIdx > currIdx;
 
+    const scroller = document.querySelector("[data-admin-scroll]");
+    if (scroller) tabScrollRef.current[activeSection] = scroller.scrollTop;
+
     // Phase 1 — slide current content out
     setTabTransition(goFwd ? "fwd-out" : "bwd-out");
 
@@ -7771,12 +7806,32 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
       // Phase 3 — after browser paints phase 2, animate incoming to rest
       requestAnimationFrame(() => {
+        // Back where you left this tab (top for a first visit).
+        const el = document.querySelector("[data-admin-scroll]");
+        if (el) el.scrollTop = tabScrollRef.current[targetId] ?? 0;
         requestAnimationFrame(() => {
           setTabTransition(null);
         });
       });
     }, 155);
   }, [activeSection]);
+
+  // Closing the dashboard unmounts every tab — confirm if work is running.
+  const safeClose = useCallback(() => {
+    const running = bgTasksRef.current;
+    if (running.length > 0 && !window.confirm(
+      `${running.map(t => t.label).join(", ")} still running.\n\nIf you close the dashboard it will stop. Close anyway?`
+    )) return;
+    onClose?.();
+  }, [onClose]);
+
+  // Warn before reloading / closing the browser tab mid-run.
+  useEffect(() => {
+    if (bgTasks.length === 0) return;
+    const handler = (e) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [bgTasks.length]);
 
   // Keyboard ← → navigation
   useEffect(() => {
@@ -7871,7 +7926,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           }}>
 
             {/* Back */}
-            <div onClick={onClose} className="ys-back-btn" style={{
+            <div onClick={safeClose} className="ys-back-btn" style={{
               width:32, height:32, borderRadius:9, flexShrink:0,
               background:"rgba(255,255,255,0.09)",
               border:"1px solid rgba(255,255,255,0.16)",
@@ -8109,7 +8164,7 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
             <div style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 16px 10px" }}>
 
               {/* Back */}
-              <div onClick={onClose} className="ys-back-btn" style={{
+              <div onClick={safeClose} className="ys-back-btn" style={{
                 width:32, height:32, borderRadius:9, flexShrink:0,
                 background:"rgba(255,255,255,0.09)",
                 border:"1px solid rgba(255,255,255,0.16)",
@@ -8419,6 +8474,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                 <div style={{ display:"flex", alignItems:"center", gap:5, lineHeight:1 }}>
                   <div style={{ position:"relative", flexShrink:0 }}>
                     {TAB_ICONS[id]?.(activeSection === id ? "#fff" : "rgba(255,255,255,0.52)")}
+                    {bgTasks.some(t => t.tab === id) && (
+                      <div title="Running in background" style={{
+                        position:"absolute", bottom:-4, right:-5, width:8, height:8, borderRadius:"50%",
+                        border:"1.5px solid rgba(255,255,255,0.25)", borderTopColor:"#22C55E",
+                        animation:"ys-spin 0.9s linear infinite",
+                      }} />
+                    )}
                     {id === "reports" && STATUS_HINTS[0]?.count > 0 && (
                       <div style={{
                         position:"absolute", top:-5, right:-5,
@@ -8544,7 +8606,9 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
         }}>
 
       {/* ══ HOME SCREEN ══ */}
-      {!loading && !error && activeSection === "home" && (
+      {!loading && !error && keepTab("home") && (
+        <TabPane active={activeSection === "home"}>
+        {(
         <HomeScreen
           users={users}
           reports={reports}
@@ -8561,9 +8625,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           onRefresh={() => { fetchUsers(true); fetchReports(); fetchUsage(); }}
         />
       )}
+        </TabPane>
+      )}
 
       {/* ══ OVERVIEW ══ */}
-      {!loading && !error && activeSection === "overview" && (
+      {!loading && !error && keepTab("overview") && (
+        <TabPane active={activeSection === "overview"}>
+        {(
         isDesktop ? (
 
           /* ─────────────────────────────────────────────────────────────────
@@ -8803,9 +8871,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
 
         )
       )}
+        </TabPane>
+      )}
 
       {/* ══ USERS ══ */}
-      {!loading && !error && activeSection === "users" && (
+      {!loading && !error && keepTab("users") && (
+        <TabPane active={activeSection === "users"}>
+        {(
         <div style={{ padding:"14px 14px", display:"flex", flexDirection:"column", gap:10 }}>
 
           {/* Search */}
@@ -8912,9 +8984,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           )}
         </div>
       )}
+        </TabPane>
+      )}
 
       {/* ══ ANALYTICS ══ */}
-      {!loading && !error && activeSection === "analytics" && (
+      {!loading && !error && keepTab("analytics") && (
+        <TabPane active={activeSection === "analytics"}>
+        {(
         <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
 
           {stats.guestCount > 0 && (
@@ -9055,9 +9131,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           </div>
         </div>
       )}
+        </TabPane>
+      )}
 
       {/* ══ ACTIVITY FEED ══ */}
-      {!loading && !error && activeSection === "activity" && (
+      {!loading && !error && keepTab("activity") && (
+        <TabPane active={activeSection === "activity"}>
+        {(
         <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
 
           {/* Quick metrics — flexWrap so 3rd card drops to its own row on narrow phones */}
@@ -9106,9 +9186,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           </div>
         </div>
       )}
+        </TabPane>
+      )}
 
       {/* ══ USAGE INSIGHTS ══ */}
-      {activeSection === "usage" && (
+      {keepTab("usage") && (
+        <TabPane active={activeSection === "usage"}>
+        {(
         <>
           <UsageSection
             usageData={usageData}
@@ -9124,14 +9208,22 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           <div style={{ height: 20 }} />
         </>
       )}
+        </TabPane>
+      )}
 
       {/* ══ SCHEMES COVERAGE ══ */}
-      {!loading && !error && activeSection === "schemes" && (
+      {keepTab("schemes") && (
+        <TabPane active={activeSection === "schemes"}>
+        {(
         <SchemeCoverageTab dark={dark} />
+      )}
+        </TabPane>
       )}
 
       {/* ══ REPORTS / QUERIES ══ */}
-      {activeSection === "reports" && (
+      {keepTab("reports") && (
+        <TabPane active={activeSection === "reports"}>
+        {(
         <ReportsSection
           reports={reports}
           loading={reportsLoading}
@@ -9173,9 +9265,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           }}
         />
       )}
+        </TabPane>
+      )}
 
       {/* ══ CLEANUP — Delete old resolved reports ══ */}
-      {activeSection === "cleanup" && (
+      {keepTab("cleanup") && (
+        <TabPane active={activeSection === "cleanup"}>
+        {(
         <>
           <ResolvedReportsCleaner
             dark={dark}
@@ -9187,9 +9283,13 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           <div style={{ height: 20 }} />
         </>
       )}
+        </TabPane>
+      )}
 
       {/* ══ EXPORT — Selective PDF generator ══ */}
-      {activeSection === "export" && (() => {
+      {keepTab("export") && (
+        <TabPane active={activeSection === "export"}>
+        {(() => {
         // Section catalogue
         const EXPORT_SECTION_CONFIG = [
           { id:"overview",  icon:"📊", label:"Overview",          desc:"Platform summary, welfare snapshot & key metrics" },
@@ -9877,19 +9977,31 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           </>
         );
       })()}
+        </TabPane>
+      )}
 
       {/* ══ VERIFY — Scheme URL Verifier ══ */}
-      {!loading && !error && activeSection === "verify" && (
+      {keepTab("verify") && (
+        <TabPane active={activeSection === "verify"}>
+        {(
         <SchemeVerifier dark={dark} isDesktop={isDesktop} />
+      )}
+        </TabPane>
       )}
 
       {/* ══ DEADLINES — Scheme Deadline Alert Emails ══ */}
-      {!loading && !error && activeSection === "deadlines" && (
+      {keepTab("deadlines") && (
+        <TabPane active={activeSection === "deadlines"}>
+        {(
         <DeadlineAlertsTab dark={dark} isDesktop={isDesktop} />
+      )}
+        </TabPane>
       )}
 
       {/* ══ AGENTS — Live Presence Monitor ══ */}
-      {!loading && !error && activeSection === "agents" && (
+      {keepTab("agents") && (
+        <TabPane active={activeSection === "agents"}>
+        {(
         <AgentsTab
           dark={dark} isDesktop={isDesktop}
           humanAgents={humanAgents}
@@ -9897,18 +10009,57 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
           presenceError={presenceError}
         />
       )}
+        </TabPane>
+      )}
 
       {/* ══ NEWS — Scheme News Manager ══ */}
-      {activeSection === "news" && (
+      {keepTab("news") && (
+        <TabPane active={activeSection === "news"}>
+        {(
         <NewsTab allowedTabs={allowedTabs} dark={dark} isDesktop={isDesktop} />
+      )}
+        </TabPane>
       )}
 
       {/* ══ FAQ FEEDBACK — Helpfulness votes per question ══ */}
-      {activeSection === "faq" && (
+      {keepTab("faq") && (
+        <TabPane active={activeSection === "faq"}>
+        {(
         <FAQFeedbackTab dark={dark} />
+      )}
+        </TabPane>
       )}
 
       </div>{/* end animated tab content */}
+
+      {/* ── Background work pill — visible from any other tab ── */}
+      {(() => {
+        const away = bgTasks.filter(t => t.tab && t.tab !== activeSection);
+        if (away.length === 0) return null;
+        const t = away[0];
+        return (
+          <div
+            role="status"
+            onClick={() => navigateTab(t.tab)}
+            title="Open the tab where this is running"
+            style={{
+              position:"fixed", left:"50%", transform:"translateX(-50%)",
+              bottom: isDesktop ? 22 : 74, zIndex:10050,
+              display:"flex", alignItems:"center", gap:8, maxWidth:"calc(100vw - 32px)",
+              padding:"8px 14px", borderRadius:22, cursor:"pointer",
+              background: dark ? "rgba(15,23,42,0.96)" : "rgba(1,10,24,0.92)",
+              border:"1px solid rgba(34,197,94,0.45)", color:"#fff",
+              boxShadow:"0 8px 28px rgba(0,0,0,0.35)", fontSize:11.5, fontWeight:700,
+            }}
+          >
+            <span style={{ width:10, height:10, borderRadius:"50%", flexShrink:0, border:"2px solid rgba(255,255,255,0.25)", borderTopColor:"#22C55E", animation:"ys-spin 0.9s linear infinite" }} />
+            <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+              {t.label}{t.detail ? ` · ${t.detail}` : ""}{away.length > 1 ? ` · +${away.length - 1} more` : ""}
+            </span>
+            <span style={{ color:"#22C55E", flexShrink:0 }}>Open ›</span>
+          </div>
+        );
+      })()}
 
       {/* ── Bottom Prev/Next nav + position dots ── */}
       {!loading && !error && activeSection !== "home" && (() => {

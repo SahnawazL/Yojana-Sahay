@@ -16,6 +16,7 @@ import {
   deleteDoc, doc, Timestamp,
 } from "firebase/firestore";
 import { db } from "./firebase.js";
+import { useAdminTaskFlag } from "./adminTasks.js";
 
 // ── Design tokens (mirrors UsageDataCleaner) ────────────────────────────────
 const NAVY      = "#003580";
@@ -107,6 +108,7 @@ export default function ResolvedReportsCleaner({ dark = false, lang = "en", onDe
   const [loadingCounts,  setLoadingCounts]  = useState(true);
   const [showConfirm,    setShowConfirm]    = useState(false);
   const [deleting,       setDeleting]       = useState(false);
+  useAdminTaskFlag("cleanup-delete", deleting, { tab: "cleanup", label: "Deleting old reports" });
   const [progress,       setProgress]       = useState({ done: 0, total: 0 });
   const [result,         setResult]         = useState(null);
   const [lastDeleted,    setLastDeleted]    = useState(null);

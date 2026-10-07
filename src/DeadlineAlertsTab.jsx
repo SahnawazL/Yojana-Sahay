@@ -14,6 +14,7 @@
 import { logMyActivity } from "./AgentsTab.jsx";
 import React, { useState, useEffect, useCallback } from "react";
 import { getAuth } from "firebase/auth";
+import { useAdminTaskFlag } from "./adminTasks.js";
 
 const NAVY   = "#06038D";
 const GREEN  = "#138808";
@@ -175,6 +176,8 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
   const [draft, setDraft]               = useState(null); // { subject, body }
   const [drafting, setDrafting]         = useState(false);
   const [sendingDraft, setSendingDraft] = useState(false);
+  useAdminTaskFlag("deadline-run", triggering, { tab: "deadlines", label: "Sending deadline alerts" });
+  useAdminTaskFlag("deadline-email", sendingDraft, { tab: "deadlines", label: "Sending e-mail" });
   const [composeToast, setComposeToast] = useState(null);
   const [showPreview, setShowPreview]   = useState(false);
 

@@ -34,6 +34,7 @@ import {
 import { db } from "./firebase.js";
 import { getAuth } from "firebase/auth";
 import { adminJson } from "./adminFetch.js";
+import { setAdminTask } from "./adminTasks.js";
 
 // ─── THEME (mirrors AdminDashboard) ──────────────────────────────────────────
 const THEME = {
@@ -1792,6 +1793,8 @@ function useRunAgent() {
   const [message, setMessage] = useState(null);   // { ok, text }
   const run = useCallback(async (job, label, onDone) => {
     setRunning(job); setMessage(null);
+    const taskId = `agent-${job}`;
+    setAdminTask(taskId, { tab: "agents", label: job === "health" ? "Watchdog health check" : `Running ${label}` });
     try {
       const data = await adminJson("/api/deadline-alerts", { action: "runAgent", job });
       setMessage({ ok: true, text: `${label} finished.` });
@@ -1800,6 +1803,7 @@ function useRunAgent() {
       setMessage({ ok: false, text: `${label} failed: ${err.message}` });
     } finally {
       setRunning(null);
+      setAdminTask(taskId, null);
     }
   }, []);
   return { running, message, run };

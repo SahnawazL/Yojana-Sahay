@@ -21,6 +21,7 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { db } from "./firebase.js";
+import { useAdminTaskFlag } from "./adminTasks.js";
 
 // ─── Theme (mirrors AdminDashboard) ──────────────────────────────────────────
 const THEME = {
@@ -98,6 +99,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
   const [newsAdding,    setNewsAdding]    = useState(false);
   const [newsSyncing,   setNewsSyncing]   = useState(false);
   const [newsSyncMsg,   setNewsSyncMsg]   = useState("");
+  useAdminTaskFlag("news-sync", newsSyncing, { tab: "news", label: "Syncing scheme news" });
 
   // Inline edit state (Medium Impact #4 — tap a headline to edit in-place)
   const [editingId,     setEditingId]     = useState(null);
