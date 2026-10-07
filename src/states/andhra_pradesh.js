@@ -180,4 +180,106 @@ export const ANDHRA_PRADESH_SCHEMES = [
   //   match: (a) => a.state === "Andhra Pradesh",
   // },
 
+  // <auto-scheme id="ap_deepam_free_lpg"> researched + verified on 2026-10-07 · source: https://westgodavari.ap.gov.in/civil-supplies/
+  {
+    id: "ap_deepam_free_lpg",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Andhra Pradesh",
+    ministry: { en: "Consumer Affairs, Food & Civil Supplies Department", hi: "उपभोक्ता मामले, खाद्य एवं नागरिक आपूर्ति विभाग" },
+    name:    { en: "Deepam 2.0 — 3 Free LPG Cylinders a Year", hi: "दीपम 2.0 — साल में 3 मुफ़्त एलपीजी सिलेंडर" },
+    benefit: { en: "3 free LPG refills a year; cylinder cost refunded to your bank account within 48 hrs", hi: "साल में 3 मुफ़्त एलपीजी रिफ़िल; सिलेंडर की कीमत 48 घंटे में बैंक खाते में वापस" },
+    tag:     { en: "Women / Free LPG", hi: "महिला / मुफ़्त एलपीजी" },
+    annual: 2500,
+    apply:   { en: "https://westgodavari.ap.gov.in/civil-supplies/", hi: "https://westgodavari.ap.gov.in/civil-supplies/" }, applyType: "offline",
+    docs:    { en: ["Rice card","LPG connection (consumer number)","Aadhaar card","Aadhaar-linked bank account"],
+               hi: ["राइस कार्ड","एलपीजी कनेक्शन (उपभोक्ता संख्या)","आधार कार्ड","आधार से जुड़ा बैंक खाता"] },
+    autoAdded: "2026-10-07", source: "https://westgodavari.ap.gov.in/civil-supplies/",
+    match: (a) => a.state === "Andhra Pradesh" && ["bpl","aay"].includes(a.rationCard),
+  },
+  // </auto-scheme id="ap_deepam_free_lpg">
+
+  // <auto-scheme id="ap_ntr_vaidya_seva"> researched + verified on 2026-10-07 · source: https://spsnellore.ap.gov.in/dr-nandamuri-taraka-rama-rao-vaidyaseva-trust/
+  {
+    id: "ap_ntr_vaidya_seva",
+    icon: "🏥", color: "#0369A1", scope: "state", state: "Andhra Pradesh",
+    ministry: { en: "Health, Medical & Family Welfare Dept (Dr. NTR Vaidya Seva Trust)", hi: "स्वास्थ्य, चिकित्सा एवं परिवार कल्याण विभाग (डॉ. एनटीआर वैद्य सेवा ट्रस्ट)" },
+    name:    { en: "Dr. NTR Vaidya Seva — Cashless Health Scheme", hi: "डॉ. एनटीआर वैद्य सेवा — कैशलेस स्वास्थ्य योजना" },
+    benefit: { en: "Cashless treatment up to ₹25 lakh per family per year for 3,255 procedures", hi: "3,255 प्रक्रियाओं के लिए प्रति परिवार प्रति वर्ष ₹25 लाख तक कैशलेस इलाज" },
+    tag:     { en: "Health / Insurance", hi: "स्वास्थ्य / बीमा" },
+    annual: 500000,
+    apply:   { en: "https://spsnellore.ap.gov.in/dr-nandamuri-taraka-rama-rao-vaidyaseva-trust/", hi: "https://spsnellore.ap.gov.in/dr-nandamuri-taraka-rama-rao-vaidyaseva-trust/" }, applyType: "offline",
+    docs:    { en: ["White ration card (rice card)","Aadhaar card"],
+               hi: ["सफ़ेद राशन कार्ड (राइस कार्ड)","आधार कार्ड"] },
+    autoAdded: "2026-10-07", source: "https://spsnellore.ap.gov.in/dr-nandamuri-taraka-rama-rao-vaidyaseva-trust/",
+    match: (a) => a.state === "Andhra Pradesh" && ["bpl","aay"].includes(a.rationCard),
+  },
+  // </auto-scheme id="ap_ntr_vaidya_seva">
+
+  // <auto-scheme id="ap_matsyakarula_sevalo_fishermen"> researched + verified on 2026-10-07 · source: https://apfinance.gov.in/...Bud@et26-27/documents/SpeechEnglish.pdf
+  {
+    id: "ap_matsyakarula_sevalo_fishermen",
+    icon: "🌾", color: "#138808", scope: "state", state: "Andhra Pradesh",
+    ministry: { en: "Fisheries Department", hi: "मत्स्य विभाग" },
+    name:    { en: "Matsyakarula Sevalo — Fishermen Financial Assistance", hi: "मत्स्यकारुला सेवलो — मछुआरा आर्थिक सहायता" },
+    benefit: { en: "₹20,000 aid to fishermen families (raised from ₹10,000) for the fishing-ban period", hi: "मछली पकड़ने पर प्रतिबंध की अवधि के लिए मछुआरा परिवारों को ₹20,000 की सहायता (₹10,000 से बढ़ाकर)" },
+    tag:     { en: "Farmer / Fishermen", hi: "किसान / मछुआरे" },
+    annual: 20000,
+    apply:   { en: "https://apfinance.gov.in/...Bud@et26-27/documents/SpeechEnglish.pdf", hi: "https://apfinance.gov.in/...Bud@et26-27/documents/SpeechEnglish.pdf" }, applyType: "offline",
+    docs:    { en: ["Aadhaar card","Fisherman registration / ID proof","Boat / crew details","Bank account details"],
+               hi: ["आधार कार्ड","मछुआरा पंजीकरण / पहचान प्रमाण","नाव / चालक दल का विवरण","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://apfinance.gov.in/...Bud@et26-27/documents/SpeechEnglish.pdf",
+    match: (a) => a.state === "Andhra Pradesh",
+  },
+  // </auto-scheme id="ap_matsyakarula_sevalo_fishermen">
+
+  // <auto-scheme id="ap_post_matric_scholarship"> researched + verified on 2026-10-07 · source: https://jnanabhumi.ap.gov.in/Aboutus.jsp
+  {
+    id: "ap_post_matric_scholarship",
+    icon: "📚", color: "#003580", scope: "state", state: "Andhra Pradesh",
+    ministry: { en: "BC, Social, Tribal & Minority Welfare Departments", hi: "पिछड़ा वर्ग, समाज, जनजातीय एवं अल्पसंख्यक कल्याण विभाग" },
+    name:    { en: "AP Post-Matric Scholarship & Tuition Fee Reimbursement (Jnanabhumi)", hi: "आंध्र प्रदेश पोस्ट-मैट्रिक छात्रवृत्ति एवं ट्यूशन फ़ीस प्रतिपूर्ति (ज्ञानभूमि)" },
+    benefit: { en: "Full tuition fee reimbursement plus maintenance allowance for post-matric students", hi: "पोस्ट-मैट्रिक छात्रों को पूरी ट्यूशन फ़ीस की प्रतिपूर्ति और भरण-पोषण भत्ता" },
+    tag:     { en: "Student / Scholarship", hi: "छात्र / छात्रवृत्ति" },
+    annual: 0,
+    apply:   { en: "https://jnanabhumi.ap.gov.in/Aboutus.jsp", hi: "https://jnanabhumi.ap.gov.in/Aboutus.jsp" }, applyType: "online",
+    docs:    { en: ["Aadhaar card","Caste / community certificate","Income certificate","Previous exam marks memo","College admission / bonafide certificate","Bank account details"],
+               hi: ["आधार कार्ड","जाति / समुदाय प्रमाण पत्र","आय प्रमाण पत्र","पिछली परीक्षा की अंकतालिका","कॉलेज प्रवेश / बोनाफ़ाइड प्रमाण पत्र","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://jnanabhumi.ap.gov.in/Aboutus.jsp",
+    match: (a) => a.state === "Andhra Pradesh" && a.who === "student" && ["class9to12","undergrad","postgrad"].includes(a.educationLevel),
+  },
+  // </auto-scheme id="ap_post_matric_scholarship">
+
+  // <auto-scheme id="ap_free_power_handloom"> researched + verified on 2026-10-07 · source: https://apfinance.gov.in/...Bud@et26-27/documents/SpeechEnglish.pdf
+  {
+    id: "ap_free_power_handloom",
+    icon: "💼", color: "#6B21A8", scope: "state", state: "Andhra Pradesh",
+    ministry: { en: "Handlooms & Textiles Department", hi: "हथकरघा एवं वस्त्र विभाग" },
+    name:    { en: "Free Power for Handloom & Power Loom Weavers", hi: "हथकरघा एवं पावरलूम बुनकरों के लिए मुफ़्त बिजली" },
+    benefit: { en: "Free electricity: up to 200 units/month for handlooms, 500 units/month for power looms", hi: "मुफ़्त बिजली: हथकरघा के लिए 200 यूनिट/माह तक, पावरलूम के लिए 500 यूनिट/माह तक" },
+    tag:     { en: "Business / Weavers", hi: "व्यवसाय / बुनकर" },
+    annual: 0,
+    apply:   { en: "https://apfinance.gov.in/...Bud@et26-27/documents/SpeechEnglish.pdf", hi: "https://apfinance.gov.in/...Bud@et26-27/documents/SpeechEnglish.pdf" }, applyType: "offline",
+    docs:    { en: ["Weaver identity card","Electricity service connection number","Aadhaar card"],
+               hi: ["बुनकर पहचान पत्र","बिजली सर्विस कनेक्शन नंबर","आधार कार्ड"] },
+    autoAdded: "2026-10-07", source: "https://apfinance.gov.in/...Bud@et26-27/documents/SpeechEnglish.pdf",
+    match: (a) => a.state === "Andhra Pradesh",
+  },
+  // </auto-scheme id="ap_free_power_handloom">
+
+  // <auto-scheme id="ap_motorized_three_wheelers"> researched + verified on 2026-10-07 · source: https://apdascac.ap.gov.in/Schemes/motorized-three-wheelers
+  {
+    id: "ap_motorized_three_wheelers",
+    icon: "🦽", color: "#4F46E5", scope: "state", state: "Andhra Pradesh",
+    ministry: { en: "AP Differently Abled & Senior Citizens Assistance Corporation (APDASCAC)", hi: "आंध्र प्रदेश दिव्यांग एवं वरिष्ठ नागरिक सहायता निगम (APDASCAC)" },
+    name:    { en: "Motorized Three-Wheelers for Persons with Disabilities", hi: "दिव्यांगजनों के लिए मोटर चालित तिपहिया वाहन" },
+    benefit: { en: "Motorized three-wheeler sanctioned once in a lifetime to persons with 70%+ disability", hi: "70% या अधिक दिव्यांगता वाले व्यक्तियों को जीवन में एक बार मोटर चालित तिपहिया वाहन" },
+    tag:     { en: "Disability / Mobility Aid", hi: "दिव्यांगता / गतिशीलता सहायता" },
+    annual: 0,
+    apply:   { en: "https://apdascac.ap.gov.in/Schemes/motorized-three-wheelers", hi: "https://apdascac.ap.gov.in/Schemes/motorized-three-wheelers" }, applyType: "online",
+    docs:    { en: ["Disability certificate","Aadhaar card","SSC certificate","Income certificate","Caste certificate (SC/ST/BC)","Bonafide or employment certificate"],
+               hi: ["दिव्यांगता प्रमाण पत्र","आधार कार्ड","एसएससी (10वीं) प्रमाण पत्र","आय प्रमाण पत्र","जाति प्रमाण पत्र (एससी/एसटी/बीसी)","बोनाफ़ाइड या रोज़गार प्रमाण पत्र"] },
+    autoAdded: "2026-10-07", source: "https://apdascac.ap.gov.in/Schemes/motorized-three-wheelers",
+    match: (a) => a.state === "Andhra Pradesh" && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age) && (!!a.disability && a.disability !== "none"),
+  },
+  // </auto-scheme id="ap_motorized_three_wheelers">
+
 ];

@@ -203,4 +203,106 @@ export const LADAKH_SCHEMES = [
   //   match: (a) => a.state === "Ladakh",
   // },
 
+  // <auto-scheme id="ladakh_marriage_assistance"> researched + verified on 2026-10-07 · source: https://helphub.ladakh.gov.in/landing/state-marriage-assistance-scheme
+  {
+    id: "ladakh_marriage_assistance",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Ladakh",
+    ministry: { en: "Dept. of Social & Tribal Welfare, UT Ladakh", hi: "समाज एवं जनजातीय कल्याण विभाग, केंद्र शासित प्रदेश लद्दाख" },
+    name:    { en: "State Marriage Assistance Scheme (Ladakh UT)", hi: "राज्य विवाह सहायता योजना (लद्दाख यूटी)" },
+    benefit: { en: "One-time ₹50,000 marriage aid for girls of AAY/PHH families (₹1 lakh if divyang)", hi: "AAY/PHH परिवारों की बेटियों को विवाह हेतु एकमुश्त ₹50,000 (दिव्यांग होने पर ₹1 लाख)" },
+    tag:     { en: "Women / Marriage Assistance", hi: "महिला / विवाह सहायता" },
+    annual: 50000,
+    apply:   { en: "https://helphub.ladakh.gov.in/landing/state-marriage-assistance-scheme", hi: "https://helphub.ladakh.gov.in/landing/state-marriage-assistance-scheme" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","AAY / PHH Ration Card","Permanent Resident Certificate of Ladakh","Age proof of bride (18+) and groom (21+)","Aadhaar-linked Bank Passbook","Disability Certificate (if applicable)"],
+               hi: ["आधार कार्ड","AAY / PHH राशन कार्ड","लद्दाख स्थायी निवास प्रमाण पत्र","वधू (18+) व वर (21+) का आयु प्रमाण","आधार-लिंक्ड बैंक पासबुक","दिव्यांगता प्रमाण पत्र (यदि लागू)"] },
+    autoAdded: "2026-10-07", source: "https://helphub.ladakh.gov.in/landing/state-marriage-assistance-scheme",
+    match: (a) => a.state === "Ladakh" && ["18to35","35to60","above60"].includes(a.age) && ["aay","bpl"].includes(a.rationCard) && (a.who === "women" || a.gender === "female"),
+  },
+  // </auto-scheme id="ladakh_marriage_assistance">
+
+  // <auto-scheme id="ladakh_sidco_subsidized_loan"> researched + verified on 2026-10-07 · source: https://sidco.ladakh.gov.in/uploads/schemedocument_3aa55eb835945982cbd6a5f48664be8b.pdf
+  {
+    id: "ladakh_sidco_subsidized_loan",
+    icon: "💼", color: "#6B21A8", scope: "state", state: "Ladakh",
+    ministry: { en: "Sindhu Infrastructure Development Corporation (SIDCO), UT Ladakh", hi: "सिंधु इंफ्रास्ट्रक्चर डेवलपमेंट कॉर्पोरेशन (सिडको), केंद्र शासित प्रदेश लद्दाख" },
+    name:    { en: "SIDCO Subsidized Loan Scheme for Unemployed Youth (Ladakh UT)", hi: "सिडको रियायती ऋण योजना — बेरोजगार युवा (लद्दाख यूटी)" },
+    benefit: { en: "Low-interest loans of ₹3–50 lakh for ST, minority & divyang youth ventures", hi: "ST, अल्पसंख्यक व दिव्यांग युवाओं के उद्यम हेतु ₹3–50 लाख तक कम ब्याज ऋण" },
+    tag:     { en: "Business / Self-Employment Loan", hi: "व्यवसाय / स्वरोजगार ऋण" },
+    annual: 0,
+    apply:   { en: "https://sidco.ladakh.gov.in/uploads/schemedocument_3aa55eb835945982cbd6a5f48664be8b.pdf", hi: "https://sidco.ladakh.gov.in/uploads/schemedocument_3aa55eb835945982cbd6a5f48664be8b.pdf" }, applyType: "online",
+    docs:    { en: ["Caste / Disability Certificate","Income Certificate","Ration Card","Aadhaar Card","Ladakh Resident Certificate","Bank Passbook"],
+               hi: ["जाति / दिव्यांगता प्रमाण पत्र","आय प्रमाण पत्र","राशन कार्ड","आधार कार्ड","लद्दाख निवास प्रमाण पत्र","बैंक पासबुक"] },
+    autoAdded: "2026-10-07", source: "https://sidco.ladakh.gov.in/uploads/schemedocument_3aa55eb835945982cbd6a5f48664be8b.pdf",
+    match: (a) => a.state === "Ladakh",
+  },
+  // </auto-scheme id="ladakh_sidco_subsidized_loan">
+
+  // <auto-scheme id="ladakh_ladakh_policy_early"> researched + verified on 2026-10-07 · source: https://ladakh.gov.in/?p=51394
+  {
+    id: "ladakh_ladakh_policy_early",
+    icon: "📋", color: "#334155", scope: "state", state: "Ladakh",
+    ministry: { en: "Transport Department, UT Ladakh", hi: "परिवहन विभाग, केंद्र शासित प्रदेश लद्दाख" },
+    name:    { en: "Ladakh EV Policy — Early Bird Purchase Subsidy", hi: "लद्दाख ईवी नीति — अर्ली बर्ड खरीद सब्सिडी" },
+    benefit: { en: "20% off EV price till Mar 2027 (up to ₹30,000 e-2W, ₹5 lakh e-car)", hi: "मार्च 2027 तक इलेक्ट्रिक वाहन पर 20% छूट (ई-दोपहिया ₹30,000, ई-कार ₹5 लाख तक)" },
+    tag:     { en: "General / Electric Vehicle Subsidy", hi: "सामान्य / इलेक्ट्रिक वाहन सब्सिडी" },
+    annual: 30000,
+    apply:   { en: "https://ladakh.gov.in/?p=51394", hi: "https://ladakh.gov.in/?p=51394" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Ladakh Resident Proof","EV Purchase Invoice","Vehicle Registration Certificate","Bank Account Details"],
+               hi: ["आधार कार्ड","लद्दाख निवास प्रमाण","इलेक्ट्रिक वाहन खरीद बिल","वाहन पंजीकरण प्रमाण पत्र","बैंक खाता विवरण"] },
+    autoAdded: "2026-10-07", source: "https://ladakh.gov.in/?p=51394",
+    match: (a) => a.state === "Ladakh",
+  },
+  // </auto-scheme id="ladakh_ladakh_policy_early">
+
+  // <auto-scheme id="ladakh_ladakh_homestay_policy"> researched + verified on 2026-10-07 · source: https://tourism.ladakh.gov.in/assets/pdf/homestaypolicy2023.pdf
+  {
+    id: "ladakh_ladakh_homestay_policy",
+    icon: "💼", color: "#6B21A8", scope: "state", state: "Ladakh",
+    ministry: { en: "Department of Tourism, UT Ladakh", hi: "पर्यटन विभाग, केंद्र शासित प्रदेश लद्दाख" },
+    name:    { en: "Ladakh Homestay Policy 2023 — Homestay Support", hi: "लद्दाख होमस्टे नीति 2023 — होमस्टे सहायता" },
+    benefit: { en: "Homestay items worth up to ₹1.25 lakh + 75% toilet cost aid + hospitality training", hi: "₹1.25 लाख तक के होमस्टे सामान + शौचालय लागत का 75% अनुदान + आतिथ्य प्रशिक्षण" },
+    tag:     { en: "Business / Rural Tourism", hi: "व्यवसाय / ग्रामीण पर्यटन" },
+    annual: 125000,
+    apply:   { en: "https://tourism.ladakh.gov.in/assets/pdf/homestaypolicy2023.pdf", hi: "https://tourism.ladakh.gov.in/assets/pdf/homestaypolicy2023.pdf" }, applyType: "offline",
+    docs:    { en: ["Application form with photographs","Aadhaar Card","Revenue / ownership papers or lease deed","Affidavit (income source, employment status, non-conviction)","Preliminary cost estimate"],
+               hi: ["फोटो सहित आवेदन पत्र","आधार कार्ड","राजस्व / स्वामित्व कागजात या पट्टा विलेख","शपथ पत्र (आय स्रोत, रोजगार स्थिति, दोषसिद्धि न होना)","प्रारंभिक लागत अनुमान"] },
+    autoAdded: "2026-10-07", source: "https://tourism.ladakh.gov.in/assets/pdf/homestaypolicy2023.pdf",
+    match: (a) => a.state === "Ladakh" && a.area === "rural" && a.house === "yes",
+  },
+  // </auto-scheme id="ladakh_ladakh_homestay_policy">
+
+  // <auto-scheme id="ladakh_rewa_upsc_coaching"> researched + verified on 2026-10-07 · source: https://ladakh.gov.in/?p=49986
+  {
+    id: "ladakh_rewa_upsc_coaching",
+    icon: "📚", color: "#003580", scope: "state", state: "Ladakh",
+    ministry: { en: "Department of Higher Education, UT Ladakh", hi: "उच्च शिक्षा विभाग, केंद्र शासित प्रदेश लद्दाख" },
+    name:    { en: "REWA 2.0 — UPSC Coaching Assistance (Ladakh UT)", hi: "रेवा 2.0 — यूपीएससी कोचिंग सहायता (लद्दाख यूटी)" },
+    benefit: { en: "₹1 lakh coaching fee + ₹18,000 boarding for 6 months of UPSC CSE coaching", hi: "UPSC सिविल सेवा की 6 माह कोचिंग हेतु ₹1 लाख फीस + ₹18,000 आवास सहायता" },
+    tag:     { en: "Student / Competitive Exam Coaching", hi: "छात्र / प्रतियोगी परीक्षा कोचिंग" },
+    annual: 118000,
+    apply:   { en: "https://ladakh.gov.in/?p=49986", hi: "https://ladakh.gov.in/?p=49986" }, applyType: "online",
+    docs:    { en: ["Domicile Certificate","Graduation degree & marksheets","Birth Certificate / Class 10 Certificate","Income Certificate (Tehsildar)","Category Certificate (if SC/ST)","Disability / Ex-serviceman Certificate (if applicable)"],
+               hi: ["अधिवास (डोमिसाइल) प्रमाण पत्र","स्नातक डिग्री व अंकतालिकाएँ","जन्म प्रमाण पत्र / कक्षा 10 प्रमाण पत्र","आय प्रमाण पत्र (तहसीलदार)","वर्ग प्रमाण पत्र (SC/ST हेतु)","दिव्यांगता / भूतपूर्व सैनिक प्रमाण पत्र (यदि लागू)"] },
+    autoAdded: "2026-10-07", source: "https://ladakh.gov.in/?p=49986",
+    match: (a) => a.state === "Ladakh" && ["student","general"].includes(a.who) && ["18to35","35to60"].includes(a.age),
+  },
+  // </auto-scheme id="ladakh_rewa_upsc_coaching">
+
+  // <auto-scheme id="ladakh_one_household_one"> researched + verified on 2026-10-07 · source: https://ladakh.gov.in/?p=45455
+  {
+    id: "ladakh_one_household_one",
+    icon: "🌾", color: "#138808", scope: "state", state: "Ladakh",
+    ministry: { en: "Animal Husbandry Department, Leh (UT Ladakh)", hi: "पशुपालन विभाग, लेह (केंद्र शासित प्रदेश लद्दाख)" },
+    name:    { en: "One Household, One Cow Scheme (Leh, Ladakh)", hi: "एक परिवार, एक गाय योजना (लेह, लद्दाख)" },
+    benefit: { en: "Cross-bred Jersey cow/heifer at 90% subsidy for rural households", hi: "ग्रामीण परिवारों को 90% सब्सिडी पर संकर जर्सी गाय/बछिया" },
+    tag:     { en: "Farmer / Dairy Livestock", hi: "किसान / डेयरी पशुधन" },
+    annual: 0,
+    apply:   { en: "https://ladakh.gov.in/?p=45455", hi: "https://ladakh.gov.in/?p=45455" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Ladakh Resident Certificate","Ration Card","Bank Passbook"],
+               hi: ["आधार कार्ड","लद्दाख निवास प्रमाण पत्र","राशन कार्ड","बैंक पासबुक"] },
+    autoAdded: "2026-10-07", source: "https://ladakh.gov.in/?p=45455",
+    match: (a) => a.state === "Ladakh" && a.area === "rural",
+  },
+  // </auto-scheme id="ladakh_one_household_one">
+
 ];

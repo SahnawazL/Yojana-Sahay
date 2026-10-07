@@ -594,4 +594,140 @@ export const ASSAM_SCHEMES = [
   //   match: (a) => a.state === "Assam",
   // },
 
+  // <auto-scheme id="assam_ayushman_asom_mukhya"> researched + verified on 2026-10-07 · source: https://atalamritabhiyan.assam.gov.in/schemes/atal-amrit-abhiyan-scheme
+  {
+    id: "assam_ayushman_asom_mukhya",
+    icon: "🛡️", color: "#DC2626", scope: "state", state: "Assam",
+    ministry: { en: "Health & Family Welfare Department (Atal Amrit Abhiyan Society), Assam", hi: "स्वास्थ्य एवं परिवार कल्याण विभाग (अटल अमृत अभियान सोसाइटी), असम" },
+    name:    { en: "Ayushman Asom – Mukhya Mantri Jan Arogya Yojana (AA-MMJAY)", hi: "आयुष्मान असम – मुख्यमंत्री जन आरोग्य योजना (AA-MMJAY)" },
+    benefit: { en: "Cashless treatment up to ₹5 lakh per family per year in 323 empanelled hospitals", hi: "323 सूचीबद्ध अस्पतालों में प्रति परिवार प्रति वर्ष ₹5 लाख तक कैशलेस इलाज" },
+    tag:     { en: "Insurance / Health Cover", hi: "बीमा / स्वास्थ्य कवर" },
+    annual: 500000,
+    apply:   { en: "https://atalamritabhiyan.assam.gov.in/schemes/atal-amrit-abhiyan-scheme", hi: "https://atalamritabhiyan.assam.gov.in/schemes/atal-amrit-abhiyan-scheme" }, applyType: "offline",
+    docs:    { en: ["Aadhaar card","NFSA ration card","Mobile number linked to Aadhaar"],
+               hi: ["आधार कार्ड","एनएफएसए राशन कार्ड","आधार से जुड़ा मोबाइल नंबर"] },
+    autoAdded: "2026-10-07", source: "https://atalamritabhiyan.assam.gov.in/schemes/atal-amrit-abhiyan-scheme",
+    match: (a) => a.state === "Assam" && ["bpl","aay"].includes(a.rationCard),
+  },
+  // </auto-scheme id="assam_ayushman_asom_mukhya">
+
+  // <auto-scheme id="assam_snehasparsh"> researched + verified on 2026-10-07 · source: https://nhm.assam.gov.in/taxonomy/term/6829
+  {
+    id: "assam_snehasparsh",
+    icon: "👶", color: "#EC4899", scope: "state", state: "Assam",
+    ministry: { en: "Health & Family Welfare Department (National Health Mission), Assam", hi: "स्वास्थ्य एवं परिवार कल्याण विभाग (राष्ट्रीय स्वास्थ्य मिशन), असम" },
+    name:    { en: "Snehasparsh Scheme (Assam)", hi: "स्नेहस्पर्श योजना (असम)" },
+    benefit: { en: "Up to ₹16 lakh for transplants, cancer, cochlear implant etc. for children ≤18", hi: "18 वर्ष तक के बच्चों के प्रत्यारोपण, कैंसर, कॉक्लियर इम्प्लांट आदि हेतु ₹16 लाख तक" },
+    tag:     { en: "Child / Medical Aid", hi: "बाल / चिकित्सा सहायता" },
+    annual: 300000,
+    apply:   { en: "https://nhm.assam.gov.in/taxonomy/term/6829", hi: "https://nhm.assam.gov.in/taxonomy/term/6829" }, applyType: "offline",
+    docs:    { en: ["Snehasparsh application form","Income certificate from DC / BDO","Medical certificate and treatment cost estimate","Child's birth certificate or Aadhaar","Bank account details"],
+               hi: ["स्नेहस्पर्श आवेदन पत्र","उपायुक्त / खंड विकास अधिकारी द्वारा जारी आय प्रमाण पत्र","चिकित्सा प्रमाण पत्र और इलाज खर्च का अनुमान","बच्चे का जन्म प्रमाण पत्र या आधार","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://nhm.assam.gov.in/taxonomy/term/6829",
+    match: (a) => a.state === "Assam" && ["below1","1to3","3to6"].includes(a.income) && a.age === "below18",
+  },
+  // </auto-scheme id="assam_snehasparsh">
+
+  // <auto-scheme id="assam_wage_compensation_pregnant"> researched + verified on 2026-10-07 · source: https://nhm.assam.gov.in/taxonomy/term/6786
+  {
+    id: "assam_wage_compensation_pregnant",
+    icon: "🤱", color: "#9D174D", scope: "state", state: "Assam",
+    ministry: { en: "Health & Family Welfare Department (National Health Mission), Assam", hi: "स्वास्थ्य एवं परिवार कल्याण विभाग (राष्ट्रीय स्वास्थ्य मिशन), असम" },
+    name:    { en: "Wage Compensation Scheme for Pregnant Women in Tea Gardens (Assam)", hi: "चाय बागानों की गर्भवती महिलाओं के लिए मजदूरी क्षतिपूर्ति योजना (असम)" },
+    benefit: { en: "₹15,000 in 4 instalments to pregnant tea-garden women for wage loss", hi: "चाय बागान की गर्भवती महिलाओं को मजदूरी हानि हेतु 4 किस्तों में ₹15,000" },
+    tag:     { en: "Maternity / Tea Garden Workers", hi: "मातृत्व / चाय बागान श्रमिक" },
+    annual: 15000,
+    apply:   { en: "https://nhm.assam.gov.in/taxonomy/term/6786", hi: "https://nhm.assam.gov.in/taxonomy/term/6786" }, applyType: "offline",
+    docs:    { en: ["Aadhaar card","ANC registration / Mother & Child Protection card","Bank account passbook","Proof of tea-garden employment or residence"],
+               hi: ["आधार कार्ड","प्रसवपूर्व जांच पंजीकरण / मातृ-शिशु सुरक्षा कार्ड","बैंक खाते की पासबुक","चाय बागान में काम या निवास का प्रमाण"] },
+    autoAdded: "2026-10-07", source: "https://nhm.assam.gov.in/taxonomy/term/6786",
+    match: (a) => a.state === "Assam" && a.who === "women" && ["18to35","35to60"].includes(a.age),
+  },
+  // </auto-scheme id="assam_wage_compensation_pregnant">
+
+  // <auto-scheme id="assam_educational_assistance_children"> researched + verified on 2026-10-07 · source: https://labour.assam.gov.in/scheme-page/building-and-other-construction-workers
+  {
+    id: "assam_educational_assistance_children",
+    icon: "⚒️", color: "#92400E", scope: "state", state: "Assam",
+    ministry: { en: "Labour Welfare Department – Assam Building & Other Construction Workers' Welfare Board", hi: "श्रम कल्याण विभाग – असम भवन एवं अन्य निर्माण श्रमिक कल्याण बोर्ड" },
+    name:    { en: "Educational Assistance for Children of Construction Workers (Assam BOCW Board)", hi: "निर्माण श्रमिकों के बच्चों हेतु शैक्षिक सहायता (असम भवन एवं अन्य निर्माण श्रमिक कल्याण बोर्ड)" },
+    benefit: { en: "₹1,500–₹20,000/year for children of registered construction workers (Class 1 to PG)", hi: "पंजीकृत निर्माण श्रमिकों के बच्चों को कक्षा 1 से स्नातकोत्तर तक ₹1,500–₹20,000 प्रति वर्ष" },
+    tag:     { en: "Labour / Education Aid", hi: "श्रमिक / शिक्षा सहायता" },
+    annual: 7000,
+    apply:   { en: "https://labour.assam.gov.in/scheme-page/building-and-other-construction-workers", hi: "https://labour.assam.gov.in/scheme-page/building-and-other-construction-workers" }, applyType: "online",
+    docs:    { en: ["Construction worker registration (BOCW) card","Aadhaar card","Student's admission / marksheet proof","Bank account details"],
+               hi: ["निर्माण श्रमिक पंजीकरण (BOCW) कार्ड","आधार कार्ड","विद्यार्थी का प्रवेश / अंकपत्र प्रमाण","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://labour.assam.gov.in/scheme-page/building-and-other-construction-workers",
+    match: (a) => a.state === "Assam",
+  },
+  // </auto-scheme id="assam_educational_assistance_children">
+
+  // <auto-scheme id="assam_deen_dayal_divyangjan"> researched + verified on 2026-10-07 · source: https://asdm.assam.gov.in/portlet-innerpage/deen-dayal-divyangjan-punorsansthapan-scheme
+  {
+    id: "assam_deen_dayal_divyangjan",
+    icon: "🦽", color: "#4F46E5", scope: "state", state: "Assam",
+    ministry: { en: "Skill, Employment & Entrepreneurship Department – Assam Skill Development Mission", hi: "कौशल, रोजगार एवं उद्यमिता विभाग – असम कौशल विकास मिशन" },
+    name:    { en: "Deen Dayal Divyangjan Punorsansthapan Scheme (Assam)", hi: "दीनदयाल दिव्यांगजन पुनर्संस्थापन योजना (असम)" },
+    benefit: { en: "Free job-oriented skill training, certification and placement support for Divyangjan", hi: "दिव्यांगजनों के लिए निःशुल्क रोजगारपरक कौशल प्रशिक्षण, प्रमाणन और प्लेसमेंट सहायता" },
+    tag:     { en: "Disability / Skill Training", hi: "दिव्यांगता / कौशल प्रशिक्षण" },
+    annual: 0,
+    apply:   { en: "https://asdm.assam.gov.in/portlet-innerpage/deen-dayal-divyangjan-punorsansthapan-scheme", hi: "https://asdm.assam.gov.in/portlet-innerpage/deen-dayal-divyangjan-punorsansthapan-scheme" }, applyType: "offline",
+    docs:    { en: ["Disability certificate / UDID card","Aadhaar card","Proof of Assam residence","Educational certificates","Bank account details"],
+               hi: ["दिव्यांगता प्रमाण पत्र / यूडीआईडी कार्ड","आधार कार्ड","असम निवास प्रमाण","शैक्षिक प्रमाण पत्र","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://asdm.assam.gov.in/portlet-innerpage/deen-dayal-divyangjan-punorsansthapan-scheme",
+    match: (a) => a.state === "Assam" && (!!a.disability && a.disability !== "none"),
+  },
+  // </auto-scheme id="assam_deen_dayal_divyangjan">
+
+  // <auto-scheme id="assam_financial_assistance_higher"> researched + verified on 2026-10-07 · source: https://teatribes.assam.gov.in/scheme-page/financial-assistance-higher-studies
+  {
+    id: "assam_financial_assistance_higher",
+    icon: "📚", color: "#003580", scope: "state", state: "Assam",
+    ministry: { en: "Tea Tribes & Adivasi Welfare Department, Assam", hi: "चाय जनजाति एवं आदिवासी कल्याण विभाग, असम" },
+    name:    { en: "Financial Assistance for Higher Studies – Tea Tribes & Adivasi Students (Assam)", hi: "उच्च शिक्षा हेतु वित्तीय सहायता – चाय जनजाति एवं आदिवासी विद्यार्थी (असम)" },
+    benefit: { en: "₹25,000–₹35,000/year to Tea Tribe students in professional/PG courses", hi: "व्यावसायिक / स्नातकोत्तर पाठ्यक्रमों के चाय जनजाति विद्यार्थियों को ₹25,000–₹35,000 प्रति वर्ष" },
+    tag:     { en: "Student / Higher Education", hi: "विद्यार्थी / उच्च शिक्षा" },
+    annual: 25000,
+    apply:   { en: "https://teatribes.assam.gov.in/scheme-page/financial-assistance-higher-studies", hi: "https://teatribes.assam.gov.in/scheme-page/financial-assistance-higher-studies" }, applyType: "online",
+    docs:    { en: ["OBC (TGL / Ex-TGL) caste certificate from DC","Income undertaking (≤ ₹5 lakh/year)","Course admission receipt","Marksheets from HSLC onwards","Aadhaar-seeded bank account"],
+               hi: ["उपायुक्त द्वारा जारी ओबीसी (चाय बागान श्रमिक / पूर्व श्रमिक) जाति प्रमाण पत्र","आय शपथपत्र (₹5 लाख प्रति वर्ष तक)","पाठ्यक्रम प्रवेश रसीद","मैट्रिक से आगे के अंकपत्र","आधार से जुड़ा बैंक खाता"] },
+    autoAdded: "2026-10-07", source: "https://teatribes.assam.gov.in/scheme-page/financial-assistance-higher-studies",
+    match: (a) => a.state === "Assam" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income) && a.caste === "obc" && ["undergrad","postgrad"].includes(a.educationLevel),
+  },
+  // </auto-scheme id="assam_financial_assistance_higher">
+
+  // <auto-scheme id="assam_grants_tea_tribe"> researched + verified on 2026-10-07 · source: https://teatribes.assam.gov.in/scheme-page/grants-patients-suffering-tbcancer-and-other-malignant-diseases
+  {
+    id: "assam_grants_tea_tribe",
+    icon: "🏥", color: "#0369A1", scope: "state", state: "Assam",
+    ministry: { en: "Tea Tribes & Adivasi Welfare Department, Assam", hi: "चाय जनजाति एवं आदिवासी कल्याण विभाग, असम" },
+    name:    { en: "Grants to Tea Tribe Patients with TB, Cancer & Major Diseases (Assam)", hi: "टीबी, कैंसर व गंभीर रोगों से पीड़ित चाय जनजाति रोगियों हेतु अनुदान (असम)" },
+    benefit: { en: "One-time grant ₹5,000–₹75,000 for TB, cancer, kidney, heart disease etc.", hi: "टीबी, कैंसर, किडनी, हृदय रोग आदि के लिए ₹5,000–₹75,000 का एकमुश्त अनुदान" },
+    tag:     { en: "Health / Medical Grant", hi: "स्वास्थ्य / चिकित्सा अनुदान" },
+    annual: 50000,
+    apply:   { en: "https://teatribes.assam.gov.in/scheme-page/grants-patients-suffering-tbcancer-and-other-malignant-diseases", hi: "https://teatribes.assam.gov.in/scheme-page/grants-patients-suffering-tbcancer-and-other-malignant-diseases" }, applyType: "online",
+    docs:    { en: ["Tea Tribe caste certificate","Medical certificate from govt doctor (SDMO or above)","Medical reports of the illness","Recommendation letter from MLA / MP","Family income undertaking (≤ ₹5 lakh)"],
+               hi: ["चाय जनजाति जाति प्रमाण पत्र","सरकारी डॉक्टर (एसडीएमओ या ऊपर) का चिकित्सा प्रमाण पत्र","बीमारी की चिकित्सा रिपोर्ट","विधायक / सांसद का अनुशंसा पत्र","पारिवारिक आय शपथपत्र (₹5 लाख तक)"] },
+    autoAdded: "2026-10-07", source: "https://teatribes.assam.gov.in/scheme-page/grants-patients-suffering-tbcancer-and-other-malignant-diseases",
+    match: (a) => a.state === "Assam" && ["below1","1to3","3to6"].includes(a.income),
+  },
+  // </auto-scheme id="assam_grants_tea_tribe">
+
+  // <auto-scheme id="assam_speed_phase_duck"> researched + verified on 2026-10-07 · source: https://veterinary.assam.gov.in/taxonomy/term/6077
+  {
+    id: "assam_speed_phase_duck",
+    icon: "🌾", color: "#138808", scope: "state", state: "Assam",
+    ministry: { en: "Animal Husbandry & Veterinary Department, Assam", hi: "पशुपालन एवं पशु चिकित्सा विभाग, असम" },
+    name:    { en: "SPEED Scheme Phase II – Duck & Goat Farm Expansion (Assam)", hi: "स्पीड योजना चरण-2 – बत्तख व बकरी फार्म विस्तार (असम)" },
+    benefit: { en: "One-time grant ₹1–5 lakh via DBT to expand existing duck or goat farms", hi: "मौजूदा बत्तख या बकरी फार्म के विस्तार हेतु डीबीटी से ₹1–5 लाख का एकमुश्त अनुदान" },
+    tag:     { en: "Farmer / Livestock", hi: "किसान / पशुपालन" },
+    annual: 100000,
+    apply:   { en: "https://veterinary.assam.gov.in/taxonomy/term/6077", hi: "https://veterinary.assam.gov.in/taxonomy/term/6077" }, applyType: "online",
+    docs:    { en: ["Aadhaar card and KYC documents","Aadhaar-linked bank account","Proof of Assam permanent residence","Training certificate in the sector","Farm / land ownership or lease documents"],
+               hi: ["आधार कार्ड और केवाईसी दस्तावेज","आधार से जुड़ा बैंक खाता","असम स्थायी निवास प्रमाण","संबंधित क्षेत्र में प्रशिक्षण प्रमाण पत्र","फार्म / भूमि स्वामित्व या पट्टा दस्तावेज"] },
+    autoAdded: "2026-10-07", source: "https://veterinary.assam.gov.in/taxonomy/term/6077",
+    match: (a) => a.state === "Assam" && a.who === "farmer",
+  },
+  // </auto-scheme id="assam_speed_phase_duck">
+
 ];

@@ -200,4 +200,72 @@ export const NAGALAND_SCHEMES = [
   //   match: (a) => a.state === "Nagaland",
   // },
 
+  // <auto-scheme id="nagaland_micro_finance_initiative"> researched + verified on 2026-10-07 · source: https://cmmfi.nagaland.gov.in/
+  {
+    id: "nagaland_micro_finance_initiative",
+    icon: "🌾", color: "#138808", scope: "state", state: "Nagaland",
+    ministry: { en: "Govt. of Nagaland (DLIMC headed by Deputy Commissioner)", hi: "नागालैंड सरकार (उपायुक्त की अध्यक्षता वाली डीएलआईएमसी)" },
+    name:    { en: "Chief Minister's Micro Finance Initiative (CMMFI) — Nagaland", hi: "मुख्यमंत्री माइक्रो फ़ाइनेंस पहल (सीएमएमएफ़आई) — नागालैंड" },
+    benefit: { en: "30% back-ended subsidy on bank loans up to ₹15 lakh; 4% extra interest subvention on KCC", hi: "₹15 लाख तक के बैंक ऋण पर 30% बैक-एंडेड सब्सिडी; केसीसी पर 4% अतिरिक्त ब्याज छूट" },
+    tag:     { en: "Farmer / Loan Subsidy", hi: "किसान / ऋण सब्सिडी" },
+    annual: 0,
+    apply:   { en: "https://cmmfi.nagaland.gov.in/", hi: "https://cmmfi.nagaland.gov.in/" }, applyType: "offline",
+    docs:    { en: ["Indigenous Inhabitant Certificate","Aadhaar Card","Project proposal","Bank account details"],
+               hi: ["मूल निवासी प्रमाणपत्र","आधार कार्ड","परियोजना प्रस्ताव","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://cmmfi.nagaland.gov.in/",
+    match: (a) => a.state === "Nagaland" && ["farmer","business"].includes(a.who),
+  },
+  // </auto-scheme id="nagaland_micro_finance_initiative">
+
+  // <auto-scheme id="nagaland_nagaland_scholarship_persons"> researched + verified on 2026-10-07 · source: https://scholarship.nagaland.gov.in/uploaded-documents/32/view
+  {
+    id: "nagaland_nagaland_scholarship_persons",
+    icon: "🦽", color: "#4F46E5", scope: "state", state: "Nagaland",
+    ministry: { en: "Department of Social Welfare, Govt. of Nagaland", hi: "समाज कल्याण विभाग, नागालैंड सरकार" },
+    name:    { en: "Nagaland State Scholarship for Persons with Disabilities (Class I–VIII)", hi: "नागालैंड राज्य दिव्यांगजन छात्रवृत्ति (कक्षा 1–8)" },
+    benefit: { en: "Annual state scholarship for students with 40%+ disability in Class I–VIII", hi: "कक्षा 1–8 के 40%+ दिव्यांग विद्यार्थियों को वार्षिक राज्य छात्रवृत्ति" },
+    tag:     { en: "Disability / Scholarship", hi: "दिव्यांगता / छात्रवृत्ति" },
+    annual: 0,
+    apply:   { en: "https://scholarship.nagaland.gov.in", hi: "https://scholarship.nagaland.gov.in" }, applyType: "online",
+    docs:    { en: ["Disability Certificate or UDID Card","Progress report of last class passed","Income Certificate of parents","Bank passbook (Aadhaar-seeded)"],
+               hi: ["दिव्यांगता प्रमाणपत्र या यूडीआईडी कार्ड","पिछली उत्तीर्ण कक्षा की प्रगति रिपोर्ट","माता-पिता का आय प्रमाणपत्र","बैंक पासबुक (आधार से जुड़ी)"] },
+    autoAdded: "2026-10-07", source: "https://scholarship.nagaland.gov.in/uploaded-documents/32/view",
+    match: (a) => a.state === "Nagaland" && a.who === "student" && ["below1","1to3"].includes(a.income) && a.educationLevel === "class1to8" && (!!a.disability && a.disability !== "none"),
+  },
+  // </auto-scheme id="nagaland_nagaland_scholarship_persons">
+
+  // <auto-scheme id="nagaland_nagaland_skill_entrepreneurship"> researched + verified on 2026-10-07 · source: https://ipr.nagaland.gov.in/sites/default/files/2026-01/NSEDM%202nd%20Phase%20Advertisement.pdf
+  {
+    id: "nagaland_nagaland_skill_entrepreneurship",
+    icon: "🎯", color: "#D97706", scope: "state", state: "Nagaland",
+    ministry: { en: "Investment & Development Authority of Nagaland (IDAN) / NSEDM", hi: "नागालैंड निवेश एवं विकास प्राधिकरण (आईडीएएन) / एनएसईडीएम" },
+    name:    { en: "Nagaland Skill & Entrepreneurship Development Mission (NSEDM) Free Training", hi: "नागालैंड कौशल एवं उद्यमिता विकास मिशन (एनएसईडीएम) निःशुल्क प्रशिक्षण" },
+    benefit: { en: "Free certified training in 14 trades (14 days–6 months) with placement support", hi: "14 ट्रेडों में निःशुल्क प्रमाणित प्रशिक्षण (14 दिन–6 माह) व प्लेसमेंट सहायता" },
+    tag:     { en: "Skill / Youth / Free Training", hi: "कौशल / युवा / निःशुल्क प्रशिक्षण" },
+    annual: 0,
+    apply:   { en: "https://ipr.nagaland.gov.in/sites/default/files/2026-01/NSEDM%202nd%20Phase%20Advertisement.pdf", hi: "https://ipr.nagaland.gov.in/sites/default/files/2026-01/NSEDM%202nd%20Phase%20Advertisement.pdf" }, applyType: "online",
+    docs:    { en: ["Indigenous Inhabitant Certificate","Aadhaar Card","Educational certificates (as per course)","Passport-size photograph"],
+               hi: ["मूल निवासी प्रमाणपत्र","आधार कार्ड","शैक्षणिक प्रमाणपत्र (पाठ्यक्रम के अनुसार)","पासपोर्ट आकार का फ़ोटो"] },
+    autoAdded: "2026-10-07", source: "https://ipr.nagaland.gov.in/sites/default/files/2026-01/NSEDM%202nd%20Phase%20Advertisement.pdf",
+    match: (a) => a.state === "Nagaland",
+  },
+  // </auto-scheme id="nagaland_nagaland_skill_entrepreneurship">
+
+  // <auto-scheme id="nagaland_financial_assistance_destitute"> researched + verified on 2026-10-07 · source: https://dwrd.nagaland.gov.in/?p=981
+  {
+    id: "nagaland_financial_assistance_destitute",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Nagaland",
+    ministry: { en: "Department of Women Resource Development, Govt. of Nagaland", hi: "महिला संसाधन विकास विभाग, नागालैंड सरकार" },
+    name:    { en: "Financial Assistance to Destitute Women (Nagaland)", hi: "निराश्रित महिलाओं को वित्तीय सहायता (नागालैंड)" },
+    benefit: { en: "₹200 per month (₹2,400 a year) via DBT to widowed, unmarried or abandoned women", hi: "विधवा, अविवाहित या परित्यक्त महिलाओं को डीबीटी से ₹200 प्रति माह (₹2,400 प्रति वर्ष)" },
+    tag:     { en: "Women / Destitute Assistance", hi: "महिला / निराश्रित सहायता" },
+    annual: 2400,
+    apply:   { en: "https://dwrd.nagaland.gov.in/?p=981", hi: "https://dwrd.nagaland.gov.in/?p=981" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Age proof","Proof of widowhood / separation (if applicable)","Bank passbook"],
+               hi: ["आधार कार्ड","आयु प्रमाण","विधवा / अलगाव का प्रमाण (यदि लागू हो)","बैंक पासबुक"] },
+    autoAdded: "2026-10-07", source: "https://dwrd.nagaland.gov.in/?p=981",
+    match: (a) => a.state === "Nagaland" && a.who === "women" && a.age === "35to60",
+  },
+  // </auto-scheme id="nagaland_financial_assistance_destitute">
+
 ];

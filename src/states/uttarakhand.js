@@ -198,4 +198,89 @@ export const UTTARAKHAND_SCHEMES = [
   //   match: (a) => a.state === "Uttarakhand",
   // },
 
+  // <auto-scheme id="uk_deendayal_upadhyay_sahkarita"> researched + verified on 2026-10-07 · source: https://cooperative.uk.gov.in/?p=1031
+  {
+    id: "uk_deendayal_upadhyay_sahkarita",
+    icon: "🌾", color: "#138808", scope: "state", state: "Uttarakhand",
+    ministry: { en: "Cooperative Department, Uttarakhand", hi: "सहकारिता विभाग, उत्तराखंड" },
+    name:    { en: "Deendayal Upadhyay Sahkarita Kisan Kalyan Yojana (Uttarakhand)", hi: "दीनदयाल उपाध्याय सहकारिता किसान कल्याण योजना (उत्तराखंड)" },
+    benefit: { en: "Interest-free loan up to ₹3 lakh for farm & allied work (SHGs up to ₹5 lakh)", hi: "कृषि व संबद्ध कार्यों हेतु ₹3 लाख तक ब्याज-मुक्त ऋण (स्वयं सहायता समूह को ₹5 लाख तक)" },
+    tag:     { en: "Farmer / Interest-free Loan", hi: "किसान / ब्याज-मुक्त ऋण" },
+    annual: 0,
+    apply:   { en: "https://cooperative.uk.gov.in/?p=1031", hi: "https://cooperative.uk.gov.in/?p=1031" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Cooperative society (PACS) membership proof","Land record (Khatauni)","Bank Passbook","Passport-size Photo"],
+               hi: ["आधार कार्ड","सहकारी समिति (PACS) सदस्यता प्रमाण","भूमि अभिलेख (खतौनी)","बैंक पासबुक","पासपोर्ट साइज फोटो"] },
+    autoAdded: "2026-10-07", source: "https://cooperative.uk.gov.in/?p=1031",
+    match: (a) => a.state === "Uttarakhand" && a.who === "farmer" && ["below1","1to2","2to5"].includes(a.landHolding),
+  },
+  // </auto-scheme id="uk_deendayal_upadhyay_sahkarita">
+
+  // <auto-scheme id="uk_mahalaxmi_kit"> researched + verified on 2026-10-07 · source: https://wecd.uk.gov.in/scheme/chief-minister-mahalakshmi-kit-scheme/
+  {
+    id: "uk_mahalaxmi_kit",
+    icon: "🤱", color: "#9D174D", scope: "state", state: "Uttarakhand",
+    ministry: { en: "Dept. of Women Empowerment & Child Development, Uttarakhand", hi: "महिला सशक्तिकरण एवं बाल विकास विभाग, उत्तराखंड" },
+    name:    { en: "Mukhyamantri Mahalaxmi Kit Yojana (Uttarakhand)", hi: "मुख्यमंत्री महालक्ष्मी किट योजना (उत्तराखंड)" },
+    benefit: { en: "Free Mahalaxmi kit with iron, calcium & protein supplements for new mothers", hi: "गर्भवती व धात्री माताओं को आयरन, कैल्शियम व प्रोटीन पूरक सहित निःशुल्क महालक्ष्मी किट" },
+    tag:     { en: "Maternity / Nutrition Kit", hi: "मातृत्व / पोषण किट" },
+    annual: 0,
+    apply:   { en: "https://wecd.uk.gov.in/scheme/chief-minister-mahalakshmi-kit-scheme/", hi: "https://wecd.uk.gov.in/scheme/chief-minister-mahalakshmi-kit-scheme/" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Anganwadi registration","Mother & Child Protection (MCP) Card"],
+               hi: ["आधार कार्ड","आंगनवाड़ी पंजीकरण","मातृ एवं शिशु सुरक्षा (MCP) कार्ड"] },
+    autoAdded: "2026-10-07", source: "https://wecd.uk.gov.in/scheme/chief-minister-mahalakshmi-kit-scheme/",
+    match: (a) => a.state === "Uttarakhand" && (a.who === "women" || a.gender === "female"),
+  },
+  // </auto-scheme id="uk_mahalaxmi_kit">
+
+  // <auto-scheme id="uk_veer_chandra_singh"> researched + verified on 2026-10-07 · source: https://pauri.nic.in/tourism-department/
+  {
+    id: "uk_veer_chandra_singh",
+    icon: "💼", color: "#6B21A8", scope: "state", state: "Uttarakhand",
+    ministry: { en: "Tourism Department, Uttarakhand", hi: "पर्यटन विभाग, उत्तराखंड" },
+    name:    { en: "Veer Chandra Singh Garhwali Paryatan Swarozgar Yojana", hi: "वीर चन्द्र सिंह गढ़वाली पर्यटन स्वरोजगार योजना" },
+    benefit: { en: "25–33% subsidy (max ₹10–15 lakh) on tourism vehicles & units for local youth", hi: "स्थानीय युवाओं को पर्यटन वाहन व इकाइयों पर 25–33% अनुदान (अधिकतम ₹10–15 लाख)" },
+    tag:     { en: "Business / Tourism Self-Employment", hi: "व्यवसाय / पर्यटन स्वरोजगार" },
+    annual: 500000,
+    apply:   { en: "https://pauri.nic.in/tourism-department/", hi: "https://pauri.nic.in/tourism-department/" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Uttarakhand Permanent Residence Certificate","Project Report","Bank Loan Application / Sanction","Driving Licence (for vehicle projects)","Passport-size Photo"],
+               hi: ["आधार कार्ड","उत्तराखंड स्थायी निवास प्रमाण पत्र","परियोजना रिपोर्ट","बैंक ऋण आवेदन / स्वीकृति","ड्राइविंग लाइसेंस (वाहन परियोजना हेतु)","पासपोर्ट साइज फोटो"] },
+    autoAdded: "2026-10-07", source: "https://pauri.nic.in/tourism-department/",
+    match: (a) => a.state === "Uttarakhand",
+  },
+  // </auto-scheme id="uk_veer_chandra_singh">
+
+  // <auto-scheme id="uk_kisan_pension"> researched + verified on 2026-10-07 · source: https://socialwelfare.uk.gov.in/service/tourist-visa/
+  {
+    id: "uk_kisan_pension",
+    icon: "🏛️", color: "#7C3AED", scope: "state", state: "Uttarakhand",
+    ministry: { en: "Social Welfare Department, Uttarakhand", hi: "समाज कल्याण विभाग, उत्तराखंड" },
+    name:    { en: "Kisan Pension Yojana (Uttarakhand)", hi: "किसान पेंशन योजना (उत्तराखंड)" },
+    benefit: { en: "Monthly state pension for farmers aged 60+ cultivating up to 2 hectares", hi: "2 हेक्टेयर तक भूमि पर खेती करने वाले 60+ आयु के किसानों को मासिक राज्य पेंशन" },
+    tag:     { en: "Pension / Farmer", hi: "पेंशन / किसान" },
+    annual: 0,
+    apply:   { en: "https://socialwelfare.uk.gov.in/service/tourist-visa/", hi: "https://socialwelfare.uk.gov.in/service/tourist-visa/" }, applyType: "online",
+    docs:    { en: ["Certified copy of Khatauni (land record)","Affidavit on ₹10 stamp paper (self-cultivation ≤2 ha)","Land certificate from Revenue / Asst. Agriculture Officer","Bank Passbook (CBS account)","Attested Photograph","Aadhaar Card"],
+               hi: ["खतौनी (भूमि अभिलेख) की प्रमाणित प्रति","₹10 स्टाम्प पेपर पर शपथ पत्र (2 हेक्टेयर तक स्वयं खेती)","राजस्व / सहायक कृषि अधिकारी से भूमि प्रमाण पत्र","बैंक पासबुक (CBS खाता)","प्रमाणित फोटो","आधार कार्ड"] },
+    autoAdded: "2026-10-07", source: "https://socialwelfare.uk.gov.in/service/tourist-visa/",
+    match: (a) => a.state === "Uttarakhand" && a.who === "farmer" && a.age === "above60" && ["below1","1to2","2to5"].includes(a.landHolding),
+  },
+  // </auto-scheme id="uk_kisan_pension">
+
+  // <auto-scheme id="uk_teelu_rauteli_pension"> researched + verified on 2026-10-07 · source: https://socialwelfare.uk.gov.in/service/teelurautelipension/
+  {
+    id: "uk_teelu_rauteli_pension",
+    icon: "🦽", color: "#4F46E5", scope: "state", state: "Uttarakhand",
+    ministry: { en: "Social Welfare Department, Uttarakhand", hi: "समाज कल्याण विभाग, उत्तराखंड" },
+    name:    { en: "Teelu Rauteli Pension Yojana (Uttarakhand)", hi: "तीलू रौतेली पेंशन योजना (उत्तराखंड)" },
+    benefit: { en: "Monthly pension for rural people disabled (20–40%) while doing farm work", hi: "खेती का काम करते हुए दिव्यांग (20–40%) हुए ग्रामीण लोगों को मासिक पेंशन" },
+    tag:     { en: "Disability / Pension", hi: "दिव्यांगता / पेंशन" },
+    annual: 0,
+    apply:   { en: "https://socialwelfare.uk.gov.in/service/teelurautelipension/", hi: "https://socialwelfare.uk.gov.in/service/teelurautelipension/" }, applyType: "online",
+    docs:    { en: ["Family register copy (from Village Pradhan)","Gram Panchayat open meeting resolution","Medical disability certificate (20–40%)","Bank Passbook (CBS account)","Aadhaar Card"],
+               hi: ["परिवार रजिस्टर की प्रति (ग्राम प्रधान से)","ग्राम पंचायत खुली बैठक प्रस्ताव","चिकित्सीय दिव्यांगता प्रमाण पत्र (20–40%)","बैंक पासबुक (CBS खाता)","आधार कार्ड"] },
+    autoAdded: "2026-10-07", source: "https://socialwelfare.uk.gov.in/service/teelurautelipension/",
+    match: (a) => a.state === "Uttarakhand" && ["18to35","35to60"].includes(a.age) && a.area === "rural" && (!!a.disability && a.disability !== "none"),
+  },
+  // </auto-scheme id="uk_teelu_rauteli_pension">
+
 ];

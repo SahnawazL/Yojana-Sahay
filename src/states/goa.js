@@ -184,4 +184,106 @@ export const GOA_SCHEMES = [
   //   match: (a) => a.state === "Goa",
   // },
 
+  // <auto-scheme id="goa_gagan_bharari_shiksha"> researched + verified on 2026-10-07 · source: https://tribalwelfare.goa.gov.in/wp-content/uploads/2025/07/Gagan-Bharari-Shiksha-Yojana-and-Merit-Based-Award-Scholarship-Scheme.pdf
+  {
+    id: "goa_gagan_bharari_shiksha",
+    icon: "📚", color: "#003580", scope: "state", state: "Goa",
+    ministry: { en: "Directorate of Tribal Welfare, Goa", hi: "आदिवासी कल्याण निदेशालय, गोवा" },
+    name:    { en: "Gagan Bharari Shiksha Yojana (ST Students)", hi: "गगन भरारी शिक्षा योजना (अनुसूचित जनजाति विद्यार्थी)" },
+    benefit: { en: "₹900/month (₹1,800 for hostellers) for 10 months to ST students", hi: "अनुसूचित जनजाति विद्यार्थियों को 10 महीने तक ₹900 प्रति माह (छात्रावासी को ₹1,800)" },
+    tag:     { en: "Student / Scholarship", hi: "विद्यार्थी / छात्रवृत्ति" },
+    annual: 9000,
+    apply:   { en: "https://tribalwelfare.goa.gov.in/wp-content/uploads/2025/07/Gagan-Bharari-Shiksha-Yojana-and-Merit-Based-Award-Scholarship-Scheme.pdf", hi: "https://tribalwelfare.goa.gov.in/wp-content/uploads/2025/07/Gagan-Bharari-Shiksha-Yojana-and-Merit-Based-Award-Scholarship-Scheme.pdf" }, applyType: "online",
+    docs:    { en: ["Scheduled Tribe certificate","Income certificate","Previous year mark sheet","Fee receipt (current year admission)","Aadhaar-seeded bank passbook","Passport size photograph"],
+               hi: ["अनुसूचित जनजाति प्रमाण पत्र","आय प्रमाण पत्र","पिछले वर्ष की अंकतालिका","शुल्क रसीद (चालू वर्ष प्रवेश)","आधार से जुड़ी बैंक पासबुक","पासपोर्ट आकार की फोटो"] },
+    autoAdded: "2026-10-07", source: "https://tribalwelfare.goa.gov.in/wp-content/uploads/2025/07/Gagan-Bharari-Shiksha-Yojana-and-Merit-Based-Award-Scholarship-Scheme.pdf",
+    match: (a) => a.state === "Goa" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income) && a.caste === "st" && ["class9to12","undergrad","postgrad"].includes(a.educationLevel),
+  },
+  // </auto-scheme id="goa_gagan_bharari_shiksha">
+
+  // <auto-scheme id="goa_interest_free_education"> researched + verified on 2026-10-07 · source: https://gedc.goa.gov.in/node/23
+  {
+    id: "goa_interest_free_education",
+    icon: "📚", color: "#003580", scope: "state", state: "Goa",
+    ministry: { en: "Goa Education Development Corporation (GEDC)", hi: "गोवा शिक्षा विकास निगम (GEDC)" },
+    name:    { en: "Interest Free Education Loan (IFEL) Scheme", hi: "ब्याज-मुक्त शिक्षा ऋण (IFEL) योजना" },
+    benefit: { en: "Interest-free loan up to ₹2 lakh/yr (India) or ₹8 lakh/yr (abroad) for higher studies", hi: "उच्च शिक्षा के लिए ब्याज-मुक्त ऋण: भारत में ₹2 लाख/वर्ष तक, विदेश में ₹8 लाख/वर्ष तक" },
+    tag:     { en: "Student / Education Loan", hi: "विद्यार्थी / शिक्षा ऋण" },
+    annual: 200000,
+    apply:   { en: "https://gedc.goa.gov.in/node/23", hi: "https://gedc.goa.gov.in/node/23" }, applyType: "online",
+    docs:    { en: ["Application form (fresh/renewal)","Aadhaar consent form","Mark sheet of qualifying exam","Family income certificate","Residence certificate (15 years in Goa)","Admission proof for the course"],
+               hi: ["आवेदन पत्र (नया/नवीनीकरण)","आधार सहमति पत्र","योग्यता परीक्षा की अंकतालिका","पारिवारिक आय प्रमाण पत्र","निवास प्रमाण पत्र (गोवा में 15 वर्ष)","पाठ्यक्रम में प्रवेश का प्रमाण"] },
+    autoAdded: "2026-10-07", source: "https://gedc.goa.gov.in/node/23",
+    match: (a) => a.state === "Goa" && a.who === "student" && ["below18","18to35"].includes(a.age) && ["undergrad","postgrad"].includes(a.educationLevel),
+  },
+  // </auto-scheme id="goa_interest_free_education">
+
+  // <auto-scheme id="goa_mamta_financial_incentive"> researched + verified on 2026-10-07 · source: https://dwcd.goa.gov.in/?p=858
+  {
+    id: "goa_mamta_financial_incentive",
+    icon: "🤱", color: "#9D174D", scope: "state", state: "Goa",
+    ministry: { en: "Directorate of Women and Child Development, Goa", hi: "महिला एवं बाल विकास निदेशालय, गोवा" },
+    name:    { en: "MAMTA – Financial Incentive to Mothers Who Deliver a Girl Child", hi: "ममता – बालिका को जन्म देने वाली माताओं को वित्तीय प्रोत्साहन" },
+    benefit: { en: "₹10,000 one-time to the mother on birth of a girl child (up to 2 deliveries)", hi: "बालिका के जन्म पर माँ को ₹10,000 की एकमुश्त सहायता (अधिकतम 2 प्रसव तक)" },
+    tag:     { en: "Maternity / Girl Child", hi: "मातृत्व / बालिका" },
+    annual: 10000,
+    apply:   { en: "https://dwcd.goa.gov.in/?p=858", hi: "https://dwcd.goa.gov.in/?p=858" }, applyType: "offline",
+    docs:    { en: ["Prescribed application form","Birth report / birth certificate of the girl child","Proof of 3 years' residence in Goa (or marriage to a Goa resident)","Bank account details"],
+               hi: ["निर्धारित आवेदन पत्र","बालिका की जन्म रिपोर्ट / जन्म प्रमाण पत्र","गोवा में 3 वर्ष निवास का प्रमाण (या गोवा निवासी से विवाह का प्रमाण)","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://dwcd.goa.gov.in/?p=858",
+    match: (a) => a.state === "Goa" && a.who === "women",
+  },
+  // </auto-scheme id="goa_mamta_financial_incentive">
+
+  // <auto-scheme id="goa_sudharit_kamdhenu"> researched + verified on 2026-10-07 · source: https://ahvs.goa.gov.in/?p=441
+  {
+    id: "goa_sudharit_kamdhenu",
+    icon: "🌾", color: "#138808", scope: "state", state: "Goa",
+    ministry: { en: "Directorate of Animal Husbandry & Veterinary Services, Goa", hi: "पशुपालन एवं पशु चिकित्सा सेवा निदेशालय, गोवा" },
+    name:    { en: "Mukhyamantri Sudharit Kamdhenu Scheme", hi: "मुख्यमंत्री सुधारित कामधेनु योजना" },
+    benefit: { en: "Up to 90% subsidy (₹63,000/animal) on dairy cows/buffaloes + 80% cattle-shed subsidy", hi: "दुधारू गाय/भैंस खरीद पर 90% तक सब्सिडी (₹63,000 प्रति पशु) + पशुशाला पर 80% सब्सिडी" },
+    tag:     { en: "Farmer / Dairy", hi: "किसान / डेयरी" },
+    annual: 63000,
+    apply:   { en: "https://ahvs.goa.gov.in/?p=441", hi: "https://ahvs.goa.gov.in/?p=441" }, applyType: "offline",
+    docs:    { en: ["Residence certificate (15 years in Goa)","Caste certificate (SC/ST/Dhangar, if applicable)","Affidavit on cattle shed ownership","Letter from financing institution","Aadhaar authentication consent","Passport size photograph"],
+               hi: ["निवास प्रमाण पत्र (गोवा में 15 वर्ष)","जाति प्रमाण पत्र (अनुसूचित जाति/जनजाति/धनगर, यदि लागू हो)","पशुशाला स्वामित्व का शपथ पत्र","वित्तपोषण संस्था का पत्र","आधार प्रमाणीकरण सहमति","पासपोर्ट आकार की फोटो"] },
+    autoAdded: "2026-10-07", source: "https://ahvs.goa.gov.in/?p=441",
+    match: (a) => a.state === "Goa" && a.who === "farmer",
+  },
+  // </auto-scheme id="goa_sudharit_kamdhenu">
+
+  // <auto-scheme id="goa_award_marriage_with"> researched + verified on 2026-10-07 · source: https://scpwd.goa.gov.in/?p=182
+  {
+    id: "goa_award_marriage_with",
+    icon: "🦽", color: "#4F46E5", scope: "state", state: "Goa",
+    ministry: { en: "Directorate of Social Welfare, Goa", hi: "समाज कल्याण निदेशालय, गोवा" },
+    name:    { en: "Award for Marriage with a Person with Disability", hi: "दिव्यांग व्यक्ति से विवाह पर पुरस्कार योजना" },
+    benefit: { en: "₹50,000 one-time award to a couple where at least one spouse has a disability", hi: "ऐसे दंपती को ₹50,000 का एकमुश्त पुरस्कार जिसमें कम से कम एक जीवनसाथी दिव्यांग हो" },
+    tag:     { en: "Disability / Marriage", hi: "दिव्यांगता / विवाह" },
+    annual: 50000,
+    apply:   { en: "https://scpwd.goa.gov.in/?p=182", hi: "https://scpwd.goa.gov.in/?p=182" }, applyType: "offline",
+    docs:    { en: ["Disability certificate","Marriage certificate","Income certificate","Residence certificate (15 years)","Aadhaar card"],
+               hi: ["दिव्यांगता प्रमाण पत्र","विवाह प्रमाण पत्र","आय प्रमाण पत्र","निवास प्रमाण पत्र (15 वर्ष)","आधार कार्ड"] },
+    autoAdded: "2026-10-07", source: "https://scpwd.goa.gov.in/?p=182",
+    match: (a) => a.state === "Goa" && ["below1","1to3"].includes(a.income) && (!!a.disability && a.disability !== "none"),
+  },
+  // </auto-scheme id="goa_award_marriage_with">
+
+  // <auto-scheme id="goa_self_employment_entrepreneurs"> researched + verified on 2026-10-07 · source: https://msme.goa.gov.in/home/Scheme-Details/Self-Employment-Scheme
+  {
+    id: "goa_self_employment_entrepreneurs",
+    icon: "💼", color: "#6B21A8", scope: "state", state: "Goa",
+    ministry: { en: "Goa State Scheduled Tribes Finance & Development Corporation, Dept of Tribal Welfare", hi: "गोवा राज्य अनुसूचित जनजाति वित्त एवं विकास निगम, आदिवासी कल्याण विभाग" },
+    name:    { en: "Self Employment Scheme for ST Entrepreneurs (GSSTFDC)", hi: "अनुसूचित जनजाति उद्यमियों हेतु स्वरोजगार योजना (GSSTFDC)" },
+    benefit: { en: "Loan up to ₹10 lakh at 4% interest for unemployed ST persons, repayable in 10 years", hi: "बेरोजगार अनुसूचित जनजाति व्यक्तियों को 4% ब्याज पर ₹10 लाख तक ऋण, 10 वर्ष में चुकाना" },
+    tag:     { en: "Business / Self-Employment", hi: "व्यवसाय / स्वरोजगार" },
+    annual: 500000,
+    apply:   { en: "https://msme.goa.gov.in/home/Scheme-Details/Self-Employment-Scheme", hi: "https://msme.goa.gov.in/home/Scheme-Details/Self-Employment-Scheme" }, applyType: "offline",
+    docs:    { en: ["Application form","Two passport size photographs","Caste certificate (ST)","Income certificate","Aadhaar card","Project report"],
+               hi: ["आवेदन पत्र","दो पासपोर्ट आकार की फोटो","जाति प्रमाण पत्र (अनुसूचित जनजाति)","आय प्रमाण पत्र","आधार कार्ड","परियोजना रिपोर्ट"] },
+    autoAdded: "2026-10-07", source: "https://msme.goa.gov.in/home/Scheme-Details/Self-Employment-Scheme",
+    match: (a) => a.state === "Goa" && a.who === "business" && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age) && a.caste === "st",
+  },
+  // </auto-scheme id="goa_self_employment_entrepreneurs">
+
 ];

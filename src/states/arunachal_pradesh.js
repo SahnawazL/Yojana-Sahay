@@ -182,4 +182,72 @@ export const ARUNACHAL_PRADESH_SCHEMES = [
   },
   // </auto-scheme id="arunachal_deen_dayal_upadhyaya">
 
+  // <auto-scheme id="arunachal_arogya_arunachal"> researched + verified on 2026-10-07 · source: https://arunachal.mygov.in/group-issue/providing-affordable-and-quality-healthcare-services-arunachal-chief-minister-aarogya/
+  {
+    id: "arunachal_arogya_arunachal",
+    icon: "🏥", color: "#0369A1", scope: "state", state: "Arunachal Pradesh",
+    ministry: { en: "Department of Health & Family Welfare", hi: "स्वास्थ्य एवं परिवार कल्याण विभाग" },
+    name:    { en: "Chief Minister Arogya Arunachal Yojana (CMAAY)", hi: "मुख्यमंत्री आरोग्य अरुणाचल योजना (CMAAY)" },
+    benefit: { en: "Cashless health cover up to ₹5 lakh per family per year at empanelled hospitals", hi: "सूचीबद्ध अस्पतालों में प्रति परिवार प्रति वर्ष ₹5 लाख तक कैशलेस स्वास्थ्य कवर" },
+    tag:     { en: "Health / Insurance", hi: "स्वास्थ्य / बीमा" },
+    annual: 500000,
+    apply:   { en: "https://arunachal.mygov.in/group-issue/providing-affordable-and-quality-healthcare-services-arunachal-chief-minister-aarogya/", hi: "https://arunachal.mygov.in/group-issue/providing-affordable-and-quality-healthcare-services-arunachal-chief-minister-aarogya/" }, applyType: "offline",
+    docs:    { en: ["APST certificate or Resident Certificate","Aadhaar card","Family / ration card details"],
+               hi: ["एपीएसटी प्रमाण पत्र या निवास प्रमाण पत्र","आधार कार्ड","परिवार / राशन कार्ड का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://arunachal.mygov.in/group-issue/providing-affordable-and-quality-healthcare-services-arunachal-chief-minister-aarogya/",
+    match: (a) => a.state === "Arunachal Pradesh",
+  },
+  // </auto-scheme id="arunachal_arogya_arunachal">
+
+  // <auto-scheme id="arunachal_dulari_kanya_girl"> researched + verified on 2026-10-07 · source: https://papumpare.nic.in/scheme/dulari-kanya/
+  {
+    id: "arunachal_dulari_kanya_girl",
+    icon: "👶", color: "#EC4899", scope: "state", state: "Arunachal Pradesh",
+    ministry: { en: "Department of Health & Family Welfare", hi: "स्वास्थ्य एवं परिवार कल्याण विभाग" },
+    name:    { en: "Dulari Kanya — Girl Child Fixed Deposit", hi: "दुलारी कन्या — बालिका सावधि जमा योजना" },
+    benefit: { en: "₹20,000 fixed deposit for a girl born in hospital, withdrawable at age 18", hi: "अस्पताल में जन्मी बालिका के नाम ₹20,000 की सावधि जमा, 18 वर्ष की आयु पर निकासी" },
+    tag:     { en: "Child / Girl Child", hi: "बाल / बालिका" },
+    annual: 20000,
+    apply:   { en: "https://papumpare.nic.in/scheme/dulari-kanya/", hi: "https://papumpare.nic.in/scheme/dulari-kanya/" }, applyType: "offline",
+    docs:    { en: ["Hospital delivery / discharge certificate","MCP card","Birth certificate","Parent's ST or domicile certificate","Parents' Aadhaar cards"],
+               hi: ["अस्पताल प्रसव / डिस्चार्ज प्रमाण पत्र","एमसीपी कार्ड","जन्म प्रमाण पत्र","माता-पिता का एसटी या अधिवास प्रमाण पत्र","माता-पिता के आधार कार्ड"] },
+    autoAdded: "2026-10-07", source: "https://papumpare.nic.in/scheme/dulari-kanya/",
+    match: (a) => a.state === "Arunachal Pradesh" && a.age === "below18" && (a.who === "women" || a.gender === "female"),
+  },
+  // </auto-scheme id="arunachal_dulari_kanya_girl">
+
+  // <auto-scheme id="arunachal_atma_nirbhar_pashu"> researched + verified on 2026-10-07 · source: https://lohit.nic.in/scheme/atma-nirbhar-pashu-palan-yojna-anppy/
+  {
+    id: "arunachal_atma_nirbhar_pashu",
+    icon: "🌾", color: "#138808", scope: "state", state: "Arunachal Pradesh",
+    ministry: { en: "Department of Animal Husbandry, Veterinary & Dairy Development", hi: "पशुपालन, पशु चिकित्सा एवं डेयरी विकास विभाग" },
+    name:    { en: "Atma Nirbhar Pashu Palan Yojana (ANPPY) — Livestock Farming", hi: "आत्मनिर्भर पशु पालन योजना (ANPPY) — पशुपालन" },
+    benefit: { en: "Supported livestock farming unit; beneficiary pays only 10% of project cost upfront", hi: "पशुपालन इकाई के लिए सहायता; लाभार्थी को परियोजना लागत का केवल 10% अग्रिम देना होता है" },
+    tag:     { en: "Farmer / Livestock", hi: "किसान / पशुपालन" },
+    annual: 0,
+    apply:   { en: "https://lohit.nic.in/scheme/atma-nirbhar-pashu-palan-yojna-anppy/", hi: "https://lohit.nic.in/scheme/atma-nirbhar-pashu-palan-yojna-anppy/" }, applyType: "offline",
+    docs:    { en: ["APST certificate","PRC / domicile certificate","Aadhaar card","Bank passbook","PAN card","Land certificate"],
+               hi: ["एपीएसटी प्रमाण पत्र","पीआरसी / अधिवास प्रमाण पत्र","आधार कार्ड","बैंक पासबुक","पैन कार्ड","भूमि प्रमाण पत्र"] },
+    autoAdded: "2026-10-07", source: "https://lohit.nic.in/scheme/atma-nirbhar-pashu-palan-yojna-anppy/",
+    match: (a) => a.state === "Arunachal Pradesh" && a.who === "farmer",
+  },
+  // </auto-scheme id="arunachal_atma_nirbhar_pashu">
+
+  // <auto-scheme id="arunachal_atma_nirbhar_krishi"> researched + verified on 2026-10-07 · source: https://agri.arunachal.gov.in/atmanirbhar_yojana/
+  {
+    id: "arunachal_atma_nirbhar_krishi",
+    icon: "🌾", color: "#138808", scope: "state", state: "Arunachal Pradesh",
+    ministry: { en: "Department of Agriculture", hi: "कृषि विभाग" },
+    name:    { en: "Atma Nirbhar Krishi Yojana (ANKY)", hi: "आत्मनिर्भर कृषि योजना (ANKY)" },
+    benefit: { en: "Subsidised support for terrace farming, double cropping, tea, rubber & farm machinery", hi: "सीढ़ीदार खेती, दोहरी फसल, चाय, रबर और कृषि मशीनरी के लिए सब्सिडी सहायता" },
+    tag:     { en: "Farmer / Agriculture", hi: "किसान / कृषि" },
+    annual: 0,
+    apply:   { en: "https://agri.arunachal.gov.in/atmanirbhar_yojana/", hi: "https://agri.arunachal.gov.in/atmanirbhar_yojana/" }, applyType: "offline",
+    docs:    { en: ["Aadhaar card","Bank passbook (front page)","No-due certificate from bank","Land availability certificate","Detailed Project Report (DPR)","ST certificate"],
+               hi: ["आधार कार्ड","बैंक पासबुक (पहला पृष्ठ)","बैंक से अदेयता प्रमाण पत्र","भूमि उपलब्धता प्रमाण पत्र","विस्तृत परियोजना रिपोर्ट (डीपीआर)","एसटी प्रमाण पत्र"] },
+    autoAdded: "2026-10-07", source: "https://agri.arunachal.gov.in/atmanirbhar_yojana/",
+    match: (a) => a.state === "Arunachal Pradesh" && a.who === "farmer" && ["1to2","2to5","5plus"].includes(a.landHolding),
+  },
+  // </auto-scheme id="arunachal_atma_nirbhar_krishi">
+
 ];

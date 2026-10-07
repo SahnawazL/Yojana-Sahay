@@ -200,4 +200,55 @@ export const MIZORAM_SCHEMES = [
   //   match: (a) => a.state === "Mizoram",
   // },
 
+  // <auto-scheme id="mizoram_mizoram_bana_kaih"> researched + verified on 2026-10-07 · source: https://industries.mizoram.gov.in/page/about-bana-kaih
+  {
+    id: "mizoram_mizoram_bana_kaih",
+    icon: "💼", color: "#6B21A8", scope: "state", state: "Mizoram",
+    ministry: { en: "Commerce & Industries Department (with 16 departments), Govt. of Mizoram", hi: "वाणिज्य एवं उद्योग विभाग (16 विभागों के साथ), मिज़ोरम सरकार" },
+    name:    { en: "Mizoram Bana Kaih (Handholding) Scheme", hi: "मिज़ोरम बाना काइह (हैंडहोल्डिंग) योजना" },
+    benefit: { en: "Collateral-free, interest-free bank loans up to ₹50 lakh; grant up to ₹1 lakh", hi: "₹50 लाख तक बिना गारंटी, ब्याज-मुक्त बैंक ऋण; ₹1 लाख तक अनुदान" },
+    tag:     { en: "Business / Interest-free Loan", hi: "व्यवसाय / ब्याज-मुक्त ऋण" },
+    annual: 0,
+    apply:   { en: "https://industries.mizoram.gov.in/page/about-bana-kaih", hi: "https://industries.mizoram.gov.in/page/about-bana-kaih" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card","Mizoram residence proof","Project proposal / business plan","Bank account details"],
+               hi: ["आधार कार्ड","मिज़ोरम निवास प्रमाण","परियोजना प्रस्ताव / व्यवसाय योजना","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://industries.mizoram.gov.in/page/about-bana-kaih",
+    match: (a) => a.state === "Mizoram" && ["farmer","business"].includes(a.who),
+  },
+  // </auto-scheme id="mizoram_mizoram_bana_kaih">
+
+  // <auto-scheme id="mizoram_stipend_educated_unemployed"> researched + verified on 2026-10-07 · source: https://socialwelfare.mizoram.gov.in/page/schemes-on-disability1688554472
+  {
+    id: "mizoram_stipend_educated_unemployed",
+    icon: "🦽", color: "#4F46E5", scope: "state", state: "Mizoram",
+    ministry: { en: "Social Welfare & Tribal Affairs Department, Govt. of Mizoram", hi: "समाज कल्याण एवं जनजातीय कार्य विभाग, मिज़ोरम सरकार" },
+    name:    { en: "Stipend for Educated Unemployed Persons with Disabilities (Mizoram)", hi: "शिक्षित बेरोज़गार दिव्यांगजन के लिए वजीफ़ा (मिज़ोरम)" },
+    benefit: { en: "₹650 per month stipend for educated unemployed persons with disabilities", hi: "शिक्षित बेरोज़गार दिव्यांगजन को ₹650 प्रति माह वजीफ़ा" },
+    tag:     { en: "Disability / Unemployment Stipend", hi: "दिव्यांगता / बेरोज़गारी वजीफ़ा" },
+    annual: 7800,
+    apply:   { en: "https://socialwelfare.mizoram.gov.in/page/schemes-on-disability1688554472", hi: "https://socialwelfare.mizoram.gov.in/page/schemes-on-disability1688554472" }, applyType: "offline",
+    docs:    { en: ["Disability Certificate / UDID Card","Employment Exchange registration card","Educational certificates","Bank account details"],
+               hi: ["दिव्यांगता प्रमाणपत्र / यूडीआईडी कार्ड","रोज़गार कार्यालय पंजीकरण कार्ड","शैक्षणिक प्रमाणपत्र","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://socialwelfare.mizoram.gov.in/page/schemes-on-disability1688554472",
+    match: (a) => a.state === "Mizoram" && (!!a.disability && a.disability !== "none"),
+  },
+  // </auto-scheme id="mizoram_stipend_educated_unemployed">
+
+  // <auto-scheme id="mizoram_mbocwwb_skill_development"> researched + verified on 2026-10-07 · source: https://bocw.mizoram.gov.in/page/scheme-on-skill-development-of-mbocwwb
+  {
+    id: "mizoram_mbocwwb_skill_development",
+    icon: "⚒️", color: "#92400E", scope: "state", state: "Mizoram",
+    ministry: { en: "Mizoram Building & Other Construction Workers Welfare Board, Labour Dept.", hi: "मिज़ोरम भवन एवं अन्य निर्माण श्रमिक कल्याण बोर्ड, श्रम विभाग" },
+    name:    { en: "MBOCWWB Skill Development Training for Construction Workers (Mizoram)", hi: "निर्माण श्रमिकों के लिए एमबीओसीडब्ल्यूडब्ल्यूबी कौशल विकास प्रशिक्षण (मिज़ोरम)" },
+    benefit: { en: "Skill training in 24+ trades (welding, plumbing, tailoring etc.) for workers & families", hi: "श्रमिकों व परिवार के लिए 24+ ट्रेडों (वेल्डिंग, प्लंबिंग, सिलाई आदि) में कौशल प्रशिक्षण" },
+    tag:     { en: "Labour / Skill Training", hi: "श्रमिक / कौशल प्रशिक्षण" },
+    annual: 0,
+    apply:   { en: "https://bocw.mizoram.gov.in/page/scheme-on-skill-development-of-mbocwwb", hi: "https://bocw.mizoram.gov.in/page/scheme-on-skill-development-of-mbocwwb" }, applyType: "offline",
+    docs:    { en: ["MBOCWWB registration / labour card","Aadhaar Card","Proof of relationship (for dependants)","Passport-size photographs"],
+               hi: ["एमबीओसीडब्ल्यूडब्ल्यूबी पंजीकरण / श्रमिक कार्ड","आधार कार्ड","संबंध प्रमाण (आश्रितों के लिए)","पासपोर्ट आकार के फ़ोटो"] },
+    autoAdded: "2026-10-07", source: "https://bocw.mizoram.gov.in/page/scheme-on-skill-development-of-mbocwwb",
+    match: (a) => a.state === "Mizoram",
+  },
+  // </auto-scheme id="mizoram_mbocwwb_skill_development">
+
 ];

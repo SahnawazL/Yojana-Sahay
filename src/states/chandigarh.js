@@ -181,4 +181,38 @@ export const CHANDIGARH_SCHEMES = [
   //   match: (a) => a.state === "Chandigarh",
   // },
 
+  // <auto-scheme id="chd_free_books_stationery"> researched + verified on 2026-10-07 · source: https://chdeducation.gov.in/page/viewpage/103
+  {
+    id: "chd_free_books_stationery",
+    icon: "📚", color: "#003580", scope: "state", state: "Chandigarh",
+    ministry: { en: "Department of Higher Education, Chandigarh Administration", hi: "उच्च शिक्षा विभाग, चंडीगढ़ प्रशासन" },
+    name:    { en: "Free Books & Stationery for SC/ST College Students", hi: "अनुसूचित जाति/जनजाति कॉलेज विद्यार्थियों को निःशुल्क पुस्तकें एवं स्टेशनरी" },
+    benefit: { en: "Free books & stationery worth ₹250 (Arts/Commerce) or ₹350 (Science) per student", hi: "प्रति विद्यार्थी ₹250 (कला/वाणिज्य) या ₹350 (विज्ञान) की निःशुल्क पुस्तकें एवं स्टेशनरी" },
+    tag:     { en: "Student / Books", hi: "विद्यार्थी / पुस्तकें" },
+    annual: 350,
+    apply:   { en: "https://chdeducation.gov.in/page/viewpage/103", hi: "https://chdeducation.gov.in/page/viewpage/103" }, applyType: "offline",
+    docs:    { en: ["SC/ST certificate","College admission / fee receipt"],
+               hi: ["अनुसूचित जाति/जनजाति प्रमाण पत्र","कॉलेज प्रवेश / शुल्क रसीद"] },
+    autoAdded: "2026-10-07", source: "https://chdeducation.gov.in/page/viewpage/103",
+    match: (a) => a.state === "Chandigarh" && a.who === "student" && ["sc","st"].includes(a.caste) && ["undergrad","postgrad"].includes(a.educationLevel),
+  },
+  // </auto-scheme id="chd_free_books_stationery">
+
+  // <auto-scheme id="chd_full_fee_exemption"> researched + verified on 2026-10-07 · source: https://chdeducation.gov.in/page/viewpage/103
+  {
+    id: "chd_full_fee_exemption",
+    icon: "🦽", color: "#4F46E5", scope: "state", state: "Chandigarh",
+    ministry: { en: "Department of Higher Education, Chandigarh Administration", hi: "उच्च शिक्षा विभाग, चंडीगढ़ प्रशासन" },
+    name:    { en: "Full Fee Exemption for Blind Students in Govt Colleges", hi: "सरकारी कॉलेजों में दृष्टिबाधित विद्यार्थियों को पूर्ण शुल्क माफी" },
+    benefit: { en: "Full exemption from tuition and admission fees in all classes for blind students", hi: "दृष्टिबाधित विद्यार्थियों को सभी कक्षाओं में ट्यूशन एवं प्रवेश शुल्क से पूर्ण छूट" },
+    tag:     { en: "Disability / Education", hi: "दिव्यांगता / शिक्षा" },
+    annual: 0,
+    apply:   { en: "https://chdeducation.gov.in/page/viewpage/103", hi: "https://chdeducation.gov.in/page/viewpage/103" }, applyType: "offline",
+    docs:    { en: ["Disability (blindness) certificate","College admission form"],
+               hi: ["दिव्यांगता (दृष्टिहीनता) प्रमाण पत्र","कॉलेज प्रवेश फॉर्म"] },
+    autoAdded: "2026-10-07", source: "https://chdeducation.gov.in/page/viewpage/103",
+    match: (a) => a.state === "Chandigarh" && a.who === "student" && ["undergrad","postgrad"].includes(a.educationLevel) && (!!a.disability && a.disability !== "none"),
+  },
+  // </auto-scheme id="chd_full_fee_exemption">
+
 ];

@@ -200,4 +200,72 @@ export const TRIPURA_SCHEMES = [
   //   match: (a) => a.state === "Tripura",
   // },
 
+  // <auto-scheme id="tripura_konya_atmonirbhor_free"> researched + verified on 2026-10-07 · source: https://highereducation.tripura.gov.in/DHE/sites/default/files/MKAY%20Guideline%20%28ocr%29.pdf
+  {
+    id: "tripura_konya_atmonirbhor_free",
+    icon: "📚", color: "#003580", scope: "state", state: "Tripura",
+    ministry: { en: "Directorate of Higher Education, Govt. of Tripura", hi: "उच्च शिक्षा निदेशालय, त्रिपुरा सरकार" },
+    name:    { en: "Mukhyamantri Konya Atmonirbhor Yojana (MKAY) — Free Scooty", hi: "मुख्यमंत्री कन्या आत्मनिर्भर योजना (एमकेएवाई) — मुफ़्त स्कूटी" },
+    benefit: { en: "Free scooty with insurance & registration to 140 top girl students in govt colleges", hi: "सरकारी कॉलेजों की 140 मेधावी छात्राओं को बीमा व पंजीकरण सहित मुफ़्त स्कूटी" },
+    tag:     { en: "Student / Girls' Merit Award", hi: "छात्र / छात्रा मेधा पुरस्कार" },
+    annual: 0,
+    apply:   { en: "https://highereducation.tripura.gov.in/DHE/sites/default/files/MKAY%20Guideline%20%28ocr%29.pdf", hi: "https://highereducation.tripura.gov.in/DHE/sites/default/files/MKAY%20Guideline%20%28ocr%29.pdf" }, applyType: "online",
+    docs:    { en: ["H.S. (+2) marksheet","Permanent Resident of Tripura Certificate (PRTC)","Income Certificate","College study certificate","Aadhaar Card","Bank account details"],
+               hi: ["उच्च माध्यमिक (+2) अंकतालिका","त्रिपुरा स्थायी निवासी प्रमाणपत्र (पीआरटीसी)","आय प्रमाणपत्र","कॉलेज अध्ययन प्रमाणपत्र","आधार कार्ड","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://highereducation.tripura.gov.in/DHE/sites/default/files/MKAY%20Guideline%20%28ocr%29.pdf",
+    match: (a) => a.state === "Tripura" && ["student","women"].includes(a.who) && a.educationLevel === "undergrad" && (a.who === "women" || a.gender === "female"),
+  },
+  // </auto-scheme id="tripura_konya_atmonirbhor_free">
+
+  // <auto-scheme id="tripura_balika_samriddhi"> researched + verified on 2026-10-07 · source: https://www.newsonair.gov.in/union-minister-jp-nadda-announces-two-welfare-schemes-for-girls-in-tripura/
+  {
+    id: "tripura_balika_samriddhi",
+    icon: "👶", color: "#EC4899", scope: "state", state: "Tripura",
+    ministry: { en: "Social Welfare & Social Education Department, Govt. of Tripura", hi: "समाज कल्याण एवं समाज शिक्षा विभाग, त्रिपुरा सरकार" },
+    name:    { en: "Mukhyamantri Balika Samriddhi Yojana (Tripura)", hi: "मुख्यमंत्री बालिका समृद्धि योजना (त्रिपुरा)" },
+    benefit: { en: "₹50,000 bond deposited in the name of each girl born in a BPL family", hi: "बीपीएल परिवार में जन्मी हर बालिका के नाम ₹50,000 का बॉन्ड जमा" },
+    tag:     { en: "Child / Girl Child Bond", hi: "बाल / बालिका बॉन्ड" },
+    annual: 50000,
+    apply:   { en: "https://www.newsonair.gov.in/union-minister-jp-nadda-announces-two-welfare-schemes-for-girls-in-tripura/", hi: "https://www.newsonair.gov.in/union-minister-jp-nadda-announces-two-welfare-schemes-for-girls-in-tripura/" }, applyType: "offline",
+    docs:    { en: ["Birth Certificate of the girl","BPL / Antyodaya Ration Card","Parents' Aadhaar Card","PRTC of parents"],
+               hi: ["बालिका का जन्म प्रमाणपत्र","बीपीएल / अंत्योदय राशन कार्ड","माता-पिता का आधार कार्ड","माता-पिता का पीआरटीसी"] },
+    autoAdded: "2026-10-07", source: "https://www.newsonair.gov.in/union-minister-jp-nadda-announces-two-welfare-schemes-for-girls-in-tripura/",
+    match: (a) => a.state === "Tripura" && a.age === "below18" && ["bpl","aay"].includes(a.rationCard) && (a.who === "women" || a.gender === "female"),
+  },
+  // </auto-scheme id="tripura_balika_samriddhi">
+
+  // <auto-scheme id="tripura_konya_bibaha_tripura"> researched + verified on 2026-10-07 · source: https://socialwelfare.tripura.gov.in/sites/default/files/Gezette_Notification_with_Scheme_Details_Mukhyamantri_Konya_Bibaho_Yojana_MKBY.pdf
+  {
+    id: "tripura_konya_bibaha_tripura",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Tripura",
+    ministry: { en: "Social Welfare & Social Education Department, Govt. of Tripura", hi: "समाज कल्याण एवं समाज शिक्षा विभाग, त्रिपुरा सरकार" },
+    name:    { en: "Mukhyamantri Konya Bibaha Yojana (MKBY) — Tripura", hi: "मुख्यमंत्री कन्या विवाह योजना (एमकेबीवाई) — त्रिपुरा" },
+    benefit: { en: "₹50,000 one-time marriage assistance for girls from Antyodaya families", hi: "अंत्योदय परिवारों की बेटियों को ₹50,000 एकमुश्त विवाह सहायता" },
+    tag:     { en: "Women / Marriage Assistance", hi: "महिला / विवाह सहायता" },
+    annual: 50000,
+    apply:   { en: "https://socialwelfare.tripura.gov.in/sites/default/files/Gezette_Notification_with_Scheme_Details_Mukhyamantri_Konya_Bibaho_Yojana_MKBY.pdf", hi: "https://socialwelfare.tripura.gov.in/sites/default/files/Gezette_Notification_with_Scheme_Details_Mukhyamantri_Konya_Bibaho_Yojana_MKBY.pdf" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card & PRTC of bride","Age proof (birth / school leaving certificate)","Antyodaya Ration Card","Self-declaration on marital status","Groom's Aadhaar & address proof","Passport-size photographs"],
+               hi: ["दुल्हन का आधार कार्ड व पीआरटीसी","आयु प्रमाण (जन्म / स्कूल छोड़ने का प्रमाणपत्र)","अंत्योदय राशन कार्ड","वैवाहिक स्थिति का स्व-घोषणा पत्र","दूल्हे का आधार व पते का प्रमाण","पासपोर्ट आकार के फ़ोटो"] },
+    autoAdded: "2026-10-07", source: "https://socialwelfare.tripura.gov.in/sites/default/files/Gezette_Notification_with_Scheme_Details_Mukhyamantri_Konya_Bibaho_Yojana_MKBY.pdf",
+    match: (a) => a.state === "Tripura" && a.who === "women" && ["18to35","35to60","above60"].includes(a.age) && a.rationCard === "aay",
+  },
+  // </auto-scheme id="tripura_konya_bibaha_tripura">
+
+  // <auto-scheme id="tripura_swavalamban_self_employment"> researched + verified on 2026-10-07 · source: https://industries.tripura.gov.in/swabalamban-guidelines-schemes
+  {
+    id: "tripura_swavalamban_self_employment",
+    icon: "💼", color: "#6B21A8", scope: "state", state: "Tripura",
+    ministry: { en: "Industries & Commerce Department, Govt. of Tripura", hi: "उद्योग एवं वाणिज्य विभाग, त्रिपुरा सरकार" },
+    name:    { en: "Swavalamban Self-Employment Scheme (Tripura)", hi: "स्वावलंबन स्वरोज़गार योजना (त्रिपुरा)" },
+    benefit: { en: "30% subsidy (35% for women) on project cost, max ₹1 lakh, on loans up to ₹1 crore", hi: "₹1 करोड़ तक के ऋण पर परियोजना लागत का 30% (महिलाओं को 35%) अनुदान, अधिकतम ₹1 लाख" },
+    tag:     { en: "Business / Self-Employment Subsidy", hi: "व्यवसाय / स्वरोज़गार सब्सिडी" },
+    annual: 100000,
+    apply:   { en: "https://industries.tripura.gov.in/swabalamban-guidelines-schemes", hi: "https://industries.tripura.gov.in/swabalamban-guidelines-schemes" }, applyType: "online",
+    docs:    { en: ["PRTC","Aadhaar Card","Age proof","Project report","Bank account details"],
+               hi: ["पीआरटीसी","आधार कार्ड","आयु प्रमाण","परियोजना रिपोर्ट","बैंक खाते का विवरण"] },
+    autoAdded: "2026-10-07", source: "https://industries.tripura.gov.in/swabalamban-guidelines-schemes",
+    match: (a) => a.state === "Tripura" && a.who === "business" && ["18to35","35to60"].includes(a.age),
+  },
+  // </auto-scheme id="tripura_swavalamban_self_employment">
+
 ];
