@@ -144,6 +144,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Mark Sheets","Income Certificate","Bank Account"],
                hi: ["आधार कार्ड","मार्कशीट","आय प्रमाण पत्र","बैंक खाता"] },
     keywords: ["class10","class12"],
+    eligibilityText: { en: ["Students from Class 1 to PhD — each scholarship has its own rules", "Family income limits apply (usually ₹1–8 lakh a year, depending on the scholarship)", "Apply on scholarships.gov.in while the portal is open"],
+                       hi: ["कक्षा 1 से PhD तक के विद्यार्थी — हर छात्रवृत्ति के अपने नियम हैं", "परिवार की आय सीमा लागू (आमतौर पर ₹1–8 लाख प्रति वर्ष, छात्रवृत्ति के अनुसार)", "पोर्टल खुला रहने पर scholarships.gov.in पर आवेदन करें"] },
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -225,6 +227,8 @@ export const SCHEME_DB = [
     apply:   { en: "Nearest bank branch", hi: "नज़दीकी बैंक शाखा" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Land Records","Bank Passbook","Photo"],
                hi: ["आधार कार्ड","जमीन के कागज़","पासबुक","फोटो"] },
+    eligibilityText: { en: ["Farmers — owner-cultivators, tenant farmers, oral lessees and sharecroppers", "Also fishermen and animal-husbandry / dairy farmers", "Low-interest crop loans, with an extra discount for repaying on time"],
+                       hi: ["किसान — भू-स्वामी, किरायेदार, मौखिक पट्टेदार और बटाईदार", "मछुआरे और पशुपालन / डेयरी किसान भी", "कम ब्याज पर फसल ऋण, समय पर चुकाने पर अतिरिक्त छूट"] },
     match: (a) => a.who === "farmer",
   },
 
@@ -241,6 +245,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card (or Voter ID / Passport)", "Passport Photo"],
                hi: ["आधार कार्ड (या मतदाता पहचान पत्र / पासपोर्ट)", "पासपोर्ट फोटो"] },
     // Eligibility: any unbanked Indian, targeted at low-income households
+    eligibilityText: { en: ["Any Indian aged 10+ who doesn't have a bank account", "Zero-balance account with a RuPay card and accident insurance", "Aadhaar or another valid ID is enough"],
+                       hi: ["10+ उम्र का कोई भी भारतीय जिसका बैंक खाता नहीं है", "RuPay कार्ड और दुर्घटना बीमा के साथ ज़ीरो-बैलेंस खाता", "आधार या कोई अन्य वैध पहचान पत्र काफ़ी है"] },
     match: (a) => ["below1","1to3"].includes(a.income),
   },
 
@@ -382,6 +388,8 @@ export const SCHEME_DB = [
     apply:   { en: "https://pmfby.gov.in/", hi: "pmfby.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra)","Bank Passbook","Sowing Certificate"],
                hi: ["आधार कार्ड","खसरा/जमीन के कागज़","बैंक पासबुक","बुवाई प्रमाण पत्र"] },
+    eligibilityText: { en: ["Farmers growing notified crops in notified areas — owners, tenants and sharecroppers", "Enrol before the season's cut-off at your bank, CSC or pmfby.gov.in", "Low premium: 2% (Kharif), 1.5% (Rabi), 5% (commercial / horticulture crops)"],
+                       hi: ["अधिसूचित क्षेत्रों में अधिसूचित फसल उगाने वाले किसान — मालिक, किरायेदार और बटाईदार", "मौसम की अंतिम तिथि से पहले बैंक, CSC या pmfby.gov.in पर नामांकन करें", "कम प्रीमियम: 2% (खरीफ), 1.5% (रबी), 5% (वाणिज्यिक / बागवानी फसलें)"] },
     match: (a) => a.who === "farmer",
   },
 
@@ -397,6 +405,8 @@ export const SCHEME_DB = [
     apply:   { en: "https://nrega.nic.in", hi: "nrega.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Job Card (from Gram Panchayat)","Bank / Post Office Account"],
                hi: ["आधार कार्ड","जॉब कार्ड (ग्राम पंचायत से)","बैंक / डाकघर खाता"] },
+    eligibilityText: { en: ["Adult members (18+) of rural households", "Willing to do unskilled manual work", "Up to 100 days of paid work per household a year — get a Job Card from your Gram Panchayat"],
+                       hi: ["ग्रामीण परिवारों के वयस्क सदस्य (18+)", "अकुशल शारीरिक काम करने को तैयार हों", "प्रति परिवार साल में 100 दिन तक का मज़दूरी वाला काम — ग्राम पंचायत से जॉब कार्ड बनवाएं"] },
     match: (a) => a.area === "rural" && ["below1","1to3"].includes(a.income),
   },
 
@@ -413,6 +423,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Educational Certificates","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","शैक्षणिक प्रमाण पत्र","बैंक खाता","पासपोर्ट फोटो"] },
     keywords: ["class10","class12","skill","dropout"],
+    eligibilityText: { en: ["Youth aged 15–45, including school / college dropouts and the unemployed", "Free short-term skill training with a government certificate", "Register at skillindiadigital.gov.in or a PMKVY training centre"],
+                       hi: ["15–45 वर्ष के युवा, पढ़ाई छोड़ चुके और बेरोज़गार भी", "सरकारी प्रमाणपत्र के साथ मुफ्त अल्पकालिक कौशल प्रशिक्षण", "skillindiadigital.gov.in या PMKVY प्रशिक्षण केंद्र पर पंजीकरण करें"] },
     match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -428,6 +440,8 @@ export const SCHEME_DB = [
     apply:   { en: "https://www.airtel.in/blog/personal-loan/pmegp-loan-scheme-your-complete-guide", hi: "kviconline.gov.in/pmegpeportal" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Project Report","Educational Certificate","Caste Certificate (if SC/ST/OBC)"],
                hi: ["आधार कार्ड","प्रोजेक्ट रिपोर्ट","शैक्षणिक प्रमाण","जाति प्रमाण पत्र (SC/ST/OBC के लिए)"] },
+    eligibilityText: { en: ["Anyone aged 18+ setting up a new business (not expanding an existing one)", "Class 8 pass needed for projects above ₹10 lakh (manufacturing) or ₹5 lakh (services)", "Self-help groups, cooperatives and charitable trusts can also apply"],
+                       hi: ["नया व्यवसाय शुरू करने वाला 18+ उम्र का कोई भी व्यक्ति (मौजूदा व्यवसाय का विस्तार नहीं)", "₹10 लाख (विनिर्माण) या ₹5 लाख (सेवा) से बड़े प्रोजेक्ट के लिए 8वीं पास ज़रूरी", "स्वयं सहायता समूह, सहकारी समितियां और धर्मार्थ ट्रस्ट भी आवेदन कर सकते हैं"] },
     match: (a) => a.who === "business" || (["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income)),
   },
 
@@ -460,6 +474,8 @@ export const SCHEME_DB = [
     apply:   { en: "https://nfsa.gov.in", hi: "nfsa.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Existing Ration Card","Income Certificate","Address Proof"],
                hi: ["आधार कार्ड","राशन कार्ड","आय प्रमाण पत्र","पता प्रमाण"] },
+    eligibilityText: { en: ["Priority households and Antyodaya (AAY) families identified by your state", "Free foodgrains — 5 kg per person a month (35 kg per AAY family)", "Apply for a ration card at your state food department or CSC"],
+                       hi: ["राज्य द्वारा चिन्हित प्राथमिकता वाले परिवार और अंत्योदय (AAY) परिवार", "मुफ्त अनाज — 5 किलो प्रति व्यक्ति प्रति माह (AAY परिवार को 35 किलो)", "राज्य खाद्य विभाग या CSC पर राशन कार्ड के लिए आवेदन करें"] },
     match: (a) => ["below1","1to3"].includes(a.income),
   },
 
@@ -615,7 +631,9 @@ export const SCHEME_DB = [
     apply:   { en: "https://sjsa.maharashtra.gov.in/en/scheme/indira-gandhi-national-widow-pension-scheme", hi: "nsap.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","BPL Certificate","Husband's Death Certificate","Age Proof","Bank Account"],
                hi: ["आधार कार्ड","BPL प्रमाण पत्र","पति का मृत्यु प्रमाण पत्र","आयु प्रमाण","बैंक खाता"] },
-    match: (a) => a.who === "women" && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age),
+    eligibilityText: { en: ["Widows aged 40–79", "From a Below Poverty Line (BPL) household", "Apply through your Gram Panchayat or municipal office"],
+                       hi: ["40–79 वर्ष की विधवा महिलाएं", "गरीबी रेखा से नीचे (BPL) परिवार से", "ग्राम पंचायत या नगर पालिका कार्यालय से आवेदन करें"] },
+    match: (a) => a.who === "women" && ["below1","1to3"].includes(a.income) && ["35to60","above60"].includes(a.age),
   },
 
   {
@@ -645,7 +663,9 @@ export const SCHEME_DB = [
     apply:   { en: "https://eshram.gov.in/", hi: "eshram.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (Aadhaar-linked mobile)","Bank Account"],
                hi: ["आधार कार्ड (आधार से लिंक मोबाइल)","बैंक खाता"] },
-    match: (a) => ["below1","1to3"].includes(a.income) && a.who !== "student",
+    eligibilityText: { en: ["Unorganised-sector workers aged 16–59 — labourers, domestic workers, vendors, gig workers and more", "Not a member of EPFO or ESIC, and not an income-tax payer", "Aadhaar-linked mobile number and a bank account needed"],
+                       hi: ["16–59 वर्ष के असंगठित क्षेत्र के श्रमिक — मज़दूर, घरेलू कामगार, विक्रेता, गिग वर्कर आदि", "EPFO या ESIC के सदस्य न हों और आयकर दाता न हों", "आधार से जुड़ा मोबाइल नंबर और बैंक खाता ज़रूरी"] },
+    match: (a) => ["below1","1to3"].includes(a.income) && a.who !== "student" && a.age !== "above60",
   },
 
   {
@@ -660,7 +680,9 @@ export const SCHEME_DB = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/pm-sym", hi: "maandhan.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Bank Account (Aadhaar-linked)","Mobile Number","Self-declaration of unorganised worker"],
                hi: ["आधार कार्ड","बैंक खाता (आधार लिंक)","मोबाइल नंबर","असंगठित श्रमिक स्व-घोषणा"] },
-    match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income) && a.who === "general",
+    eligibilityText: { en: ["Unorganised workers aged 18–40 earning up to ₹15,000 a month", "Not a member of EPFO, ESIC or government-funded NPS; not an income-tax payer", "Savings bank account and Aadhaar needed"],
+                       hi: ["₹15,000 प्रति माह तक कमाने वाले 18–40 वर्ष के असंगठित श्रमिक", "EPFO, ESIC या सरकारी NPS के सदस्य न हों; आयकर दाता न हों", "बचत बैंक खाता और आधार ज़रूरी"] },
+    match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income) && ["general","women","business"].includes(a.who),
   },
 
   {
@@ -728,6 +750,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Land Records (Khasra)","Bank Account","Electricity Bill (if any)","Passport Photo"],
                hi: ["आधार कार्ड","जमीन के कागज़ (खसरा)","बैंक खाता","बिजली बिल (यदि हो)","पासपोर्ट फोटो"] },
     // Eligibility: farmer with own agricultural land
+    eligibilityText: { en: ["Individual farmers, farmer groups, cooperatives, panchayats and FPOs", "For new solar pumps or converting existing grid pumps to solar", "Apply through your state's agriculture or renewable-energy agency"],
+                       hi: ["व्यक्तिगत किसान, किसान समूह, सहकारी समितियां, पंचायतें और FPO", "नए सोलर पंप या मौजूदा बिजली पंप को सोलर में बदलने के लिए", "अपने राज्य की कृषि या अक्षय ऊर्जा एजेंसी से आवेदन करें"] },
     match: (a) => a.who === "farmer",
   },
 
@@ -744,7 +768,9 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Electricity Consumer Number","Bank Account","Passport Photo","Roof Ownership Proof"],
                hi: ["आधार कार्ड","बिजली उपभोक्ता नंबर","बैंक खाता","पासपोर्ट फोटो","छत का स्वामित्व प्रमाण"] },
     // Eligibility: residential consumer with own roof and electricity connection
-    match: (a) => a.house === "yes" || ["below1","1to3","3to6"].includes(a.income),
+    eligibilityText: { en: ["Households that own their house, with a roof suitable for solar panels", "A valid electricity connection in the family's name", "Not if the household already got a rooftop-solar subsidy"],
+                       hi: ["अपने घर के मालिक परिवार, जिनकी छत सोलर पैनल के लिए उपयुक्त हो", "परिवार के नाम पर वैध बिजली कनेक्शन", "परिवार को पहले रूफटॉप सोलर सब्सिडी न मिली हो"] },
+    match: (a) => a.house === "yes",
   },
 
   {
@@ -792,7 +818,9 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Disability Certificate (80%+)","BPL Certificate","Age Proof","Bank Account"],
                hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (80%+)","BPL प्रमाण","आयु प्रमाण","बैंक खाता"] },
     // Eligibility: BPL, 80%+ disability, age 18-79
-    match: (a) => ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age),
+    eligibilityText: { en: ["Age 18–79 with severe or multiple disability (80% or more)", "From a Below Poverty Line (BPL) household", "Apply through your Gram Panchayat or municipal office"],
+                       hi: ["आयु 18–79 वर्ष, गंभीर या बहु-दिव्यांगता (80% या अधिक)", "गरीबी रेखा से नीचे (BPL) परिवार से", "ग्राम पंचायत या नगर पालिका कार्यालय से आवेदन करें"] },
+    match: (a) => !!a.disability && a.disability !== "none" && ["below1","1to3"].includes(a.income) && a.age !== "below18",
   },
 
   {
@@ -841,6 +869,8 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","शैक्षणिक प्रमाण (कक्षा 10/12/डिप्लोमा/डिग्री)","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: youth aged 21-24, family income below ₹8 Lakh, not in full-time education/employment
     keywords: ["class12","polytechnic","skill"],
+    eligibilityText: { en: ["Age 21–24, not in a full-time job or full-time education", "Family income below ₹8 lakh a year; no family member in a permanent government job", "Passed Class 10/12, ITI, diploma or a graduate degree (not from IITs, IIMs or professional courses like CA)"],
+                       hi: ["आयु 21–24 वर्ष, पूर्णकालिक नौकरी या पूर्णकालिक पढ़ाई में न हों", "परिवार की सालाना आय ₹8 लाख से कम; परिवार में कोई स्थायी सरकारी नौकरी में न हो", "10वीं/12वीं, ITI, डिप्लोमा या स्नातक पास (IIT, IIM या CA जैसे पेशेवर कोर्स वाले नहीं)"] },
     match: (a) => a.who === "student" && a.age === "18to35" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -874,6 +904,8 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","पैन कार्ड","संस्था का प्रवेश पत्र","10वीं/12वीं/स्नातक मार्कशीट","आय प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: student admitted to recognised higher education institution, family income below ₹8L
     keywords: ["class12"],
+    eligibilityText: { en: ["Students admitted to a top-ranked higher-education institution in India (NIRF list)", "Education loans without collateral; interest subsidy if family income is up to ₹8 lakh", "Apply on the Vidyalaxmi portal"],
+                       hi: ["भारत के शीर्ष रैंक वाले उच्च शिक्षा संस्थान (NIRF सूची) में प्रवेश पाए विद्यार्थी", "बिना गारंटी के शिक्षा ऋण; परिवार की आय ₹8 लाख तक होने पर ब्याज सब्सिडी", "विद्यालक्ष्मी पोर्टल पर आवेदन करें"] },
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -890,6 +922,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","MCH Card / MCP Card","BPL / SC / ST Certificate","Bank Account","Address Proof"],
                hi: ["आधार कार्ड","MCH कार्ड / MCP कार्ड","BPL/SC/ST प्रमाण पत्र","बैंक खाता","पता प्रमाण"] },
     // Eligibility: BPL / SC / ST pregnant women for institutional delivery
+    eligibilityText: { en: ["Pregnant women who deliver in a government or accredited private hospital", "In low-performing states all pregnant women qualify; elsewhere BPL and SC/ST women", "Register with your ASHA worker or Anganwadi centre"],
+                       hi: ["सरकारी या मान्यता प्राप्त निजी अस्पताल में प्रसव कराने वाली गर्भवती महिलाएं", "कम प्रदर्शन वाले राज्यों में सभी गर्भवती महिलाएं; अन्य राज्यों में BPL और SC/ST महिलाएं", "आशा कार्यकर्ता या आंगनवाड़ी केंद्र में पंजीकरण करें"] },
     match: (a) => a.who === "women" && ["below1","1to3"].includes(a.income),
   },
 
@@ -1053,6 +1087,8 @@ export const SCHEME_DB = [
     apply:   { en: "https://pmkisan.gov.in", hi: "maandhan.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (up to 2 hectares)","Bank Account (Aadhaar-linked)","Mobile Number"],
                hi: ["आधार कार्ड","जमीन के कागज़ (2 हेक्टेयर तक)","बैंक खाता (आधार लिंक)","मोबाइल नंबर"] },
+    eligibilityText: { en: ["Small and marginal farmers aged 18–40", "Cultivable land up to 2 hectares", "Not covered by EPFO, ESIC or NPS; not an income-tax payer"],
+                       hi: ["18–40 वर्ष के छोटे और सीमांत किसान", "2 हेक्टेयर तक की खेती योग्य ज़मीन", "EPFO, ESIC या NPS में न हों; आयकर दाता न हों"] },
     match: (a) => a.who === "farmer" && ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
