@@ -128,6 +128,7 @@ export async function getFirebaseUsage() {
   const prevStart = pacificMidnight(dayStart - HOUR); // handles 23/25 h DST days
   const base = {
     project,
+    account: process.env.FIREBASE_CLIENT_EMAIL ?? null,
     limits: FREE_LIMITS,
     dayStart: new Date(dayStart).toISOString(),
     resetsAt: new Date(pacificMidnight(dayStart + 26 * HOUR)).toISOString(),
@@ -165,6 +166,7 @@ export async function getFirebaseUsage() {
     return out;
   } catch (err) {
     if (err instanceof SetupNeeded) {
+      console.warn("[firebase-usage] setup needed:", err.kind, err.message);
       return { ...base, ok: false, setup: { kind: err.kind, link: err.link, detail: String(err.message).slice(0, 240) } };
     }
     return { ...base, ok: false, error: String(err.message ?? err).slice(0, 240) };

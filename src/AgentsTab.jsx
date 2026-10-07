@@ -2599,6 +2599,11 @@ const FirebaseUsageCard = React.memo(function FirebaseUsageCard({ dark, isDeskto
               Open Google Cloud ↗
             </a>
             <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:7 }}>This role can only <i>look</i> at numbers — it can't change anything.</div>
+            {d.setup.detail && (
+              <div style={{ fontSize:fs(8.5, isDesktop), color:th.textSub, marginTop:7, wordBreak:"break-word", fontFamily:"ui-monospace, monospace", lineHeight:1.5 }}>
+                Google says: {d.setup.detail}{d.account ? ` · account: ${d.account}` : ""}
+              </div>
+            )}
           </div>
         )}
         {d && !ok && !d.setup && (
