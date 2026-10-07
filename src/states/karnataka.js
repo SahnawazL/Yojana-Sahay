@@ -1429,4 +1429,22 @@ export const KARNATAKA_SCHEMES = [
   //   match: (a) => a.state === "Karnataka",
   // },
 
+  // <auto-scheme id="karnataka_deepika_scholarship"> added by Scheme Discovery agent on 2026-10-07 · source: https://dce.karnataka.gov.in/88/deepika-scholarship/en
+  {
+    id: "karnataka_deepika_scholarship",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Karnataka",
+    ministry: { en: "Department of Collegiate Education, Government of Karnataka", hi: "Karnataka सरकार" },
+    name:    { en: "Deepika Scholarship", hi: "Deepika Scholarship" },
+    benefit: { en: "₹30,000 per year for the entire duration of the Degree/Diploma", hi: "₹30,000 per year for the entire duration of the Degree/Diploma" },
+    tag:     { en: "Scholarship / Girls", hi: "Scholarship / Girls" },
+    annual: 30000,
+    apply:   { en: "https://dce.karnataka.gov.in/88/deepika-scholarship/en", hi: "https://dce.karnataka.gov.in/88/deepika-scholarship/en" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    keywords: ["class10","class12"],
+    autoAdded: "2026-10-07", source: "https://dce.karnataka.gov.in/88/deepika-scholarship/en",
+    match: (a) => a.state === "Karnataka" && ["women","student"].includes(a.who) && a.educationLevel === "class9to12" && (a.who === "women" || a.gender === "female"),
+  },
+  // </auto-scheme id="karnataka_deepika_scholarship">
+
 ];
