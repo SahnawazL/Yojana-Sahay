@@ -1,6 +1,9 @@
 {
   "rewrites": [
-    { "source": "/admin", "destination": "/index.html" },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
     {
       "source": "/((?!sitemap\\.xml|robots\\.txt|manifest\\.json|sw\\.js|schemes/|yojana/|icons/|og-image\\.png|.*\\.(?:xml|txt|json|js|css|png|jpg|jpeg|svg|ico|webp)$).*)",
       "destination": "/index.html"
@@ -15,19 +18,36 @@
           "value": "frame-ancestors 'self' https://sahnawaz-portfolio.vercel.app"
         }
       ]
+    },
+    {
+      "source": "/((?!embed).*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self'"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
     }
   ],
   "crons": [
     {
-      "path":     "/api/refresh-news",
+      "path": "/api/refresh-news",
       "schedule": "0 4 */3 * *"
     },
     {
-      "path":     "/api/deadline-alerts",
+      "path": "/api/deadline-alerts",
       "schedule": "0 5 * * *"
     },
     {
-      "path":     "/api/agent-auto-fix",
+      "path": "/api/agent-auto-fix",
       "schedule": "0 3 * * *"
     }
   ],
