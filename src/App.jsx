@@ -789,6 +789,7 @@ const T = {
       age_above60:"Age must be 60+",
       age_below18:"Age must be below 18",
       age_18to35:"Age must be 18–35",
+      age_35to60:"Age must be 35–60",
       state_match:"Not available in your state",
       caste_reserved:"Must be SC / ST / OBC / EWS category",
     },
@@ -931,6 +932,7 @@ const T = {
       age_above60:"उम्र 60+ होनी चाहिए",
       age_below18:"उम्र 18 से कम होनी चाहिए",
       age_18to35:"उम्र 18–35 होनी चाहिए",
+      age_35to60:"उम्र 35–60 होनी चाहिए",
       state_match:"आपके राज्य में उपलब्ध नहीं",
       caste_reserved:"SC / ST / OBC / EWS श्रेणी होना ज़रूरी है",
     },
@@ -3544,6 +3546,7 @@ function getMissingCriteria(scheme, answers, lang){
   // 5. age — check if a different age bracket unlocks the scheme
   if(answers.age !== "above60" && matchWith({age:"above60"})) reasons.push(criteria.age_above60);
   if(answers.age !== "18to35"  && matchWith({age:"18to35"}))  reasons.push(criteria.age_18to35);
+  if(answers.age !== "35to60"  && matchWith({age:"35to60"}))  reasons.push(criteria.age_35to60);
   if(answers.age !== "below18" && matchWith({age:"below18"})) reasons.push(criteria.age_below18);
 
   // 6. caste — if user is General, check if a reserved category would unlock the scheme
@@ -3859,6 +3862,14 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     // Recompute queue with the freshly updated answers so conditional
     // questions are injected before we decide if this is the last step
     const newQueue=buildQueue(newAnswers);
+    // Going back and changing an earlier answer (student → farmer, or income
+    // below ₹1 L → higher) left the old adaptive answer (educationLevel,
+    // rationCard…) in place, and it kept unlocking schemes the user no
+    // longer qualifies for. Drop adaptive answers whose question is gone.
+    const liveIds=new Set(newQueue.map(x=>x.id));
+    for(const k of ["landHolding","educationLevel","rationCard"]){
+      if(!liveIds.has(k)) delete newAnswers[k];
+    }
     const newTotal=newQueue.length;
     const nextStep=step===newTotal-1?newTotal:step+1;
     setAnswers(newAnswers);setSelected(null);setDirection("fwd");setAnimKey(k=>k+1);
