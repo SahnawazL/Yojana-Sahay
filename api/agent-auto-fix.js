@@ -2,7 +2,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Runs on a Vercel Cron schedule (see vercel.json) with ZERO admin interaction.
 //
-// What it does, every run:
+// What it does, every run (core logic: _lib/autoFixAgent.js):
 //   1. Loads SCHEME_DB (national + all states — already merged in schemesData.js)
 //   2. Detects all 4 URL issue types using the same rules as SchemeVerifier.jsx
 //   3. Auto-fixes ONLY "NO_HTTPS" issues (bare domain → add https://) — this is
@@ -13,12 +13,18 @@
 //      Firestore under `agentRuns/{runId}.needsReview` so they show up for
 //      you to handle manually in SchemeVerifier.jsx — the agent flags, it
 //      doesn't guess.
-//   5. Writes a full run summary to Firestore (`agentRuns` collection) so you
+//   5. URL REPAIR (_lib/urlRepairAgent.js): dead links are re-pinged, and
+//      still-dead ones get a replacement searched for and auto-committed only
+//      when it is unambiguous (same site / official site + title match).
+//   6. Writes a full run summary to Firestore (`agentRuns` collection) so you
 //      have a history of every autonomous run, what it fixed, and what it
 //      skipped.
 //
-// No Groq / Tavily calls at all — pure data validation + GitHub commit, so
-// this costs nothing against your AI rate limits and is safe to run daily.
+// No Groq / Tavily calls. URL repair spends at most URL_REPAIR_PER_RUN (default 3)
+// Serper searches a day.
+//
+// POST { action: "health" } (same CRON_SECRET) → Watchdog health check, see
+// _lib/agentHealth.js. Called by .github/workflows/agents-watchdog.yml.
 //
 // SECURITY: protected by CRON_SECRET so only Vercel's own cron scheduler (or
 // you, manually, with the header) can trigger it.
@@ -27,16 +33,12 @@
 //   header on cron invocations — see https://vercel.com/docs/cron-jobs/manage-cron-jobs
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { SCHEME_DB } from "../src/schemesData.js";
-import { detectUrlIssues, getUrlIssueFilePath } from "./_lib/urlIssues.js";
-import { commitPatches } from "./_lib/githubCommit.js";
+import { runAutoFixAgent } from "./_lib/autoFixAgent.js";
+import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import { getAdminDb } from "./_lib/firebaseAdmin.js";
 
 export default async function handler(req, res) {
-  // ── Auth: only Vercel Cron (or you, manually, with the secret) may trigger this ──
-  // Vercel Cron sends "Authorization: Bearer $CRON_SECRET" when CRON_SECRET is
-  // set. Without a secret configured the endpoint used to be open to anyone;
-  // now it only accepts Vercel's own cron user-agent in that case.
+  // ── Auth: only Vercel Cron / the GitHub watchdog (CRON_SECRET) ────────────
   const cronSecret = process.env.CRON_SECRET?.trim();
   const authHeader = req.headers["authorization"] ?? "";
   const isVercelCronUA = /vercel-cron/i.test(req.headers["user-agent"] ?? "");
@@ -45,117 +47,29 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Unauthorized." });
   }
 
-  const startedAt = new Date().toISOString();
-
-  try {
-    // ── Step 1: detect every URL issue across the whole DB ──────────────────
-    const issues = detectUrlIssues(SCHEME_DB, "all");
-
-    const noHttps  = issues.filter(i => i.type === "NO_HTTPS");
-    const needsReview = issues
-      .filter(i => i.type !== "NO_HTTPS")
-      .map(i => ({
-        id: i.scheme.id,
-        name: i.scheme.name?.en ?? i.scheme.id,
-        scope: i.scheme.scope,
-        state: i.scheme.state ?? null,
-        type: i.type,
-        rawUrl: i.rawUrl ?? null,
-      }));
-
-    // ── Step 2: build patch list for the SAFE issue type only ───────────────
-    const patches = noHttps.map(i => ({
-      id: i.scheme.id,
-      oldUrl: i.rawUrl,
-      newUrl: i.suggestedUrl,
-      file: getUrlIssueFilePath(i.scheme),
-    }));
-
-    let commitResult = { results: [], commits: [] };
-    if (patches.length > 0) {
-      commitResult = await commitPatches(patches);
-    }
-
-    const fixedCount  = commitResult.results.filter(r => r.success).length;
-    const failedCount = commitResult.results.filter(r => !r.success).length;
-
-    const summary = {
-      startedAt,
-      finishedAt: new Date().toISOString(),
-      totalSchemesScanned: SCHEME_DB.length,
-      totalIssuesFound: issues.length,
-      autoFixed: fixedCount,
-      autoFixFailed: failedCount,
-      commits: commitResult.commits,
-      needsReviewCount: needsReview.length,
-      needsReview, // full list so the admin dashboard can render it directly
-      failures: commitResult.results.filter(r => !r.success),
-    };
-
-    // ── Step 3: log the run to Firestore (best-effort — never blocks the response) ──
+  // ── Watchdog health check ────────────────────────────────────────────────
+  if (req.method === "POST" && req.body?.action === "health") {
     try {
       const db = getAdminDb();
-      if (db) {
-        await db.collection("agentRuns").add({
-          agent: "agent-auto-fix",
-          ...summary,
-          createdAt: new Date(),
-        });
-      }
-    } catch (logErr) {
-      console.error("[agent-auto-fix] Firestore log failed:", logErr.message);
+      const health = await getAgentHealth(db);
+      const report = req.body?.report && typeof req.body.report === "object" ? req.body.report : {};
+      const extra = {};
+      if (Array.isArray(report.reruns)) extra.reruns = report.reruns.slice(0, 10);
+      if (report.issue && typeof report.issue === "object") extra.issue = { url: String(report.issue.url ?? ""), state: String(report.issue.state ?? "") };
+      if (report.reviewIssue && typeof report.reviewIssue === "object") extra.reviewIssue = { url: String(report.reviewIssue.url ?? ""), state: String(report.reviewIssue.state ?? "") };
+      if (report.source) extra.source = String(report.source).slice(0, 40);
+      await saveAgentHealth(db, health, extra).catch(err => console.warn("[watchdog] save failed:", err.message));
+      return res.status(200).json(health);
+    } catch (err) {
+      console.error("[watchdog] health check failed:", err);
+      return res.status(500).json({ error: err.message });
     }
+  }
 
-    // ── Step 4: post to the Activity Ticker — only on days with something to
-    // report, so a clean scan doesn't spam the feed with "did nothing" entries ──
-    if (fixedCount > 0 || needsReview.length > 0) {
-      try {
-        const db = getAdminDb();
-        if (db) {
-          const parts = [];
-          if (fixedCount > 0) {
-            parts.push(`auto-fixed ${fixedCount} URL${fixedCount !== 1 ? "s" : ""} across ${commitResult.commits.length} file${commitResult.commits.length !== 1 ? "s" : ""}`);
-          }
-          if (needsReview.length > 0) {
-            parts.push(`flagged ${needsReview.length} scheme${needsReview.length !== 1 ? "s" : ""} for review`);
-          }
-          await db.collection("adminActivity").add({
-            agentId: "agent-auto-fix",
-            agentName: "Auto-Fix Agent",
-            action: `Daily scan: ${parts.join(", ")}`,
-            tab: "agents",
-            type: "auto",
-            time: new Date(),
-          });
-        }
-      } catch (tickerErr) {
-        console.error("[agent-auto-fix] Activity ticker post failed:", tickerErr.message);
-      }
-    }
-
-    console.log(
-      `[agent-auto-fix] Scanned ${summary.totalSchemesScanned} schemes · ` +
-      `${summary.autoFixed} auto-fixed · ${summary.needsReviewCount} need review · ` +
-      `${summary.autoFixFailed} failed.`
-    );
-
+  try {
+    const summary = await runAutoFixAgent({ trigger: req.body?.trigger === "watchdog" ? "watchdog" : "cron" });
     return res.status(200).json({ success: true, summary });
   } catch (err) {
-    console.error("[agent-auto-fix] Run failed:", err);
-    // Record the failed run so the Auto-Fix Agent card shows "Run failed"
-    // instead of the previous day's run as if nothing went wrong.
-    try {
-      await getAdminDb()?.collection("agentRuns").add({
-        agent: "agent-auto-fix",
-        startedAt,
-        finishedAt: new Date().toISOString(),
-        crashed: true,
-        error: String(err.message).slice(0, 500),
-        totalSchemesScanned: 0, totalIssuesFound: 0, autoFixed: 0, autoFixFailed: 0,
-        commits: [], needsReviewCount: 0, needsReview: [], failures: [],
-        createdAt: new Date(),
-      });
-    } catch { /* ignore */ }
     return res.status(500).json({ success: false, error: err.message });
   }
 }

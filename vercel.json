@@ -53,7 +53,10 @@
   ],
   "functions": {
     "api/agent-auto-fix.js": {
-      "maxDuration": 60
+      "maxDuration": 300
+    },
+    "api/deadline-alerts.js": {
+      "maxDuration": 300
     }
   }
 }
