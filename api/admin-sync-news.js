@@ -18,8 +18,8 @@ import refreshNewsHandler from "./refresh-news.js";
 import { getAdminDb, getAdminAuth } from "./_lib/firebaseAdmin.js";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed. Use POST." });
+  if (req.method !== "POST" && req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed. Use POST (sync) or GET (status)." });
   }
 
   // ── 1. Extract Firebase ID token ─────────────────────────────────────────
@@ -60,6 +60,22 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("[admin-sync-news] Firestore role check failed:", err.message);
     return res.status(500).json({ error: "Role verification failed" });
+  }
+
+  // ── GET → automatic-refresh status for the News tab ───────────────────────
+  if (req.method === "GET") {
+    try {
+      const cfg = (await getAdminDb().collection("_config").doc("news").get()).data() ?? {};
+      const iso = v => v?.toDate?.().toISOString?.() ?? null;
+      return res.status(200).json({
+        lastAttemptAt: iso(cfg.lastAttemptAt), lastAttemptOk: cfg.lastAttemptOk ?? null,
+        lastAttemptMessage: cfg.lastAttemptMessage ?? null,
+        lastAddedAt: iso(cfg.lastRunAt), lastAddCount: cfg.lastAddCount ?? null,
+        scheduleDays: 3,
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
   }
 
   // ── 4. Call /api/refresh-news with server-side CRON_SECRET ───────────────

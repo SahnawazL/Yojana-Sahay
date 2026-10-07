@@ -137,9 +137,14 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
       const docs = snap.docs
         .map((d) => ({ id: d.id, ...d.data() }))
         .sort((a, b) => {
-          const od = (b.order || 0) - (a.order || 0);
-          if (od !== 0) return od;
-          return (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0);
+          // Newest first. The old sort put `order` first, and every manually
+          // added item has order: 10 — so a 2-month-old manual item stayed on
+          // top forever and the news looked stale. Only an explicit pin wins now.
+          const pin = (b.pinned === true) - (a.pinned === true);
+          if (pin !== 0) return pin;
+          const ta = a.createdAt?.toMillis?.() ?? (a.pubDate ? Date.parse(a.pubDate) || 0 : 0);
+          const tb = b.createdAt?.toMillis?.() ?? (b.pubDate ? Date.parse(b.pubDate) || 0 : 0);
+          return tb - ta;
         });
       setItems(docs);
       setLoaded(true);

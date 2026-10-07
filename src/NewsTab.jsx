@@ -133,9 +133,14 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
         const docs = snap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
           .sort((a, b) => {
-            const od = (b.order || 0) - (a.order || 0);
-            if (od !== 0) return od;
-            return (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0);
+            // Newest first. The old sort put `order` first, and every manually
+            // added item has order: 10 — so a 2-month-old manual item stayed on
+            // top forever and the news looked stale. Only an explicit pin wins now.
+            const pin = (b.pinned === true) - (a.pinned === true);
+            if (pin !== 0) return pin;
+            const ta = a.createdAt?.toMillis?.() ?? (a.pubDate ? Date.parse(a.pubDate) || 0 : 0);
+            const tb = b.createdAt?.toMillis?.() ?? (b.pubDate ? Date.parse(b.pubDate) || 0 : 0);
+            return tb - ta;
           });
         setNewsItems(docs);
         setNewsLoaded(true);
@@ -265,6 +270,18 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
   }, [editFormEn, editFormHi, editFormUrl, editFormScope, editingId, handleCancelEdit]);
 
   // ── Sync Now (calls /api/admin-sync-news — Firebase-auth gated proxy) ─────
+  // ── Automatic refresh status (cron every 3 days + watchdog backup) ───────
+  const [autoStatus, setAutoStatus] = useState(null);
+  const loadAutoStatus = useCallback(async () => {
+    try {
+      const user = getAuth().currentUser;
+      if (!user) return;
+      const res = await fetch("/api/admin-sync-news", { headers: { Authorization: `Bearer ${await user.getIdToken()}` } });
+      if (res.ok) setAutoStatus(await res.json());
+    } catch { /* status is informational only */ }
+  }, []);
+  useEffect(() => { loadAutoStatus(); }, [loadAutoStatus]);
+
   const syncBusyRef = useRef(false);
   const handleSyncNews = useCallback(async () => {
     // Two quick taps used to start two syncs (state updates are async).
@@ -299,6 +316,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
       console.error("[NewsTab] Sync failed:", err);
     } finally {
       syncBusyRef.current = false;
+      loadAutoStatus();
       setNewsSyncing(false);
       if (syncMsgTimerRef.current) clearTimeout(syncMsgTimerRef.current);
       syncMsgTimerRef.current = setTimeout(() => setNewsSyncMsg(""), 8000);
@@ -364,6 +382,24 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
             </div>
           )}
         </div>
+
+        {/* Automatic refresh status */}
+        {autoStatus && (() => {
+          const at = autoStatus.lastAttemptAt ? new Date(autoStatus.lastAttemptAt) : null;
+          const days = at ? (Date.now() - at.getTime()) / 86400000 : null;
+          const late = days == null || days > autoStatus.scheduleDays + 1;
+          const bad = autoStatus.lastAttemptOk === false;
+          const color = bad ? "#E53E3E" : late ? SAFFRON : IND_GREEN;
+          return (
+            <div style={{ marginBottom:10, padding:"7px 12px", borderRadius:8, background:`${color}10`, border:`1px solid ${color}40`, fontSize:10.5, lineHeight:1.5, color:th.textMid }}>
+              <strong style={{ color }}>Auto-refresh every {autoStatus.scheduleDays} days</strong>
+              {" · "}last run {at ? timeAgo(at) : "not recorded yet"}
+              {autoStatus.lastAttemptMessage ? ` — ${autoStatus.lastAttemptMessage}` : ""}
+              {autoStatus.lastAddedAt && ` · last new item ${timeAgo(new Date(autoStatus.lastAddedAt))}`}
+              {late && !bad && <div>The watchdog re-runs it automatically if a scheduled run is missed.</div>}
+            </div>
+          );
+        })()}
 
         {/* Sync status message */}
         {newsSyncMsg && (

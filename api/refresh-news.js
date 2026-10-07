@@ -53,7 +53,8 @@ function getDb() {
 const GROQ_URL    = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL       = "openai/gpt-oss-20b"; // migrated from llama-3.1-8b-instant (Groq deprecated it June 17, 2026) — fast + cheap for summarisation, free tier, 200K TPD
 const MAX_NEWS    = 20;   // max auto-fetched docs kept in Firestore at once
-const MAX_NEW     = 8;    // max new items to process per cron run
+const MAX_NEW     = 12;   // max new items to process per cron run
+const MAX_SKIPPED_HASHES = 400; // headlines the AI already judged irrelevant (not re-sent)
 const FETCH_MS    = 8000; // RSS fetch timeout
 
 // Two complementary RSS queries — union gives broader coverage
@@ -161,6 +162,7 @@ function parseRSSItems(xml) {
 // ── Groq: batch filter + summarise + translate ────────────────────────────────
 // Sends all candidate titles in ONE call to minimise API usage.
 // Returns array of { idx, text_en, text_hi } for relevant items only.
+// Returns [] when the AI judged nothing relevant, null when the call failed.
 async function groqFilterAndSummarise(items, groqKeys) {
   if (!items.length || !groqKeys.length) return [];
 
@@ -232,7 +234,7 @@ async function groqFilterAndSummarise(items, groqKeys) {
 
       if (!res.ok) {
         console.error(`[refresh-news] Groq error ${res.status}`);
-        return [];
+        return null; // failed — NOT "nothing relevant"
       }
 
       const data = await res.json();
@@ -257,7 +259,7 @@ async function groqFilterAndSummarise(items, groqKeys) {
           : [];
       } catch {
         console.warn("[refresh-news] Groq JSON parse failed. Raw:", raw.slice(0, 200));
-        return [];
+        return null; // failed — NOT "nothing relevant"
       }
 
       // Validate shape — must have idx, text_en, text_hi, desc_en, desc_hi
@@ -272,12 +274,12 @@ async function groqFilterAndSummarise(items, groqKeys) {
 
     } catch (err) {
       console.error("[refresh-news] Groq network error:", err.message);
-      return [];
+      return null; // failed — NOT "nothing relevant"
     }
   }
 
   console.warn("[refresh-news] All Groq keys exhausted.");
-  return [];
+  return null; // failed — NOT "nothing relevant"
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -389,8 +391,19 @@ async function refreshNewsCore(req, res) {
       .map((k) => k.toLowerCase().trim())
   );
 
+  // Headlines the AI already judged irrelevant on earlier runs. They used to
+  // be re-sent every run: the same top-8 irrelevant headlines filled the
+  // window forever and the job "succeeded" while adding nothing for weeks.
+  let skippedHashes = [];
+  try {
+    skippedHashes = (await db.collection("_config").doc("news").get()).data()?.skippedHashes ?? [];
+  } catch { /* ignore */ }
+  const skipped = new Set(skippedHashes);
+
+  const ts = (it) => Date.parse(it.pubDate) || 0;
   const newItems = allItems
-    .filter((it) => !existingHashes.has(it.titleHash))
+    .filter((it) => !existingHashes.has(it.titleHash) && !skipped.has(it.titleHash))
+    .sort((a, b) => ts(b) - ts(a)) // newest headlines first
     .slice(0, MAX_NEW); // cap per-run to keep Groq usage low
 
   console.log(
@@ -405,9 +418,28 @@ async function refreshNewsCore(req, res) {
   // ── Step 5 — Groq: filter relevance + summarise + translate ──────────────────
   const groqResults = await groqFilterAndSummarise(newItems, groqKeys);
 
+  // Remember what the AI rejected so the next run looks at different headlines.
+  // (Only when the AI actually answered — a failed call returns null.)
+  if (Array.isArray(groqResults)) {
+    const approved = new Set(groqResults.map(r => newItems[r.idx - 1]?.titleHash).filter(Boolean));
+    const rejected = newItems.map(it => it.titleHash).filter(h => h && !approved.has(h));
+    if (rejected.length) {
+      try {
+        await db.collection("_config").doc("news").set(
+          { skippedHashes: [...rejected, ...skippedHashes].slice(0, MAX_SKIPPED_HASHES) },
+          { merge: true }
+        );
+      } catch (e) { console.warn("[refresh-news] could not save skipped headlines:", e.message); }
+    }
+  }
+
   console.log(
-    `[refresh-news] Groq approved ${groqResults.length} / ${newItems.length} items as relevant`
+    `[refresh-news] Groq approved ${groqResults?.length ?? "?"} / ${newItems.length} items as relevant`
   );
+
+  if (groqResults === null) {
+    return res.status(502).json({ error: "AI news filter failed (Groq error or all keys busy) — will retry next run." });
+  }
 
   if (!groqResults.length) {
     return res.status(200).json({
