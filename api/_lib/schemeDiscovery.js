@@ -190,16 +190,40 @@ export function draftExcerpt(raw, maxChars = 4500) {
 
 // ── Groq helpers ─────────────────────────────────────────────────────────────
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// Groq limits are per MODEL, so when the main model is busy we fall back to
+// others with their own quota. A per-minute limit is waited out once (Groq
+// says how long); a per-day limit skips straight to the next model.
+const FALLBACK_MODELS = ["openai/gpt-oss-120b", "llama-3.3-70b-versatile"];
+export function groqRetryMs(msg) {
+  const m = /try again in\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(String(msg || ""));
+  if (!m || (!m[1] && !m[2])) return null;
+  return ((Number(m[1]) || 0) * 60 + (parseFloat(m[2]) || 0)) * 1000;
+}
 async function groqJson(model, system, user, maxTokens) {
-  let r = await groqJsonOnce(model, system, user, maxTokens);
-  if (r.rateLimited) { await sleep(25_000); r = await groqJsonOnce(model, system, user, maxTokens); } // per-minute window resets
-  return r;
+  const models = [model, ...FALLBACK_MODELS.filter(m => m !== model)];
+  let last = null, perDay = true;
+  for (let i = 0; i < models.length; i++) {
+    let r = await groqJsonOnce(models[i], system, user, maxTokens);
+    if (r.rateLimited && i === 0) {
+      const daily = /per day|\(TPD\)|\(RPD\)/i.test(r.error ?? "");
+      const wait = groqRetryMs(r.error);
+      if (!daily && (wait == null || wait <= 40_000)) {
+        await sleep(Math.min(40_000, (wait ?? 20_000) + 1500));
+        r = await groqJsonOnce(models[i], system, user, maxTokens);
+      }
+    }
+    if (!r.rateLimited) return r;
+    if (!/per day|\(TPD\)|\(RPD\)/i.test(r.error ?? "")) perDay = false;
+    last = r;
+  }
+  return { ...last, perDay };
 }
 async function groqJsonOnce(model, system, user, maxTokens) {
   const keys = loadGroqKeys();
   if (!keys.length) return { error: "No Groq keys configured", config: true };
+  const oss = model.startsWith("openai/gpt-oss");
   const r = await callGroq(keys, {
-    model, max_completion_tokens: maxTokens, reasoning_effort: "low", include_reasoning: false,
+    model, max_completion_tokens: maxTokens, ...(oss ? { reasoning_effort: "low", include_reasoning: false } : {}),
     temperature: 0.1, response_format: { type: "json_object" },
     messages: [{ role: "system", content: system }, { role: "user", content: user }],
   });
@@ -560,7 +584,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
     const pick = await groqJson(PICK_MODEL, system, user, 900);
     if (pick.error) {
       out.errors.push(`${region}: candidate pick failed — ${pick.error}`);
-      if (pick.rateLimited) { out.stopReason = "rate_limit: Groq keys busy"; break; }
+      if (pick.rateLimited) { out.stopReason = pick.perDay ? "rate_limit: Groq daily limit used up — continues tomorrow" : "rate_limit: Groq keys busy"; break; }
       continue;
     }
     const cands = (Array.isArray(pick.data?.candidates) ? pick.data.candidates : [])
@@ -605,7 +629,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
       const d = await groqJson(DRAFT_MODEL, system, user, 1800);
       if (d.error) {
         out.errors.push(`${c.name}: drafting failed — ${d.error}`);
-        if (d.rateLimited) { out.stopReason = "rate_limit: Groq keys busy"; break; }
+        if (d.rateLimited) { out.stopReason = d.perDay ? "rate_limit: Groq daily limit used up — continues tomorrow" : "rate_limit: Groq keys busy"; break; }
         continue;
       }
       out.researched++;
@@ -672,9 +696,20 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
 // ── Review actions (admin) ───────────────────────────────────────────────────
 export async function listSchemeDrafts(db, { limit = 60 } = {}) {
   const snap = await db.collection("schemeDrafts").orderBy("createdAt", "desc").limit(limit).get();
+  // A scheme deleted from the code by hand still says "published" here. Once
+  // the deploy has had time to include it (30 min), trust the live app.
+  const live = new Set(SCHEME_DB.map(s => s.id));
+  const gone = snap.docs.filter(d => {
+    const x = d.data();
+    const at = x.publishedAt?.toDate?.()?.getTime?.() ?? 0;
+    return x.status === "published" && at && Date.now() - at > 30 * 60_000 && !live.has(x.scheme?.id ?? d.id);
+  });
+  await Promise.all(gone.map(d => d.ref.set({ status: "removed", removedAt: new Date(), removedBy: "removed from the app" }, { merge: true }).catch(() => {})));
+  const goneIds = new Set(gone.map(d => d.id));
   return snap.docs.map(d => {
     const x = d.data();
     const ts = v => v?.toDate?.().toISOString?.() ?? (v instanceof Date ? v.toISOString() : v ?? null);
+    if (goneIds.has(d.id)) { x.status = "removed"; x.removedBy = "removed from the app"; }
     return { id: d.id, ...x, createdAt: ts(x.createdAt), publishedAt: ts(x.publishedAt), removedAt: ts(x.removedAt), reviewedAt: ts(x.reviewedAt) };
   });
 }

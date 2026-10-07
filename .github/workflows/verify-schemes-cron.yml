@@ -16,11 +16,13 @@ name: Verify Schemes (rotating batch)
 # request and moves on — Vercel does the actual work).
 on:
   schedule:
-    - cron: "0 21 * * *" # 21:00 UTC = ~2:30 AM IST — low-traffic window
+    - cron: "0 21 * * *"  # 21:00 UTC = 2:30 AM IST — verify batch
+    - cron: "30 3 * * *"  # 03:30 UTC = 9:00 AM IST — scheme discovery (fresh Groq limits)
   workflow_dispatch: {} # lets you also trigger it manually from the Actions tab, for testing
 
 jobs:
   ping-verify-batch:
+    if: github.event_name != 'schedule' || github.event.schedule == '0 21 * * *'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger scheme verification batch
@@ -36,9 +38,9 @@ jobs:
   # automatically and queues the rest for approval in Admin → Agents.
   # Separate job = separate serverless invocation (own 300 s budget).
   discover-schemes:
-    # After the verify batch, so the two don't compete for the same Groq keys.
-    needs: ping-verify-batch
-    if: always()
+    # Own morning slot, hours after the verify batch, so the two never compete
+    # for the same Groq keys. (Manual "Run workflow" still runs both.)
+    if: github.event_name != 'schedule' || github.event.schedule == '30 3 * * *'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger scheme discovery
