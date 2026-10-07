@@ -74,6 +74,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Land Records (Khasra)","Bank Passbook"],
                hi: ["आधार कार्ड","जमीन के कागज़","बैंक पासबुक"] },
     // Eligibility: farmer + income below ₹6 lakh
+    eligibilityText: { en: ["Farmer families who own cultivable land in their name", "Not for income-tax payers, government employees, pensioners (₹10,000+/month) or professionals like doctors and lawyers", "Aadhaar-linked bank account and e-KYC needed"],
+                       hi: ["जिन किसान परिवारों के नाम खेती की ज़मीन है", "आयकर दाता, सरकारी कर्मचारी, ₹10,000+/माह पेंशन पाने वाले और डॉक्टर-वकील जैसे पेशेवर पात्र नहीं", "आधार से जुड़ा बैंक खाता और e-KYC ज़रूरी"] },
     match: (a) => a.who === "farmer" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -90,6 +92,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","BPL Certificate","Land Documents","Bank Account"],
                hi: ["आधार कार्ड","बीपीएल प्रमाण पत्र","जमीन के कागज़","बैंक खाता"] },
     // Eligibility: no/kutcha house + low income + rural
+    eligibilityText: { en: ["Rural families with no house or only a kutcha house", "Family's name must be on the Awaas+ / SECC list (ask your Gram Panchayat)", "Not if a member is a government employee, pays income tax or earns over ₹15,000 a month"],
+                       hi: ["ग्रामीण परिवार जिनके पास घर नहीं है या केवल कच्चा घर है", "परिवार का नाम आवास+ / SECC सूची में होना चाहिए (ग्राम पंचायत से पूछें)", "परिवार में कोई सरकारी कर्मचारी, आयकर दाता या ₹15,000/माह से अधिक कमाने वाला न हो"] },
     match: (a) => ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income) && a.area === "rural",
   },
 
@@ -102,9 +106,11 @@ export const SCHEME_DB = [
     benefit: { en: "₹2.50 Lakh subsidy on home loan", hi: "होम लोन पर ₹2.50 लाख सब्सिडी" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 250000,
-    apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/pradhan-mantri-awas-yojana-urban_pmay-u.html", hi: "pmaymis.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.india.gov.in/services/details/apply-for-pradhan-mantri-awas-yojana-urban-20", hi: "https://www.india.gov.in/services/details/apply-for-pradhan-mantri-awas-yojana-urban-20" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Income Proof","Bank Statement","No Property Certificate"],
                hi: ["आधार कार्ड","आय प्रमाण","बैंक स्टेटमेंट","संपत्ति न होने का प्रमाण"] },
+    eligibilityText: { en: ["This older version has closed — new applications go through PM Awas Yojana 2.0 (Urban)", "Urban families with yearly income up to ₹9 lakh and no pucca house anywhere in India"],
+                       hi: ["यह पुराना संस्करण बंद हो चुका है — नए आवेदन PM आवास योजना 2.0 (शहरी) से होते हैं", "₹9 लाख तक सालाना आय वाले शहरी परिवार जिनका भारत में कहीं पक्का मकान नहीं है"] },
     match: (a) => ["no","kutcha"].includes(a.house) && ["below1","1to3","3to6"].includes(a.income) && ["urban","semi"].includes(a.area),
   },
 
@@ -120,6 +126,8 @@ export const SCHEME_DB = [
     apply:   { en: "https://abdm.gov.in/", hi: "pmjay.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","Income Certificate"],
                hi: ["आधार कार्ड","राशन कार्ड","आय प्रमाण पत्र"] },
+    eligibilityText: { en: ["Poor and vulnerable families listed in SECC 2011 or your state's beneficiary list", "Check your name at beneficiary.nha.gov.in or a Common Service Centre", "Everyone aged 70+ is also covered, whatever their income"],
+                       hi: ["SECC 2011 या राज्य की लाभार्थी सूची में शामिल गरीब और कमज़ोर परिवार", "अपना नाम beneficiary.nha.gov.in या जन सेवा केंद्र (CSC) पर जांचें", "70+ उम्र के सभी लोग भी शामिल हैं, आय चाहे जितनी हो"] },
     match: (a) => ["below1","1to3"].includes(a.income),
   },
 
@@ -151,7 +159,9 @@ export const SCHEME_DB = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/pmmy", hi: "udyamimitra.in" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN","Business Plan","Bank Statement 6 months","Photo"],
                hi: ["आधार और पैन","व्यापार योजना","6 महीने बैंक स्टेटमेंट","फोटो"] },
-    match: (a) => a.who === "business" || ["18to35","35to60"].includes(a.age),
+    eligibilityText: { en: ["Anyone starting or running a small non-farm business — shop, service, workshop or small factory", "Also for allied farm work like dairy, poultry or fisheries", "Loans up to ₹20 lakh through banks, NBFCs and MFIs"],
+                       hi: ["छोटा गैर-कृषि व्यवसाय शुरू करने या चलाने वाला कोई भी व्यक्ति — दुकान, सेवा, वर्कशॉप या छोटा कारखाना", "डेयरी, मुर्गीपालन, मछली पालन जैसे संबद्ध कार्य भी शामिल", "बैंक, NBFC और MFI से ₹20 लाख तक का ऋण"] },
+    match: (a) => a.who === "business" || (a.who === "general" && ["18to35","35to60"].includes(a.age)),
   },
 
   {
@@ -166,7 +176,9 @@ export const SCHEME_DB = [
     apply:   { en: "https://pmuy.gov.in", hi: "pmuy.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Ration Card","BPL Certificate"],
                hi: ["आधार कार्ड","राशन कार्ड","बीपीएल प्रमाण"] },
-    match: (a) => a.who === "women" && ["below1","1to3"].includes(a.income),
+    eligibilityText: { en: ["Adult women (18+) from poor households", "No LPG connection already in the household", "SC/ST, PMAY, Antyodaya, forest-dweller and other poor families qualify"],
+                       hi: ["गरीब परिवारों की वयस्क महिलाएं (18+)", "घर में पहले से LPG कनेक्शन न हो", "SC/ST, PMAY, अंत्योदय, वनवासी और अन्य गरीब परिवार पात्र हैं"] },
+    match: (a) => a.who === "women" && a.age !== "below18" && ["below1","1to3"].includes(a.income),
   },
 
   {
@@ -196,7 +208,9 @@ export const SCHEME_DB = [
     apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/nsap-indira-gandhi-national-old-age-pension-scheme_nsap-ignoaps.html", hi: "nsap.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (60+)","BPL Certificate","Bank Account"],
                hi: ["आधार कार्ड","आयु प्रमाण (60+)","बीपीएल प्रमाण","बैंक खाता"] },
-    match: (a) => (a.who === "senior" || a.age === "above60") && ["below1","1to3"].includes(a.income),
+    eligibilityText: { en: ["Age 60 or above", "From a Below Poverty Line (BPL) household", "Apply through your Gram Panchayat or municipal office"],
+                       hi: ["आयु 60 वर्ष या अधिक", "गरीबी रेखा से नीचे (BPL) परिवार से", "ग्राम पंचायत या नगर पालिका कार्यालय से आवेदन करें"] },
+    match: (a) => a.age === "above60" && ["below1","1to3"].includes(a.income),
   },
 
   {
@@ -243,6 +257,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card", "Savings Bank Account", "Mobile Number"],
                hi: ["आधार कार्ड", "बचत बैंक खाता", "मोबाइल नंबर"] },
     // Eligibility: age 18–50, any savings bank account holder
+    eligibilityText: { en: ["Age 18 to 50", "Has a savings bank or post office account", "Premium ₹436 a year, auto-debited"],
+                       hi: ["आयु 18 से 50 वर्ष", "बचत बैंक या डाकघर खाता हो", "प्रीमियम ₹436 प्रति वर्ष, खाते से अपने-आप कटता है"] },
     match: (a) => ["18to35","35to60"].includes(a.age),
   },
 
@@ -259,6 +275,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card", "Savings Bank Account"],
                hi: ["आधार कार्ड", "बचत बैंक खाता"] },
     // Eligibility: age 18–70, savings bank account holder
+    eligibilityText: { en: ["Age 18 to 70", "Has a savings bank or post office account", "Premium just ₹20 a year, auto-debited"],
+                       hi: ["आयु 18 से 70 वर्ष", "बचत बैंक या डाकघर खाता हो", "प्रीमियम केवल ₹20 प्रति वर्ष, खाते से अपने-आप कटता है"] },
     match: (a) => ["18to35","35to60","above60"].includes(a.age),
   },
 
@@ -275,6 +293,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card", "Bank Account (Aadhaar-linked)", "Mobile Number"],
                hi: ["आधार कार्ड", "बैंक खाता (आधार से लिंक)", "मोबाइल नंबर"] },
     // Eligibility: age 18–40, unorganised sector, not an income-tax payer
+    eligibilityText: { en: ["Age 18 to 40 when joining", "Not an income-tax payer", "Has a savings bank or post office account"],
+                       hi: ["जुड़ते समय आयु 18 से 40 वर्ष", "आयकर दाता न हों", "बचत बैंक या डाकघर खाता हो"] },
     match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
@@ -291,6 +311,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card", "Ration Card", "Bank Account", "Proof of Trade / Occupation"],
                hi: ["आधार कार्ड", "राशन कार्ड", "बैंक खाता", "व्यापार / व्यवसाय का प्रमाण"] },
     // Eligibility: traditional artisan/craftsman, age 18+, self-employed
+    eligibilityText: { en: ["Artisans and craftspeople in 18 traditional trades — carpenter, tailor, potter, blacksmith, cobbler, barber, washerman and more", "Age 18+, self-employed, working with hands and tools", "One person per family; not a government employee"],
+                       hi: ["18 पारंपरिक व्यवसायों के कारीगर — बढ़ई, दर्ज़ी, कुम्हार, लोहार, मोची, नाई, धोबी आदि", "आयु 18+, स्वरोज़गार, हाथ और औज़ारों से काम करने वाले", "परिवार से एक व्यक्ति; सरकारी कर्मचारी न हो"] },
     match: (a) => a.who === "business" && ["18to35","35to60"].includes(a.age),
   },
 
@@ -307,6 +329,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card", "Bank Account", "Vending Certificate / Letter of Recommendation from ULB"],
                hi: ["आधार कार्ड", "बैंक खाता", "वेंडिंग प्रमाण पत्र / नगर निकाय से अनुशंसा पत्र"] },
     // Eligibility: street vendor / small trader (business), any area
+    eligibilityText: { en: ["Street vendors in towns and cities", "Needs a vending certificate, or a recommendation letter from the municipality", "Small working-capital loans, growing as you repay"],
+                       hi: ["शहरों और कस्बों के रेहड़ी-पटरी विक्रेता", "वेंडिंग सर्टिफिकेट या नगर निकाय का सिफ़ारिश पत्र ज़रूरी", "छोटा कार्यशील पूंजी ऋण, समय पर चुकाने पर बढ़ता है"] },
     match: (a) => a.who === "business",
   },
 
@@ -323,6 +347,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Girl's Birth Certificate", "Parent / Guardian Aadhaar & PAN", "Passport Size Photos"],
                hi: ["बच्ची का जन्म प्रमाण पत्र", "माता-पिता का आधार व पैन कार्ड", "पासपोर्ट साइज़ फोटो"] },
     // Eligibility: parents/guardians of girl child below age 10 years
+    eligibilityText: { en: ["Parents or guardians of a girl child under 10 years", "Up to two girls per family (three if twins/triplets)", "Open at any post office or authorised bank"],
+                       hi: ["10 वर्ष से कम उम्र की बेटी के माता-पिता या अभिभावक", "एक परिवार में अधिकतम दो बेटियां (जुड़वां/तीन होने पर तीन)", "किसी भी डाकघर या अधिकृत बैंक में खाता खोलें"] },
     match: (a) => a.who === "women",
   },
 
@@ -339,6 +365,8 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card", "Bank Account", "MCP Card (Mother & Child Protection)", "Marriage Certificate"],
                hi: ["आधार कार्ड", "बैंक खाता", "MCP कार्ड (माँ और बच्चा सुरक्षा)", "विवाह प्रमाण पत्र"] },
     // Eligibility: pregnant/lactating women for first live birth (or 2nd if girl child)
+    eligibilityText: { en: ["Pregnant women and new mothers — first child, and second child if it is a girl", "Not for central or state government employees", "Register at your Anganwadi centre or health worker"],
+                       hi: ["गर्भवती महिलाएं और नई माताएं — पहला बच्चा, और दूसरा बच्चा बेटी होने पर", "केंद्र या राज्य सरकार की कर्मचारी पात्र नहीं", "आंगनवाड़ी केंद्र या आशा कार्यकर्ता के पास पंजीकरण करें"] },
     match: (a) => a.who === "women" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -415,7 +443,9 @@ export const SCHEME_DB = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/sui", hi: "standupmitra.in" }, applyType: "online",
     docs:    { en: ["Aadhaar & PAN Card","Caste/Gender Proof","Business Plan","Bank Statement"],
                hi: ["आधार और पैन कार्ड","जाति/लिंग प्रमाण","व्यापार योजना","बैंक स्टेटमेंट"] },
-    match: (a) => a.who === "business" || a.who === "women",
+    eligibilityText: { en: ["SC/ST and/or women entrepreneurs, age 18+", "Starting a new (first-time) business in manufacturing, services, trading or allied farm work", "Bank loans from ₹10 lakh to ₹1 crore"],
+                       hi: ["SC/ST और/या महिला उद्यमी, आयु 18+", "विनिर्माण, सेवा, व्यापार या संबद्ध कृषि में नया (पहली बार) व्यवसाय", "बैंक से ₹10 लाख से ₹1 करोड़ तक का ऋण"] },
+    match: (a) => a.age !== "below18" && ["business","women","general"].includes(a.who) && (a.who === "women" || a.gender === "female" || ["sc","st"].includes(a.caste)),
   },
 
   {
@@ -490,6 +520,8 @@ export const SCHEME_DB = [
     apply:   { en: "https://www.india.gov.in/spotlight/details/ayushman-bharat-pradhan-mantri-jan-arogya-yojana", hi: "pmjay.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (70+ years)","Any ID Proof"],
                hi: ["आधार कार्ड","आयु प्रमाण (70+ वर्ष)","कोई भी पहचान पत्र"] },
+    eligibilityText: { en: ["Every citizen aged 70 or above", "No income limit — rich or poor, all are covered", "Aadhaar needed to make the Ayushman Vay Vandana card"],
+                       hi: ["70 वर्ष या उससे अधिक उम्र के सभी नागरिक", "आय की कोई सीमा नहीं — सभी शामिल", "आयुष्मान वय वंदना कार्ड के लिए आधार ज़रूरी"] },
     match: (a) => a.who === "senior" || a.age === "above60",
   },
 
@@ -551,6 +583,8 @@ export const SCHEME_DB = [
     apply:   { en: "https://www.india.gov.in/services/details/apply-for-pradhan-mantri-awas-yojana-urban-20", hi: "pmaymis.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Income Proof (EWS/LIG)","No Property Certificate","Bank Statement","Marriage Certificate"],
                hi: ["आधार कार्ड","आय प्रमाण (EWS/LIG)","संपत्ति न होने का प्रमाण","बैंक स्टेटमेंट","विवाह प्रमाण"] },
+    eligibilityText: { en: ["Urban families with yearly income up to ₹9 lakh (EWS up to ₹3 lakh · LIG ₹3–6 lakh · MIG ₹6–9 lakh)", "No member of the family owns a pucca house anywhere in India", "Not if you already got a house under another government housing scheme"],
+                       hi: ["शहरी परिवार जिनकी सालाना आय ₹9 लाख तक है (EWS ₹3 लाख तक · LIG ₹3–6 लाख · MIG ₹6–9 लाख)", "परिवार के किसी सदस्य के नाम भारत में कहीं भी पक्का मकान न हो", "किसी दूसरी सरकारी आवास योजना से घर न मिला हो"] },
     match: (a) => ["no","kutcha"].includes(a.house) && ["below1","1to3","3to6"].includes(a.income) && ["urban","semi"].includes(a.area),
   },
 

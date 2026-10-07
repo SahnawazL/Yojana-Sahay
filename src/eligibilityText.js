@@ -140,6 +140,12 @@ function rangeText(vals, order) {
 
 // → array of short lines in the chosen language, or null when unknown.
 export function whoCanApply(scheme, lang = "en") {
+  // Hand-checked official criteria win over the estimate from the rule.
+  const custom = scheme?.eligibilityText?.[lang] ?? scheme?.eligibilityText?.en;
+  if (Array.isArray(custom) && custom.length) {
+    const t = L[lang] ?? L.en;
+    return scheme.scope === "state" && scheme.state ? [t.resident(scheme.state), ...custom] : [...custom];
+  }
   const e = eligibilityProfile(scheme);
   if (!e) return null;
   const t = L[lang] ?? L.en;
