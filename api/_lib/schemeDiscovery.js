@@ -147,9 +147,9 @@ export function compileMatch(elig, scope, state) {
   if (scope === "state") parts.push(`a.state === ${JSON.stringify(state)}`);
   const list = (f, vals) => vals.length === 1 ? `a.${f} === ${JSON.stringify(vals[0])}` : `${JSON.stringify(vals)}.includes(a.${f})`;
   for (const f of LIST_FIELDS) if (elig[f]) parts.push(list(f, elig[f]));
-  if (elig.gender === "female" && !(elig.who?.length === 1 && elig.who[0] === "women")) parts.push(`(a.who === "women" || a.gender === "female")`);
-  if (elig.gender === "male") parts.push(`a.gender === "male"`);
-  if (elig.disability) parts.push(`(!!a.disability && a.disability !== "none")`);
+  if (elig.gender === "female" && !(elig.who?.length === 1 && elig.who[0] === "women")) parts.push(`(a.who === "women" || a.gender === "female" || (a.gender == null && a.who === "student"))`); // quiz never asks gender: girl students still see it
+  if (elig.gender === "male") parts.push(`(a.who !== "women" && a.gender !== "female")`);
+  if (elig.disability) parts.push(`(a.disability == null || a.disability !== "none")`); // unknown = still shown; only "no disability" hides it
   return parts.length ? parts.join(" && ") : "true";
 }
 
