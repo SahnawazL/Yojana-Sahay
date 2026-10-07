@@ -175,7 +175,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "http://esomsa.hp.gov.in", hi: "hpsocialjustice.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥40% from CMO)","Income Certificate (below ₹35,000/year)","HP Domicile Certificate","Bank Account","Passport Size Photo"],
                hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (CMO से ≥40%)","आय प्रमाण (₹35,000/वर्ष से कम)","हिमाचल अधिवास प्रमाण","बैंक खाता","पासपोर्ट साइज फोटो"] },
-    match: (a) => a.state === "Himachal Pradesh" && ["below1","1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Himachal Pradesh" && ["below1","1to3"].includes(a.income)),
   },
 
   {

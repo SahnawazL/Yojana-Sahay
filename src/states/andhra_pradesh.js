@@ -278,7 +278,7 @@ export const ANDHRA_PRADESH_SCHEMES = [
     docs:    { en: ["Disability certificate","Aadhaar card","SSC certificate","Income certificate","Caste certificate (SC/ST/BC)","Bonafide or employment certificate"],
                hi: ["दिव्यांगता प्रमाण पत्र","आधार कार्ड","एसएससी (10वीं) प्रमाण पत्र","आय प्रमाण पत्र","जाति प्रमाण पत्र (एससी/एसटी/बीसी)","बोनाफ़ाइड या रोज़गार प्रमाण पत्र"] },
     autoAdded: "2026-10-07", source: "https://apdascac.ap.gov.in/Schemes/motorized-three-wheelers",
-    match: (a) => a.state === "Andhra Pradesh" && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age) && (!!a.disability && a.disability !== "none"),
+    match: (a) => a.state === "Andhra Pradesh" && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age) && (a.disability == null || a.disability !== "none"),
   },
   // </auto-scheme id="ap_motorized_three_wheelers">
 

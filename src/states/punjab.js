@@ -158,7 +158,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/oapsp", hi: "sswepb.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥50%)","BPL Ration Card","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (≥50%)","BPL राशन कार्ड","बैंक खाता","पंजाब अधिवास"] },
-    match: (a) => a.state === "Punjab" && ["below1","1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Punjab" && ["below1","1to3"].includes(a.income)),
   },
 
   // ── Business / Entrepreneurship ──────────────────────────────────────────────
@@ -627,7 +627,7 @@ export const PUNJAB_SCHEMES = [
     docs:    { en: ["Aadhaar Card","Disability Certificate (>=40%)","School / College Enrolment Proof","Income Certificate","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (>=40%)","स्कूल/कॉलेज प्रवेश प्रमाण","आय प्रमाण","बैंक खाता","पंजाब अधिवास"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   // ── Legal Aid ────────────────────────────────────────────────────────────────
@@ -725,7 +725,7 @@ export const PUNJAB_SCHEMES = [
     docs:    { en: ["Aadhaar Card","Disability Certificate (>=40%)","Bank Account","Punjab Domicile","Passport Photo"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (>=40%)","बैंक खाता","पंजाब अधिवास","पासपोर्ट फोटो"] },
     keywords: ["skill"],
-    match: (a) => a.state === "Punjab" && ["below1","1to3","3to6"].includes(a.income) && ["18to35","35to60"].includes(a.age),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Punjab" && ["below1","1to3","3to6"].includes(a.income) && ["18to35","35to60"].includes(a.age)),
   },
 
   // ── Horticulture & Allied Farming ────────────────────────────────────────────

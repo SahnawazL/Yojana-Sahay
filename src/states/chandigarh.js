@@ -211,7 +211,7 @@ export const CHANDIGARH_SCHEMES = [
     docs:    { en: ["Disability (blindness) certificate","College admission form"],
                hi: ["दिव्यांगता (दृष्टिहीनता) प्रमाण पत्र","कॉलेज प्रवेश फॉर्म"] },
     autoAdded: "2026-10-07", source: "https://chdeducation.gov.in/page/viewpage/103",
-    match: (a) => a.state === "Chandigarh" && a.who === "student" && ["undergrad","postgrad"].includes(a.educationLevel) && (!!a.disability && a.disability !== "none"),
+    match: (a) => a.state === "Chandigarh" && a.who === "student" && ["undergrad","postgrad"].includes(a.educationLevel) && (a.disability == null || a.disability !== "none"),
   },
   // </auto-scheme id="chd_full_fee_exemption">
 

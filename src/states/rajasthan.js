@@ -103,7 +103,7 @@ export const RAJASTHAN_SCHEMES = [
                hi: ["आधार कार्ड", "जन आधार कार्ड", "BPL राशन कार्ड", "स्कूल नामांकन प्रमाण", "अभिभावक बैंक खाता"] },
     // Eligibility: BPL girl student studying in a government school
     keywords: ["class10"],
-    match: (a) => a.state === "Rajasthan" && a.who === "student" && a.income === "below1",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Rajasthan" && a.who === "student" && a.income === "below1"),
   },
 
   {
@@ -119,7 +119,7 @@ export const RAJASTHAN_SCHEMES = [
                hi: ["आधार कार्ड", "जन आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC/EWS)", "10वीं / 12वीं मार्कशीट (≥65%)", "उच्च शिक्षा में प्रवेश प्रमाण", "आय प्रमाण (परिवार ≤ ₹2.5 लाख/वर्ष)", "बैंक खाता"] },
     // Eligibility: SC/ST/OBC/Minority/EWS girl, ≥65% in board, enrolled in college
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   {
@@ -135,7 +135,7 @@ export const RAJASTHAN_SCHEMES = [
                hi: ["आधार कार्ड", "जन आधार कार्ड", "OBC जाति प्रमाण (गुर्जर/राइका/बंजारा/गाडिया लोहार)", "12वीं मार्कशीट (≥50%)", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण (परिवार ≤ ₹2 लाख/वर्ष)", "बैंक खाता"] },
     // Eligibility: girl from specific OBC backward communities, ≥50% in 12th board
     keywords: ["class12"],
-    match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── FARMER ───────────────────────────────────────────────────────────────────
@@ -353,7 +353,7 @@ export const RAJASTHAN_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Disability Certificate (≥40%)", "Income Certificate (family ≤ ₹2 lakh/year)", "Business Plan / Project Report", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "विकलांगता प्रमाण पत्र (≥40%)", "आय प्रमाण (परिवार ≤ ₹2 लाख/वर्ष)", "व्यापार योजना / प्रोजेक्ट रिपोर्ट", "बैंक खाता"] },
     // Eligibility: person with ≥40% certified disability, aged 18–50, family income ≤ ₹2 lakh/year
-    match: (a) => a.state === "Rajasthan" && ["below1", "1to3"].includes(a.income) && ["18to35", "35to60"].includes(a.age),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Rajasthan" && ["below1", "1to3"].includes(a.income) && ["18to35", "35to60"].includes(a.age)),
   },
 
   // ── ELECTRICITY / UTILITIES ──────────────────────────────────────────────────
@@ -603,7 +603,7 @@ export const RAJASTHAN_SCHEMES = [
                hi: ["आधार कार्ड", "जन आधार कार्ड", "RBSE 12वीं मार्कशीट (जिला टॉप-4 रैंक प्रमाण)", "कॉलेज प्रवेश प्रमाण", "बैंक खाता"] },
     // Eligibility: girl student ranked in top 4 of district in RBSE Class 12 board exam
     keywords: ["class12"],
-    match: (a) => a.state === "Rajasthan" && a.who === "student",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Rajasthan" && a.who === "student"),
   },
 
   // ── MINORITY / SCHOLARSHIP ───────────────────────────────────────────────────

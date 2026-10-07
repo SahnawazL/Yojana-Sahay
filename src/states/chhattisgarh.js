@@ -202,7 +202,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "sw.cg.gov.in", hi: "sw.cg.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Disability Certificate (40%+)","Income Certificate","Bank Passbook"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (40%+)","आय प्रमाण","बैंक पासबुक"] },
-    match: (a) => a.state === "Chhattisgarh" && ["below1","1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Chhattisgarh" && ["below1","1to3"].includes(a.income)),
   },
 
   // ── Employment & Business ──────────────────────────────────────────────────

@@ -57,7 +57,7 @@ export const UTTARAKHAND_SCHEMES = [
     apply:   { en: "ssp.uk.gov.in / BDO or Tehsil office (offline)", hi: "ssp.uk.gov.in / BDO या तहसील कार्यालय (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Age Proof (Birth Certificate / Voter ID) — for elderly", "Husband's Death Certificate + Marriage Certificate — for widows", "Disability Certificate (40%+, from Chief Medical Officer) — for disabled", "Uttarakhand Domicile / Residence Proof", "BPL Ration Card (if applicable)", "Bank Account (Aadhaar-linked)", "Two Passport Photos"],
                hi: ["आधार कार्ड", "आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID) — वृद्ध के लिए", "पति का मृत्यु प्रमाण पत्र + विवाह प्रमाण पत्र — विधवा के लिए", "दिव्यांगता प्रमाण पत्र (40%+, मुख्य चिकित्सा अधिकारी से) — दिव्यांग के लिए", "उत्तराखंड डोमिसाइल / निवास प्रमाण", "BPL राशन कार्ड (यदि लागू)", "बैंक खाता (आधार-लिंक्ड)", "दो पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Uttarakhand" && (a.who === "senior" || a.age === "above60" || a.who === "widow" || a.who === "disabled"),
+    match: (a) => a.state === "Uttarakhand" && (a.who === "senior" || a.age === "above60" || (a.disability != null && a.disability !== "none")),
   },
 
   // ── HEALTH ────────────────────────────────────────────────────────────────
@@ -279,7 +279,7 @@ export const UTTARAKHAND_SCHEMES = [
     docs:    { en: ["Family register copy (from Village Pradhan)","Gram Panchayat open meeting resolution","Medical disability certificate (20–40%)","Bank Passbook (CBS account)","Aadhaar Card"],
                hi: ["परिवार रजिस्टर की प्रति (ग्राम प्रधान से)","ग्राम पंचायत खुली बैठक प्रस्ताव","चिकित्सीय दिव्यांगता प्रमाण पत्र (20–40%)","बैंक पासबुक (CBS खाता)","आधार कार्ड"] },
     autoAdded: "2026-10-07", source: "https://socialwelfare.uk.gov.in/service/teelurautelipension/",
-    match: (a) => a.state === "Uttarakhand" && ["18to35","35to60"].includes(a.age) && a.area === "rural" && (!!a.disability && a.disability !== "none"),
+    match: (a) => a.state === "Uttarakhand" && ["18to35","35to60"].includes(a.age) && a.area === "rural" && (a.disability == null || a.disability !== "none"),
   },
   // </auto-scheme id="uk_teelu_rauteli_pension">
 

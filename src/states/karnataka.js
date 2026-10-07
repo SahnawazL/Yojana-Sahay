@@ -171,7 +171,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://chikkamagaluru.nic.in/en/service/social-security-scheme", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "BPL Card", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+)", "BPL कार्ड", "बैंक खाता"] },
-    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Karnataka" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── HOUSING ───────────────────────────────────────────────────────────────
@@ -787,7 +787,7 @@ export const KARNATAKA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "School/College Enrollment Proof", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+)", "स्कूल/कॉलेज नामांकन प्रमाण", "आय प्रमाण", "बैंक खाता"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Karnataka" && a.who === "student",
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Karnataka" && a.who === "student"),
   },
 
   {
@@ -801,7 +801,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/dssmp", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "Business Plan", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+)", "व्यापार योजना", "आय प्रमाण", "बैंक खाता"] },
-    match: (a) => a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── CHILD WELFARE ─────────────────────────────────────────────────────────

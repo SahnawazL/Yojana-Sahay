@@ -129,7 +129,7 @@ export const MEGHALAYA_SCHEMES = [
     apply:   { en: "socialwelfare.meghalaya.gov.in / BDO or SDO office (offline)", hi: "socialwelfare.meghalaya.gov.in / BDO या SDO कार्यालय (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Age Proof (Birth Certificate / Voter ID / Church record) — for elderly", "Death Certificate of husband + Marriage Certificate — for widows", "Disability Certificate (40%+, from Medical Board) — for disabled", "BPL Ration Card / Income Certificate", "Bank Account (Aadhaar-linked)", "Residence Proof (Meghalaya)", "Two Passport Photos"],
                hi: ["आधार कार्ड", "आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID / चर्च रिकॉर्ड) — वृद्ध के लिए", "पति का मृत्यु प्रमाण पत्र + विवाह प्रमाण पत्र — विधवा के लिए", "दिव्यांगता प्रमाण पत्र (40%+, चिकित्सा बोर्ड से) — दिव्यांग के लिए", "BPL राशन कार्ड / आय प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड)", "निवास प्रमाण (मेघालय)", "दो पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Meghalaya" && (a.who === "senior" || a.age === "above60" || a.who === "widow" || a.who === "disabled"),
+    match: (a) => a.state === "Meghalaya" && (a.who === "senior" || a.age === "above60" || (a.disability != null && a.disability !== "none")),
   },
 
   // ── HOUSING ───────────────────────────────────────────────────────────────

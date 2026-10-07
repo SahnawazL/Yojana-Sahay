@@ -170,7 +170,7 @@ export const ANDAMAN_NICOBAR_SCHEMES = [
     apply:   { en: "Social Welfare Dept. / Block Development Office (BDO), Port Blair or respective island BDO (offline)", hi: "समाज कल्याण विभाग / ब्लॉक विकास कार्यालय (BDO), पोर्ट ब्लेयर या संबंधित द्वीप BDO (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Domicile Certificate (A&N UT)", "BPL Ration Card / Below Poverty Line certificate", "Age Proof (Voter ID / Birth Certificate) — for elderly", "Death Certificate of husband + Marriage Certificate — for widows", "Disability Certificate (80%+ for IGNDPS, issued by CMO / Medical Board)", "Bank Account (Aadhaar-linked)", "Two Passport Photos"],
                hi: ["आधार कार्ड", "अधिवास प्रमाण पत्र (A&N UT)", "BPL राशन कार्ड / गरीबी रेखा से नीचे प्रमाण पत्र", "आयु प्रमाण (मतदाता ID / जन्म प्रमाण पत्र) — वृद्धों के लिए", "पति का मृत्यु प्रमाण पत्र + विवाह प्रमाण पत्र — विधवाओं के लिए", "दिव्यांगता प्रमाण पत्र (IGNDPS के लिए 80%+, CMO / चिकित्सा बोर्ड से)", "बैंक खाता (आधार-लिंक्ड)", "दो पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Andaman & Nicobar" && (a.who === "senior" || a.age === "above60" || a.who === "widow" || a.who === "disabled") && ["below1","1to3"].includes(a.income),
+    match: (a) => a.state === "Andaman & Nicobar" && (a.who === "senior" || a.age === "above60" || (a.disability != null && a.disability !== "none")) && ["below1","1to3"].includes(a.income),
   },
 
   // ── HOUSING ───────────────────────────────────────────────────────────────

@@ -140,7 +140,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "https://edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "Delhi Address Proof", "Income Certificate", "Bank Passbook"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+)", "दिल्ली पता प्रमाण", "आय प्रमाण पत्र", "बैंक पासबुक"] },
-    match: (a) => a.state === "Delhi",
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Delhi"),
   },
 
   // ── UTILITIES ────────────────────────────────────────────────────────────────
@@ -385,7 +385,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "https://edistrict.delhigovt.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "School / College Bonafide", "Marksheet", "Bank Passbook"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+)", "विद्यालय / महाविद्यालय बोनाफाइड", "अंकतालिका", "बैंक पासबुक"] },
-    match: (a) => a.state === "Delhi" && a.who === "student",
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Delhi" && a.who === "student"),
   },
 
   // ── YOUTH ENTREPRENEURSHIP ───────────────────────────────────────────────────
@@ -620,7 +620,7 @@ export const DELHI_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST)", "Class 10/12 Marksheet", "College Admission Proof", "Income Certificate", "Delhi Domicile"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST)", "कक्षा 10/12 अंकतालिका", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण पत्र", "दिल्ली अधिवास"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Delhi" && a.who === "student" && (a.caste === "sc" || a.caste === "st"),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Delhi" && a.who === "student" && (a.caste === "sc" || a.caste === "st")),
   },
 
   // ── GOVERNANCE ───────────────────────────────────────────────────────────────
@@ -1005,7 +1005,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "wcd.delhi.gov.in", hi: "wcd.delhi.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Age Proof (11–18 years)", "Delhi Address Proof"],
                hi: ["आधार कार्ड", "आयु प्रमाण (11–18 वर्ष)", "दिल्ली पता प्रमाण"] },
-    match: (a) => a.state === "Delhi" && a.age === "below18",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Delhi" && a.age === "below18"),
   },
 
   // ── FOOD SECURITY (PDS) ──────────────────────────────────────────────────────
@@ -1166,7 +1166,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "minorities.delhi.gov.in", hi: "minorities.delhi.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "College / University Admission Letter", "Income Certificate (below ₹6L)", "Delhi Domicile", "Passport-size Photo"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "कॉलेज / विश्वविद्यालय प्रवेश पत्र", "आय प्रमाण पत्र (₹6L से कम)", "दिल्ली अधिवास", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Delhi" && a.who === "student",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Delhi" && a.who === "student"),
   },
 
   // ── WINTER RELIEF ─────────────────────────────────────────────────────────────
@@ -1214,7 +1214,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "edistrict.delhigovt.nic.in / ALIMCO camp registration", hi: "edistrict.delhigovt.nic.in / ALIMCO शिविर पंजीकरण" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "BPL / Income Certificate", "Delhi Address Proof", "Passport-size Photo"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+)", "BPL / आय प्रमाण पत्र", "दिल्ली पता प्रमाण", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Delhi" && (a.income === "below1" || a.income === "1to3"),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Delhi" && (a.income === "below1" || a.income === "1to3")),
   },
 
   // ── FIRST CHILD MATERNITY BENEFIT ────────────────────────────────────────────
@@ -1650,7 +1650,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "alimco.in / socialjustice.nic.in / nearest ADIP camp or DSWB office", hi: "alimco.in / socialjustice.nic.in / नजदीकी ADIP शिविर या DSWB कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ from CMO)", "Income Certificate (below ₹15,000/month)", "Age Proof", "Passport-size Photo", "Delhi Address Proof"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (CMO से 40%+)", "आय प्रमाण पत्र (₹15,000/माह से कम)", "आयु प्रमाण", "पासपोर्ट फोटो", "दिल्ली पता प्रमाण"] },
-    match: (a) => a.state === "Delhi",
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Delhi"),
   },
 
   // ── FREE BUS PASS FOR PERSONS WITH DISABILITY ─────────────────────────────────
@@ -1666,7 +1666,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "transport.delhi.gov.in / DTC bus pass counters", hi: "transport.delhi.gov.in / DTC बस पास काउंटर" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ from CMO / DSWB)", "Delhi Address Proof", "Passport-size Photo"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (CMO / DSWB से 40%+)", "दिल्ली पता प्रमाण", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Delhi",
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Delhi"),
   },
 
   // ── CHILD HELPLINE ────────────────────────────────────────────────────────────

@@ -81,7 +81,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "meeseva.telangana.gov.in / Nearest Village Secretary", hi: "meeseva.telangana.gov.in / नजदीकी ग्राम सचिव" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ from District Medical Board)", "BPL / White Ration Card", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+ जिला चिकित्सा बोर्ड से)", "BPL / सफेद राशन कार्ड", "बैंक खाता"] },
-    match: (a) => a.state === "Telangana" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Telangana" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── 6. Aarogyasri Health Care Trust ───────────────────────────────────────

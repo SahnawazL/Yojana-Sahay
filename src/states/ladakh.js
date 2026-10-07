@@ -132,7 +132,7 @@ export const LADAKH_SCHEMES = [
     apply:   { en: "Social Welfare Dept. / LAHDC Office, Leh or Kargil (offline application at Block level)", hi: "समाज कल्याण विभाग / LAHDC कार्यालय, लेह या कारगिल (ब्लॉक स्तर पर ऑफलाइन आवेदन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Domicile Certificate (Ladakh UT)", "Age Proof (Voter ID / Birth Certificate) — for elderly", "Death Certificate of husband + Marriage Certificate — for widows", "Disability Certificate (40%+, issued by CMO / Medical Board) — for disabled", "Bank Account (Aadhaar-linked)", "BPL Ration Card / Income Certificate", "Two Passport Photos"],
                hi: ["आधार कार्ड", "अधिवास प्रमाण पत्र (लद्दाख UT)", "आयु प्रमाण (मतदाता ID / जन्म प्रमाण पत्र) — वृद्धों के लिए", "पति का मृत्यु प्रमाण पत्र + विवाह प्रमाण पत्र — विधवाओं के लिए", "दिव्यांगता प्रमाण पत्र (40%+, CMO / चिकित्सा बोर्ड से) — दिव्यांगों के लिए", "बैंक खाता (आधार-लिंक्ड)", "BPL राशन कार्ड / आय प्रमाण पत्र", "दो पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Ladakh" && (a.who === "senior" || a.age === "above60" || a.who === "widow" || a.who === "disabled"),
+    match: (a) => a.state === "Ladakh" && (a.who === "senior" || a.age === "above60" || (a.disability != null && a.disability !== "none")),
   },
 
   // ── HOUSING ───────────────────────────────────────────────────────────────

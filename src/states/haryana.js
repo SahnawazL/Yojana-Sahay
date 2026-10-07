@@ -141,7 +141,7 @@ export const HARYANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥60% from CMO/Civil Surgeon)","Parivar Pehchan Patra","Bank Account","Income Certificate"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (≥60% CMO/सिविल सर्जन से)","परिवार पहचान पत्र","बैंक खाता","आय प्रमाण पत्र"] },
     // Eligibility: Haryana resident, ≥60% disability, income ≤ ₹3 lakh/year
-    match: (a) => a.state === "Haryana" && ["below1","1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Haryana" && ["below1","1to3"].includes(a.income)),
   },
 
   {

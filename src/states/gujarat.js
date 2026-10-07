@@ -91,7 +91,7 @@ export const GUJARAT_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "School Enrollment Certificate", "Income Certificate (below ₹6L)", "Bank Account", "Caste Certificate (if applicable)", "Passport Photo"],
                hi: ["आधार कार्ड", "स्कूल नामांकन प्रमाण", "आय प्रमाण (₹6 लाख से कम)", "बैंक खाता", "जाति प्रमाण (यदि लागू हो)", "पासपोर्ट फोटो"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Gujarat" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income)),
   },
 
   {
@@ -233,7 +233,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://socialjustice.gov.in/schemes/25", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ disability from Govt. Hospital)", "Income Certificate", "Domicile Certificate", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (सरकारी अस्पताल से 40%+)", "आय प्रमाण", "अधिवास प्रमाण", "बैंक खाता", "फोटो"] },
-    match: (a) => a.state === "Gujarat" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Gujarat" && ["below1", "1to3"].includes(a.income)),
   },
 
   {
@@ -561,7 +561,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/sesg", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ from Govt. Hospital)", "Income Certificate", "Business Plan / Proposal", "Bank Account", "Photo"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (सरकारी अस्पताल से 40%+)", "आय प्रमाण", "व्यापार योजना / प्रस्ताव", "बैंक खाता", "फोटो"] },
-    match: (a) => a.state === "Gujarat" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Gujarat" && ["below1", "1to3"].includes(a.income)),
   },
 
   {

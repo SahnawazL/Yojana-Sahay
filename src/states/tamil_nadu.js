@@ -24,7 +24,7 @@ export const TAMIL_NADU_SCHEMES = [
                hi: ["आधार कार्ड", "स्कूल नामांकन प्रमाण पत्र", "बैंक खाता (छात्रा के नाम पर)"] },
     // Eligibility: TN girl student in Std 6-12 in govt school
     keywords: ["class10"],
-    match: (a) => a.state === "Tamil Nadu" && a.who === "student",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Tamil Nadu" && a.who === "student"),
   },
 
   // ── 2. Kalaignar Magalir Urimai Thittam (Women's Rights Scheme) ───────────
@@ -102,7 +102,7 @@ export const TAMIL_NADU_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Community Certificate (SC/ST)", "Mark Sheet (Class 12)", "College Admission Letter", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST)", "कक्षा 12 मार्कशीट", "कॉलेज प्रवेश पत्र", "बैंक खाता"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Tamil Nadu" && a.who === "student" && a.age === "18to35" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Tamil Nadu" && a.who === "student" && a.age === "18to35" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── 7. Tamil Nadu Unorganised Workers' Welfare Scheme ─────────────────────
@@ -192,7 +192,7 @@ export const TAMIL_NADU_SCHEMES = [
     apply:   { en: "swd.tn.gov.in", hi: "swd.tn.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ disability)", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+ विकलांगता)", "आय प्रमाण पत्र", "बैंक खाता"] },
-    match: (a) => a.state === "Tamil Nadu" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Tamil Nadu" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── 13. Tamil Nadu Self-Help Group (SHG) Revolving Fund ───────────────────

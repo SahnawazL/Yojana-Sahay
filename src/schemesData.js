@@ -734,7 +734,7 @@ export const SCHEME_DB = [
     // Eligibility: unmarried SC/ST girl (or any-caste KGBV Class 8 pass) enrolled in Class 9 at a govt/govt-aided/local-body
     // school, age ≤16 at enrollment. No income ceiling. Excludes private-unaided and central govt schools (KV/NV/CBSE).
     keywords: ["class10"],
-    match: (a) => a.who === "student" || a.who === "women",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.who === "student" || a.who === "women"),
   },
 
   {
@@ -820,7 +820,7 @@ export const SCHEME_DB = [
     // Eligibility: BPL, 80%+ disability, age 18-79
     eligibilityText: { en: ["Age 18–79 with severe or multiple disability (80% or more)", "From a Below Poverty Line (BPL) household", "Apply through your Gram Panchayat or municipal office"],
                        hi: ["आयु 18–79 वर्ष, गंभीर या बहु-दिव्यांगता (80% या अधिक)", "गरीबी रेखा से नीचे (BPL) परिवार से", "ग्राम पंचायत या नगर पालिका कार्यालय से आवेदन करें"] },
-    match: (a) => !!a.disability && a.disability !== "none" && ["below1","1to3"].includes(a.income) && a.age !== "below18",
+    match: (a) => (a.disability == null || a.disability !== "none") && ["below1","1to3"].includes(a.income) && a.age !== "below18",
   },
 
   {
@@ -1070,7 +1070,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥40% disability)","Income Certificate (≤₹2L/year)","Passport Photo","Bank Account"],
                hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (≥40% विकलांगता)","आय प्रमाण (≤₹2 लाख/वर्ष)","पासपोर्ट फोटो","बैंक खाता"] },
     // Eligibility: person with ≥40% disability, family income ≤ ₹2L/year
-    match: (a) => ["below1","1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (["below1","1to3"].includes(a.income)),
   },
 
   // ── NEW NATIONAL SCHEMES ──────────────────────────────────────────────────
@@ -1699,7 +1699,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","आय प्रमाण (पारिवारिक आय ≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","कक्षा 10 और 12 की मार्कशीट","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: girl student in AICTE-approved technical diploma/degree, family income ≤ ₹8L
     keywords: ["class10","class12","polytechnic","diploma"],
-    match: (a) => (a.who === "women" || a.who === "student") && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => (a.gender == null || a.gender === "female") && ((a.who === "women" || a.who === "student") && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   {
@@ -1716,7 +1716,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","विकलांगता प्रमाण पत्र (≥40%)","आय प्रमाण (≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","मार्कशीट","बैंक खाता (आधार लिंक)"] },
     // Eligibility: student with ≥40% disability in AICTE-approved technical programme, income ≤ ₹8L
     keywords: ["class10","class12","polytechnic","diploma"],
-    match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.who === "student" && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   {
@@ -1868,7 +1868,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","एकल बालिका शपथ पत्र","PG प्रवेश प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: single girl child admitted to 1st year full-time PG course
     keywords: ["class12"],
-    match: (a) => a.who === "student" || a.who === "women",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.who === "student" || a.who === "women"),
   },
 
   {
@@ -1953,7 +1953,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","कक्षा 10 मार्कशीट","एकल बालिका शपथ पत्र","स्कूल बोनाफाइड प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: single girl child, 60%+ in Class 10, continuing in CBSE-affiliated school
     keywords: ["class10","class12"],
-    match: (a) => a.who === "student" || a.who === "women",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.who === "student" || a.who === "women"),
   },
 
   {
@@ -2004,7 +2004,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (≥40%)","PG मार्कशीट","M.Phil/PhD पंजीकरण प्रमाण","बैंक खाता"] },
     // Eligibility: student with ≥40% disability registered for M.Phil/PhD
     keywords: ["class12"],
-    match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.who === "student" && ["18to35","35to60"].includes(a.age)),
   },
 
   {

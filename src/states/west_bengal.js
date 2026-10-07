@@ -41,7 +41,7 @@ export const WEST_BENGAL_SCHEMES = [
     docs:    { en: ["Aadhaar Card","Birth Certificate / Age Proof","School Enrollment Certificate (Class 8–12)","Income Certificate (family income < ₹1.2 lakh/year)","Bank Account (girl's name)","Unmarried Declaration (self-attested)","Passport Photo"],
                hi: ["आधार कार्ड","जन्म प्रमाण पत्र / आयु प्रमाण","स्कूल नामांकन प्रमाण पत्र (कक्षा 8–12)","आय प्रमाण पत्र (पारिवारिक आय ₹1.2 लाख/वर्ष से कम)","बैंक खाता (छात्रा के नाम)","अविवाहित घोषणा (स्व-सत्यापित)","पासपोर्ट फोटो"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "West Bengal" && a.who === "student",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "West Bengal" && a.who === "student"),
   },
 
   {

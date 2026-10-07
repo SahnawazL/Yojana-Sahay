@@ -161,7 +161,7 @@ export const ODISHA_SCHEMES = [
     apply:   { en: "ssepd.odisha.gov.in / BDO or Municipality office (offline)", hi: "ssepd.odisha.gov.in / BDO या नगरपालिका कार्यालय (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Age Proof (Birth Certificate / Voter ID) — for elderly", "Death Certificate of husband + Marriage Certificate — for widows", "Disability Certificate (40%+, issued by Medical Board) — for disabled", "Bank Account (Aadhaar-linked)", "Residence Proof (Odisha)", "BPL Ration Card (if applicable)", "Two Passport Photos"],
                hi: ["आधार कार्ड", "आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID) — वृद्ध के लिए", "पति का मृत्यु प्रमाण पत्र + विवाह प्रमाण पत्र — विधवा के लिए", "दिव्यांगता प्रमाण पत्र (40%+, चिकित्सा बोर्ड से) — दिव्यांग के लिए", "बैंक खाता (आधार-लिंक्ड)", "निवास प्रमाण (ओडिशा)", "BPL राशन कार्ड (यदि लागू हो)", "दो पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Odisha" && (a.who === "senior" || a.age === "above60" || a.who === "widow" || a.who === "disabled"),
+    match: (a) => a.state === "Odisha" && (a.who === "senior" || a.age === "above60" || (a.disability != null && a.disability !== "none")),
   },
 
   // ── HOUSING ───────────────────────────────────────────────────────────────

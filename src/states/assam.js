@@ -49,7 +49,7 @@ export const ASSAM_SCHEMES = [
     docs:    { en: ["Aadhaar Card","School / College Enrollment Certificate","Bank Account (girl's name)","Birth Certificate"],
                hi: ["आधार कार्ड","स्कूल/कॉलेज नामांकन प्रमाण","बैंक खाता (छात्रा के नाम)","जन्म प्रमाण पत्र"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Assam" && a.who === "student",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Assam" && a.who === "student"),
   },
 
   {
@@ -675,7 +675,7 @@ export const ASSAM_SCHEMES = [
     docs:    { en: ["Disability certificate / UDID card","Aadhaar card","Proof of Assam residence","Educational certificates","Bank account details"],
                hi: ["दिव्यांगता प्रमाण पत्र / यूडीआईडी कार्ड","आधार कार्ड","असम निवास प्रमाण","शैक्षिक प्रमाण पत्र","बैंक खाते का विवरण"] },
     autoAdded: "2026-10-07", source: "https://asdm.assam.gov.in/portlet-innerpage/deen-dayal-divyangjan-punorsansthapan-scheme",
-    match: (a) => a.state === "Assam" && (!!a.disability && a.disability !== "none"),
+    match: (a) => a.state === "Assam" && (a.disability == null || a.disability !== "none"),
   },
   // </auto-scheme id="assam_deen_dayal_divyangjan">
 

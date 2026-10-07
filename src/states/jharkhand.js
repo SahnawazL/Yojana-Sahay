@@ -80,7 +80,7 @@ export const JHARKHAND_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "School / College Enrollment Proof", "Bank Account", "Ration Card", "Caste Certificate (if applicable)"],
                hi: ["आधार कार्ड", "विद्यालय / कॉलेज नामांकन प्रमाण", "बैंक खाता", "राशन कार्ड", "जाति प्रमाण पत्र (यदि लागू हो)"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below18","18to35"].includes(a.age),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Jharkhand" && a.who === "student" && ["below18","18to35"].includes(a.age)),
   },
 
   {
@@ -213,7 +213,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+) from CMO", "BPL Ration Card", "Bank Account", "Jharkhand Domicile Certificate"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+) CMO से", "बीपीएल राशन कार्ड", "बैंक खाता", "झारखंड निवास प्रमाण पत्र"] },
-    match: (a) => a.state === "Jharkhand" && ["below1","1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Jharkhand" && ["below1","1to3"].includes(a.income)),
   },
 
   // ── 10. SC / ST SCHOLARSHIP ─────────────────────────────────────────────────
@@ -504,7 +504,7 @@ export const JHARKHAND_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+) from CMO", "School / College Enrollment Proof", "Income Certificate", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+) CMO से", "विद्यालय / कॉलेज नामांकन प्रमाण", "आय प्रमाण पत्र", "बैंक खाता", "पासपोर्ट फोटो"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
 ];

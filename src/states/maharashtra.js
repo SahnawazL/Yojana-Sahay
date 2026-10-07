@@ -207,7 +207,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://sjsa.maharashtra.gov.in/en/scheme/indira-gandhi-national-disability-pension-scheme", hi: "aaplesarkar.mahaonline.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (80%+, from Civil Surgeon)", "BPL / Income Certificate", "Bank Passbook", "Maharashtra Domicile"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (80%+, सिविल सर्जन से)", "BPL/आय प्रमाण", "बैंक पासबुक", "महाराष्ट्र अधिवास प्रमाण"] },
-    match: (a) => a.state === "Maharashtra" && ["below1","1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Maharashtra" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -221,7 +221,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "sjsa.maharashtra.gov.in", hi: "sjsa.maharashtra.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "Income Certificate (≤₹3L/year)", "Passport Photo", "Bank Passbook"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+)", "आय प्रमाण (≤₹3 लाख/वर्ष)", "पासपोर्ट फोटो", "बैंक पासबुक"] },
-    match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   // ── Tribal / Adivasi ─────────────────────────────────────────────────────────
@@ -1171,7 +1171,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://sjsa.maharashtra.gov.in", hi: "sjsa.maharashtra.gov.in / जिला समाज कल्याण कार्यालय / nhfdc.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+ from Civil Surgeon)", "Income Certificate", "Educational Qualification Certificate", "Bank Passbook", "Business Plan (for self-employment loan)"],
                hi: ["आधार कार्ड", "दिव्यांगता प्रमाण पत्र (40%+, सिविल सर्जनकडून)", "आय प्रमाण पत्र", "शैक्षणिक पात्रता प्रमाण पत्र", "बैंक पासबुक", "व्यापार योजना (स्वयंरोजगार कर्जासाठी)"] },
-    match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   // ── Rural Roads ───────────────────────────────────────────────────────────────

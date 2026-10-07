@@ -59,7 +59,7 @@ export const GOA_SCHEMES = [
     apply:   { en: "socialwelfare.goa.gov.in / BDO / Mamlatdar office (offline)", hi: "socialwelfare.goa.gov.in / BDO / ममलतदार कार्यालय (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Age Proof (Birth Certificate / Voter ID) — for elderly", "Death Certificate of husband + Marriage Certificate — for widows", "Disability Certificate (40%+, issued by Medical Board) — for disabled", "Goa Domicile Certificate (15 years)", "Bank Account (Aadhaar-linked)", "Income Certificate", "Two Passport Photos", "BPL Card (if applicable)"],
                hi: ["आधार कार्ड", "आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID) — वृद्ध के लिए", "पति का मृत्यु प्रमाण पत्र + विवाह प्रमाण पत्र — विधवा के लिए", "दिव्यांगता प्रमाण पत्र (40%+, चिकित्सा बोर्ड से) — दिव्यांग के लिए", "गोवा डोमिसाइल प्रमाण पत्र (15 वर्ष)", "बैंक खाता (आधार-लिंक्ड)", "आय प्रमाण पत्र", "दो पासपोर्ट फोटो", "BPL कार्ड (यदि लागू)"] },
-    match: (a) => a.state === "Goa" && (a.who === "senior" || a.age === "above60" || a.who === "widow" || a.who === "disabled"),
+    match: (a) => a.state === "Goa" && (a.who === "senior" || a.age === "above60" || (a.disability != null && a.disability !== "none")),
   },
 
   // ── STUDENT / EDUCATION ───────────────────────────────────────────────────
@@ -265,7 +265,7 @@ export const GOA_SCHEMES = [
     docs:    { en: ["Disability certificate","Marriage certificate","Income certificate","Residence certificate (15 years)","Aadhaar card"],
                hi: ["दिव्यांगता प्रमाण पत्र","विवाह प्रमाण पत्र","आय प्रमाण पत्र","निवास प्रमाण पत्र (15 वर्ष)","आधार कार्ड"] },
     autoAdded: "2026-10-07", source: "https://scpwd.goa.gov.in/?p=182",
-    match: (a) => a.state === "Goa" && ["below1","1to3"].includes(a.income) && (!!a.disability && a.disability !== "none"),
+    match: (a) => a.state === "Goa" && ["below1","1to3"].includes(a.income) && (a.disability == null || a.disability !== "none"),
   },
   // </auto-scheme id="goa_award_marriage_with">
 

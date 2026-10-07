@@ -25,7 +25,7 @@ export const BIHAR_SCHEMES = [
     docs:    { en: ["Aadhaar Card (girl's)","Birth Certificate","Parent's Bank Account (Aadhaar-linked)","Income Certificate","Caste Certificate (if SC/ST)","School Enrollment Certificate (for Class 12 / graduation installment)","Parent's Aadhaar Card"],
                hi: ["आधार कार्ड (बालिका का)","जन्म प्रमाण पत्र","माता-पिता का बैंक खाता (आधार-लिंक्ड)","आय प्रमाण पत्र","जाति प्रमाण पत्र (SC/ST हेतु)","स्कूल नामांकन प्रमाण पत्र (कक्षा 12 / स्नातक किस्त के लिए)","माता-पिता का आधार कार्ड"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Bihar" && a.who === "student",
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Bihar" && a.who === "student"),
   },
 
   {
@@ -42,7 +42,7 @@ export const BIHAR_SCHEMES = [
     docs:    { en: ["Aadhaar Card","Class 12 Marksheet (First / Second Division)","SC/ST Caste Certificate","Bank Account (girl's name, Aadhaar-linked)","School / Board Registration Certificate","Passport Photo","Domicile Certificate (Bihar)"],
                hi: ["आधार कार्ड","कक्षा 12 अंकसूची (प्रथम/द्वितीय श्रेणी)","SC/ST जाति प्रमाण पत्र","बैंक खाता (छात्रा के नाम, आधार-लिंक्ड)","स्कूल/बोर्ड पंजीकरण प्रमाण पत्र","पासपोर्ट फोटो","अधिवास प्रमाण पत्र (बिहार)"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Bihar" && a.who === "student" && ["sc","st"].includes(a.caste),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Bihar" && a.who === "student" && ["sc","st"].includes(a.caste)),
   },
 
   {

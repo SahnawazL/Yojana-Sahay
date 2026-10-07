@@ -218,7 +218,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/mkapy", hi: "socialsecurity.mp.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Samagra ID", "Disability Certificate (40%+ from CMO)", "BPL / Sambal Certificate", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "समग्र ID", "विकलांगता प्रमाण पत्र (CMO से 40%+)", "BPL/सम्बल प्रमाण", "बैंक खाता", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Madhya Pradesh" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Madhya Pradesh" && ["below1", "1to3"].includes(a.income)),
   },
 
   {
@@ -303,7 +303,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Samagra ID", "Class 12 Mark Sheet (min. 60%)", "Rural Domicile / Caste Certificate", "College Enrollment Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "समग्र ID", "कक्षा 12 मार्कशीट (न्यूनतम 60%)", "ग्रामीण निवास / जाति प्रमाण पत्र", "कॉलेज नामांकन प्रमाण", "बैंक खाता"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Madhya Pradesh" && a.who === "student" && a.area === "rural" && ["18to35"].includes(a.age),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Madhya Pradesh" && a.who === "student" && a.area === "rural" && ["18to35"].includes(a.age)),
   },
 
   {
@@ -331,7 +331,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/mkvymp", hi: "socialsecurity.mp.gov.in / नजदीकी जिला सामाजिक न्याय कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Samagra ID", "Disability Certificate (40%+, from CMO)", "Age Proof (both partners 18+ / 21+)", "Marriage Registration Certificate", "BPL / Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "समग्र ID", "विकलांगता प्रमाण पत्र (CMO से 40%+)", "आयु प्रमाण (18+/21+)", "विवाह पंजीकरण प्रमाण पत्र", "BPL/आय प्रमाण", "बैंक खाता"] },
-    match: (a) => a.state === "Madhya Pradesh" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Madhya Pradesh" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ADD MORE MADHYA PRADESH SCHEMES ABOVE THIS LINE ↓

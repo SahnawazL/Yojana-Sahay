@@ -129,7 +129,7 @@ export const MIZORAM_SCHEMES = [
     apply:   { en: "socialwelfare.mizoram.gov.in / SDO or BDO office (offline)", hi: "socialwelfare.mizoram.gov.in / SDO या BDO कार्यालय (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Age Proof (Birth Certificate / Voter ID / School Certificate) — for elderly", "Death Certificate of husband + Marriage Certificate — for widows", "Disability Certificate (40%+, from Medical Board) — for disabled", "BPL Ration Card / Income Certificate", "Bank Account (Aadhaar-linked)", "Residence Proof (Mizoram)", "Two Passport Photos"],
                hi: ["आधार कार्ड", "आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID / विद्यालय प्रमाण पत्र) — वृद्ध के लिए", "पति का मृत्यु प्रमाण पत्र + विवाह प्रमाण पत्र — विधवा के लिए", "दिव्यांगता प्रमाण पत्र (40%+, चिकित्सा बोर्ड से) — दिव्यांग के लिए", "BPL राशन कार्ड / आय प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड)", "निवास प्रमाण (मिजोरम)", "दो पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Mizoram" && (a.who === "senior" || a.age === "above60" || a.who === "widow" || a.who === "disabled"),
+    match: (a) => a.state === "Mizoram" && (a.who === "senior" || a.age === "above60" || (a.disability != null && a.disability !== "none")),
   },
 
   // ── HOUSING ───────────────────────────────────────────────────────────────
@@ -230,7 +230,7 @@ export const MIZORAM_SCHEMES = [
     docs:    { en: ["Disability Certificate / UDID Card","Employment Exchange registration card","Educational certificates","Bank account details"],
                hi: ["दिव्यांगता प्रमाणपत्र / यूडीआईडी कार्ड","रोज़गार कार्यालय पंजीकरण कार्ड","शैक्षणिक प्रमाणपत्र","बैंक खाते का विवरण"] },
     autoAdded: "2026-10-07", source: "https://socialwelfare.mizoram.gov.in/page/schemes-on-disability1688554472",
-    match: (a) => a.state === "Mizoram" && (!!a.disability && a.disability !== "none"),
+    match: (a) => a.state === "Mizoram" && (a.disability == null || a.disability !== "none"),
   },
   // </auto-scheme id="mizoram_stipend_educated_unemployed">
 

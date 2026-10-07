@@ -129,7 +129,7 @@ export const NAGALAND_SCHEMES = [
     apply:   { en: "socialwelfare.nagaland.gov.in / District Social Welfare Office or VDB (offline)", hi: "socialwelfare.nagaland.gov.in / जिला समाज कल्याण कार्यालय या VDB (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Age Proof (Birth Certificate / Voter ID / School Certificate) — for elderly", "Death Certificate of husband + Marriage Certificate — for widows", "Disability Certificate (40%+, from Medical Board) — for disabled", "BPL Ration Card / Income Certificate", "Bank Account (Aadhaar-linked)", "Residence Proof (Nagaland)", "Village Council / VDB Recommendation Letter", "Two Passport Photos"],
                hi: ["आधार कार्ड", "आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID / विद्यालय प्रमाण पत्र) — वृद्ध के लिए", "पति का मृत्यु प्रमाण पत्र + विवाह प्रमाण पत्र — विधवा के लिए", "दिव्यांगता प्रमाण पत्र (40%+, चिकित्सा बोर्ड से) — दिव्यांग के लिए", "BPL राशन कार्ड / आय प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड)", "निवास प्रमाण (नागालैंड)", "ग्राम परिषद / VDB अनुशंसा पत्र", "दो पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Nagaland" && (a.who === "senior" || a.age === "above60" || a.who === "widow" || a.who === "disabled"),
+    match: (a) => a.state === "Nagaland" && (a.who === "senior" || a.age === "above60" || (a.disability != null && a.disability !== "none")),
   },
 
   // ── HOUSING ───────────────────────────────────────────────────────────────
@@ -230,7 +230,7 @@ export const NAGALAND_SCHEMES = [
     docs:    { en: ["Disability Certificate or UDID Card","Progress report of last class passed","Income Certificate of parents","Bank passbook (Aadhaar-seeded)"],
                hi: ["दिव्यांगता प्रमाणपत्र या यूडीआईडी कार्ड","पिछली उत्तीर्ण कक्षा की प्रगति रिपोर्ट","माता-पिता का आय प्रमाणपत्र","बैंक पासबुक (आधार से जुड़ी)"] },
     autoAdded: "2026-10-07", source: "https://scholarship.nagaland.gov.in/uploaded-documents/32/view",
-    match: (a) => a.state === "Nagaland" && a.who === "student" && ["below1","1to3"].includes(a.income) && a.educationLevel === "class1to8" && (!!a.disability && a.disability !== "none"),
+    match: (a) => a.state === "Nagaland" && a.who === "student" && ["below1","1to3"].includes(a.income) && a.educationLevel === "class1to8" && (a.disability == null || a.disability !== "none"),
   },
   // </auto-scheme id="nagaland_nagaland_scholarship_persons">
 

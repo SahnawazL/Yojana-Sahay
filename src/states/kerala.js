@@ -287,7 +287,7 @@ export const KERALA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Disability Certificate (≥40%)", "School Enrollment Certificate", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (≥40%)", "विद्यालय नामांकन प्रमाण", "आय प्रमाण", "बैंक खाता"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Kerala" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Kerala" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ─── 11. MINORITY WELFARE ───────────────────────────────────────────────────
@@ -587,7 +587,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "sjd.kerala.gov.in", hi: "sjd.kerala.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (≥40%)", "Marriage Certificate / Invitation", "Income Certificate (below ₹3 Lakh)", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (≥40%)", "विवाह प्रमाण पत्र / निमंत्रण पत्र", "आय प्रमाण (₹3 लाख से कम)", "बैंक खाता"] },
-    match: (a) => a.state === "Kerala" && ["below1", "1to3", "3to6"].includes(a.income),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.state === "Kerala" && ["below1", "1to3", "3to6"].includes(a.income)),
   },
 
   // ─── 26. EMERGENCY RELIEF ───────────────────────────────────────────────────
