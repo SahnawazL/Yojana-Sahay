@@ -1973,6 +1973,23 @@ export const SCHEME_DB = [
 
   // ══════════════════════ STATE SCHEMES ════════════════════════════════════════
   // All state schemes live in stateSchemes.js — edit that file to add/change them.
+  // <auto-scheme id="viksit_bharat_rozgar"> added by Scheme Discovery agent on 2026-10-07 · source: https://pmvbry.epfindia.gov.in
+  {
+    id: "viksit_bharat_rozgar",
+    icon: "💼", color: "#0E7490", scope: "national",
+    ministry: { en: "Ministry of Labour & Employment", hi: "श्रम एवं रोजगार मंत्रालय" },
+    name:    { en: "Pradhan Mantri Viksit Bharat Rozgar Yojana", hi: "प्रधान मंत्री विकसित भारत रोजगार योजना" },
+    benefit: { en: "Up to ₹15,000 incentive for first‑time EPF employees (two instalments)", hi: "पहली बार EPF में जुड़ने वाले कर्मचारियों को अधिकतम ₹15,000 का प्रोत्साहन (दो किस्तों में)" },
+    tag:     { en: "Employment Linked Incentive", hi: "रोजगार लिंक्ड प्रोत्साहन" },
+    annual: 15000,
+    apply:   { en: "https://pmvbry.epfindia.gov.in", hi: "https://pmvbry.epfindia.gov.in" }, applyType: "online",
+    docs:    { en: ["User Manual for Registration of Establishments","Official Scheme Guidelines"],
+               hi: ["पंजीकरण के लिए उपयोगकर्ता मैनुअल","आधिकारिक योजना दिशानिर्देश"] },
+    autoAdded: "2026-10-07", source: "https://pmvbry.epfindia.gov.in",
+    match: (a) => a.who === "general",
+  },
+  // </auto-scheme id="viksit_bharat_rozgar">
+
   ...STATE_SCHEMES,
 
 ];
