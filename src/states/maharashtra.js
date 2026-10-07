@@ -1238,39 +1238,4 @@ export const MAHARASHTRA_SCHEMES = [
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
   },
 
-  // <auto-scheme id="maha_pragati_scholarship_girls"> added by Scheme Discovery agent on 2026-10-07 · source: https://dte.maharashtra.gov.in/pragati-scholarship-scheme/
-  {
-    id: "maha_pragati_scholarship_girls",
-    icon: "👩", color: "#BE185D", scope: "state", state: "Maharashtra",
-    ministry: { en: "Higher & Technical Education Department", hi: "उच्च व तंत्रशिक्षण विभाग" },
-    name:    { en: "Pragati Scholarship Scheme for Girls (Degree/Diploma)", hi: "प्रगति स्कॉलरशिप योजना लड़कियों के लिए (डिग्री/डिप्लोमा)" },
-    benefit: { en: "₹50,000 per annum scholarship for fees, books, equipment", hi: "₹50,000 प्रति वर्ष स्कॉलरशिप फीस, किताबें, उपकरण के लिए" },
-    tag:     { en: "Education / Technical Scholarship", hi: "शिक्षा / तकनीकी स्कॉलरशिप" },
-    annual: 50000,
-    apply:   { en: "https://dte.maharashtra.gov.in/pragati-scholarship-scheme/", hi: "https://dte.maharashtra.gov.in/pragati-scholarship-scheme/" }, applyType: "online",
-    docs:    { en: ["Aadhaar Card"],
-               hi: ["आधार कार्ड"] },
-    keywords: ["polytechnic","skill"],
-    autoAdded: "2026-10-07", source: "https://dte.maharashtra.gov.in/pragati-scholarship-scheme/",
-    match: (a) => a.state === "Maharashtra" && a.who === "women" && a.educationLevel === "undergrad",
-  },
-  // </auto-scheme id="maha_pragati_scholarship_girls">
-
-  // <auto-scheme id="maha_mazi_ladki_bahin"> added by Scheme Discovery agent on 2026-10-07 · source: http://womenchild.maharashtra.gov.in/en/
-  {
-    id: "maha_mazi_ladki_bahin",
-    icon: "👩", color: "#BE185D", scope: "state", state: "Maharashtra",
-    ministry: { en: "Women & Child Development Department, Government of Maharashtra", hi: "महिला व बाल विकास विभाग, महाराष्ट्र सरकार" },
-    name:    { en: "Mukhyamantri Mazi Ladki Bahin Yojana", hi: "मुख्यमंत्री माझी लाडकी बहिण योजना" },
-    benefit: { en: "", hi: "" },
-    tag:     { en: "Women Empowerment", hi: "महिला सशक्तिकरण" },
-    annual: 0,
-    apply:   { en: "http://womenchild.maharashtra.gov.in/en/", hi: "http://womenchild.maharashtra.gov.in/en/" }, applyType: "offline",
-    docs:    { en: ["Aadhaar Card"],
-               hi: ["आधार कार्ड"] },
-    autoAdded: "2026-10-07", source: "http://womenchild.maharashtra.gov.in/en/",
-    match: (a) => a.state === "Maharashtra" && (a.who === "women" || a.gender === "female"),
-  },
-  // </auto-scheme id="maha_mazi_ladki_bahin">
-
 ];

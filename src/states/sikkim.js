@@ -381,21 +381,4 @@ export const SIKKIM_SCHEMES = [
   //   match: (a) => a.state === "Sikkim",
   // },
 
-  // <auto-scheme id="sikkim_women_child_welfare"> added by Scheme Discovery agent on 2026-10-07 · source: https://pensionscheme.sikkim.gov.in/
-  {
-    id: "sikkim_women_child_welfare",
-    icon: "👩", color: "#BE185D", scope: "state", state: "Sikkim",
-    ministry: { en: "Social Welfare Department", hi: "समाज कल्याण विभाग" },
-    name:    { en: "Sikkim Women & Child Welfare Pension Scheme", hi: "सिक्किम महिला एवं बाल कल्याण पेंशन योजना" },
-    benefit: { en: "", hi: "" },
-    tag:     { en: "Pension / Women", hi: "पेंशन / महिला" },
-    annual: 0,
-    apply:   { en: "https://pensionscheme.sikkim.gov.in/", hi: "https://pensionscheme.sikkim.gov.in/" }, applyType: "online",
-    docs:    { en: ["Aadhaar Card"],
-               hi: ["आधार कार्ड"] },
-    autoAdded: "2026-10-07", source: "https://pensionscheme.sikkim.gov.in/",
-    match: (a) => a.state === "Sikkim" && (a.who === "women" || a.gender === "female"),
-  },
-  // </auto-scheme id="sikkim_women_child_welfare">
-
 ];

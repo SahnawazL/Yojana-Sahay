@@ -1433,35 +1433,18 @@ export const KARNATAKA_SCHEMES = [
   {
     id: "karnataka_deepika_scholarship",
     icon: "👩", color: "#BE185D", scope: "state", state: "Karnataka",
-    ministry: { en: "Department of Collegiate Education, Government of Karnataka", hi: "Karnataka सरकार" },
-    name:    { en: "Deepika Scholarship", hi: "Deepika Scholarship" },
-    benefit: { en: "₹30,000 per year for the entire duration of the Degree/Diploma", hi: "₹30,000 per year for the entire duration of the Degree/Diploma" },
-    tag:     { en: "Scholarship / Girls", hi: "Scholarship / Girls" },
+    ministry: { en: "Department of Collegiate Education, Government of Karnataka", hi: "कॉलेजिएट शिक्षा विभाग, कर्नाटक सरकार" },
+    name:    { en: "Deepika Scholarship", hi: "दीपिका छात्रवृत्ति" },
+    benefit: { en: "₹30,000 per year for the entire Degree/Diploma course", hi: "डिग्री/डिप्लोमा की पूरी अवधि तक ₹30,000 प्रति वर्ष" },
+    tag:     { en: "Student / Girl Scholarship", hi: "छात्र / बालिका छात्रवृत्ति" },
     annual: 30000,
     apply:   { en: "https://dce.karnataka.gov.in/88/deepika-scholarship/en", hi: "https://dce.karnataka.gov.in/88/deepika-scholarship/en" }, applyType: "online",
     docs:    { en: ["Aadhaar Card"],
                hi: ["आधार कार्ड"] },
-    keywords: ["class10","class12"],
     autoAdded: "2026-10-07", source: "https://dce.karnataka.gov.in/88/deepika-scholarship/en",
-    match: (a) => a.state === "Karnataka" && ["women","student"].includes(a.who) && a.educationLevel === "class9to12" && (a.who === "women" || a.gender === "female"),
+    // Girls from Karnataka government schools now in a degree / diploma course.
+    match: (a) => a.state === "Karnataka" && ["women","student"].includes(a.who) && (a.who === "women" || a.gender === "female") && (a.who !== "student" || a.educationLevel === "undergrad"),
   },
   // </auto-scheme id="karnataka_deepika_scholarship">
-
-  // <auto-scheme id="karnataka_scholarship"> added by Scheme Discovery agent on 2026-10-07 · source: https://ssp.karnataka.gov.in/
-  {
-    id: "karnataka_scholarship",
-    icon: "📋", color: "#334155", scope: "state", state: "Karnataka",
-    ministry: { en: "Department of Primary and Secondary Education, Karnataka", hi: "कर्नाटक प्राथमिक एवं माध्यमिक शिक्षा विभाग" },
-    name:    { en: "State Scholarship Portal – Karnataka", hi: "राज्य छात्रवृत्ति पोर्टल – कर्नाटक" },
-    benefit: { en: "Online application and disbursement of various state scholarships", hi: "विभिन्न राज्य छात्रवृत्तियों के ऑनलाइन आवेदन और वितरण" },
-    tag:     { en: "Scholarship Portal", hi: "छात्रवृत्ति पोर्टल" },
-    annual: 0,
-    apply:   { en: "https://ssp.karnataka.gov.in/", hi: "https://ssp.karnataka.gov.in/" }, applyType: "online",
-    docs:    { en: ["Aadhaar Card"],
-               hi: ["आधार कार्ड"] },
-    autoAdded: "2026-10-07", source: "https://ssp.karnataka.gov.in/",
-    match: (a) => a.state === "Karnataka",
-  },
-  // </auto-scheme id="karnataka_scholarship">
 
 ];

@@ -86,14 +86,32 @@ const istToday = () => new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0
 // ── Names & duplicates ───────────────────────────────────────────────────────
 function tokensOf(name) { return nameTokens(name).filter(t => !/^\d+$/.test(t)); }
 
+// Hindi words are spelled many ways in English (Majhi/Mazi, Bahin/Behna,
+// Yojna/Yojana, Laadli/Ladli…). Fold them to one sound-alike form.
+export function phonetic(t) {
+  return String(t).toLowerCase()
+    .replace(/zh|jh|z/g, "j").replace(/w/g, "v").replace(/ph/g, "f")
+    .replace(/(kh|gh|ch|th|dh|bh|sh)/g, m => m[0])
+    .replace(/ee|ii/g, "i").replace(/oo|uu/g, "u").replace(/aa/g, "a").replace(/ai/g, "e").replace(/au/g, "o")
+    .replace(/(.)\1+/g, "$1")
+    .replace(/[aeiou]+$/, "")          // trailing vowel: ladki/ladk, bahna/bahn
+    .replace(/([^aeiou])[aeiou]([^aeiou])/g, "$1$2"); // drop inner short vowels: bahin/behen → bhn
+}
+function tokenEq(x, y) {
+  if (x === y) return true;
+  const px = phonetic(x), py = phonetic(y);
+  return px.length >= 2 && px === py;
+}
+
 export function sameScheme(a, b) {
   const ta = tokensOf(a), tb = tokensOf(b);
   if (!ta.length || !tb.length) return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
-  const sa = new Set(ta), sb = new Set(tb);
-  const inter = ta.filter(t => sb.has(t)).length;
+  const pa = [...new Set(ta.map(phonetic))], pb = [...new Set(tb.map(phonetic))];
+  const sa = new Set(pa), sb = new Set(pb);
+  const inter = pa.filter(t => sb.has(t)).length;
   const [short, long] = sa.size <= sb.size ? [sa, sb] : [sb, sa];
   if ([...short].every(t => long.has(t))) return true;          // one name contains the other
-  return inter / new Set([...sa, ...sb]).size >= 0.6;          // mostly the same words
+  return inter / new Set([...sa, ...sb]).size >= 0.6;          // mostly the same words (sound-alike)
 }
 
 function seenKey(region, name) {
@@ -225,7 +243,10 @@ function draftPrompt(candidate, region, pageText, sourceUrl) {
     "below1 = under ₹1 lakh, 1to3 = ₹1–3 lakh, 3to6 = ₹3–6 lakh, above6 = over ₹6 lakh. " +
     "who: farmer, student, women, senior (60+), business (self-employed/entrepreneur), general (anyone else). " +
     "age: below18, 18to35, 35to60, above60. house: yes = owns pucca house, no = no house, kutcha = kutcha house. " +
-    "rationCard: bpl/aay/apl/none. landHolding in acres.\n" +
+    "rationCard: bpl/aay/apl/none. landHolding in acres. " +
+    "educationLevel is what the applicant is studying NOW: class1to8, class9to12 (school), undergrad (any degree / diploma / ITI / polytechnic course), postgrad. " +
+    "A scholarship for college students who passed Class 12 is undergrad, not class9to12.\n" +
+    "- Websites/portals that list many schemes are NOT a scheme: isWelfareScheme false.\n" +
     "- confidence: 1.0 only if the page clearly describes this exact scheme, its benefit and eligibility.";
   const user =
     `Scheme to describe: ${candidate.name}\nRegion: ${region === "national" ? "Central Government (national)" : region}\n` +
@@ -275,6 +296,7 @@ export function buildScheme(ai, { candidate, region, sourceUrl, pageText, scheme
 
   const name = { en: str(ai.name?.en, 120), hi: str(ai.name?.hi, 120) };
   if (!name.en) hard.push("no scheme name");
+  if (/\b(portal|website|web ?site|helpline|dashboard|list of schemes|all schemes)\b/i.test(name.en)) hard.push("this is a portal / website, not a scheme");
   const dup = name.en ? findDuplicate(name.en, region, schemes) : null;
   if (dup) hard.push(`already in the app as "${dup.name?.en}" (${dup.id})`);
 
@@ -287,8 +309,14 @@ export function buildScheme(ai, { candidate, region, sourceUrl, pageText, scheme
   const docs     = docsEn.length && docsEn.length === docsHi.length ? { en: docsEn, hi: docsHi } : { en: ["Aadhaar Card"], hi: ["आधार कार्ड"] };
   if (!(docsEn.length && docsEn.length === docsHi.length)) problems.push("documents list missing or English/Hindi mismatch — set to Aadhaar only");
 
-  if (!benefit.en) problems.push("no benefit text");
-  for (const [k, v] of [["name", name.hi], ["benefit", benefit.hi], ["tag", tag.hi]]) if (!v || !DEVANAGARI.test(v)) problems.push(`Hindi ${k} missing`);
+  // Entries users can't read properly are never published, not even on approval.
+  if (!benefit.en || benefit.en.length < 12) hard.push("no clear benefit on the page");
+  for (const [k, v] of [["name", name.hi], ["benefit", benefit.hi]]) if (!v || !DEVANAGARI.test(v)) hard.push(`Hindi ${k} missing`);
+  if (!tag.hi || !DEVANAGARI.test(tag.hi)) problems.push("Hindi tag missing");
+  // A Central-government scheme found while searching a state.
+  if (scope === "state" && /\b(AICTE|UGC|Ministry of|Government of India|Govt\.? of India|Union Government|Central Government)\b/i.test(`${ministry.en} ${name.en}`)) {
+    problems.push("looks like a Central government scheme, not a state one — check where it belongs");
+  }
   if (!name.hi) name.hi = name.en;
   if (!benefit.hi) benefit.hi = benefit.en;
   if (!tag.hi) tag.hi = tag.en;
@@ -429,7 +457,7 @@ export async function unpublishScheme(id, file) {
   const out = await updateRepoFile(file, (text) => {
     if (text == null) throw new Error(`${file} not found`);
     const next = removeBlock(text, id);
-    if (next == null) throw new Error(`auto-added block for ${id} not found in ${file} (only agent-added schemes can be removed here)`);
+    if (next == null) return { text, changed: false, missing: true }; // already removed (e.g. by hand)
     return { text: next, changed: true };
   }, `chore(schemes): remove auto-added scheme ${id} [scheme-discovery]`);
   return { ok: true, commitUrl: out.commitUrl ?? null };
@@ -644,6 +672,10 @@ export async function reviewSchemeDraft(db, { id, op, by }) {
   const d = snap.data();
   if (op === "approve") {
     if (d.status === "published") return { ok: true, already: true };
+    const sc = d.scheme ?? {};
+    if (!sc.benefit?.en || !DEVANAGARI.test(sc.name?.hi ?? "") || !DEVANAGARI.test(sc.benefit?.hi ?? "")) {
+      throw new Error("This draft has no benefit text or no Hindi translation — reject it (the agent will find it again with a better page).");
+    }
     // Re-check duplicates against the live file before publishing.
     const live = await liveSchemeNames([d.file]);
     const dup = findDuplicate(d.scheme.name.en, d.region, [...SCHEME_DB, ...live].filter(s => s.id !== d.scheme.id));

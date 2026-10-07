@@ -171,14 +171,14 @@ export const ARUNACHAL_PRADESH_SCHEMES = [
     ministry: { en: "Government of Arunachal Pradesh, Planning & Investment Division", hi: "अरुणाचल प्रदेश सरकार, योजना एवं निवेश विभाग" },
     name:    { en: "Deen Dayal Upadhyaya Swavalamban Yojana", hi: "दीन दयाल उपाध्याय स्वावलंबन योजना" },
     benefit: { en: "40% front‑ended subsidy on startup loans up to ₹50 lakh (women get extra 5% interest subsidy)", hi: "स्टार्ट‑अप ऋण पर 40% अग्रिम सब्सिडी, अधिकतम ₹50 लाख (महिला उद्यमियों को अतिरिक्त 5% ब्याज सब्सिडी)" },
-    tag:     { en: "Startup subsidy", hi: "स्टार्ट‑अप सब्सिडी" },
+    tag:     { en: "Business / Startup Subsidy", hi: "व्यापार / स्टार्ट‑अप सब्सिडी" },
     annual: 0,
     apply:   { en: "https://arunachalplan.gov.in/deen-dayal-upadhay-sawalamban-yojana/", hi: "https://arunachalplan.gov.in/deen-dayal-upadhay-sawalamban-yojana/" }, applyType: "online",
     docs:    { en: ["Aadhaar Card"],
                hi: ["आधार कार्ड"] },
-    keywords: ["skill"],
     autoAdded: "2026-10-07", source: "https://arunachalplan.gov.in/deen-dayal-upadhay-sawalamban-yojana/",
-    match: (a) => a.state === "Arunachal Pradesh",
+    // Young entrepreneurs (18–45) starting a business.
+    match: (a) => a.state === "Arunachal Pradesh" && ["business","general"].includes(a.who) && ["18to35","35to60"].includes(a.age),
   },
   // </auto-scheme id="arunachal_deen_dayal_upadhyaya">
 

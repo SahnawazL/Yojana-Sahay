@@ -1983,10 +1983,11 @@ export const SCHEME_DB = [
     tag:     { en: "Employment Linked Incentive", hi: "रोजगार लिंक्ड प्रोत्साहन" },
     annual: 15000,
     apply:   { en: "https://pmvbry.epfindia.gov.in", hi: "https://pmvbry.epfindia.gov.in" }, applyType: "online",
-    docs:    { en: ["User Manual for Registration of Establishments","Official Scheme Guidelines"],
-               hi: ["पंजीकरण के लिए उपयोगकर्ता मैनुअल","आधिकारिक योजना दिशानिर्देश"] },
+    docs:    { en: ["Aadhaar Card (UAN-linked)","Bank Account linked to Aadhaar"],
+               hi: ["आधार कार्ड (UAN से जुड़ा)","आधार से जुड़ा बैंक खाता"] },
     autoAdded: "2026-10-07", source: "https://pmvbry.epfindia.gov.in",
-    match: (a) => a.who === "general",
+    // First-time formal-sector (EPF) employees.
+    match: (a) => ["general","student"].includes(a.who) && ["18to35","35to60"].includes(a.age),
   },
   // </auto-scheme id="viksit_bharat_rozgar">
 

@@ -648,9 +648,9 @@ export const KERALA_SCHEMES = [
     apply:   { en: "https://kscste.kerala.gov.in/prathibha-scholarship-programme/", hi: "https://kscste.kerala.gov.in/prathibha-scholarship-programme/" }, applyType: "online",
     docs:    { en: ["Student Data‑sheet","Higher Secondary Mark list","Community Certificate (if SC/ST)","Place of Origin certificate","Terms & Conditions","E‑payment form"],
                hi: ["छात्र डेटा‑शीट","हायर सेकेंडरी मार्क सूची","समुदाय प्रमाणपत्र (यदि एससी/एसटी)","उत्पत्ति प्रमाणपत्र","नियम एवं शर्तें","ई‑पेमेंट फ़ॉर्म"] },
-    keywords: ["class12"],
     autoAdded: "2026-10-07", source: "https://kscste.kerala.gov.in/prathibha-scholarship-programme/",
-    match: (a) => a.state === "Kerala" && a.who === "student" && ["general","sc","st"].includes(a.caste) && a.educationLevel === "class9to12",
+    // Top +2 scorers now studying a science degree.
+    match: (a) => a.state === "Kerala" && a.who === "student" && (!a.educationLevel || a.educationLevel === "undergrad"),
   },
   // </auto-scheme id="kerala_prathibha_scholarship">
 
