@@ -245,4 +245,21 @@ export const UTTAR_PRADESH_SCHEMES = [
   //   match: (a) => a.state === "Uttar Pradesh",
   // },
 
+  // <auto-scheme id="up_yuva_swarojgar"> added by Scheme Discovery agent on 2026-10-08 · source: https://msme1connect.up.gov.in/Home/SchemesList/5
+  {
+    id: "up_yuva_swarojgar",
+    icon: "🎯", color: "#D97706", scope: "state", state: "Uttar Pradesh",
+    ministry: { en: "Department of Industries, UPMSME", hi: "उद्योग विभाग, यूपीएमएसएमई" },
+    name:    { en: "Mukhyamantri Yuva Swarojgar Yojana", hi: "मुख्यमंत्री युवा स्वराज्य योजना" },
+    benefit: { en: "Interest‑free loans up to ₹25 lakh for industry and ₹10 lakh for service sector, plus 25% margin money", hi: "ब्याज रहित ऋण उद्योग के लिए ₹25 लाख तक और सेवा क्षेत्र के लिए ₹10 लाख तक, साथ ही 25% मार्जिन धन" },
+    tag:     { en: "Self‑employment", hi: "स्व‑रोज़गार" },
+    annual: 0,
+    apply:   { en: "https://msme1connect.up.gov.in/Home/SchemesList/5", hi: "https://msme1connect.up.gov.in/Home/SchemesList/5" }, applyType: "online",
+    docs:    { en: ["Mukhyamantri Yuva Swarojgar Yojana Eligibility.pdf","Mukhyamantri Yuva Swarojgar Yojana Government order.pdf","Mukhyamantri Yuva Swarojgar Yojana Highlight.pdf"],
+               hi: ["Mukhyamantri Yuva Swarojgar Yojana Eligibility.pdf","Mukhyamantri Yuva Swarojgar Yojana Government order.pdf","Mukhyamantri Yuva Swarojgar Yojana Highlight.pdf"] },
+    autoAdded: "2026-10-08", source: "https://msme1connect.up.gov.in/Home/SchemesList/5",
+    match: (a) => a.state === "Uttar Pradesh" && a.who === "general" && ["18to35","35to60"].includes(a.age) && a.educationLevel === "class9to12",
+  },
+  // </auto-scheme id="up_yuva_swarojgar">
+
 ];
