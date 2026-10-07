@@ -1,0 +1,48 @@
+name: Agents Watchdog
+
+# Every 6 hours: checks that every automatic job (background verifier,
+# deadline e-mails, auto-fix / URL repair, news refresh) actually ran and
+# worked, re-runs any that missed or failed, tests the API keys behind them,
+# and keeps two GitHub issues in sync so you get notified:
+#   🤖 Agent health                — only while something still fails after self-heal
+#   🔗 Scheme links need review    — links the agents couldn't fix safely
+# Logic: scripts/agent-watchdog.mjs (no npm install needed).
+#
+# Uses the same CRON_SECRET repo secret as verify-schemes-cron.yml.
+# Free: public-repo Actions minutes; most runs finish in under a minute.
+on:
+  schedule:
+    - cron: "17 */6 * * *" # 00:17, 06:17, 12:17, 18:17 UTC (≈ 05:47, 11:47, 17:47, 23:47 IST)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run — report only, don't re-run jobs or touch issues"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: agents-watchdog
+  cancel-in-progress: false
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check, self-heal and report
+        env:
+          APP_URL: https://yojanasahay.vercel.app
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+        run: node scripts/agent-watchdog.mjs

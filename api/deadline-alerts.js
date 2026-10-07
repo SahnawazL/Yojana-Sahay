@@ -34,6 +34,9 @@ import { getNextStartIdx }      from "./_lib/groqRotation.js";
 import { logApiCallToHistory }  from "./_lib/apiCallHistory.js";
 import { FieldValue }           from "firebase-admin/firestore";
 import nodemailer               from "nodemailer";
+import { runAutoFixAgent }      from "./_lib/autoFixAgent.js";
+import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
+import refreshNewsHandler       from "./refresh-news.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AI Compose & Send — folded into this same file (not a separate function)
@@ -383,6 +386,68 @@ function isCronRequest(req) {
   return isVercelCron || secretMatches;
 }
 
+// ── Background verify batch + its run log (cron, watchdog and admin "Run now") ──
+async function runAndLogVerifyBatch(trigger = "cron") {
+  try {
+    const result = await runSchemeVerificationBatch();
+    // Only the scheme ids checked are logged (not full payloads) to keep each
+    // doc small; schemes-meta.json remains the source of truth.
+    try {
+      await getAdminDb().collection("schemeVerifyRuns").add({
+        runAt:        new Date(),
+        trigger,
+        checked:      result.checked,
+        skippedNoUrl: result.skippedNoUrl,
+        withResults:  result.withResults,
+        cursorBefore: result.cursorBefore,
+        cursorAfter:  result.cursorAfter,
+        totalSchemes: result.totalSchemes,
+        durationMs:   result.durationMs,
+        commitSuccess: !result.commitError,
+        commitError:  result.commitError ?? null,
+        checkedIds:   Object.keys(result.results || {}),
+        skipped:      !!result.skipped,
+        reason:       result.reason ?? null,
+        stopReason:   result.stopReason ?? null,
+        tavilyCallsMade:     result.tavilyCallsMade ?? 0,
+        tavilyUsedThisMonth: result.tavilyUsedThisMonth ?? null,
+        monthlyBudget:       result.monthlyBudget ?? null,
+        errorCount:   result.errorCount ?? 0,
+        errorSamples: result.errorSamples ?? [],
+        datesFound:   Object.values(result.results || {}).filter(r => r?.lastDate).length,
+      });
+    } catch (logErr) {
+      // A logging failure must not turn a successful, committed run into a 500.
+      console.error("[deadline-alerts] Failed to log verifyBatch run:", logErr.message);
+    }
+    return result;
+  } catch (err) {
+    console.error("[deadline-alerts] Scheme verification batch failed:", err);
+    // Log the crash too — otherwise the dashboard keeps showing the last
+    // successful run as if everything were fine.
+    try {
+      await getAdminDb()?.collection("schemeVerifyRuns").add({
+        runAt: new Date(), trigger, crashed: true, commitSuccess: false,
+        commitError: null, stopReason: `crash: ${String(err.message).slice(0, 300)}`,
+        checked: 0, withResults: 0, checkedIds: [], errorCount: 1, errorSamples: [],
+      });
+    } catch { /* ignore */ }
+    throw err;
+  }
+}
+
+// Calls the refresh-news handler in-process with the server's own cron
+// secret (the browser never sees CRON_SECRET).
+async function runNewsRefresh() {
+  const secret = process.env.CRON_SECRET?.trim();
+  if (!secret) throw new Error("CRON_SECRET is not set in Vercel — news refresh can't be triggered.");
+  let status = 200, body = null;
+  const fakeRes = { status(c) { status = c; return fakeRes; }, json(b) { body = b; return fakeRes; } };
+  await refreshNewsHandler({ method: "GET", headers: { authorization: `Bearer ${secret}` }, query: { force: "true" } }, fakeRes);
+  if (status >= 400) throw new Error(body?.error ?? `News refresh failed (HTTP ${status})`);
+  return body;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed. Use GET or POST." });
@@ -495,7 +560,20 @@ export default async function handler(req, res) {
         // Don't fail the whole GET over this — email run history above still works.
       }
 
-      return res.status(200).json({ runs, todayQuota, verifyRuns, verifyCursor });
+      // Watchdog snapshot (written by the GitHub watchdog every 6 h, or by
+      // the admin "Check now" button) — powers the Watchdog card.
+      let agentHealth = null;
+      try {
+        const h = await auth.db.collection("appMeta").doc("agentHealth").get();
+        if (h.exists) {
+          const d = h.data();
+          agentHealth = { ...d, savedAt: d.savedAt?.toDate?.().toISOString() ?? null };
+        }
+      } catch (err) {
+        console.error("[deadline-alerts] Failed to read agentHealth:", err.message);
+      }
+
+      return res.status(200).json({ runs, todayQuota, verifyRuns, verifyCursor, agentHealth });
     } catch (err) {
       console.error("[deadline-alerts] Failed to fetch history:", err.message);
       return res.status(500).json({ error: "Could not load run history" });
@@ -514,57 +592,8 @@ export default async function handler(req, res) {
     //      emails instead of just running the scheme-verify batch.
     if (req.body?.action === "verifyBatch") {
       try {
-        const result = await runSchemeVerificationBatch();
-
-        // Log this run so it's visible in the admin dashboard — previously
-        // this batch ran silently every ~15-20 min with zero visibility
-        // anywhere: no Firestore record, no dashboard tab, nothing. The
-        // GitHub Action just discarded the HTTP response. Only keep the
-        // scheme ids checked here (not the full result payloads) to keep
-        // each log doc small; schemes-meta.json remains the source of truth
-        // for the actual verified data.
-        try {
-          const db = getAdminDb();
-          await db.collection("schemeVerifyRuns").add({
-            runAt:        new Date(),
-            checked:      result.checked,
-            skippedNoUrl: result.skippedNoUrl,
-            withResults:  result.withResults,
-            cursorBefore: result.cursorBefore,
-            cursorAfter:  result.cursorAfter,
-            totalSchemes: result.totalSchemes,
-            durationMs:   result.durationMs,
-            commitSuccess: !result.commitError,
-            commitError:  result.commitError ?? null,
-            checkedIds:   Object.keys(result.results || {}),
-            skipped:      !!result.skipped,
-            reason:       result.reason ?? null,
-            stopReason:   result.stopReason ?? null,
-            tavilyCallsMade:     result.tavilyCallsMade ?? 0,
-            tavilyUsedThisMonth: result.tavilyUsedThisMonth ?? null,
-            monthlyBudget:       result.monthlyBudget ?? null,
-            errorCount:   result.errorCount ?? 0,
-            errorSamples: result.errorSamples ?? [],
-            datesFound:   Object.values(result.results || {}).filter(r => r?.lastDate).length,
-          });
-        } catch (logErr) {
-          // Never let a logging failure turn a successful verification run
-          // into a 500 — the batch itself already succeeded and committed.
-          console.error("[deadline-alerts] Failed to log verifyBatch run:", logErr.message);
-        }
-
-        return res.status(200).json(result);
+        return res.status(200).json(await runAndLogVerifyBatch());
       } catch (err) {
-        console.error("[deadline-alerts] Scheme verification batch failed:", err);
-        // Log the crash too — otherwise the dashboard keeps showing the last
-        // successful run as if everything were fine.
-        try {
-          await getAdminDb()?.collection("schemeVerifyRuns").add({
-            runAt: new Date(), crashed: true, commitSuccess: false,
-            commitError: null, stopReason: `crash: ${String(err.message).slice(0, 300)}`,
-            checked: 0, withResults: 0, checkedIds: [], errorCount: 1, errorSamples: [],
-          });
-        } catch { /* ignore */ }
         return res.status(500).json({ error: err.message });
       }
     }
@@ -583,6 +612,29 @@ export default async function handler(req, res) {
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
   const { action, toName, toEmail, notes, subject, body, lang } = req.body || {};
+
+  // ── action: "runAgent" — admin "Run now" / "Check now" in the Agents tab ──
+  if (action === "runAgent") {
+    const job = req.body?.job;
+    try {
+      if (job === "health") {
+        const health = await getAgentHealth(auth.db);
+        const prev = (await auth.db.collection("appMeta").doc("agentHealth").get()).data() ?? {};
+        await saveAgentHealth(auth.db, health, {
+          source: "admin", ...(prev.issue ? { issue: prev.issue } : {}), ...(prev.reviewIssue ? { reviewIssue: prev.reviewIssue } : {}),
+        });
+        return res.status(200).json({ ok: true, health });
+      }
+      if (job === "autoFix")        return res.status(200).json({ ok: true, result: await runAutoFixAgent({ trigger: "manual" }) });
+      if (job === "verifyBatch")    return res.status(200).json({ ok: true, result: await runAndLogVerifyBatch("manual") });
+      if (job === "news")           return res.status(200).json({ ok: true, result: await runNewsRefresh() });
+      if (job === "deadlineAlerts") return res.status(200).json({ ok: true, result: await runDeadlineAlerts({ trigger: "manual", triggeredBy: auth.email ?? null }) });
+      return res.status(400).json({ error: `Unknown job: ${String(job).slice(0, 40)}` });
+    } catch (err) {
+      console.error(`[deadline-alerts] runAgent ${job} failed:`, err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
 
   // ── action: "draft" — Groq writes subject+body from the admin's notes ────
   if (action === "draft") {

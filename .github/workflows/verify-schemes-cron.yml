@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Trigger scheme verification batch
         run: |
-          curl -sS -X POST "https://yojanasahay.vercel.app/api/deadline-alerts" \
+          curl -sS --fail-with-body -X POST "https://yojanasahay.vercel.app/api/deadline-alerts" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
             -d '{"action":"verifyBatch"}' \

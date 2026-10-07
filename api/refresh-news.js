@@ -281,7 +281,7 @@ async function groqFilterAndSummarise(items, groqKeys) {
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
-export default async function handler(req, res) {
+async function refreshNewsCore(req, res) {
 
   // ── Step 1 — Security ───────────────────────────────────────────────────────
   // Vercel automatically sets "x-vercel-cron: 1" on all cron-triggered calls.
@@ -525,4 +525,44 @@ export default async function handler(req, res) {
     added:   addCount,
     scanned: newItems.length,
   });
+}
+
+
+// ── Run tracking for the Watchdog ───────────────────────────────────────────
+// lastRunAt above is only written when new items were saved, so a job that
+// ran fine but found nothing (or failed before writing) looked "never run".
+// Every authorised run now records its outcome in _config/news.
+export default async function handler(req, res) {
+  // Capture the response instead of sending it, so the outcome can be
+  // recorded (awaited — a serverless function may freeze right after it
+  // responds) before it goes out.
+  let statusCode = 200, body = null, captured = false;
+  const shim = {
+    status(code) { statusCode = code; return shim; },
+    json(b) { body = b; captured = true; return shim; },
+  };
+  try {
+    await refreshNewsCore(req, shim);
+  } catch (err) {
+    console.error("[refresh-news] crashed:", err);
+    statusCode = 500; body = { error: err.message }; captured = true;
+  }
+  if (!captured) { statusCode = 500; body = { error: "No response produced" }; }
+
+  if (statusCode !== 401 && statusCode !== 405 && !body?.skipped) {
+    const ok = statusCode < 400;
+    const message = ok
+      ? (typeof body?.added === "number" ? `Added ${body.added} news item${body.added === 1 ? "" : "s"}` : String(body?.message ?? "Ran"))
+      : String(body?.error ?? `HTTP ${statusCode}`);
+    try {
+      getDb();
+      await db.collection("_config").doc("news").set(
+        { lastAttemptAt: Timestamp.now(), lastAttemptOk: ok, lastAttemptMessage: message.slice(0, 200) },
+        { merge: true }
+      );
+    } catch (e) {
+      console.warn("[refresh-news] attempt log failed:", e.message);
+    }
+  }
+  return res.status(statusCode).json(body);
 }

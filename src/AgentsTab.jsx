@@ -1784,16 +1784,70 @@ const StatCard = React.memo(function StatCard({ label, value, color, Icon, toolt
 // `agentRuns` collection and shows what its last run actually did: schemes
 // scanned, URLs auto-fixed, items flagged for manual review, any failures.
 // ═════════════════════════════════════════════════════════════════════════════
+// ── "Run now" for an autonomous job — admin-authenticated, runs server-side
+// (POST /api/deadline-alerts { action:"runAgent", job }). Used by the
+// Auto-Fix, Background Verifier and Watchdog cards.
+function useRunAgent() {
+  const [running, setRunning] = useState(null);   // job id while running
+  const [message, setMessage] = useState(null);   // { ok, text }
+  const run = useCallback(async (job, label, onDone) => {
+    setRunning(job); setMessage(null);
+    try {
+      const data = await adminJson("/api/deadline-alerts", { action: "runAgent", job });
+      setMessage({ ok: true, text: `${label} finished.` });
+      onDone?.(data);
+    } catch (err) {
+      setMessage({ ok: false, text: `${label} failed: ${err.message}` });
+    } finally {
+      setRunning(null);
+    }
+  }, []);
+  return { running, message, run };
+}
+
+function RunNowButton({ job, label, runner, dark, isDesktop, onDone, title }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const busy = runner.running === job;
+  const disabled = !!runner.running;
+  return (
+    <div
+      {...activatable(() => { if (!disabled) runner.run(job, label, onDone); }, title || `Run ${label} now`)}
+      onClick={() => { if (!disabled) runner.run(job, label, onDone); }}
+      title={title || `Run ${label} now`}
+      aria-disabled={disabled}
+      style={{
+        cursor: disabled ? "default" : "pointer", padding:"3px 8px", borderRadius:6,
+        border:`1px solid ${th.border}`, fontSize:fs(9, isDesktop), fontWeight:700,
+        color: busy ? CYAN : th.textMid, opacity: disabled && !busy ? 0.5 : 1, userSelect:"none", whiteSpace:"nowrap",
+      }}
+    >
+      {busy ? "Running…" : "▶ Run"}
+    </div>
+  );
+}
+
+function RunMessage({ runner, isDesktop }) {
+  if (!runner.message) return null;
+  return (
+    <div role="status" style={{ fontSize:fs(9.5, isDesktop), color: runner.message.ok ? IND_GREEN : "#EF4444", marginBottom:8, lineHeight:1.45, wordBreak:"break-word" }}>
+      {runner.message.text}
+    </div>
+  );
+}
+
 const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const [reviewOpen, setReviewOpen] = useState(false);
+  const runner = useRunAgent();
 
   const ISSUE_LABEL = {
     MULTI_URL: "Multiple URLs",
     TEXT_ONLY: "No URL (text only)",
     NO_URL:    "URL missing",
+    DEAD_LINK: "Dead link",
   };
-  const ISSUE_COLOR = { MULTI_URL: SAFFRON, TEXT_ONLY: "#EF4444", NO_URL: "#EF4444" };
+  const ISSUE_COLOR = { MULTI_URL: SAFFRON, TEXT_ONLY: "#EF4444", NO_URL: "#EF4444", DEAD_LINK: "#EF4444" };
+  const rep = run?.repair ?? null;
 
   const hasRun    = !!run;
   const crashed   = hasRun && run.crashed === true;
@@ -1831,9 +1885,11 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
               </div>
             </div>
             <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginTop:3, marginLeft:31 }}>
-              SchemeVerifier · NO_HTTPS URL patcher · daily cron
+              https fixer + dead-link repair · daily cron
             </div>
           </div>
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+          <RunNowButton job="autoFix" label="Auto-Fix" runner={runner} dark={dark} isDesktop={isDesktop} />
           <div style={{
             display:"flex", alignItems:"center", gap:5,
             padding:"3px 9px", borderRadius:20,
@@ -1845,7 +1901,10 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
               {loading ? "Loading…" : statusLabel}
             </span>
           </div>
+          </div>
         </div>
+
+        <RunMessage runner={runner} isDesktop={isDesktop} />
 
         {loading ? (
           <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
@@ -1896,6 +1955,30 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
             {overdue && !crashed && (
               <div style={{ fontSize:fs(9.5, isDesktop), color:IDLE_AMBER, marginBottom:8, lineHeight:1.45 }}>
                 No run in over a day — check the agent-auto-fix cron in Vercel → Settings → Cron Jobs and that CRON_SECRET is set.
+              </div>
+            )}
+
+            {/* Dead-link repair (URL Repair agent, runs inside this job) */}
+            {rep && (
+              <div style={{ background: th.card2, border:`1px solid ${th.border}`, borderRadius:10, padding:"8px 10px", marginBottom:10 }}>
+                <div style={{ fontSize:fs(9, isDesktop), fontWeight:800, color:th.textMid, textTransform:"uppercase", letterSpacing:0.3, marginBottom:5 }}>
+                  Dead-link repair
+                </div>
+                <div style={{ fontSize:fs(10, isDesktop), color:th.textSub, display:"flex", flexWrap:"wrap", gap:"3px 12px" }}>
+                  <span>Dead: <strong style={{ color: rep.deadFound ? "#EF4444" : th.textMid }}>{rep.deadFound ?? 0}</strong></span>
+                  <span>Replaced: <strong style={{ color: IND_GREEN }}>{rep.fixed?.length ?? 0}</strong></span>
+                  <span>Back online: <strong style={{ color: IND_GREEN }}>{rep.recovered?.length ?? 0}</strong></span>
+                  <span>Searches: <strong style={{ color: th.textMid }}>{rep.searchesUsed ?? 0}</strong></span>
+                </div>
+                {(rep.fixed ?? []).slice(0, 5).map(f => (
+                  <div key={f.id} style={{ fontSize:fs(9.5, isDesktop), color:th.text, marginTop:5, lineHeight:1.4, wordBreak:"break-all" }}>
+                    ✅ <strong>{f.name}</strong> → <a href={f.newUrl} target="_blank" rel="noopener noreferrer" style={{ color: CYAN }}>{f.newUrl}</a>
+                    <span style={{ color: th.textSub }}> · {f.reason}</span>
+                  </div>
+                ))}
+                {rep.stopReason && (
+                  <div style={{ fontSize:fs(9.5, isDesktop), color:IDLE_AMBER, marginTop:5, lineHeight:1.4 }}>Stopped: {rep.stopReason}</div>
+                )}
               </div>
             )}
 
@@ -1952,12 +2035,153 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
                             {item.state}
                           </span>
                         )}
+                        {item.candidates?.[0]?.url && (
+                          <a href={item.candidates[0].url} target="_blank" rel="noopener noreferrer"
+                             title={`Best candidate: ${item.candidates[0].title || item.candidates[0].url}`}
+                             style={{ fontSize:fs(8.5, isDesktop), color:CYAN, flexShrink:0, marginLeft: item.state ? 0 : "auto" }}>
+                            candidate ↗
+                          </a>
+                        )}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Watchdog Card
+// ─────────────────────────────────────────────────────────────────────────────
+// Shows the latest health snapshot (appMeta/agentHealth) written by the
+// GitHub Actions watchdog every 6 h (scripts/agent-watchdog.mjs) or by
+// "Check now". Every job + API key with its status, what the watchdog re-ran
+// on its own, and links to the GitHub issues it keeps in sync.
+// ═════════════════════════════════════════════════════════════════════════════
+const WATCH_JOB_LABEL = { verifyBatch: "Background verify batch", deadlineAlerts: "Deadline e-mails", autoFix: "Auto-Fix", news: "News refresh" };
+
+const WatchdogCard = React.memo(function WatchdogCard({ dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const runner = useRunAgent();
+  const [state, setState] = useState({ loading: true, error: null, health: null });
+
+  const load = useCallback(async () => {
+    try {
+      const data = await adminJson("/api/deadline-alerts", undefined, { method: "GET" });
+      setState({ loading: false, error: null, health: data.agentHealth ?? null });
+    } catch (err) {
+      setState(prev => ({ ...prev, loading: false, error: err.message }));
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 5 * 60 * 1000);
+    return () => clearInterval(t);
+  }, [load]);
+
+  const onHealth = useCallback(d => {
+    if (d?.health) setState(prev => ({ loading:false, error:null, health: { ...(prev.health ?? {}), ...d.health, source: "admin" } }));
+  }, []);
+
+  const h = state.health;
+  const checkedAt = h?.checkedAt ? new Date(h.checkedAt) : null;
+  // The watchdog runs every 6 h — no snapshot for 13 h means it isn't running.
+  const stale = !!checkedAt && Date.now() - checkedAt.getTime() > 13 * 3600 * 1000;
+  const overall = h?.overall ?? null;
+  const statusColor = !h ? th.textSub : overall === "fail" ? "#EF4444" : (overall === "warn" || stale) ? IDLE_AMBER : IND_GREEN;
+  const statusLabel = !h ? "No check yet" : overall === "fail" ? "Needs attention" : overall === "warn" ? "Warnings" : stale ? "Watchdog idle" : "All healthy";
+  const dot = st => (st === "fail" ? "#EF4444" : st === "warn" ? IDLE_AMBER : IND_GREEN);
+  const jobs = (h?.items ?? []).filter(i => i.kind === "job");
+  const services = (h?.items ?? []).filter(i => i.kind !== "job");
+
+  const Row = ({ item }) => (
+    <div style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"6px 0", borderTop:`1px solid ${th.border}` }}>
+      <span style={{ width:7, height:7, borderRadius:"50%", background:dot(item.status), marginTop:4, flexShrink:0 }} />
+      <div style={{ minWidth:0, flex:1 }}>
+        <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:700, color:th.text }}>{item.name}</div>
+        <div style={{ fontSize:fs(9.5, isDesktop), color: item.status === "ok" ? th.textSub : dot(item.status), lineHeight:1.4, wordBreak:"break-word" }}>{item.detail}</div>
+      </div>
+      {item.kind === "job" && WATCH_JOB_LABEL[item.id] && (
+        <RunNowButton job={item.id} label={WATCH_JOB_LABEL[item.id]} runner={runner} dark={dark} isDesktop={isDesktop} />
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ position:"relative", background: th.card, border:`1px solid ${th.border}`, borderRadius:12, overflow:"hidden" }}>
+      <div style={{ height:2.5, background:`linear-gradient(90deg, ${SAFFRON}, ${SAFFRON}40)`, boxShadow:`0 0 8px ${SAFFRON}80` }} />
+      <div style={{ padding:"13px 14px" }}>
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:8, gap:8 }}>
+          <div style={{ minWidth:0 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+              <div style={{ width:24, height:24, borderRadius:7, flexShrink:0, background:`${SAFFRON}18`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <IconPulse size={13} color={SAFFRON} />
+              </div>
+              <div style={{ fontSize:fs(13, isDesktop), fontWeight:800, color:th.text }}>Watchdog</div>
+            </div>
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginTop:3, marginLeft:31 }}>
+              Checks every job + API key · re-runs failures · GitHub issues · every 6 h
+            </div>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+            <div
+              {...activatable(() => { if (!runner.running) runner.run("health", "Health check", onHealth); }, "Run a health check now")}
+              onClick={() => { if (!runner.running) runner.run("health", "Health check", onHealth); }}
+              title="Check now"
+              style={{ cursor: runner.running ? "default" : "pointer", padding:"3px 8px", borderRadius:6, border:`1px solid ${th.border}`, fontSize:fs(9, isDesktop), fontWeight:700, color: runner.running === "health" ? CYAN : th.textMid, userSelect:"none", whiteSpace:"nowrap" }}
+            >
+              {runner.running === "health" ? "Checking…" : "Check now"}
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:20, background:`${statusColor}18`, border:`1px solid ${statusColor}40` }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:statusColor }} />
+              <span style={{ fontSize:fs(9, isDesktop), fontWeight:700, color:statusColor }}>{state.loading ? "Loading…" : statusLabel}</span>
+            </div>
+          </div>
+        </div>
+
+        <RunMessage runner={runner} isDesktop={isDesktop} />
+
+        {state.loading ? (
+          <Skeleton height={120} radius={10} dark={dark} />
+        ) : state.error && !h ? (
+          <div style={{ padding:"12px", color:"#EF4444", fontSize:fs(10.5, isDesktop), border:`1px dashed ${th.border}`, borderRadius:10, lineHeight:1.5 }}>
+            Couldn't load watchdog status: {state.error}
+          </div>
+        ) : !h ? (
+          <div style={{ padding:"16px", textAlign:"center", color:th.textSub, fontSize:fs(11, isDesktop), border:`1px dashed ${th.border}`, borderRadius:10, lineHeight:1.5 }}>
+            No health check yet. Tap <strong>Check now</strong>, or wait for the GitHub watchdog (every 6 hours).
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginBottom:6, display:"flex", flexWrap:"wrap", gap:"3px 12px" }}>
+              <span>Checked: <strong style={{ color:th.textMid }}>{timeAgo(checkedAt)}</strong>{h.source ? ` · by ${h.source === "admin" ? "you" : "GitHub watchdog"}` : ""}</span>
+              {h.issue?.url && h.issue.state === "open" && (
+                <a href={h.issue.url} target="_blank" rel="noopener noreferrer" style={{ color:"#EF4444", fontWeight:700 }}>Open GitHub issue ↗</a>
+              )}
+              {h.reviewIssue?.url && h.reviewIssue.state === "open" && (
+                <a href={h.reviewIssue.url} target="_blank" rel="noopener noreferrer" style={{ color:SAFFRON, fontWeight:700 }}>Links to review ↗</a>
+              )}
+            </div>
+            {stale && (
+              <div style={{ fontSize:fs(9.5, isDesktop), color:IDLE_AMBER, marginBottom:6, lineHeight:1.45 }}>
+                The GitHub watchdog hasn't reported in over 12 hours — check GitHub → Actions → "Agents Watchdog" and that the CRON_SECRET repo secret is set.
+              </div>
+            )}
+            {h.reruns?.length > 0 && (
+              <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginBottom:6, lineHeight:1.45 }}>
+                Auto re-ran: {h.reruns.map(r => `${WATCH_JOB_LABEL[r.job] ?? r.job} ${r.ok ? "✓" : "✗"}`).join(" · ")}
+              </div>
+            )}
+            <div style={{ fontSize:fs(8.5, isDesktop), fontWeight:800, color:th.textSub, textTransform:"uppercase", letterSpacing:0.3, marginTop:4 }}>Jobs</div>
+            {jobs.map(i => <Row key={i.id} item={i} />)}
+            <div style={{ fontSize:fs(8.5, isDesktop), fontWeight:800, color:th.textSub, textTransform:"uppercase", letterSpacing:0.3, marginTop:10 }}>Keys &amp; services</div>
+            {services.map(i => <Row key={i.id} item={i} />)}
           </>
         )}
       </div>
@@ -1977,6 +2201,7 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
 // ═════════════════════════════════════════════════════════════════════════════
 const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
+  const runner = useRunAgent();
   const [state, setState]     = useState({ loading: true, error: null, runs: [], cursor: null });
   const [showErrors, setShowErrors] = useState(false);
 
@@ -2046,6 +2271,8 @@ const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, is
             </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+            <RunNowButton job="verifyBatch" label="Background verify batch" runner={runner} dark={dark} isDesktop={isDesktop} onDone={load}
+              title="Run the next verify batch now (up to ~4 min, uses Tavily budget)" />
             <div
               {...activatable(load, "Refresh background verifier status")}
               onClick={load}
@@ -2062,6 +2289,8 @@ const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, is
             </div>
           </div>
         </div>
+
+        <RunMessage runner={runner} isDesktop={isDesktop} />
 
         {state.loading ? (
           <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
@@ -6022,12 +6251,13 @@ export default function AgentsTab({
       {/* ── Autonomous Agents — cron-triggered, no live presence concept ── */}
       <SectionFrame
         label="Autonomous Agents"
-        sublabel="agentRuns + schemeVerifyRuns logs — no presence heartbeat, each runs on its own daily schedule"
+        sublabel="Scheduled jobs + the watchdog that checks them every 6 h — tap ▶ Run to start any job now"
         color={CYAN}
         dark={dark}
         isDesktop={isDesktop}
       >
         <div style={{ display:"grid", gap:12, gridTemplateColumns: isDesktop ? "repeat(auto-fit, minmax(320px, 1fr))" : "1fr" }}>
+          <WatchdogCard dark={dark} isDesktop={isDesktop} />
           <AutoFixAgentCard run={autoFixRun} loading={autoFixLoading} dark={dark} isDesktop={isDesktop} />
           <VerifyBatchAgentCard dark={dark} isDesktop={isDesktop} />
         </div>
