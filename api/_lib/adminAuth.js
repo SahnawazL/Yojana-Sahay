@@ -18,7 +18,9 @@
 
 import { getAdminAuth, getAdminDb } from "./firebaseAdmin.js";
 
-export async function verifyAdminRequest(req) {
+// requiredTab — restricted admins (users/{uid}.adminTabs, see AdminPage.jsx)
+// may use an endpoint when its dashboard tab is one of theirs.
+export async function verifyAdminRequest(req, requiredTab = null) {
   const header = req.headers?.authorization ?? req.headers?.Authorization ?? "";
   const token  = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   if (!token) return { ok: false, status: 401, error: "Missing Authorization header — sign in to the admin dashboard again." };
@@ -45,6 +47,9 @@ export async function verifyAdminRequest(req) {
     if (data.isAdmin === true || data.role === "admin") {
       return { ok: true, uid: decoded.uid, email: decoded.email ?? decoded.uid };
     }
+    if (requiredTab && Array.isArray(data.adminTabs) && data.adminTabs.includes(requiredTab)) {
+      return { ok: true, uid: decoded.uid, email: decoded.email ?? decoded.uid, restricted: true };
+    }
     return { ok: false, status: 403, error: "Forbidden — admin access required." };
   } catch (err) {
     console.error("[adminAuth] role lookup failed:", err.message);
@@ -52,8 +57,8 @@ export async function verifyAdminRequest(req) {
   }
 }
 
-export async function requireAdmin(req, res) {
-  const auth = await verifyAdminRequest(req);
+export async function requireAdmin(req, res, requiredTab = null) {
+  const auth = await verifyAdminRequest(req, requiredTab);
   if (!auth.ok) {
     res.status(auth.status).json({ error: auth.error });
     return null;

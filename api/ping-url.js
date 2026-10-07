@@ -85,7 +85,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const auth = await requireAdmin(req, res);
+  const auth = await requireAdmin(req, res, "verify");
   if (!auth) return;
 
   const { url } = req.body ?? {};
