@@ -1447,4 +1447,21 @@ export const KARNATAKA_SCHEMES = [
   },
   // </auto-scheme id="karnataka_deepika_scholarship">
 
+  // <auto-scheme id="karnataka_scholarship"> added by Scheme Discovery agent on 2026-10-07 · source: https://ssp.karnataka.gov.in/
+  {
+    id: "karnataka_scholarship",
+    icon: "📋", color: "#334155", scope: "state", state: "Karnataka",
+    ministry: { en: "Department of Primary and Secondary Education, Karnataka", hi: "कर्नाटक प्राथमिक एवं माध्यमिक शिक्षा विभाग" },
+    name:    { en: "State Scholarship Portal – Karnataka", hi: "राज्य छात्रवृत्ति पोर्टल – कर्नाटक" },
+    benefit: { en: "Online application and disbursement of various state scholarships", hi: "विभिन्न राज्य छात्रवृत्तियों के ऑनलाइन आवेदन और वितरण" },
+    tag:     { en: "Scholarship Portal", hi: "छात्रवृत्ति पोर्टल" },
+    annual: 0,
+    apply:   { en: "https://ssp.karnataka.gov.in/", hi: "https://ssp.karnataka.gov.in/" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-07", source: "https://ssp.karnataka.gov.in/",
+    match: (a) => a.state === "Karnataka",
+  },
+  // </auto-scheme id="karnataka_scholarship">
+
 ];
