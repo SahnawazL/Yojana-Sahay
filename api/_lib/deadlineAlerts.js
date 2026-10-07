@@ -232,12 +232,18 @@ function buildProfileAnswers(profile) {
 }
 
 // ── Days until a scheme's lastDate (null if no date or already passed) ────────
+// Whole calendar days in IST (0 = closes today). "YYYY-MM-DD" parsed with
+// new Date() is UTC midnight = 05:30 IST, which made the deadline day itself
+// count as already passed by the 10:30 IST cron run.
 function daysUntil(lastDate) {
   if (!lastDate) return null;
-  const target = new Date(lastDate).getTime();
-  if (Number.isNaN(target)) return null;
-  const diff = Math.ceil((target - Date.now()) / (1000 * 60 * 60 * 24));
-  return diff >= 0 ? diff : null;
+  const end = /^\d{4}-\d{2}-\d{2}$/.test(lastDate)
+    ? Date.parse(`${lastDate}T23:59:59.999+05:30`)
+    : new Date(lastDate).getTime();
+  if (Number.isNaN(end) || end < Date.now()) return null;
+  const istToday = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+  const todayEnd = Date.parse(`${istToday}T23:59:59.999+05:30`);
+  return Math.round((end - todayEnd) / (1000 * 60 * 60 * 24));
 }
 
 // ── Resolve the final intro line — AI text if it succeeded, else a plain default ──

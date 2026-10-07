@@ -307,6 +307,25 @@ const googleSearchScheme = (name) => {
 // as the "uid" field for guests, purely so the admin dashboard can group a
 // guest's activity together instead of every guest looking identical.
 const GUEST_ID_KEY = "ys_guestId";
+// ─── DEADLINES ────────────────────────────────────────────────────────────────
+// lastDate is a "YYYY-MM-DD" string. new Date("2026-10-07") is UTC midnight =
+// 05:30 IST, so schemes showed "Closed" from 5:30 AM on their own last day.
+// A deadline is open until the END of that day in India.
+const DAY_MS = 24*60*60*1000;
+function deadlineTs(d){
+  if(!d) return NaN;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return Date.parse(`${d}T23:59:59.999+05:30`);
+  return new Date(d).getTime();
+}
+// Whole calendar days (IST) from today to the deadline: 0 = closes today.
+function deadlineDaysLeft(d, now=Date.now()){
+  const end=deadlineTs(d);
+  if(Number.isNaN(end)) return null;
+  const istToday=new Date(now+5.5*3600*1000).toISOString().slice(0,10);
+  const todayEnd=Date.parse(`${istToday}T23:59:59.999+05:30`);
+  return Math.round((end-todayEnd)/DAY_MS);
+}
+
 // A single malformed match() in a state data file must never blank the whole
 // results screen — treat a throwing matcher as "not eligible".
 function safeMatch(scheme,answers){
@@ -1370,7 +1389,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
               const http=scheme.httpStatus??0;
               const hasBeenChecked=scheme.lastVerified!=null;
               const _now=Date.now();
-              const _ld=scheme.lastDate?new Date(scheme.lastDate).getTime():null;
+              const _ld=scheme.lastDate?deadlineTs(scheme.lastDate):null;
               const deadlinePassed=_ld&&_ld<_now;
 
               const errLabel=(()=>{
@@ -1417,10 +1436,10 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
             {/* ── Deadline badge — smart time-aware display ── */}
             {scheme.lastDate&&(()=>{
               const _now=Date.now();
-              const ld=new Date(scheme.lastDate).getTime();
+              const ld=deadlineTs(scheme.lastDate);
               const isExpired=ld<_now;
-              const daysLeft=Math.ceil((ld-_now)/(1000*60*60*24));
-              const daysAgo=Math.floor((_now-ld)/(1000*60*60*24));
+              const daysLeft=deadlineDaysLeft(scheme.lastDate,_now);
+              const daysAgo=Math.max(0,-daysLeft);
               const fmtShort=new Date(scheme.lastDate).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
 
               if(isExpired){
@@ -1556,8 +1575,8 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                 const http=scheme.httpStatus??0;
                 const hasBeenChecked=scheme.lastVerified!=null;
                 const nowTs=Date.now();
-                const deadlinePassed=scheme.lastDate&&new Date(scheme.lastDate).getTime()<nowTs;
-                const daysUntilDeadline=scheme.lastDate&&!deadlinePassed?Math.ceil((new Date(scheme.lastDate).getTime()-nowTs)/(1000*60*60*24)):null;
+                const deadlinePassed=scheme.lastDate&&deadlineTs(scheme.lastDate)<nowTs;
+                const daysUntilDeadline=scheme.lastDate&&!deadlinePassed?deadlineDaysLeft(scheme.lastDate,nowTs):null;
                 // Data freshness
                 const checkedAgo=hasBeenChecked
                   ?Math.floor((Date.now()-new Date(scheme.lastVerified).getTime())/(1000*60*60*24))
@@ -1734,9 +1753,9 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
               {/* ── Expired info strip — shows exactly how long ago deadline passed ── */}
               {scheme.lastDate&&(()=>{
                 const _now=Date.now();
-                const ld=new Date(scheme.lastDate).getTime();
+                const ld=deadlineTs(scheme.lastDate);
                 if(ld>=_now) return null;
-                const daysAgo=Math.floor((_now-ld)/(1000*60*60*24));
+                const daysAgo=Math.max(0,-deadlineDaysLeft(scheme.lastDate,_now));
                 const agoStr=daysAgo<1?(isHindi?"आज":"today"):daysAgo<2?(isHindi?"कल":"yesterday"):daysAgo<30?(isHindi?`${daysAgo} दिन पहले`:`${daysAgo} days ago`):daysAgo<365?(isHindi?`${Math.floor(daysAgo/30)} महीने पहले`:`${Math.floor(daysAgo/30)} months ago`):(isHindi?"1 साल से अधिक पहले":"over a year ago");
                 const fmtDate=new Date(scheme.lastDate).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
                 return(
@@ -1786,7 +1805,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                   <div style={{fontSize:12,fontWeight:800,color:"#fff",fontFamily:bf}}>
                     {(scheme.linkAlive??scheme.isActive)===false&&scheme.httpStatus===404
                       ?(isHindi?"गूगल पर सही लिंक खोजें":"Search Google for Correct Link")
-                      :scheme.lastDate&&new Date(scheme.lastDate).getTime()<Date.now()
+                      :scheme.lastDate&&deadlineTs(scheme.lastDate)<Date.now()
                         ?(isHindi?"आधिकारिक वेबसाइट देखें":"Check Official Website")
                         :t.applyLabel}
                   </div>
@@ -2899,20 +2918,20 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
     if(deferredClosingSoon){
       base=base.filter(s=>{
         if(!s.lastDate) return false;
-        const ld=new Date(s.lastDate).getTime();
+        const ld=deadlineTs(s.lastDate);
         if(ld<now) return false;
-        const daysLeft=Math.ceil((ld-now)/(1000*60*60*24));
+        const daysLeft=deadlineDaysLeft(s.lastDate,now);
         return daysLeft<=30;
       });
     }
     const arr=[...base];
     // Rank: active(2) > unverified(1) > expired/dead(0) — used as the default order
     // and as a tie-breaker so dead/expired schemes never float to the top.
-    const sc=s=>{const la=s.linkAlive??s.isActive;return la===true?2:la===false||(s.lastDate&&new Date(s.lastDate).getTime()<now)?0:1;};
+    const sc=s=>{const la=s.linkAlive??s.isActive;return la===true?2:la===false||(s.lastDate&&deadlineTs(s.lastDate)<now)?0:1;};
     if(deferredSortBy==="deadline"){
       arr.sort((a,b)=>{
-        const ad=a.lastDate?new Date(a.lastDate).getTime():Infinity;
-        const bd=b.lastDate?new Date(b.lastDate).getTime():Infinity;
+        const ad=a.lastDate?deadlineTs(a.lastDate):Infinity;
+        const bd=b.lastDate?deadlineTs(b.lastDate):Infinity;
         const aExp=ad<now,bExp=bd<now;
         if(aExp!==bExp) return aExp?1:-1; // expired always sinks below open ones
         if(ad!==bd) return ad-bd; // soonest deadline first
