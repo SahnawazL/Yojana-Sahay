@@ -2334,10 +2334,19 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
   // Routed through /api/log-checker-run (type:"search") — server-side via
   // firebase-admin, so it works for guests with no dependency on Firestore
   // client rules. See logAppStat() near the top of this file.
+  // useDeferredValue is NOT a debounce — it settles on almost every
+  // keystroke, so typing "scholarship" logged "sch", "scho", "schol"… as
+  // separate searches. Log only once the user pauses typing.
+  const lastLoggedSearchRef=useRef("");
   useEffect(()=>{
     const q=deferredQuery.trim();
     if(q.length<3) return;
-    logAppStat("search",{q,uid:auth.currentUser?.uid||getGuestId()});
+    const t=setTimeout(()=>{
+      if(q.toLowerCase()===lastLoggedSearchRef.current) return;
+      lastLoggedSearchRef.current=q.toLowerCase();
+      logAppStat("search",{q,uid:auth.currentUser?.uid||getGuestId()});
+    },1500);
+    return()=>clearTimeout(t);
   },[deferredQuery]);
 
   // Filtered results — runs only when deferred query settles (not on every keystroke)
@@ -4009,7 +4018,14 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     // for guests and logged-in users with zero dependency on client auth
     // or security rules, so it can't silently fail the way the old
     // anonymous-session approach did.
-    try{
+    // Re-opening the checker on saved results re-runs this effect; without a
+    // guard every re-open was logged as a NEW run and bumped the public
+    // "Indians helped" counter. Log each completed answer set once.
+    const LOGGED_RUN_KEY="yojana_last_logged_run";
+    let alreadyLogged=false;
+    try{ alreadyLogged=localStorage.getItem(LOGGED_RUN_KEY)===answerFingerprint(answers); }catch{}
+    if(!alreadyLogged) try{
+      try{ localStorage.setItem(LOGGED_RUN_KEY, answerFingerprint(answers)); }catch{}
       const runRecord={
         type:"checker",
         uid:uid||getGuestId(),
@@ -4070,6 +4086,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
 
   const retake=()=>{
     try{localStorage.removeItem(STORAGE_KEY);}catch{}
+    try{localStorage.removeItem("yojana_last_logged_run");}catch{}  // a deliberate retake counts as a new run
     try{localStorage.removeItem(BRIEF_CACHE_KEY);}catch{}  // clear cached brief so retake always gets a fresh AI message
     // Always reset to step 0 with blank answers so the user can retake freely.
     // prefilledAnswers is only used for the initial open — not for retake.
