@@ -39,6 +39,7 @@ import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import refreshNewsHandler       from "./refresh-news.js";
 import { runAndLogDiscovery, listSchemeDrafts, reviewSchemeDraft } from "./_lib/schemeDiscovery.js";
 import { createProgress, isJobRunning, readAgentLive } from "./_lib/agentProgress.js";
+import { getFirebaseUsage }    from "./_lib/firebaseUsage.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AI Compose & Send — folded into this same file (not a separate function)
@@ -637,11 +638,16 @@ export default async function handler(req, res) {
 
   // Not a cron request — everything below requires an authenticated admin
   // Actions: running agents needs the Agents tab; e-mail actions need Deadlines.
-  const tabsFor = ["runAgent", "schemeDrafts"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
+  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
   const auth = await verifyAdmin(req, tabsFor);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
   const { action, toName, toEmail, notes, subject, body, lang } = req.body || {};
+
+  // ── action: "firebaseUsage" — Agents tab → Firebase usage card ──────────
+  if (action === "firebaseUsage") {
+    return res.status(200).json(await getFirebaseUsage());
+  }
 
   // ── action: "runAgent" — admin "Run now" / "Check now" in the Agents tab ──
   if (action === "runAgent") {

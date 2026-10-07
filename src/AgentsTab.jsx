@@ -2458,6 +2458,244 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
 // ═════════════════════════════════════════════════════════════════════════════
 const WATCH_JOB_LABEL = { verifyBatch: "Background verify batch", deadlineAlerts: "Deadline e-mails", autoFix: "Auto-Fix", news: "News refresh", discover: "Scheme Discovery" };
 
+// ── Firebase usage — today's Firestore use vs the free daily limit ──────────
+function IconDatabase({ size = 13, color = "currentColor", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style} aria-hidden="true">
+      <ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" /><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
+    </svg>
+  );
+}
+
+const USAGE_ROWS = [
+  { key: "reads",   name: "Reads",   plain: "Each time the app or dashboard loads data" },
+  { key: "writes",  name: "Writes",  plain: "Each time something is saved or updated" },
+  { key: "deletes", name: "Deletes", plain: "Each time something is removed" },
+];
+
+function usageColor(pct) { return pct >= 90 ? "#EF4444" : pct >= 70 ? IDLE_AMBER : IND_GREEN; }
+function fmtNum(n) { return Math.round(n || 0).toLocaleString("en-IN"); }
+function fmtBytes(b) {
+  if (b == null) return "—";
+  if (b >= 1024 ** 3) return `${(b / 1024 ** 3).toFixed(2)} GB`;
+  if (b >= 1024 ** 2) return `${(b / 1024 ** 2).toFixed(1)} MB`;
+  if (b >= 1024) return `${(b / 1024).toFixed(0)} KB`;
+  return `${b} B`;
+}
+function fmtLocalTime(iso) {
+  try { return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); } catch { return ""; }
+}
+function fmtAgo(iso) {
+  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  return m < 1 ? "just now" : m < 60 ? `${m} min ago` : `${Math.round(m / 60)} h ago`;
+}
+
+function UsageBar({ pct, color, th }) {
+  const [w, setW] = useState(0);
+  useEffect(() => { const r = requestAnimationFrame(() => setW(Math.min(100, pct))); return () => cancelAnimationFrame(r); }, [pct]);
+  return (
+    <div style={{ height:7, borderRadius:99, background:th.inputBg, overflow:"hidden" }}>
+      <div style={{
+        height:"100%", width:`${Math.max(w, pct > 0 ? 1.5 : 0)}%`, borderRadius:99,
+        background:`linear-gradient(90deg, ${color}CC, ${color})`, boxShadow:`0 0 8px ${color}55`,
+        transition:"width 900ms cubic-bezier(.2,.8,.2,1)",
+      }} />
+    </div>
+  );
+}
+
+const FirebaseUsageCard = React.memo(function FirebaseUsageCard({ dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [state, setState] = useState({ loading: true, data: null, error: null, refreshing: false });
+  const [showHelp, setShowHelp] = useState(false);
+
+  const load = useCallback(async () => {
+    setState(s => ({ ...s, refreshing: !s.loading }));
+    try {
+      const data = await adminJson("/api/deadline-alerts", { action: "firebaseUsage" });
+      setState({ loading: false, data, error: null, refreshing: false });
+    } catch (err) {
+      setState(s => ({ ...s, loading: false, refreshing: false, error: err.message }));
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    const t = setInterval(() => { if (document.visibilityState === "visible") load(); }, 5 * 60 * 1000);
+    return () => clearInterval(t);
+  }, [load]);
+
+  const d = state.data;
+  const ok = d?.ok;
+  const pcts = ok ? USAGE_ROWS.map(r => (d.today[r.key] / d.limits[r.key]) * 100) : [];
+  if (ok && d.storage) pcts.push((d.storage.bytes / d.limits.storageBytes) * 100);
+  const worst = pcts.length ? Math.max(...pcts) : 0;
+  const status = !ok ? null
+    : worst >= 90 ? { label: "Almost at the limit", color: "#EF4444" }
+    : worst >= 70 ? { label: "Getting busy",        color: IDLE_AMBER }
+    :               { label: "Plenty left",         color: IND_GREEN };
+  const accent = "#FFCA28"; // Firebase yellow
+
+  const hourly = ok ? d.hourly.reads ?? [] : [];
+  const maxHour = Math.max(1, ...hourly);
+
+  return (
+    <div style={{ position:"relative", background: th.card, border:`1px solid ${th.border}`, borderRadius:12, overflow:"hidden" }}>
+      <div style={{ height:2.5, background:`linear-gradient(90deg, ${accent}, #FF6F00)`, boxShadow:`0 0 8px ${accent}80` }} />
+      <div style={{ padding:"13px 14px" }}>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8, marginBottom:10 }}>
+          <div style={{ minWidth:0 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+              <div style={{ width:24, height:24, borderRadius:7, flexShrink:0, background:`${accent}22`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <IconDatabase size={13} color="#F59E0B" />
+              </div>
+              <div style={{ fontSize:fs(13, isDesktop), fontWeight:800, color:th.text }}>Firebase usage</div>
+            </div>
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginTop:3, marginLeft:31 }}>
+              Today's use of your free daily limit{d?.resetsAt ? ` · resets at ${fmtLocalTime(d.resetsAt)}` : ""}
+            </div>
+          </div>
+          {status && (
+            <span style={{ flexShrink:0, fontSize:fs(9.5, isDesktop), fontWeight:800, color:status.color, background:`${status.color}18`, border:`1px solid ${status.color}40`, padding:"3px 9px", borderRadius:99, display:"flex", alignItems:"center", gap:5 }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:status.color, boxShadow:`0 0 6px ${status.color}` }} />
+              {status.label}
+            </span>
+          )}
+        </div>
+
+        {/* Loading */}
+        {state.loading && (
+          <div style={{ display:"grid", gap:12 }}>
+            {[0, 1, 2, 3].map(i => <div key={i}><Skeleton width="40%" height={10} dark={dark} /><Skeleton height={7} radius={99} dark={dark} style={{ marginTop:6 }} /></div>)}
+          </div>
+        )}
+
+        {/* Error */}
+        {!state.loading && state.error && !d && (
+          <div style={{ fontSize:fs(10.5, isDesktop), color:"#EF4444", lineHeight:1.5 }}>
+            Couldn't load usage: {state.error}
+          </div>
+        )}
+
+        {/* One-time setup needed */}
+        {d && !ok && d.setup && (
+          <div style={{ background:`${IDLE_AMBER}12`, border:`1px solid ${IDLE_AMBER}40`, borderRadius:10, padding:"11px 12px" }}>
+            <div style={{ fontSize:fs(11, isDesktop), fontWeight:800, color:th.text, marginBottom:6 }}>One quick setup step needed</div>
+            {d.setup.kind === "api" ? (
+              <div style={{ fontSize:fs(10.5, isDesktop), color:th.textMid, lineHeight:1.6 }}>
+                Google needs the <b>Cloud Monitoring API</b> switched on for your project. Open the link below and press <b>Enable</b>. Come back and tap Refresh.
+              </div>
+            ) : (
+              <ol style={{ margin:0, paddingLeft:18, fontSize:fs(10.5, isDesktop), color:th.textMid, lineHeight:1.7 }}>
+                <li>Open the link below (Google Cloud → IAM).</li>
+                <li>Find the row <b>firebase-adminsdk-…</b> and tap its ✏️ pencil.</li>
+                <li><b>Add another role</b> → search <b>Monitoring Viewer</b> → Save.</li>
+                <li>Wait 1 minute, then tap Refresh here.</li>
+              </ol>
+            )}
+            <a href={d.setup.link} target="_blank" rel="noopener noreferrer"
+              style={{ display:"inline-block", marginTop:9, fontSize:fs(10.5, isDesktop), fontWeight:800, color:"#fff", background:"#F59E0B", padding:"6px 12px", borderRadius:8, textDecoration:"none" }}>
+              Open Google Cloud ↗
+            </a>
+            <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:7 }}>This role can only <i>look</i> at numbers — it can't change anything.</div>
+          </div>
+        )}
+        {d && !ok && !d.setup && (
+          <div style={{ fontSize:fs(10.5, isDesktop), color:"#EF4444", lineHeight:1.5 }}>Couldn't read usage from Google: {d.error}</div>
+        )}
+
+        {/* Usage rows */}
+        {ok && (
+          <div style={{ display:"grid", gap:11 }}>
+            {USAGE_ROWS.map((r, i) => {
+              const used = d.today[r.key], limit = d.limits[r.key], pct = pcts[i], c = usageColor(pct);
+              return (
+                <div key={r.key}>
+                  <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, marginBottom:5 }}>
+                    <div style={{ minWidth:0 }}>
+                      <span style={{ fontSize:fs(11, isDesktop), fontWeight:800, color:th.text }}>{r.name}</span>
+                      <span style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginLeft:6 }}>{r.plain}</span>
+                    </div>
+                    <span style={{ fontSize:fs(11, isDesktop), fontWeight:800, color:c, flexShrink:0, fontVariantNumeric:"tabular-nums" }}>{pct < 1 && used > 0 ? "<1" : Math.round(pct)}%</span>
+                  </div>
+                  <UsageBar pct={pct} color={c} th={th} />
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:fs(9, isDesktop), color:th.textSub, marginTop:4, fontVariantNumeric:"tabular-nums" }}>
+                    <span>{fmtNum(used)} of {fmtNum(limit)} used</span>
+                    <span>Yesterday {fmtNum(d.yesterday[r.key])}</span>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Stored data */}
+            <div>
+              <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, marginBottom:5 }}>
+                <div style={{ minWidth:0 }}>
+                  <span style={{ fontSize:fs(11, isDesktop), fontWeight:800, color:th.text }}>Stored data</span>
+                  <span style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginLeft:6 }}>Everything saved in your database</span>
+                </div>
+                {d.storage && <span style={{ fontSize:fs(11, isDesktop), fontWeight:800, color:usageColor(pcts[3]), flexShrink:0 }}>{pcts[3] < 1 ? "<1" : Math.round(pcts[3])}%</span>}
+              </div>
+              {d.storage ? (
+                <>
+                  <UsageBar pct={pcts[3]} color={usageColor(pcts[3])} th={th} />
+                  <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:4 }}>{fmtBytes(d.storage.bytes)} of 1 GB · Google updates this about once a day</div>
+                </>
+              ) : (
+                <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub }}>Google hasn't published this number yet. It usually appears within a day.</div>
+              )}
+            </div>
+
+            {/* Reads hour by hour */}
+            {hourly.length > 1 && (
+              <div style={{ background:th.card2, border:`1px solid ${th.border}`, borderRadius:9, padding:"9px 10px 7px" }}>
+                <div style={{ fontSize:fs(9.5, isDesktop), fontWeight:700, color:th.textMid, marginBottom:7 }}>Reads today, hour by hour</div>
+                <div style={{ display:"flex", alignItems:"flex-end", gap:2, height:38 }}>
+                  {hourly.map((v, i) => (
+                    <div key={i} title={`${fmtNum(v)} reads`} style={{
+                      flex:1, minWidth:2, height:`${Math.max(4, (v / maxHour) * 100)}%`, borderRadius:"3px 3px 1px 1px",
+                      background: i === hourly.length - 1 ? CYAN : `${CYAN}66`, transition:"height 700ms ease",
+                    }} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Footer */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginTop:12, paddingTop:9, borderTop:`1px solid ${th.border}` }}>
+          <span style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>
+            {d?.checkedAt ? `Updated ${fmtAgo(d.checkedAt)} · auto every 5 min` : " "}
+          </span>
+          <div style={{ display:"flex", gap:6 }}>
+            {ok && (
+              <button onClick={() => setShowHelp(v => !v)}
+                style={{ fontSize:fs(9.5, isDesktop), fontWeight:700, color:th.textMid, background:"transparent", border:`1px solid ${th.border}`, borderRadius:7, padding:"4px 9px", cursor:"pointer" }}>
+                {showHelp ? "Hide" : "What's this?"}
+              </button>
+            )}
+            <button onClick={load} disabled={state.refreshing || state.loading}
+              style={{ fontSize:fs(9.5, isDesktop), fontWeight:700, color:"#fff", background: state.refreshing ? th.textSub : "#F59E0B", border:"none", borderRadius:7, padding:"4px 10px", cursor: state.refreshing ? "default" : "pointer", transition:"background 200ms" }}>
+              {state.refreshing ? "Refreshing…" : "Refresh"}
+            </button>
+          </div>
+        </div>
+
+        {showHelp && ok && (
+          <div style={{ marginTop:9, fontSize:fs(10, isDesktop), color:th.textMid, lineHeight:1.65, background:th.card2, borderRadius:9, padding:"10px 11px" }}>
+            Firebase gives your project a <b>free amount every day</b>. The bars show how much of today's free amount is used.
+            <br />🟢 Green: plenty left. 🟡 Yellow (70%+): busy day. 🔴 Red (90%+): close to the limit.
+            <br />The count starts again from zero at <b>{fmtLocalTime(d.resetsAt)}</b> your time. Numbers can be a few minutes behind.
+            <br />If any bar goes red often, tell Claude and the app can be made to use less.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
 const WatchdogCard = React.memo(function WatchdogCard({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const runner = useRunAgent();
@@ -6687,6 +6925,7 @@ export default function AgentsTab({
       >
         <div style={{ display:"grid", gap:12, gridTemplateColumns: isDesktop ? "repeat(auto-fit, minmax(320px, 1fr))" : "1fr" }}>
           <WatchdogCard dark={dark} isDesktop={isDesktop} />
+          <FirebaseUsageCard dark={dark} isDesktop={isDesktop} />
           <SchemeDiscoveryCard dark={dark} isDesktop={isDesktop} />
           <AutoFixAgentCard run={autoFixRun} loading={autoFixLoading} dark={dark} isDesktop={isDesktop} />
           <VerifyBatchAgentCard dark={dark} isDesktop={isDesktop} />
