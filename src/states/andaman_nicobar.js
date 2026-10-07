@@ -134,6 +134,7 @@ export const ANDAMAN_NICOBAR_SCHEMES = [
     apply:   { en: "https://socialjustice.gov.in/schemes/23", hi: "scholarships.gov.in (NSP) / समाज कल्याण विभाग, पोर्ट ब्लेयर" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST) issued by A&N UT authority", "Domicile Certificate (A&N UT)", "Previous Year Marksheet / School Certificate", "Current Year Institution Enrollment Certificate", "Bank Account (student's name, Aadhaar-linked)", "Income Certificate (family income < ₹2.5 lakh for SC)", "Passport Photo", "Mobile Number & Email ID"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST) — A&N UT प्राधिकरण द्वारा जारी", "अधिवास प्रमाण पत्र (A&N UT)", "पिछले वर्ष की अंकसूची / विद्यालय प्रमाण पत्र", "चालू वर्ष का संस्थान नामांकन प्रमाण पत्र", "बैंक खाता (छात्र के नाम, आधार-लिंक्ड)", "आय प्रमाण पत्र (SC के लिए पारिवारिक आय ₹2.5 लाख से कम)", "पासपोर्ट फोटो", "मोबाइल नंबर व ईमेल ID"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Andaman & Nicobar" && a.who === "student" && (a.caste === "sc" || a.caste === "st"),
   },
 
@@ -150,6 +151,7 @@ export const ANDAMAN_NICOBAR_SCHEMES = [
     apply:   { en: "https://ddet.and.nic.in", hi: "ddet.and.nic.in / ITI पोर्ट ब्लेयर / रोजगार एक्सचेंज कार्यालय, A&N" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Domicile Certificate (A&N UT)", "Educational Certificate (Class 8 minimum)", "Age Proof (15–35 years)", "Bank Account (Aadhaar-linked)", "Passport Photo", "Mobile Number", "Caste / PwD Certificate (if applicable)"],
                hi: ["आधार कार्ड", "अधिवास प्रमाण पत्र (A&N UT)", "शैक्षिक प्रमाण पत्र (न्यूनतम कक्षा 8)", "आयु प्रमाण (15–35 वर्ष)", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "मोबाइल नंबर", "जाति / दिव्यांग प्रमाण पत्र (यदि लागू हो)"] },
+    keywords: ["skill","dropout"],
     match: (a) => a.state === "Andaman & Nicobar" && (a.who === "student" || a.age === "18to35"),
   },
 

@@ -20,6 +20,7 @@ export const HARYANA_SCHEMES = [
     apply:   { en: "https://negd.gov.in/isl/Directory/statedata/30", hi: "hreyahs.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Graduation Certificate","Domicile Certificate","Bank Account"],
                hi: ["आधार कार्ड","स्नातक प्रमाण","निवास प्रमाण","बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Haryana" && (a.who === "student" || a.who === "general") && ["below1","1to3"].includes(a.income),
   },
 
@@ -215,6 +216,7 @@ export const HARYANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card","SC/BC Caste Certificate","Mark Sheet (Class 10 / 12 Board)","Admission Letter (for IIT/Medical)","Bank Account","Domicile Certificate"],
                hi: ["आधार कार्ड","SC/BC जाति प्रमाण पत्र","मार्कशीट (कक्षा 10/12 बोर्ड)","प्रवेश पत्र (IIT/मेडिकल के लिए)","बैंक खाता","निवास प्रमाण पत्र"] },
     // Eligibility: Haryana SC/BC student with 60%+ in board exams or admitted to IIT/Medical college
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Haryana" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -230,6 +232,7 @@ export const HARYANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card","College Enrollment Certificate","Bank Account","Domicile Certificate (Haryana)"],
                hi: ["आधार कार्ड","कॉलेज नामांकन प्रमाण पत्र","बैंक खाता","निवास प्रमाण पत्र (हरियाणा)"] },
     // Eligibility: Haryana college student (UG/PG), enrolled in affiliated college
+    keywords: ["class12","skill"],
     match: (a) => a.state === "Haryana" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income) && ["18to35"].includes(a.age),
   },
 
@@ -350,6 +353,7 @@ export const HARYANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card","SC/BC Caste Certificate","Previous Year Mark Sheet","Institution Admission Letter","Income Certificate (≤₹2.5 Lakh/year for BC, no limit for SC)","Bank Account","Domicile Certificate"],
                hi: ["आधार कार्ड","SC/BC जाति प्रमाण पत्र","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","आय प्रमाण (BC के लिए ≤₹2.5 लाख, SC के लिए कोई सीमा नहीं)","बैंक खाता","निवास प्रमाण पत्र"] },
     // Eligibility: Haryana SC student (no income limit) / BC student (income ≤ ₹2.5 lakh), studying Class 11 or above
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Haryana" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 

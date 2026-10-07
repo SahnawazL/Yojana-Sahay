@@ -94,6 +94,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "schooleducation.cg.gov.in", hi: "schooleducation.cg.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","School Enrollment Proof","Caste/Income Certificate"],
                hi: ["आधार कार्ड","विद्यालय नामांकन प्रमाण","जाति/आय प्रमाण पत्र"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Chhattisgarh" && a.who === "women" && (a.age === "below18" || a.who === "student"),
   },
 
@@ -170,6 +171,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/sfspbbc", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate","Income Certificate","Marksheet","College ID","Bank Passbook"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र","आय प्रमाण पत्र","मार्कशीट","कॉलेज ID","बैंक पासबुक"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Chhattisgarh" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -366,6 +368,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "https://rdsdechhattisgarh.dgt.gov.in", hi: "cgskills.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (18–35 years)","Education Certificate (Class 8+)","Domicile Certificate","Bank Account"],
                hi: ["आधार कार्ड","आयु प्रमाण (18–35 वर्ष)","शिक्षा प्रमाण (कक्षा 8+)","निवास प्रमाण","बैंक खाता"] },
+    keywords: ["class10","iti","polytechnic","skill","dropout"],
     match: (a) => a.state === "Chhattisgarh" && (a.age === "18to35" || a.who === "student") && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -396,6 +399,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "tribal.cg.gov.in", hi: "tribal.cg.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Tribal (ST) Caste Certificate","Previous Marksheet","Domicile Certificate"],
                hi: ["आधार कार्ड","जनजाति (ST) जाति प्रमाण पत्र","पिछली मार्कशीट","निवास प्रमाण पत्र"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Chhattisgarh" && a.who === "student" && a.area === "rural",
   },
 
@@ -410,6 +414,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "https://socialjustice.gov.in/schemes/23", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST)","Previous Marksheet","Income Certificate","School Enrollment Proof"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST)","पिछली मार्कशीट","आय प्रमाण पत्र","स्कूल नामांकन प्रमाण"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Chhattisgarh" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 

@@ -104,6 +104,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://dhepune.gov.in/rajarshi-chatrapati-shahu-maharaj-shikshan-shulk-scholarship", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate (≤₹8L/year)", "Previous Year Mark Sheet", "College Bonafide", "Bank Passbook"],
                hi: ["आधार कार्ड", "OBC जाति प्रमाण पत्र", "आय प्रमाण (≤₹8 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज बोनाफाइड", "बैंक पासबुक"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -118,6 +119,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://sjsa.maharashtra.gov.in", hi: "sjsa.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "Income Certificate", "College Admission Proof", "Bank Passbook"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "आय प्रमाण पत्र", "कॉलेज प्रवेश प्रमाण", "बैंक पासबुक"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Maharashtra" && a.who === "student" && a.who === "women" || (a.state === "Maharashtra" && a.who === "women" && ["below1","1to3"].includes(a.income)),
   },
 
@@ -188,6 +190,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://mahaswayam.gov.in", hi: "mahaswayam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (Min. SSC)", "Maharashtra Domicile", "Bank Passbook", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षणिक प्रमाण (न्यूनतम SSC)", "महाराष्ट्र अधिवास प्रमाण", "बैंक पासबुक", "पासपोर्ट फोटो"] },
+    keywords: ["skill"],
     match: (a) => a.state === "Maharashtra" && ["18to35"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -234,6 +237,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "tribal.maharashtra.gov.in", hi: "tribal.maharashtra.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Birth Certificate", "Previous School Leaving Certificate", "Parent's Income Certificate"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "जन्म प्रमाण पत्र", "पिछली शाला छोड़ने का प्रमाण", "माता-पिता का आय प्रमाण"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -248,6 +252,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://mahadbt.maharashtra.gov.in/SchemeData/SchemeData?str=E9DDFA703C38E51ACE99921E698B1EE85995B38445F14746E1B0DD7E66FFF88B", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Income Certificate (≤₹2.5L/year)", "Previous Year Mark Sheet", "College Fee Receipt", "Bank Passbook"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "आय प्रमाण (≤₹2.5 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज शुल्क रसीद", "बैंक पासबुक"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -354,6 +359,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://mahadbt.maharashtra.gov.in", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "Income Certificate (≤₹8L/year)", "Previous Year Mark Sheet", "College Bonafide", "Bank Passbook"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "आय प्रमाण (≤₹8 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज बोनाफाइड", "बैंक पासबुक"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -482,6 +488,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://bhandara.gov.in/department-of-skills-employment-entrepreneurship-and-innovation", hi: "mss.edu.in (महाराष्ट्र राज्य कौशल विद्यापीठ)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SSC / 10th Pass Certificate (min.)", "Maharashtra Domicile", "Passport Photo", "Bank Passbook"],
                hi: ["आधार कार्ड", "SSC / 10वीं पास प्रमाण पत्र (न्यूनतम)", "महाराष्ट्र अधिवास", "पासपोर्ट फोटो", "बैंक पासबुक"] },
+    keywords: ["skill","dropout"],
     match: (a) => a.state === "Maharashtra" && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -604,6 +611,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/ais-sc", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "Income Certificate (family ≤₹6L/year)", "Admission Letter from QS Top-500 Foreign University", "Degree Marksheet (min. 60%)", "Bank Passbook", "Passport"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "आय प्रमाण (परिवार ≤₹6 लाख/वर्ष)", "QS Top-500 विदेशी विश्वविद्यालय का प्रवेश पत्र", "डिग्री मार्कशीट (न्यूनतम 60%)", "बैंक पासबुक", "पासपोर्ट"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -618,6 +626,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://mahadbt.maharashtra.gov.in/SchemeData/SchemeData?str=E9DDFA703C38E51A19A7691F3B40AD4EE0F3DDA5DE324AC54819922BB3D36B63", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "College Admission Letter & Fee Receipt", "Gender Certificate", "Income Certificate", "Maharashtra Domicile", "Previous Marksheet", "Bank Passbook"],
                hi: ["आधार कार्ड", "कॉलेज प्रवेश पत्र व शुल्क रसीद", "लिंग प्रमाण पत्र", "आय प्रमाण", "महाराष्ट्र अधिवास", "पिछले वर्ष की मार्कशीट", "बैंक पासबुक"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Maharashtra" && a.who === "women" && ["18to35"].includes(a.age),
   },
 
@@ -760,6 +769,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://mahadbt.maharashtra.gov.in/SchemeData/SchemeData?str=E9DDFA703C38E51AB02E984835E89FEFDB316E301CE6A991F41C5D42B01A7D7E", hi: "mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "VJNT / NT / SBC Caste Certificate", "Income Certificate (≤₹2.5L/year)", "Previous Year Mark Sheet", "College Bonafide & Fee Receipt", "Bank Passbook"],
                hi: ["आधार कार्ड", "VJNT / NT / SBC जाति प्रमाण पत्र", "आय प्रमाण (≤₹2.5 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज बोनाफाइड व शुल्क रसीद", "बैंक पासबुक"] },
+    keywords: ["class10","class12","polytechnic","diploma"],
     match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -966,6 +976,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://rojgar.mahaswayam.gov.in", hi: "rojgar.mahaswayam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (12th/ITI/Diploma/Graduate)", "Maharashtra Domicile", "Unemployment Registration Certificate", "Bank Passbook", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षणिक प्रमाण पत्र (12वीं/ITI/डिप्लोमा/ग्रेजुएट)", "महाराष्ट्र अधिवास", "बेरोजगारी पंजीकरण प्रमाण पत्र", "बैंक पासबुक", "पासपोर्ट फोटो"] },
+    keywords: ["class12","polytechnic","skill"],
     match: (a) => a.state === "Maharashtra" && ["18to35"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 

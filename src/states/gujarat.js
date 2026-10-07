@@ -90,6 +90,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://www.govtschemes.in/gujarat-namo-lakshmi-yojana", hi: "sebexam.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "School Enrollment Certificate", "Income Certificate (below ₹6L)", "Bank Account", "Caste Certificate (if applicable)", "Passport Photo"],
                hi: ["आधार कार्ड", "स्कूल नामांकन प्रमाण", "आय प्रमाण (₹6 लाख से कम)", "बैंक खाता", "जाति प्रमाण (यदि लागू हो)", "पासपोर्ट फोटो"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
   },
 
@@ -188,6 +189,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://www.govtschemes.in/gujarat-namo-lakshmi-yojana", hi: "sebexam.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Enrollment in Science Stream (Class 11 / 12)", "Income Certificate (below ₹6L)", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "विज्ञान प्रवाह में नामांकन (कक्षा 11/12)", "आय प्रमाण (₹6 लाख से कम)", "बैंक खाता", "पासपोर्ट फोटो"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
   },
 
@@ -202,6 +204,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://socialjustice.gov.in/schemes/25", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC / ST / OBC)", "Previous Year Mark Sheets", "Income Certificate (below ₹2.5L)", "Bonafide Certificate from Institution", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC)", "पिछले वर्ष की मार्कशीट", "आय प्रमाण (₹2.5 लाख से कम)", "संस्थान से बोनाफाइड प्रमाण पत्र", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -258,6 +261,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/hi/schemes/mayg", hi: "nats.education.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (10th / ITI / Diploma / Degree)", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षणिक प्रमाण (10वीं / ITI / डिप्लोमा / डिग्री)", "बैंक खाता", "पासपोर्ट फोटो"] },
+    keywords: ["class10","class12","polytechnic","skill"],
     match: (a) => a.state === "Gujarat" && a.age === "18to35" && ["below1", "1to3", "3to6"].includes(a.income),
   },
 
@@ -300,6 +304,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "tribal.gujarat.gov.in", hi: "tribal.gujarat.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Birth Certificate", "Income Certificate", "Previous School Leaving Certificate", "Passport Photo"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "जन्म प्रमाण पत्र", "आय प्रमाण", "पिछले विद्यालय का प्रमाण पत्र", "पासपोर्ट फोटो"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -314,6 +319,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/premsssguj", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC / ST)", "School Enrollment Certificate", "Income Certificate (below ₹2.5L)", "Bank Account (Parent)", "Photo"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST)", "स्कूल नामांकन प्रमाण", "आय प्रमाण (₹2.5 लाख से कम)", "बैंक खाता (माता-पिता)", "फोटो"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -426,6 +432,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://sje.gujarat.gov.in/ddcw/schemes/1488?lang=english", hi: "gujaratminority.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "Previous Year Mark Sheets", "Income Certificate (below ₹2.5L)", "Bonafide Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "पिछले वर्ष की मार्कशीट", "आय प्रमाण (₹2.5 लाख से कम)", "बोनाफाइड प्रमाण पत्र", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -440,6 +447,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "Through school / sebexam.org", hi: "विद्यालय के माध्यम से / sebexam.org" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "School Enrollment Certificate (Class 9 / 11)", "Passport Photo"],
                hi: ["आधार कार्ड", "स्कूल नामांकन प्रमाण (कक्षा 9/11)", "पासपोर्ट फोटो"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
   },
 
@@ -468,6 +476,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/skvk2", hi: "gsdm.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificate (min. Class 8)", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षणिक प्रमाण (न्यूनतम कक्षा 8)", "बैंक खाता", "पासपोर्ट फोटो"] },
+    keywords: ["class10","skill","dropout"],
     match: (a) => a.state === "Gujarat" && ["18to35"].includes(a.age) && ["below1", "1to3"].includes(a.income),
   },
 
@@ -566,6 +575,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://sebexam.org", hi: "sebexam.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 10 / 12 Board Marksheet (90%+)", "School Bonafide Certificate", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "कक्षा 10/12 बोर्ड मार्कशीट (90%+)", "स्कूल बोनाफाइड प्रमाण पत्र", "बैंक खाता", "पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
   },
 

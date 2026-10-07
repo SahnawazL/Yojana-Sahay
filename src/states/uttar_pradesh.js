@@ -24,6 +24,7 @@ export const UTTAR_PRADESH_SCHEMES = [
     apply:   { en: "https://missionvatsalyaup.in", hi: "mksy.up.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (parent/guardian)", "Girl Child's Birth Certificate", "Family Income Certificate (< ₹3 lakh/year)", "UP Domicile / Residence Proof", "Bank Account (Aadhaar-linked, parent/guardian)", "School Enrollment Certificate (for Class 1/6/9 installment)", "Graduation / Diploma Admission Certificate (for final installment)", "Passport Photo", "Family ID (UP Parivar Pahchan Patra)"],
                hi: ["आधार कार्ड (माता-पिता/अभिभावक)", "बालिका का जन्म प्रमाण पत्र", "पारिवारिक आय प्रमाण पत्र (₹3 लाख/वर्ष से कम)", "UP निवास प्रमाण", "बैंक खाता (आधार-लिंक्ड, माता-पिता/अभिभावक)", "स्कूल नामांकन प्रमाण पत्र (कक्षा 1/6/9 किस्त के लिए)", "स्नातक/डिप्लोमा प्रवेश प्रमाण पत्र (अंतिम किस्त के लिए)", "पासपोर्ट फोटो", "UP परिवार पहचान पत्र"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Uttar Pradesh" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -140,6 +141,7 @@ export const UTTAR_PRADESH_SCHEMES = [
     apply:   { en: "https://negd.gov.in/isl/Directory/statedata/207", hi: "digishakti.up.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "College / Institute Enrollment Certificate (current session)", "UP Domicile / Residence Proof", "Bank Account (Aadhaar-linked)", "Student ID Card", "Passport Photo", "Mobile Number (Aadhaar-linked)"],
                hi: ["आधार कार्ड", "कॉलेज/संस्था नामांकन प्रमाण पत्र (वर्तमान सत्र)", "UP अधिवास/निवास प्रमाण", "बैंक खाता (आधार-लिंक्ड)", "छात्र पहचान पत्र", "पासपोर्ट फोटो", "मोबाइल नंबर (आधार-लिंक्ड)"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Uttar Pradesh" && a.who === "student",
   },
 
@@ -156,6 +158,7 @@ export const UTTAR_PRADESH_SCHEMES = [
     apply:   { en: "https://www.govtschemes.in/chief-minister-abhyuday-scheme", hi: "abhyuday.up.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "UP Domicile / Residence Proof", "Educational Qualification Certificate (as per exam targeted)", "Age Proof (as per exam eligibility)", "Passport Photo", "Mobile Number (Aadhaar-linked)"],
                hi: ["आधार कार्ड", "UP अधिवास/निवास प्रमाण", "शैक्षिक योग्यता प्रमाण पत्र (लक्षित परीक्षा के अनुसार)", "आयु प्रमाण (परीक्षा पात्रता के अनुसार)", "पासपोर्ट फोटो", "मोबाइल नंबर (आधार-लिंक्ड)"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Uttar Pradesh" && a.who === "student",
   },
 
@@ -172,6 +175,7 @@ export const UTTAR_PRADESH_SCHEMES = [
     apply:   { en: "https://sewayojan.up.nic.in", hi: "sewayojan.up.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Qualification Certificate (10th / 12th / Degree)", "UP Domicile / Residence Proof", "Bank Account (Aadhaar-linked)", "Passport Photo", "Mobile Number (Aadhaar-linked)", "Sewayojan Portal Registration"],
                hi: ["आधार कार्ड", "शैक्षिक योग्यता प्रमाण पत्र (10वीं / 12वीं / डिग्री)", "UP अधिवास/निवास प्रमाण", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "मोबाइल नंबर (आधार-लिंक्ड)", "सेवायोजन पोर्टल पंजीकरण"] },
+    keywords: ["class10","class12","polytechnic","skill"],
     match: (a) => a.state === "Uttar Pradesh" && (a.who === "student" || (a.who === "business" && ["18to35"].includes(a.age))),
   },
 

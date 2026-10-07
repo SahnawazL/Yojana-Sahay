@@ -92,6 +92,7 @@ export const CHANDIGARH_SCHEMES = [
     apply:   { en: "https://oasis.wb.gov.in", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल) — प्रत्येक वर्ष ऑनलाइन आवेदन करें" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC / ST / OBC — issued by competent authority in Chandigarh)", "Previous Marksheet (10th / last qualifying exam)", "Income Certificate (family income < ₹2.5 lakh for SC/ST, < ₹1.5 lakh for OBC)", "Current Bonafide Certificate from college/school", "Bank Account (Aadhaar-linked, student's name)", "Residence Proof (Chandigarh domicile)", "Admission Receipt / Fee receipt"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC / ST / OBC — चंडीगढ़ में सक्षम प्राधिकारी द्वारा जारी)", "पिछली अंकसूची (10वीं / अंतिम योग्यता परीक्षा)", "आय प्रमाण पत्र (SC/ST के लिए ₹2.5 लाख, OBC के लिए ₹1.5 लाख से कम)", "वर्तमान बोनाफाइड प्रमाण पत्र (कॉलेज/स्कूल से)", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "निवास प्रमाण (चंडीगढ़ अधिवास)", "प्रवेश रसीद / शुल्क रसीद"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Chandigarh" && a.who === "student" && (a.caste === "sc" || a.caste === "st" || a.caste === "obc"),
   },
 
@@ -162,6 +163,7 @@ export const CHANDIGARH_SCHEMES = [
     apply:   { en: "chandigarh.gov.in/skill or nearest ITI, Chandigarh", hi: "chandigarh.gov.in/skill या निकटतम ITI, चंडीगढ़" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Residence Proof (Chandigarh domicile)", "Educational Certificates (as per course eligibility)", "Passport Photo", "Bank Account (Aadhaar-linked — for stipend)", "Mobile Number"],
                hi: ["आधार कार्ड", "निवास प्रमाण (चंडीगढ़)", "शैक्षिक प्रमाण पत्र (पाठ्यक्रम पात्रता के अनुसार)", "पासपोर्ट फोटो", "बैंक खाता (आधार-लिंक्ड — वजीफे के लिए)", "मोबाइल नंबर"] },
+    keywords: ["skill","dropout"],
     match: (a) => a.state === "Chandigarh" && (a.who === "student" || a.who === "general" || a.who === "women") && ["below1","1to3","3to6"].includes(a.income),
   },
 

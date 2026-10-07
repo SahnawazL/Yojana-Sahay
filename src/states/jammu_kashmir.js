@@ -176,6 +176,7 @@ export const JAMMU_KASHMIR_SCHEMES = [
     apply:   { en: "https://www.india.gov.in/services/details/apply-for-post-matric-scholarship-scheme-jammu-and-kashmir", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल) / JKBOSE पोर्टल / PMSSS के लिए AICTE पोर्टल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 10 / 12 Marksheet (JKBOSE)", "Domicile Certificate (J&K — mandatory for PMSSS)", "Income Certificate (family income < ₹8 lakh for PMSSS)", "Admission Letter from college/university", "Bank Account (Aadhaar-linked, student's name)", "Passport Photo", "Caste Certificate (if SC/ST/OBC)"],
                hi: ["आधार कार्ड", "कक्षा 10 / 12 अंकसूची (JKBOSE)", "अधिवास प्रमाण पत्र (J&K — PMSSS के लिए अनिवार्य)", "आय प्रमाण पत्र (PMSSS के लिए पारिवारिक आय ₹8 लाख से कम)", "कॉलेज/विश्वविद्यालय से प्रवेश पत्र", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "पासपोर्ट फोटो", "जाति प्रमाण पत्र (SC/ST/OBC के लिए)"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Jammu & Kashmir" && a.who === "student",
   },
 
@@ -192,6 +193,7 @@ export const JAMMU_KASHMIR_SCHEMES = [
     apply:   { en: "https://oasis.wb.gov.in", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल) — समय-सीमा से पहले प्रत्येक वर्ष आवेदन करें" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC / ST / OBC — issued in J&K)", "Previous Marksheet (Class 10 / last qualifying exam)", "Income Certificate (< ₹2.5 lakh for SC/ST, < ₹1.5 lakh for OBC)", "Bonafide Certificate from institution", "Bank Account (Aadhaar-linked, student's name)", "Domicile Certificate (J&K)", "Admission Receipt / Fee receipt"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC / ST / OBC — J&K में जारी)", "पिछली अंकसूची (कक्षा 10 / अंतिम योग्यता परीक्षा)", "आय प्रमाण पत्र (SC/ST के लिए ₹2.5 लाख, OBC के लिए ₹1.5 लाख से कम)", "संस्थान से बोनाफाइड प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "अधिवास प्रमाण पत्र (J&K)", "प्रवेश रसीद / शुल्क रसीद"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Jammu & Kashmir" && a.who === "student" && (a.caste === "sc" || a.caste === "st" || a.caste === "obc"),
   },
 
@@ -228,6 +230,7 @@ export const JAMMU_KASHMIR_SCHEMES = [
     apply:   { en: "https://jkhimayat.nic.in", hi: "jkhimayat.nic.in / जिला रोजगार एवं परामर्श केंद्र (DECC), J&K" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Domicile Certificate (J&K)", "Educational Certificates (as per trade eligibility)", "Bank Account (Aadhaar-linked — for stipend)", "Passport Photo", "Mobile Number", "Income Certificate (for priority allocation in affected districts)"],
                hi: ["आधार कार्ड", "अधिवास प्रमाण पत्र (J&K)", "शैक्षिक प्रमाण पत्र (व्यवसाय पात्रता के अनुसार)", "बैंक खाता (आधार-लिंक्ड — वजीफे के लिए)", "पासपोर्ट फोटो", "मोबाइल नंबर", "आय प्रमाण पत्र (प्रभावित जिलों में प्राथमिकता आवंटन के लिए)"] },
+    keywords: ["class10","skill","dropout"],
     match: (a) => a.state === "Jammu & Kashmir" && (a.who === "student" || a.who === "general") && ["below1","1to3","3to6"].includes(a.income),
   },
 

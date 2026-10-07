@@ -38,6 +38,7 @@ export const UTTARAKHAND_SCHEMES = [
     apply:   { en: "https://wecd.uk.gov.in", hi: "escholarship.uk.gov.in / विद्यालय प्राचार्य कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (girl and parent)", "Class 12 Marksheet (govt./aided school)", "Income Certificate (≤ ₹72,000 rural / ≤ ₹96,000 urban)", "Caste Certificate (SC/ST/OBC) or BPL/EWS certificate", "Uttarakhand Domicile Certificate", "Bank Account (girl's name, Aadhaar-linked)", "Unmarried Status Certificate", "Passport Photo"],
                hi: ["आधार कार्ड (बालिका व अभिभावक)", "कक्षा 12 अंकसूची (सरकारी/सहायता प्राप्त विद्यालय)", "आय प्रमाण पत्र (ग्रामीण ₹72,000 / शहरी ₹96,000 तक)", "जाति प्रमाण पत्र (SC/ST/OBC) या BPL/EWS प्रमाण पत्र", "उत्तराखंड डोमिसाइल प्रमाण पत्र", "बैंक खाता (बालिका के नाम, आधार-लिंक्ड)", "अविवाहित स्थिति प्रमाण पत्र", "पासपोर्ट फोटो"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Uttarakhand" && a.who === "women" && ["below1","1to3"].includes(a.income),
   },
 
@@ -92,6 +93,7 @@ export const UTTARAKHAND_SCHEMES = [
     apply:   { en: "https://he.uk.gov.in/scholarship-portal", hi: "escholarship.uk.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 10 Marksheet (Uttarakhand Board, 70%+)", "Income Certificate (family ≤ ₹6 lakh)", "Uttarakhand Domicile Certificate", "Current Admission / College ID", "Bank Account (student's, Aadhaar-linked)", "Caste Certificate (if SC/ST/OBC)", "Passport Photo", "Mobile Number & Email"],
                hi: ["आधार कार्ड", "कक्षा 10 अंकसूची (उत्तराखंड बोर्ड, 70%+)", "आय प्रमाण पत्र (परिवार ₹6 लाख तक)", "उत्तराखंड डोमिसाइल प्रमाण पत्र", "वर्तमान प्रवेश / कॉलेज ID", "बैंक खाता (छात्र का, आधार-लिंक्ड)", "जाति प्रमाण पत्र (SC/ST/OBC के लिए)", "पासपोर्ट फोटो", "मोबाइल नंबर व ईमेल"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Uttarakhand" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -108,6 +110,7 @@ export const UTTARAKHAND_SCHEMES = [
     apply:   { en: "https://socialjustice.gov.in/schemes/25", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/OBC — issued by Uttarakhand govt.)", "Income Certificate (OBC: ≤ ₹2.5 lakh / SC/ST: ≤ ₹6 lakh)", "Class 10 Marksheet", "Current Course Admission Proof / Fee Receipt", "Bank Account (student's, Aadhaar-linked)", "Uttarakhand Domicile Certificate", "Passport Photo", "Mobile Number & Email"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC — उत्तराखंड सरकार द्वारा जारी)", "आय प्रमाण पत्र (OBC: ₹2.5 लाख तक / SC/ST: ₹6 लाख तक)", "कक्षा 10 अंकसूची", "वर्तमान पाठ्यक्रम प्रवेश प्रमाण / फीस रसीद", "बैंक खाता (छात्र का, आधार-लिंक्ड)", "उत्तराखंड डोमिसाइल प्रमाण पत्र", "पासपोर्ट फोटो", "मोबाइल नंबर व ईमेल"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Uttarakhand" && a.who === "student" && ["sc","st","obc"].includes(a.caste),
   },
 

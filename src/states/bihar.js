@@ -24,6 +24,7 @@ export const BIHAR_SCHEMES = [
     apply:   { en: "https://globaldrishti.in/bihar-mukhyamantri-kanya-utthan-yojana-2026-%E2%82%B950000", hi: "medhasoft.bih.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (girl's)","Birth Certificate","Parent's Bank Account (Aadhaar-linked)","Income Certificate","Caste Certificate (if SC/ST)","School Enrollment Certificate (for Class 12 / graduation installment)","Parent's Aadhaar Card"],
                hi: ["आधार कार्ड (बालिका का)","जन्म प्रमाण पत्र","माता-पिता का बैंक खाता (आधार-लिंक्ड)","आय प्रमाण पत्र","जाति प्रमाण पत्र (SC/ST हेतु)","स्कूल नामांकन प्रमाण पत्र (कक्षा 12 / स्नातक किस्त के लिए)","माता-पिता का आधार कार्ड"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Bihar" && a.who === "student",
   },
 
@@ -40,6 +41,7 @@ export const BIHAR_SCHEMES = [
     apply:   { en: "https://globaldrishti.in/bihar-mukhyamantri-kanya-utthan-yojana-2026-%E2%82%B950000", hi: "medhasoft.bih.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Marksheet (First / Second Division)","SC/ST Caste Certificate","Bank Account (girl's name, Aadhaar-linked)","School / Board Registration Certificate","Passport Photo","Domicile Certificate (Bihar)"],
                hi: ["आधार कार्ड","कक्षा 12 अंकसूची (प्रथम/द्वितीय श्रेणी)","SC/ST जाति प्रमाण पत्र","बैंक खाता (छात्रा के नाम, आधार-लिंक्ड)","स्कूल/बोर्ड पंजीकरण प्रमाण पत्र","पासपोर्ट फोटो","अधिवास प्रमाण पत्र (बिहार)"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Bihar" && a.who === "student" && ["sc","st"].includes(a.caste),
   },
 
@@ -124,6 +126,7 @@ export const BIHAR_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/bsccs", hi: "7nishchay-yuvaupmission.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Pass Certificate & Marksheet","Admission Letter from College / University","Bank Account (Aadhaar-linked)","Income Certificate (parents')","Residence Proof (Bihar domicile)","2 Passport Photos","Fee Structure from Institution"],
                hi: ["आधार कार्ड","कक्षा 12 उत्तीर्ण प्रमाण पत्र व अंकसूची","कॉलेज/विश्वविद्यालय का प्रवेश पत्र","बैंक खाता (आधार-लिंक्ड)","आय प्रमाण पत्र (माता-पिता का)","निवास प्रमाण (बिहार अधिवास)","2 पासपोर्ट फोटो","संस्थान से शुल्क संरचना"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Bihar" && a.who === "student",
   },
 
@@ -141,6 +144,7 @@ export const BIHAR_SCHEMES = [
                hi: "सरकारी स्कूल / जिला शिक्षा अधिकारी के माध्यम से आवेदन" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","School Enrollment Certificate (Class 9, Govt. School)","Residence Proof (Bihar rural area)","Parent's Aadhaar","Bank Account (for DBT in some districts)"],
                hi: ["आधार कार्ड","स्कूल नामांकन प्रमाण पत्र (कक्षा 9, सरकारी स्कूल)","निवास प्रमाण (बिहार ग्रामीण क्षेत्र)","माता-पिता का आधार","बैंक खाता (कुछ जिलों में DBT के लिए)"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Bihar" && a.who === "student" && a.area === "rural",
   },
 
@@ -176,6 +180,7 @@ export const BIHAR_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/bsccs", hi: "7nishchay-yuvaupmission.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Pass Certificate","Bank Account (Aadhaar-linked)","Residence Proof (Bihar)","Employment Registration Certificate (from Rozgar Karyalay)","Affidavit of unemployment","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 12 उत्तीर्ण प्रमाण पत्र","बैंक खाता (आधार-लिंक्ड)","निवास प्रमाण (बिहार)","रोजगार कार्यालय पंजीकरण प्रमाण पत्र","बेरोजगारी का शपथ-पत्र","पासपोर्ट फोटो"] },
+    keywords: ["class12","skill"],
     match: (a) => a.state === "Bihar" && a.age === "18to35",
   },
 
@@ -192,6 +197,7 @@ export const BIHAR_SCHEMES = [
     apply:   { en: "https://gopalganj.nic.in/scheme/kushal-yuva-programme", hi: "skillmissionbihar.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 10 Pass Certificate (minimum)","Bank Account","Residence Proof (Bihar)","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 10 उत्तीर्ण प्रमाण पत्र (न्यूनतम)","बैंक खाता","निवास प्रमाण (बिहार)","पासपोर्ट फोटो"] },
+    keywords: ["class10","class12","skill","dropout"],
     match: (a) => a.state === "Bihar" && a.age === "18to35",
   },
 
@@ -313,6 +319,7 @@ export const BIHAR_SCHEMES = [
     apply:   { en: "https://pfms.nic.in", hi: "pfms.nic.in / राज्य अल्पसंख्यक कल्याण पोर्टल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Minority Community Certificate (e.g. Muslim, Sikh etc.)","Class 10 / 12 Marksheet","College/University Admission Certificate","Family Income Certificate (annual income < ₹2 lakh)","Bank Account (Aadhaar-linked)","Domicile Certificate (Bihar)"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र (जैसे मुस्लिम, सिख आदि)","कक्षा 10/12 अंकसूची","कॉलेज/विश्वविद्यालय प्रवेश प्रमाण पत्र","पारिवारिक आय प्रमाण पत्र (वार्षिक ₹2 लाख से कम)","बैंक खाता (आधार-लिंक्ड)","अधिवास प्रमाण पत्र (बिहार)"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Bihar" && a.who === "student",
   },
 

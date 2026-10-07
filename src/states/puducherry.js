@@ -108,6 +108,7 @@ export const PUDUCHERRY_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/asdaps", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल) / स्कूल शिक्षा विभाग, पुदुच्चेरी" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Previous Marksheet (10th / last qualifying exam)", "Income Certificate (family income < ₹3 lakh/year)", "Caste Certificate (if SC/ST/OBC)", "Bonafide Certificate from institution", "Bank Account (Aadhaar-linked, student's name)", "Residence Proof (Puducherry domicile)", "Passport Photo"],
                hi: ["आधार कार्ड", "पिछली अंकसूची (10वीं / अंतिम योग्यता परीक्षा)", "आय प्रमाण पत्र (पारिवारिक आय ₹3 लाख/वर्ष से कम)", "जाति प्रमाण पत्र (SC/ST/OBC के लिए)", "संस्थान से बोनाफाइड प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "निवास प्रमाण (पुदुच्चेरी)", "पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Puducherry" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -196,6 +197,7 @@ export const PUDUCHERRY_SCHEMES = [
     apply:   { en: "Dept. of Labour & Employment, Puducherry / nearest ITI, Puducherry", hi: "श्रम एवं रोजगार विभाग, पुदुच्चेरी / निकटतम ITI, पुदुच्चेरी" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Residence Proof (Puducherry domicile)", "Educational Certificates (as per course eligibility)", "Bank Account (Aadhaar-linked — for stipend)", "Passport Photo", "Mobile Number"],
                hi: ["आधार कार्ड", "निवास प्रमाण (पुदुच्चेरी)", "शैक्षिक प्रमाण पत्र (पाठ्यक्रम पात्रता के अनुसार)", "बैंक खाता (आधार-लिंक्ड — वजीफे के लिए)", "पासपोर्ट फोटो", "मोबाइल नंबर"] },
+    keywords: ["iti","polytechnic","skill"],
     match: (a) => a.state === "Puducherry" && (a.who === "student" || a.who === "general" || a.who === "women") && ["below1","1to3","3to6"].includes(a.income),
   },
 

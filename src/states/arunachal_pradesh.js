@@ -128,6 +128,7 @@ export const ARUNACHAL_PRADESH_SCHEMES = [
     apply:   { en: "arunachalpradesh.gov.in/tribal / District Welfare Officer (offline)", hi: "arunachalpradesh.gov.in/tribal / जिला कल्याण अधिकारी (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "ST Certificate issued by Arunachal Pradesh Govt. (specifying tribe name)", "Permanent Resident Certificate (PRC) of Arunachal Pradesh (mandatory)", "Residence / Domicile Certificate (Arunachal Pradesh)", "Income Certificate (family annual income)", "Bank Account (Aadhaar-linked)", "Passport Photo", "For Students: School / College Enrollment Certificate & latest Mark Sheet", "For Artisans: Craft Registration Certificate from Handloom & Handicraft Dept.", "For Cultural Groups: Registration Certificate from District Cultural Officer"],
                hi: ["आधार कार्ड", "अरुणाचल प्रदेश सरकार द्वारा जारी ST प्रमाण पत्र (जनजाति का नाम सहित)", "अरुणाचल प्रदेश का स्थायी निवास प्रमाण पत्र (PRC) (अनिवार्य)", "निवास / अधिवास प्रमाण पत्र (अरुणाचल प्रदेश)", "आय प्रमाण पत्र (पारिवारिक वार्षिक आय)", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "छात्रों के लिए: विद्यालय/महाविद्यालय नामांकन प्रमाण पत्र एवं नवीनतम अंकतालिका", "कारीगरों के लिए: हथकरघा एवं हस्तशिल्प विभाग से शिल्प पंजीकरण प्रमाण पत्र", "सांस्कृतिक समूहों के लिए: जिला सांस्कृतिक अधिकारी से पंजीकरण प्रमाण पत्र"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Arunachal Pradesh" && (a.caste === "st" || a.caste === "sc"),
   },
 

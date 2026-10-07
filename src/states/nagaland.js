@@ -110,6 +110,7 @@ export const NAGALAND_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/search/state/Nagaland", hi: "dhe.nagaland.gov.in / स्कूल या कॉलेज कार्यालय (ऑनलाइन + ऑफलाइन)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "NBSE Class 10 / 12 Marksheet", "Income Certificate (family income below threshold)", "ST Certificate (Nagaland)", "Admission / Enrollment Certificate from current institution", "Bank Account (Aadhaar-linked, student's name)", "Residence / Domicile Certificate (Nagaland)", "Passport Photo"],
                hi: ["आधार कार्ड", "NBSE कक्षा 10 / 12 अंकसूची", "आय प्रमाण पत्र (पारिवारिक आय सीमा से कम)", "ST प्रमाण पत्र (नागालैंड)", "वर्तमान संस्थान से प्रवेश / नामांकन प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "निवास / अधिवास प्रमाण पत्र (नागालैंड)", "पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Nagaland" && a.who === "student",
   },
 

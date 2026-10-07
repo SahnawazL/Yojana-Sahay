@@ -79,6 +79,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "School / College Enrollment Proof", "Bank Account", "Ration Card", "Caste Certificate (if applicable)"],
                hi: ["आधार कार्ड", "विद्यालय / कॉलेज नामांकन प्रमाण", "बैंक खाता", "राशन कार्ड", "जाति प्रमाण पत्र (यदि लागू हो)"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below18","18to35"].includes(a.age),
   },
 
@@ -93,6 +94,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Jharkhand Domicile Certificate", "Educational Certificates", "Income Certificate"],
                hi: ["आधार कार्ड", "झारखंड स्थायी निवास प्रमाण", "शैक्षिक प्रमाण पत्र", "आय प्रमाण पत्र"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Jharkhand" && a.who === "student" && a.age === "18to35",
   },
 
@@ -226,6 +228,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "https://cuj.ac.in/welfare%20schemes.php", hi: "ekalyan.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/BC)", "10th Mark Sheet", "College / Institution Admission Proof", "Income Certificate (below ₹2.5L)", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/BC)", "10वीं अंकपत्र", "कॉलेज / संस्था प्रवेश प्रमाण", "आय प्रमाण पत्र (₹2.5 लाख से कम)", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -316,6 +319,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "jsdm.jharkhand.gov.in", hi: "jsdm.jharkhand.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Jharkhand Domicile Certificate", "BPL / MGNREGA Job Card (preferred)", "8th Pass Certificate (minimum)", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "झारखंड निवास प्रमाण", "BPL / मनरेगा जॉब कार्ड (प्राथमिकता)", "8वीं उत्तीर्ण प्रमाण पत्र (न्यूनतम)", "बैंक खाता", "पासपोर्ट फोटो"] },
+    keywords: ["class10","skill","dropout"],
     match: (a) => a.state === "Jharkhand" && ["student","general"].includes(a.who) && ["18to35"].includes(a.age) && a.area === "rural" && ["below1","1to3"].includes(a.income),
   },
 
@@ -391,6 +395,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "https://jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "10th Mark Sheet", "College / Institution Admission Proof", "Income Certificate (below ₹2L)", "Bank Account"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "10वीं अंकपत्र", "कॉलेज / संस्था प्रवेश प्रमाण", "आय प्रमाण पत्र (₹2 लाख से कम)", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -406,6 +411,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "https://jac.jharkhand.gov.in", hi: "jac.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 8 Mark Sheet (60%+ marks)", "Income Certificate (below ₹1.5L/year)", "School Enrollment Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "कक्षा 8 अंकपत्र (60% या अधिक)", "आय प्रमाण पत्र (₹1.5 लाख/वर्ष से कम)", "विद्यालय नामांकन प्रमाण पत्र", "बैंक खाता"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Jharkhand" && a.who === "student" && a.age === "below18" && ["below1","1to3"].includes(a.income),
   },
 
@@ -451,6 +457,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "https://www.jharkhand.gov.in/welfare", hi: "ekalyan.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "OBC / BC Caste Certificate", "10th Mark Sheet", "College Admission Proof", "Income Certificate (below ₹1.5L/year)", "Bank Account"],
                hi: ["आधार कार्ड", "OBC / BC जाति प्रमाण पत्र", "10वीं अंकपत्र", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण पत्र (₹1.5 लाख/वर्ष से कम)", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -496,6 +503,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+) from CMO", "School / College Enrollment Proof", "Income Certificate", "Bank Account", "Passport Photo"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+) CMO से", "विद्यालय / कॉलेज नामांकन प्रमाण", "आय प्रमाण पत्र", "बैंक खाता", "पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 

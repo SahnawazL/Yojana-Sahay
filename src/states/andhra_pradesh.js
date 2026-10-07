@@ -74,6 +74,7 @@ export const ANDHRA_PRADESH_SCHEMES = [
     apply:   { en: "ammavodi.ap.gov.in / Village/Ward Secretariat or School HM (offline)", hi: "ammavodi.ap.gov.in / ग्राम/वार्ड सचिवालय या स्कूल प्रधानाध्यापक (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card (Mother's)", "Child's School Enrollment Certificate (from HM)", "Child's Aadhaar Card", "Bank Account (Mother's — Aadhaar-linked)", "Residence Proof (Andhra Pradesh)", "Mobile Number", "Passport Photo (Mother's)"],
                hi: ["आधार कार्ड (माँ का)", "बच्चे का विद्यालय नामांकन प्रमाण पत्र (प्रधानाध्यापक से)", "बच्चे का आधार कार्ड", "बैंक खाता (माँ का — आधार-लिंक्ड)", "निवास प्रमाण (आंध्र प्रदेश)", "मोबाइल नंबर", "पासपोर्ट फोटो (माँ का)"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Andhra Pradesh" && a.who === "women",
   },
 

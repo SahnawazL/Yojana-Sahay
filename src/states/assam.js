@@ -48,6 +48,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://directorateofhighereducation.assam.gov.in/documents-detail/final-guideline-for-nijut-moina-scheme-2024-25", hi: "sebaonline.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","School / College Enrollment Certificate","Bank Account (girl's name)","Birth Certificate"],
                hi: ["आधार कार्ड","स्कूल/कॉलेज नामांकन प्रमाण","बैंक खाता (छात्रा के नाम)","जन्म प्रमाण पत्र"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Assam" && a.who === "student",
   },
 
@@ -62,6 +63,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://directorateofhighereducation.assam.gov.in/documents-detail/final-guideline-for-nijut-moina-scheme-2024-25", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Anundoram Award
     docs:    { en: ["Aadhaar Card","HSLC / HS Marksheet (75%+)","School Certificate","Bank Account"],
                hi: ["आधार कार्ड","HSLC/HS अंकसूची (75%+)","स्कूल प्रमाण पत्र","बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Assam" && a.who === "student",
   },
 
@@ -76,6 +78,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://cleartax.in/s/anundoram-borooah-laptop-award-scheme-arbas", hi: "sebaonline.org" }, applyType: "online", // ℹ️ same portal as Nijut Moina & Pragyan Bharati
     docs:    { en: ["Aadhaar Card","HSLC Marksheet (Distinction)","School Certificate","Bank Account"],
                hi: ["आधार कार्ड","HSLC अंकसूची (डिस्टिंक्शन)","स्कूल प्रमाण पत्र","बैंक खाता"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Assam" && a.who === "student",
   },
 
@@ -132,6 +135,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://www.govtschemes.in/mukhyamantri-atmanirbhar-asom-scheme", hi: "skill.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Educational Certificate","Bank Account","Business Plan","Domicile Certificate"],
                hi: ["आधार कार्ड","शैक्षणिक प्रमाण","बैंक खाता","व्यापार योजना","अधिवास प्रमाण पत्र"] },
+    keywords: ["skill"],
     match: (a) => a.state === "Assam" && ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
@@ -244,6 +248,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/cmjas", hi: "dids.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Graduation Certificate (Govt. institution, 2025 pass-out)","Bank Account (Aadhaar-linked)","Domicile / Residence Certificate","Unemployment Declaration","Mobile Number for OTP"],
                hi: ["आधार कार्ड","स्नातक प्रमाण पत्र (सरकारी संस्थान, 2025 पास-आउट)","बैंक खाता (आधार लिंक्ड)","अधिवास/निवास प्रमाण","बेरोजगारी घोषणा","OTP के लिए मोबाइल नंबर"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Assam" && a.who === "student" && ["18to35"].includes(a.age),
   },
 
@@ -258,6 +263,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/aaelss", hi: "dids.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Bank Loan Sanction Letter (₹2 lakh+, from Scheduled Bank)","Loan Repayment Proof (25% repaid)","Admission / Enrollment Certificate (Higher Education)","Bank Account","Domicile Certificate"],
                hi: ["आधार कार्ड","बैंक ऋण स्वीकृति पत्र (₹2 लाख+, अनुसूचित बैंक)","ऋण पुनर्भुगतान प्रमाण (25% चुकाया)","प्रवेश/नामांकन प्रमाण पत्र (उच्च शिक्षा)","बैंक खाता","अधिवास प्रमाण पत्र"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Assam" && a.who === "student",
   },
 
@@ -358,6 +364,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://ssa.assam.gov.in/resource/arohan", hi: "arohan-ssa.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class X Marksheet (First Division / merit)","School Enrollment Certificate (Govt. school, Class XI/XII)","Bank Account (Aadhaar-linked, for DBT)","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा X अंकसूची (प्रथम श्रेणी/मेधावी)","स्कूल नामांकन प्रमाण पत्र (सरकारी स्कूल, कक्षा XI/XII)","बैंक खाता (आधार-लिंक्ड, DBT के लिए)","पासपोर्ट फोटो"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Assam" && a.who === "student",
   },
 
@@ -400,6 +407,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://mobileapp.nesdr.gov.in/recruitment/astec-jso-2021", hi: "astec.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class X Marksheet (minimum 75% marks)","Class XI Enrollment Certificate (Science stream — Maths/Physics/Chemistry/Biology/Statistics/CS)","School Certificate (Govt. recognised institution in Assam)","Passport Photo","Mobile Number for OTP"],
                hi: ["आधार कार्ड","कक्षा X अंकसूची (न्यूनतम 75% अंक)","कक्षा XI नामांकन प्रमाण पत्र (विज्ञान धारा)","स्कूल प्रमाण पत्र (असम में सरकार-मान्यता प्राप्त)","पासपोर्ट फोटो","OTP के लिए मोबाइल नंबर"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Assam" && a.who === "student",
   },
 
@@ -554,6 +562,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/cms-g", hi: "scholarshipforbc.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC / MOBC Caste Certificate (issued in Assam)","Class X / XII Marksheet","College / University Admission / Enrollment Certificate","Family Income Certificate (annual income < ₹1 lakh for central list; < ₹2 lakh for state list)","Bank Account (Aadhaar-linked)","Previous Year Marksheet (for renewal)","Domicile Certificate (Assam)"],
                hi: ["आधार कार्ड","OBC/MOBC जाति प्रमाण पत्र (असम में जारी)","कक्षा X/XII अंकसूची","कॉलेज/विश्वविद्यालय प्रवेश/नामांकन प्रमाण पत्र","पारिवारिक आय प्रमाण पत्र (वार्षिक ₹1 लाख से कम — केंद्रीय; ₹2 लाख से कम — राज्य सूची)","बैंक खाता (आधार-लिंक्ड)","पिछले वर्ष की अंकसूची (नवीनीकरण के लिए)","अधिवास प्रमाण पत्र (असम)"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Assam" && a.who === "student",
   },
 

@@ -96,6 +96,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/mmcpy", hi: "scholarships.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","10th/12th Marksheet","Income Certificate","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","10वीं/12वीं मार्कशीट","आय प्रमाण पत्र","बैंक खाता","पंजाब अधिवास"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -110,6 +111,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "https://pgrkam.com", hi: "pgrkam.com" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Educational Certificates","Punjab Domicile","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","शैक्षणिक प्रमाण पत्र","पंजाब अधिवास","बैंक खाता","पासपोर्ट फोटो"] },
+    keywords: ["skill"],
     match: (a) => a.state === "Punjab" && a.who === "student" && ["18to35"].includes(a.age),
   },
 
@@ -264,6 +266,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/mmcpy", hi: "scholarships.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC)","Previous Year Marksheet","Income Certificate (≤₹2.5L/year)","Bank Account","Admission Receipt"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC)","पिछले वर्ष की मार्कशीट","आय प्रमाण (≤₹2.5 लाख/वर्ष)","बैंक खाता","प्रवेश रसीद"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -278,6 +281,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "Punjab Government College / ilovepunjab.gov.in", hi: "पंजाब सरकारी कॉलेज / ilovepunjab.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","12th Marksheet (Govt. School)","College Admission Proof","Punjab Domicile"],
                hi: ["आधार कार्ड","12वीं मार्कशीट (सरकारी स्कूल)","कॉलेज प्रवेश प्रमाण","पंजाब अधिवास"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income) && ["18to35"].includes(a.age),
   },
 
@@ -418,6 +422,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "School / College Principal Office", hi: "स्कूल / कॉलेज प्रधानाचार्य कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","School / College ID Card","Punjab Domicile","Passport Photo"],
                hi: ["आधार कार्ड","स्कूल / कॉलेज पहचान पत्र","पंजाब अधिवास","पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Punjab" && a.who === "student",
   },
 
@@ -466,6 +471,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "https://www.gpcgldh.ac.in/scholarship-scheme.php", hi: "https://www.gpcgldh.ac.in/scholarship-scheme.php" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Minority Community Certificate","Previous Marksheet","Income Certificate","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","पिछले वर्ष की मार्कशीट","आय प्रमाण पत्र","बैंक खाता","पंजाब अधिवास"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -620,6 +626,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/ssds-punjab", hi: "sswepb.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (>=40%)","School / College Enrolment Proof","Income Certificate","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (>=40%)","स्कूल/कॉलेज प्रवेश प्रमाण","आय प्रमाण","बैंक खाता","पंजाब अधिवास"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -652,6 +659,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "School Principal / Block Education Officer", hi: "स्कूल प्रधानाचार्य / खंड शिक्षा अधिकारी" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","School Enrolment Certificate","Caste Certificate (for SC/BC boys)","Punjab Domicile"],
                hi: ["आधार कार्ड","स्कूल प्रवेश प्रमाण पत्र","जाति प्रमाण पत्र (SC/BC लड़कों के लिए)","पंजाब अधिवास"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Punjab" && a.who === "student" && a.age === "below18",
   },
 
@@ -716,6 +724,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "https://swd.punjab.gov.pk/himmatcard", hi: "sswepb.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Disability Certificate (>=40%)","Bank Account","Punjab Domicile","Passport Photo"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (>=40%)","बैंक खाता","पंजाब अधिवास","पासपोर्ट फोटो"] },
+    keywords: ["skill"],
     match: (a) => a.state === "Punjab" && ["below1","1to3","3to6"].includes(a.income) && ["18to35","35to60"].includes(a.age),
   },
 
@@ -776,6 +785,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/ssds-punjab", hi: "scholarships.punjab.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Admission Letter (Nursing / Paramedical)","Income Certificate (BPL)","Previous Marksheet","Bank Account","Punjab Domicile"],
                hi: ["आधार कार्ड","प्रवेश पत्र (नर्सिंग/पैरामेडिकल)","आय प्रमाण (BPL)","पिछले वर्ष की मार्कशीट","बैंक खाता","पंजाब अधिवास"] },
+    keywords: ["class12","polytechnic","diploma"],
     match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 

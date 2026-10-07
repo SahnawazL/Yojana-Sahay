@@ -171,6 +171,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "https://telanganaepass.cgg.gov.in", hi: "telanganaepass.cgg.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/BC/EBC/Minority)", "Income Certificate (≤₹2L/year)", "Previous Year Mark Sheet", "College Admission & Fee Receipt", "Bank Account (student's name)"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/BC/EBC/अल्पसंख्यक)", "आय प्रमाण पत्र (≤₹2 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज प्रवेश और शुल्क रसीद", "बैंक खाता (छात्र के नाम)"] },
+    keywords: ["class10","class12","polytechnic"],
     match: (a) => a.state === "Telangana" && a.who === "student" && ["below1", "1to3"].includes(a.income) && ["18to35"].includes(a.age),
   },
 
@@ -261,6 +262,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "https://telanganaepass.cgg.gov.in", hi: "telanganaepass.cgg.gov.in / स्कूल प्रधानाचार्य" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC/ST Caste Certificate", "Previous Year Mark Sheet", "Income Certificate (≤₹2.5L/year)", "Bank Account (student/parent)", "School Enrollment Certificate"],
                hi: ["आधार कार्ड", "SC/ST जाति प्रमाण पत्र", "पिछले वर्ष की मार्कशीट", "आय प्रमाण पत्र (≤₹2.5 लाख/वर्ष)", "बैंक खाता (छात्र/माता-पिता)", "स्कूल नामांकन प्रमाण"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Telangana" && a.who === "student" && ["below1", "1to3"].includes(a.income) && a.age === "below18",
   },
 
@@ -411,6 +413,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "https://telanganaepass.cgg.gov.in", hi: "telanganaepass.cgg.gov.in / SC विकास विभाग" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC/ST Caste Certificate", "Graduation Mark Sheet (min. 60%)", "Admission Offer Letter from Foreign University (ranked top 500)", "Income Certificate (≤₹6L/year)", "Valid Passport", "Bank Account"],
                hi: ["आधार कार्ड", "SC/ST जाति प्रमाण पत्र", "स्नातक मार्कशीट (न्यूनतम 60%)", "विदेशी विश्वविद्यालय से प्रवेश पत्र (शीर्ष 500 रैंक)", "आय प्रमाण पत्र (≤₹6 लाख/वर्ष)", "वैध पासपोर्ट", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Telangana" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income) && a.age === "18to35",
   },
 
@@ -426,6 +429,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "https://telanganaepass.cgg.gov.in", hi: "https://telanganaepass.cgg.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Religion Certificate / Affidavit", "Class 10 Mark Sheet", "College / Institution Admission Letter", "Income Certificate (≤₹2L/year)", "Bank Account (student's name)"],
                hi: ["आधार कार्ड", "अल्पसंख्यक धर्म प्रमाण पत्र / शपथ पत्र", "कक्षा 10 मार्कशीट", "कॉलेज / संस्था प्रवेश पत्र", "आय प्रमाण पत्र (≤₹2 लाख/वर्ष)", "बैंक खाता (छात्र के नाम)"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Telangana" && a.who === "student" && ["below1", "1to3"].includes(a.income) && ["18to35"].includes(a.age),
   },
 
@@ -471,6 +475,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "https://hyderabad.telangana.gov.in/scheme/task", hi: "task.telangana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Engineering / Diploma / Degree Certificate", "College ID or Passing Certificate", "Passport Photo", "Bank Account"],
                hi: ["आधार कार्ड", "इंजीनियरिंग / डिप्लोमा / डिग्री प्रमाण पत्र", "कॉलेज ID या उत्तीर्ण प्रमाण पत्र", "पासपोर्ट फोटो", "बैंक खाता"] },
+    keywords: ["polytechnic","skill"],
     match: (a) => a.state === "Telangana" && a.who === "student" && a.age === "18to35",
   },
 
@@ -516,6 +521,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "https://www.etnownews.com/about/government-schemes/rajiv-yuva-vikasam-scheme", hi: "employment.telangana.gov.in / नजदीकी जिला रोजगार कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Certificates (min. Class 10)", "Unemployment / No Job Declaration", "Bank Account (Aadhaar-linked)", "Residence Proof", "Passport Photo"],
                hi: ["आधार कार्ड", "शैक्षिक प्रमाण पत्र (न्यूनतम कक्षा 10)", "बेरोजगारी / नौकरी न होने की घोषणा", "बैंक खाता (आधार लिंक)", "निवास प्रमाण", "पासपोर्ट फोटो"] },
+    keywords: ["class12","skill"],
     match: (a) => a.state === "Telangana" && a.age === "18to35" && ["below1", "1to3"].includes(a.income),
   },
 

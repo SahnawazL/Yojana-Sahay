@@ -146,6 +146,7 @@ export const SIKKIM_SCHEMES = [
     apply:   { en: "scholarships.sikkim.gov.in / District Education Officer (offline)", hi: "scholarships.sikkim.gov.in / जिला शिक्षा अधिकारी (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Sikkim Subject Certificate (mandatory)", "Class X & XII Mark Sheets", "College / University Admission Letter", "Income Certificate (family annual income)", "Bank Account (Aadhaar-linked, student's own account preferred)", "Caste Certificate (if applicable)", "Passport Photo", "Previous year's marks / result for renewal"],
                hi: ["आधार कार्ड", "सिक्किम सब्जेक्ट प्रमाण पत्र (अनिवार्य)", "कक्षा X और XII की अंकतालिका", "कॉलेज / विश्वविद्यालय प्रवेश पत्र", "आय प्रमाण पत्र (पारिवारिक वार्षिक आय)", "बैंक खाता (आधार-लिंक्ड, छात्र का स्वयं का खाता अधिमान्य)", "जाति प्रमाण पत्र (यदि लागू)", "पासपोर्ट फोटो", "नवीनीकरण के लिए पिछले वर्ष की अंकतालिका / परिणाम"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Sikkim" && (a.who === "student" || a.who === "general") && a.age >= 17 && a.age <= 30,
   },
 
@@ -290,6 +291,7 @@ export const SIKKIM_SCHEMES = [
     apply:   { en: "ssdm.sikkim.gov.in / Nearest ITI or SSDM Centre (offline)", hi: "ssdm.sikkim.gov.in / निकटतम ITI या SSDM केंद्र (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Sikkim Subject Certificate (mandatory)", "Educational Qualification Certificate (minimum Class VIII pass)", "Age Proof (Birth Certificate / Voter ID)", "Residence Certificate (Sikkim)", "Bank Account (Aadhaar-linked)", "Caste Certificate (for priority admission — SC/ST/OBC)", "Disability Certificate (if applicable)", "Passport Photo"],
                hi: ["आधार कार्ड", "सिक्किम सब्जेक्ट प्रमाण पत्र (अनिवार्य)", "शैक्षिक योग्यता प्रमाण पत्र (न्यूनतम कक्षा VIII उत्तीर्ण)", "आयु प्रमाण (जन्म प्रमाण पत्र / मतदाता ID)", "निवास प्रमाण पत्र (सिक्किम)", "बैंक खाता (आधार-लिंक्ड)", "जाति प्रमाण पत्र (SC/ST/OBC प्राथमिकता प्रवेश के लिए)", "दिव्यांगता प्रमाण पत्र (यदि लागू)", "पासपोर्ट फोटो"] },
+    keywords: ["skill","dropout"],
     match: (a) => a.state === "Sikkim" && (a.who === "unemployed" || a.who === "student" || a.who === "general") && a.age >= 18 && a.age <= 40,
   },
 

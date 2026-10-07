@@ -40,6 +40,7 @@ export const GOA_SCHEMES = [
     apply:   { en: "wcd.goa.gov.in / ICDS / CDPOs office", hi: "wcd.goa.gov.in / ICDS / CDPO कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card (child and parent)", "Birth Certificate of girl child", "Goa Domicile Certificate (parents)", "Income Certificate (≤ ₹3 lakh)", "Bank Account (child's/parent's)", "BPL Ration Card (if applicable)", "Passport Photo"],
                hi: ["आधार कार्ड (बच्चे और अभिभावक)", "बालिका का जन्म प्रमाण पत्र", "गोवा डोमिसाइल प्रमाण पत्र (माता-पिता)", "आय प्रमाण पत्र (₹3 लाख तक)", "बैंक खाता (बालिका/अभिभावक)", "BPL राशन कार्ड (यदि लागू)", "पासपोर्ट फोटो"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Goa" && a.who === "women" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -76,6 +77,7 @@ export const GOA_SCHEMES = [
     apply:   { en: "scholarships.gov.in (National Scholarship Portal)", hi: "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/OBC — issued by Goa govt.)", "Income Certificate (OBC: ≤ ₹2.5 lakh / SC/ST: ≤ ₹6 lakh)", "Class 10 Marksheet / Certificate", "Current Course Admission Proof / Fee Receipt", "Bank Account (student's, Aadhaar-linked)", "Goa Domicile Certificate", "Passport Photo", "Mobile Number & Email"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC — गोवा सरकार द्वारा जारी)", "आय प्रमाण पत्र (OBC: ₹2.5 लाख तक / SC/ST: ₹6 लाख तक)", "कक्षा 10 अंकसूची / प्रमाण पत्र", "वर्तमान पाठ्यक्रम प्रवेश प्रमाण / फीस रसीद", "बैंक खाता (छात्र का, आधार-लिंक्ड)", "गोवा डोमिसाइल प्रमाण पत्र", "पासपोर्ट फोटो", "मोबाइल नंबर व ईमेल"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Goa" && a.who === "student" && ["sc","st","obc"].includes(a.caste),
   },
 
@@ -92,6 +94,7 @@ export const GOA_SCHEMES = [
     apply:   { en: "dhegoa.gov.in / college principal's office", hi: "dhegoa.gov.in / कॉलेज प्राचार्य कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Class 12 / Graduation Marksheet (60%+ marks)", "Income Certificate (≤ ₹6 lakh)", "Goa Domicile Certificate", "Current Admission Proof / College ID", "Bank Account (student's, Aadhaar-linked)", "Passport Photo"],
                hi: ["आधार कार्ड", "कक्षा 12 / स्नातक अंकसूची (60%+ अंक)", "आय प्रमाण पत्र (₹6 लाख तक)", "गोवा डोमिसाइल प्रमाण पत्र", "वर्तमान प्रवेश प्रमाण / कॉलेज ID", "बैंक खाता (छात्र का, आधार-लिंक्ड)", "पासपोर्ट फोटो"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Goa" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 

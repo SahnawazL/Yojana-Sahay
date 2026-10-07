@@ -96,6 +96,7 @@ export const LADAKH_SCHEMES = [
     apply:   { en: "https://ladakh.gov.in/technical-education-and-skill-development", hi: "himayat.gov.in / LAHDC कौशल विकास केंद्र, लेह या कारगिल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Domicile Certificate (Ladakh UT)", "Educational Qualification Certificate (Class 8 minimum)", "Age Proof (15–35 years)", "Bank Account (Aadhaar-linked)", "Passport Photo", "Mobile Number", "Caste/PwD Certificate (if applicable for priority)"],
                hi: ["आधार कार्ड", "अधिवास प्रमाण पत्र (लद्दाख UT)", "शैक्षिक योग्यता प्रमाण पत्र (न्यूनतम कक्षा 8)", "आयु प्रमाण (15–35 वर्ष)", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "मोबाइल नंबर", "जाति/दिव्यांग प्रमाण पत्र (यदि प्राथमिकता के लिए लागू हो)"] },
+    keywords: ["skill","dropout"],
     match: (a) => a.state === "Ladakh" && (a.who === "student" || ["18to35"].includes(a.age)),
   },
 
@@ -112,6 +113,7 @@ export const LADAKH_SCHEMES = [
     apply:   { en: "https://leh.nic.in/notice/notice-opening-of-national-scholarship-portal-nsp-2-0-for-inviting-applications-fresh-and-renewal-under-centrally-sponsored-scheme-of-pre-and-post-matric-scholarship-for-st-students-ladakh", hi: "scholarships.gov.in (NSP) / समाज कल्याण विभाग लेह या कारगिल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC or ST) issued by Ladakh UT authority", "Domicile Certificate (Ladakh UT)", "Last Exam Marksheet / School Certificate", "Institution Enrollment Certificate (current year)", "Bank Account (student's name, Aadhaar-linked)", "Income Certificate (family income < ₹2.5 lakh for SC / no income bar for ST)", "Passport Photo"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC या ST) — लद्दाख UT प्राधिकरण द्वारा", "अधिवास प्रमाण पत्र (लद्दाख UT)", "अंतिम परीक्षा की अंकसूची / विद्यालय प्रमाण पत्र", "संस्थान नामांकन प्रमाण पत्र (चालू वर्ष)", "बैंक खाता (छात्र के नाम, आधार-लिंक्ड)", "आय प्रमाण पत्र (SC के लिए पारिवारिक आय ₹2.5 लाख से कम / ST के लिए कोई आय सीमा नहीं)", "पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Ladakh" && a.who === "student" && (a.caste === "sc" || a.caste === "st"),
   },
 

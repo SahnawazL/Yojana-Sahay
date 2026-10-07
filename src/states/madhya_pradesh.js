@@ -48,6 +48,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     apply:   { en: "https://scholarshipportal.mp.nic.in", hi: "scholarshipportal.mp.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Mark Sheet (75%+ / 85%+)","Income Certificate (≤₹6L/year)","Admission Letter from College","Samagra ID","Bank Account"],
                hi: ["आधार कार्ड","कक्षा 12 मार्कशीट (75%+ / 85%+)","आय प्रमाण (≤₹6 लाख/वर्ष)","कॉलेज प्रवेश पत्र","समग्र ID","बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Madhya Pradesh" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income) && a.age === "18to35",
   },
 
@@ -132,6 +133,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/mmsky", hi: "mmsky.mp.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Samagra ID","Class 12 / Diploma / Degree Certificate","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","समग्र ID","कक्षा 12/डिप्लोमा/डिग्री प्रमाण पत्र","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
+    keywords: ["class12","polytechnic","skill"],
     match: (a) => a.state === "Madhya Pradesh" && a.who === "student" && a.age === "18to35" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -300,6 +302,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     apply:   { en: "https://scholarshipportal.mp.nic.in", hi: "scholarshipportal.mp.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Samagra ID", "Class 12 Mark Sheet (min. 60%)", "Rural Domicile / Caste Certificate", "College Enrollment Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "समग्र ID", "कक्षा 12 मार्कशीट (न्यूनतम 60%)", "ग्रामीण निवास / जाति प्रमाण पत्र", "कॉलेज नामांकन प्रमाण", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Madhya Pradesh" && a.who === "student" && a.area === "rural" && ["18to35"].includes(a.age),
   },
 

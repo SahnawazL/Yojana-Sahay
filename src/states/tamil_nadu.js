@@ -23,6 +23,7 @@ export const TAMIL_NADU_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "School Enrollment Certificate", "Bank Account (girl's name)"],
                hi: ["आधार कार्ड", "स्कूल नामांकन प्रमाण पत्र", "बैंक खाता (छात्रा के नाम पर)"] },
     // Eligibility: TN girl student in Std 6-12 in govt school
+    keywords: ["class10"],
     match: (a) => a.state === "Tamil Nadu" && a.who === "student",
   },
 
@@ -100,6 +101,7 @@ export const TAMIL_NADU_SCHEMES = [
     apply:   { en: "https://tnadwscholarship.in", hi: "tnscholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Community Certificate (SC/ST)", "Mark Sheet (Class 12)", "College Admission Letter", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST)", "कक्षा 12 मार्कशीट", "कॉलेज प्रवेश पत्र", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Tamil Nadu" && a.who === "student" && a.age === "18to35" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -280,6 +282,7 @@ export const TAMIL_NADU_SCHEMES = [
     apply:   { en: "https://socialjustice.gov.in/schemes/30", hi: "adwelfare.tn.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Community Certificate (SC/ST)", "Educational Qualification Proof", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST)", "शैक्षिक योग्यता प्रमाण", "आय प्रमाण पत्र", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Tamil Nadu" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -493,6 +496,7 @@ export const TAMIL_NADU_SCHEMES = [
     apply:   { en: "https://www.dtnext.in/news/tamilnadu/tnsdc-plans-skill-training-consistent-branding-for-vetri-nichayam-scheme-846189", hi: "tnsdc.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof", "Educational Certificate", "Residence Proof", "Passport-size Photo"],
                hi: ["आधार कार्ड", "आयु प्रमाण", "शैक्षिक प्रमाण पत्र", "निवास प्रमाण", "पासपोर्ट साइज फोटो"] },
+    keywords: ["skill","dropout"],
     match: (a) => a.state === "Tamil Nadu" && a.who === "student" && a.age === "18to35",
   },
 
@@ -523,6 +527,7 @@ export const TAMIL_NADU_SCHEMES = [
     apply:   { en: "Distributed via college — no separate application needed", hi: "कॉलेज के माध्यम से वितरण — अलग आवेदन आवश्यक नहीं" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "College Enrollment Proof", "Student ID Card"],
                hi: ["आधार कार्ड", "कॉलेज नामांकन प्रमाण", "छात्र पहचान पत्र"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Tamil Nadu" && a.who === "student" && a.age === "18to35",
   },
 

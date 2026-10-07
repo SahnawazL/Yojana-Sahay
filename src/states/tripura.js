@@ -110,6 +110,7 @@ export const TRIPURA_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/otfs-t", hi: "scholarships.tripura.gov.in / स्कूल या कॉलेज कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 10 / 12 Marksheet (TBSE / TBHSE)", "Income Certificate (family income below threshold)", "Caste Certificate (SC/ST/OBC)", "Admission / Enrollment Certificate from current institution", "Bank Account (Aadhaar-linked, student's name)", "Residence Proof (Tripura)", "Passport Photo"],
                hi: ["आधार कार्ड", "कक्षा 10 / 12 अंकसूची (TBSE / TBHSE)", "आय प्रमाण पत्र (पारिवारिक आय सीमा से कम)", "जाति प्रमाण पत्र (SC/ST/OBC)", "वर्तमान संस्थान से प्रवेश / नामांकन प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "निवास प्रमाण (त्रिपुरा)", "पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Tripura" && a.who === "student",
   },
 

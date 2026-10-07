@@ -110,6 +110,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://schemesinindia.in/schemes/karnataka/karnataka-vidyasiri-scholarship", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "Income Certificate", "Mark Sheets", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "आय प्रमाण", "मार्कशीट", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -124,6 +125,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://socialjustice.gov.in/schemes/25", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "Income Certificate (< ₹2.5L)", "Mark Sheets", "College Admission Proof", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "आय प्रमाण (< ₹2.5 लाख)", "मार्कशीट", "कॉलेज प्रवेश प्रमाण", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -138,6 +140,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://schooleducation.kar.nic.in", hi: "schooleducation.kar.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 12 Marks Card", "Govt. School Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "कक्षा 12 मार्कशीट", "सरकारी स्कूल प्रमाण", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
   },
 
@@ -230,6 +233,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://bangalorerural.nic.in/en/district-skill-development-office-2", hi: "kaushalkar.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Educational Qualification Proof", "Bank Account"],
                hi: ["आधार कार्ड", "शैक्षणिक योग्यता प्रमाण", "बैंक खाता"] },
+    keywords: ["class10","skill","dropout"],
     match: (a) => a.state === "Karnataka" && ["18to35", "35to60"].includes(a.age) && ["below1", "1to3"].includes(a.income),
   },
 
@@ -334,6 +338,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://schooleducation.kar.nic.in", hi: "schooleducation.kar.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "Income Certificate", "Previous Class Mark Sheet"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "आय प्रमाण", "पिछली कक्षा की मार्कशीट"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income) && a.area === "rural",
   },
 
@@ -348,6 +353,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://schemesinindia.in/schemes/karnataka/karnataka-dr-br-ambedkar-sc-corporation-loan", hi: "kscdc.net" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "College Admission Letter", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "कॉलेज प्रवेश पत्र", "आय प्रमाण", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -424,6 +430,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://negd.gov.in/isl/Directory/statedata/391", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST)", "Income Certificate", "School Enrollment Proof"],
                hi: ["आधार कार्ड", "जाति प्रमाण (SC/ST)", "आय प्रमाण", "स्कूल नामांकन प्रमाण"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -454,6 +461,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://bengaluruurban.nic.in/en/departments/women-and-child-welfare-department/karnataka-state-women-development-corporation", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Degree/Diploma Certificate", "Unemployment Registration Proof", "Bank Account"],
                hi: ["आधार कार्ड", "डिग्री/डिप्लोमा प्रमाण", "बेरोजगार पंजीकरण प्रमाण", "बैंक खाता"] },
+    keywords: ["class12","polytechnic","diploma"],
     match: (a) => a.state === "Karnataka" && a.age === "18to35" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -574,6 +582,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/asst", hi: "tribals.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Income Certificate", "Previous Mark Sheet"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण", "आय प्रमाण", "पिछली मार्कशीट"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income) && a.area === "rural",
   },
 
@@ -588,6 +597,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://negd.gov.in/isl/Directory/statedata/391", hi: "minorityeducation.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate", "Income Certificate (< ₹2L)", "Mark Sheets", "Bank Account"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण", "आय प्रमाण (< ₹2 लाख)", "मार्कशीट", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -776,6 +786,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/dssmp", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (40%+)", "School/College Enrollment Proof", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (40%+)", "स्कूल/कॉलेज नामांकन प्रमाण", "आय प्रमाण", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Karnataka" && a.who === "student",
   },
 
@@ -1228,6 +1239,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.indiascholarships.in/scholarships/pre-matric-obc-students-karnataka", hi: "scholarships.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate (< ₹1L)", "School Enrollment Proof", "Bank Account"],
                hi: ["आधार कार्ड", "OBC जाति प्रमाण", "आय प्रमाण (< ₹1 लाख)", "स्कूल नामांकन प्रमाण", "बैंक खाता"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -1242,6 +1254,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/chobcbg", hi: "backwardclasses.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate", "School/College Admission Letter", "Bank Account"],
                hi: ["आधार कार्ड", "OBC जाति प्रमाण", "आय प्रमाण", "स्कूल/कॉलेज प्रवेश पत्र", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -1366,6 +1379,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "College Library / Dept. of Collegiate Education", hi: "कॉलेज पुस्तकालय / कॉलेजिएट शिक्षा विभाग" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "College Admission Proof", "Income Certificate"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 

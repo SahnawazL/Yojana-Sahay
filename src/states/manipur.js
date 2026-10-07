@@ -110,6 +110,7 @@ export const MANIPUR_SCHEMES = [
     apply:   { en: "https://highereducationmanipur.gov.in/scholarship", hi: "scholarships.manipur.gov.in / स्कूल या कॉलेज कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 10 / 12 Marksheet (BSEM / COHSEM)", "Income Certificate (family income below threshold)", "Caste Certificate (SC/ST/OBC if applicable)", "Admission / Enrollment Certificate from current institution", "Bank Account (Aadhaar-linked, student's name)", "Residence Proof (Manipur)", "Passport Photo"],
                hi: ["आधार कार्ड", "कक्षा 10 / 12 अंकसूची (BSEM / COHSEM)", "आय प्रमाण पत्र (पारिवारिक आय सीमा से कम)", "जाति प्रमाण पत्र (SC/ST/OBC यदि लागू हो)", "वर्तमान संस्थान से प्रवेश / नामांकन प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "निवास प्रमाण (मणिपुर)", "पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Manipur" && a.who === "student",
   },
 
@@ -126,6 +127,7 @@ export const MANIPUR_SCHEMES = [
     apply:   { en: "socialwelfare.manipur.gov.in / Directorate of SC & OBC Development (offline)", hi: "socialwelfare.manipur.gov.in / SC और OBC विकास निदेशालय (ऑफलाइन)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/OBC/Minority)", "Class 12 Marksheet / Graduation Certificate", "Income Certificate (family income < ₹8 lakh/year)", "Residence Proof (Manipur)", "Bank Account (Aadhaar-linked)", "Passport Photo"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC/अल्पसंख्यक)", "कक्षा 12 अंकसूची / स्नातक प्रमाण पत्र", "आय प्रमाण पत्र (पारिवारिक आय < ₹8 लाख/वर्ष)", "निवास प्रमाण (मणिपुर)", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Manipur" && a.who === "student" && (a.caste === "ST" || a.caste === "SC" || a.caste === "OBC"),
   },
 

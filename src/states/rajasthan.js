@@ -86,6 +86,7 @@ export const RAJASTHAN_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Caste Certificate (SC/ST/OBC/EWS/BPL)", "Income Certificate (family ≤ ₹8 lakh/year)", "Last Qualifying Mark Sheet", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC/EWS/BPL)", "आय प्रमाण (परिवार ≤ ₹8 लाख/वर्ष)", "अंतिम योग्यता मार्कशीट", "बैंक खाता"] },
     // Eligibility: SC/ST/OBC/EWS/BPL student, family income ≤ ₹8 lakh/year
+    keywords: ["class12"],
     match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
   },
 
@@ -101,6 +102,7 @@ export const RAJASTHAN_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "BPL Ration Card", "School Enrolment Certificate", "Parent/Guardian Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "BPL राशन कार्ड", "स्कूल नामांकन प्रमाण", "अभिभावक बैंक खाता"] },
     // Eligibility: BPL girl student studying in a government school
+    keywords: ["class10"],
     match: (a) => a.state === "Rajasthan" && a.who === "student" && a.income === "below1",
   },
 
@@ -116,6 +118,7 @@ export const RAJASTHAN_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Caste Certificate (SC/ST/OBC/EWS)", "10th / 12th Mark Sheet (≥65%)", "Admission Proof in Higher Education", "Income Certificate (family ≤ ₹2.5 lakh/year)", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC/EWS)", "10वीं / 12वीं मार्कशीट (≥65%)", "उच्च शिक्षा में प्रवेश प्रमाण", "आय प्रमाण (परिवार ≤ ₹2.5 लाख/वर्ष)", "बैंक खाता"] },
     // Eligibility: SC/ST/OBC/Minority/EWS girl, ≥65% in board, enrolled in college
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -131,6 +134,7 @@ export const RAJASTHAN_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "OBC Caste Certificate (Gurjar/Raika/Banjara/Gadia Luhar)", "12th Mark Sheet (≥50%)", "College Admission Proof", "Income Certificate (family ≤ ₹2 lakh/year)", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "OBC जाति प्रमाण (गुर्जर/राइका/बंजारा/गाडिया लोहार)", "12वीं मार्कशीट (≥50%)", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण (परिवार ≤ ₹2 लाख/वर्ष)", "बैंक खाता"] },
     // Eligibility: girl from specific OBC backward communities, ≥50% in 12th board
+    keywords: ["class12"],
     match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -331,6 +335,7 @@ export const RAJASTHAN_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Caste Certificate (SC/OBC/EWS/MBC)", "Income Certificate (family ≤ ₹2.5 lakh/year)", "College / University Enrolment Certificate", "Rent Agreement or Hostel Receipt", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "जाति प्रमाण पत्र (SC/OBC/EWS/MBC)", "आय प्रमाण (परिवार ≤ ₹2.5 लाख/वर्ष)", "कॉलेज / विश्वविद्यालय नामांकन प्रमाण", "किराया अनुबंध या हॉस्टल रसीद", "बैंक खाता"] },
     // Eligibility: SC/OBC/EWS/MBC graduate/postgrad student living away from home; family income ≤ ₹2.5L
+    keywords: ["class12"],
     match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -412,6 +417,7 @@ export const RAJASTHAN_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "RBSE 10th / 12th Mark Sheet (≥75%)", "School Enrolment Certificate (studies must be continuing)", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "RBSE 10वीं / 12वीं मार्कशीट (≥75%)", "स्कूल नामांकन प्रमाण (पढ़ाई जारी होनी चाहिए)", "बैंक खाता"] },
     // Eligibility: girl scoring ≥75% in RBSE Class 10 or 12, still enrolled in studies
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Rajasthan" && a.who === "student",
   },
 
@@ -428,6 +434,7 @@ export const RAJASTHAN_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/cmhess", hi: "https://www.myscheme.gov.in/schemes/cmhess" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Class 12 Mark Sheet (>60%)", "Income Certificate (family ≤ ₹2.5 lakh/year)", "Govt College Admission Proof", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "कक्षा 12 मार्कशीट (>60%)", "आय प्रमाण (परिवार ≤ ₹2.5 लाख/वर्ष)", "सरकारी कॉलेज प्रवेश प्रमाण", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -492,6 +499,7 @@ export const RAJASTHAN_SCHEMES = [
     apply:   { en: "https://negd.gov.in/isl/Directory/statedata/447", hi: "https://negd.gov.in/isl/Directory/statedata/447" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Educational Certificate (Class 8 / 10 / 12 per trade requirement)", "Passport Photo", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "शैक्षणिक प्रमाण (ट्रेड अनुसार कक्षा 8/10/12)", "पासपोर्ट फोटो", "बैंक खाता"] },
+    keywords: ["class10","skill","dropout"],
     match: (a) => a.state === "Rajasthan" && ["18to35", "35to60"].includes(a.age) && ["below1", "1to3", "3to6"].includes(a.income),
   },
 
@@ -594,6 +602,7 @@ export const RAJASTHAN_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "RBSE Class 12 Mark Sheet (district top-4 rank proof)", "College Admission Proof", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "RBSE 12वीं मार्कशीट (जिला टॉप-4 रैंक प्रमाण)", "कॉलेज प्रवेश प्रमाण", "बैंक खाता"] },
     // Eligibility: girl student ranked in top 4 of district in RBSE Class 12 board exam
+    keywords: ["class12"],
     match: (a) => a.state === "Rajasthan" && a.who === "student",
   },
 
@@ -611,6 +620,7 @@ export const RAJASTHAN_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Minority Community Certificate", "Income Certificate (family ≤ ₹2 lakh/year)", "Previous Year Mark Sheet", "School / College Enrolment Proof", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र", "आय प्रमाण (परिवार ≤ ₹2 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "स्कूल / कॉलेज नामांकन प्रमाण", "बैंक खाता"] },
     // Eligibility: minority community student, family income ≤ ₹2 lakh/year, enrolled Class 11 onwards
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 

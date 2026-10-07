@@ -110,6 +110,7 @@ export const MEGHALAYA_SCHEMES = [
     apply:   { en: "https://meghalaya.gov.in/sites/default/files/documents/handbook_of_Scholarship_Schemes_0.pdf", hi: "scholarships.meghalaya.gov.in / स्कूल या कॉलेज कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Class 10 / 12 Marksheet (MBOSE / SSLC)", "Income Certificate (family income below threshold)", "ST / SC / OBC Certificate (if applicable)", "Admission / Enrollment Certificate from current institution", "Bank Account (Aadhaar-linked, student's name)", "Residence Proof (Meghalaya)", "Passport Photo"],
                hi: ["आधार कार्ड", "कक्षा 10 / 12 अंकसूची (MBOSE / SSLC)", "आय प्रमाण पत्र (पारिवारिक आय सीमा से कम)", "ST / SC / OBC प्रमाण पत्र (यदि लागू हो)", "वर्तमान संस्थान से प्रवेश / नामांकन प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "निवास प्रमाण (मेघालय)", "पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Meghalaya" && a.who === "student",
   },
 

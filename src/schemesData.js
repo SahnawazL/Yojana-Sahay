@@ -135,6 +135,7 @@ export const SCHEME_DB = [
     apply:   { en: "https://web.umang.gov.in/landing/department/national-scholarship-portal.html", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Mark Sheets","Income Certificate","Bank Account"],
                hi: ["आधार कार्ड","मार्कशीट","आय प्रमाण पत्र","बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -534,6 +535,7 @@ export const SCHEME_DB = [
     apply:   { en: "https://haryanadp.gov.in/wp-content/uploads/2025/06/2023021741-second.pdf", hi: "kaushal.rural.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Age Proof (15–35 years)","Educational Certificate","Bank Account","BPL/Ration Card"],
                hi: ["आधार कार्ड","आयु प्रमाण (15–35 वर्ष)","शैक्षणिक प्रमाण","बैंक खाता","BPL/राशन कार्ड"] },
+    keywords: ["class10","skill","dropout"],
     match: (a) => a.area === "rural" && ["18to35"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
@@ -804,6 +806,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Educational Certificates (Class 10/12/Diploma/Degree)","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","शैक्षणिक प्रमाण (कक्षा 10/12/डिप्लोमा/डिग्री)","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: youth aged 21-24, family income below ₹8 Lakh, not in full-time education/employment
+    keywords: ["class12","polytechnic","skill"],
     match: (a) => a.who === "student" && a.age === "18to35" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -982,6 +985,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Educational Certificate (Class 8 / 10 / 12 / ITI)","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","शैक्षणिक प्रमाण (कक्षा 8/10/12/ITI)","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: youth 14+ years, at least Class 5 pass, registered on portal
+    keywords: ["class10","class12","iti","polytechnic","skill"],
     match: (a) => a.age === "18to35" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1181,6 +1185,7 @@ export const SCHEME_DB = [
     apply:   { en: "https://my.msme.gov.in/MyMsmeMob/MsmeScheme/Pages/8_2.html", hi: "seekhoaurkamao-moma.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Minority Community Certificate (Muslim/Christian/Sikh/Buddhist/Jain/Parsi)","Educational Certificate","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","शैक्षणिक प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
+    keywords: ["skill","dropout"],
     match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1196,6 +1201,7 @@ export const SCHEME_DB = [
     apply:   { en: "https://nbcfdc.gov.in/nbcfdc/web/skills-schemes-flyer", hi: "pmdaksh.dosje.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC / OBC / EBC Caste Certificate","Income Certificate","Educational Certificate (Class 8/10/12 as applicable)","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","SC/OBC/EBC जाति प्रमाण पत्र","आय प्रमाण","शैक्षणिक प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
+    keywords: ["skill","dropout"],
     match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
@@ -1212,6 +1218,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Class 12 Mark Sheet (above 80th percentile in Board exam)","Income Certificate (≤₹4.5L/year)","College Admission Letter","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 12 मार्कशीट (बोर्ड परीक्षा में 80वीं प्रतिशत से ऊपर)","आय प्रमाण (≤₹4.5 लाख/वर्ष)","कॉलेज प्रवेश पत्र","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: students above 80th percentile in Class 12 Board, family income ≤ ₹4.5L, in regular UG/PG (not distance/open)
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1277,6 +1284,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","SC / OBC Caste Certificate","Income Certificate (≤₹8L/year)","Educational Certificate (Class 12 / Graduation)","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","SC/OBC जाति प्रमाण पत्र","आय प्रमाण (≤₹8 लाख/वर्ष)","शैक्षणिक प्रमाण (कक्षा 12/स्नातक)","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: SC/OBC student, family income ≤ ₹8L, targeting national competitive exams
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1374,6 +1382,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Admission Letter for M.Phil / PhD","NET / JRF Score Card (or UGC-exempted category proof)","Bank Account (Aadhaar-linked)","Passport Photo"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड (या UGC-छूट श्रेणी)","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: SC student admitted to M.Phil/PhD in UGC-recognised university; no income restriction
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age),
   },
 
@@ -1390,6 +1399,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","OBC (Non-Creamy Layer) Certificate","Admission Letter for M.Phil / PhD","NET / JRF Score Card","Income Certificate (family income ≤₹8L/year)","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड","आय प्रमाण (परिवार आय ≤₹8 लाख/वर्ष)","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC (non-creamy layer) student admitted to M.Phil/PhD, income ≤ ₹8L
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1519,6 +1529,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Minority Community Certificate (Muslim/Christian/Sikh/Buddhist/Jain/Parsi)","Age Proof (17–35 years)","Last School Certificate (Class 5/8/9 dropout proof)","Bank Account"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","आयु प्रमाण (17–35 वर्ष)","अंतिम स्कूल प्रमाण पत्र (कक्षा 5/8/9 ड्रॉपआउट प्रमाण)","बैंक खाता"] },
     // Eligibility: minority youth aged 17–35 who dropped out before Class 10, seeking education + livelihood
+    keywords: ["class10","class12","skill","dropout"],
     match: (a) => ["18to35"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
@@ -1651,6 +1662,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Class 10 & 12 Mark Sheet + Certificate","Medical Fitness Certificate","Age Proof (17.5–21 years)","Physical Fitness Certificate","Character Certificate","Bank Account"],
                hi: ["आधार कार्ड","कक्षा 10/12 मार्कशीट और प्रमाण पत्र","चिकित्सा स्वास्थ्य प्रमाण पत्र","आयु प्रमाण (17.5–21 वर्ष)","शारीरिक फिटनेस प्रमाण पत्र","चरित्र प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: Indian youth aged 17.5–21 years, physically & medically fit, Class 10/12 pass
+    keywords: ["class10","class12"],
     match: (a) => a.age === "18to35" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1699,6 +1711,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Minority Community Certificate (Muslim/Christian/Sikh/Buddhist/Jain/Parsi)","Age Proof (14–45 years)","Educational Certificate (Class 5 minimum)","Bank Account","Proof of Craft/Trade Involvement"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","आयु प्रमाण (14–45 वर्ष)","शैक्षणिक प्रमाण (न्यूनतम कक्षा 5)","बैंक खाता","पारंपरिक शिल्प/व्यापार में संलग्नता का प्रमाण"] },
     // Eligibility: minority community artisan aged 14–45, engaged in traditional craft/trade
+    keywords: ["skill"],
     match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1715,6 +1728,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","ST Caste Certificate","Class 5 Mark Sheet (for Class 6 admission)","Domicile Certificate (Tribal Sub-Plan area)","BPL / Income Certificate","Passport Photo"],
                hi: ["आधार कार्ड","ST जाति प्रमाण पत्र","कक्षा 5 की मार्कशीट (कक्षा 6 प्रवेश के लिए)","अधिवास प्रमाण पत्र (जनजातीय उप-योजना क्षेत्र)","BPL/आय प्रमाण पत्र","पासपोर्ट फोटो"] },
     // Eligibility: ST student in Class 5 (for Class 6 entry), resident of tribal sub-plan area
+    keywords: ["class10"],
     match: (a) => a.who === "student" && a.area === "rural" && ["below1","1to3"].includes(a.income),
   },
 
@@ -1749,6 +1763,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST/DNT)","Foreign University Admission Letter","Income Certificate","Passport","Bank Passbook"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST/DNT)","विदेशी विश्वविद्यालय प्रवेश पत्र","आय प्रमाण पत्र","पासपोर्ट","बैंक पासबुक"] },
     // Eligibility: SC/ST/DNT student, family income within cap, admitted abroad
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1765,6 +1780,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","ST Caste Certificate","PG Mark Sheet","M.Phil/PhD Registration Proof","Bank Account"],
                hi: ["आधार कार्ड","ST जाति प्रमाण पत्र","PG मार्कशीट","M.Phil/PhD पंजीकरण प्रमाण","बैंक खाता"] },
     // Eligibility: ST student registered for M.Phil/PhD
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age),
   },
 
@@ -1781,6 +1797,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Single Girl Child Affidavit","PG Admission Proof","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","एकल बालिका शपथ पत्र","PG प्रवेश प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: single girl child admitted to 1st year full-time PG course
+    keywords: ["class12"],
     match: (a) => a.who === "student" || a.who === "women",
   },
 
@@ -1797,6 +1814,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Admission Letter (notified institution)","Income Certificate","Bank Account"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","प्रवेश पत्र (अधिसूचित संस्थान)","आय प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: SC student admitted to a notified premier institution, income ≤ ₹8L
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1898,6 +1916,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","OBC/EBC Certificate","Foreign University Admission Letter","Education Loan Sanction Letter","Income Certificate"],
                hi: ["आधार कार्ड","OBC/EBC प्रमाण पत्र","विदेशी विश्वविद्यालय प्रवेश पत्र","शिक्षा ऋण स्वीकृति पत्र","आय प्रमाण पत्र"] },
     // Eligibility: OBC/EBC student with sanctioned education loan for overseas Master's/M.Phil/PhD
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1914,6 +1933,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Disability Certificate (≥40%)","PG Mark Sheet","M.Phil/PhD Registration Proof","Bank Account"],
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (≥40%)","PG मार्कशीट","M.Phil/PhD पंजीकरण प्रमाण","बैंक खाता"] },
     // Eligibility: student with ≥40% disability registered for M.Phil/PhD
+    keywords: ["class12"],
     match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age),
   },
 

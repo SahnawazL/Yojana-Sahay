@@ -40,6 +40,7 @@ export const WEST_BENGAL_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/wbkanyashree", hi: "wbkanyashree.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Birth Certificate / Age Proof","School Enrollment Certificate (Class 8–12)","Income Certificate (family income < ₹1.2 lakh/year)","Bank Account (girl's name)","Unmarried Declaration (self-attested)","Passport Photo"],
                hi: ["आधार कार्ड","जन्म प्रमाण पत्र / आयु प्रमाण","स्कूल नामांकन प्रमाण पत्र (कक्षा 8–12)","आय प्रमाण पत्र (पारिवारिक आय ₹1.2 लाख/वर्ष से कम)","बैंक खाता (छात्रा के नाम)","अविवाहित घोषणा (स्व-सत्यापित)","पासपोर्ट फोटो"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "West Bengal" && a.who === "student",
   },
 
@@ -93,6 +94,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "सरकारी स्कूल के माध्यम से (स्वतः नामांकित — अलग फॉर्म की ज़रूरत नहीं)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","School Enrollment Certificate (Class 9–12, Govt./Aided school)","Residence Proof (West Bengal)"],
                hi: ["आधार कार्ड","स्कूल नामांकन प्रमाण पत्र (कक्षा 9–12, सरकारी/सहायता प्राप्त स्कूल)","निवास प्रमाण (पश्चिम बंगाल)"] },
+    keywords: ["class10"],
     match: (a) => a.state === "West Bengal" && a.who === "student",
   },
 
@@ -109,6 +111,7 @@ export const WEST_BENGAL_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/wbsccs", hi: "wbscc.wb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 12 Pass Certificate & Marksheet","Admission Letter from College / University","Bank Account (Aadhaar-linked)","Residence Proof (West Bengal domicile)","Fee Structure from Institution","2 Passport Photos"],
                hi: ["आधार कार्ड","कक्षा 12 उत्तीर्ण प्रमाण पत्र व अंकसूची","कॉलेज/विश्वविद्यालय का प्रवेश पत्र","बैंक खाता (आधार-लिंक्ड)","निवास प्रमाण (पश्चिम बंगाल अधिवास)","संस्थान से शुल्क संरचना","2 पासपोर्ट फोटो"] },
+    keywords: ["class12"],
     match: (a) => a.state === "West Bengal" && a.who === "student",
   },
 
@@ -141,6 +144,7 @@ export const WEST_BENGAL_SCHEMES = [
     apply:   { en: "https://www.govtschemes.in/west-bengal-aikyashree-scheme", hi: "wbmdfcscholar.org" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Minority Community Certificate","Class 10 / 12 Marksheet","College / University Admission Certificate","Family Income Certificate (< ₹2 lakh/year)","Bank Account (Aadhaar-linked)","Domicile Certificate (West Bengal)"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","कक्षा 10/12 अंकसूची","कॉलेज/विश्वविद्यालय प्रवेश प्रमाण पत्र","पारिवारिक आय प्रमाण पत्र (₹2 लाख/वर्ष से कम)","बैंक खाता (आधार-लिंक्ड)","अधिवास प्रमाण पत्र (पश्चिम बंगाल)"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "West Bengal" && a.who === "student",
   },
 
@@ -158,6 +162,7 @@ export const WEST_BENGAL_SCHEMES = [
                hi: "स्कूल / WBCHSE बोर्ड के माध्यम से वितरण — अलग आवेदन नहीं" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Class 12 Board Admit Card","School Enrollment Certificate (Govt./Aided School)","Residence Proof (West Bengal)"],
                hi: ["आधार कार्ड","कक्षा 12 बोर्ड प्रवेश पत्र","स्कूल नामांकन प्रमाण पत्र (सरकारी/सहायता प्राप्त स्कूल)","निवास प्रमाण (पश्चिम बंगाल)"] },
+    keywords: ["class12"],
     match: (a) => a.state === "West Bengal" && a.who === "student",
   },
 
@@ -192,6 +197,7 @@ export const WEST_BENGAL_SCHEMES = [
     apply:   { en: "https://darjeeling.gov.in/skill-development", hi: "utkarshbangla.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Class 8 Pass Certificate (minimum)","Bank Account","Residence Proof (West Bengal)","Passport Photo"],
                hi: ["आधार कार्ड","कक्षा 8 उत्तीर्ण प्रमाण पत्र (न्यूनतम)","बैंक खाता","निवास प्रमाण (पश्चिम बंगाल)","पासपोर्ट फोटो"] },
+    keywords: ["class10","skill","dropout"],
     match: (a) => a.state === "West Bengal" && ["18to35","35to60"].includes(a.age),
   },
 

@@ -135,6 +135,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "sjd.kerala.gov.in", hi: "sjd.kerala.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Death Certificate of Parent", "Income Certificate (below ₹2 Lakh)", "School / College Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "अभिभावक का मृत्यु प्रमाण पत्र", "आय प्रमाण (₹2 लाख से कम)", "विद्यालय/महाविद्यालय प्रमाण", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Kerala" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -149,6 +150,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "http://nmmse.kerala.gov.in", hi: "dcescholarship.kerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Mark Sheet (Last Exam)", "Income Certificate", "Ration Card", "Bank Account"],
                hi: ["आधार कार्ड", "पिछली परीक्षा की मार्कशीट", "आय प्रमाण", "राशन कार्ड", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Kerala" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income),
   },
 
@@ -163,6 +165,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "https://universitycollege.ac.in?page_id=781", hi: "asapkerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "School / College ID Card", "Kerala Residence Proof"],
                hi: ["आधार कार्ड", "विद्यालय/महाविद्यालय पहचान पत्र", "केरल निवास प्रमाण"] },
+    keywords: ["class10","class12","skill"],
     match: (a) => a.state === "Kerala" && a.who === "student",
   },
 
@@ -283,6 +286,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "sjd.kerala.gov.in", hi: "sjd.kerala.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Disability Certificate (≥40%)", "School Enrollment Certificate", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "विकलांगता प्रमाण पत्र (≥40%)", "विद्यालय नामांकन प्रमाण", "आय प्रमाण", "बैंक खाता"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Kerala" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -299,6 +303,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "https://www.india.gov.in/services/details/apply-for-mother-teresa-scholarship-department-of-minority-welfare-kerala", hi: "minoritywelfare.kerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Religion Certificate", "Mark Sheet (Last Exam)", "Income Certificate (below ₹2 Lakh)", "Bank Account"],
                hi: ["आधार कार्ड", "अल्पसंख्यक धर्म प्रमाण पत्र", "पिछली परीक्षा मार्कशीट", "आय प्रमाण (₹2 लाख से कम)", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Kerala" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -331,6 +336,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "stdd.kerala.gov.in", hi: "stdd.kerala.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "ST Community Certificate", "School / College Enrollment Proof", "Income Certificate (below ₹2 Lakh)", "Bank Account"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "विद्यालय/महाविद्यालय नामांकन प्रमाण", "आय प्रमाण (₹2 लाख से कम)", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Kerala" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -347,6 +353,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "https://hcikl.gov.in/pages?id=6&subid=155&nextid=202", hi: "hed.kerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Mark Sheets (All Exams)", "Admission Letter from Foreign University", "Income Certificate (below ₹3 Lakh)", "Bank Account"],
                hi: ["आधार कार्ड", "सभी परीक्षाओं की मार्कशीट", "विदेशी विश्वविद्यालय का प्रवेश पत्र", "आय प्रमाण (₹3 लाख से कम)", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Kerala" && a.who === "student" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -361,6 +368,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "https://education.kerala.gov.in", hi: "education.kerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SSLC Mark Sheet (A+ in all subjects)", "School Headmaster Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "SSLC मार्कशीट (सभी विषयों में A+)", "विद्यालय प्रधानाचार्य प्रमाण पत्र", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Kerala" && a.who === "student",
   },
 

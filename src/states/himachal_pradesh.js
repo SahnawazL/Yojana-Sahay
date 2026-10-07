@@ -132,6 +132,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/igucy", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Mark Sheets (Class 10 & 12)","Income Certificate (below ₹2 Lakh/year)","HP Domicile Certificate","College Admission Proof","Bank Account"],
                hi: ["आधार कार्ड","मार्कशीट (कक्षा 10 और 12)","आय प्रमाण पत्र (₹2 लाख/वर्ष से कम)","हिमाचल अधिवास प्रमाण","कॉलेज प्रवेश प्रमाण","बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -188,6 +189,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/igucy", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST)","Mark Sheets","Income Certificate (below ₹2.5 Lakh/year)","HP Domicile Certificate","College / School Enrollment Proof","Bank Account"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST)","मार्कशीट","आय प्रमाण पत्र (₹2.5 लाख/वर्ष से कम)","हिमाचल अधिवास प्रमाण","कॉलेज/स्कूल नामांकन प्रमाण","बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -202,6 +204,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "http://www.himachalpr.gov.in/PressReleaseByYear.aspx?Language=1&ID=14338&Type=2&Date=08%2F09%2F2019", hi: "hpkvn.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","HP Domicile Certificate","Educational Certificate (Min. Class 8)","Age Proof (18–35 years)","Passport Size Photo","Bank Account"],
                hi: ["आधार कार्ड","हिमाचल अधिवास प्रमाण","शैक्षणिक प्रमाण पत्र (न्यूनतम कक्षा 8)","आयु प्रमाण (18–35 वर्ष)","पासपोर्ट साइज फोटो","बैंक खाता"] },
+    keywords: ["class10","skill","dropout"],
     match: (a) => a.state === "Himachal Pradesh" && ["18to35"].includes(a.age),
   },
 
@@ -300,6 +303,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "https://socialjustice.gov.in/schemes/25", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","OBC Certificate (Non-Creamy Layer)","Mark Sheets","Income Certificate (below ₹1 Lakh/year)","HP Domicile Certificate","College / School Enrollment Proof","Bank Account"],
                hi: ["आधार कार्ड","ओबीसी प्रमाण पत्र (नॉन-क्रीमी लेयर)","मार्कशीट","आय प्रमाण पत्र (₹1 लाख/वर्ष से कम)","हिमाचल अधिवास प्रमाण","कॉलेज/स्कूल नामांकन प्रमाण","बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income),
   },
 
@@ -384,6 +388,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "himachal.nic.in", hi: "himachal.nic.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card (Student)","School Enrollment Certificate","HP Domicile Certificate","Parent's Aadhaar Card"],
                hi: ["आधार कार्ड (छात्र)","स्कूल नामांकन प्रमाण पत्र","हिमाचल अधिवास प्रमाण","माता/पिता का आधार कार्ड"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && a.age === "below18",
   },
 
@@ -440,6 +445,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "hrtc.gov.in", hi: "hrtc.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "School / College ID Card", "HP Domicile Certificate", "Age Proof (for seniors)", "Disability Certificate (for disabled)"],
                hi: ["आधार कार्ड", "स्कूल / कॉलेज आईडी कार्ड", "हिमाचल अधिवास प्रमाण", "आयु प्रमाण (वरिष्ठ नागरिकों के लिए)", "विकलांगता प्रमाण पत्र (विकलांगों के लिए)"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Himachal Pradesh" && (a.who === "student" || a.who === "senior"),
   },
 
@@ -538,6 +544,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "https://socialjustice.gov.in/schemes/25", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Minority Community Certificate (Muslim/Sikh/Christian/Buddhist/Jain/Parsi)", "Income Certificate (below ₹1 Lakh/year)", "Mark Sheets", "HP Domicile Certificate", "School Enrollment Proof", "Bank Account"],
                hi: ["आधार कार्ड", "अल्पसंख्यक समुदाय प्रमाण पत्र (मुस्लिम/सिख/ईसाई/बौद्ध/जैन/पारसी)", "आय प्रमाण पत्र (₹1 लाख/वर्ष से कम)", "मार्कशीट", "हिमाचल अधिवास प्रमाण", "स्कूल नामांकन प्रमाण", "बैंक खाता"] },
+    keywords: ["class10"],
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && a.income === "below1",
   },
 
@@ -552,6 +559,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "https://education.hp.gov.in/?q=regarding-free-coaching-various-competitive-examinations-ie-neetjeeupsehpashp-allied-services", hi: "hpsocialjustice.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "HP Domicile Certificate", "Caste Certificate (SC/ST/OBC) or EWS Certificate", "Educational Certificates (Graduation)", "Income Certificate (below ₹2.5 Lakh/year)", "Bank Account"],
                hi: ["आधार कार्ड", "हिमाचल अधिवास प्रमाण", "जाति प्रमाण पत्र (SC/ST/OBC) या EWS प्रमाण पत्र", "शैक्षणिक प्रमाण पत्र (स्नातक)", "आय प्रमाण पत्र (₹2.5 लाख/वर्ष से कम)", "बैंक खाता"] },
+    keywords: ["class12"],
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["18to35"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
@@ -622,6 +630,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     apply:   { en: "himachal.nic.in", hi: "himachal.nic.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Class 10 / 12 Mark Sheet (80%+ score)", "Government School Enrollment Certificate", "HP Domicile Certificate", "Income Certificate (below ₹2 Lakh/year)", "Bank Account"],
                hi: ["आधार कार्ड", "कक्षा 10 / 12 की मार्कशीट (80%+ अंक)", "सरकारी स्कूल नामांकन प्रमाण पत्र", "हिमाचल अधिवास प्रमाण", "आय प्रमाण पत्र (₹2 लाख/वर्ष से कम)", "बैंक खाता"] },
+    keywords: ["class10","class12"],
     match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["below18","18to35"].includes(a.age) && ["below1","1to3"].includes(a.income),
   },
 
