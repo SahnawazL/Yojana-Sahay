@@ -5654,8 +5654,13 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
         if (!cancelled) setLatencyMs(null);
       }
     };
-    const id = setInterval(pingLatency, 2500);
-    return () => { cancelled = true; clearInterval(id); };
+    // Every 30 s (was 2.5 s = ~1,440 Firestore reads/hour just for this
+    // number). Also measured right away and whenever the tab comes back.
+    pingLatency();
+    const id = setInterval(pingLatency, 30_000);
+    const onVis = () => { if (!document.hidden) pingLatency(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { cancelled = true; clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
   }, []);
 
   // ── Fetch Reports ─────────────────────────────────────────────────────────
