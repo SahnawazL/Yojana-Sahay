@@ -32,6 +32,7 @@ import {
   writeBatch, getCountFromServer,
 } from "firebase/firestore";
 import { db } from "./firebase.js";
+import { getAuth } from "firebase/auth";
 import { adminJson } from "./adminFetch.js";
 
 // ─── THEME (mirrors AdminDashboard) ──────────────────────────────────────────
@@ -551,6 +552,16 @@ export async function logAdminActivity(agentId, agentName, action, tab, type = "
   } catch (e) {
     console.warn("[AgentsTab] logAdminActivity failed:", e);
   }
+}
+
+// Convenience wrapper for components that don't receive the dashboard's
+// logActivity callback (SchemeVerifier, NewsTab, DeadlineAlertsTab…). Until
+// these existed, almost no real admin action reached the Activity feed /
+// Notice Board — only report status changes and cleanups were ever logged.
+export function logMyActivity(action, tab, type = "update") {
+  const u = getAuth().currentUser;
+  if (!u) return;
+  logAdminActivity(u.uid, u.displayName || u.email || "Admin", action, tab, type);
 }
 
 // ─── EXPORTED: PRESENCE HOOK ─────────────────────────────────────────────────

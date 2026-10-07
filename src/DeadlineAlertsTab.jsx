@@ -11,6 +11,7 @@
 // authenticated with the current admin's Firebase ID token.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { logMyActivity } from "./AgentsTab.jsx";
 import React, { useState, useEffect, useCallback } from "react";
 import { getAuth } from "firebase/auth";
 
@@ -226,6 +227,7 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
 
       const announcedText = data.announced > 0 ? ` · announced ${data.announced} new scheme${data.announced === 1 ? "" : "s"}` : "";
       setToast({ type: "success", text: `Sent ${data.sent} alert${data.sent === 1 ? "" : "s"}${announcedText} · checked ${data.checked} users` });
+      logMyActivity(`Ran deadline alerts — ${data.sent} sent`, "deadlines", "update");
       await fetchHistory();
     } catch (err) {
       setToast({ type: "error", text: err.message });
@@ -284,6 +286,7 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
       setComposeToast({ type: "success", text: `Email sent to ${toEmail}` });
+      logMyActivity(`Sent AI-composed email: "${String(draft.subject).slice(0, 60)}"`, "deadlines", "reply");
       setDraft(null);
       setToName(""); setToEmail(""); setComposeNotes("");
     } catch (err) {

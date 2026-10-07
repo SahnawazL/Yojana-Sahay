@@ -5559,6 +5559,18 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     );
   }, [sessionUser]);
 
+  // One "opened the dashboard" event per browser session, so the Activity
+  // feed shows who logged in and when.
+  useEffect(() => {
+    if (!sessionUser?.uid) return;
+    try {
+      const key = `ys_admin_login_logged_${sessionUser.uid}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch { /* storage blocked — still log */ }
+    logActivity("Opened the admin dashboard", "home", "login");
+  }, [sessionUser?.uid, logActivity]);
+
   // ── Smart tab navigation ──────────────────────────────────────────────────
   const tabsBarRef      = useRef(null);
   const swipeTouchStartX = useRef(null);

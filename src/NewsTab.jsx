@@ -13,6 +13,7 @@
  *   isDesktop    {boolean}
  */
 
+import { logMyActivity } from "./AgentsTab.jsx";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   collection, addDoc, deleteDoc, doc,
@@ -163,6 +164,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
         createdAt:   serverTimestamp(),
         order:       10,
       });
+      logMyActivity(`Added news: "${enText.slice(0, 60)}"`, "news", "update");
       setNewsFormEn("");
       setNewsFormHi("");
       setNewsFormUrl("");
@@ -188,6 +190,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
   const handleDeleteNews = useCallback(async (id) => {
     try {
       await deleteDoc(doc(db, "schemeNews", id));
+      logMyActivity("Deleted a news item", "news", "cleanup");
     } catch (err) {
       console.error("[NewsTab] Failed to delete news item:", err);
     }
@@ -208,6 +211,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
     setBulkDeleting(true);
     try {
       await Promise.all([...selectedIds].map(id => deleteDoc(doc(db, "schemeNews", id))));
+      logMyActivity(`Deleted ${selectedIds.size} news item${selectedIds.size !== 1 ? "s" : ""}`, "news", "cleanup");
       setSelectedIds(new Set());
       setSelectMode(false);
     } catch (err) {
@@ -280,6 +284,7 @@ export default function NewsTab({ allowedTabs, dark = false, isDesktop = false }
         setNewsSyncMsg(`⏳ ${data.message}`);
       } else if (data.added != null && data.scanned != null) {
         setNewsSyncMsg(`✓ Added ${data.added} new item${data.added !== 1 ? "s" : ""}. Scanned ${data.scanned}.`);
+        logMyActivity(`Synced news — ${data.added} added`, "news", "update");
       } else {
         setNewsSyncMsg(`✓ ${data.message || "Sync complete."}`);
       }

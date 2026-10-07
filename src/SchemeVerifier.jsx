@@ -36,6 +36,7 @@
  * localStorage keys:  "ys_scan_national" | "ys_scan_all" | "ys_scan_state_<name>"
  */
 
+import { logMyActivity } from "./AgentsTab.jsx";
 import React, {
   useState, useEffect, useRef, useCallback, useMemo,
 } from "react";
@@ -4748,6 +4749,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       const fresh = await loadUrlFixes();
       setUrlFixMap(fresh);
       setApplyResult({ committed, failed, commits: commits ?? [], verifyFailedIds });
+      if (committed > 0) logMyActivity(`Applied ${committed} URL fix${committed !== 1 ? "es" : ""}`, "verify", "update");
     } catch (err) {
       setApplyResult({ committed: 0, failed: [{ id: "—", error: err.message }], commits: [], verifyFailedIds: [] });
     } finally {
@@ -4998,6 +5000,11 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     // Runs even on abort — partial data is still useful. Fires asynchronously so
     // it doesn't block the done banner from appearing.
     if (finalSnap.length > 0) {
+      logMyActivity(
+        `Verifier ${controller.signal.aborted ? "stopped" : "run"} · Tier ${runTier} · ${runScope} — ` +
+        `${finalSnap.length} checked, ${finalSummary?.dead ?? 0} dead`,
+        "verify", "verify",
+      );
       setSaveStatus("saving");
       writeSchemeResults(finalSnap)
         .then(() => setSaveStatus("saved"))
