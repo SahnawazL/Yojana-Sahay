@@ -228,7 +228,8 @@ const MODEL_REPLACEMENTS = {
   "qwen/qwen3-32b":          "openai/gpt-oss-120b",
 };
 const MAX_MESSAGES      = 24;
-const MAX_MESSAGE_CHARS = 16000;
+const MAX_MESSAGE_CHARS = 8000;
+const MAX_SYSTEM_CHARS  = 24000;
 const MAX_OUTPUT_TOKENS = 1600;
 // gpt-oss models spend hidden reasoning tokens out of the same completion
 // budget; without headroom, answers were cut off mid-sentence.
@@ -241,10 +242,12 @@ function sanitizeChatRequest(body) {
   const model     = ALLOWED_MODELS.has(mapped) ? mapped : DEFAULT_MODEL;
 
   if (!Array.isArray(body.messages) || body.messages.length === 0) return { error: "messages must be a non-empty array" };
-  const messages = body.messages.slice(-MAX_MESSAGES).map(m => ({
-    role:    ["system", "user", "assistant"].includes(m?.role) ? m.role : "user",
-    content: String(m?.content ?? "").slice(0, MAX_MESSAGE_CHARS),
-  })).filter(m => m.content.trim());
+  const messages = body.messages.slice(-MAX_MESSAGES).map(m => {
+    const role = ["system", "user", "assistant"].includes(m?.role) ? m.role : "user";
+    // The app's own system prompt carries the scheme context (~8–10K chars).
+    const cap  = role === "system" ? MAX_SYSTEM_CHARS : MAX_MESSAGE_CHARS;
+    return { role, content: String(m?.content ?? "").slice(0, cap) };
+  }).filter(m => m.content.trim());
   if (messages.length === 0) return { error: "messages are empty" };
 
   const wanted = Number(body.max_tokens ?? body.max_completion_tokens) || 800;

@@ -342,10 +342,16 @@ function buildSmartContext(query, lang = "en", profile = null) {
 
     if (wantsList) {
       // User wants to SEE all schemes — provide full compact index + app guidance
+      // The full index of 1,100+ names is ~15K tokens — larger than Groq's
+      // free-tier per-minute token limit, so this request always failed
+      // ("Request too large") and no answer could list that many anyway.
+      // Give the Central list plus per-state counts and point to the tab.
+      const centralList = SCHEME_DB.filter(s => s.scope === "national").map(s => `${s.icon} ${s.name.en}`).join(" | ");
       return (
         `EXACT DATABASE TOTAL: ${total} schemes (${national} Central + ${stateTotal} State-specific).\n` +
-        `List them ALL using ONLY the names below — do NOT add, remove, or rename any:\n\n` +
-        buildAllSchemesIndex() +
+        `There are too many to list in one chat reply. List the Central schemes below using ONLY these names ` +
+        `(do NOT add, remove, or rename any), then give the per-state counts, and tell the user the Schemes tab ` +
+        `shows every scheme with filters:\n\nCENTRAL SCHEMES:\n${centralList}\n\nSTATE COUNTS:\n${buildStateBreakdown()}` +
         `\n\nAPPEND THIS GUIDANCE AT THE END OF YOUR REPLY (translate to ${l === "hi" ? "Hindi" : "English"}):` +
         guidance
       );
