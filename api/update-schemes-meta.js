@@ -1,91 +1,81 @@
 // api/update-schemes-meta.js — Yojana Sahay
 // ─────────────────────────────────────────────────────────────────────────────
-// commitSchemesMeta() is the actual GitHub read-merge-commit logic, extracted
-// so it can be called two ways: (1) over HTTP by the default handler below,
-// for the browser-side bulk SchemeVerifier tool, and (2) directly, in-process,
-// by the automated rotating batch verifier in _lib/schemeVerifyBatch.js —
-// which needs one clean commit per cron run, not a self-HTTP-call.
+// commitSchemesMeta() is the GitHub read-merge-commit logic for
+// src/schemes-meta.json, called two ways: (1) over HTTP by the handler below
+// (browser SchemeVerifier, admin-only) and (2) in-process by the background
+// batch verifier in _lib/schemeVerifyBatch.js.
+//
+// Merge rules per field (new value → stored value):
+//   lastVerified        always overwritten
+//   lastDate, linkAlive explicit null CLEARS the stored value (the caller has
+//                       confirmed there is no deadline / the link check was
+//                       inconclusive); undefined/missing keeps it
+//   everything else     null/undefined keeps the stored value
+//
+// Safety:
+//   · A failed GitHub read now aborts instead of continuing with {} — the old
+//     code would then commit a file containing ONLY this run's entries,
+//     silently wiping every other scheme's verified data.
+//   · Concurrent writers (background batch + browser run) are handled by
+//     retrying on a sha conflict against the freshly-read file.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import { requireAdmin } from "./_lib/adminAuth.js";
+import { updateRepoFile } from "./_lib/githubCommit.js";
+
+const FILE_PATH = "src/schemes-meta.json";
+const ALLOWED_FIELDS = new Set(["lastVerified", "lastDate", "linkAlive", "httpStatus", "isActive", "confidence"]);
+const CLEAR_ON_NULL  = new Set(["lastDate", "linkAlive"]);
+const MAX_ENTRIES    = 3000;
+
+export function mergeSchemesMeta(currentData, results) {
+  const merged = { ...currentData };
+  let updated = 0;
+  for (const [id, newEntry] of Object.entries(results)) {
+    if (!/^[A-Za-z0-9_\-]+$/.test(id) || !newEntry || typeof newEntry !== "object") continue;
+    const entry = { ...(currentData[id] || {}) };
+    for (const [k, v] of Object.entries(newEntry)) {
+      if (!ALLOWED_FIELDS.has(k) || v === undefined) continue;
+      if (k === "lastVerified") {
+        if (typeof v === "string") entry[k] = v;
+      } else if (CLEAR_ON_NULL.has(k) && v === null) {
+        delete entry[k];
+      } else if (v !== null) {
+        entry[k] = v;
+      }
+    }
+    merged[id] = entry;
+    updated++;
+  }
+  return { merged, updated };
+}
 
 export async function commitSchemesMeta(results) {
   if (!results || typeof results !== "object" || Object.keys(results).length === 0) {
     return { success: true, updated: 0 }; // nothing to do — not an error
   }
 
-  const token = process.env.GITHUB_TOKEN;
-  const repo  = process.env.GITHUB_REPO;
-  const filePath = "src/schemes-meta.json";
-  const apiBase  = `https://api.github.com/repos/${repo}/contents/${filePath}`;
-
-  // Step 1: Get current file + SHA
-  const getRes = await fetch(apiBase, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-    },
-  });
-
-  let currentData = {};
-  let sha = null;
-
-  if (getRes.ok) {
-    const fileInfo = await getRes.json();
-    sha = fileInfo.sha;
-    const decoded = Buffer.from(fileInfo.content, "base64").toString("utf8");
-    currentData = JSON.parse(decoded);
-  }
-
-  // Step 2: Deep merge — preserve existing non-null fields when new run returns null.
-  // Shallow spread ({ ...currentData, ...results }) would replace entire entries,
-  // e.g. a Tier-2 run that finds nothing (isActive:null, httpStatus:null) would
-  // wipe out good Tier-1 data (isActive:true, httpStatus:200) already stored.
-  //
-  // Fix 4 exception — lastDate: when Tier 2 ran it always sends a `lastDate` key,
-  // even as `null`, to mean "I checked the page and there's no deadline now".
-  // For this field only, an explicit null CLEARS the stored value (instead of
-  // being ignored like other null fields), so stale "Apply Closed" dates don't
-  // linger forever once a scheme becomes ongoing/perpetual.
-  const merged = { ...currentData };
-  for (const [id, newEntry] of Object.entries(results)) {
-    const existing = currentData[id] || {};
-    const entry    = { ...existing };
-    for (const [k, v] of Object.entries(newEntry)) {
-      if (k === "lastVerified") {
-        entry[k] = v;
-      } else if (k === "lastDate") {
-        if (v == null) delete entry[k];
-        else entry[k] = v;
-      } else if (v != null) {
-        entry[k] = v;
+  let updated = 0;
+  const out = await updateRepoFile(
+    FILE_PATH,
+    (text) => {
+      let currentData = {};
+      if (text != null) {
+        try {
+          currentData = JSON.parse(text);
+        } catch (err) {
+          throw new Error(`schemes-meta.json in the repo is not valid JSON (${err.message}) — fix it before saving new results.`);
+        }
       }
-    }
-    merged[id] = entry;
-  }
-  const encoded = Buffer.from(JSON.stringify(merged, null, 2)).toString("base64");
-
-  // Step 3: Commit back to GitHub
-  const putBody = {
-    message: `chore: update schemes-meta [${new Date().toISOString()}]`,
-    content: encoded,
-    ...(sha && { sha }),
-  };
-
-  const putRes = await fetch(apiBase, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-      "Content-Type": "application/json",
+      const r = mergeSchemesMeta(currentData, results);
+      updated = r.updated;
+      const next = JSON.stringify(r.merged, null, 2);
+      return { text: next, changed: next !== text };
     },
-    body: JSON.stringify(putBody),
-  });
+    `chore: update schemes-meta [${new Date().toISOString()}]`
+  );
 
-  if (!putRes.ok) {
-    const err = await putRes.json();
-    throw new Error(`GitHub commit failed: ${JSON.stringify(err).slice(0, 300)}`);
-  }
-
-  return { success: true, updated: Object.keys(results).length };
+  return { success: true, updated, committed: out.committed, sha: out.sha ?? null };
 }
 
 export default async function handler(req, res) {
@@ -93,15 +83,22 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { results } = req.body;
-  if (!results || typeof results !== "object") {
+  const auth = await requireAdmin(req, res);
+  if (!auth) return;
+
+  const { results } = req.body ?? {};
+  if (!results || typeof results !== "object" || Array.isArray(results)) {
     return res.status(400).json({ error: "Invalid results payload" });
+  }
+  if (Object.keys(results).length > MAX_ENTRIES) {
+    return res.status(400).json({ error: `Too many entries (${Object.keys(results).length}).` });
   }
 
   try {
     const result = await commitSchemesMeta(results);
     return res.status(200).json(result);
   } catch (err) {
+    console.error("[update-schemes-meta] failed:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }

@@ -57,7 +57,9 @@ import {
   commitQueuedFixes,
   getKnownDeadLinks,
   deleteUrlFixes,
+  pingUrl,
 } from "./verifySchemes.js";
+import { adminJson } from "./adminFetch.js";
 
 // ── SCHEME_DB — needed for URL Issues pre-scan (no verification run required) ─
 import { SCHEME_DB } from "./schemesData.js";
@@ -1717,10 +1719,28 @@ function getFixSuggestion(result) {
         detail: "The /api/ping-url serverless function returned an error. Go to Vercel → Functions → ping-url and inspect the logs for this deployment.",
         color:  VIOLET,
       };
+    else if (result.aiError === "rate_limit" || err.includes("rate-limited") || err.includes("rate limit"))
+      fix = {
+        label:  "Retry Later",
+        detail: "Groq's free-tier limit was hit even after slowing down. Wait a few minutes and re-run Tier 2 for these schemes (filter: Never Verified), or add a second GROQ_VERIFY_KEY_1 in Vercel to double the throughput.",
+        color:  AMBER,
+      };
+    else if (result.aiError === "budget" || err.includes("monthly tavily budget"))
+      fix = {
+        label:  "Budget Reached",
+        detail: "This month's Tavily budget is used up, so Tier 2 stopped. Tier 1 link checks still work; Tier 2 resumes on the 1st (or raise TAVILY_MONTHLY_LIMIT after upgrading the Tavily plan).",
+        color:  AMBER,
+      };
+    else if (result.aiError === "page")
+      fix = {
+        label:  "Page Unreadable",
+        detail: `Tavily couldn't read this page (${(error ?? "").replace(/^.*AI:\s*/i, "").slice(0, 90)}). The link may be slow, blocked or broken — open it in a browser to check.`,
+        color:  AMBER,
+      };
     else if (err.includes("endpoint not yet built") || err.startsWith("ai:"))
       fix = {
         label:  "Tier 2 Config",
-        detail: "AI date extraction failed — confirm /api/verify-scheme is deployed and that GROQ_API_KEY is set in Vercel → Settings → Environment Variables.",
+        detail: `AI date extraction failed — ${(error ?? "").replace(/^.*AI:\s*/i, "").slice(0, 120)}. If this repeats for every scheme, check GROQ_VERIFY_KEY and TAVILY_VERIFY_KEY in Vercel → Settings → Environment Variables.`,
         color:  VIOLET,
       };
     else
@@ -1947,7 +1967,8 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
   const expanded = expandAll || localExpanded;
 
   const now = Date.now();
-  const ld  = scheme.lastDate ? new Date(scheme.lastDate).getTime() : null;
+  const effectiveLastDate = result.lastDate || scheme.lastDate || null;
+  const ld  = effectiveLastDate ? new Date(effectiveLastDate).getTime() : null;
   const isExpired      = ld && ld < now;
   const isExpiringSoon = ld && !isExpired && (ld - now < THIRTY_DAYS);
 
@@ -1982,18 +2003,13 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
     setUrlSearch("loading");
     setSelectedUrl(null);
     try {
-      const res = await fetch("/api/find-new-url", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id:       scheme.id,
-          name:     scheme.name?.en,
-          ministry: scheme.ministry?.en ?? null,
-          oldUrl:   scheme.apply?.en,
-          state:    scheme.state ?? "national",
-        }),
+      const data = await adminJson("/api/find-new-url", {
+        id:       scheme.id,
+        name:     scheme.name?.en || scheme.id,
+        ministry: scheme.ministry?.en ?? null,
+        oldUrl:   scheme.apply?.en,
+        state:    scheme.scope === "national" ? "national" : (scheme.state ?? "national"),
       });
-      const data = await res.json();
       if (data.error) throw new Error(data.error);
       setUrlSearch({ candidates: data.candidates ?? [], searchError: data.searchError ?? null });
       if (data.candidates?.length > 0) setSelectedUrl(data.candidates[0].url);
@@ -2052,11 +2068,20 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
     if (rechecking || !checkUrl) return;
     setRechecking(true);
     try {
-      const { alive } = await verifyCommittedFix(scheme.id, checkUrl);
-      setUrlSearch(prev => ({ ...prev, verified: alive, verifiedAt: new Date().toISOString() }));
+      const { alive, note } = await verifyCommittedFix(scheme.id, checkUrl);
+      if (alive === null) {
+        // Geo-blocked / timed out — can't tell either way. Don't flip the
+        // badge to "Still unreachable" for a link that may be fine.
+        setUrlSearch(prev => ({ ...prev, verifyNote: note || "Couldn't check automatically — open the link in a browser to confirm." }));
+        return;
+      }
+      const verifiedAt = new Date().toISOString();
+      setUrlSearch(prev => ({ ...prev, verified: alive, verifiedAt, verifyNote: null }));
+      // Merge into the existing record — replacing it dropped newUrl/commitSha
+      // and the row lost its commit link.
+      onQueueChange?.(scheme.id, { ...(savedFix || {}), status: "committed", verified: alive, verifiedAt });
       if (alive) {
         await writeSchemeResults([{ scheme: { id: scheme.id }, httpStatus: null, linkAlive: true, tier: 1 }]);
-        onQueueChange?.(scheme.id, { status: "committed", verified: true });
       }
     } catch (err) {
       console.warn("[handleRecheckFix] failed:", err.message);
@@ -2074,6 +2099,7 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
     e.stopPropagation();
     try {
       await deleteUrlFixes([scheme.id]);
+      onQueueChange?.(scheme.id, null);   // drop it from the dashboard's map too
     } catch (err) {
       console.warn("[handleStartOverFix] failed to clear stale fix:", err.message);
     }
@@ -2220,14 +2246,22 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
             );
           })()}
 
-          {scheme.lastDate && (
+          {effectiveLastDate && (
             <div style={{
               fontSize:   9,
               marginTop:  2,
               color:      isExpired ? RED : isExpiringSoon ? AMBER : th.textSub,
               fontWeight: isExpired || isExpiringSoon ? 700 : 400,
             }}>
-              Deadline: {scheme.lastDate}
+              Deadline: {effectiveLastDate}
+              {result.lastDate && result.lastDate !== scheme.lastDate && (
+                <span style={{ fontWeight: 400, color: th.textSub }}> · found this run</span>
+              )}
+            </div>
+          )}
+          {result.note && !result.error && (
+            <div style={{ fontSize: 9, marginTop: 2, color: th.textSub }}>
+              ℹ {result.note}
             </div>
           )}
         </div>
@@ -2276,6 +2310,7 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
             ["Confidence",      result.confidence != null ? `${Math.round(result.confidence * 100)}%` : "—"],
             ["Scheme lastDate", scheme.lastDate || "—"],
             ["Error",           result.error || "None"],
+            ["Note",            result.note || "—"],
           ].map(([k, v]) => (
             <div key={k} style={{ display: "flex", gap: 8, fontSize: 10, padding: "1px 0" }}>
               <span style={{ color: th.textSub, width: 110, flexShrink: 0 }}>{k}</span>
@@ -2722,6 +2757,11 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
                   <div style={{ fontFamily: "monospace", color: th.textSub, fontSize: 8, marginBottom: 4 }}>
                     {urlSearch.sha?.slice(0, 7)}
                   </div>
+                  {urlSearch.verifyNote && (
+                    <div style={{ color: th.textSub, marginBottom: 5 }}>
+                      {urlSearch.verifyNote}
+                    </div>
+                  )}
                   <button
                     onClick={handleRecheckFix}
                     disabled={rechecking}
@@ -4388,7 +4428,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   const [runDone,       setRunDone]       = useState(false);
   const [wasAborted,    setWasAborted]    = useState(false);
   const [saveStatus,    setSaveStatus]    = useState(null); // null | "saving" | "saved" | "error"
-  const [throttle,      setThrottle]      = useState(null);  // null | { delayMs, index, total } — rate-guard between AI calls
+  const [throttle,      setThrottle]      = useState(null);  // null | { delayMs, index, total, reason? } — rate-guard between AI calls
+  const [runNotices,    setRunNotices]    = useState([]);    // [{ level, message }] — budget / key / rate-limit problems this run
+  const discardRef = useRef(false);  // true when "Stop" was confirmed — skip the pause checkpoint
 
   // ── Saved scans (localStorage) ────────────────────────────────────────────
   const [savedScans, setSavedScans] = useState(() => loadAllSavedScans());
@@ -4563,7 +4605,12 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // waiting for a full loadUrlFixes() round trip.
   // ⚠️ MUST be declared BEFORE handleUrlIssueFix and queuedFixes (TDZ guard)
   const handleQueueChange = useCallback((schemeId, entry) => {
-    setUrlFixMap(prev => ({ ...prev, [schemeId]: entry }));
+    setUrlFixMap(prev => {
+      const next = { ...prev };
+      if (entry == null) delete next[schemeId];   // record removed ("Find a different URL")
+      else next[schemeId] = entry;
+      return next;
+    });
   }, []);
 
   // ── "Apply All Fixes" queue ───────────────────────────────────────────────
@@ -4780,8 +4827,26 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   }, [searchQuery]);
 
   // ── START / RESUME ────────────────────────────────────────────────────────
-  const handleStart = useCallback(async (resumeFrom = 0) => {
+  // resume: a checkpoint object to continue, or undefined for a fresh run.
+  // Resuming always uses the CHECKPOINT's scope / priority / tier / queue —
+  // the old code resumed at the saved index of whatever the current filter
+  // pills produced, which checked the wrong schemes.
+  const handleStart = useCallback(async (resume = null) => {
     if (running) return;
+    const resumeFrom   = resume?.completedIndex ?? 0;
+    const runScope     = resume?.scopeFilter    ?? scopeFilter;
+    const runPriority  = resume?.priorityFilter ?? priorityFilter;
+    const runTier      = resume?.tier           ?? tier;
+    discardRef.current = false;
+    setRunNotices([]);
+
+    if (resume) {
+      // Reflect the resumed run's settings in the config UI.
+      if (runScope === "all" || runScope === "national") { setScopeMode(runScope); }
+      else if (runScope.startsWith("state:")) { setScopeMode("state"); setSelectedState(runScope.slice(6)); }
+      setPriorityFilter(runPriority);
+      setTier(runTier);
+    }
 
     if (resumeFrom === 0) {
       accResultsRef.current = [];
@@ -4794,7 +4859,10 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       setApplyResult(null);
       setProgress(null);
       setCurrentScheme(null);   // prevent stale scheme name flash on new run
+      setReVerifyMap({});
+      setReVerifyDone(false);
       await clearCheckpoint();
+      setCheckpoint(null);
     } else {
       // Resuming: seed liveStats from whatever's already accumulated so the
       // mini cards continue from the correct counts instead of resetting to 0.
@@ -4830,11 +4898,15 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
     try {
       await runVerification({
-        scopeFilter,
-        priorityFilter,
-        tier,
+        scopeFilter:    runScope,
+        priorityFilter: runPriority,
+        tier:           runTier,
         resumeFrom,
+        resumeQueueIds: resume?.queueIds ?? null,
         signal: controller.signal,
+        shouldSaveOnAbort: () => !discardRef.current,
+        onNotice: (n) => setRunNotices(prev =>
+          prev.some(p => p.message === n.message) ? prev : [...prev.slice(-4), n]),
 
         onProgress: ({ index, total, scheme, result }) => {
           accResultsRef.current.push(result);
@@ -4870,7 +4942,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         onBatchSaved: (cp) => {
           setCheckpoint(cp);
         },
-        onThrottle: (info) => setThrottle(info), // fires during 800ms rate-guard sleep between AI calls
+        onThrottle: (info) => setThrottle(info), // fires during the rate-guard sleep between AI calls
       });
     } catch (err) {
       console.error("[SchemeVerifier] Unexpected run error:", err);
@@ -4879,6 +4951,14 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     // Fix 8: capture exact end time before React state flush so done banner is accurate
     endTimeRef.current = Date.now();
     setWasAborted(controller.signal.aborted);
+    if (discardRef.current) {
+      await clearCheckpoint();
+      setCheckpoint(null);
+    } else {
+      const cp = await loadCheckpoint();
+      const valid = cp && !cp.cleared && !cp.isComplete && cp.completedIndex > 0 && cp.completedIndex < cp.total;
+      setCheckpoint(valid ? cp : null);
+    }
     // Fix 4: ensure the final batch is always flushed even if throttle didn't fire
     const finalSnap    = [...accResultsRef.current];
     const finalSummary = buildSummary(finalSnap);   // computed once, used below + in auto-save
@@ -4920,8 +5000,8 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       // Runs synchronously (before the async repo write) — localStorage is fast.
       // Overwrites any previous scan for the same scope, keeping one slot per
       // national / all / state:<name> combination.
-      saveScanResults(scopeFilter, priorityFilter, tier, finalSnap, finalSummary);
-      appendTrendEntry(scopeFilter, finalSummary);
+      saveScanResults(runScope, runPriority, runTier, finalSnap, finalSummary);
+      appendTrendEntry(runScope, finalSummary);
       setSavedScans(loadAllSavedScans());
 
       // ── Sync "Known Dead Links" with this run's fresh findings ──────────
@@ -4934,7 +5014,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       setKnownDeadLinks(prev => {
         const checkedIds = new Set(finalSnap.map(r => r.scheme?.id).filter(Boolean));
         const untouched  = prev.filter(item => !checkedIds.has(item.scheme?.id));
-        const stillDead  = finalSnap.filter(r => getResultStatus(r) !== "Active");
+        // Only definitive dead links belong here — "No Response" (timeouts,
+        // geo-blocked India-only domains) and AI-step errors are not dead links.
+        const stillDead  = finalSnap.filter(r => r.alive === false);
         return [...untouched, ...stillDead];
       });
     }
@@ -4953,9 +5035,8 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       return;
     }
     setIsPendingStop(false);
+    discardRef.current = true;   // handleStart's tail clears the checkpoint once the loop exits
     abortRef.current?.abort();
-    await clearCheckpoint();
-    setCheckpoint(null);
   }, [isPendingStop]);
 
   // ── RESET to config screen ────────────────────────────────────────────────
@@ -4976,6 +5057,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
     setReVerifying(false);
     setReVerifyMap({});
     setReVerifyDone(false);
+    setRunNotices([]);
   }, []);
 
   // ── EXPORT PDF ────────────────────────────────────────────────────────────
@@ -5021,15 +5103,13 @@ export default function SchemeVerifier({ dark, isDesktop }) {
       const id  = r.scheme.id;
       const url = r.scheme.apply.en;
       try {
-        const res  = await fetch("/api/ping-url", {
-          method:  "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url }),
-        });
-        const data = await res.json();
-        mapRef[id] = { alive: data.alive === true, httpStatus: data.status ?? null };
+        // Same rules as the full scan (403 = live, timeout = inconclusive).
+        // The old inline fetch read data.status (always undefined) and
+        // treated every inconclusive answer as dead.
+        const ping = await pingUrl(url);
+        mapRef[id] = { alive: ping.alive, httpStatus: ping.httpStatus || null, error: ping.error ?? null, note: ping.note ?? null };
       } catch (err) {
-        mapRef[id] = { alive: false, error: err.message };
+        mapRef[id] = { alive: null, error: err.message };
       }
       // Progressive update — each result appears as it arrives
       setReVerifyMap({ ...mapRef });
@@ -5037,21 +5117,33 @@ export default function SchemeVerifier({ dark, isDesktop }) {
 
     // Patch results array in-place; any link that came back alive moves
     // out of the dead bucket. Rebuild summary to keep filter pill counts accurate.
-    setResults(prev => {
-      const updated = prev.map(r => {
-        const patch = mapRef[r.scheme?.id];
-        if (!patch) return r;
-        return {
-          ...r,
-          alive:      patch.alive,
-          httpStatus: patch.httpStatus ?? r.httpStatus,
-          error:      patch.alive ? null : (patch.error ?? r.error),
-          reVerified: true,
-        };
-      });
-      setSummary(buildSummary(updated));
-      return updated;
+    const updated = results.map(r => {
+      const patch = mapRef[r.scheme?.id];
+      if (!patch) return r;
+      return {
+        ...r,
+        alive:      patch.alive,
+        linkAlive:  patch.alive,
+        httpStatus: patch.httpStatus ?? r.httpStatus,
+        error:      patch.alive ? null : (patch.error ?? r.error),
+        note:       patch.note ?? r.note ?? null,
+        reVerified: true,
+      };
     });
+    accResultsRef.current = updated;
+    setResults(updated);
+    setSummary(buildSummary(updated));
+
+    // Recovered links leave "Known Dead Links" and are saved, so the next
+    // reload doesn't bring them back.
+    const recovered = Object.entries(mapRef).filter(([, v]) => v.alive === true).map(([id]) => id);
+    if (recovered.length > 0) {
+      const rec = new Set(recovered);
+      setKnownDeadLinks(prev => prev.filter(item => !rec.has(item.scheme?.id)));
+      writeSchemeResults(updated.filter(r => rec.has(r.scheme?.id)).map(r => ({
+        scheme: { id: r.scheme.id }, tier: 1, linkAlive: true, httpStatus: r.httpStatus,
+      }))).catch(err => console.warn("[handleReVerifyDead] save failed:", err.message));
+    }
 
     setReVerifying(false);
     setReVerifyDone(true);
@@ -5896,8 +5988,12 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               color:        th.textMid,
               lineHeight:   1.5,
             }}>
-              Tier 2 calls <strong style={{ color: th.text }}>/api/verify-scheme</strong> for
-              each priority scheme — uses Groq credits. Tier 1 is free and much faster.
+              Tier 2 reads every scheme page with <strong style={{ color: th.text }}>Tavily</strong> and
+              asks <strong style={{ color: th.text }}>Groq</strong> for the deadline —{" "}
+              <strong style={{ color: th.text }}>1 Tavily credit per scheme ({previewCount} for this run)</strong>,
+              from a ~1000/month budget shared with the daily background check. It runs at a few
+              schemes per minute to respect Groq's free-tier limits and stops by itself if the
+              monthly budget runs out. Tier 1 is free and much faster.
             </div>
           )}
 
@@ -6316,7 +6412,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           </div>
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
             <div
-              {...a11yClickable(() => handleStart(checkpoint.completedIndex))}
+              {...a11yClickable(() => handleStart(checkpoint))}
               style={{
                 padding:      "6px 12px",
                 borderRadius: 8,
@@ -6429,7 +6525,9 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 }} />
               </div>
               <span style={{ fontSize: 9, color: dark ? "#6b7280" : "#9ca3af" }}>
-                Protecting Groq API from rate limits — next scheme loading…
+                {throttle.reason === "rate_limit"
+                  ? "Groq said slow down — waiting, then retrying this scheme…"
+                  : "Pacing AI checks to stay inside Groq's free-tier limits — next scheme loading…"}
               </span>
             </div>
           )}
@@ -6495,6 +6593,22 @@ export default function SchemeVerifier({ dark, isDesktop }) {
         </div>
       )}
 
+      {/* ══ RUN NOTICES — budget / key / rate-limit problems ═══════════════════ */}
+      {runNotices.length > 0 && (
+        <div role="status" style={{
+          display: "flex", flexDirection: "column", gap: 4,
+          padding: "9px 12px", borderRadius: 10,
+          background: runNotices.some(n => n.level === "error") ? `${RED}0d` : `${AMBER}12`,
+          border: `1px solid ${runNotices.some(n => n.level === "error") ? `${RED}40` : `${AMBER}45`}`,
+        }}>
+          {runNotices.map((n, i) => (
+            <div key={i} style={{ fontSize: 10.5, fontWeight: 600, color: n.level === "error" ? RED : th.text, lineHeight: 1.45 }}>
+              {n.level === "error" ? "✕ " : "△ "}{n.message}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ══ DONE BANNER ══════════════════════════════════════════════════════ */}
       {runDone && !running && results.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -6518,7 +6632,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                 background: wasAborted ? RED : IND_GREEN, flexShrink: 0,
               }} />
               <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: th.text }}>
-                {wasAborted ? "Run stopped" : "Run complete"}
+                {wasAborted ? (checkpoint ? "Run paused" : "Run stopped") : (checkpoint ? "Run ended early" : "Run complete")}
                 <span style={{ fontWeight: 500, color: th.textMid, marginLeft: 6 }}>
                   · {results.length} scheme{results.length !== 1 ? "s" : ""} checked
                 </span>
@@ -6531,6 +6645,23 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             </div>
             {/* ── Action buttons — wrapping row, mobile-friendly ── */}
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {/* Resume — continue a paused run from the exact next scheme */}
+              {checkpoint && (
+                <div
+                  {...a11yClickable(() => handleStart(checkpoint))}
+                  style={{
+                    padding:      "5px 12px",
+                    borderRadius: 8,
+                    fontSize:     11,
+                    fontWeight:   700,
+                    background:   SAFFRON,
+                    color:        "#fff",
+                    cursor:       "pointer",
+                  }}
+                >
+                  ▶ Resume ({checkpoint.completedIndex}/{checkpoint.total})
+                </div>
+              )}
               {/* Re-check Dead — targeted re-ping of failed links only */}
               {(summary?.dead ?? 0) > 0 && (
                 <div

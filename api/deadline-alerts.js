@@ -453,6 +453,16 @@ export default async function handler(req, res) {
             commitSuccess: data.commitSuccess,
             commitError:   data.commitError ?? null,
             checkedIds:    data.checkedIds ?? [],
+            skipped:       data.skipped ?? false,
+            reason:        data.reason ?? null,
+            stopReason:    data.stopReason ?? null,
+            crashed:       data.crashed ?? false,
+            tavilyCallsMade:     data.tavilyCallsMade ?? null,
+            tavilyUsedThisMonth: data.tavilyUsedThisMonth ?? null,
+            monthlyBudget:       data.monthlyBudget ?? null,
+            errorCount:    data.errorCount ?? 0,
+            errorSamples:  data.errorSamples ?? [],
+            datesFound:    data.datesFound ?? null,
           };
         });
 
@@ -512,6 +522,15 @@ export default async function handler(req, res) {
             commitSuccess: !result.commitError,
             commitError:  result.commitError ?? null,
             checkedIds:   Object.keys(result.results || {}),
+            skipped:      !!result.skipped,
+            reason:       result.reason ?? null,
+            stopReason:   result.stopReason ?? null,
+            tavilyCallsMade:     result.tavilyCallsMade ?? 0,
+            tavilyUsedThisMonth: result.tavilyUsedThisMonth ?? null,
+            monthlyBudget:       result.monthlyBudget ?? null,
+            errorCount:   result.errorCount ?? 0,
+            errorSamples: result.errorSamples ?? [],
+            datesFound:   Object.values(result.results || {}).filter(r => r?.lastDate).length,
           });
         } catch (logErr) {
           // Never let a logging failure turn a successful verification run
@@ -522,6 +541,15 @@ export default async function handler(req, res) {
         return res.status(200).json(result);
       } catch (err) {
         console.error("[deadline-alerts] Scheme verification batch failed:", err);
+        // Log the crash too — otherwise the dashboard keeps showing the last
+        // successful run as if everything were fine.
+        try {
+          await getAdminDb()?.collection("schemeVerifyRuns").add({
+            runAt: new Date(), crashed: true, commitSuccess: false,
+            commitError: null, stopReason: `crash: ${String(err.message).slice(0, 300)}`,
+            checked: 0, withResults: 0, checkedIds: [], errorCount: 1, errorSamples: [],
+          });
+        } catch { /* ignore */ }
         return res.status(500).json({ error: err.message });
       }
     }

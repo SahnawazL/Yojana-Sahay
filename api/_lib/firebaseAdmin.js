@@ -135,7 +135,14 @@ export async function recordAiCall({
   keyIdx          = 0,
   count429        = 0,
   triggeredSearch = false,
+  failedKeys      = null,   // real 0-based indices of the keys that 429'd (preferred)
 } = {}) {
+  // Key rotation starts at a shared round-robin offset, so the keys that
+  // 429'd are NOT simply 0..count429-1. Callers now pass the real indices;
+  // the old guess is only a fallback for callers that don't.
+  const hit429Keys = Array.isArray(failedKeys) && failedKeys.length > 0
+    ? [...new Set(failedKeys.filter(k => Number.isInteger(k) && k >= 0))]
+    : Array.from({ length: count429 }, (_, i) => i);
   try {
     const db = getAdminDb();
     if (!db) return;
@@ -167,8 +174,7 @@ export async function recordAiCall({
         if (count429 > 0) {
           upd.groqLast429At = FieldValue.serverTimestamp();
 
-          // Which key INDICES got 429'd: keys 0 … count429-1 all failed
-          const freshKeys = Array.from({ length: count429 }, (_, i) => i);
+          const freshKeys = hit429Keys;
 
           if (d.groq429Date === today) {
             upd.groq429Today = (d.groq429Today || 0) + count429;
@@ -216,7 +222,7 @@ export async function recordAiCall({
         if (count429 > 0) {
           upd.groqVerifyLast429At = FieldValue.serverTimestamp();
 
-          const freshKeys = Array.from({ length: count429 }, (_, i) => i);
+          const freshKeys = hit429Keys;
 
           if (d.groqVerify429Date === today) {
             upd.groqVerify429Today = (d.groqVerify429Today || 0) + count429;

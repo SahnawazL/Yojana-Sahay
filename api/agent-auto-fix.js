@@ -34,9 +34,14 @@ import { getAdminDb } from "./_lib/firebaseAdmin.js";
 
 export default async function handler(req, res) {
   // ── Auth: only Vercel Cron (or you, manually, with the secret) may trigger this ──
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = req.headers["authorization"];
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  // Vercel Cron sends "Authorization: Bearer $CRON_SECRET" when CRON_SECRET is
+  // set. Without a secret configured the endpoint used to be open to anyone;
+  // now it only accepts Vercel's own cron user-agent in that case.
+  const cronSecret = process.env.CRON_SECRET?.trim();
+  const authHeader = req.headers["authorization"] ?? "";
+  const isVercelCronUA = /vercel-cron/i.test(req.headers["user-agent"] ?? "");
+  const authorized = cronSecret ? authHeader === `Bearer ${cronSecret}` : isVercelCronUA;
+  if (!authorized) {
     return res.status(401).json({ error: "Unauthorized." });
   }
 
@@ -137,6 +142,20 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, summary });
   } catch (err) {
     console.error("[agent-auto-fix] Run failed:", err);
+    // Record the failed run so the Auto-Fix Agent card shows "Run failed"
+    // instead of the previous day's run as if nothing went wrong.
+    try {
+      await getAdminDb()?.collection("agentRuns").add({
+        agent: "agent-auto-fix",
+        startedAt,
+        finishedAt: new Date().toISOString(),
+        crashed: true,
+        error: String(err.message).slice(0, 500),
+        totalSchemesScanned: 0, totalIssuesFound: 0, autoFixed: 0, autoFixFailed: 0,
+        commits: [], needsReviewCount: 0, needsReview: [], failures: [],
+        createdAt: new Date(),
+      });
+    } catch { /* ignore */ }
     return res.status(500).json({ success: false, error: err.message });
   }
 }

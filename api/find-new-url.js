@@ -18,14 +18,12 @@
 
 import { recordAiCall } from "./_lib/firebaseAdmin.js";
 import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
+import { requireAdmin } from "./_lib/adminAuth.js";
+import { isPublicHttpUrl, normalizeSchemeUrl } from "./_lib/urlTools.js";
+import { pingUrlServer } from "./ping-url.js";
 
 const SERPER_SEARCH   = "https://google.serper.dev/search";
-const PING_TIMEOUT_MS = 8000;
 const MAX_CANDIDATES  = 5;
-const USER_AGENT      =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-  "AppleWebKit/537.36 (KHTML, like Gecko) " +
-  "Chrome/124.0.0.0 Safari/537.36";
 
 
 // ── Domain quality scorer ─────────────────────────────────────────────────────
@@ -108,40 +106,24 @@ async function serperSearch(query, serperKey, maxResults = 7) {
 
 
 // ── URL pinger ────────────────────────────────────────────────────────────────
-// Mirrors ping-url.js logic inline — HEAD with GET fallback.
-
+// Same rules as /api/ping-url (shared implementation) — 401/403/429 count as
+// "up but blocking bots", timeouts are inconclusive rather than dead.
 async function pingUrl(url) {
-  const controller = new AbortController();
-  const timer      = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
-
-  try {
-    let res = await fetch(url, {
-      method:   "HEAD",
-      signal:   controller.signal,
-      headers:  { "User-Agent": USER_AGENT },
-      redirect: "follow",
-    });
-
-    // Some servers reject HEAD — retry as GET
-    if (res.status === 405 || res.status === 501) {
-      res = await fetch(url, {
-        method:   "GET",
-        signal:   controller.signal,
-        headers:  { "User-Agent": USER_AGENT },
-        redirect: "follow",
-      });
-    }
-
-    clearTimeout(timer);
-    const httpStatus = res.status;
-    return { alive: httpStatus >= 200 && httpStatus < 400, httpStatus };
-
-  } catch {
-    clearTimeout(timer);
-    return { alive: false, httpStatus: 0 };
-  }
+  if (!isPublicHttpUrl(url)) return { alive: false, httpStatus: 0 };
+  const r = await pingUrlServer(url);
+  return { alive: r.alive, httpStatus: r.httpStatus };
 }
 
+// Compare URLs ignoring protocol, "www.", trailing slash and case — so the
+// dead URL is never suggested back as its own "replacement".
+function sameUrl(a, b) {
+  const canon = u => String(u || "").trim().toLowerCase()
+    .replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/[#?].*$/, "").replace(/\/+$/, "");
+  return !!a && !!b && canon(a) === canon(b);
+}
+
+// Search results that can never be a scheme's apply page.
+const JUNK_HOSTS = /(^|\.)(youtube\.com|facebook\.com|twitter\.com|x\.com|instagram\.com|linkedin\.com|wikipedia\.org|quora\.com|reddit\.com|scribd\.com)$/i;
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 
@@ -151,6 +133,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const auth = await requireAdmin(req, res);
+  if (!auth) return;
+
   const serperKey = process.env.SERPER_API_KEY?.trim();
   if (!serperKey) {
     return res.status(500).json({
@@ -158,7 +143,8 @@ export default async function handler(req, res) {
     });
   }
 
-  const { name, ministry, oldUrl, state = "national" } = req.body ?? {};
+  const { name, ministry, oldUrl: rawOldUrl, state = "national" } = req.body ?? {};
+  const oldUrl = normalizeSchemeUrl(rawOldUrl) ?? rawOldUrl ?? null;
 
   if (!name) {
     return res.status(400).json({ error: "Missing required field: name" });
@@ -188,8 +174,11 @@ export default async function handler(req, res) {
   const raw  = [];
 
   for (const r of [...q1.results, ...q2.results]) {
-    if (!r.url || seen.has(r.url)) continue;
-    if (r.url === oldUrl)          continue;   // never suggest the dead URL back
+    if (!r.url || seen.has(r.url))  continue;
+    if (sameUrl(r.url, oldUrl))     continue;   // never suggest the dead URL back
+    if (!isPublicHttpUrl(r.url))    continue;
+    try { if (JUNK_HOSTS.test(new URL(r.url).hostname)) continue; } catch { continue; }
+    if (/\.(pdf|docx?|xlsx?|zip)(\?|$)/i.test(r.url)) continue; // documents aren't apply pages
     seen.add(r.url);
     raw.push(r);
   }
@@ -223,7 +212,7 @@ export default async function handler(req, res) {
   const scored = raw.map((r, i) => {
     const { alive, httpStatus } = pingResults[i];
     const ds   = domainScore(r.url);
-    const conf = Math.min(1, ds * 0.6 + (alive ? 0.4 : 0));
+    const conf = Math.min(1, ds * 0.6 + (alive === true ? 0.4 : alive === null ? 0.2 : 0));
     return {
       url:        r.url,
       title:      r.title,
@@ -235,8 +224,9 @@ export default async function handler(req, res) {
   });
 
   // Alive first, then by confidence desc
+  const aliveRank = a => (a === true ? 0 : a === null ? 1 : 2); // live → unknown → dead
   scored.sort((a, b) =>
-    a.alive !== b.alive ? (a.alive ? -1 : 1) : b.confidence - a.confidence
+    aliveRank(a.alive) !== aliveRank(b.alive) ? aliveRank(a.alive) - aliveRank(b.alive) : b.confidence - a.confidence
   );
 
   const candidates = scored.slice(0, MAX_CANDIDATES);

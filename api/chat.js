@@ -141,6 +141,7 @@ function isKeyLevelFailure(status, errData) {
 async function callGroq(keys, bodyObject) {
   let lastError = null;
   let count429  = 0; // number of keys that returned 429 before a success
+  const failedKeys = []; // real indices of the keys that 429'd (for the AgentsTab key grid)
   const n = keys.length;
   const startIdx = await getNextStartIdx(n);
 
@@ -162,6 +163,7 @@ async function callGroq(keys, bodyObject) {
         const errData = await groqRes.json().catch(() => ({}));
         lastError = errData;
         count429++;
+        failedKeys.push(i);
         console.warn(`[Yojana Sahay] Key #${i + 1} → 429 rate limited. Trying next key…`);
         continue;
       }
@@ -188,7 +190,7 @@ async function callGroq(keys, bodyObject) {
           JSON.stringify(data).slice(0, 200)
         );
       }
-      return { status: groqRes.status, data, keyIdx: i, count429 };
+      return { status: groqRes.status, data, keyIdx: i, count429, failedKeys };
 
     } catch (err) {
       console.error(`[Yojana Sahay] Network error on Key #${i + 1}:`, err.message);
@@ -207,6 +209,7 @@ async function callGroq(keys, bodyObject) {
     data: { error: { message: msg, details: lastError } },
     keyIdx: -1,
     count429,
+    failedKeys,
   };
 }
 
@@ -241,6 +244,7 @@ export default async function handler(req, res) {
     data:   firstData,
     keyIdx: firstKeyIdx,
     count429: firstCount429,
+    failedKeys: firstFailedKeys,
   } = await callGroq(keys, firstCallBody);
 
   // tool_use_failed isn't a key problem — the model failed to format a valid
@@ -254,6 +258,7 @@ export default async function handler(req, res) {
       service:  "groq",
       keyIdx:   retry.status === 200 ? retry.keyIdx : -1,
       count429: retry.count429,
+      failedKeys: retry.failedKeys,
     }).catch(() => {});
     if (retry.status === 200) logApiCallToHistory("groqCalls").catch(() => {});
     return res.status(retry.status).json(retry.data);
@@ -262,7 +267,7 @@ export default async function handler(req, res) {
   // If first call failed, record the failure and return
   if (firstStatus !== 200) {
     // Fire-and-forget — telemetry must not delay the error response
-    recordAiCall({ service: "groq", keyIdx: -1, count429: firstCount429 }).catch(() => {});
+    recordAiCall({ service: "groq", keyIdx: -1, count429: firstCount429, failedKeys: firstFailedKeys }).catch(() => {});
     return res.status(firstStatus).json(firstData);
   }
 
@@ -285,7 +290,7 @@ export default async function handler(req, res) {
       console.log(`[Yojana Sahay] 🔍 Web search triggered: "${searchQuery}"`);
 
       // Record first Groq call (it decided to search but didn't return text yet)
-      recordAiCall({ service: "groq", keyIdx: firstKeyIdx, count429: firstCount429, triggeredSearch: false }).catch(() => {});
+      recordAiCall({ service: "groq", keyIdx: firstKeyIdx, count429: firstCount429, failedKeys: firstFailedKeys, triggeredSearch: false }).catch(() => {});
       logApiCallToHistory("groqCalls").catch(() => {});
 
       // Call Tavily
@@ -316,10 +321,11 @@ export default async function handler(req, res) {
         data:     secondData,
         keyIdx:   secondKeyIdx,
         count429: secondCount429,
+        failedKeys: secondFailedKeys,
       } = await callGroq(keys, secondCallBody);
 
       // Record second Groq call — triggeredSearch:true increments groqWebSearchesToday
-      recordAiCall({ service: "groq", keyIdx: secondKeyIdx, count429: secondCount429, triggeredSearch: true }).catch(() => {});
+      recordAiCall({ service: "groq", keyIdx: secondKeyIdx, count429: secondCount429, failedKeys: secondFailedKeys, triggeredSearch: true }).catch(() => {});
       if (secondStatus === 200) logApiCallToHistory("groqCalls").catch(() => {});
 
       return res.status(secondStatus).json(secondData);
@@ -327,7 +333,7 @@ export default async function handler(req, res) {
   }
 
   // ── No tool call → record first response and return directly ──────────────
-  recordAiCall({ service: "groq", keyIdx: firstKeyIdx, count429: firstCount429 }).catch(() => {});
+  recordAiCall({ service: "groq", keyIdx: firstKeyIdx, count429: firstCount429, failedKeys: firstFailedKeys }).catch(() => {});
   logApiCallToHistory("groqCalls").catch(() => {});
   return res.status(firstStatus).json(firstData);
 }

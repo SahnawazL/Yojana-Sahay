@@ -23,8 +23,10 @@
 
 import { getAdminDb }        from "./firebaseAdmin.js";
 import { SCHEME_DB }         from "../../src/schemesData.js";
-import { verifySchemeCore }  from "../verify-scheme.js";
+import { verifySchemeCore, getVerifyKeyCount } from "../verify-scheme.js";
 import { commitSchemesMeta } from "../update-schemes-meta.js";
+import { normalizeSchemeUrl } from "./urlTools.js";
+import { getTavilyCallsThisMonth, TAVILY_BACKGROUND_BUDGET } from "./tavilyBudget.js";
 
 // Safety margin under whatever the real configured max duration turns out to
 // be. The Vercel dashboard shows 300s configured — this stops at 240s (60s of
@@ -33,7 +35,11 @@ import { commitSchemesMeta } from "../update-schemes-meta.js";
 // time cap is now purely a fallback safety valve, not the normal stopping
 // condition.
 const MAX_RUNTIME_MS   = 240_000;
-const DELAY_BETWEEN_MS = 3500; // same pacing as the browser-side verifier — stays under Groq's free-tier rate limit
+// Groq's free tier allows roughly 8K tokens/minute per key for gpt-oss-20b and
+// each check costs ~1.5K tokens, i.e. ~5 checks/minute/key. The old fixed
+// 3.5 s gap (17/min) tripped 429s on every run. Spread calls by key count.
+const PER_KEY_GAP_MS = 12_500;
+const MIN_GAP_MS     = 3_500;
 
 // ── Cycle math — spreads the whole catalog across ~2 months ─────────────────
 // Tavily's free tier caps out at 1000 calls/month. A full sweep of the
@@ -45,44 +51,44 @@ const DELAY_BETWEEN_MS = 3500; // same pacing as the browser-side verifier — s
 // Tavily plan is upgraded later.
 const CYCLE_DAYS = 60;
 
-// Hard stop, independent of the cycle math above: even if something is
-// miscounted or the admin dashboard has been heavily used this month, never
-// let an automated run push total Tavily usage past this line. Reads the
-// existing apiCallHistory/{YYYY-MM-DD} docs (already written by
-// logApiCallToHistory("tavilyVerifyCalls") in verify-scheme.js) and sums the
-// current calendar month to date.
-const MONTHLY_TAVILY_BUDGET = 900; // stay under Tavily's 1000/month cap with margin
+// Hard stop, independent of the cycle math above: never let an automated run
+// push this month's Tavily usage past the background budget (90% of the
+// monthly limit — the rest is reserved for manual checks). Shared with the
+// per-call guard in verify-scheme.js via _lib/tavilyBudget.js.
+const MONTHLY_TAVILY_BUDGET = TAVILY_BACKGROUND_BUDGET;
 
-// Matches apiCallHistory.js's exact date logic — that file keys its docs by
-// IST calendar date, not server-local time. Vercel's serverless runtime is
-// UTC, so naively using `new Date().getDate()` etc. here would read the
-// wrong day's doc for ~5.5 hours around every midnight IST and undercount
-// this month's usage during that window. Must stay byte-for-byte consistent
-// with how apiCallHistory.js derives its doc IDs.
-function getISTDateParts() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
-    year: "numeric", month: "2-digit", day: "2-digit",
-  }).formatToParts(new Date());
-  const get = t => parts.find(p => p.type === t).value;
-  return { year: get("year"), month: get("month"), day: Number(get("day")) };
+// Stop the run early after this many consecutive rate-limit / config errors —
+// hammering an exhausted key pool just produces a page of identical failures.
+const MAX_CONSECUTIVE_SERVICE_ERRORS = 3;
+
+// Same "is there a checkable URL" rule as the browser verifier
+// (buildVerificationQueue): online schemes whose apply.en contains a domain.
+// The old check required a literal "https://" prefix, so every scheme stored
+// as a bare domain ("pmkisan.gov.in") was skipped by the background job.
+export function getCheckableUrl(scheme) {
+  if (!scheme || scheme.applyType !== "online") return null;
+  return normalizeSchemeUrl(scheme.apply?.en);
 }
 
-async function getTavilyCallsThisMonth(db) {
-  const { year, month, day: today } = getISTDateParts();
+// Turn one verifySchemeCore() outcome into a schemes-meta.json entry.
+// Only facts we actually learned are written — an error must never look like
+// "deadline removed" or "link dead".
+export function outcomeToMetaEntry(outcome, nowIso = new Date().toISOString()) {
+  const entry = { lastVerified: nowIso };
+  const http  = outcome.httpStatus || 0;
 
-  const reads = [];
-  for (let d = 1; d <= today; d++) {
-    const dateStr = `${year}-${month}-${String(d).padStart(2, "0")}`;
-    reads.push(db.collection("apiCallHistory").doc(dateStr).get());
-  }
-  const snaps = await Promise.all(reads);
+  if (http > 0) entry.httpStatus = http;
+  if (http >= 200 && http < 400) entry.linkAlive = true;
+  else if (http === 404 || http === 410) entry.linkAlive = false;
+  // anything else (0 / 403 / 5xx via Tavily) is inconclusive → leave linkAlive untouched
 
-  let total = 0;
-  for (const snap of snaps) {
-    if (snap.exists) total += Number(snap.data()?.tavilyVerifyCalls || 0);
+  if (!outcome.errorKind) {
+    entry.confidence = outcome.confidence ?? 0;
+    if (outcome.isActive != null) entry.isActive = outcome.isActive;
+    if (outcome.lastDate) entry.lastDate = outcome.lastDate;
+    else if ((outcome.confidence ?? 0) >= 0.5) entry.lastDate = null; // page clearly read, no deadline any more
   }
-  return total;
+  return entry;
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -90,6 +96,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 export async function runSchemeVerificationBatch() {
   const db = getAdminDb();
   const startedAt = Date.now();
+  if (!db) throw new Error("Firebase Admin is not configured (FIREBASE_* env vars) — cannot run the verify batch.");
 
   // ── Hard budget guard — checked first, before touching the cursor ─────────
   const tavilyUsedThisMonth = await getTavilyCallsThisMonth(db);
@@ -111,6 +118,9 @@ export async function runSchemeVerificationBatch() {
       monthlyBudget: MONTHLY_TAVILY_BUDGET,
       checked: 0,
       tavilyCallsMade: 0,
+      errorCount: 0,
+      errorSamples: [],
+      stopReason: "monthly_tavily_budget_reached",
       skippedNoUrl: 0,
       withResults: 0,
       cursorBefore: null,
@@ -148,14 +158,16 @@ export async function runSchemeVerificationBatch() {
   let checkedCount = 0;      // total iterations, including skipped no-URL entries
   let tavilyCallsMade = 0;   // actual billable checks this run — this is what we cap against
   let skippedNoUrl = 0;
-  let firstIteration = true;
+  let lastCallAt = 0;
+  const gapMs = Math.max(MIN_GAP_MS, Math.ceil(PER_KEY_GAP_MS / Math.max(1, getVerifyKeyCount())));
+  let errorCount = 0;
+  let consecutiveServiceErrors = 0;
+  let stopReason = null;
+  const errorSamples = [];
 
   while (Date.now() - startedAt < MAX_RUNTIME_MS) {
     if (checkedCount >= total) break;   // completed a full lap within a single run (small catalogs only)
     if (tavilyCallsMade >= runCap) break; // hit today's slice of the cycle — stop here, resume tomorrow
-
-    if (!firstIteration) await sleep(DELAY_BETWEEN_MS); // pace calls, but don't delay before the very first one
-    firstIteration = false;
 
     const id     = allIds[index];
     const scheme = schemeById.get(id);
@@ -164,32 +176,64 @@ export async function runSchemeVerificationBatch() {
 
     if (!scheme) continue; // shouldn't happen, but never let one bad id crash the whole run
 
-    const url = scheme.apply?.en;
-    if (!url || !/^https?:\/\//i.test(url)) {
+    const url = getCheckableUrl(scheme);
+    if (!url) {
       skippedNoUrl++;
-      continue; // no real checkable URL — don't waste a Groq/Tavily call, just advance past it
+      continue; // offline / text-only scheme — nothing to check, don't spend a call
     }
 
+    // Pace real checks only — skipping an offline scheme costs no API call.
+    const wait = lastCallAt ? gapMs - (Date.now() - lastCallAt) : 0;
+    if (wait > 0) {
+      if (Date.now() - startedAt + wait > MAX_RUNTIME_MS) {
+        index = (index - 1 + total) % total; // not checked — retry it first next run
+        checkedCount--;
+        break;
+      }
+      await sleep(wait);
+    }
+    lastCallAt = Date.now();
+
+    let outcome;
     try {
-      const outcome = await verifySchemeCore({
+      outcome = await verifySchemeCore({
         url,
         name:  scheme.name?.en || scheme.id,
-        state: scheme.scope || "national",
+        state: scheme.scope === "national" ? "national" : (scheme.state || "state"),
+        budgetLimit: MONTHLY_TAVILY_BUDGET,
       });
-      tavilyCallsMade++;
-      results[id] = {
-        lastDate:     outcome.lastDate,
-        isActive:     outcome.isActive,
-        confidence:   outcome.confidence,
-        httpStatus:   outcome.httpStatus,
-        linkAlive:    outcome.httpStatus > 0 && outcome.httpStatus < 400,
-        lastVerified: new Date().toISOString(),
-      };
     } catch (err) {
       console.error(`[schemeVerifyBatch] verifySchemeCore threw for "${id}":`, err.message);
-      // Record nothing for this scheme — leave its existing meta untouched
-      // rather than writing a false failure signal from a transient error.
+      outcome = { errorKind: "ai", error: err.message, httpStatus: 0 };
     }
+
+    // Config / budget problems affect every scheme equally — stop the run
+    // and DON'T advance past this scheme, so nothing is silently skipped.
+    if (outcome.errorKind === "config" || outcome.errorKind === "budget") {
+      index = (index - 1 + total) % total;
+      checkedCount--;
+      stopReason = `${outcome.errorKind}: ${outcome.error}`;
+      break;
+    }
+    if (outcome.errorKind === "rate_limit") {
+      consecutiveServiceErrors++;
+      if (consecutiveServiceErrors >= MAX_CONSECUTIVE_SERVICE_ERRORS) {
+        index = (index - 1 + total) % total;
+        checkedCount--;
+        stopReason = `rate_limit: ${outcome.error}`;
+        break;
+      }
+    } else {
+      consecutiveServiceErrors = 0;
+    }
+
+    tavilyCallsMade++; // the page fetch happened (Groq rate limits come after it)
+    if (outcome.errorKind) {
+      errorCount++;
+      if (errorSamples.length < 10) errorSamples.push({ id, kind: outcome.errorKind, error: String(outcome.error).slice(0, 160) });
+    }
+    // A rate-limited AI call taught us nothing — don't stamp lastVerified.
+    if (outcome.errorKind !== "rate_limit") results[id] = outcomeToMetaEntry(outcome);
   }
 
   // Persist the new cursor position regardless of how many schemes actually
@@ -217,6 +261,9 @@ export async function runSchemeVerificationBatch() {
   return {
     checked:      checkedCount,
     tavilyCallsMade,
+    errorCount,
+    errorSamples,
+    stopReason,
     skippedNoUrl,
     withResults:  Object.keys(results).length,
     cursorBefore,

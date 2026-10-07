@@ -32,6 +32,7 @@ import {
   writeBatch, getCountFromServer,
 } from "firebase/firestore";
 import { db } from "./firebase.js";
+import { adminJson } from "./adminFetch.js";
 
 // ─── THEME (mirrors AdminDashboard) ──────────────────────────────────────────
 const THEME = {
@@ -284,9 +285,10 @@ export const AI_AGENTS = [
     role:        "YojanaSahay AI Chat",
     type:        "ai",
     allowedTabs: ["aichat"],
-    model:       "llama-3.3-70b-versatile",
+    model:       "gpt-oss-120b",
     firestoreKey:"groqLastActive",
     sessionStart: null,
+    silentAfterMins: 120,          // user traffic should reach it every couple of hours
   },
   {
     id:          "tavily-api",
@@ -294,19 +296,21 @@ export const AI_AGENTS = [
     role:        "YojanaSahay AI Chat · Search",
     type:        "ai",
     allowedTabs: ["aichat"],
-    model:       "tavily-extract-v2",
+    model:       "tavily-search",
     firestoreKey:"tavilyLastActive",
     sessionStart: null,
+    silentAfterMins: 48 * 60,      // only fires when the chat decides to web-search
   },
   {
     id:          "groq-verify",
     name:        "Groq Verify",
-    role:        "SchemeVerifier · AI Insights",
+    role:        "SchemeVerifier · Deadline Extractor",
     type:        "ai",
     allowedTabs: ["verify"],
-    model:       "8b-instant + 70b-versatile",
+    model:       "gpt-oss-20b",
     firestoreKey:"groqVerifyLastActive",
     sessionStart: null,
+    silentAfterMins: 30 * 60,      // daily background batch — a day+ of silence means it stopped
   },
   {
     id:          "tavily-verify",
@@ -314,9 +318,10 @@ export const AI_AGENTS = [
     role:        "SchemeVerifier · Page Extractor",
     type:        "ai",
     allowedTabs: ["verify"],
-    model:       "tavily-extract-v2",
+    model:       "tavily-extract",
     firestoreKey:"tavilyVerifyLastActive",
     sessionStart: null,
+    silentAfterMins: 30 * 60,      // daily background batch
   },
   {
     id:          "serper-verify",
@@ -327,6 +332,7 @@ export const AI_AGENTS = [
     model:       "google-serper-v1",
     firestoreKey:"serperLastActive",
     sessionStart: null,
+    silentAfterMins: null,         // manual "Find New URL" only — silence is normal
   },
 ];
 
@@ -420,7 +426,7 @@ function fs(px, isDesktop) {
 }
 
 // ─── ANOMALY DETECTION ────────────────────────────────────────────────────────
-const ANOMALY_AI_SILENT_MINS = 120;        // AI silent for 2h+ → red flag
+const ANOMALY_AI_SILENT_MINS = 120;        // default: AI silent for 2h+ → red flag (per-agent silentAfterMins overrides)
 const ANOMALY_OVERTIME_S     = 10 * 3600; // human >10h today  → amber flag
 const ANOMALY_UNDER_S        =  1 * 3600; // human <1h today (if logged in) → amber flag
 
@@ -429,9 +435,18 @@ function getAnomalyFlag(agent, todayLog) {
   if (agent.type === "ai") {
     const d = toDate(agent.lastSeen);
     if (!d) return null; // never pinged — not an anomaly, just unconfigured
+    // On-demand agents (verify pipeline, URL finder) are idle most of the
+    // day by design — the old fixed 2h rule flagged them red ("Silent 2h+")
+    // permanently and kept firing alert toasts and chimes for nothing.
+    const limit = agent.silentAfterMins === undefined ? ANOMALY_AI_SILENT_MINS : agent.silentAfterMins;
+    if (limit == null) return null;
     const minsAgo = (Date.now() - d.getTime()) / 60000;
-    if (minsAgo > ANOMALY_AI_SILENT_MINS)
-      return { label: "Silent 2h+", detail: `No ping for ${Math.floor(minsAgo / 60)}h ${Math.floor(minsAgo % 60)}m`, color: "#EF4444" };
+    if (minsAgo > limit) {
+      const h = Math.floor(minsAgo / 60);
+      const label = `Silent ${Math.round(limit / 60)}h+`;
+      const detail = h >= 48 ? `No call for ${Math.floor(h / 24)}d ${h % 24}h` : `No call for ${h}h ${Math.floor(minsAgo % 60)}m`;
+      return { label, detail, color: "#EF4444" };
+    }
     return null;
   }
   // Human — only flag if there is a log entry today
@@ -1710,9 +1725,14 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
   const ISSUE_COLOR = { MULTI_URL: SAFFRON, TEXT_ONLY: "#EF4444", NO_URL: "#EF4444" };
 
   const hasRun    = !!run;
-  const hasFail   = hasRun && run.autoFixFailed > 0;
-  const statusColor = !hasRun ? th.textSub : hasFail ? "#EF4444" : IND_GREEN;
-  const statusLabel = !hasRun ? "No runs yet" : hasFail ? "Ran with errors" : "Healthy";
+  const crashed   = hasRun && run.crashed === true;
+  const hasFail   = hasRun && (crashed || run.autoFixFailed > 0);
+  // The cron runs daily — no run for 30h+ means it stopped firing (missing
+  // CRON_SECRET, deploy error, …), which the card used to hide entirely.
+  const lastRunAt = hasRun ? toDate(run.createdAt) : null;
+  const overdue   = !!lastRunAt && Date.now() - lastRunAt.getTime() > 30 * 3600 * 1000;
+  const statusColor = !hasRun ? th.textSub : hasFail ? "#EF4444" : overdue ? IDLE_AMBER : IND_GREEN;
+  const statusLabel = !hasRun ? "No runs yet" : crashed ? "Last run failed" : hasFail ? "Ran with errors" : overdue ? "Overdue" : "Healthy";
 
   return (
     <div style={{
@@ -1791,6 +1811,23 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
               ))}
             </div>
 
+            {crashed && run.error && (
+              <div style={{ fontSize:fs(10, isDesktop), color:"#EF4444", marginBottom:8, lineHeight:1.45, wordBreak:"break-word" }}>
+                {run.error}
+              </div>
+            )}
+            {!crashed && run.failures?.length > 0 && (
+              <div style={{ fontSize:fs(9.5, isDesktop), color:"#EF4444", marginBottom:8, lineHeight:1.45, wordBreak:"break-word" }}>
+                {run.failures.slice(0, 3).map(f => `${f.id}: ${f.error}`).join(" · ")}
+                {run.failures.length > 3 ? ` · +${run.failures.length - 3} more` : ""}
+              </div>
+            )}
+            {overdue && !crashed && (
+              <div style={{ fontSize:fs(9.5, isDesktop), color:IDLE_AMBER, marginBottom:8, lineHeight:1.45 }}>
+                No run in over a day — check the agent-auto-fix cron in Vercel → Settings → Cron Jobs and that CRON_SECRET is set.
+              </div>
+            )}
+
             {/* Last run + commits */}
             <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, display:"flex", flexWrap:"wrap", gap:"4px 14px", marginBottom: run.needsReviewCount > 0 ? 10 : 0 }}>
               <span>Last run: <strong style={{ color:th.textMid }}>{timeAgo(run.createdAt)}</strong></span>
@@ -1825,10 +1862,10 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
                     marginTop:8, maxHeight:180, overflowY:"auto",
                     border:`1px solid ${th.border}`, borderRadius:9,
                   }}>
-                    {run.needsReview.map((item, i) => (
+                    {(run.needsReview ?? []).map((item, i) => (
                       <div key={item.id + i} style={{
                         display:"flex", alignItems:"center", gap:8, padding:"7px 9px",
-                        borderBottom: i < run.needsReview.length - 1 ? `1px solid ${th.border}` : "none",
+                        borderBottom: i < (run.needsReview?.length ?? 0) - 1 ? `1px solid ${th.border}` : "none",
                       }}>
                         <span style={{
                           fontSize:fs(8, isDesktop), fontWeight:700, padding:"2px 6px", borderRadius:5, flexShrink:0,
@@ -1844,6 +1881,184 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
                             {item.state}
                           </span>
                         )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT: Background Verify Agent Card
+// ─────────────────────────────────────────────────────────────────────────────
+// The rotating scheme-verify batch (GitHub Actions → /api/deadline-alerts
+// {action:"verifyBatch"} → _lib/schemeVerifyBatch.js) logged every run to
+// `schemeVerifyRuns`, and the API already returned that history — but nothing
+// in the dashboard ever displayed it, so a broken or budget-starved batch was
+// completely invisible. This card shows the last run, what it found, why it
+// stopped, catalog progress and the month's Tavily budget.
+// ═════════════════════════════════════════════════════════════════════════════
+const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [state, setState]     = useState({ loading: true, error: null, runs: [], cursor: null });
+  const [showErrors, setShowErrors] = useState(false);
+
+  const load = useCallback(async () => {
+    setState(prev => ({ ...prev, loading: prev.runs.length === 0, error: null }));
+    try {
+      const data = await adminJson("/api/deadline-alerts", undefined, { method: "GET" });
+      setState({ loading: false, error: null, runs: data.verifyRuns ?? [], cursor: data.verifyCursor ?? null });
+    } catch (err) {
+      setState(prev => ({ ...prev, loading: false, error: err.message }));
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 5 * 60 * 1000);
+    return () => clearInterval(t);
+  }, [load]);
+
+  const run      = state.runs[0] ?? null;
+  const lastAt   = run?.runAt ? new Date(run.runAt) : null;
+  const overdue  = !!lastAt && Date.now() - lastAt.getTime() > 30 * 3600 * 1000;
+  const budget   = run?.skipped || /budget/i.test(run?.stopReason ?? "");
+  const failed   = !!run && (run.crashed || run.commitSuccess === false || /^config/i.test(run.stopReason ?? ""));
+  const rateLim  = !!run && /^rate_limit/i.test(run.stopReason ?? "");
+  const errRatio = run && run.withResults ? (run.errorCount ?? 0) / Math.max(1, run.withResults) : 0;
+
+  const statusLabel = !run ? "No runs yet"
+    : failed ? "Last run failed"
+    : budget ? "Budget reached"
+    : rateLim ? "Rate-limited"
+    : overdue ? "Overdue"
+    : errRatio > 0.5 ? "Mostly errors"
+    : "Healthy";
+  const statusColor = !run ? th.textSub
+    : failed ? "#EF4444"
+    : (budget || rateLim || overdue || errRatio > 0.5) ? IDLE_AMBER
+    : IND_GREEN;
+
+  const cursorPct = state.cursor?.totalSchemes
+    ? Math.min(100, Math.round((state.cursor.index / state.cursor.totalSchemes) * 100))
+    : null;
+
+  const reasonText = (() => {
+    if (!run) return null;
+    if (run.crashed) return run.stopReason?.replace(/^crash:\s*/, "Crashed: ");
+    if (run.commitSuccess === false && run.commitError) return `Results not saved — ${run.commitError}`;
+    if (budget) return `Monthly Tavily budget reached${run.tavilyUsedThisMonth != null ? ` (${run.tavilyUsedThisMonth}/${run.monthlyBudget})` : ""} — checks resume on the 1st.`;
+    if (run.stopReason) return `Stopped early — ${run.stopReason.replace(/^(\w+):\s*/, "")}`;
+    return null;
+  })();
+
+  return (
+    <div style={{ position:"relative", background: th.card, border:`1px solid ${th.border}`, borderRadius:12, overflow:"hidden" }}>
+      <div style={{ height:2.5, background:`linear-gradient(90deg, ${IND_GREEN}, ${IND_GREEN}40)`, boxShadow:`0 0 8px ${IND_GREEN}80` }} />
+      <div style={{ padding:"13px 14px" }}>
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:11, gap:8 }}>
+          <div style={{ minWidth:0 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+              <div style={{ width:24, height:24, borderRadius:7, flexShrink:0, background:`${IND_GREEN}18`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <IconRadar size={13} color={IND_GREEN} />
+              </div>
+              <div style={{ fontSize:fs(13, isDesktop), fontWeight:800, color:th.text }}>Background Verifier</div>
+            </div>
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginTop:3, marginLeft:31 }}>
+              Deadline + link check · rotating daily batch · Tavily + Groq
+            </div>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+            <div
+              {...activatable(load, "Refresh background verifier status")}
+              onClick={load}
+              title="Refresh"
+              style={{ cursor:"pointer", padding:"3px 7px", borderRadius:6, border:`1px solid ${th.border}`, fontSize:fs(9, isDesktop), color:th.textMid, userSelect:"none" }}
+            >
+              ↻
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:20, background:`${statusColor}18`, border:`1px solid ${statusColor}40` }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:statusColor }} />
+              <span style={{ fontSize:fs(9, isDesktop), fontWeight:700, color:statusColor }}>
+                {state.loading ? "Loading…" : statusLabel}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {state.loading ? (
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
+            {[0,1,2,3].map(i => <Skeleton key={i} height={54} radius={10} dark={dark} />)}
+          </div>
+        ) : state.error && !run ? (
+          <div style={{ padding:"12px", color:"#EF4444", fontSize:fs(10.5, isDesktop), border:`1px dashed ${th.border}`, borderRadius:10, lineHeight:1.5 }}>
+            Couldn't load run history: {state.error}
+          </div>
+        ) : !run ? (
+          <div style={{ padding:"16px", textAlign:"center", color:th.textSub, fontSize:fs(11, isDesktop), border:`1px dashed ${th.border}`, borderRadius:10, lineHeight:1.5 }}>
+            No background runs logged yet. The GitHub Action "Verify Schemes (rotating batch)" triggers it daily at ~2:30 AM IST — it needs the CRON_SECRET repository secret.
+          </div>
+        ) : (
+          <>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginBottom:10 }}>
+              {[
+                { label:"Checked",  value: run.withResults ?? 0,  color: th.textMid },
+                { label:"Dates",    value: run.datesFound ?? "—", color: IND_GREEN },
+                { label:"Errors",   value: run.errorCount ?? 0,   color: (run.errorCount ?? 0) > 0 ? "#EF4444" : th.textSub },
+                { label:"Catalog",  value: cursorPct != null ? `${cursorPct}%` : "—", color: dark ? "#93C5FD" : NAVY },
+              ].map(t => (
+                <div key={t.label} style={{ background: th.card2, borderRadius:10, padding:"9px 8px", border:`1px solid ${th.border}` }}>
+                  <div style={{ fontSize:fs(17, isDesktop), fontWeight:800, color:t.color, fontFamily:"monospace" }}>{t.value}</div>
+                  <div style={{ fontSize:fs(8, isDesktop), color:th.textSub, marginTop:2, fontWeight:700, textTransform:"uppercase", letterSpacing:0.3 }}>{t.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {reasonText && (
+              <div style={{ fontSize:fs(10, isDesktop), color: failed ? "#EF4444" : IDLE_AMBER, marginBottom:8, lineHeight:1.45, wordBreak:"break-word" }}>
+                {reasonText}
+              </div>
+            )}
+            {overdue && !failed && (
+              <div style={{ fontSize:fs(9.5, isDesktop), color:IDLE_AMBER, marginBottom:8, lineHeight:1.45 }}>
+                No run in over a day — check the "Verify Schemes" workflow in GitHub → Actions.
+              </div>
+            )}
+
+            <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, display:"flex", flexWrap:"wrap", gap:"4px 14px" }}>
+              <span>Last run: <strong style={{ color:th.textMid }}>{timeAgo(run.runAt)}</strong></span>
+              {run.durationMs != null && <span>Took: <strong style={{ color:th.textMid }}>{Math.round(run.durationMs / 1000)}s</strong></span>}
+              {run.tavilyUsedThisMonth != null && run.monthlyBudget != null && (
+                <span>Tavily this month: <strong style={{ color:th.textMid }}>{run.tavilyUsedThisMonth}/{run.monthlyBudget}</strong></span>
+              )}
+              {state.cursor && <span>Position: <strong style={{ color:th.textMid }}>{state.cursor.index}/{state.cursor.totalSchemes}</strong></span>}
+            </div>
+
+            {run.errorSamples?.length > 0 && (
+              <div style={{ marginTop:9 }}>
+                <div
+                  {...activatable(() => setShowErrors(v => !v), `${showErrors ? "Hide" : "Show"} error details`)}
+                  onClick={() => setShowErrors(v => !v)}
+                  style={{ display:"flex", alignItems:"center", gap:6, cursor:"pointer", fontSize:fs(10, isDesktop), fontWeight:700, color:"#EF4444", userSelect:"none" }}
+                >
+                  <IconAlert size={11} color="#EF4444" />
+                  {run.errorCount ?? run.errorSamples.length} scheme{(run.errorCount ?? 0) !== 1 ? "s" : ""} couldn't be verified
+                  <span style={{ marginLeft:"auto", transform: showErrors ? "rotate(90deg)" : "none", transition:"transform 0.15s" }}>
+                    <IconChevronRight size={11} color={th.textSub} />
+                  </span>
+                </div>
+                {showErrors && (
+                  <div style={{ marginTop:8, maxHeight:180, overflowY:"auto", border:`1px solid ${th.border}`, borderRadius:9 }}>
+                    {run.errorSamples.map((e, i) => (
+                      <div key={e.id + i} style={{ padding:"7px 9px", borderBottom: i < run.errorSamples.length - 1 ? `1px solid ${th.border}` : "none", fontSize:fs(9.5, isDesktop), color:th.textMid, lineHeight:1.45, wordBreak:"break-word" }}>
+                        <strong style={{ color:th.text }}>{e.id}</strong>
+                        <span style={{ fontFamily:"monospace", color:th.textSub }}> [{e.kind}]</span> — {e.error}
                       </div>
                     ))}
                   </div>
@@ -5399,25 +5614,23 @@ export default function AgentsTab({
   const [autoFixLoading, setAutoFixLoading] = useState(true);
 
   useEffect(() => {
-    // NOTE: deliberately no orderBy() here. Combining where("agent","==",…)
-    // with orderBy("createdAt", …) on a different field requires a Firestore
-    // COMPOSITE INDEX that doesn't exist by default — the query would fail
-    // silently into the onSnapshot error branch until you manually created
-    // one in the Firebase console. Fetching the last few docs and sorting
-    // client-side avoids that setup step entirely — zero Firestore config
-    // needed beyond the collection existing.
+    // Newest runs first. The old query had where(agent) + limit(10) and NO
+    // ordering, so once more than 10 daily runs existed Firestore returned 10
+    // arbitrary docs (by random doc id) and the card showed some old run as
+    // "latest". Ordering on the single createdAt field needs no composite
+    // index; the agent filter is applied client-side instead.
     const q = query(
       collection(db, "agentRuns"),
-      where("agent", "==", "agent-auto-fix"),
+      orderBy("createdAt", "desc"),
       limit(10)
     );
     const unsub = onSnapshot(q, (snap) => {
       if (snap.empty) {
         setAutoFixRun(null);
       } else {
-        const docs = snap.docs.map(d => d.data());
+        const docs = snap.docs.map(d => d.data()).filter(d => !d.agent || d.agent === "agent-auto-fix");
         docs.sort((a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0));
-        setAutoFixRun(docs[0]);
+        setAutoFixRun(docs[0] ?? null);
       }
       setAutoFixLoading(false);
     }, (err) => {
@@ -5739,12 +5952,15 @@ export default function AgentsTab({
       {/* ── Autonomous Agents — cron-triggered, no live presence concept ── */}
       <SectionFrame
         label="Autonomous Agents"
-        sublabel="agentRuns firestore log — no presence heartbeat, runs on its own schedule"
+        sublabel="agentRuns + schemeVerifyRuns logs — no presence heartbeat, each runs on its own daily schedule"
         color={CYAN}
         dark={dark}
         isDesktop={isDesktop}
       >
-        <AutoFixAgentCard run={autoFixRun} loading={autoFixLoading} dark={dark} isDesktop={isDesktop} />
+        <div style={{ display:"grid", gap:12, gridTemplateColumns: isDesktop ? "repeat(auto-fit, minmax(320px, 1fr))" : "1fr" }}>
+          <AutoFixAgentCard run={autoFixRun} loading={autoFixLoading} dark={dark} isDesktop={isDesktop} />
+          <VerifyBatchAgentCard dark={dark} isDesktop={isDesktop} />
+        </div>
       </SectionFrame>
 
       {/* ── API Call History — 30-day tracker, above attendance ────────── */}

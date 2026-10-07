@@ -8,16 +8,22 @@
 //   Browser → /api/ping-url (Vercel) → .gov.in  =  WORKS  (server-to-server)
 //
 // Flow:
-//   1. Receive POST { url: "https://pmkisan.gov.in" }
-//   2. Send HEAD request from Vercel server directly to the URL
-//      (HEAD is faster — no body download; falls back to GET if server rejects HEAD)
+//   1. Receive POST { url: "https://pmkisan.gov.in" }   (admin-only)
+//   2. HEAD request from the Vercel server (falls back to GET when the server
+//      rejects HEAD or answers HEAD with an error code)
 //   3. Return { httpStatus, alive, error }
+//        alive: true  — 2xx/3xx, or 401/403/429 (server is up, just blocking bots)
+//        alive: false — definitive failure: 404/410/5xx-after-GET, DNS miss, refused
+//        alive: null  — inconclusive: timeout / connection reset. Slow or
+//                       geo-blocking government servers are NOT dead links.
 //
-// ERRORS: always return HTTP 200 with { error } so verifySchemes.js can
-//         handle them gracefully without crashing the run.
+// ERRORS: always HTTP 200 with { error } so the verifier never crashes.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const FETCH_TIMEOUT_MS = 10000; // 10 s — gov sites are often slow
+import { requireAdmin } from "./_lib/adminAuth.js";
+import { isPublicHttpUrl, classifyFetchError } from "./_lib/urlTools.js";
+
+const FETCH_TIMEOUT_MS = 10000; // 10 s per attempt — gov sites are often slow
 
 // Mimic a real browser to avoid bot-detection blocks on some portals
 const USER_AGENT =
@@ -25,63 +31,69 @@ const USER_AGENT =
   "AppleWebKit/537.36 (KHTML, like Gecko) " +
   "Chrome/124.0.0.0 Safari/537.36";
 
+async function attempt(url, method) {
+  const controller = new AbortController();
+  const timer      = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      method,
+      signal:   controller.signal,
+      redirect: "follow",
+      headers:  {
+        "User-Agent":      USER_AGENT,
+        "Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-IN,en;q=0.9,hi;q=0.8",
+      },
+    });
+    // Never download the body — we only need the status code.
+    try { await res.body?.cancel(); } catch { /* ignore */ }
+    return { status: res.status };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export function classifyStatus(httpStatus) {
+  if (httpStatus >= 200 && httpStatus < 400) return { alive: true,  error: null };
+  if (httpStatus === 401 || httpStatus === 403 || httpStatus === 429) {
+    return { alive: true, error: null, note: `${httpStatus} — server is up but blocks automated requests` };
+  }
+  return { alive: false, error: `HTTP ${httpStatus}` };
+}
+
+export async function pingUrlServer(url) {
+  try {
+    let { status } = await attempt(url, "HEAD");
+
+    // Many government servers mis-handle HEAD (405/501, or a bogus 404/5xx/403)
+    // while serving GET fine — confirm any non-success with a real GET.
+    if (status >= 400) {
+      try {
+        ({ status } = await attempt(url, "GET"));
+      } catch { /* keep the HEAD status */ }
+    }
+
+    return { httpStatus: status, ...classifyStatus(status) };
+  } catch (err) {
+    const { definitive, message } = classifyFetchError(err);
+    return { httpStatus: 0, alive: definitive ? false : null, error: message };
+  }
+}
 
 export default async function handler(req, res) {
-
-  // ── Only POST ─────────────────────────────────────────────────────────────
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const auth = await requireAdmin(req, res);
+  if (!auth) return;
+
   const { url } = req.body ?? {};
-
-  if (!url || typeof url !== "string") {
-    return res.status(400).json({ error: "Missing or invalid url field" });
+  if (!url || typeof url !== "string" || !isPublicHttpUrl(url.trim())) {
+    return res.status(400).json({ error: "Missing or invalid url field (must be a public http(s) URL)" });
   }
 
-  const controller = new AbortController();
-  const timer      = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
-  try {
-    // ── Step 1: Try HEAD (faster — no body transfer) ──────────────────────
-    let response = await fetch(url, {
-      method:  "HEAD",
-      signal:  controller.signal,
-      headers: { "User-Agent": USER_AGENT },
-      redirect: "follow",
-    });
-
-    // ── Step 2: Some servers reject HEAD with 405 — retry as GET ─────────
-    if (response.status === 405 || response.status === 501) {
-      response = await fetch(url, {
-        method:  "GET",
-        signal:  controller.signal,
-        headers: { "User-Agent": USER_AGENT },
-        redirect: "follow",
-      });
-    }
-
-    clearTimeout(timer);
-
-    const httpStatus = response.status;
-    console.log(`[ping-url] ${url} → HTTP ${httpStatus}`);
-
-    return res.status(200).json({
-      httpStatus,
-      alive: httpStatus >= 200 && httpStatus < 400,
-      error: null,
-    });
-
-  } catch (err) {
-    clearTimeout(timer);
-
-    const isTimeout = err.name === "AbortError";
-    console.warn(`[ping-url] ${url} → ${isTimeout ? "timeout" : err.message}`);
-
-    return res.status(200).json({
-      httpStatus: 0,
-      alive:      false,
-      error:      isTimeout ? "timeout" : err.message,
-    });
-  }
+  const result = await pingUrlServer(url.trim());
+  console.log(`[ping-url] ${url} → ${result.httpStatus || result.error} (alive: ${result.alive})`);
+  return res.status(200).json(result);
 }

@@ -61,6 +61,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import schemesMeta from "./schemes-meta.json";
+import { adminJson } from "./adminFetch.js";
 
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -72,11 +73,14 @@ const THIRTY_DAYS_MS   = 30 * 24 * 60 * 60 * 1000;
 
 // ── Rate-guard delays ──────────────────────────────────────────────────────
 // Tier 1 (URL ping) never hits Groq — no delay needed.
-// Tier 2 (AI extract) hits Groq every call — 3500ms pause between calls
-// spreads 100 schemes over ~7 min, keeping rate well under 30 RPM
-// for a single dedicated GROQ_VERIFY_KEY on Groq free tier.
-const TIER1_DELAY_MS   = 0;    // ping-only: no Groq involved
-const TIER2_DELAY_MS   = 3500; // AI calls: 3500ms between each scheme — keeps rate well under 30 RPM for a single dedicated GROQ_VERIFY_KEY
+// Tier 2 (AI extract): Groq's free tier for gpt-oss-20b is limited by TOKENS
+// per minute (~8K/key), not just requests, and each check is ~1.5K tokens.
+// The delay starts at TIER2_DELAY_MS and adapts: it doubles (up to
+// TIER2_MAX_DELAY_MS) whenever Groq reports a rate limit — and that scheme is
+// retried once — then eases back down after successful calls.
+const TIER1_DELAY_MS     = 0;      // ping-only: no Groq involved
+const TIER2_DELAY_MS     = 4000;   // starting gap between AI calls
+const TIER2_MAX_DELAY_MS = 60000;  // ceiling for the adaptive back-off
 
 // Domains known to block direct pings from Vercel's server IPs.
 // Pinging these always returns a timeout or connection error, NOT because
@@ -238,55 +242,39 @@ function isIndiaBoundDomain(normalizedUrl) {
 //   Browser → allorigins proxy → .gov.in = BLOCKED (proxy IPs blacklisted by govt)
 //   Browser → /api/ping-url (Vercel) → .gov.in = WORKS (server-to-server)
 
-async function pingUrl(url, signal = null) {
+export async function pingUrl(url, signal = null) {
   const normalized = normalizeUrl(url);
   if (!normalized) {
     return { httpStatus: 0, alive: false, error: "invalid URL" };
   }
 
-  // Fix A — India-bound domains: NIC and similar government infrastructure
-  // blocks direct pings from Vercel's US-based IPs. Rather than returning
-  // alive:false ("Dead"), return alive:null ("No Response") so the admin UI
-  // correctly shows these as unchecked, not broken. Tier 2 (Tavily) handles
-  // them fine and will fill in real status when it runs.
+  // India-bound domains: NIC and similar government infrastructure blocks
+  // pings from Vercel's non-Indian IPs. That says nothing about the link, so
+  // it is reported as "No Response" with an informational note — NOT as an
+  // error (it used to inflate the Errors counter on every run).
   if (isIndiaBoundDomain(normalized)) {
     return {
       httpStatus: 0,
       alive:      null,
-      error:      "India-bound domain — Vercel IP blocked by NIC infrastructure (skipped)",
+      error:      null,
+      note:       "India-only domain — Vercel's servers are geo-blocked, so Tier 1 can't check it (Tier 2 via Tavily can).",
     };
   }
 
   try {
-    const res = await fetch("/api/ping-url", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ url: normalized }),
-      signal,                                        // ← abort immediately on Stop/Pause
-    });
-
-    if (!res.ok) {
-      return { httpStatus: 0, alive: false, error: `ping-url API error ${res.status}` };
-    }
-
-    const pingResult = await res.json(); // { httpStatus, alive, error }
-
-    // Fix B — 403 reclassify: a 403 means the server IS reachable and responded.
-    // It's only rejecting Vercel's bot/IP — the URL itself is live. Marking it
-    // "Dead" (alive:false) is wrong. Flip to alive:true so the admin sees
-    // "Active" with an explanatory note, not a false "Dead" badge.
-    if (pingResult.httpStatus === 403 && pingResult.alive === false) {
-      return {
-        ...pingResult,
-        alive: true,
-        error: "403 — server is live but blocks Vercel bot requests",
-      };
-    }
-
-    return pingResult;
-
+    // Server rules (api/ping-url.js): 401/403/429 → alive (bot-blocking),
+    // timeouts/resets → null (inconclusive), DNS miss / 404 → false.
+    const data = await adminJson("/api/ping-url", { url: normalized }, { signal });
+    return {
+      httpStatus: data.httpStatus ?? 0,
+      alive:      data.alive === true ? true : data.alive === false ? false : null,
+      error:      data.error ?? null,
+      note:       data.note ?? null,
+    };
   } catch (err) {
-    return { httpStatus: 0, alive: false, error: err.message };
+    if (err.name === "AbortError") throw err;
+    // Our own API failing is not evidence the scheme's link is dead.
+    return { httpStatus: 0, alive: null, error: `ping-url API error: ${err.message}` };
   }
 }
 
@@ -300,40 +288,32 @@ async function pingUrl(url, signal = null) {
 // automatically.  Until then it returns { error: "endpoint not yet built" }.
 
 async function extractDateViaAI(scheme, signal = null) {
+  const url = normalizeUrl(scheme.apply?.en);
+  if (!url) return { lastDate: null, isActive: null, confidence: null, httpStatus: 0, error: "invalid URL", errorKind: "page" };
   try {
-    const url = normalizeUrl(scheme.apply?.en);
-    if (!url) return { lastDate: null, isActive: null, confidence: 0, httpStatus: 0, error: "invalid URL" };
-    const res = await fetch("/api/verify-scheme", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      signal,                                        // ← abort immediately on Stop/Pause
-      body: JSON.stringify({
-        id:    scheme.id,
-        url,
-        name:  scheme.name.en,
-        state: scheme.state  ?? "national",
-        scope: scheme.scope,
-      }),
-    });
+    const data = await adminJson("/api/verify-scheme", {
+      id:    scheme.id,
+      url,
+      name:  scheme.name?.en || scheme.id,
+      state: scheme.scope === "national" ? "national" : (scheme.state ?? "state"),
+      scope: scheme.scope,
+    }, { signal });
 
-    if (!res.ok) {
-      return { lastDate: null, isActive: null, confidence: 0, httpStatus: 0, error: `API ${res.status}` };
-    }
-
-    const data = await res.json();
     return {
       lastDate:   data.lastDate   ?? null,
       isActive:   data.isActive   ?? null,
-      confidence: data.confidence ?? 0,
-      // Fix 2: HTTP status of the scheme's page as seen by Tier 2's fetch
-      // (via Tavily). 0 = unknown/timeout, 200 = reachable, 4xx/5xx = real
-      // error codes that Tavily's crawler surfaced for the target page.
+      confidence: data.errorKind ? null : (data.confidence ?? 0),
+      // HTTP status of the scheme's page as seen by Tavily (0 = unknown).
       httpStatus: data.httpStatus ?? 0,
-      error:      null,
+      // The old version always returned error:null here, hiding every AI
+      // failure — and the failed run then wiped good deadlines.
+      error:      data.error ?? null,
+      errorKind:  data.errorKind ?? (data.error ? "ai" : null),
     };
-
   } catch (err) {
-    return { lastDate: null, isActive: null, confidence: 0, httpStatus: 0, error: err.message };
+    if (err.name === "AbortError") throw err;
+    const kind = err.status === 401 || err.status === 403 ? "config" : "ai";
+    return { lastDate: null, isActive: null, confidence: null, httpStatus: 0, error: err.message, errorKind: kind };
   }
 }
 
@@ -346,7 +326,10 @@ export async function saveCheckpoint(payload) {
   try {
     await setDoc(
       doc(db, ...CHECKPOINT_PATH),
-      { ...payload, savedAt: serverTimestamp() },
+      // cleared:false — clearCheckpoint() leaves cleared:true in the doc and
+      // this write MERGES, so without resetting it every later checkpoint
+      // stayed "cleared" and the Resume banner never appeared after a reload.
+      { ...payload, cleared: false, savedAt: serverTimestamp() },
       { merge: true }
     );
   } catch (err) {
@@ -400,15 +383,18 @@ export function buildSummary(results) {
       if (r.alive === false) acc.dead++;
       if (r.alive === null)  acc.noResponse++;
 
-      if (r.error && r.error !== null) acc.errors++;
+      if (r.error) acc.errors++;
 
-      const ld = r.scheme.lastDate ? new Date(r.scheme.lastDate).getTime() : null;
+      // Prefer the deadline this run just found over the bundled one.
+      const lastDate = r.lastDate || r.scheme?.lastDate;
+      const ld = lastDate ? new Date(lastDate).getTime() : null;
       if (ld) {
         if (ld < now)                    acc.expired++;
         else if (ld - now < THIRTY_DAYS_MS) acc.expiringSoon++;
       }
 
-      if (!r.scheme.lastVerified) acc.neverChecked++;
+      if (!r.scheme?.lastVerified) acc.neverChecked++;
+      if (r.lastDate) acc.datesFound++;
 
       return acc;
     },
@@ -421,6 +407,7 @@ export function buildSummary(results) {
       expired:      0,
       expiringSoon: 0,
       neverChecked: 0,
+      datesFound:   0,
     }
   );
 }
@@ -432,27 +419,35 @@ export function buildSummary(results) {
 //   scopeFilter    — "national" | "state:<name>" | "all"        (default: "all")
 //   priorityFilter — "all" | "hasDate" | "neverVerified" | "stale" (default: "all")
 //   tier           — 1 | 2 | "both"                             (default: 1)
-//                      1    → Tier 1 dead-link ping only
-//                      2    → Tier 2 AI extraction only (skips Tier 1 ping)
-//                      "both" → Tier 1 AND Tier 2 for every scheme (Fix 1)
 //   resumeFrom     — queue index to start from (0 = fresh run)   (default: 0)
-//   onProgress     — ({ index, total, scheme, result }) → void
-//                      called after EACH scheme completes
-//   onBatchSaved   — (checkpoint) → void
-//                      called after each batch of BATCH_SIZE is saved to Firestore
+//   resumeQueueIds — the exact queue (scheme ids, in order) saved in the
+//                    checkpoint. Resuming against a freshly built queue used
+//                    to start at the right INDEX of the WRONG list whenever
+//                    the filters or schemes-meta.json had changed.
+//   onProgress     — ({ index, total, scheme, result }) → void   after EACH scheme
+//   onBatchSaved   — (checkpoint) → void                         after each save
+//   onThrottle     — ({ delayMs, index, total, reason? }) | null  rate-guard sleep
+//   onNotice       — ({ level, message }) → void  run-level problems (budget,
+//                    missing keys, rate limits) the admin needs to see
+//   shouldSaveOnAbort — () → boolean. On Pause the exact position is saved so
+//                    Resume continues with the next scheme (not up to 9 back).
 //   signal         — AbortSignal — call controller.abort() to stop mid-run
 //
 // Returns: Promise<result[]>
 //   Each result: {
-//     scheme,         — original scheme object from SCHEME_DB
-//     tier,           — 1 or 2 (which tier produced the primary result)
-//     alive,          — true | false | null  (display-only; for live summary UI)
-//     linkAlive,      — true | false | null  (Tier 1 only — pure URL-liveness, persisted)
-//     httpStatus,     — HTTP status code (0 if timeout/error)
+//     scheme,         — scheme object (with any committed URL fix applied)
+//     tier,           — 1 or 2 (2 when Tier 2 ran)
+//     alive,          — true | false | null  LINK health for the UI (never the
+//                       AI's "applications open" verdict — closed ≠ dead link)
+//     linkAlive,      — true | false | null | undefined  (persisted link health)
+//     httpStatus,     — HTTP status code (0/null if unknown)
 //     lastDate,       — "YYYY-MM-DD" or null (Tier 2 only)
 //     isActive,       — boolean or null     (Tier 2 only — "applications open?")
-//     confidence,     — 0–1                 (Tier 2 only)
+//     confidence,     — 0–1 or null         (Tier 2 only; null = AI failed)
+//     aiError,        — Tier 2 error kind or null ("rate_limit" | "budget" | …)
+//     aiSkipped,      — true when Tier 2 was skipped (budget / config stop)
 //     error,          — error string or null
+//     note,           — informational message (not an error) or null
 //   }
 
 export async function runVerification({
@@ -460,27 +455,33 @@ export async function runVerification({
   priorityFilter = "all",
   tier           = 1,
   resumeFrom     = 0,
+  resumeQueueIds = null,
   onProgress     = () => {},
   onBatchSaved   = () => {},
-  onThrottle     = () => {},   // ({ delayMs, index, total }) → void  fired during rate-guard sleep
+  onThrottle     = () => {},
+  onNotice       = () => {},
+  shouldSaveOnAbort = () => true,
   signal,
 } = {}) {
 
-  const queue   = buildVerificationQueue(scopeFilter, priorityFilter);
-  const total   = queue.length;
-  const results = [];
+  // ── Build the queue (or rebuild the saved one for a resume) ────────────────
+  let queue;
+  if (Array.isArray(resumeQueueIds) && resumeQueueIds.length > 0) {
+    const fresh = buildVerificationQueue("all", "all");
+    const byId  = new Map(fresh.map(s => [s.id, s]));
+    queue = resumeQueueIds.map(id => byId.get(id)).filter(Boolean);
+  } else {
+    queue = buildVerificationQueue(scopeFilter, priorityFilter);
+  }
+  const total    = queue.length;
+  const queueIds = queue.map(s => s.id);
+  const results  = [];
+  let queueIdsSaved = resumeFrom > 0 && Array.isArray(resumeQueueIds);
 
   // ── Overlay committed URL fixes onto the queue ──────────────────────────────
-  // THE BUG THIS FIXES: a full scan always pinged scheme.apply.en straight from
-  // the bundled SCHEME_DB — which is a static import, only refreshed by a full
-  // redeploy. If a fix had already been committed (and even verified live by the
-  // per-row "Re-check"), but the redeploy carrying that fix into the bundle
-  // hadn't landed yet, a full re-scan would still ping the OLD pre-fix URL and
-  // report it dead again — directly contradicting the per-row "Fixed — verified
-  // live" badge sitting right above it. Loading the same Firestore record the
-  // per-row check uses keeps both surfaces consistent regardless of redeploy
-  // timing. Falls back to {} if Firestore is unreachable — a full scan should
-  // never hard-fail just because this overlay couldn't load.
+  // A committed fix only reaches SCHEME_DB after a redeploy; until then the
+  // scan must check the NEW URL (the same one the per-row "Re-check" uses),
+  // or it reports the already-fixed link as dead again.
   let urlFixes = {};
   try {
     urlFixes = await loadUrlFixes();
@@ -492,31 +493,48 @@ export async function runVerification({
     return (fix?.status === "committed" && fix?.newUrl) ? fix.newUrl : scheme.apply?.en;
   };
 
-  // Which schemes also need Tier 2 AI extraction?
-  // Fix 1: previously "both" only ran AI on priority schemes (had a deadline,
-  // or never verified) to save Groq credits — but that left ~70-80% of
-  // schemes without lastDate/confidence after a "both" run. Now every scheme
-  // with a real URL gets a Groq call in both "2" and "both" modes. Slower
-  // (every scheme = a Groq call), but the JSON is genuinely complete after
-  // one full run.
-  const needsAI = (scheme) => tier !== 1;
+  let aiEnabled  = tier !== 1;
+  let aiDelayMs  = TIER2_DELAY_MS;
+  let completed  = resumeFrom;   // index of the next unprocessed scheme
+
+  const saveProgress = async () => {
+    const checkpoint = {
+      scopeFilter,
+      priorityFilter,
+      tier,
+      completedIndex: completed,
+      total,
+      isComplete:     completed >= total,
+      summary:        buildSummary(results),
+    };
+    if (!queueIdsSaved) { checkpoint.queueIds = queueIds; queueIdsSaved = true; }
+    await saveCheckpoint(checkpoint);
+    onBatchSaved(checkpoint);
+  };
+
+  const runAI = async (scheme) => {
+    let ai = await extractDateViaAI(scheme, signal);
+    if (ai.errorKind === "rate_limit" && !signal?.aborted) {
+      // Back off, then retry this scheme once instead of recording a failure.
+      aiDelayMs = Math.min(TIER2_MAX_DELAY_MS, Math.max(aiDelayMs * 2, 15000));
+      onNotice({ level: "warn", message: `Groq rate limit hit — slowing down to one AI check every ${Math.round(aiDelayMs / 1000)}s.` });
+      onThrottle({ delayMs: aiDelayMs, index: completed + 1, total, reason: "rate_limit" });
+      await sleep(aiDelayMs, signal);
+      onThrottle(null);
+      if (signal?.aborted) return ai;
+      ai = await extractDateViaAI(scheme, signal);
+    } else if (!ai.errorKind) {
+      aiDelayMs = Math.max(TIER2_DELAY_MS, Math.round(aiDelayMs * 0.85));
+    }
+    return ai;
+  };
 
   for (let i = resumeFrom; i < total; i++) {
-
-    // ── Abort check ───────────────────────────────────────────────────────────
-    if (signal?.aborted) {
-      console.log("[verifySchemes] Run cancelled at scheme", i + 1, "of", total);
-      break;
-    }
+    if (signal?.aborted) break;
 
     const rawScheme = queue[i];
-
-    // Use the committed-fix URL (if any) for the actual check AND for what
-    // gets displayed — so "Known Dead Links" and the Results list show the
-    // corrected URL too, instead of a stale corrupted one sitting next to a
-    // "Fixed — verified live" badge.
-    const fixedUrl = effectiveUrlFor(rawScheme);
-    const scheme = (fixedUrl !== rawScheme.apply?.en)
+    const fixedUrl  = effectiveUrlFor(rawScheme);
+    const scheme    = (fixedUrl !== rawScheme.apply?.en)
       ? { ...rawScheme, apply: { ...rawScheme.apply, en: fixedUrl } }
       : rawScheme;
 
@@ -524,96 +542,110 @@ export async function runVerification({
       scheme,
       tier:       1,
       alive:      null,
-      linkAlive:  undefined, // Fix 5: undefined = "Tier 1 never ran" (T2-only mode)
-                              //         null     = "Tier 1 ran, India-bound domain (skip ping)"
-                              //         true/false = real Tier 1 result
-                              // writeSchemeResults writes linkAlive whenever it's !== undefined,
-                              // so India-bound null correctly clears a stale `false` in schemes-meta.json
+      linkAlive:  undefined, // undefined = Tier 1 never ran; null = ran but inconclusive
       httpStatus: null,
       lastDate:   null,
       isActive:   null,
       confidence: null,
+      aiError:    null,
+      aiSkipped:  false,
       error:      null,
+      note:       null,
     };
 
-    // ── Tier 1: Dead link ping ─────────────────────────────────────────────────
-    if (tier !== 2) {
-      const ping      = await pingUrl(scheme.apply?.en, signal);
-      if (signal?.aborted) break;   // ← stop immediately; don't push half-baked result
-      result.alive      = ping.alive;
-      result.linkAlive  = ping.alive;
-      result.httpStatus = ping.httpStatus;
-      result.error      = ping.error;
+    let aborted = false;
+    try {
+      // ── Tier 1: Dead link ping ───────────────────────────────────────────
+      if (tier !== 2) {
+        const ping = await pingUrl(scheme.apply?.en, signal);
+        result.alive      = ping.alive;
+        result.linkAlive  = ping.alive;
+        result.httpStatus = ping.httpStatus;
+        result.error      = ping.error ?? null;
+        result.note       = ping.note ?? null;
+      }
+
+      // ── Tier 2: AI date extraction ───────────────────────────────────────
+      if (tier !== 1) {
+        result.tier = 2;
+        if (!aiEnabled) {
+          result.aiSkipped = true;
+        } else {
+          const ai = await runAI(scheme);
+          if (signal?.aborted) throw Object.assign(new Error("aborted"), { name: "AbortError" });
+
+          result.aiError = ai.errorKind ?? null;
+          if (!ai.errorKind) {
+            result.lastDate   = ai.lastDate;
+            result.isActive   = ai.isActive;
+            result.confidence = ai.confidence;
+          }
+
+          // Tavily's crawler reaches pages Vercel's direct ping can't — use
+          // its status when Tier 1 didn't run or was inconclusive.
+          if ((!result.httpStatus) && ai.httpStatus) result.httpStatus = ai.httpStatus;
+
+          // Link health from Tier 2's page fetch (only when Tier 1 gave no
+          // answer). NOT from isActive: "applications closed" ≠ "dead link".
+          if (result.alive === null) {
+            const h = ai.httpStatus || 0;
+            if (h >= 200 && h < 400)         result.alive = true;
+            else if (h === 404 || h === 410) result.alive = false;
+            if (result.alive !== null) result.linkAlive = result.alive;
+          }
+
+          if (ai.error) {
+            result.error = result.error ? `${result.error} | AI: ${ai.error}` : `AI: ${ai.error}`;
+          }
+
+          // Budget / configuration problems affect every remaining scheme:
+          // stop spending calls and tell the admin why.
+          if (ai.errorKind === "budget" || ai.errorKind === "config") {
+            aiEnabled = false;
+            onNotice({
+              level: "error",
+              message: ai.errorKind === "budget"
+                ? `Tier 2 stopped: ${ai.error}`
+                : `Tier 2 stopped — ${ai.error}`,
+            });
+          }
+        }
+      }
+    } catch (err) {
+      if (err.name === "AbortError" || signal?.aborted) aborted = true;
+      else result.error = result.error ?? err.message;
     }
-
-    // ── Tier 2: AI date extraction ────────────────────────────────────────────
-    if (needsAI(scheme)) {
-      result.tier = 2;
-      const ai = await extractDateViaAI(scheme, signal);
-      if (signal?.aborted) break;   // ← same guard for AI call
-      result.lastDate   = ai.lastDate;
-      result.isActive   = ai.isActive;
-      result.confidence = ai.confidence;
-
-      // Fix 2: if Tier 1 didn't run (T2-only) or its ping returned 0
-      // (timeout/blocked/no-response — ambiguous), but Tier 2's page fetch
-      // via Tavily got a real status code, use that. Tavily's crawler often
-      // reaches .gov.in pages that direct pings/proxies can't, so a 404/403/5xx
-      // here is more informative than a bare 0.
-      if ((result.httpStatus === null || result.httpStatus === 0) && ai.httpStatus) {
-        result.httpStatus = ai.httpStatus;
-      }
-
-      // Sync alive from T2 isActive so buildSummary shows correct Active/Dead/NoResp
-      // in T2-only runs where Tier 1 ping is skipped (alive would otherwise stay null).
-      // Display-only — does NOT affect the persisted `linkAlive` field (Fix 3),
-      // which stays null whenever Tier 1 didn't actually run.
-      if (result.alive === null) {
-        result.alive = ai.isActive; // true / false / null (null = page unreachable)
-      }
-
-      // Append AI error (if any) without overwriting ping error
-      if (ai.error) {
-        result.error = result.error
-          ? `${result.error} | AI: ${ai.error}`
-          : `AI: ${ai.error}`;
-      }
-    }
+    if (aborted) break;   // don't record a half-checked scheme
 
     results.push(result);
-
-    // ── Progress callback (live updates for SchemeVerifier.jsx) ───────────────
+    completed = i + 1;
     onProgress({ index: i + 1, total, scheme, result });
 
-    // ── Save checkpoint every BATCH_SIZE or on final scheme ───────────────────
-    if ((i + 1) % BATCH_SIZE === 0 || i + 1 === total) {
-      const checkpoint = {
-        scopeFilter,
-        priorityFilter,
-        tier,
-        completedIndex: i + 1,
-        total,
-        isComplete:     i + 1 === total,
-        summary:        buildSummary(results),
-      };
-      await saveCheckpoint(checkpoint);
-      onBatchSaved(checkpoint);
+    // Tier 2-only run with AI disabled (budget / keys) has nothing left to
+    // do — stop here and keep a checkpoint so it can be resumed later.
+    if (tier === 2 && !aiEnabled) {
+      if (completed < total) await saveProgress();
+      break;
     }
 
-    // ── Rate-guard delay ──────────────────────────────────────────────────────
-    // Pauses between schemes to avoid triggering Groq's organization_restricted
-    // flag. Only applied when there are more schemes to process (skip on final).
-    // onThrottle fires so SchemeVerifier.jsx can show a visual countdown.
-    // sleep() resolves immediately if the AbortSignal fires during the delay,
-    // so Stop/Pause still responds instantly.
-    if (i + 1 < total && !signal?.aborted) {
-      const delayMs = needsAI(scheme) ? TIER2_DELAY_MS : TIER1_DELAY_MS;
+    if (completed % BATCH_SIZE === 0 || completed === total) {
+      await saveProgress();
+    }
+
+    // ── Rate-guard delay ──────────────────────────────────────────────────
+    if (completed < total && !signal?.aborted) {
+      const delayMs = (tier !== 1 && aiEnabled) ? aiDelayMs : TIER1_DELAY_MS;
       if (delayMs > 0) {
-        onThrottle({ delayMs, index: i + 1, total });
+        onThrottle({ delayMs, index: completed, total });
         await sleep(delayMs, signal);
-        onThrottle(null); // clear — next scheme is starting
+        onThrottle(null);
       }
     }
+  }
+
+  // Save the exact stopping point on Pause (or the final state on skip-out).
+  if (completed < total && completed > resumeFrom && signal?.aborted && shouldSaveOnAbort()) {
+    await saveProgress();
   }
 
   return results;
@@ -661,7 +693,7 @@ export function loadSchemeOverlay() {
 // auto-redeploy (1-2 min).
 
 export async function writeSchemeResults(results) {
-  if (!Array.isArray(results) || results.length === 0) return;
+  if (!Array.isArray(results) || results.length === 0) return { success: true, updated: 0 };
 
   const now     = new Date().toISOString();
   const payload = {};
@@ -672,48 +704,33 @@ export async function writeSchemeResults(results) {
 
     const entry = { lastVerified: now };
 
-    // httpStatus — written whenever we have one, whether from Tier 1's ping or
-    // (Fix 2) Tier 2's page fetch filling in a real 404/403/5xx that Tier 1's
-    // ping reported as 0/ambiguous.
-    if (r.httpStatus !== null) {
-      entry.httpStatus = r.httpStatus;
+    // httpStatus — only a real code is worth storing (0 = "unknown").
+    if (r.httpStatus > 0) entry.httpStatus = r.httpStatus;
+
+    // linkAlive — only a definitive answer is written. An inconclusive check
+    // (timeout, geo-blocked India-only domain, our own API hiccup) must not
+    // overwrite what an earlier, successful check found.
+    if (r.linkAlive === true || r.linkAlive === false) entry.linkAlive = r.linkAlive;
+
+    // Tier 2 facts — only when the AI step actually succeeded. A failed or
+    // rate-limited call used to write lastDate:null, which the server treats
+    // as "deadline removed", wiping good deadlines on every bad run.
+    if (r.tier === 2 && !r.aiSkipped && !r.aiError && r.confidence != null) {
+      entry.confidence = r.confidence;
+      if (r.isActive != null) entry.isActive = r.isActive;
+      if (r.lastDate) entry.lastDate = r.lastDate;
+      else if (r.confidence >= 0.5) entry.lastDate = null; // page clearly read, no deadline any more
     }
 
-    // linkAlive — Tier 1's pure URL-liveness (Fix 3: separate from isActive).
-    // Fix 5: write whenever Tier 1 actually ran (linkAlive !== undefined).
-    // Writing null for India-bound domains clears any stale `false` in
-    // schemes-meta.json so they stop appearing in "Known Dead Links".
-    // undefined means Tier 1 never ran (T2-only mode) — skip writing.
-    if (r.linkAlive !== undefined) {
-      entry.linkAlive = r.linkAlive;
-    }
-
-    // Tier 2 ran → AI-extracted deadline + application status.
-    // lastDate is written even when null so a confirmed "no deadline on page"
-    // result can clear a stale date (Fix 4). isActive/confidence are only
-    // written when the AI gave a real answer, so an "unclear" read doesn't
-    // wipe out a previously good value.
-    if (r.tier === 2) {
-      entry.lastDate = r.lastDate; // "YYYY-MM-DD" or null (explicit — see Fix 4)
-      if (r.isActive   != null) entry.isActive   = r.isActive;
-      if (r.confidence != null) entry.confidence = r.confidence;
-    }
+    // Nothing learned at all (e.g. Tier 2 rate-limited, Tier 1 skipped)?
+    // Don't stamp lastVerified on a scheme we didn't actually verify.
+    if (Object.keys(entry).length === 1 && (r.aiError || r.aiSkipped) && r.linkAlive === undefined) continue;
 
     payload[id] = entry;
   }
 
-  const res = await fetch("/api/update-schemes-meta", {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ results: payload }),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
-
-  return await res.json();  // { success: true, updated: N }
+  if (Object.keys(payload).length === 0) return { success: true, updated: 0 };
+  return adminJson("/api/update-schemes-meta", { results: payload });  // { success, updated }
 }
 
 
@@ -788,7 +805,7 @@ export function getVerifiableCount(
 export function getStatesInDB() {
   const stateSet = new Set(
     SCHEME_DB
-      .filter(s => s.scope === "state" && s.state && s.applyType === "online" && s.apply?.en)
+      .filter(s => s.scope === "state" && s.state && s.applyType === "online" && !!normalizeUrl(s.apply?.en))
       .map(s => s.state)
   );
   return [...stateSet].sort();
@@ -857,6 +874,10 @@ export async function markUrlFixCommitted(schemeId, newUrl, commitSha, commitUrl
           commitSha,
           commitUrl,
           committedAt: new Date().toISOString(),
+          // A new commit invalidates any previous re-check result.
+          verified:          deleteField(),
+          verifiedAt:        deleteField(),
+          lastCheckedStatus: deleteField(),
         },
       },
       { merge: true }
@@ -885,32 +906,28 @@ export async function markUrlFixCommitted(schemeId, newUrl, commitSha, commitUrl
  */
 export async function verifyCommittedFix(schemeId, url) {
   if (!schemeId || !url) return { alive: null, httpStatus: 0 };
-  try {
-    const res  = await fetch("/api/ping-url", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ url }),
-    });
-    const data = await res.json().catch(() => ({}));
-    const alive = !!data.alive;
+  // Same rules as a full scan (403 = live but bot-blocking, timeouts and
+  // India-only domains = can't tell) — the old version treated all of those
+  // as "Still unreachable".
+  const ping = await pingUrl(url).catch(() => ({ alive: null, httpStatus: 0 }));
+  if (ping.alive === null) return { alive: null, httpStatus: ping.httpStatus ?? 0, note: ping.note ?? ping.error ?? null };
 
+  try {
     await setDoc(
       doc(db, ...URL_FIXES_PATH),
       {
         [schemeId]: {
-          verified:          alive,
+          verified:          ping.alive,
           verifiedAt:        new Date().toISOString(),
-          lastCheckedStatus: data.httpStatus ?? 0,
+          lastCheckedStatus: ping.httpStatus ?? 0,
         },
       },
       { merge: true }
     );
-
-    return { alive, httpStatus: data.httpStatus ?? 0 };
   } catch (err) {
-    console.warn("[verifyCommittedFix] check failed:", err.message);
-    return { alive: null, httpStatus: 0 };
+    console.warn("[verifyCommittedFix] Firestore write failed:", err.message);
   }
+  return { alive: ping.alive, httpStatus: ping.httpStatus ?? 0 };
 }
 
 /**
@@ -985,16 +1002,8 @@ export async function commitQueuedFixes(queue) {
     return { success: true, results: [], commits: [] };
   }
 
-  const res = await fetch("/api/batch-patch-urls", {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ patches: queue }),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.error) {
-    throw new Error(data.error || `HTTP ${res.status}`);
-  }
+  const data = await adminJson("/api/batch-patch-urls", { patches: queue });
+  if (data.error) throw new Error(data.error);
   return data;
 }
 
