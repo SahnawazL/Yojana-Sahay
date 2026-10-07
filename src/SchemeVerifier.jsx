@@ -561,6 +561,16 @@ function detectUrlIssues(schemes, scopeFilter) {
 //   5. No Response (India-bound domains — not necessarily broken)
 //   6. Active schemes (reference table)
 
+// Everything interpolated into the export reports comes partly from remote
+// servers (error text from Tavily / government sites, URLs) and is written
+// into a same-origin window with document.write — escape it so it can't
+// inject markup or script into an admin session.
+function escHtml(v) {
+  return String(v ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 function exportResultsPDF(results, summary, scopeFilter, priorityFilter, tier) {
   const now      = new Date();
   const dateStr  = now.toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
@@ -636,7 +646,7 @@ function exportResultsPDF(results, summary, scopeFilter, priorityFilter, tier) {
           <strong>Action:</strong> Open the URL in a browser to confirm it's actually live before editing the file.
           If confirmed dead, search for <code>"${r.scheme?.id ?? ""}"</code> in <code>${filePath}</code>
           and update <code>apply.en</code>.<br/>
-          Current URL: <code>${urlVal}</code>
+          Current URL: <code>${escHtml(urlVal)}</code>
         </div>`;
     } else if (label === "Retry Later") {
       fieldHint = `
@@ -669,26 +679,26 @@ function exportResultsPDF(results, summary, scopeFilter, priorityFilter, tier) {
           <tr><td class="dk">Scheme ID</td>
               <td class="dv mono" style="color:${C_NAVY}; font-weight:800;">${r.scheme?.id || "—"}</td></tr>
           <tr><td class="dk">Name (EN)</td>
-              <td class="dv">${r.scheme?.name?.en || "—"}</td></tr>
+              <td class="dv">${escHtml(r.scheme?.name?.en || "—")}</td></tr>
           <tr><td class="dk">File to Edit</td>
               <td class="dv fp">${filePath}</td></tr>
           <tr><td class="dk">State / Scope</td>
               <td class="dv">${stateName} · ${r.scheme?.scope || "—"}</td></tr>
           <tr><td class="dk">Current URL</td>
-              <td class="dv url">${urlVal}</td></tr>
+              <td class="dv url">${escHtml(urlVal)}</td></tr>
           ${r.scheme?.lastDate
-            ? `<tr><td class="dk">Deadline</td><td class="dv">${r.scheme.lastDate}</td></tr>`
+            ? `<tr><td class="dk">Deadline</td><td class="dv">${escHtml(r.scheme.lastDate)}</td></tr>`
             : ""}
           <tr><td class="dk">HTTP Status</td>
               <td class="dv mono">${http}</td></tr>
           ${r.error
-            ? `<tr><td class="dk">Error Detail</td><td class="dv err">${errText}</td></tr>`
+            ? `<tr><td class="dk">Error Detail</td><td class="dv err">${escHtml(errText)}</td></tr>`
             : ""}
         </table>
 
         <div class="fix-block" style="border-top-color:${catColor}22;">
           <strong style="color:${catColor};">WHAT TO FIX:</strong>
-          <p>${fix?.detail || "Check the URL manually and update if needed."}</p>
+          <p>${escHtml(fix?.detail || "Check the URL manually and update if needed.")}</p>
         </div>
 
         ${fieldHint}
@@ -701,8 +711,8 @@ function exportResultsPDF(results, summary, scopeFilter, priorityFilter, tier) {
     return `
       <tr>
         <td class="ti">${i + 1}</td>
-        <td class="tn">${r.scheme?.name?.en || r.scheme?.id || "—"}</td>
-        <td class="tu">${url}</td>
+        <td class="tn">${escHtml(r.scheme?.name?.en || r.scheme?.id || "—")}</td>
+        <td class="tu">${escHtml(url)}</td>
         <td class="ts">${r.scheme?.state || "National"}</td>
         <td class="th" style="color:${C_GREEN};">${http}</td>
       </tr>`;
@@ -714,10 +724,10 @@ function exportResultsPDF(results, summary, scopeFilter, priorityFilter, tier) {
     return `
       <tr>
         <td class="ti">${i + 1}</td>
-        <td class="tn">${r.scheme?.name?.en || r.scheme?.id || "—"}</td>
-        <td class="tu">${url}</td>
+        <td class="tn">${escHtml(r.scheme?.name?.en || r.scheme?.id || "—")}</td>
+        <td class="tu">${escHtml(url)}</td>
         <td class="ts">${r.scheme?.state || "National"}</td>
-        <td class="th" style="color:#9CA3AF;font-size:7.5pt;">${err}</td>
+        <td class="th" style="color:#9CA3AF;font-size:7.5pt;">${escHtml(err)}</td>
       </tr>`;
   };
 
@@ -1107,17 +1117,17 @@ function exportIssuesOnlyPDF(results, summary, scopeFilter, priorityFilter, tier
       </div>
       <table class="dtable">
         <tr><td class="dk">Scheme ID</td><td class="dv mono" style="color:${C_NAVY};font-weight:800;">${r.scheme?.id || "—"}</td></tr>
-        <tr><td class="dk">Name (EN)</td><td class="dv">${r.scheme?.name?.en || "—"}</td></tr>
+        <tr><td class="dk">Name (EN)</td><td class="dv">${escHtml(r.scheme?.name?.en || "—")}</td></tr>
         <tr><td class="dk">File to Edit</td><td class="dv fp">${filePath}</td></tr>
         <tr><td class="dk">State / Scope</td><td class="dv">${stateName} · ${r.scheme?.scope || "—"}</td></tr>
-        <tr><td class="dk">Current URL</td><td class="dv url">${urlVal}</td></tr>
-        ${r.scheme?.lastDate ? `<tr><td class="dk">Deadline</td><td class="dv">${r.scheme.lastDate}</td></tr>` : ""}
+        <tr><td class="dk">Current URL</td><td class="dv url">${escHtml(urlVal)}</td></tr>
+        ${r.scheme?.lastDate ? `<tr><td class="dk">Deadline</td><td class="dv">${escHtml(r.scheme.lastDate)}</td></tr>` : ""}
         <tr><td class="dk">HTTP Status</td><td class="dv mono">${http}</td></tr>
-        ${r.error ? `<tr><td class="dk">Error Detail</td><td class="dv err">${r.error.slice(0, 200)}</td></tr>` : ""}
+        ${r.error ? `<tr><td class="dk">Error Detail</td><td class="dv err">${escHtml(r.error.slice(0, 200))}</td></tr>` : ""}
       </table>
       <div class="fix-block" style="border-top-color:${catColor}22;">
         <strong style="color:${catColor};">WHAT TO FIX:</strong>
-        <p>${fix?.detail || "Check the URL manually and update if needed."}</p>
+        <p>${escHtml(fix?.detail || "Check the URL manually and update if needed.")}</p>
       </div>
       ${fieldHint}
     </div>`;
