@@ -46,6 +46,7 @@ import { isPublicHttpUrl } from "./urlTools.js";
 import { checkTavilyBudget, noteTavilyCall } from "./tavilyBudget.js";
 import { recordAiCall } from "./firebaseAdmin.js";
 import { logApiCallToHistory } from "./apiCallHistory.js";
+import { createProgress } from "./agentProgress.js";
 
 export const MAX_NEW_PER_RUN  = Math.max(0, Number(process.env.DISCOVERY_PER_RUN ?? 3) || 0);
 const REGIONS_PER_RUN         = 2;
@@ -455,7 +456,7 @@ async function liveSchemeNames(files) {
 }
 
 // ── Main run ─────────────────────────────────────────────────────────────────
-export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions: forcedRegions = null, log = console } = {}) {
+export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions: forcedRegions = null, log = console, progress = { step() {} } } = {}) {
   const startedAt = Date.now();
   const out = {
     regions: [], searched: 0, candidates: 0, duplicates: 0, researched: 0,
@@ -475,6 +476,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
   const cursor = Number.isInteger(st.cursor) ? st.cursor : 0;
   const regions = forcedRegions ?? Array.from({ length: REGIONS_PER_RUN }, (_, i) => REGIONS[(cursor + i) % REGIONS.length]);
   out.regions = regions;
+  progress.step(`Regions this run: ${regions.map(r => r === "national" ? "Central government" : r).join(" + ")}`);
   const seen = typeof st.seen === "object" && st.seen ? st.seen : {}; // normName → { at, outcome }
 
   // Existing drafts count as "known" too.
@@ -494,6 +496,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
   for (const region of regions) {
     if (toResearch.length >= maxNew) break;
     const where = region === "national" ? "India central government" : `${region} government`;
+    progress.step(`Searching news + government sites for ${region === "national" ? "Central" : region} schemes…`);
     // 1. Search (news = newly launched; web = established but missing)
     const [news, web] = await Promise.all([
       serperSearch(`${where} new welfare scheme yojana ${year} launched apply`, serperKey, 10, { type: "news" }),
@@ -523,12 +526,18 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
       .map(c => ({ name: str(c?.name, 120), url: typeof c?.url === "string" ? c.url.trim() : null, region }))
       .filter(c => c.name);
     out.candidates += cands.length;
+    progress.step(cands.length ? `AI found ${cands.length} named scheme(s): ${cands.map(c => c.name).join(", ").slice(0, 160)}` : "AI found no specific schemes in these results");
 
     // 3. Dedupe
     for (const c of cands) {
       if (toResearch.length >= maxNew) break;
       const key = seenKey(region, c.name);
-      if (seen[key] || findDuplicate(c.name, region, known) || toResearch.some(t => sameScheme(t.name, c.name))) { out.duplicates++; continue; }
+      if (seen[key] || findDuplicate(c.name, region, known) || toResearch.some(t => sameScheme(t.name, c.name))) {
+        out.duplicates++;
+        progress.step(`  ↳ "${c.name}" — already in the app / seen before, skipped`);
+        continue;
+      }
+      progress.step(`  ↳ "${c.name}" — new! will research it`, "ok");
       toResearch.push(c);
     }
   }
@@ -539,15 +548,18 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
     if (Date.now() - startedAt > MAX_RUNTIME_MS) { out.stopReason = out.stopReason ?? "time limit"; break; }
     const key = seenKey(c.region, c.name);
     try {
+      progress.step(`Researching "${c.name}": finding the official page…`);
       const sourceUrl = await findSourceUrl(c, c.region, serperKey, out);
       if (!sourceUrl) { out.errors.push(`${c.name}: no source page found`); seen[key] = { at: istToday(), outcome: "no-source" }; continue; }
 
       const budget = await checkTavilyBudget(db);
       if (!budget.ok) { out.stopReason = "budget: monthly Tavily budget reached"; break; }
+      progress.step(`  ↳ reading ${sourceUrl}`);
       const page = await fetchPageText(sourceUrl, tavilyKey, { excerpt: draftExcerpt });
       if (page.billed) { out.tavilyCalls++; noteTavilyCall(); recordAiCall({ service: "tavily-verify" }).catch(() => {}); logApiCallToHistory("tavilyVerifyCalls").catch(() => {}); }
       if (!page.text) { out.errors.push(`${c.name}: page unreadable — ${page.error}`); seen[key] = { at: istToday(), outcome: "unreadable" }; continue; }
 
+      progress.step("  ↳ AI is writing the entry in English + Hindi (benefit, documents, eligibility)…");
       const { system, user } = draftPrompt(c, c.region, page.text, sourceUrl);
       const d = await groqJson(DRAFT_MODEL, system, user, 2200);
       if (d.error) {
@@ -559,6 +571,12 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
       const built = buildScheme(d.data, { candidate: c, region: c.region, sourceUrl, pageText: page.text, schemes: known, takenIds });
       takenIds.add(built.scheme.id);
 
+      progress.step(
+        built.hardReject ? `  ↳ dropped: ${built.hardReject.join("; ")}`
+          : built.autoPublish ? "  ↳ passed every check — will be added to the app"
+          : `  ↳ needs your approval: ${built.problems.join("; ")}`,
+        built.hardReject ? "warn" : built.autoPublish ? "ok" : "warn"
+      );
       if (built.hardReject) {
         out.rejected.push({ name: built.scheme.name.en || c.name, region: c.region, reasons: built.hardReject });
         seen[key] = { at: istToday(), outcome: "rejected" };
@@ -583,6 +601,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
 
   // 5. Publish the confident ones (one commit per file)
   if (toPublish.length) {
+    progress.step(`Publishing ${toPublish.length} scheme(s) to GitHub…`);
     const res = await publishSchemes(toPublish);
     for (const r of res) {
       const it = toPublish.find(t => t.scheme.id === r.id);
@@ -650,10 +669,15 @@ export async function reviewSchemeDraft(db, { id, op, by }) {
 // ── Run + log (cron, watchdog, admin "Run") ──────────────────────────────────
 export async function runAndLogDiscovery({ db, trigger = "cron" } = {}) {
   const startedAt = new Date().toISOString();
+  const progress = createProgress(db, "discover", { trigger });
   let result;
   try {
-    result = await runSchemeDiscovery({ db });
+    result = await runSchemeDiscovery({ db, progress });
+    if (result.stopReason) progress.step(`Stopped: ${result.stopReason}`, "warn");
+    progress.step(`Done: ${result.published?.length ?? 0} added · ${result.drafted?.length ?? 0} waiting for approval · ${result.duplicates ?? 0} already known`, "ok");
+    await progress.done({ added: result.published?.length ?? 0, drafts: result.drafted?.length ?? 0 });
   } catch (err) {
+    await progress.fail(err);
     result = { crashed: true, error: String(err.message).slice(0, 400), published: [], drafted: [], rejected: [], errors: [], regions: [] };
   }
   const doc = JSON.parse(JSON.stringify({ agent: "scheme-discovery", trigger, startedAt, finishedAt: new Date().toISOString(), ...result }));

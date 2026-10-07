@@ -76,7 +76,7 @@ export function pickAutoFix(scheme, oldUrl, candidates) {
 
 function daysAgo(ms) { return (Date.now() - ms) / 86400000; }
 
-export async function runUrlRepair({ db, log = console } = {}) {
+export async function runUrlRepair({ db, log = console, progress = { step() {} } } = {}) {
   const out = {
     deadFound: 0, recovered: [], fixed: [], needsReview: [], skippedCooldown: 0,
     searchesUsed: 0, errors: [], stopReason: null,
@@ -92,6 +92,7 @@ export async function runUrlRepair({ db, log = console } = {}) {
     normalizeSchemeUrl(s.apply?.en)
   );
   out.deadFound = dead.length;
+  progress.step(`${dead.length} scheme link(s) are recorded as dead`);
   if (dead.length === 0) return out;
 
   // Per-scheme retry bookkeeping (best effort — works without Firestore too).
@@ -114,6 +115,8 @@ export async function runUrlRepair({ db, log = console } = {}) {
     });
   }
 
+  progress.step(`${out.recovered.length} came back online · ${stillDead.length} still dead`, out.recovered.length ? "ok" : "info");
+
   // ── 2/3. Search + decide ──────────────────────────────────────────────────
   const patches = [];
   for (const s of stillDead) {
@@ -121,6 +124,7 @@ export async function runUrlRepair({ db, log = console } = {}) {
     if (attempts[s.id] && daysAgo(attempts[s.id]) < RETRY_AFTER_DAYS) { out.skippedCooldown++; continue; }
 
     const oldUrl = normalizeSchemeUrl(s.apply.en);
+    progress.step(`Searching for a new official page: ${s.name?.en ?? s.id}`);
     out.searchesUsed++;
     attempts[s.id] = Date.now();
     const { candidates, searchError, config } = await findUrlCandidates({
@@ -137,6 +141,7 @@ export async function runUrlRepair({ db, log = console } = {}) {
     }
 
     const pick = pickAutoFix(s, oldUrl, candidates);
+    progress.step(pick ? `  ↳ found ${pick.url} (${pick.reason}) — will replace` : `  ↳ ${candidates.length} candidate(s), none certain — sent for review`, pick ? "ok" : "warn");
     if (pick && isPublicHttpUrl(pick.url)) {
       patches.push({ id: s.id, oldUrl: s.apply.en, newUrl: pick.url, file: getUrlIssueFilePath(s), _pick: pick, _name: s.name?.en ?? s.id });
     } else {

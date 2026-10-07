@@ -14,11 +14,14 @@ import { detectUrlIssues, getUrlIssueFilePath } from "./urlIssues.js";
 import { commitPatches } from "./githubCommit.js";
 import { getAdminDb } from "./firebaseAdmin.js";
 import { runUrlRepair } from "./urlRepairAgent.js";
+import { createProgress } from "./agentProgress.js";
 
 export async function runAutoFixAgent({ trigger = "cron" } = {}) {
   const startedAt = new Date().toISOString();
   const db = getAdminDb();
+  const progress = createProgress(db, "autoFix", { trigger });
   try {
+    progress.step(`Scanning all ${SCHEME_DB.length} schemes for badly formatted apply links…`);
     const issues = detectUrlIssues(SCHEME_DB, "all");
     const noHttps = issues.filter(i => i.type === "NO_HTTPS");
     const needsReview = issues
@@ -39,13 +42,18 @@ export async function runAutoFixAgent({ trigger = "cron" } = {}) {
       file: getUrlIssueFilePath(i.scheme),
     }));
 
+    progress.step(`${noHttps.length} link(s) missing https:// · ${needsReview.length} need a human (several URLs / text instead of a link)`);
     let commitResult = { results: [], commits: [] };
-    if (patches.length > 0) commitResult = await commitPatches(patches, { source: "agent" });
+    if (patches.length > 0) {
+      progress.step(`Adding https:// to ${patches.length} link(s) and saving to GitHub…`);
+      commitResult = await commitPatches(patches, { source: "agent" });
+    }
 
     // Step 2 — dead-link repair. Its own failure must not lose step 1's work.
     let repair = null;
     try {
-      repair = await runUrlRepair({ db });
+      progress.step("Dead-link repair: re-checking links marked dead…");
+      repair = await runUrlRepair({ db, progress });
     } catch (err) {
       console.error("[agent-auto-fix] URL repair failed:", err.message);
       repair = { error: String(err.message).slice(0, 300), stopReason: `crashed: ${String(err.message).slice(0, 200)}`, fixed: [], recovered: [], needsReview: [] };
@@ -103,6 +111,7 @@ export async function runAutoFixAgent({ trigger = "cron" } = {}) {
       }
     }
 
+    await progress.done({ httpsFixed: fixedCount, repaired, recovered, review: allReview.length });
     console.log(
       `[agent-auto-fix] ${summary.totalSchemesScanned} schemes · ${fixedCount} https fixes · ` +
       `${repaired} links repaired · ${recovered} recovered · ${allReview.length} need review.`
@@ -110,6 +119,7 @@ export async function runAutoFixAgent({ trigger = "cron" } = {}) {
     return summary;
   } catch (err) {
     console.error("[agent-auto-fix] Run failed:", err);
+    await progress.fail(err);
     try {
       await db?.collection("agentRuns").add({
         agent: "agent-auto-fix", trigger, startedAt,

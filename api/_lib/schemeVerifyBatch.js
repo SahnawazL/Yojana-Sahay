@@ -94,14 +94,18 @@ export function outcomeToMetaEntry(outcome, nowIso = new Date().toISOString()) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-export async function runSchemeVerificationBatch() {
+const NOOP_PROGRESS = { step() {} };
+
+export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = {}) {
   const db = getAdminDb();
   const startedAt = Date.now();
   if (!db) throw new Error("Firebase Admin is not configured (FIREBASE_* env vars) — cannot run the verify batch.");
 
   // ── Hard budget guard — checked first, before touching the cursor ─────────
   const tavilyUsedThisMonth = await getTavilyCallsThisMonth(db);
+  progress.step(`Tavily budget: ${tavilyUsedThisMonth}/${MONTHLY_TAVILY_BUDGET} page reads used this month`);
   if (tavilyUsedThisMonth >= MONTHLY_TAVILY_BUDGET) {
+    progress.step("Monthly budget reached — skipping this run", "warn");
     console.warn(
       `[schemeVerifyBatch] Skipping run — ${tavilyUsedThisMonth} Tavily calls already used this month ` +
       `(budget: ${MONTHLY_TAVILY_BUDGET}).`
@@ -154,6 +158,7 @@ export async function runSchemeVerificationBatch() {
   const cursorSnap  = await cursorRef.get();
   const cursorBefore = cursorSnap.exists ? (cursorSnap.data().index || 0) : 0;
   let index = cursorBefore >= total ? 0 : cursorBefore; // catalog may have shrunk since last run
+  progress.step(`Resuming the rotation at scheme ${index + 1} of ${total} · will check up to ${runCap} schemes`);
 
   const results = {};
   let checkedCount = 0;      // total iterations, including skipped no-URL entries
@@ -195,6 +200,8 @@ export async function runSchemeVerificationBatch() {
     }
     lastCallAt = Date.now();
 
+    const label = scheme.name?.en || scheme.id;
+    progress.step(`Checking ${tavilyCallsMade + 1}/${runCap}: ${label}`);
     let outcome;
     try {
       outcome = await verifySchemeCore({
@@ -233,6 +240,12 @@ export async function runSchemeVerificationBatch() {
       errorCount++;
       if (errorSamples.length < 10) errorSamples.push({ id, kind: outcome.errorKind, error: String(outcome.error).slice(0, 160) });
     }
+    progress.step(
+      outcome.errorKind
+        ? `  ↳ ${outcome.errorKind === "page" ? "page couldn't be read" : outcome.errorKind === "rate_limit" ? "AI busy (rate limit)" : "AI couldn't read it"}${outcome.httpStatus ? ` (HTTP ${outcome.httpStatus})` : ""}`
+        : `  ↳ ${outcome.lastDate ? `last date ${outcome.lastDate}` : "no deadline on the page"}${outcome.isActive === true ? " · applications open" : outcome.isActive === false ? " · closed" : ""}`,
+      outcome.errorKind ? "warn" : "ok"
+    );
     // A rate-limited AI call taught us nothing — don't stamp lastVerified.
     if (outcome.errorKind !== "rate_limit") results[id] = outcomeToMetaEntry(outcome);
   }
@@ -244,14 +257,18 @@ export async function runSchemeVerificationBatch() {
     { merge: true }
   );
 
+  if (stopReason) progress.step(`Stopped early — ${stopReason}`, "warn");
   let commitResult = { success: true, updated: 0 };
   let commitError  = null;
   if (Object.keys(results).length > 0) {
+    progress.step(`Saving ${Object.keys(results).length} result(s) to GitHub (schemes-meta.json)…`);
     try {
       commitResult = await commitSchemesMeta(results);
+      progress.step(commitResult.committed === false ? "Nothing changed on GitHub" : "Saved to GitHub — site updates in ~2 min", "ok");
     } catch (err) {
       console.error("[schemeVerifyBatch] GitHub commit failed:", err.message);
       commitError = err.message;
+      progress.step(`GitHub save failed: ${err.message}`, "error");
       // Cursor has already advanced and results were computed correctly —
       // only the GitHub write failed. Surface the error but don't throw,
       // so the caller (api/deadline-alerts.js) still returns a clean 200

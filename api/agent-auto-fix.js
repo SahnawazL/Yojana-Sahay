@@ -39,6 +39,7 @@ import { runAutoFixAgent } from "./_lib/autoFixAgent.js";
 import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import { getAdminDb } from "./_lib/firebaseAdmin.js";
 import { runAndLogDiscovery } from "./_lib/schemeDiscovery.js";
+import { isJobRunning } from "./_lib/agentProgress.js";
 
 export default async function handler(req, res) {
   // ── Auth: only Vercel Cron / the GitHub watchdog (CRON_SECRET) ────────────
@@ -71,6 +72,7 @@ export default async function handler(req, res) {
 
   // ── Scheme Discovery (daily, GitHub Actions) ─────────────────────────────
   if (req.method === "POST" && req.body?.action === "discover") {
+    if (await isJobRunning(getAdminDb(), "discover")) return res.status(409).json({ success: false, error: "Scheme Discovery is already running" });
     try {
       const result = await runAndLogDiscovery({ db: getAdminDb(), trigger: req.body?.trigger === "watchdog" ? "watchdog" : "cron" });
       return res.status(200).json({ success: true, result });
@@ -79,6 +81,7 @@ export default async function handler(req, res) {
     }
   }
 
+  if (await isJobRunning(getAdminDb(), "autoFix")) return res.status(409).json({ success: false, error: "Auto-Fix is already running" });
   try {
     const summary = await runAutoFixAgent({ trigger: req.body?.trigger === "watchdog" ? "watchdog" : "cron" });
     return res.status(200).json({ success: true, summary });

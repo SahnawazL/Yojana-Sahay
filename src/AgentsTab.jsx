@@ -1809,14 +1809,18 @@ function useRunAgent() {
   return { running, message, run };
 }
 
-function RunNowButton({ job, label, runner, dark, isDesktop, onDone, title }) {
+function RunNowButton({ job, label, runner, dark, isDesktop, onDone, title, onOpen, running: runningProp }) {
   const th = THEME[dark ? "dark" : "light"];
-  const busy = runner.running === job;
-  const disabled = !!runner.running;
+  const busy = runningProp ?? runner.running === job;
+  const disabled = !onOpen && !!runner.running;
+  const click = () => {
+    if (onOpen) { onOpen(); return; }          // show "what will this do?" first
+    if (!disabled) runner.run(job, label, onDone);
+  };
   return (
     <div
-      {...activatable(() => { if (!disabled) runner.run(job, label, onDone); }, title || `Run ${label} now`)}
-      onClick={() => { if (!disabled) runner.run(job, label, onDone); }}
+      {...activatable(click, title || `Run ${label} now`)}
+      onClick={click}
       title={title || `Run ${label} now`}
       aria-disabled={disabled}
       style={{
@@ -1825,7 +1829,7 @@ function RunNowButton({ job, label, runner, dark, isDesktop, onDone, title }) {
         color: busy ? CYAN : th.textMid, opacity: disabled && !busy ? 0.5 : 1, userSelect:"none", whiteSpace:"nowrap",
       }}
     >
-      {busy ? "Running…" : "▶ Run"}
+      {busy ? "● Running" : "▶ Run"}
     </div>
   );
 }
@@ -1839,10 +1843,182 @@ function RunMessage({ runner, isDesktop }) {
   );
 }
 
+// ── Live job progress (appMeta/agentLive) ────────────────────────────────────
+// Every autonomous job writes its steps there while it runs (see
+// api/_lib/agentProgress.js) — for "▶ Run" AND for scheduled runs. One shared
+// Firestore listener feeds every card; if the listener isn't allowed (restricted
+// admin), it falls back to polling the admin API.
+const liveStore = { data: {}, listeners: new Set(), unsub: null, pollTimer: null, refs: 0 };
+function liveEmit(data) { liveStore.data = data || {}; liveStore.listeners.forEach(fn => fn(liveStore.data)); }
+function livePoll() {
+  const anyRunning = Object.values(liveStore.data).some(j => j?.running);
+  adminJson("/api/deadline-alerts", undefined, { method: "GET" })
+    .then(d => liveEmit(d.agentLive || {}))
+    .catch(() => {})
+    .finally(() => { if (liveStore.refs > 0) liveStore.pollTimer = setTimeout(livePoll, anyRunning ? 3000 : 30000); });
+}
+function useAgentLive() {
+  const [data, setData] = useState(liveStore.data);
+  useEffect(() => {
+    liveStore.listeners.add(setData);
+    liveStore.refs++;
+    if (liveStore.refs === 1) {
+      try {
+        liveStore.unsub = onSnapshot(doc(db, "appMeta", "agentLive"),
+          snap => liveEmit(snap.exists() ? snap.data() : {}),
+          () => { liveStore.unsub = null; livePoll(); });
+      } catch { livePoll(); }
+    }
+    return () => {
+      liveStore.listeners.delete(setData);
+      liveStore.refs--;
+      if (liveStore.refs === 0) {
+        liveStore.unsub?.(); liveStore.unsub = null;
+        clearTimeout(liveStore.pollTimer); liveStore.pollTimer = null;
+      }
+    };
+  }, []);
+  return data;
+}
+// "running" that hasn't been updated for 6 min = the server run was killed.
+function liveIsRunning(j) {
+  if (!j?.running) return false;
+  const upd = j.updatedAt ? new Date(j.updatedAt).getTime() : 0;
+  return Date.now() - upd < 6 * 60 * 1000;
+}
+
+// Plain-language description of every job, shown before it is started.
+const JOB_INFO = {
+  autoFix: {
+    title: "Auto-Fix + URL Repair",
+    what: "Checks the apply link of every scheme. Adds https:// where it's missing, re-checks every link marked dead, and for links that are still dead searches Google for the scheme's new official page. It replaces a link only when the new page is clearly right; otherwise it lists it under \"need manual review\".",
+    time: "1–3 minutes", uses: "Free link checks + up to 3 Serper searches",
+    changes: "Fixed links are saved to GitHub — the website updates about 2 minutes later.",
+  },
+  verifyBatch: {
+    title: "Background Verifier",
+    what: "Continues the daily rotation through all schemes. For the next ~20 schemes it reads the official page and asks the AI for the current last date to apply and whether applications are open. It also records which links work.",
+    time: "3–4 minutes", uses: "About 20 Tavily page reads (from your ~980 a month) + Groq",
+    changes: "Deadlines and link status are saved to GitHub (schemes-meta.json) — the site updates about 2 minutes later.",
+  },
+  discover: {
+    title: "Scheme Discovery",
+    what: "Looks for government schemes that are NOT in the app yet, in the next 2 regions of its rotation (Central government + every state). Researches up to 3 new ones on their official pages and writes them in English and Hindi. Confident ones are added to the app; the rest wait on this card for your approval.",
+    time: "1–3 minutes", uses: "Up to 5 Serper searches, 3 Tavily page reads, 4 Groq calls",
+    changes: "New schemes are added to the state files on GitHub — the site updates about 2 minutes later.",
+  },
+  news: {
+    title: "News Refresh",
+    what: "Fetches the latest government-scheme headlines from Google News, keeps only real scheme updates (AI) and writes short English + Hindi summaries for the home-screen news ticker.",
+    time: "About 30 seconds", uses: "1–2 Groq calls",
+    changes: "New items appear in the News tab and the news ticker straight away.",
+  },
+  deadlineAlerts: {
+    title: "Deadline E-mails",
+    what: "E-mails every user whose matching schemes close within 7 days, plus one final reminder 2 days before. Nobody gets the same reminder twice.",
+    time: "Under a minute", uses: "Gmail (max 450 e-mails a day)",
+    changes: "Sends REAL e-mails to users.", warn: true,
+  },
+};
+
+function fmtStepTime(iso) {
+  try { return new Date(iso).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }); } catch { return ""; }
+}
+function fmtDur(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`;
+}
+
+// Live log of one job (steps stream in while it runs; stays visible ~15 min after).
+function LiveJobLog({ job, live, dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [, tick] = useState(0);
+  const running = liveIsRunning(live);
+  useEffect(() => {
+    if (!running) return;
+    const t = setInterval(() => tick(n => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [running]);
+  const boxRef = useRef(null);
+  const steps = live?.steps ?? [];
+  useEffect(() => { if (boxRef.current) boxRef.current.scrollTop = boxRef.current.scrollHeight; }, [steps.length]);
+  if (!live) return null;
+  const started = live.startedAt ? new Date(live.startedAt).getTime() : null;
+  const ended = live.finishedAt ? new Date(live.finishedAt).getTime() : null;
+  const color = running ? CYAN : live.error ? "#EF4444" : IND_GREEN;
+  const kindColor = { ok: IND_GREEN, warn: IDLE_AMBER, error: "#EF4444", done: IND_GREEN };
+  const who = { manual: "started by you", cron: "scheduled run", watchdog: "started by the watchdog" }[live.trigger] ?? live.trigger;
+  return (
+    <div style={{ border:`1px solid ${color}55`, background:`${color}0d`, borderRadius:10, padding:"8px 10px", marginBottom:10 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:7, fontSize:fs(10, isDesktop), fontWeight:800, color }}>
+        {running
+          ? <span style={{ width:9, height:9, borderRadius:"50%", border:`2px solid ${color}40`, borderTopColor:color, animation:"ys-spin 0.9s linear infinite", flexShrink:0 }} />
+          : <span style={{ flexShrink:0 }}>{live.error ? "✗" : "✓"}</span>}
+        <span>{running ? "Running now" : live.error ? "Last run failed" : "Last run finished"}</span>
+        <span style={{ fontWeight:600, color:th.textSub }}>· {who}{started ? ` · ${running ? fmtDur(Date.now() - started) : `took ${fmtDur((ended ?? started) - started)} · ${timeAgo(live.finishedAt)}`}` : ""}</span>
+      </div>
+      <div ref={boxRef} style={{ marginTop:6, maxHeight:170, overflowY:"auto", fontFamily:"'SF Mono','Fira Code',monospace", fontSize:fs(9.5, isDesktop), lineHeight:1.55 }}>
+        {steps.length === 0 && <div style={{ color:th.textSub }}>Starting…</div>}
+        {steps.map((st, i) => (
+          <div key={i} style={{ display:"flex", gap:8, color: kindColor[st.kind] ?? th.textMid }}>
+            <span style={{ color:th.textSub, flexShrink:0 }}>{fmtStepTime(st.t)}</span>
+            <span style={{ whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{st.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// "What will this do?" sheet shown before a job is started.
+function RunExplainer({ job, onStart, onCancel, dark, isDesktop, busy }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const info = JOB_INFO[job];
+  if (!info) return null;
+  return (
+    <div style={{ border:`1px solid ${th.border}`, background: th.card2, borderRadius:10, padding:"10px 12px", marginBottom:10 }}>
+      <div style={{ fontSize:fs(11, isDesktop), fontWeight:800, color:th.text, marginBottom:4 }}>Run {info.title} now?</div>
+      <div style={{ fontSize:fs(10, isDesktop), color:th.textMid, lineHeight:1.55 }}>{info.what}</div>
+      <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, lineHeight:1.6, marginTop:6 }}>
+        <div>⏱ <strong>Takes:</strong> {info.time}</div>
+        <div>🔑 <strong>Uses:</strong> {info.uses}</div>
+        <div style={{ color: info.warn ? "#EF4444" : th.textSub }}>✎ <strong>Changes:</strong> {info.changes}</div>
+        <div>It runs on the server — you can switch tabs or close the dashboard; progress shows here live.</div>
+      </div>
+      <div style={{ display:"flex", gap:8, marginTop:9 }}>
+        <div {...activatable(() => { if (!busy) onStart(); }, `Start ${info.title}`)} onClick={() => { if (!busy) onStart(); }}
+          style={{ cursor: busy ? "default" : "pointer", padding:"6px 14px", borderRadius:8, background: info.warn ? "#DC2626" : IND_GREEN, color:"#fff", fontSize:fs(10, isDesktop), fontWeight:800, opacity: busy ? 0.6 : 1 }}>
+          ▶ Start now
+        </div>
+        <div {...activatable(onCancel, "Cancel")} onClick={onCancel}
+          style={{ cursor:"pointer", padding:"6px 14px", borderRadius:8, border:`1px solid ${th.border}`, color:th.textMid, fontSize:fs(10, isDesktop), fontWeight:700 }}>
+          Cancel
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Everything a card needs for one job: button state, explainer, live log.
+function useJobControl(job, runner, onDone) {
+  const live = useAgentLive()[job] ?? null;
+  const [explaining, setExplaining] = useState(false);
+  const running = liveIsRunning(live) || runner.running === job;
+  const recent = !!live?.finishedAt && Date.now() - new Date(live.finishedAt).getTime() < 15 * 60 * 1000;
+  return {
+    live, running, explaining,
+    showLog: running || recent,
+    open: () => setExplaining(true),
+    cancel: () => setExplaining(false),
+    start: () => { setExplaining(false); runner.run(job, JOB_INFO[job]?.title ?? job, onDone); },
+  };
+}
+
 const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const [reviewOpen, setReviewOpen] = useState(false);
   const runner = useRunAgent();
+  const ctl = useJobControl("autoFix", runner);
 
   const ISSUE_LABEL = {
     MULTI_URL: "Multiple URLs",
@@ -1893,7 +2069,7 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
             </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-          <RunNowButton job="autoFix" label="Auto-Fix" runner={runner} dark={dark} isDesktop={isDesktop} />
+          <RunNowButton job="autoFix" label="Auto-Fix" runner={runner} dark={dark} isDesktop={isDesktop} onOpen={ctl.open} running={ctl.running} />
           <div style={{
             display:"flex", alignItems:"center", gap:5,
             padding:"3px 9px", borderRadius:20,
@@ -1902,12 +2078,14 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
           }}>
             <span style={{ width:6, height:6, borderRadius:"50%", background:statusColor }} />
             <span style={{ fontSize:fs(9, isDesktop), fontWeight:700, color:statusColor }}>
-              {loading ? "Loading…" : statusLabel}
+              {ctl.running ? "Running…" : loading ? "Loading…" : statusLabel}
             </span>
           </div>
           </div>
         </div>
 
+        {ctl.explaining && <RunExplainer job="autoFix" onStart={ctl.start} onCancel={ctl.cancel} dark={dark} isDesktop={isDesktop} busy={ctl.running} />}
+        {ctl.showLog && <LiveJobLog job="autoFix" live={ctl.live} dark={dark} isDesktop={isDesktop} />}
         <RunMessage runner={runner} isDesktop={isDesktop} />
 
         {loading ? (
@@ -2091,6 +2269,7 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
       setState(prev => ({ ...prev, loading: false, error: err.message }));
     }
   }, []);
+  const ctl = useJobControl("discover", runner, load);
 
   useEffect(() => {
     load();
@@ -2122,8 +2301,8 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
   const lastAt  = run?.createdAt ? new Date(run.createdAt) : null;
   const overdue = !!lastAt && Date.now() - lastAt.getTime() > 30 * 3600 * 1000;
   const failed  = !!run && (run.crashed || /^config/i.test(run.stopReason ?? ""));
-  const statusLabel = state.loading ? "Loading…" : !run ? "Not run yet" : failed ? "Needs attention" : overdue ? "Overdue" : pending.length ? `${pending.length} to review` : "Healthy";
-  const statusColor = !run ? th.textSub : failed ? "#EF4444" : (overdue || pending.length) ? IDLE_AMBER : IND_GREEN;
+  const statusLabel = ctl.running ? "Running…" : state.loading ? "Loading…" : !run ? "Not run yet" : failed ? "Needs attention" : overdue ? "Overdue" : pending.length ? `${pending.length} to review` : "Healthy";
+  const statusColor = ctl.running ? CYAN : !run ? th.textSub : failed ? "#EF4444" : (overdue || pending.length) ? IDLE_AMBER : IND_GREEN;
 
   const btn = (label, onClick, color, disabled) => (
     <div
@@ -2195,7 +2374,7 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
             <RunNowButton job="discover" label="Scheme Discovery" runner={runner} dark={dark} isDesktop={isDesktop} onDone={load}
-              title="Search 2 more regions for new schemes now (~1–3 min)" />
+              title="Search 2 more regions for new schemes now (~1–3 min)" onOpen={ctl.open} running={ctl.running} />
             <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:20, background:`${statusColor}18`, border:`1px solid ${statusColor}40` }}>
               <span style={{ width:6, height:6, borderRadius:"50%", background:statusColor }} />
               <span style={{ fontSize:fs(9, isDesktop), fontWeight:700, color:statusColor }}>{statusLabel}</span>
@@ -2203,6 +2382,8 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
           </div>
         </div>
 
+        {ctl.explaining && <RunExplainer job="discover" onStart={ctl.start} onCancel={ctl.cancel} dark={dark} isDesktop={isDesktop} busy={ctl.running} />}
+        {ctl.showLog && <LiveJobLog job="discover" live={ctl.live} dark={dark} isDesktop={isDesktop} />}
         <RunMessage runner={runner} isDesktop={isDesktop} />
         {msg && <div role="status" style={{ fontSize:fs(9.5, isDesktop), color: msg.ok ? IND_GREEN : "#EF4444", marginBottom:8, lineHeight:1.45 }}>{msg.text}</div>}
 
@@ -2322,19 +2503,40 @@ const WatchdogCard = React.memo(function WatchdogCard({ dark, isDesktop }) {
   const dot = st => (st === "fail" ? "#EF4444" : st === "warn" ? IDLE_AMBER : IND_GREEN);
   const jobs = (h?.items ?? []).filter(i => i.kind === "job");
   const services = (h?.items ?? []).filter(i => i.kind !== "job");
+  const liveAll = useAgentLive();
+  const [explainJob, setExplainJob] = useState(null);
+  // Jobs without a card of their own show their live log here.
+  const OWN_CARD = new Set(["autoFix", "verifyBatch", "discover"]);
 
-  const Row = ({ item }) => (
-    <div style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"6px 0", borderTop:`1px solid ${th.border}` }}>
+  const Row = ({ item }) => {
+    const live = liveAll[item.id];
+    const running = liveIsRunning(live) || runner.running === item.id;
+    const recent = !!live?.finishedAt && Date.now() - new Date(live.finishedAt).getTime() < 15 * 60 * 1000;
+    return (
+    <div style={{ borderTop:`1px solid ${th.border}` }}>
+    <div style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"6px 0" }}>
       <span style={{ width:7, height:7, borderRadius:"50%", background:dot(item.status), marginTop:4, flexShrink:0 }} />
       <div style={{ minWidth:0, flex:1 }}>
         <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:700, color:th.text }}>{item.name}</div>
         <div style={{ fontSize:fs(9.5, isDesktop), color: item.status === "ok" ? th.textSub : dot(item.status), lineHeight:1.4, wordBreak:"break-word" }}>{item.detail}</div>
       </div>
       {item.kind === "job" && WATCH_JOB_LABEL[item.id] && (
-        <RunNowButton job={item.id} label={WATCH_JOB_LABEL[item.id]} runner={runner} dark={dark} isDesktop={isDesktop} />
+        <RunNowButton job={item.id} label={WATCH_JOB_LABEL[item.id]} runner={runner} dark={dark} isDesktop={isDesktop}
+          onOpen={() => setExplainJob(explainJob === item.id ? null : item.id)} running={running} />
       )}
     </div>
-  );
+    {explainJob === item.id && (
+      <RunExplainer job={item.id} busy={running} dark={dark} isDesktop={isDesktop}
+        onCancel={() => setExplainJob(null)}
+        onStart={() => { setExplainJob(null); runner.run(item.id, WATCH_JOB_LABEL[item.id], () => load()); }} />
+    )}
+    {!OWN_CARD.has(item.id) && (running || recent) && <LiveJobLog job={item.id} live={live} dark={dark} isDesktop={isDesktop} />}
+    {OWN_CARD.has(item.id) && running && (
+      <div style={{ fontSize:fs(9, isDesktop), color:CYAN, margin:"-2px 0 6px 15px" }}>● Running now — live log on its card below</div>
+    )}
+    </div>
+    );
+  };
 
   return (
     <div style={{ position:"relative", background: th.card, border:`1px solid ${th.border}`, borderRadius:12, overflow:"hidden" }}>
@@ -2437,6 +2639,7 @@ const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, is
       setState(prev => ({ ...prev, loading: false, error: err.message }));
     }
   }, []);
+  const vctl = useJobControl("verifyBatch", runner, load);
 
   useEffect(() => {
     load();
@@ -2495,7 +2698,7 @@ const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, is
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
             <RunNowButton job="verifyBatch" label="Background verify batch" runner={runner} dark={dark} isDesktop={isDesktop} onDone={load}
-              title="Run the next verify batch now (up to ~4 min, uses Tavily budget)" />
+              title="Run the next verify batch now (up to ~4 min, uses Tavily budget)" onOpen={vctl.open} running={vctl.running} />
             <div
               {...activatable(load, "Refresh background verifier status")}
               onClick={load}
@@ -2507,12 +2710,14 @@ const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, is
             <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:20, background:`${statusColor}18`, border:`1px solid ${statusColor}40` }}>
               <span style={{ width:6, height:6, borderRadius:"50%", background:statusColor }} />
               <span style={{ fontSize:fs(9, isDesktop), fontWeight:700, color:statusColor }}>
-                {state.loading ? "Loading…" : statusLabel}
+                {vctl.running ? "Running…" : state.loading ? "Loading…" : statusLabel}
               </span>
             </div>
           </div>
         </div>
 
+        {vctl.explaining && <RunExplainer job="verifyBatch" onStart={vctl.start} onCancel={vctl.cancel} dark={dark} isDesktop={isDesktop} busy={vctl.running} />}
+        {vctl.showLog && <LiveJobLog job="verifyBatch" live={vctl.live} dark={dark} isDesktop={isDesktop} />}
         <RunMessage runner={runner} isDesktop={isDesktop} />
 
         {state.loading ? (

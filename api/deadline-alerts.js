@@ -38,6 +38,7 @@ import { runAutoFixAgent }      from "./_lib/autoFixAgent.js";
 import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import refreshNewsHandler       from "./refresh-news.js";
 import { runAndLogDiscovery, listSchemeDrafts, reviewSchemeDraft } from "./_lib/schemeDiscovery.js";
+import { createProgress, isJobRunning, readAgentLive } from "./_lib/agentProgress.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AI Compose & Send — folded into this same file (not a separate function)
@@ -394,8 +395,10 @@ function isCronRequest(req) {
 
 // ── Background verify batch + its run log (cron, watchdog and admin "Run now") ──
 async function runAndLogVerifyBatch(trigger = "cron") {
+  const progress = createProgress(getAdminDb(), "verifyBatch", { trigger });
   try {
-    const result = await runSchemeVerificationBatch();
+    const result = await runSchemeVerificationBatch({ progress });
+    await progress.done({ checked: result.tavilyCallsMade ?? 0, datesFound: Object.values(result.results || {}).filter(r => r?.lastDate).length, errors: result.errorCount ?? 0, stopReason: result.stopReason ?? null });
     // Only the scheme ids checked are logged (not full payloads) to keep each
     // doc small; schemes-meta.json remains the source of truth.
     try {
@@ -428,6 +431,7 @@ async function runAndLogVerifyBatch(trigger = "cron") {
     }
     return result;
   } catch (err) {
+    await progress.fail(err);
     console.error("[deadline-alerts] Scheme verification batch failed:", err);
     // Log the crash too — otherwise the dashboard keeps showing the last
     // successful run as if everything were fine.
@@ -442,14 +446,29 @@ async function runAndLogVerifyBatch(trigger = "cron") {
   }
 }
 
+// Deadline e-mail run with live progress (cron + admin).
+async function runDeadlineAlertsLogged(opts) {
+  const progress = createProgress(getAdminDb(), "deadlineAlerts", { trigger: opts.trigger });
+  progress.step("Reading users and their saved schemes, checking upcoming deadlines (7 / 3 / 1 days)…");
+  try {
+    const result = await runDeadlineAlerts(opts);
+    progress.step(`Checked ${result?.checked ?? "?"} user(s) · sent ${result?.sent ?? 0} e-mail(s)${result?.quotaHit ? " · daily e-mail quota reached" : ""}`, "ok");
+    await progress.done({ sent: result?.sent ?? 0, checked: result?.checked ?? null });
+    return result;
+  } catch (err) {
+    await progress.fail(err);
+    throw err;
+  }
+}
+
 // Calls the refresh-news handler in-process with the server's own cron
 // secret (the browser never sees CRON_SECRET).
-async function runNewsRefresh() {
+async function runNewsRefresh(trigger = "manual") {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret) throw new Error("CRON_SECRET is not set in Vercel — news refresh can't be triggered.");
   let status = 200, body = null;
   const fakeRes = { status(c) { status = c; return fakeRes; }, json(b) { body = b; return fakeRes; } };
-  await refreshNewsHandler({ method: "GET", headers: { authorization: `Bearer ${secret}` }, query: { force: "true" } }, fakeRes);
+  await refreshNewsHandler({ method: "GET", headers: { authorization: `Bearer ${secret}` }, query: { force: "true", trigger } }, fakeRes);
   if (status >= 400) throw new Error(body?.error ?? `News refresh failed (HTTP ${status})`);
   return body;
 }
@@ -466,7 +485,7 @@ export default async function handler(req, res) {
   // scheduled daily deadline emails never actually ran.
   if (req.method === "GET" && isCronRequest(req)) {
     try {
-      const result = await runDeadlineAlerts({ trigger: "cron", triggeredBy: null });
+      const result = await runDeadlineAlertsLogged({ trigger: "cron", triggeredBy: null });
       return res.status(200).json(result);
     } catch (err) {
       console.error("[deadline-alerts] Cron (GET) run failed:", err);
@@ -580,7 +599,8 @@ export default async function handler(req, res) {
         console.error("[deadline-alerts] Failed to read agentHealth:", err.message);
       }
 
-      return res.status(200).json({ runs, todayQuota, verifyRuns, verifyCursor, agentHealth });
+      const agentLive = await readAgentLive(auth.db);
+      return res.status(200).json({ runs, todayQuota, verifyRuns, verifyCursor, agentHealth, agentLive });
     } catch (err) {
       console.error("[deadline-alerts] Failed to fetch history:", err.message);
       return res.status(500).json({ error: "Could not load run history" });
@@ -598,6 +618,7 @@ export default async function handler(req, res) {
     //      or a misconfigured external ping would re-check/re-send deadline
     //      emails instead of just running the scheme-verify batch.
     if (req.body?.action === "verifyBatch") {
+      if (await isJobRunning(getAdminDb(), "verifyBatch")) return res.status(409).json({ error: "verify batch already running" });
       try {
         return res.status(200).json(await runAndLogVerifyBatch());
       } catch (err) {
@@ -606,7 +627,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const result = await runDeadlineAlerts({ trigger: "cron", triggeredBy: null });
+      const result = await runDeadlineAlertsLogged({ trigger: "cron", triggeredBy: null });
       return res.status(200).json(result);
     } catch (err) {
       console.error("[deadline-alerts] Cron run failed:", err);
@@ -625,6 +646,9 @@ export default async function handler(req, res) {
   // ── action: "runAgent" — admin "Run now" / "Check now" in the Agents tab ──
   if (action === "runAgent") {
     const job = req.body?.job;
+    if (job !== "health" && await isJobRunning(auth.db, job)) {
+      return res.status(409).json({ error: "This job is already running — follow its live progress on the card." });
+    }
     try {
       if (job === "health") {
         const health = await getAgentHealth(auth.db);
@@ -636,9 +660,9 @@ export default async function handler(req, res) {
       }
       if (job === "autoFix")        return res.status(200).json({ ok: true, result: await runAutoFixAgent({ trigger: "manual" }) });
       if (job === "verifyBatch")    return res.status(200).json({ ok: true, result: await runAndLogVerifyBatch("manual") });
-      if (job === "news")           return res.status(200).json({ ok: true, result: await runNewsRefresh() });
+      if (job === "news")           return res.status(200).json({ ok: true, result: await runNewsRefresh("manual") });
       if (job === "discover")       return res.status(200).json({ ok: true, result: await runAndLogDiscovery({ db: auth.db, trigger: "manual" }) });
-      if (job === "deadlineAlerts") return res.status(200).json({ ok: true, result: await runDeadlineAlerts({ trigger: "manual", triggeredBy: auth.email ?? null }) });
+      if (job === "deadlineAlerts") return res.status(200).json({ ok: true, result: await runDeadlineAlertsLogged({ trigger: "manual", triggeredBy: auth.email ?? null }) });
       return res.status(400).json({ error: `Unknown job: ${String(job).slice(0, 40)}` });
     } catch (err) {
       console.error(`[deadline-alerts] runAgent ${job} failed:`, err);
@@ -744,7 +768,7 @@ export default async function handler(req, res) {
 
   // ── default (no action, or action: "run") — manual deadline-alert trigger ─
   try {
-    const result = await runDeadlineAlerts({ trigger: "manual", triggeredBy: auth.email });
+    const result = await runDeadlineAlertsLogged({ trigger: "manual", triggeredBy: auth.email });
     return res.status(200).json(result);
   } catch (err) {
     console.error("[deadline-alerts] Manual run failed:", err.message);

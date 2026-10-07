@@ -28,6 +28,7 @@
 
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore, Timestamp }       from "firebase-admin/firestore";
+import { createProgress }              from "./_lib/agentProgress.js";
 
 // ── Firebase Admin init (safe — reuses existing app across hot reloads) ───────
 // Initialised lazily inside the handler: a top-level cert() call throws at
@@ -284,6 +285,7 @@ async function groqFilterAndSummarise(items, groqKeys) {
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 async function refreshNewsCore(req, res) {
+  const step = (text, kind) => req._progress?.step(text, kind);
 
   // ── Step 1 — Security ───────────────────────────────────────────────────────
   // Vercel automatically sets "x-vercel-cron: 1" on all cron-triggered calls.
@@ -363,6 +365,7 @@ async function refreshNewsCore(req, res) {
   }
 
   console.log(`[refresh-news] RSS fetched: ${allItems.length} unique items`);
+  step(`Fetched ${allItems.length} headlines from Google News`);
 
   if (!allItems.length) {
     return res.status(200).json({ message: "No RSS items fetched.", added: 0, scanned: 0 });
@@ -409,9 +412,11 @@ async function refreshNewsCore(req, res) {
   console.log(
     `[refresh-news] After dedup: ${newItems.length} genuinely new items to process`
   );
+  step(`${newItems.length} headline(s) not seen before — asking AI which are about government schemes…`);
 
   if (!newItems.length) {
     console.log("[refresh-news] Nothing new this week — collection is up to date.");
+    step("No new headlines since the last run", "ok");
     return res.status(200).json({ message: "Already up to date.", added: 0, scanned: allItems.length });
   }
 
@@ -436,6 +441,7 @@ async function refreshNewsCore(req, res) {
   console.log(
     `[refresh-news] Groq approved ${groqResults?.length ?? "?"} / ${newItems.length} items as relevant`
   );
+  step(groqResults === null ? "AI filter failed (Groq error / busy)" : `AI kept ${groqResults.length} of ${newItems.length} as real scheme news (English + Hindi summaries written)`, groqResults === null ? "error" : "info");
 
   if (groqResults === null) {
     return res.status(502).json({ error: "AI news filter failed (Groq error or all keys busy) — will retry next run." });
@@ -510,6 +516,7 @@ async function refreshNewsCore(req, res) {
 
   await batch.commit();
   console.log(`[refresh-news] ✓ Wrote ${addCount} new items to schemeNews`);
+  step(`Added ${addCount} news item(s) to the ticker`, "ok");
 
   // Record this run's timestamp so the rate-limit guard works on next call
   try {
@@ -569,6 +576,15 @@ export default async function handler(req, res) {
   // recorded (awaited — a serverless function may freeze right after it
   // responds) before it goes out.
   let statusCode = 200, body = null, captured = false;
+  // Live progress for the Agents tab (only for authorised runs).
+  const authorised = (() => {
+    const secret = process.env.CRON_SECRET?.trim();
+    const h = req.headers?.authorization ?? "";
+    return req.headers?.["x-vercel-cron"] === "1" || (secret && h === `Bearer ${secret}`);
+  })();
+  if (authorised) {
+    try { getDb(); req._progress = createProgress(db, "news", { trigger: req.query?.trigger ?? (req.query?.force === "true" ? "manual" : "cron") }); } catch { /* no Firebase */ }
+  }
   const shim = {
     status(code) { statusCode = code; return shim; },
     json(b) { body = b; captured = true; return shim; },
@@ -580,6 +596,10 @@ export default async function handler(req, res) {
     statusCode = 500; body = { error: err.message }; captured = true;
   }
   if (!captured) { statusCode = 500; body = { error: "No response produced" }; }
+  if (req._progress) {
+    if (statusCode >= 400) await req._progress.fail(body?.error ?? `HTTP ${statusCode}`);
+    else { if (body?.skipped) req._progress.step(String(body.message ?? "Skipped"), "warn"); await req._progress.done({ added: body?.added ?? 0 }); }
+  }
 
   if (statusCode !== 401 && statusCode !== 405 && !body?.skipped) {
     const ok = statusCode < 400;
