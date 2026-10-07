@@ -1,0 +1,284 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Full admin — has isAdmin: true
+    function isAdmin() {
+      return request.auth != null
+          && get(/databases/$(database)/documents/users/$(request.auth.uid))
+               .data.get('isAdmin', false) == true;
+    }
+
+    // Restricted admin — has adminTabs array (your agents/team)
+    function isRestrictedAdmin() {
+      return request.auth != null
+          && get(/databases/$(database)/documents/users/$(request.auth.uid))
+               .data.get('adminTabs', []).size() > 0;
+    }
+
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // Both full and restricted admin can read all users (needed for Overview & Analytics)
+      allow read: if isAdmin() || isRestrictedAdmin();
+      allow delete: if isAdmin();
+
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && !('isAdmin' in request.resource.data)
+                    && !('adminTabs' in request.resource.data);
+
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && !('isAdmin' in request.resource.data
+                           .diff(resource.data).affectedKeys())
+                    && !('adminTabs' in request.resource.data
+                           .diff(resource.data).affectedKeys());
+    }
+
+    match /reports/{reportId} {
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid;
+
+      allow read: if request.auth != null
+                  && resource.data.uid == request.auth.uid;
+
+      allow update: if request.auth != null
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.diff(resource.data)
+                       .affectedKeys()
+                       .hasOnly(['status', 'reopenedAt', 'replyHistory']);
+
+      // Both full and restricted admin can read, update, delete reports
+      allow read, update, delete: if isAdmin() || isRestrictedAdmin();
+    }
+
+    match /engagement/{docId} {
+      allow read: if true;
+      // Split from "write" so any signed-in user can create/update these
+      // counters but can't delete someone else's doc outright.
+      allow create, update: if request.auth != null;
+    }
+
+    match /projectLikes/{docId} {
+      allow read: if true;
+      allow create, update: if request.auth != null;
+    }
+
+    // ── App-wide usage stats — home screen "Indians Helped" counter, search/
+    // scheme-check logging for admin analytics. Single doc: appStats/usage,
+    // written by writeAppStatsSafe() in App.jsx for BOTH logged-in users and
+    // anonymous guests (guests get a real anon Firebase Auth session via a
+    // secondary app instance, so request.auth != null holds for them too).
+    //
+    // Fields: schemeSearches (array), searchTotal (number), stateSelections
+    //   (array), checkerRuns (array), checkerTotal (number), lastRun
+    //   (string), plus one `stateCount_<STATE>` (number) per entry in
+    //   INDIA_STATES (schemesData.js), built via st.replace(/\s+/g,"_").
+    //   The 34-entry list below is that exact transform baked in —
+    //   IMPORTANT: if a state is ever added/renamed in INDIA_STATES, this
+    //   list must be updated too, or writes touching the new state's
+    //   counter will be silently rejected.
+    match /appStats/{docId} {
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                         'schemeSearches','searchTotal','stateSelections',
+                         'checkerRuns','checkerTotal','lastRun',
+                         'stateCount_Andhra_Pradesh','stateCount_Arunachal_Pradesh',
+                         'stateCount_Assam','stateCount_Bihar','stateCount_Chhattisgarh',
+                         'stateCount_Goa','stateCount_Gujarat','stateCount_Haryana',
+                         'stateCount_Himachal_Pradesh','stateCount_Jharkhand',
+                         'stateCount_Karnataka','stateCount_Kerala','stateCount_Madhya_Pradesh',
+                         'stateCount_Maharashtra','stateCount_Manipur','stateCount_Meghalaya',
+                         'stateCount_Mizoram','stateCount_Nagaland','stateCount_Odisha',
+                         'stateCount_Punjab','stateCount_Rajasthan','stateCount_Sikkim',
+                         'stateCount_Tamil_Nadu','stateCount_Telangana','stateCount_Tripura',
+                         'stateCount_Uttar_Pradesh','stateCount_Uttarakhand','stateCount_West_Bengal',
+                         'stateCount_Delhi','stateCount_Jammu_&_Kashmir','stateCount_Ladakh',
+                         'stateCount_Puducherry','stateCount_Chandigarh','stateCount_Andaman_&_Nicobar',
+                       ])
+                    // searchTotal/checkerTotal can only move by exactly +1 per write,
+                    // matching increment(1) everywhere it's called — so no one can set
+                    // the public "Indians Helped" number directly to an arbitrary value.
+                    && (!('searchTotal' in request.resource.data)
+                          || request.resource.data.searchTotal == resource.data.get('searchTotal', 0) + 1)
+                    && (!('checkerTotal' in request.resource.data)
+                          || request.resource.data.checkerTotal == resource.data.get('checkerTotal', 0) + 1)
+                    && (!('lastRun' in request.resource.data) || request.resource.data.lastRun is string)
+                    && (!('schemeSearches' in request.resource.data) || request.resource.data.schemeSearches is list)
+                    && (!('stateSelections' in request.resource.data) || request.resource.data.stateSelections is list)
+                    && (!('checkerRuns' in request.resource.data) || request.resource.data.checkerRuns is list);
+      // Both full and restricted admin can read usage stats
+      allow read: if isAdmin() || isRestrictedAdmin();
+    }
+
+    // ── Scheme verifier checkpoint — full admin only ──────────────────────
+    match /adminMeta/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ── Scheme verifier rotation cursor — the code actually reads/writes
+    // this at appMeta/verifyCursor, NOT adminMeta above (worth checking
+    // whether adminMeta is still used anywhere, or is a leftover from an
+    // earlier collection name — this rule is added so the cursor is
+    // explicitly covered either way instead of relying only on the
+    // deny-all catch-all below). Written via Admin SDK (bypasses rules);
+    // this only governs any future direct client reads.
+    match /appMeta/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ── Scheme verifier batch run history — logged every ~15-20 min by the
+    // GitHub Action-triggered batch job. Written via Admin SDK (bypasses
+    // rules); read via the admin API route (also Admin SDK). This rule
+    // only matters if a future client-side view ever reads it directly.
+    match /schemeVerifyRuns/{runId} {
+      allow read: if isAdmin() || isRestrictedAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Deadline-alert email run history + daily send quota — same pattern:
+    // written server-side via Admin SDK, read via the admin API route.
+    // Explicit rule added for defense-in-depth / future client reads.
+    match /deadlineAlertRuns/{runId} {
+      allow read: if isAdmin() || isRestrictedAdmin();
+      allow write: if isAdmin();
+    }
+    match /emailQuota/{dateId} {
+      allow read: if isAdmin() || isRestrictedAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Agent presence — live online/offline tracking for the Agents tab ──
+    match /adminPresence/{uid} {
+      // Any admin (full or restricted) can view the agent list
+      allow read: if isAdmin() || isRestrictedAdmin();
+      // Each admin can only write their own heartbeat doc
+      allow write: if request.auth != null
+                  && request.auth.uid == uid
+                  && (isAdmin() || isRestrictedAdmin());
+    }
+
+    // ── Agent activity feed — ticker / notice board / activity log ────────
+    match /adminActivity/{docId} {
+      allow read: if isAdmin() || isRestrictedAdmin();
+      allow create: if request.auth != null && (isAdmin() || isRestrictedAdmin());
+      // Retention cleanup (Data Retention panel) — full admin only
+      allow delete: if isAdmin();
+    }
+
+    // ── Daily time tracking — auto attendance for salary calculation ──────
+    // Doc id is "{uid}_{YYYY-MM-DD}" (IST). Each agent can only write to
+    // their own log doc; admins can read everyone's to review attendance.
+    // secondsActive is bounded to a single day's worth (86400s) so a
+    // restricted admin can't inflate their own logged hours (this doc
+    // feeds salary calc). Future-dating isn't checked here — comparing
+    // request.time against a "YYYY-MM-DD" string field isn't reliably
+    // expressible in rules; enforce that server-side if it matters.
+    match /agentTimeLogs/{logId} {
+      allow read: if isAdmin() || isRestrictedAdmin();
+
+      allow create: if request.auth != null
+                    && (isAdmin() || isRestrictedAdmin())
+                    && request.resource.data.uid == request.auth.uid
+                    && logId == request.resource.data.uid + '_' + request.resource.data.date
+                    && request.resource.data.secondsActive is number
+                    && request.resource.data.secondsActive >= 0
+                    && request.resource.data.secondsActive <= 86400;
+
+      allow update: if request.auth != null
+                    && (isAdmin() || isRestrictedAdmin())
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['secondsActive', 'lastActive', 'name', 'email'])
+                    && request.resource.data.secondsActive is number
+                    && request.resource.data.secondsActive >= 0
+                    && request.resource.data.secondsActive <= 86400;
+
+      // Retention cleanup (Data Retention panel) — full admin only.
+      allow delete: if isAdmin();
+    }
+
+    // ── API call history — daily incremented counters per service ─────────
+    // Doc id is "YYYY-MM-DD" (IST). Written exclusively by serverless routes
+    // via Firebase Admin SDK (which bypasses all security rules). The client
+    // rules below are therefore only for reads and manual admin corrections.
+    //
+    // Schema per doc:
+    //   { date, groqCalls, tavilyCalls, groqVerifyCalls, tavilyVerifyCalls, serperCalls, updatedAt }
+    //
+    // Restricted admins get read access so they can view the Agents tab
+    // panel, but only full admin can write (for manual corrections).
+    match /apiCallHistory/{dateId} {
+      allow read: if isAdmin() || isRestrictedAdmin();
+      // Serverless Admin SDK bypasses these rules and writes freely.
+      // Allow full admin to make manual corrections from the dashboard.
+      allow write: if isAdmin();
+    }
+
+    // ── Agent runs — autonomous cron job history (e.g. agent-auto-fix) ────
+    // Doc schema: { agent, startedAt, finishedAt, totalSchemesScanned,
+    //   autoFixed, autoFixFailed, commits, needsReviewCount, needsReview,
+    //   failures, createdAt }
+    // Written exclusively by serverless cron routes via Firebase Admin SDK
+    // (bypasses these rules entirely) — the write rule here only covers
+    // manual corrections from the dashboard, same pattern as apiCallHistory.
+    match /agentRuns/{runId} {
+      allow read: if isAdmin() || isRestrictedAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Scheme news ticker — auto-fetched via Vercel cron + admin-managed ─
+    //
+    // Public read  : ticker is visible to ALL users on the Home tab,
+    //                no sign-in required.
+    // Admin write  : only full admin can add / toggle / delete items from
+    //                the Admin Dashboard "News" tab.
+    // Cron write   : api/refresh-news.js uses Firebase Admin SDK which
+    //                bypasses these rules entirely — no client rule needed
+    //                for the auto-fetch writes.
+    //
+    // Schema per doc:
+    //   { text_en, text_hi, url, source, active, titleHash,
+    //     autoFetched, createdAt, order }
+    match /schemeNews/{docId} {
+      allow read:   if true;
+      allow write:  if isAdmin();
+    }
+
+    // ── FAQ "Was this helpful?" feedback votes ────────────────────────────
+    // Doc ID is "{lang}_{cat}_{idx}__{uid}".
+    // Signed-in users write with their Firebase UID.
+    // Guests write with a session-generated "anon_xxxxxxxx" ID (stored in
+    // sessionStorage by the component) — validated here by the prefix check
+    // so random garbage UIDs can't be written.
+    // vote must be 'up' or 'down'; lang must be 'en' or 'hi'.
+    // Full admin can read all votes for analytics.
+    match /faqFeedback/{docId} {
+      allow write: if request.resource.data.keys().hasOnly(['faqId','vote','lang','cat','uid'])
+                   && request.resource.data.keys().hasAll(['faqId','vote','lang','cat','uid'])
+                   && request.resource.data.vote in ['up', 'down']
+                   && request.resource.data.lang in ['en', 'hi']
+                   && (
+                        // Signed-in: uid must match auth
+                        (request.auth != null
+                          && request.resource.data.uid == request.auth.uid)
+                        ||
+                        // Guest only (not signed in): uid must start with
+                        // "anon_" (set by component). Requiring auth == null
+                        // here stops a signed-in user from also using this
+                        // branch to submit extra "anonymous" votes.
+                        (request.auth == null
+                          && request.resource.data.uid is string
+                          && request.resource.data.uid.matches('anon_[a-z0-9]+'))
+                      );
+      allow read: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+  }
+}

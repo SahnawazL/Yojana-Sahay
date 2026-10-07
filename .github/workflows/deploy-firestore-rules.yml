@@ -1,0 +1,38 @@
+name: Deploy Firestore rules
+
+# Publishes firestore.rules to Firebase whenever it changes on main
+# (or manually from the Actions tab). Uses a deploy-only service account
+# (role: Firebase Rules Admin) stored in the FIREBASE_SERVICE_ACCOUNT secret.
+# Firebase checks the rules compile before releasing them — a broken file
+# fails this job and the live rules stay unchanged.
+on:
+  push:
+    branches: [main]
+    paths: [firestore.rules, firebase.json, .github/workflows/deploy-firestore-rules.yml]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firestore-rules
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Deploy rules
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA_JSON" ]; then echo "FIREBASE_SERVICE_ACCOUNT secret is missing"; exit 1; fi
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx -y firebase-tools@14 deploy --only firestore:rules --project yojanasetu-e24bb --non-interactive
+          rm -f "$RUNNER_TEMP/sa.json"
