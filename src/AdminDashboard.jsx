@@ -5364,7 +5364,7 @@ function TabPane({ active, children }) {
   );
 }
 
-export default function AdminDashboard({ onClose, dark: darkProp = false, allowedTabs = null }) {
+export default function AdminDashboard({ onClose, onSignOut = null, dark: darkProp = false, allowedTabs = null }) {
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("admin_dark_mode");
     return saved !== null ? saved === "true" : darkProp;
@@ -7816,6 +7816,16 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
     }, 155);
   }, [activeSection]);
 
+  // Sign out of this device (same login as the main app on this site).
+  const handleSignOut = useCallback(() => {
+    const running = bgTasksRef.current;
+    const msg = running.length > 0
+      ? `${running.map(t => t.label).join(", ")} still running — signing out will stop it.\n\nSign out anyway?`
+      : "Sign out of the admin dashboard on this device?\n(This also signs you out of the Yojana Sahay app in this browser.)";
+    if (!window.confirm(msg)) return;
+    onSignOut?.();
+  }, [onSignOut]);
+
   // Closing the dashboard unmounts every tab — confirm if work is running.
   const safeClose = useCallback(() => {
     const running = bgTasksRef.current;
@@ -8152,6 +8162,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                   <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
                 </svg>
               </div>
+              {onSignOut && (
+                <div className="ys-ctrl-btn" onClick={handleSignOut} title="Sign out" aria-label="Sign out"
+                  style={{ padding:"7px 11px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",borderLeft:"1px solid rgba(255,255,255,0.09)",transition:"background 0.15s" }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.78)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -8273,6 +8291,14 @@ export default function AdminDashboard({ onClose, dark: darkProp = false, allowe
                     <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
                   </svg>
                 </div>
+                {onSignOut && (
+                  <div className="ys-ctrl-btn" onClick={handleSignOut} title="Sign out" aria-label="Sign out"
+                    style={{ padding:"7px 11px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",borderLeft:"1px solid rgba(255,255,255,0.09)",transition:"background 0.15s" }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.78)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                  </div>
+                )}
               </div>
             </div>
 
