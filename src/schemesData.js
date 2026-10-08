@@ -617,7 +617,7 @@ export const SCHEME_DB = [
     apply:   { en: "https://bdokhargram.in/page/department/pm-poshan", hi: "pmposhan.education.gov.in" }, applyType: "online",
     docs:    { en: ["School Enrollment Certificate","Aadhaar Card (child)"],
                hi: ["स्कूल नामांकन प्रमाण पत्र","आधार कार्ड (बच्चे का)"] },
-    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income) && (a.educationLevel == null || a.educationLevel === "class1to8") && (a.age == null || a.age === "below18"), // school meals, Class 1–8
   },
 
   {
