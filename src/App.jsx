@@ -354,6 +354,8 @@ function buildProfileAnswers(profile){
     ...(profile.ration&&profile.ration!=="none"?{rationCard:profile.ration}:{}),
     ...(profile.disability?{disability:profile.disability}:{}),
     ...(profile.gender?{gender:profile.gender}:{}),
+    ...(Array.isArray(profile.groups)?{groups:profile.groups}:{}),
+    ...(Array.isArray(profile.groupsAsked)?{groupsAsked:profile.groupsAsked}:{}),
   };
 }
 
@@ -370,10 +372,37 @@ const UNIQUE_SCHEME_COUNT=SCHEME_DB.filter(s=>!s.duplicateOf).length;
 // their own "if this applies to you" section instead of inflating the totals.
 function safeMatch(scheme,answers){
   const aud=nicheAudience(scheme);
-  // Disability schemes belong in the main list once the person has told us
-  // (in their profile) that they have a disability.
-  if(aud && !(aud.key==="disability" && answers?.disability && answers.disability!=="none")) return false;
+  // A special-group scheme joins the main list once the person has told us the
+  // group applies to them: disability (quiz/profile), transgender (gender
+  // "other"), or a group ticked in "Does any of this apply to you?".
+  if(aud && !audienceApplies(aud.key,answers)) return false;
   return safeMatchAny(scheme,answers);
+}
+function audienceApplies(key,answers){
+  if(!answers) return false;
+  if(key==="disability") return !!answers.disability && answers.disability!=="none";
+  if(key==="trans") return answers.gender==="other";
+  return Array.isArray(answers.groups) && answers.groups.includes(key);
+}
+// The person explicitly said this group does NOT apply → don't list it under
+// "Also check" either. Groups we never asked about stay listed.
+function audienceDeclined(key,answers){
+  if(!answers) return false;
+  if(key==="disability") return answers.disability==="none";
+  if(key==="trans") return !!answers.gender && answers.gender!=="other";
+  return Array.isArray(answers.groups) && Array.isArray(answers.groupsAsked) && answers.groupsAsked.includes(key) && !answers.groups.includes(key);
+}
+// Special groups the quiz can ask about, most common first.
+const GROUP_KEYS=["construct","fisher","artisan","minority","sports","artist","defence","govt","patient","tea","orphan","media","merit","abroad","graduate"];
+// Only offer a group when at least one of its schemes fits the person's other
+// answers — no dead options (e.g. tea-garden workers outside tea states).
+let NICHE_BY_KEY=null;
+function groupKeysFor(ans){
+  if(!NICHE_BY_KEY){
+    NICHE_BY_KEY={};
+    for(const s of SCHEME_DB){ const k=nicheAudience(s)?.key; if(k) (NICHE_BY_KEY[k]||(NICHE_BY_KEY[k]=[])).push(s); }
+  }
+  return GROUP_KEYS.filter(k=>(NICHE_BY_KEY[k]??[]).some(s=>safeMatchAny(s,ans)));
 }
 function safeMatchAny(scheme,answers){
   try{
@@ -909,6 +938,35 @@ const T = {
           {value:"aay",  label:"AAY — Antyodaya (Poorest) 🔴"},
         ],
       },
+      gender:{
+        id:"gender", q:"Are you female or male?", icon:"🧑", extra:true,
+        hint:"Some schemes are only for girls and women",
+        options:[
+          {value:"female",label:"Female 👩"},
+          {value:"male",  label:"Male 👨"},
+          {value:"other", label:"Transgender / Other 🧑"},
+        ],
+      },
+      disability:{
+        id:"disability", q:"Do you have a disability?", icon:"♿", extra:true,
+        hint:"People with 40%+ disability get separate pensions, scholarships and aids",
+        options:[
+          {value:"none",label:"No"},
+          {value:"yes", label:"Yes — I have a disability ♿"},
+        ],
+      },
+      groups:{
+        id:"groups", type:"multi", q:"Does any of this apply to you?", icon:"🧩", extra:true,
+        hint:"Tick all that apply — there are special schemes for these",
+        noneLabel:"None of these",
+        labels:{
+          construct:"Registered construction worker 👷", fisher:"Fisherman / fish farmer 🎣", artisan:"Weaver, artisan or craftsperson 🧵",
+          minority:"Minority community (Muslim, Christian, Sikh, Buddhist, Jain, Parsi)", sports:"Sportsperson / athlete 🏅", artist:"Artist / folk performer 🎭",
+          defence:"Ex-serviceman / defence family 🎖️", govt:"Government employee / pensioner 🏛️", patient:"Patient with a serious illness (TB, cancer, kidney…) 🏥",
+          tea:"Tea garden worker 🍃", orphan:"Child who lost a parent 🕊️", media:"Journalist / lawyer 📰",
+          merit:"Topper / high marks (75%+) 🏆", abroad:"Planning to study abroad ✈️", graduate:"Fresh graduate — internship / apprenticeship 🎓",
+        },
+      },
     },
   },
   hi: {
@@ -1049,6 +1107,35 @@ const T = {
           {value:"bpl",  label:"BPL — गरीबी रेखा से नीचे 🟡"},
           {value:"aay",  label:"AAY — अंत्योदय (सबसे गरीब) 🔴"},
         ],
+      },
+      gender:{
+        id:"gender", q:"आप महिला हैं या पुरुष?", icon:"🧑", extra:true,
+        hint:"कुछ योजनाएं केवल बेटियों और महिलाओं के लिए हैं",
+        options:[
+          {value:"female",label:"महिला / लड़की 👩"},
+          {value:"male",  label:"पुरुष / लड़का 👨"},
+          {value:"other", label:"ट्रांसजेंडर / अन्य 🧑"},
+        ],
+      },
+      disability:{
+        id:"disability", q:"क्या आपको कोई दिव्यांगता है?", icon:"♿", extra:true,
+        hint:"40% या अधिक दिव्यांगता वालों के लिए अलग पेंशन, छात्रवृत्ति और उपकरण योजनाएं हैं",
+        options:[
+          {value:"none",label:"नहीं"},
+          {value:"yes", label:"हाँ — दिव्यांगता है ♿"},
+        ],
+      },
+      groups:{
+        id:"groups", type:"multi", q:"क्या इनमें से कुछ आप पर लागू होता है?", icon:"🧩", extra:true,
+        hint:"जो भी लागू हो, सब चुनें — इनके लिए खास योजनाएं हैं",
+        noneLabel:"इनमें से कोई नहीं",
+        labels:{
+          construct:"पंजीकृत निर्माण श्रमिक 👷", fisher:"मछुआरा / मछली पालक 🎣", artisan:"बुनकर, कारीगर या शिल्पकार 🧵",
+          minority:"अल्पसंख्यक समुदाय (मुस्लिम, ईसाई, सिख, बौद्ध, जैन, पारसी)", sports:"खिलाड़ी 🏅", artist:"कलाकार / लोक कलाकार 🎭",
+          defence:"पूर्व सैनिक / सैनिक परिवार 🎖️", govt:"सरकारी कर्मचारी / पेंशनभोगी 🏛️", patient:"गंभीर बीमारी का मरीज़ (TB, कैंसर, किडनी…) 🏥",
+          tea:"चाय बागान श्रमिक 🍃", orphan:"माता-पिता खो चुका बच्चा 🕊️", media:"पत्रकार / वकील 📰",
+          merit:"टॉपर / अच्छे अंक (75%+) 🏆", abroad:"विदेश में पढ़ाई की योजना ✈️", graduate:"नया स्नातक — इंटर्नशिप / अप्रेंटिसशिप 🎓",
+        },
       },
     },
   }
@@ -3735,6 +3822,13 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     // Insert extras after the "income" question (index 1)
     const incomeIdx=base.findIndex(q=>q.id==="income");
     base.splice(incomeIdx+1,0,...extra);
+    // Smarter-quiz extras at the end: gender (not asked when "Woman" was
+    // chosen), disability, and the special-groups multi-select — the last one
+    // only lists groups that have at least one scheme for this person.
+    if(ans.who!=="women") base.push(aq.gender);
+    base.push(aq.disability);
+    const gk=groupKeysFor(ans);
+    if(gk.length) base.push({...aq.groups,options:[...gk.map(k=>({value:k,label:aq.groups.labels[k]})),{value:"none",label:aq.groups.noneLabel}]});
     return base;
   },[t]);
 
@@ -3772,6 +3866,9 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
       if(saved.answers && typeof saved.step==="number"){
         // Clamp saved step to new queue length (answers may have changed)
         const q=buildQueue(saved.answers);
+        // Finished the older, shorter quiz (saved before v2) → keep showing
+        // their results instead of dropping them onto a new question.
+        if(!saved.v && saved.step>=q.filter(x=>!x.extra).length) return q.length;
         return Math.min(saved.step, q.length);
       }
       return buildQueue(saved).length;
@@ -3815,7 +3912,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
   const [headerDragActive,setHeaderDragActive]=useState(false); // disables the snap transition while actively dragging
 
   const closeChecker=()=>{
-    if(step===TOTAL){onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>answers[k]!==prefilledAnswers[k]));}
+    if(step===TOTAL){onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>JSON.stringify(answers[k])!==JSON.stringify(prefilledAnswers[k])));}
     onClose();
   };
 
@@ -3867,7 +3964,8 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
       const isNew=saved.answers && typeof saved.step==="number";
       const ans=isNew?saved.answers:saved;
       const builtQ=buildQueue(ans);
-      const savedStep=isNew?saved.step:builtQ.length;
+      const legacyDone=isNew&&!saved.v&&saved.step>=builtQ.filter(x=>!x.extra).length;
+      const savedStep=(isNew&&!legacyDone)?saved.step:builtQ.length;
       return savedStep===builtQ.length?SCHEME_DB.filter(s=>safeMatch(s,ans)):[];
     }catch{return [];}
   });
@@ -3901,7 +3999,21 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
 
   const q=step<TOTAL?queue[step]:null;
   const isStateQ=q?.type==="state";
-  const activeVal=isStateQ?(stateSearch&&INDIA_STATES.includes(stateSearch)?stateSearch:null):(selected||(q?answers[q.id]:null));
+  const isMultiQ=q?.type==="multi";
+  // Multi-select: the ticked values (only ones still offered), or null if none.
+  const multiVal=isMultiQ?(()=>{
+    const offered=new Set(q.options.map(o=>o.value));
+    const v=(Array.isArray(selected)?selected:(Array.isArray(answers[q.id])?answers[q.id]:[])).filter(x=>offered.has(x));
+    return v.length?v:null;
+  })():null;
+  const activeVal=isStateQ?(stateSearch&&INDIA_STATES.includes(stateSearch)?stateSearch:null):isMultiQ?multiVal:(selected||(q?answers[q.id]:null));
+  const toggleMulti=(value)=>{
+    const cur=multiVal??[];
+    let next;
+    if(value==="none") next=cur.includes("none")?[]:["none"];
+    else next=cur.includes(value)?cur.filter(x=>x!==value):[...cur.filter(x=>x!=="none"),value];
+    setSelected(next);
+  };
   const canProceed=!!activeVal;
 
   // ── Live scheme counter ───────────────────────────────────────────────────
@@ -3930,7 +4042,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
   // one-time help (summed, one house) — never mixed together.
   const benefit=useMemo(()=>benefitSummary(results),[results]);
   const totalAnnual=benefit.yearly;
-  const nicheGroups=useMemo(()=>step===TOTAL?groupByAudience(SCHEME_DB.filter(s=>nicheAudience(s)&&!safeMatch(s,answers)&&safeMatchAny(s,answers))):[],[step,TOTAL,answers]);
+  const nicheGroups=useMemo(()=>step===TOTAL?groupByAudience(SCHEME_DB.filter(s=>{const a=nicheAudience(s);return a&&!audienceDeclined(a.key,answers)&&!safeMatch(s,answers)&&safeMatchAny(s,answers);})):[],[step,TOTAL,answers]);
   const [openNiche,setOpenNiche]=useState(null);
   const nationalResults=useMemo(()=>results.filter(r=>r.scope==="national").sort((a,b)=>(b.annual||0)-(a.annual||0)),[results]);
   const stateResults=useMemo(()=>results.filter(r=>r.scope==="state").sort((a,b)=>(b.annual||0)-(a.annual||0)),[results]);
@@ -3941,6 +4053,11 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     const useVal=valOverride!==null?valOverride:activeVal;
     if(!useVal)return;
     const newAnswers={...answers,[q.id]:useVal};
+    // "Woman" already tells us the gender — the gender question is skipped.
+    if(newAnswers.who==="women") newAnswers.gender="female";
+    // Remember which groups were offered, so the ones left unticked can be
+    // hidden from "Also check" (the person said they don't apply).
+    if(q.type==="multi") newAnswers.groupsAsked=q.options.map(o=>o.value).filter(v=>v!=="none");
     // Recompute queue with the freshly updated answers so conditional
     // questions are injected before we decide if this is the last step
     const newQueue=buildQueue(newAnswers);
@@ -3949,13 +4066,13 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     // rationCard…) in place, and it kept unlocking schemes the user no
     // longer qualifies for. Drop adaptive answers whose question is gone.
     const liveIds=new Set(newQueue.map(x=>x.id));
-    for(const k of ["landHolding","educationLevel","rationCard"]){
-      if(!liveIds.has(k)) delete newAnswers[k];
+    for(const k of ["landHolding","educationLevel","rationCard","groups"]){
+      if(!liveIds.has(k)){ delete newAnswers[k]; if(k==="groups") delete newAnswers.groupsAsked; }
     }
     const newTotal=newQueue.length;
     const nextStep=step===newTotal-1?newTotal:step+1;
     setAnswers(newAnswers);setSelected(null);setDirection("fwd");setAnimKey(k=>k+1);
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify({answers:newAnswers,step:nextStep}));}catch{}
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify({answers:newAnswers,step:nextStep,v:2}));}catch{}
     if(step===newTotal-1){
       const matched=initResults(newAnswers);
       setResults(matched);
@@ -4488,6 +4605,34 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                   })}
                   {stateSearch&&filteredStates.length===0&&<div style={{padding:16,textAlign:"center",color:"#aaa",fontSize:13}}>No state found</div>}
                 </div>
+              </div>
+            ):isMultiQ?(
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {q.options.map(opt=>{
+                  const on=!!multiVal?.includes(opt.value);
+                  const isNone=opt.value==="none";
+                  return(
+                    <div key={opt.value} role="checkbox" aria-checked={on}
+                      onClick={()=>{haptic();toggleMulti(opt.value);}}
+                      style={{
+                        padding:"12px 16px",borderRadius:13,marginTop:isNone?6:0,
+                        border:`2px solid ${on?(isNone?th.border3:"#138808"):th.border}`,
+                        background:on?(isNone?th.optionActive:(dark?"rgba(19,136,8,0.18)":"rgba(19,136,8,0.07)")):th.optionBg,
+                        cursor:"pointer",display:"flex",alignItems:"center",gap:12,
+                        transition:"border-color 0.15s,background 0.15s",
+                      }}>
+                      <div style={{
+                        width:20,height:20,borderRadius:6,flexShrink:0,
+                        border:`2px solid ${on?(isNone?"#78716c":"#138808"):th.border3}`,
+                        background:on?(isNone?"#78716c":"#138808"):th.optionBg,
+                        display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s",
+                      }}>
+                        {on&&<span style={{color:"#fff",fontSize:12,fontWeight:900,lineHeight:1}}>✓</span>}
+                      </div>
+                      <span style={{fontSize:13,fontWeight:on?700:400,color:on&&!isNone?(dark?"#7ee08a":"#0f6b06"):th.text,fontFamily:bf,lineHeight:1.35}}>{opt.label}</span>
+                    </div>
+                  );
+                })}
               </div>
             ):(
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -5174,7 +5319,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
             )}
             <div style={{display:"flex",gap:10,marginTop:16}}>
               <div onClick={()=>{haptic();retake();}} style={{flex:1,padding:14,borderRadius:14,border:"1.5px solid #FF9933",background:th.card,textAlign:"center",fontSize:13,fontWeight:700,color:"#FF8C00",cursor:"pointer",fontFamily:bf}}>{t.retakeBtn}</div>
-              <div onClick={()=>{haptic();onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>answers[k]!==prefilledAnswers[k]));onClose();}} style={{flex:1,padding:14,borderRadius:14,background:"linear-gradient(135deg,#003580,#1a56db)",textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:bf}}>{t.doneBtn}</div>
+              <div onClick={()=>{haptic();onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>JSON.stringify(answers[k])!==JSON.stringify(prefilledAnswers[k])));onClose();}} style={{flex:1,padding:14,borderRadius:14,background:"linear-gradient(135deg,#003580,#1a56db)",textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:bf}}>{t.doneBtn}</div>
             </div>
           </div>
         )}
@@ -10556,6 +10701,9 @@ function YojanaSahayInner(){
           checkerAnswers.landHolding&&checkerAnswers.landHolding!==profile?.landHolding,
           checkerAnswers.educationLevel&&checkerAnswers.educationLevel!==profile?.educationLevel,
           checkerAnswers.rationCard&&checkerAnswers.rationCard!==profile?.ration,
+          checkerAnswers.gender&&checkerAnswers.gender!==profile?.gender,
+          checkerAnswers.disability&&(checkerAnswers.disability==="none")!==((profile?.disability||"none")==="none"),
+          Array.isArray(checkerAnswers.groups)&&JSON.stringify(checkerAnswers.groups)!==JSON.stringify(profile?.groups),
         ].filter(Boolean).length;
         const captured=[checkerAnswers.who,checkerAnswers.income,checkerAnswers.state,checkerAnswers.age,checkerAnswers.area,checkerAnswers.house,checkerAnswers.caste,checkerAnswers.landHolding,checkerAnswers.educationLevel,checkerAnswers.rationCard].filter(Boolean).length;
         const chips=[
@@ -10707,6 +10855,11 @@ function YojanaSahayInner(){
                     ...(checkerAnswers.landHolding?{landHolding:checkerAnswers.landHolding}:{}),
                     ...(checkerAnswers.educationLevel?{educationLevel:checkerAnswers.educationLevel}:{}),
                     ...(checkerAnswers.rationCard?{ration:checkerAnswers.rationCard}:{}),
+                    ...(checkerAnswers.gender?{gender:checkerAnswers.gender}:{}),
+                    // "Yes" keeps a more specific disability type already in the profile.
+                    ...(checkerAnswers.disability==="none"?{disability:"none"}
+                      :checkerAnswers.disability&&(!profile.disability||profile.disability==="none")?{disability:checkerAnswers.disability}:{}),
+                    ...(Array.isArray(checkerAnswers.groups)?{groups:checkerAnswers.groups,groupsAsked:checkerAnswers.groupsAsked||[]}:{}),
                   };
                   setProfile(updated);
                   if(auth.currentUser){
