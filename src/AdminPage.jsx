@@ -271,6 +271,11 @@ export default function AdminPage() {
   const roleUnsubRef = useRef(null);
   const [expired, setExpired] = useState(null); // auth error code when the login can't be renewed
 
+  // Make sure the app's HTML splash screen (index.html) never covers /admin.
+  useEffect(() => {
+    try { document.getElementById("html-splash")?.remove(); } catch { /* ignore */ }
+  }, []);
+
   // Keep the session across browser restarts (this is Firebase's web default,
   // made explicit so it can't silently change to session-only).
   useEffect(() => {

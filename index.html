@@ -583,7 +583,9 @@
 
     <!-- Skip HTML splash if React already ran this session -->
     <script>
-      if (sessionStorage.getItem('ys_splashed') === '1') {
+      // /admin has its own loading screen and never dismisses the splash —
+      // without this, the splash covered the admin sign-in forever.
+      if (sessionStorage.getItem('ys_splashed') === '1' || location.pathname.indexOf('/admin') === 0) {
         document.getElementById('html-splash').style.display = 'none';
       }
     </script>
