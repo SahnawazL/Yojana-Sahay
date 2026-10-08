@@ -12,6 +12,7 @@
  */
 
 import { whoCanApply } from "./eligibilityText.js";
+import { shareBenefitCard, shortINR } from "./shareCard.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import {
   INDIA_STATES,
@@ -4590,6 +4591,21 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       <div style={{fontSize:11.5,color:"rgba(255,255,255,0.72)",marginTop:5,fontFamily:bf,fontWeight:500}}>
                         {isHindi?"*अनुमानित — सभी योजनाओं में आवेदन व मंज़ूरी पर निर्भर":"*Estimated — if you apply & get approved for all matched schemes"}
                       </div>
+                      {/* Where the total comes from — top 3 by yearly value */}
+                      {(()=>{
+                        const top=[...results].filter(r=>r.annual>0).sort((a,b)=>b.annual-a.annual).slice(0,3);
+                        if(top.length<2) return null;
+                        return (
+                          <div style={{marginTop:10,display:"flex",flexDirection:"column",gap:4,textAlign:"left"}}>
+                            {top.map(r=>(
+                              <div key={r.id} style={{display:"flex",justifyContent:"space-between",gap:10,fontSize:11.5,color:"rgba(255,255,255,0.88)",fontFamily:bf}}>
+                                <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.icon} {r.name[lang]}</span>
+                                <span style={{fontWeight:800,color:"#FFE58A",flexShrink:0}}>{shortINR(r.annual)}{isHindi?"/वर्ष":"/yr"}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
 
@@ -4610,6 +4626,24 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       </div>
                     )}
                   </div>
+
+                  {/* Share my result as an image card */}
+                  {totalAnnual>0&&(
+                    <button
+                      onClick={()=>{
+                        haptic();
+                        const top=[...results].filter(r=>r.annual>0).sort((a,b)=>b.annual-a.annual).slice(0,5).map(r=>({name:r.name[lang],annual:r.annual}));
+                        shareBenefitCard({total:totalAnnual,count:results.length,top,state:answers.state,lang});
+                      }}
+                      style={{
+                        marginTop:12,width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+                        background:"#fff",color:"#C2410C",border:"none",borderRadius:12,padding:"11px 14px",
+                        fontSize:13.5,fontWeight:800,fontFamily:bf,cursor:"pointer",position:"relative",
+                        boxShadow:"0 4px 14px rgba(0,0,0,0.18)",WebkitTapHighlightColor:"transparent",
+                      }}>
+                      <span style={{fontSize:16}}>📤</span>{isHindi?"मेरा परिणाम शेयर करें":"Share my result"}
+                    </button>
+                  )}
                 </div>
 
                 {/* ── "What These Numbers Mean" — honest-estimate disclaimer ──
