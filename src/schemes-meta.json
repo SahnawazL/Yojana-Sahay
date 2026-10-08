@@ -1765,7 +1765,7 @@
     "confidence": 0
   },
   "karnataka_rythu": {
-    "lastVerified": "2026-10-08T07:51:43.676Z",
+    "lastVerified": "2026-10-08T21:35:10.304Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1777,7 +1777,7 @@
     "confidence": 0
   },
   "karnataka_raitha_siri": {
-    "lastVerified": "2026-10-08T07:53:01.996Z",
+    "lastVerified": "2026-10-08T21:34:20.431Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1801,17 +1801,17 @@
     "confidence": 0
   },
   "karnataka_postmatric_scholarship": {
-    "lastVerified": "2026-10-08T07:53:01.996Z",
+    "lastVerified": "2026-10-08T21:34:07.488Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_sanchi_hosahalli": {
-    "lastVerified": "2026-10-08T07:53:01.996Z",
+    "lastVerified": "2026-10-08T21:35:44.764Z",
     "confidence": 0
   },
   "karnataka_sandhya_suraksha": {
-    "lastVerified": "2026-10-08T07:53:01.996Z",
+    "lastVerified": "2026-10-08T21:35:47.437Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1841,13 +1841,13 @@
     "confidence": 0
   },
   "karnataka_skill_connect": {
-    "lastVerified": "2026-10-08T07:54:41.378Z",
+    "lastVerified": "2026-10-08T21:36:38.244Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_sericulture": {
-    "lastVerified": "2026-10-08T07:54:41.378Z",
+    "lastVerified": "2026-10-08T21:36:12.601Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1865,7 +1865,7 @@
     "confidence": 0
   },
   "karnataka_stree_shakti": {
-    "lastVerified": "2026-10-08T08:14:00.391Z",
+    "lastVerified": "2026-10-08T21:37:27.268Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1875,7 +1875,7 @@
     "confidence": 0
   },
   "karnataka_rajiv_gandhi_loan": {
-    "lastVerified": "2026-10-08T08:15:05.339Z",
+    "lastVerified": "2026-10-08T21:34:34.029Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1905,7 +1905,7 @@
     "confidence": 0
   },
   "karnataka_sc_corporation_housing": {
-    "lastVerified": "2026-10-08T08:15:05.339Z",
+    "lastVerified": "2026-10-08T21:35:59.569Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1953,29 +1953,29 @@
     "confidence": 0
   },
   "karnataka_shaadi_bhagya": {
-    "lastVerified": "2026-10-08T08:16:27.458Z",
+    "lastVerified": "2026-10-08T21:36:25.231Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_solar_pump": {
-    "lastVerified": "2026-10-08T08:16:27.458Z",
+    "lastVerified": "2026-10-08T21:36:51.106Z",
     "confidence": 0
   },
   "karnataka_surya_raitha": {
-    "lastVerified": "2026-10-08T08:16:27.458Z",
+    "lastVerified": "2026-10-08T21:37:45.624Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
   },
   "karnataka_sports_scholarship": {
-    "lastVerified": "2026-10-08T08:16:27.458Z",
+    "lastVerified": "2026-10-08T21:37:02.411Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_rajiv_gandhi_svagriha": {
-    "lastVerified": "2026-10-08T08:16:27.458Z",
+    "lastVerified": "2026-10-08T21:34:45.044Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2036,7 +2036,7 @@
     "isActive": true
   },
   "karnataka_startup_policy": {
-    "lastVerified": "2026-10-08T08:17:50.638Z",
+    "lastVerified": "2026-10-08T21:37:16.008Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2054,7 +2054,7 @@
     "confidence": 0
   },
   "karnataka_rural_homestay": {
-    "lastVerified": "2026-10-08T08:17:50.638Z",
+    "lastVerified": "2026-10-08T21:34:57.201Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2086,7 +2086,7 @@
     "confidence": 0
   },
   "karnataka_sakaala_ration": {
-    "lastVerified": "2026-10-08T08:17:50.638Z",
+    "lastVerified": "2026-10-08T21:35:23.516Z",
     "confidence": 0
   },
   "maha_health": {
@@ -3256,6 +3256,9 @@
     "lastVerified": "2026-10-01T00:16:57.959Z"
   },
   "karnataka_pmjjby": {
-    "lastVerified": "2026-10-08T00:42:17.783Z"
+    "lastVerified": "2026-10-08T21:33:45.382Z"
+  },
+  "karnataka_pmsby": {
+    "lastVerified": "2026-10-08T21:33:55.283Z"
   }
 }
