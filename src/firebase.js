@@ -13,7 +13,7 @@ import {
 // yojanasetu-e24bb.firebaseapp.com, which made Google sign-in fail again and
 // again. Turn on only after this redirect URI is added to the Google OAuth
 // client: https://yojanasahay.vercel.app/__/auth/handler
-const SAME_SITE_AUTH = false;
+const SAME_SITE_AUTH = true; // redirect URI added to the OAuth client on 8 Oct 2026
 const onMainSite = typeof window !== "undefined" && window.location.hostname === "yojanasahay.vercel.app";
 
 const firebaseConfig = {
