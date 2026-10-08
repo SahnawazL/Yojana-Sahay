@@ -300,7 +300,7 @@ const FAQ_DATA = {
       cat: "schemes",
       id: "schemes_002",
       q: "How does the Eligibility Checker work?",
-      a: "The Eligibility Checker asks 7–10 questions covering state, income, age, occupation, caste category, land holding, and ration card. Your answers build a profile object that's evaluated client-side against each scheme's own eligibility rule in our database, and results are ranked by relevance. All matching runs on-device — no profile data is sent to external servers to compute it.",
+      a: "The Eligibility Checker asks 8–12 questions covering state, income, age, occupation, caste category, land holding, ration card, gender, disability and special groups (like construction workers or fishermen). Your answers build a profile object that's evaluated client-side against each scheme's own eligibility rule in our database, and results are ranked by relevance. All matching runs on-device — no profile data is sent to external servers to compute it.",
     },
     {
       cat: "schemes",
@@ -486,7 +486,7 @@ const FAQ_DATA = {
       cat: "schemes",
       id: "schemes_002",
       q: "पात्रता जाँचकर्ता कैसे काम करता है?",
-      a: "पात्रता जाँचकर्ता 7–10 सवाल पूछता है — राज्य, आय, आयु, व्यवसाय, जाति वर्ग, भूमि और राशन कार्ड। आपके जवाबों से एक प्रोफाइल ऑब्जेक्ट बनता है, जिसे डिवाइस पर ही हर योजना के अपने पात्रता नियम के विरुद्ध जांचा जाता है, और परिणाम प्रासंगिकता के अनुसार दिखाए जाते हैं। सारी गणना डिवाइस पर ही होती है — आपकी प्रोफाइल का डेटा गणना के लिए बाहरी सर्वर पर नहीं भेजा जाता।",
+      a: "पात्रता जाँचकर्ता 8–12 सवाल पूछता है — राज्य, आय, आयु, व्यवसाय, जाति वर्ग, लिंग, दिव्यांगता, विशेष समूह, भूमि और राशन कार्ड। आपके जवाबों से एक प्रोफाइल ऑब्जेक्ट बनता है, जिसे डिवाइस पर ही हर योजना के अपने पात्रता नियम के विरुद्ध जांचा जाता है, और परिणाम प्रासंगिकता के अनुसार दिखाए जाते हैं। सारी गणना डिवाइस पर ही होती है — आपकी प्रोफाइल का डेटा गणना के लिए बाहरी सर्वर पर नहीं भेजा जाता।",
     },
     {
       cat: "schemes",

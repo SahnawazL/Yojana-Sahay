@@ -35,6 +35,15 @@ service cloud.firestore {
                            .diff(resource.data).affectedKeys());
     }
 
+    // "My applications" tracker — one private doc per user ({apps: {schemeId: {...}}}).
+    match /userApplications/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+                            && request.resource.data.keys().hasOnly(['apps', 'updatedAt'])
+                            && request.resource.data.apps is map
+                            && request.resource.data.apps.size() <= 300;
+    }
+
     match /reports/{reportId} {
       allow create: if request.auth != null
                     && request.resource.data.uid == request.auth.uid;

@@ -15,6 +15,7 @@ import { whoCanApply } from "./eligibilityText.js";
 import { shareBenefitCard, shortINR } from "./shareCard.js";
 import { benefitSummary, benefitKind, topBenefits } from "./benefitMath.js";
 import { nicheAudience, groupByAudience } from "./audience.js";
+import { useApplications, initApplications, mergeRemote, setRemoteWriter, trackApplication, updateApplication, snoozeApplication, removeApplication, isDueForCheck, daysSince, STATUS_TEXT, CHECK_AFTER_DAYS } from "./applications.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import {
   INDIA_STATES,
@@ -806,7 +807,7 @@ const T = {
     aiBannerTitle:"Ask AI Assistant", aiBannerSub:"Ask anything about any scheme in Hindi or English",
     categoriesTitle:"Categories", categoriesSub:"Browse by Category", seeAll:"See All →",
     ctaTitle:"Check Eligibility",
-    ctaSub:(hp)=> hp ? "Results ready from your profile · Tap to view" : "Answer 7–11 smart questions · AI guidance on your results",
+    ctaSub:(hp)=> hp ? "Results ready from your profile · Tap to view" : "Answer 8–12 smart questions · AI guidance on your results",
     ctaBtn:(hp)=> hp ? "View My Schemes →" : "Start Now →",
     schemesTitle:"Popular Schemes", schemesSub:"Top government benefits",
     matchedTitle:"Matched for You", matchedSub:(n)=>`${n} scheme${n!==1?"s":""} you qualify for`,
@@ -978,7 +979,7 @@ const T = {
     aiBannerTitle:"AI सहायक से पूछें", aiBannerSub:"हिंदी या अंग्रेज़ी में कोई भी सवाल पूछें",
     categoriesTitle:"श्रेणियां", categoriesSub:"श्रेणी के अनुसार देखें", seeAll:"सभी देखें →",
     ctaTitle:"पात्रता जांचें",
-    ctaSub:(hp)=> hp ? "प्रोफाइल से परिणाम तैयार · देखें" : "7–11 स्मार्ट प्रश्नों के उत्तर दें · AI से मार्गदर्शन पाएं",
+    ctaSub:(hp)=> hp ? "प्रोफाइल से परिणाम तैयार · देखें" : "8–12 स्मार्ट प्रश्नों के उत्तर दें · AI से मार्गदर्शन पाएं",
     ctaBtn:(hp)=> hp ? "मेरी योजनाएं →" : "शुरू करें →",
     schemesTitle:"लोकप्रिय योजनाएं", schemesSub:"शीर्ष सरकारी लाभ",
     matchedTitle:"आपके लिए योजनाएं", matchedSub:(n)=>`${n} योजनाएं जिनके आप पात्र हैं`,
@@ -1458,6 +1459,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
 
   const [copied,setCopied]=useState(false);
   const [showGSearch,setShowGSearch]=useState(false);
+  const myApp=useApplications()[scheme.id]; // "I've applied" tracker entry, if any
 
   const handleCopy=(e)=>{
     e.stopPropagation();
@@ -1524,6 +1526,10 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
               border:`1px solid ${isOnline?"#bbf7d0":"#e0e0e0"}`}}>
               {isOnline?"🌐 Online":"🏢 Offline"}
             </span>
+            {myApp&&(()=>{const st=STATUS_TEXT[myApp.status]||STATUS_TEXT.pending;return(
+              <span style={{fontSize:9,fontWeight:800,background:dark?st.color+"22":st.bg,color:st.color,borderRadius:6,padding:"2px 7px",border:`1px solid ${st.color}40`}}>
+                {myApp.status==="pending"?(isHindi?"📋 आवेदन किया":"📋 Applied"):`${st.icon} ${isHindi?st.hi:st.en}`}
+              </span>);})()}
             {/* ── Status badge — combines URL liveness (Tier 1) + application status (Tier 2 AI) ── */}
             {(()=>{
               if(!isOnline) return null;
@@ -2182,6 +2188,125 @@ function CategorySheet({category,lang,onClose,dark=false,onOpenDetail=null}){
 }
 
 // ─── SCHEME DETAIL SHEET (tapping home page scheme card) ──────────────────────
+// ─── APPLICATION TRACKER (inside the scheme detail sheet) ─────────────────────
+// "I've applied" → date + optional reference number; then a status the person
+// updates (waiting / approved / money received / rejected). See applications.js.
+function fmtDay(iso,lang){
+  const d=new Date(iso.length===10?iso+"T00:00:00":iso);
+  return isNaN(d)?"":d.toLocaleDateString(lang==="hi"?"hi-IN":"en-IN",{day:"numeric",month:"short",year:"numeric"});
+}
+function ApplicationTracker({scheme,lang,dark=false}){
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const apps=useApplications();
+  const app=apps[scheme.id];
+  const today=new Date().toISOString().slice(0,10);
+  const [form,setForm]=useState(null); // null | {appliedAt, ref}
+  const [copied,setCopied]=useState(false);
+  const L=(en,hi)=>isHindi?hi:en;
+  const inputStyle={width:"100%",boxSizing:"border-box",padding:"11px 12px",borderRadius:11,border:`1.5px solid ${th.border}`,background:th.inputBg,color:th.text,fontSize:14,fontFamily:bf,outline:"none"};
+
+  const header=(
+    <div style={{display:"flex",alignItems:"center",gap:9,margin:"18px 0 10px",paddingLeft:2}}>
+      <div style={{width:22,height:22,borderRadius:"50%",background:app?"#138808":scheme.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10.5,fontWeight:900,color:"#fff",fontFamily:"'Noto Sans',sans-serif"}}>{app?"✓":"3"}</div>
+      <div style={{fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf}}>{L("Track your application","अपना आवेदन ट्रैक करें")}</div>
+    </div>
+  );
+
+  // Form: new, or editing date / reference number
+  if(form){
+    return(<>
+      {header}
+      <div style={{background:th.card2,border:`1px solid ${th.border}`,borderRadius:16,padding:14,display:"flex",flexDirection:"column",gap:10}}>
+        <label style={{fontSize:11,fontWeight:700,color:th.textSub,fontFamily:bf}}>
+          {L("Date you applied","आवेदन की तारीख")}
+          <input type="date" max={today} value={form.appliedAt} onChange={e=>setForm(f=>({...f,appliedAt:e.target.value}))} style={{...inputStyle,marginTop:5}}/>
+        </label>
+        <label style={{fontSize:11,fontWeight:700,color:th.textSub,fontFamily:bf}}>
+          {L("Application / reference number (optional)","आवेदन / रेफ़रेंस नंबर (वैकल्पिक)")}
+          <input value={form.ref} maxLength={60} placeholder={L("e.g. UP2026XXXX","जैसे UP2026XXXX")} onChange={e=>setForm(f=>({...f,ref:e.target.value}))} style={{...inputStyle,marginTop:5}}/>
+        </label>
+        <div style={{fontSize:10.5,color:th.textSub,lineHeight:1.5,fontFamily:bf}}>
+          {L(`We'll remind you to check the status after ${CHECK_AFTER_DAYS} days.`,`${CHECK_AFTER_DAYS} दिन बाद हम आपको स्थिति जांचने की याद दिलाएंगे।`)}
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <div onClick={()=>{haptic();setForm(null);}} style={{flex:1,padding:12,borderRadius:12,border:`1.5px solid ${th.border3}`,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>{L("Cancel","रद्द करें")}</div>
+          <div onClick={()=>{
+              haptic();
+              const d=form.appliedAt&&form.appliedAt<=today?form.appliedAt:today;
+              if(app) updateApplication(scheme.id,{appliedAt:d,ref:String(form.ref||"").trim().slice(0,60)});
+              else trackApplication(scheme.id,{appliedAt:d,ref:form.ref});
+              setForm(null);
+            }}
+            style={{flex:2,padding:12,borderRadius:12,background:"linear-gradient(135deg,#138808,#1aac09)",textAlign:"center",fontSize:13,fontWeight:800,color:"#fff",cursor:"pointer",fontFamily:bf,boxShadow:"0 4px 14px rgba(19,136,8,0.3)"}}>
+            {L("Save","सेव करें")}
+          </div>
+        </div>
+      </div>
+    </>);
+  }
+
+  if(!app){
+    return(<>
+      {header}
+      <div onClick={()=>{haptic();setForm({appliedAt:today,ref:""});}}
+        style={{display:"flex",alignItems:"center",gap:12,background:dark?"rgba(19,136,8,0.10)":"#F0FDF4",border:"1.5px dashed rgba(19,136,8,0.45)",borderRadius:14,padding:"12px 14px",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+        <div style={{width:34,height:34,borderRadius:10,background:"#138808",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0,color:"#fff"}}>✓</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:800,color:dark?"#7ee08a":"#0f6b06",fontFamily:bf}}>{L("I've applied — track it","मैंने आवेदन कर दिया — ट्रैक करें")}</div>
+          <div style={{fontSize:10.5,color:th.textSub,marginTop:2,fontFamily:bf,lineHeight:1.4}}>{L("Save the date & reference number. We'll remind you to check the status.","तारीख और रेफ़रेंस नंबर सेव करें। हम स्थिति जांचने की याद दिलाएंगे।")}</div>
+        </div>
+        <span style={{fontSize:16,color:"#138808",flexShrink:0}}>›</span>
+      </div>
+    </>);
+  }
+
+  const st=STATUS_TEXT[app.status]||STATUS_TEXT.pending;
+  const due=isDueForCheck(app);
+  const days=daysSince(app.appliedAt);
+  return(<>
+    {header}
+    <div style={{background:th.card2,border:`1px solid ${th.border}`,borderRadius:16,padding:14}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:10}}>
+        <span style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:12,fontWeight:800,color:st.color,background:dark?st.color+"22":st.bg,borderRadius:20,padding:"5px 11px",fontFamily:bf}}>{st.icon} {isHindi?st.hi:st.en}</span>
+        <span onClick={()=>{haptic();setForm({appliedAt:app.appliedAt,ref:app.ref||""});}} style={{fontSize:11.5,fontWeight:700,color:th.textMid,cursor:"pointer",fontFamily:bf}}>✏️ {L("Edit","बदलें")}</span>
+      </div>
+      <div style={{fontSize:12,color:th.textMid,fontFamily:bf,lineHeight:1.6}}>
+        📅 {L("Applied on","आवेदन")} <b style={{color:th.text}}>{fmtDay(app.appliedAt,lang)}</b> · {days===0?L("today","आज"):L(`${days} day${days===1?"":"s"} ago`,`${days} दिन पहले`)}
+      </div>
+      {app.ref&&(
+        <div style={{display:"flex",alignItems:"center",gap:8,marginTop:6,fontSize:12,color:th.textMid,fontFamily:bf}}>
+          <span>🔖 {L("Ref. no.","रेफ़. नंबर")} <b style={{color:th.text,fontFamily:"'Noto Sans',monospace",letterSpacing:0.3}}>{app.ref}</b></span>
+          <span onClick={()=>{haptic();try{navigator.clipboard?.writeText(app.ref);}catch{}setCopied(true);setTimeout(()=>setCopied(false),1500);}} style={{fontSize:11,fontWeight:700,color:"#C2410C",cursor:"pointer"}}>{copied?L("Copied ✓","कॉपी ✓"):L("Copy","कॉपी")}</span>
+        </div>
+      )}
+      {due&&(
+        <div style={{marginTop:10,padding:"9px 11px",borderRadius:11,background:dark?"rgba(245,158,11,0.12)":"#FFFBEB",border:"1px solid #FCD34D",fontSize:11.5,color:dark?"#FCD34D":"#92400E",fontFamily:bf,lineHeight:1.5}}>
+          🔔 {L("It's been a while — check your status on the official site or office, then update it below.","काफ़ी समय हो गया — आधिकारिक साइट या कार्यालय पर स्थिति जांचें और नीचे अपडेट करें।")}
+        </div>
+      )}
+      <div style={{fontSize:10.5,fontWeight:700,color:th.textSub,margin:"12px 0 7px",letterSpacing:0.3,fontFamily:bf}}>{L("UPDATE STATUS","स्थिति अपडेट करें")}</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
+        {["pending","approved","received","rejected"].map(k=>{
+          const s=STATUS_TEXT[k]; const on=app.status===k;
+          return(
+            <div key={k} onClick={()=>{haptic();if(k==="pending"&&on)snoozeApplication(scheme.id);else updateApplication(scheme.id,{status:k,lastCheckedAt:new Date().toISOString()});}}
+              style={{fontSize:11.5,fontWeight:on?800:600,padding:"7px 11px",borderRadius:20,cursor:"pointer",fontFamily:bf,
+                border:`1.5px solid ${on?s.color:th.border}`,color:on?s.color:th.textMid,background:on?(dark?s.color+"22":s.bg):"transparent"}}>
+              {s.icon} {k==="pending"&&on&&due?L("Still waiting","अभी इंतज़ार"):(isHindi?s.hi:s.en)}
+            </div>
+          );
+        })}
+      </div>
+      <div onClick={()=>{haptic();if(window.confirm(L("Stop tracking this application?","इस आवेदन की ट्रैकिंग बंद करें?")))removeApplication(scheme.id);}}
+        style={{marginTop:12,fontSize:11,color:th.textSub,textAlign:"center",cursor:"pointer",fontFamily:bf}}>
+        {L("Remove from my applications","मेरे आवेदनों से हटाएं")}
+      </div>
+    </div>
+  </>);
+}
+
 function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
   const th=THEME[dark?"dark":"light"];
   // Looks up full scheme data from SCHEME_DB by id
@@ -2344,6 +2469,9 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
               </span>
             </div>
           )}
+
+          {/* ── STEP 3 — Track the application ── */}
+          <ApplicationTracker scheme={scheme} lang={lang} dark={dark}/>
 
           {/* ── Share checklist on WhatsApp ── */}
           <div onClick={shareChecklist}
@@ -7904,6 +8032,77 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 // All function props passed to it must be stable (useCallback) for this to work.
 const ProfileTabMemo = memo(ProfileTab);
 
+// ─── MY APPLICATIONS CARD (home) ───────────────────────────────────────────────
+// Every scheme the person marked "I've applied", with status. Pending ones
+// older than 30 days float to the top with a "time to check" reminder.
+function MyApplicationsCard({ lang, dark, onSchemeOpen }) {
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const L=(en,hi)=>isHindi?hi:en;
+  const apps=useApplications();
+  const [showAll,setShowAll]=useState(false);
+  const rows=useMemo(()=>Object.entries(apps)
+    .map(([id,a])=>({id,a,s:SCHEME_BY_ID.get(id),due:isDueForCheck(a)}))
+    .filter(r=>r.s)
+    .sort((x,y)=>(y.due-x.due)||((x.a.status==="pending"?0:1)-(y.a.status==="pending"?0:1))||String(y.a.updatedAt).localeCompare(String(x.a.updatedAt))),[apps]);
+  if(!rows.length) return null;
+  const due=rows.filter(r=>r.due);
+  const count=k=>rows.filter(r=>r.a.status===k).length;
+  const shown=showAll?rows:rows.slice(0,3);
+  const summary=[
+    count("pending")&&`⏳ ${count("pending")} ${L("waiting","इंतज़ार")}`,
+    count("approved")&&`✅ ${count("approved")} ${L("approved","मंज़ूर")}`,
+    count("received")&&`💰 ${count("received")} ${L("received","मिला")}`,
+    count("rejected")&&`❌ ${count("rejected")} ${L("rejected","अस्वीकृत")}`,
+  ].filter(Boolean).join("  ·  ");
+  return(
+    <div style={{background:th.card,borderRadius:20,border:`1.5px solid ${th.border}`,padding:16,marginBottom:14,boxShadow:dark?"none":"0 4px 18px rgba(0,0,0,0.05)"}}>
+      <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:10}}>
+        <div style={{width:38,height:38,borderRadius:12,background:"linear-gradient(135deg,#138808,#1aac09)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,boxShadow:"0 4px 12px rgba(19,136,8,0.3)"}}>📋</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf}}>{L("My Applications","मेरे आवेदन")} <span style={{color:th.textSub,fontWeight:700}}>({rows.length})</span></div>
+          <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>{summary}</div>
+        </div>
+      </div>
+      {due.length>0&&(
+        <div style={{background:dark?"rgba(245,158,11,0.12)":"#FFFBEB",border:"1px solid #FCD34D",borderRadius:13,padding:"10px 12px",marginBottom:10}}>
+          <div style={{fontSize:12,fontWeight:800,color:dark?"#FCD34D":"#92400E",fontFamily:bf,marginBottom:3}}>
+            🔔 {due.length===1?L("Time to check 1 application","1 आवेदन की स्थिति जांचें"):L(`Time to check ${due.length} applications`,`${due.length} आवेदनों की स्थिति जांचें`)}
+          </div>
+          <div style={{fontSize:11,color:dark?"#FDE68A":"#78350F",fontFamily:bf,lineHeight:1.5}}>
+            {L(`Applied over ${CHECK_AFTER_DAYS} days ago. Check on the official site or office, then tap to update.`,`${CHECK_AFTER_DAYS} दिन से ज़्यादा पहले आवेदन किया। आधिकारिक साइट या कार्यालय पर जांचें, फिर टैप कर अपडेट करें।`)}
+          </div>
+        </div>
+      )}
+      <div style={{display:"flex",flexDirection:"column"}}>
+        {shown.map(({id,a,s,due:isDue},i)=>{
+          const st=STATUS_TEXT[a.status]||STATUS_TEXT.pending;
+          const d=daysSince(a.appliedAt);
+          return(
+            <div key={id} onClick={()=>{haptic();onSchemeOpen?.(id);}}
+              style={{display:"flex",alignItems:"center",gap:10,padding:"10px 2px",borderTop:i?`1px solid ${th.divider}`:"none",cursor:"pointer"}}>
+              <div style={{fontSize:20,flexShrink:0,width:28,textAlign:"center"}}>{s.icon}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.name[lang]}</div>
+                <div style={{fontSize:10.5,color:isDue?(dark?"#FCD34D":"#B45309"):th.textSub,marginTop:2,fontFamily:bf}}>
+                  {isDue?"🔔 ":""}{d===0?L("Applied today","आज आवेदन किया"):L(`Applied ${d} day${d===1?"":"s"} ago`,`${d} दिन पहले आवेदन`)}{a.ref?` · ${a.ref}`:""}
+                </div>
+              </div>
+              <span style={{fontSize:10.5,fontWeight:800,color:st.color,background:dark?st.color+"22":st.bg,borderRadius:20,padding:"4px 9px",flexShrink:0,fontFamily:bf}}>{st.icon} {isHindi?st.hi:st.en}</span>
+            </div>
+          );
+        })}
+      </div>
+      {rows.length>3&&(
+        <div onClick={()=>{haptic();setShowAll(v=>!v);}} style={{marginTop:6,textAlign:"center",fontSize:12,fontWeight:700,color:"#C2410C",cursor:"pointer",fontFamily:bf}}>
+          {showAll?L("Show less","कम दिखाएं"):L(`Show all ${rows.length}`,`सभी ${rows.length} देखें`)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── BENEFIT CALCULATOR CARD ───────────────────────────────────────────────────
 function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) {
   const th = THEME[dark ? "dark" : "light"];
@@ -9411,6 +9610,13 @@ function YojanaSahayInner(){
   // On every auth state change: clear on sign-out; restore Firestore profile on session restore
   useEffect(()=>{
     const unsub=onAuthStateChanged(auth,async(user)=>{
+      // "My applications" — switch to this account's list, then merge the copy
+      // kept in Firestore (its own doc, so profile saves never overwrite it).
+      initApplications(user?.uid||null);
+      if(user){
+        setRemoteWriter((uid,apps)=>setDoc(doc(db,"userApplications",uid),{apps,updatedAt:serverTimestamp()}).catch(()=>{}));
+        getDoc(doc(db,"userApplications",user.uid)).then(snap=>mergeRemote(snap.exists()?snap.data()?.apps:{})).catch(()=>{});
+      }
       if(!user){ setProfile(null); setIsAdmin(false); setAdminTabs(null); return; }
       // Restore profile from Firestore (handles page refresh, tab restore & Google redirect)
       // Firebase offline persistence (enabled in firebase.js) serves this from
@@ -10060,6 +10266,9 @@ function YojanaSahayInner(){
                 {t.ctaBtn(!!profile)}
               </div>
             </div>
+
+            {/* My Applications — only once something has been marked "applied" */}
+            <MyApplicationsCard lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
 
             {/* Benefit Calculator — shown when profile OR committed checker answers exist with annual benefits */}
             {(profile||committedCheckerAnswers)&&allMatchedSchemes.length>0&&(
