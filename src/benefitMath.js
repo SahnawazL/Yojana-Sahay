@@ -24,7 +24,7 @@ export function benefitKind(s) {
   if (/^health|^medical/.test(tag) || /cashless|hospital|treatment|medical (cover|insurance|assistance)|health (cover|insurance)|dialysis|free (opd|medicines|surgery)|generic medicines/.test(t)) return "health";
   if (/(life|accident|crop|livestock|pashu)\s*(insurance|cover)|\bbima\b|insurance/.test(t)) return "other";
   if (/capital (investment )?subsidy|subsidy on (setting|purchase|loom|tourism)|seed (fund|grant)|equity grant|startup|cash (award|prize)|\bprize\b|\baward\b|emergency|distress relief|relief fund|fixed deposit|total support|in \d+ (milestone|instal)|sheep|vehicle|patta|land title|outright grant/.test(t)) return "oneTime";
-  if (/house construction|build (a |your )?(pucca )?house|pucca house|housing|\btoilet|one-time|one time|marriage|vivah|shagun|free goat|goat unit|tractor|\bpump\b|rooftop|solar|cycle|scooty|smartphone|tablet|laptop/.test(t)) return "oneTime";
+  if (/house construction|build (a |your )?(pucca )?house|pucca house|housing|\btoilet|one-time|one time|(marriage|wedding) (assistance|grant|help|gift|incentive)|vivah|shagun|free goat|goat unit|tractor|\bpump\b|rooftop|solar|cycle|scooty|smartphone|tablet|laptop/.test(t)) return "oneTime";
   return "yearly";
 }
 
@@ -66,8 +66,16 @@ export function benefitSummary(schemes = []) {
 
 // Biggest benefits for display, each labelled by what kind of money it is.
 export function topBenefits(schemes = [], n = 5) {
+  // Same rule as the total: only the biggest scholarship / pension / training
+  // stipend / house is shown, so the list never adds up to more than the total.
+  const best = {};
+  for (const s of schemes) {
+    const g = exclusiveGroup(s);
+    if (g && (Number(s?.annual) || 0) > (Number(best[g]?.annual) || 0)) best[g] = s;
+  }
   return schemes
     .filter(s => (Number(s?.annual) || 0) > 0 && benefitKind(s) !== "other")
+    .filter(s => { const g = exclusiveGroup(s); return !g || best[g] === s; })
     .map(s => ({ s, kind: benefitKind(s) }))
     .sort((a, b) => (a.kind === "yearly" ? 0 : 1) - (b.kind === "yearly" ? 0 : 1) || (b.s.annual - a.s.annual))
     .slice(0, n);

@@ -67,7 +67,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://udyog.mahaswayam.gov.in/public/index.php", hi: "mahaswayam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (OBC)", "Business Plan", "Income Certificate", "Bank Passbook"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (OBC)", "व्यापार योजना", "आय प्रमाण पत्र", "बैंक पासबुक"] },
-    match: (a) => a.state === "Maharashtra" && a.who === "business" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Maharashtra" && a.who === "business" && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   {
@@ -95,7 +95,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "mahasamajkalyan.gov.in", hi: "mahasamajkalyan.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC)", "Income Certificate", "Trade Proof", "Bank Passbook"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC)", "आय प्रमाण पत्र", "व्यवसाय प्रमाण", "बैंक पासबुक"] },
-    match: (a) => a.state === "Maharashtra" && a.who === "business" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Maharashtra" && a.who === "business" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -110,7 +110,7 @@ export const MAHARASHTRA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate (≤₹8L/year)", "Previous Year Mark Sheet", "College Bonafide", "Bank Passbook"],
                hi: ["आधार कार्ड", "OBC जाति प्रमाण पत्र", "आय प्रमाण (≤₹8 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज बोनाफाइड", "बैंक पासबुक"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   {
@@ -125,7 +125,7 @@ export const MAHARASHTRA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "Income Certificate", "College Admission Proof", "Bank Passbook"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "आय प्रमाण पत्र", "कॉलेज प्रवेश प्रमाण", "बैंक पासबुक"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Maharashtra" && a.who === "student" && a.who === "women" || (a.state === "Maharashtra" && a.who === "women" && ["below1","1to3"].includes(a.income)),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Maharashtra" && a.who === "student" && a.who === "women" || (a.state === "Maharashtra" && a.who === "women" && ["below1","1to3"].includes(a.income))),
   },
 
   {
@@ -139,7 +139,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://sjsa.maharashtra.gov.in/en/scheme/ramai-awas-yojana-rural-urban", hi: "rhgrhay.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC / Nav-Buddhist Caste Certificate", "BPL Certificate", "7/12 Land Extract or Plot Allotment Letter", "Bank Passbook"],
                hi: ["आधार कार्ड", "SC/नव-बौद्ध जाति प्रमाण पत्र", "BPL प्रमाण पत्र", "7/12 उतारा या भूखंड आवंटन पत्र", "बैंक पासबुक"] },
-    match: (a) => a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -243,7 +243,7 @@ export const MAHARASHTRA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Birth Certificate", "Previous School Leaving Certificate", "Parent's Income Certificate"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "जन्म प्रमाण पत्र", "पिछली शाला छोड़ने का प्रमाण", "माता-पिता का आय प्रमाण"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["st"].includes(a.caste) && (a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -258,7 +258,7 @@ export const MAHARASHTRA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Income Certificate (≤₹2.5L/year)", "Previous Year Mark Sheet", "College Fee Receipt", "Bank Passbook"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "आय प्रमाण (≤₹2.5 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज शुल्क रसीद", "बैंक पासबुक"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["st"].includes(a.caste) && (a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   // ── Women – Self-Employment & Safety ─────────────────────────────────────────
@@ -621,7 +621,7 @@ export const MAHARASHTRA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "Income Certificate (family ≤₹6L/year)", "Admission Letter from QS Top-500 Foreign University", "Degree Marksheet (min. 60%)", "Bank Passbook", "Passport"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "आय प्रमाण (परिवार ≤₹6 लाख/वर्ष)", "QS Top-500 विदेशी विश्वविद्यालय का प्रवेश पत्र", "डिग्री मार्कशीट (न्यूनतम 60%)", "बैंक पासबुक", "पासपोर्ट"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Maharashtra" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   {
@@ -779,7 +779,7 @@ export const MAHARASHTRA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "VJNT / NT / SBC Caste Certificate", "Income Certificate (≤₹2.5L/year)", "Previous Year Mark Sheet", "College Bonafide & Fee Receipt", "Bank Passbook"],
                hi: ["आधार कार्ड", "VJNT / NT / SBC जाति प्रमाण पत्र", "आय प्रमाण (≤₹2.5 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज बोनाफाइड व शुल्क रसीद", "बैंक पासबुक"] },
     keywords: ["class10","class12","polytechnic","diploma"],
-    match: (a) => a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Maharashtra" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -793,7 +793,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "vjnt.maharashtra.gov.in / District VJNT Welfare Office", hi: "vjnt.maharashtra.gov.in / जिला VJNT कल्याण कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "VJNT / NT Caste Certificate", "No Permanent House Declaration", "Ration Card / BPL Certificate", "Maharashtra Domicile", "Bank Passbook"],
                hi: ["आधार कार्ड", "VJNT / NT जाति प्रमाण पत्र", "स्थायी मकान न होने का घोषणापत्र", "राशन कार्ड / BPL प्रमाण पत्र", "महाराष्ट्र अधिवास", "बैंक पासबुक"] },
-    match: (a) => a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income)),
   },
 
   // ── Migrant / Inter-State Workers ─────────────────────────────────────────────

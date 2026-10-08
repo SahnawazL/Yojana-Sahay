@@ -233,7 +233,7 @@ export const JHARKHAND_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/BC)", "10th Mark Sheet", "College / Institution Admission Proof", "Income Certificate (below ₹2.5L)", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/BC)", "10वीं अंकपत्र", "कॉलेज / संस्था प्रवेश प्रमाण", "आय प्रमाण पत्र (₹2.5 लाख से कम)", "बैंक खाता"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   // ── 11. WOMEN / SHG ─────────────────────────────────────────────────────────
@@ -462,7 +462,7 @@ export const JHARKHAND_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "OBC / BC Caste Certificate", "10th Mark Sheet", "College Admission Proof", "Income Certificate (below ₹1.5L/year)", "Bank Account"],
                hi: ["आधार कार्ड", "OBC / BC जाति प्रमाण पत्र", "10वीं अंकपत्र", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण पत्र (₹1.5 लाख/वर्ष से कम)", "बैंक खाता"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Jharkhand" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   // ── 26. MICRO-IRRIGATION ────────────────────────────────────────────────────

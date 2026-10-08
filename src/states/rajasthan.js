@@ -338,7 +338,7 @@ export const RAJASTHAN_SCHEMES = [
                hi: ["आधार कार्ड", "जन आधार कार्ड", "जाति प्रमाण पत्र (SC/OBC/EWS/MBC)", "आय प्रमाण (परिवार ≤ ₹2.5 लाख/वर्ष)", "कॉलेज / विश्वविद्यालय नामांकन प्रमाण", "किराया अनुबंध या हॉस्टल रसीद", "बैंक खाता"] },
     // Eligibility: SC/OBC/EWS/MBC graduate/postgrad student living away from home; family income ≤ ₹2.5L
     keywords: ["class12"],
-    match: (a) => a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc", "obc"].includes(a.caste) && (a.state === "Rajasthan" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── DISABILITY ───────────────────────────────────────────────────────────────
@@ -485,7 +485,7 @@ export const RAJASTHAN_SCHEMES = [
     apply:   { en: "https://industries.rajasthan.gov.in", hi: "industries.rajasthan.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "SC / ST Caste Certificate", "Business / Udyam Registration", "Project Report", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "SC / ST जाति प्रमाण पत्र", "व्यापार / उद्यम पंजीकरण", "प्रोजेक्ट रिपोर्ट", "आय प्रमाण पत्र", "बैंक खाता"] },
-    match: (a) => a.state === "Rajasthan" && a.who === "business" && ["below1", "1to3", "3to6"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Rajasthan" && a.who === "business" && ["below1", "1to3", "3to6"].includes(a.income)),
   },
 
   // ── SKILL TRAINING ───────────────────────────────────────────────────────────

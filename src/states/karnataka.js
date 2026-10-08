@@ -221,7 +221,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://tumkur.nic.in/en/d-devaraju-urs-backward-classes-development-corporation-ltd", hi: "dubckarnataka.org.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "Income Certificate (< ₹1.5L)", "Business Plan", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "आय प्रमाण (< ₹1.5 लाख)", "व्यापार योजना", "बैंक खाता"] },
-    match: (a) => a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income)),
   },
 
   {
@@ -433,7 +433,7 @@ export const KARNATAKA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST)", "Income Certificate", "School Enrollment Proof"],
                hi: ["आधार कार्ड", "जाति प्रमाण (SC/ST)", "आय प्रमाण", "स्कूल नामांकन प्रमाण"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   {
@@ -447,7 +447,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.govtschemes.in/karnataka-shrama-shakthi-loan-scheme", hi: "kscdc.net" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST)", "Income Certificate", "Land/Site Documents", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण (SC/ST)", "आय प्रमाण", "जमीन के कागज़", "बैंक खाता"] },
-    match: (a) => a.state === "Karnataka" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Karnataka" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── YOUTH / UNEMPLOYMENT ──────────────────────────────────────────────────
@@ -587,7 +587,7 @@ export const KARNATAKA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Income Certificate", "Previous Mark Sheet"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण", "आय प्रमाण", "पिछली मार्कशीट"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income) && a.area === "rural",
+    match: (a) => ["st"].includes(a.caste) && (a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income) && a.area === "rural"),
   },
 
   {
@@ -1255,7 +1255,7 @@ export const KARNATAKA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate (< ₹1L)", "School Enrollment Proof", "Bank Account"],
                hi: ["आधार कार्ड", "OBC जाति प्रमाण", "आय प्रमाण (< ₹1 लाख)", "स्कूल नामांकन प्रमाण", "बैंक खाता"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   {
@@ -1270,7 +1270,7 @@ export const KARNATAKA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "OBC Caste Certificate", "Income Certificate", "School/College Admission Letter", "Bank Account"],
                hi: ["आधार कार्ड", "OBC जाति प्रमाण", "आय प्रमाण", "स्कूल/कॉलेज प्रवेश पत्र", "बैंक खाता"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── SC/ST LAND RIGHTS ─────────────────────────────────────────────────────
@@ -1286,7 +1286,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "Nearest Tahsildar / Revenue Office", hi: "नज़दीकी तहसीलदार / राजस्व कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "SC/ST Caste Certificate", "Income Certificate", "No Land Ownership Certificate", "Domicile Certificate"],
                hi: ["आधार कार्ड", "SC/ST जाति प्रमाण", "आय प्रमाण", "भूमिहीन प्रमाण पत्र", "अधिवास प्रमाण"] },
-    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income) && a.area === "rural",
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Karnataka" && ["below1", "1to3"].includes(a.income) && a.area === "rural"),
   },
 
   // ── FOLK ARTISTS / CULTURE ────────────────────────────────────────────────
@@ -1396,7 +1396,7 @@ export const KARNATAKA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Caste Certificate", "College Admission Proof", "Income Certificate"],
                hi: ["आधार कार्ड", "जाति प्रमाण", "कॉलेज प्रवेश प्रमाण", "आय प्रमाण"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc", "st", "obc"].includes(a.caste) && (a.state === "Karnataka" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── URBAN POOR / SLUM DEVELOPMENT ────────────────────────────────────────

@@ -34,7 +34,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/mgy", hi: "esamajkalyan.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC)","Income Certificate (below ₹1.20L)","Domicile Certificate","Photo"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC)","आय प्रमाण (₹1.20 लाख से कम)","अधिवास प्रमाण","फोटो"] },
-    match: (a) => a.state === "Gujarat" && a.who === "business" && ["below1"].includes(a.income),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Gujarat" && a.who === "business" && ["below1"].includes(a.income)),
   },
 
   {
@@ -175,7 +175,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/daay", hi: "sje.gujarat.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC)", "Income Certificate (below ₹1.20L)", "Land Ownership Proof", "No-House Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC)", "आय प्रमाण (₹1.20 लाख से कम)", "भूमि स्वामित्व प्रमाण", "मकान न होने का प्रमाण", "बैंक खाता"] },
-    match: (a) => a.state === "Gujarat" && ["no", "kutcha"].includes(a.house) && a.income === "below1",
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Gujarat" && ["no", "kutcha"].includes(a.house) && a.income === "below1"),
   },
 
   {
@@ -205,7 +205,7 @@ export const GUJARAT_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC / ST / OBC)", "Previous Year Mark Sheets", "Income Certificate (below ₹2.5L)", "Bonafide Certificate from Institution", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/OBC)", "पिछले वर्ष की मार्कशीट", "आय प्रमाण (₹2.5 लाख से कम)", "संस्थान से बोनाफाइड प्रमाण पत्र", "बैंक खाता"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc", "st", "obc"].includes(a.caste) && (a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   {
@@ -305,7 +305,7 @@ export const GUJARAT_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Birth Certificate", "Income Certificate", "Previous School Leaving Certificate", "Passport Photo"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "जन्म प्रमाण पत्र", "आय प्रमाण", "पिछले विद्यालय का प्रमाण पत्र", "पासपोर्ट फोटो"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["st"].includes(a.caste) && (a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   {
@@ -320,7 +320,7 @@ export const GUJARAT_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC / ST)", "School Enrollment Certificate", "Income Certificate (below ₹2.5L)", "Bank Account (Parent)", "Photo"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST)", "स्कूल नामांकन प्रमाण", "आय प्रमाण (₹2.5 लाख से कम)", "बैंक खाता (माता-पिता)", "फोटो"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Gujarat" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   {
@@ -632,7 +632,7 @@ export const GUJARAT_SCHEMES = [
     apply:   { en: "tribal.gujarat.gov.in", hi: "tribal.gujarat.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "ST Caste Certificate", "Land Records (7/12 Utara)", "Bank Passbook", "Photo"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "जमीन के कागज़ (7/12 उतारा)", "बैंक पासबुक", "फोटो"] },
-    match: (a) => a.state === "Gujarat" && a.who === "farmer" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["st"].includes(a.caste) && (a.state === "Gujarat" && a.who === "farmer" && ["below1", "1to3"].includes(a.income)),
   },
 
   {

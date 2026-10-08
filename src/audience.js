@@ -14,6 +14,10 @@ export const AUDIENCES = [
   { key: "govt",      re: /government employee|govt\.? employee|state employee|lok sevak|employees'? (health|welfare)/, en: "Government employees & pensioners", hi: "सरकारी कर्मचारी व पेंशनभोगी" },
   { key: "defence",   re: /ex-servicem|veteran|sainik kalyan|defence personnel|soldier|agniveer|agnipath|armed forces/,      en: "Defence personnel, ex-servicemen & recruits",      hi: "सैनिक, पूर्व सैनिक व भर्ती" },
   { key: "sports",    re: /sportsperson|athlete|khelo|sports (scholarship|award|person|talent)|medal|\bplayers?\b/,           en: "Sportspersons",                    hi: "खिलाड़ी" },
+  { key: "disability", re: /disab|divyang|viklang|handicap|differently.abled|nishakt|\bpwd\b|assistive device/,                   en: "Persons with disabilities",        hi: "दिव्यांगजन" },
+  { key: "abroad",    re: /overseas|study abroad|foreign (univers|stud)/,                                                     en: "Students going abroad to study",    hi: "विदेश में पढ़ने वाले विद्यार्थी" },
+  { key: "graduate",  re: /tulip|national apprenticeship training|\bnats\b|internship|graduate apprentice/,                    en: "Fresh graduates (internships & apprenticeships)", hi: "नए स्नातक (इंटर्नशिप व अप्रेंटिसशिप)" },
+  { key: "merit",     re: /top class|inspire|topper|meritorious|medhavi|pratibha|prathibha|super ?\d+\b|rank holder|premier institut/, en: "Toppers & students at premier institutes", hi: "टॉपर व प्रमुख संस्थानों के विद्यार्थी" },
   { key: "construct", re: /construction worker|\bbocw\b|building (and other )?construction/,                                  en: "Registered construction workers",   hi: "पंजीकृत निर्माण श्रमिक" },
   { key: "tea",       re: /tea (garden|tribe|worker|estate)|chah bagicha/,                                                     en: "Tea garden workers",               hi: "चाय बागान श्रमिक" },
   { key: "artisan",   re: /weaver|handloom|artisan|craftsm|vishwakarma|bunkar|handicraft/,                                     en: "Weavers, artisans & craftspeople", hi: "बुनकर, कारीगर व शिल्पकार" },
@@ -36,7 +40,9 @@ export function nicheAudience(s) {
   if (typeof s.audience === "string") return BY_KEY[s.audience] ?? null;
   if (cache.has(s.id)) return cache.get(s.id);
   const t = `${s.name?.en ?? ""} ${s.tag?.en ?? ""}`.toLowerCase();
-  const a = AUDIENCES.find(x => x.re.test(t)) ?? null;
+  let a = AUDIENCES.find(x => x.re.test(t)) ?? null;
+  // Marks-based rewards (distinction, first division, 75%+…) are for toppers.
+  if (!a && /distinction|first division|scoring \d{2}%|\d{2}%\+ (in|marks)|\d{2}% or (above|more)|top \d+ ?%|toppers?\b|rank holders?/.test(String(s.benefit?.en ?? "").toLowerCase())) a = BY_KEY.merit;
   cache.set(s.id, a);
   return a;
 }

@@ -717,7 +717,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","OBC/EBC/DNT जाति प्रमाण पत्र","आय प्रमाण पत्र (≤₹2.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC/EBC/DNT student in Class 9 or 11, family income ≤ ₹2.5L, merit-based selection
     keywords: ["class10","class12"],
-    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -1006,7 +1006,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","SC/ST जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
     // Eligibility: SC/ST student post Class 10, family income ≤ ₹2.5L
     keywords: ["class10"],
-    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -1196,7 +1196,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","ST Caste Certificate","Income Certificate (≤₹2.5L/year)","Class 8 Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","ST जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","कक्षा 8 मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     keywords: ["class10"],
-    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -1273,7 +1273,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","SC / OBC / EBC Caste Certificate","Income Certificate","Educational Certificate (Class 8/10/12 as applicable)","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","SC/OBC/EBC जाति प्रमाण पत्र","आय प्रमाण","शैक्षणिक प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
     keywords: ["skill","dropout"],
-    match: (a) => ["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc", "obc"].includes(a.caste) && (["18to35","35to60"].includes(a.age) && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -1356,7 +1356,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","SC/OBC जाति प्रमाण पत्र","आय प्रमाण (≤₹8 लाख/वर्ष)","शैक्षणिक प्रमाण (कक्षा 12/स्नातक)","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: SC/OBC student, family income ≤ ₹8L, targeting national competitive exams
     keywords: ["class12"],
-    match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => ["sc", "st", "obc"].includes(a.caste) && (a.who === "student" && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   {
@@ -1421,7 +1421,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","कक्षा 8 मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     // Eligibility: SC student in Class 9–10 in govt/govt-aided school, family income ≤ ₹2.5L
     keywords: ["class10"],
-    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -1488,7 +1488,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) जाति प्रमाण पत्र","आय प्रमाण (≤₹1.5 लाख/वर्ष)","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC (non-creamy layer) student post Class 10, family income ≤ ₹1.5L
     keywords: ["class10"],
-    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -1800,7 +1800,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","ST जाति प्रमाण पत्र","कक्षा 5 की मार्कशीट (कक्षा 6 प्रवेश के लिए)","अधिवास प्रमाण पत्र (जनजातीय उप-योजना क्षेत्र)","BPL/आय प्रमाण पत्र","पासपोर्ट फोटो"] },
     // Eligibility: ST student in Class 5 (for Class 6 entry), resident of tribal sub-plan area
     keywords: ["class10"],
-    match: (a) => a.who === "student" && a.area === "rural" && ["below1","1to3"].includes(a.income),
+    match: (a) => a.who === "student" && a.caste === "st" && (a.educationLevel == null || ["class1to8","class9to12"].includes(a.educationLevel)) && a.area === "rural" && ["below1","1to3"].includes(a.income),
   },
 
   // ══════════════════════ NEW STUDENT SCHEMES (added batch) ═══════════════════
@@ -1886,7 +1886,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","प्रवेश पत्र (अधिसूचित संस्थान)","आय प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: SC student admitted to a notified premier institution, income ≤ ₹8L
     keywords: ["class12"],
-    match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => a.who === "student" && a.caste === "sc" && (a.educationLevel == null || ["undergrad","postgrad"].includes(a.educationLevel)) && ["below1","1to3","3to6"].includes(a.income),
   },
 
   {
@@ -1903,7 +1903,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","कक्षा 12 मार्कशीट","BSc/MSc प्रवेश प्रमाण","बोर्ड रैंक प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: top-ranked Class 12 student pursuing basic/natural sciences
     keywords: ["class12"],
-    match: (a) => a.who === "student",
+    match: (a) => a.who === "student" && (a.educationLevel == null || a.educationLevel === "undergrad"),
   },
 
   {
@@ -1971,7 +1971,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","DNT/NT/SNT समुदाय प्रमाण पत्र","आय प्रमाण पत्र","शैक्षणिक प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: DNT/NT/SNT student, low family income
     keywords: ["skill"],
-    match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -1988,7 +1988,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","OBC/EBC प्रमाण पत्र","विदेशी विश्वविद्यालय प्रवेश पत्र","शिक्षा ऋण स्वीकृति पत्र","आय प्रमाण पत्र"] },
     // Eligibility: OBC/EBC student with sanctioned education loan for overseas Master's/M.Phil/PhD
     keywords: ["class12"],
-    match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.who === "student" && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   {

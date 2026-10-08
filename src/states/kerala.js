@@ -242,7 +242,7 @@ export const KERALA_SCHEMES = [
     apply:   { en: "kscdc.net", hi: "kscdc.net" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST)", "Income Certificate (below ₹3 Lakh)", "Business Plan", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST)", "आय प्रमाण (₹3 लाख से कम)", "बिजनेस प्लान", "बैंक खाता"] },
-    match: (a) => a.state === "Kerala" && (a.who === "business" || a.who === "general") && ["below1", "1to3", "3to6"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Kerala" && (a.who === "business" || a.who === "general") && ["below1", "1to3", "3to6"].includes(a.income)),
   },
 
   // ─── 9. WOMEN — ADDITIONAL ──────────────────────────────────────────────────
@@ -339,7 +339,7 @@ export const KERALA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "ST Community Certificate", "School / College Enrollment Proof", "Income Certificate (below ₹2 Lakh)", "Bank Account"],
                hi: ["आधार कार्ड", "ST जाति प्रमाण पत्र", "विद्यालय/महाविद्यालय नामांकन प्रमाण", "आय प्रमाण (₹2 लाख से कम)", "बैंक खाता"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Kerala" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["st"].includes(a.caste) && (a.state === "Kerala" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ─── 14. EDUCATION — ABROAD SCHOLARSHIP ─────────────────────────────────────

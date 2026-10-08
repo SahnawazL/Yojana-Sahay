@@ -290,7 +290,7 @@ export const TAMIL_NADU_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Community Certificate (SC/ST)", "Educational Qualification Proof", "Income Certificate", "Bank Account"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST)", "शैक्षिक योग्यता प्रमाण", "आय प्रमाण पत्र", "बैंक खाता"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Tamil Nadu" && a.who === "student" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Tamil Nadu" && a.who === "student" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── 19. Tamil Nadu New Entrepreneur cum Enterprise Development Scheme (NEEDS)

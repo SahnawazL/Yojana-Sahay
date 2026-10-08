@@ -943,7 +943,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "https://edistrict.delhigovt.nic.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "DNT / Nomadic Tribe Community Certificate", "Delhi Address Proof", "Income Certificate", "Bank Passbook"],
                hi: ["आधार कार्ड", "DNT / घुमंतू जनजाति समुदाय प्रमाण पत्र", "दिल्ली पता प्रमाण", "आय प्रमाण पत्र", "बैंक पासबुक"] },
-    match: (a) => a.state === "Delhi" && (a.income === "below1" || a.income === "1to3"),
+    match: (a) => ["st", "obc"].includes(a.caste) && (a.state === "Delhi" && (a.income === "below1" || a.income === "1to3")),
   },
 
   // ── CRITICAL ILLNESS ─────────────────────────────────────────────────────────

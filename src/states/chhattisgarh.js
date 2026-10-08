@@ -419,7 +419,7 @@ export const CHHATTISGARH_SCHEMES = [
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST)","Previous Marksheet","Income Certificate","School Enrollment Proof"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST)","पिछली मार्कशीट","आय प्रमाण पत्र","स्कूल नामांकन प्रमाण"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Chhattisgarh" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Chhattisgarh" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   // ── Maternity & Child Health ───────────────────────────────────────────────

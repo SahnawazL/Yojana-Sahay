@@ -126,7 +126,7 @@ export const HARYANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Land/House Ownership Proof","Parivar Pehchan Patra","Bank Account","Income Certificate (≤₹1.80 Lakh/year)"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","भूमि/घर का स्वामित्व प्रमाण","परिवार पहचान पत्र","बैंक खाता","आय प्रमाण (≤₹1.80 लाख/वर्ष)"] },
     // Eligibility: Haryana SC family, owns land/house but it needs repair, income ≤ ₹1.80 lakh
-    match: (a) => a.state === "Haryana" && ["below1"].includes(a.income) && ["yes","kutcha"].includes(a.house),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Haryana" && ["below1"].includes(a.income) && ["yes","kutcha"].includes(a.house)),
   },
 
   {
@@ -201,7 +201,7 @@ export const HARYANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Business/Activity Plan","Parivar Pehchan Patra","Bank Account","Income Certificate (≤₹3 Lakh/year)","Passport Photo"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","व्यवसाय/गतिविधि योजना","परिवार पहचान पत्र","बैंक खाता","आय प्रमाण (≤₹3 लाख/वर्ष)","पासपोर्ट फोटो"] },
     // Eligibility: Haryana SC woman, age 18–55, income ≤ ₹3 lakh/year
-    match: (a) => a.state === "Haryana" && a.who === "women" && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Haryana" && a.who === "women" && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age)),
   },
 
   {
@@ -278,7 +278,7 @@ export const HARYANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Business Project Report","Parivar Pehchan Patra","Bank Account","Income Certificate (≤₹3 Lakh/year)","Educational Certificate"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","व्यवसाय परियोजना रिपोर्ट","परिवार पहचान पत्र","बैंक खाता","आय प्रमाण (≤₹3 लाख/वर्ष)","शैक्षणिक प्रमाण पत्र"] },
     // Eligibility: Haryana SC youth, age 18–45, income ≤ ₹3 lakh/year
-    match: (a) => a.state === "Haryana" && (a.who === "business" || a.who === "general") && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Haryana" && (a.who === "business" || a.who === "general") && ["below1","1to3"].includes(a.income) && ["18to35","35to60"].includes(a.age)),
   },
 
   {
@@ -354,7 +354,7 @@ export const HARYANA_SCHEMES = [
                hi: ["आधार कार्ड","SC/BC जाति प्रमाण पत्र","पिछले वर्ष की मार्कशीट","संस्था प्रवेश पत्र","आय प्रमाण (BC के लिए ≤₹2.5 लाख, SC के लिए कोई सीमा नहीं)","बैंक खाता","निवास प्रमाण पत्र"] },
     // Eligibility: Haryana SC student (no income limit) / BC student (income ≤ ₹2.5 lakh), studying Class 11 or above
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Haryana" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => ["sc", "obc"].includes(a.caste) && (a.state === "Haryana" && a.who === "student" && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   {

@@ -130,7 +130,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "https://telanganaepass.cgg.gov.in/KalyanaLakshmiLinks.jsp", hi: "kalyanalakshmi.telangana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/BC)", "Age Proof (bride 18+)", "Marriage Registration Certificate", "White Ration Card", "Bank Account (bride's name)"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/BC)", "आयु प्रमाण (वधू 18+)", "विवाह पंजीकरण प्रमाण पत्र", "सफेद राशन कार्ड", "बैंक खाता (वधू के नाम)"] },
-    match: (a) => a.state === "Telangana" && a.who === "women" && ["below1", "1to3"].includes(a.income) && ["18to35"].includes(a.age),
+    match: (a) => ["sc", "st", "obc"].includes(a.caste) && (a.state === "Telangana" && a.who === "women" && ["below1", "1to3"].includes(a.income) && ["18to35"].includes(a.age)),
   },
 
   // ── 9. Shaadi Mubarak — Minority Marriage Assistance ──────────────────────
@@ -176,7 +176,7 @@ export const TELANGANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "Caste Certificate (SC/ST/BC/EBC/Minority)", "Income Certificate (≤₹2L/year)", "Previous Year Mark Sheet", "College Admission & Fee Receipt", "Bank Account (student's name)"],
                hi: ["आधार कार्ड", "जाति प्रमाण पत्र (SC/ST/BC/EBC/अल्पसंख्यक)", "आय प्रमाण पत्र (≤₹2 लाख/वर्ष)", "पिछले वर्ष की मार्कशीट", "कॉलेज प्रवेश और शुल्क रसीद", "बैंक खाता (छात्र के नाम)"] },
     keywords: ["class10","class12","polytechnic"],
-    match: (a) => a.state === "Telangana" && a.who === "student" && ["below1", "1to3"].includes(a.income) && ["18to35"].includes(a.age),
+    match: (a) => ["sc", "st", "obc"].includes(a.caste) && (a.state === "Telangana" && a.who === "student" && ["below1", "1to3"].includes(a.income) && ["18to35"].includes(a.age)),
   },
 
   // ── 12. Bathukamma Saree Scheme ────────────────────────────────────────────
@@ -221,7 +221,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "https://schemesinindia.in/schemes/telangana/telangana-t-pride-bc-entrepreneur-loan", hi: "https://schemesinindia.in/schemes/telangana/telangana-t-pride-bc-entrepreneur-loan" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "Business / Project Report", "Educational Certificate", "Bank Account", "Income Certificate"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "व्यापार / प्रोजेक्ट रिपोर्ट", "शैक्षिक प्रमाण पत्र", "बैंक खाता", "आय प्रमाण पत्र"] },
-    match: (a) => a.state === "Telangana" && a.who === "business" && ["18to35", "35to60"].includes(a.age),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Telangana" && a.who === "business" && ["18to35", "35to60"].includes(a.age)),
   },
 
   // ── 15. Cheyuta — SC/ST Self-Employment Loan ──────────────────────────────
@@ -236,7 +236,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "tsscfdc.com / Nearest DRDA / ITDA Office", hi: "tsscfdc.com / नजदीकी DRDA / ITDA कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "SC/ST Caste Certificate", "Income Certificate (BPL)", "Business / Trade Plan", "Bank Account", "Residence Proof"],
                hi: ["आधार कार्ड", "SC/ST जाति प्रमाण पत्र", "आय प्रमाण पत्र (BPL)", "व्यापार / व्यवसाय योजना", "बैंक खाता", "निवास प्रमाण"] },
-    match: (a) => a.state === "Telangana" && a.who === "business" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Telangana" && a.who === "business" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── 16. BC Welfare Corporation — Self-Employment Loan ─────────────────────
@@ -251,7 +251,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "bcwelfare.telangana.gov.in / Nearest Dist. BC Welfare Office", hi: "bcwelfare.telangana.gov.in / नजदीकी जिला BC कल्याण कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "BC Caste Certificate", "Income Certificate (≤₹3L/year)", "Business Plan", "Bank Account", "Educational Certificate"],
                hi: ["आधार कार्ड", "BC जाति प्रमाण पत्र", "आय प्रमाण पत्र (≤₹3 लाख/वर्ष)", "व्यापार योजना", "बैंक खाता", "शैक्षिक प्रमाण पत्र"] },
-    match: (a) => a.state === "Telangana" && a.who === "business" && ["below1", "1to3", "3to6"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Telangana" && a.who === "business" && ["below1", "1to3", "3to6"].includes(a.income)),
   },
 
   // ── 17. Telangana Pre-Matric Scholarship for SC/ST Students ───────────────
@@ -267,7 +267,7 @@ export const TELANGANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "SC/ST Caste Certificate", "Previous Year Mark Sheet", "Income Certificate (≤₹2.5L/year)", "Bank Account (student/parent)", "School Enrollment Certificate"],
                hi: ["आधार कार्ड", "SC/ST जाति प्रमाण पत्र", "पिछले वर्ष की मार्कशीट", "आय प्रमाण पत्र (≤₹2.5 लाख/वर्ष)", "बैंक खाता (छात्र/माता-पिता)", "स्कूल नामांकन प्रमाण"] },
     keywords: ["class10"],
-    match: (a) => a.state === "Telangana" && a.who === "student" && ["below1", "1to3"].includes(a.income) && a.age === "below18",
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Telangana" && a.who === "student" && ["below1", "1to3"].includes(a.income) && a.age === "below18"),
   },
 
   // ── 18. Telangana Construction Workers Welfare Scheme ─────────────────────
@@ -314,7 +314,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/dalit-bandhu", hi: "dalitbandhu.telangana.gov.in / नजदीकी जिला कलेक्टर कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "Sadar / Land / Business Activity Proof", "Bank Account (Aadhaar-linked)", "Income Certificate", "Passport Photo"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "सदर / भूमि / व्यापार गतिविधि प्रमाण", "बैंक खाता (आधार लिंक)", "आय प्रमाण पत्र", "पासपोर्ट फोटो"] },
-    match: (a) => a.state === "Telangana" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Telangana" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── 21. Stree Nidhi — Women SHG Credit Cooperative ────────────────────────
@@ -344,7 +344,7 @@ export const TELANGANA_SCHEMES = [
     apply:   { en: "Nearest District Animal Husbandry / DRDA Office", hi: "नजदीकी जिला पशुपालन / DRDA कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "White / Pink Ration Card", "Bank Account", "Income Certificate", "Grazing / Residence Proof"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "सफेद / गुलाबी राशन कार्ड", "बैंक खाता", "आय प्रमाण पत्र", "चराई / निवास प्रमाण"] },
-    match: (a) => a.state === "Telangana" && a.area === "rural" && ["below1", "1to3"].includes(a.income),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Telangana" && a.area === "rural" && ["below1", "1to3"].includes(a.income)),
   },
 
   // ── 23. Telangana Micro Irrigation Scheme (TMIS) ──────────────────────────
@@ -420,7 +420,7 @@ export const TELANGANA_SCHEMES = [
     docs:    { en: ["Aadhaar Card", "SC/ST Caste Certificate", "Graduation Mark Sheet (min. 60%)", "Admission Offer Letter from Foreign University (ranked top 500)", "Income Certificate (≤₹6L/year)", "Valid Passport", "Bank Account"],
                hi: ["आधार कार्ड", "SC/ST जाति प्रमाण पत्र", "स्नातक मार्कशीट (न्यूनतम 60%)", "विदेशी विश्वविद्यालय से प्रवेश पत्र (शीर्ष 500 रैंक)", "आय प्रमाण पत्र (≤₹6 लाख/वर्ष)", "वैध पासपोर्ट", "बैंक खाता"] },
     keywords: ["class12"],
-    match: (a) => a.state === "Telangana" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income) && a.age === "18to35",
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Telangana" && a.who === "student" && ["below1", "1to3", "3to6"].includes(a.income) && a.age === "18to35"),
   },
 
   // ── 28. Minority Post-Matric Scholarship ──────────────────────────────────

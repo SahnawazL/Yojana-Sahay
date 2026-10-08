@@ -567,7 +567,7 @@ export const ASSAM_SCHEMES = [
     docs:    { en: ["Aadhaar Card","OBC / MOBC Caste Certificate (issued in Assam)","Class X / XII Marksheet","College / University Admission / Enrollment Certificate","Family Income Certificate (annual income < ₹1 lakh for central list; < ₹2 lakh for state list)","Bank Account (Aadhaar-linked)","Previous Year Marksheet (for renewal)","Domicile Certificate (Assam)"],
                hi: ["आधार कार्ड","OBC/MOBC जाति प्रमाण पत्र (असम में जारी)","कक्षा X/XII अंकसूची","कॉलेज/विश्वविद्यालय प्रवेश/नामांकन प्रमाण पत्र","पारिवारिक आय प्रमाण पत्र (वार्षिक ₹1 लाख से कम — केंद्रीय; ₹2 लाख से कम — राज्य सूची)","बैंक खाता (आधार-लिंक्ड)","पिछले वर्ष की अंकसूची (नवीनीकरण के लिए)","अधिवास प्रमाण पत्र (असम)"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Assam" && a.who === "student",
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Assam" && a.who === "student"),
   },
 
   {

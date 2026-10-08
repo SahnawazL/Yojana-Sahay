@@ -190,7 +190,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC/ST)","Mark Sheets","Income Certificate (below ₹2.5 Lakh/year)","HP Domicile Certificate","College / School Enrollment Proof","Bank Account"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST)","मार्कशीट","आय प्रमाण पत्र (₹2.5 लाख/वर्ष से कम)","हिमाचल अधिवास प्रमाण","कॉलेज/स्कूल नामांकन प्रमाण","बैंक खाता"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc", "st"].includes(a.caste) && (a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -304,7 +304,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     docs:    { en: ["Aadhaar Card","OBC Certificate (Non-Creamy Layer)","Mark Sheets","Income Certificate (below ₹1 Lakh/year)","HP Domicile Certificate","College / School Enrollment Proof","Bank Account"],
                hi: ["आधार कार्ड","ओबीसी प्रमाण पत्र (नॉन-क्रीमी लेयर)","मार्कशीट","आय प्रमाण पत्र (₹1 लाख/वर्ष से कम)","हिमाचल अधिवास प्रमाण","कॉलेज/स्कूल नामांकन प्रमाण","बैंक खाता"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["obc"].includes(a.caste) && (a.state === "Himachal Pradesh" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {

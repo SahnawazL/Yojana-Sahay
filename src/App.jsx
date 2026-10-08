@@ -369,7 +369,10 @@ const UNIQUE_SCHEME_COUNT=SCHEME_DB.filter(s=>!s.duplicateOf).length;
 // construction workers…) — the quiz can't know those, so they're listed in
 // their own "if this applies to you" section instead of inflating the totals.
 function safeMatch(scheme,answers){
-  if(nicheAudience(scheme)) return false;
+  const aud=nicheAudience(scheme);
+  // Disability schemes belong in the main list once the person has told us
+  // (in their profile) that they have a disability.
+  if(aud && !(aud.key==="disability" && answers?.disability && answers.disability!=="none")) return false;
   return safeMatchAny(scheme,answers);
 }
 function safeMatchAny(scheme,answers){
@@ -3927,7 +3930,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
   // one-time help (summed, one house) — never mixed together.
   const benefit=useMemo(()=>benefitSummary(results),[results]);
   const totalAnnual=benefit.yearly;
-  const nicheGroups=useMemo(()=>step===TOTAL?groupByAudience(SCHEME_DB.filter(s=>nicheAudience(s)&&safeMatchAny(s,answers))):[],[step,TOTAL,answers]);
+  const nicheGroups=useMemo(()=>step===TOTAL?groupByAudience(SCHEME_DB.filter(s=>nicheAudience(s)&&!safeMatch(s,answers)&&safeMatchAny(s,answers))):[],[step,TOTAL,answers]);
   const [openNiche,setOpenNiche]=useState(null);
   const nationalResults=useMemo(()=>results.filter(r=>r.scope==="national").sort((a,b)=>(b.annual||0)-(a.annual||0)),[results]);
   const stateResults=useMemo(()=>results.filter(r=>r.scope==="state").sort((a,b)=>(b.annual||0)-(a.annual||0)),[results]);

@@ -174,7 +174,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "scsbc.punjab.gov.in", hi: "scsbc.punjab.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Caste Certificate","Business Plan","Income Certificate","Bank Account"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र","व्यापार योजना","आय प्रमाण पत्र","बैंक खाता"] },
-    match: (a) => a.state === "Punjab" && (a.who === "business" || ["18to35","35to60"].includes(a.age)) && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => ["sc", "obc"].includes(a.caste) && (a.state === "Punjab" && (a.who === "business" || ["18to35","35to60"].includes(a.age)) && ["below1","1to3","3to6"].includes(a.income)),
   },
 
   // ── Health ───────────────────────────────────────────────────────────────────
@@ -267,7 +267,7 @@ export const PUNJAB_SCHEMES = [
     docs:    { en: ["Aadhaar Card","Caste Certificate (SC)","Previous Year Marksheet","Income Certificate (≤₹2.5L/year)","Bank Account","Admission Receipt"],
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC)","पिछले वर्ष की मार्कशीट","आय प्रमाण (≤₹2.5 लाख/वर्ष)","बैंक खाता","प्रवेश रसीद"] },
     keywords: ["class10","class12"],
-    match: (a) => a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Punjab" && a.who === "student" && ["below1","1to3"].includes(a.income)),
   },
 
   {
@@ -408,7 +408,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "scsbc.punjab.gov.in", hi: "scsbc.punjab.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","BPL Ration Card","Land / Plot Documents","Bank Account"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","BPL राशन कार्ड","भूमि/प्लॉट दस्तावेज़","बैंक खाता"] },
-    match: (a) => a.state === "Punjab" && ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Punjab" && ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income)),
   },
 
   // ── Students – Free Transport ─────────────────────────────────────────────────
@@ -837,7 +837,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "scsbc.punjab.gov.in", hi: "scsbc.punjab.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Landless Certificate (Patwari)","Bank Account","Punjab Domicile","Income Certificate"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","भूमिहीन प्रमाण पत्र (पटवारी)","बैंक खाता","पंजाब अधिवास","आय प्रमाण पत्र"] },
-    match: (a) => a.state === "Punjab" && a.who === "farmer" && ["below1","1to3"].includes(a.income),
+    match: (a) => ["sc"].includes(a.caste) && (a.state === "Punjab" && a.who === "farmer" && ["below1","1to3"].includes(a.income)),
   },
 
   // ── Eye Health ───────────────────────────────────────────────────────────────
