@@ -1,0 +1,19 @@
+# Sends the Yojana Sahay weekly summary e-mail right now.
+# It also goes out automatically every Monday ~7:30 AM IST (Vercel Cron, vercel.json).
+name: Send weekly summary e-mail now
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send the e-mail
+        run: |
+          curl -sS --fail-with-body -X POST "https://yojanasahay.vercel.app/api/agent-auto-fix" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"action":"weekly"}' \
+            --max-time 120 \
+            -w "\nHTTP status: %{http_code}\n"

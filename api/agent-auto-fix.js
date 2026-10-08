@@ -35,6 +35,7 @@
 //   header on cron invocations — see https://vercel.com/docs/cron-jobs/manage-cron-jobs
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { sendWeeklyReport } from "./_lib/weeklyReport.js";
 import { runAutoFixAgent } from "./_lib/autoFixAgent.js";
 import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import { getAdminDb } from "./_lib/firebaseAdmin.js";
@@ -67,6 +68,17 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error("[watchdog] health check failed:", err);
       return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── Monday summary e-mail (Vercel Cron GET ?action=weekly, or POST) ─────
+  if (req.body?.action === "weekly" || req.query?.action === "weekly") {
+    try {
+      const out = await sendWeeklyReport(getAdminDb());
+      return res.status(200).json({ success: true, to: out.to, subject: out.subject });
+    } catch (err) {
+      console.error("[weekly-report] failed:", err.message);
+      return res.status(500).json({ success: false, error: err.message });
     }
   }
 

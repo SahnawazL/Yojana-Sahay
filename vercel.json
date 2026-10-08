@@ -57,6 +57,10 @@
     {
       "path": "/api/deadline-alerts?action=verifyBatch",
       "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/agent-auto-fix?action=weekly",
+      "schedule": "0 2 * * 1"
     }
   ],
   "functions": {
