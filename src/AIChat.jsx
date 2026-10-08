@@ -10,8 +10,8 @@
 // UPDATED: unified "Reading Time" cooldown gates both input + chips together
 // FIXED (5 bugs): anti-pattern in updater, memory leaks, dead state, stale closure
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { sendMessage } from "./groqClient.js";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { sendMessageStream } from "./groqClient.js";
 import { useApplications, daysSince } from "./applications.js";
 import { SCHEME_DB } from "./schemesData.js";
 import aiAvatar from "./ai-avatar.webp";
@@ -102,6 +102,100 @@ function playChipSounds(count) {
 // ─── CHAT HISTORY PERSISTENCE ────────────────────────────────────────────────
 // Key is per-user so each account gets its own isolated chat history
 const SCHEME_BY_ID_CHAT = new Map(SCHEME_DB.map(s => [s.id, s]));
+// ─── SCHEME CARDS: find the schemes an answer talks about ───────────────────
+// Built once: every unique scheme's English + Hindi name, plus a short form
+// ("PM Awas Yojana" from "PM Awas Yojana (Gramin)") and its acronym ("PMJAY")
+// — but only when that short form belongs to ONE scheme, so a card never
+// opens the wrong scheme. Longest keys are tried first.
+let SCHEME_NAME_INDEX = null;
+function schemeNameIndex() {
+  if (SCHEME_NAME_INDEX) return SCHEME_NAME_INDEX;
+  const raw = [];
+  for (const s of SCHEME_DB) {
+    if (s.duplicateOf || !s.name) continue;
+    const en = (s.name.en || "").trim(), hi = (s.name.hi || "").trim();
+    if (en.length >= 8) raw.push({ key: en.toLowerCase(), s, full: true });
+    if (hi.length >= 6) raw.push({ key: hi, s, full: true });
+    const base = en.split(/\s+[—–-]\s+|\s*\(/)[0].trim();
+    if (base && base !== en && base.length >= 10) raw.push({ key: base.toLowerCase(), s });
+    const acr = en.match(/\(([A-Z][A-Z0-9-]{3,})\)/);
+    if (acr) raw.push({ key: acr[1], s, word: true });
+  }
+  const owners = new Map();
+  for (const r of raw) {
+    if (!owners.has(r.key)) owners.set(r.key, new Set());
+    owners.get(r.key).add(r.s.id);
+  }
+  const seen = new Set();
+  SCHEME_NAME_INDEX = raw
+    .filter(r => (r.full || owners.get(r.key).size === 1) && !seen.has(r.key) && seen.add(r.key))
+    .sort((a, b) => b.key.length - a.key.length);
+  return SCHEME_NAME_INDEX;
+}
+
+// Up to `max` schemes named in `text`, in the order they first appear.
+function findSchemesInText(text, max = 4) {
+  if (!text) return [];
+  const lower = text.toLowerCase();
+  const hits = [], taken = [];
+  for (const r of schemeNameIndex()) {
+    let at;
+    if (r.word) {
+      const m = new RegExp(`(^|[^A-Za-z0-9])${r.key.replace(/[-]/g, "\\-")}(?![A-Za-z0-9])`).exec(text);
+      at = m ? m.index + m[1].length : -1;
+    } else {
+      at = (/[a-z]/.test(r.key) ? lower : text).indexOf(r.key);
+    }
+    if (at < 0 || hits.some(h => h.s.id === r.s.id)) continue;
+    const end = at + r.key.length;
+    if (taken.some(([a, b]) => at < b && end > a)) continue; // part of a longer name already matched
+    hits.push({ s: r.s, at });
+    taken.push([at, end]);
+  }
+  return hits.sort((a, b) => a.at - b.at).slice(0, max).map(h => h.s);
+}
+
+// ─── VOICE: read an answer aloud ─────────────────────────────────────────────
+function speakableText(md) {
+  return md
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/[*_#`>]/g, "")
+    .replace(/^\s*[-•]\s+/gm, "")
+    .replace(/\p{Extended_Pictographic}|️|‍/gu, "")
+    .replace(/₹\s?/g, "rupees ")
+    .replace(/[ \t]+/g, " ")
+    .trim();
+}
+const canSpeak = () => typeof window !== "undefined" && "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
+function speakText(md, lang, onEnd) {
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  let text = speakableText(md);
+  if (lang === "hi") text = text.replace(/rupees /g, "रुपये ");
+  // Short chunks — some phones silently stop long utterances.
+  const parts = text.match(/[^.!?।\n]+[.!?।]?/g)?.map(t => t.trim()).filter(Boolean) || [];
+  const chunks = [];
+  for (const p of parts) {
+    if (chunks.length && (chunks[chunks.length - 1] + " " + p).length < 220) chunks[chunks.length - 1] += " " + p;
+    else chunks.push(p);
+  }
+  if (!chunks.length) { onEnd?.(); return; }
+  const want = lang === "hi" ? "hi" : "en";
+  const voices = synth.getVoices();
+  const voice = voices.find(v => v.lang === (want === "hi" ? "hi-IN" : "en-IN"))
+    || voices.find(v => v.lang?.toLowerCase().startsWith(want));
+  chunks.forEach((c, i) => {
+    const u = new SpeechSynthesisUtterance(c);
+    u.lang = want === "hi" ? "hi-IN" : "en-IN";
+    if (voice) u.voice = voice;
+    u.rate = 1;
+    if (i === chunks.length - 1) { u.onend = () => onEnd?.(); }
+    u.onerror = () => onEnd?.();
+    synth.speak(u);
+  });
+}
+
 const chatStorageKey = (uid) => uid ? `yojana_chat_${uid}` : "yojana_chat_guest";
 
 const THEME = {
@@ -283,6 +377,11 @@ const GLOBAL_CSS = `
   from { transform:rotate(0deg); }
   to   { transform:rotate(360deg); }
 }
+@keyframes mic-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.55); }
+  100% { box-shadow: 0 0 0 14px rgba(239,68,68,0); }
+}
+.ai-scheme-card:active { transform:scale(0.985); opacity:0.9; }
 @keyframes avatar-hint-pulse {
   0%,100% { opacity:0.55; transform:scale(1); }
   50%     { opacity:0.9;  transform:scale(1.06); }
@@ -465,7 +564,7 @@ function AshokChakra({ size = 44, duration = "10s" }) {
   );
 }
 
-function TypingIndicator({ dark }) {
+function TypingIndicator({ dark, status, lang }) {
   const th = THEME[dark ? "dark" : "light"];
   const shimmerBg = dark
     ? "linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%)"
@@ -494,6 +593,11 @@ function TypingIndicator({ dark }) {
         display:"flex", flexDirection:"column", gap:9,
         minWidth:160,
       }}>
+        {status && (
+          <div style={{ fontSize:11.5, fontWeight:600, color:th.textMid, fontFamily:fontFamily(lang), animation:"fade-in 0.25s ease-out", maxWidth:230 }}>
+            {status}
+          </div>
+        )}
         <div style={{ height:11, width:"72%", background:shimmerBg, ...shimmerBase }} />
         <div style={{ height:11, width:"45%", background:shimmerBg, ...shimmerBase,
           animationDelay:"0.2s" }} />
@@ -591,11 +695,61 @@ function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang, onSkip }) {
 }
 
 // ─── NORMAL INPUT BAR ─────────────────────────────────────────────────────────
+const SpeechRec = typeof window !== "undefined" ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
+
 function InputBar({ input, setInput, onSend, onKeyDown, loading, dark, lang, textareaRef, justUnlocked }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
   const canSend = input.trim().length > 0 && !loading;
+
+  // ── Voice input: speak in Hindi or English, words fill the box live, and
+  // the question is sent when you stop talking. Only shown where supported.
+  const [listening, setListening] = useState(false);
+  const [micNote,   setMicNote]   = useState("");
+  const recRef  = useRef(null);
+  const heardRef = useRef("");
+  const onSendRef = useRef(onSend);
+  onSendRef.current = onSend;
+  useEffect(() => () => { try { recRef.current?.abort(); } catch {} }, []);
+
+  const startMic = () => {
+    if (!SpeechRec || loading) return;
+    try {
+      const rec = new SpeechRec();
+      rec.lang = isHindi ? "hi-IN" : "en-IN";
+      rec.interimResults = true;
+      rec.continuous = false;
+      rec.maxAlternatives = 1;
+      heardRef.current = "";
+      rec.onresult = (e) => {
+        let txt = "";
+        for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
+        heardRef.current = txt.trim();
+        setInput(heardRef.current);
+      };
+      rec.onerror = (e) => {
+        setMicNote(e.error === "not-allowed" || e.error === "service-not-allowed"
+          ? (isHindi ? "माइक की अनुमति दें" : "Allow microphone access to speak")
+          : e.error === "no-speech" ? (isHindi ? "कुछ सुनाई नहीं दिया" : "Didn't catch that — try again") : "");
+      };
+      rec.onend = () => {
+        setListening(false);
+        recRef.current = null;
+        const said = heardRef.current;
+        heardRef.current = "";
+        if (said) onSendRef.current(said);
+      };
+      recRef.current = rec;
+      setMicNote("");
+      setListening(true);
+      rec.start();
+    } catch {
+      setListening(false);
+    }
+  };
+  const stopMic = () => { try { recRef.current?.stop(); } catch {} };
+  const showMic = !!SpeechRec && (listening || (!input.trim() && !loading));
 
   return (
     <div style={{
@@ -614,7 +768,9 @@ function InputBar({ input, setInput, onSend, onKeyDown, loading, dark, lang, tex
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder={isHindi ? "कोई भी सवाल पूछें..." : "Ask anything about schemes..."}
+          placeholder={listening
+            ? (isHindi ? "सुन रहे हैं… बोलिए" : "Listening… speak now")
+            : micNote || (isHindi ? "कोई भी सवाल पूछें..." : "Ask anything about schemes...")}
           rows={1}
           style={{
             flex:1,
@@ -630,6 +786,26 @@ function InputBar({ input, setInput, onSend, onKeyDown, loading, dark, lang, tex
             display:"block",
           }}
         />
+        {showMic ? (
+          <div
+            role="button"
+            aria-label={listening ? (isHindi ? "रोकें" : "Stop listening") : (isHindi ? "बोलकर पूछें" : "Ask by voice")}
+            className={`ai-send-btn${justUnlocked ? " unlock-bounce" : ""}`}
+            onClick={listening ? stopMic : startMic}
+            style={{
+              width:46, height:46, borderRadius:14, flexShrink:0,
+              background: listening ? "#ef4444" : "linear-gradient(135deg,#FF9933,#FF8000)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer",
+              boxShadow: listening ? "0 0 0 0 rgba(239,68,68,0.5)" : "0 4px 16px rgba(255,153,51,0.45)",
+              animation: listening ? "mic-pulse 1.3s ease-out infinite" : "none",
+              transition:"background 0.2s",
+            }}>
+            {listening
+              ? <span style={{ width:14, height:14, borderRadius:3, background:"#fff" }} />
+              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>}
+          </div>
+        ) : (
         <div
           className={`ai-send-btn${justUnlocked ? " unlock-bounce" : ""}`}
           onClick={() => onSend()}
@@ -649,6 +825,7 @@ function InputBar({ input, setInput, onSend, onKeyDown, loading, dark, lang, tex
             : <span style={{ color: canSend ? "#fff" : th.textSub, fontWeight:700 }}>➤</span>
           }
         </div>
+        )}
       </div>
       <div style={{
         fontSize:10, color:th.textSub, textAlign:"center",
@@ -670,12 +847,27 @@ function renderInline(line, lineIdx, isUser, th, dark) {
   // Group 2: email address (must come BEFORE url group so user@gmail.com is caught whole)
   // Group 3: full https URL or domain with whitelisted TLD only
   //   — whitelist prevents React.js / Node.js / file.ts etc. from becoming links
-  const regex = /\*\*(.*?)\*\*|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|(https?:\/\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9.-]*\.(?:com|org|net|io|dev|app|in|gov|edu|co|info|biz|me)(?:[/?#][^\s]*)?)/g;
-  let last = 0; let match;
-  while ((match = regex.exec(line)) !== null) {
-    if (match.index > last) parts.push(line.slice(last, match.index));
+  // Also: [text](https://link) markdown links and *italic* (the AI uses both;
+  // they used to show up as raw brackets / asterisks).
+  const regex = /\[([^\]\n]{1,120})\]\((https?:\/\/[^\s)]+)\)|(?<![*\w])\*(?![\s*])([^*\n]+?)(?<!\s)\*(?![*\w])|\*\*(.*?)\*\*|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|(https?:\/\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9.-]*\.(?:com|org|net|io|dev|app|in|gov|edu|co|info|biz|me)(?:[/?#][^\s]*)?)/g;
+  let last = 0; let m0;
+  while ((m0 = regex.exec(line)) !== null) {
+    if (m0.index > last) parts.push(line.slice(last, m0.index));
+    // [0]=full, then: mdText, mdUrl, italic, bold, email, url → keep old indexes for bold/email/url
+    const match = [m0[0], m0[4], m0[5], m0[6]];
+    match.index = m0.index;
+    let consumed = m0[0].length;
 
-    if (match[1] !== undefined) {
+    if (m0[1] !== undefined) {
+      parts.push(
+        <a key={`m-${lineIdx}-${m0.index}`} href={m0[2]} target="_blank" rel="noopener noreferrer"
+          style={{ color: isUser ? "#ffe0a0" : dark ? "#7bb8ff" : "#003580", fontWeight:600, textDecoration:"underline", textUnderlineOffset:2, wordBreak:"break-word" }}>
+          {m0[1]}<span style={{ fontSize:"0.75em", opacity:0.6, marginLeft:2 }}>↗</span>
+        </a>
+      );
+    } else if (m0[3] !== undefined) {
+      parts.push(<em key={`i-${lineIdx}-${m0.index}`}>{renderInline(m0[3], `${lineIdx}i${m0.index}`, isUser, th, dark)}</em>);
+    } else if (match[1] !== undefined) {
       // ── Bold ──────────────────────────────────────────────────────────────
       parts.push(
         <strong key={`b-${lineIdx}-${match.index}`} style={{ fontWeight:700 }}>
@@ -716,7 +908,10 @@ function renderInline(line, lineIdx, isUser, th, dark) {
       );
     } else {
       // ── URL / domain ──────────────────────────────────────────────────────
-      const raw  = match[3];
+      // Trailing punctuation belongs to the sentence, not the link.
+      let raw  = match[3];
+      const trail = raw.match(/[.,;:!?)\]'"]+$/);
+      if (trail) { raw = raw.slice(0, -trail[0].length); consumed -= trail[0].length; }
       const href = raw.startsWith("http") ? raw : `https://${raw}`;
       parts.push(
         isUser ? (
@@ -755,7 +950,8 @@ function renderInline(line, lineIdx, isUser, th, dark) {
         )
       );
     }
-    last = match.index + match[0].length;
+    last = m0.index + consumed;
+    regex.lastIndex = last;
   }
   if (last < line.length) parts.push(line.slice(last));
   return parts;
@@ -768,6 +964,17 @@ function renderContent(text, isUser, th, dark) {
   const result = [];
 
   lines.forEach((line, li) => {
+    // "---" divider → thin line (it was printed as raw dashes)
+    if (/^\s*([-*_])\1{2,}\s*$/.test(line)) {
+      if (li > 0 && li < lines.length - 1) result.push(<div key={`line-${li}`} style={{ height:1, margin:"8px 0", background: dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)" }} />);
+      return;
+    }
+    // "## Heading" → bold line
+    const headMatch = line.match(/^#{1,4}\s+(.*)/);
+    if (headMatch) {
+      result.push(<div key={`line-${li}`} style={{ fontWeight:800, marginTop: li === 0 ? 0 : 6 }}>{renderInline(headMatch[1].replace(/\*\*/g, ""), li, isUser, th, dark)}</div>);
+      return;
+    }
     const numberedMatch = line.match(/^(\d+)\.\s+([\s\S]*)/);
     const bulletMatch   = line.match(/^[-•*]\s+([\s\S]*)/);
     const isLast        = li === lines.length - 1;
@@ -913,13 +1120,92 @@ function FollowUpChips({ chips, onTap, lang, dark }) {
   );
 }
 
-function ChatBubble({ msg, lang, dark, isNew }) {
+// ─── SCHEME CARDS under an answer ─────────────────────────────────────────────
+// Every scheme the answer names becomes a tappable card that opens its full
+// detail page (documents, how to apply, official link).
+function SchemeCards({ schemes, lang, dark, onOpen, eligibleIds, trackedApps }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const bf = fontFamily(lang);
+  const isHindi = lang === "hi";
+  if (!schemes.length || !onOpen) return null;
+  return (
+    <div style={{ paddingLeft:34, marginTop:8, display:"flex", flexDirection:"column", gap:6, animation:"chips-reveal 0.3s ease-out" }}>
+      {schemes.map(s => {
+        const tracked = trackedApps?.[s.id];
+        const eligible = eligibleIds?.has(s.id);
+        return (
+          <div key={s.id} className="ai-scheme-card" role="button"
+            onClick={() => onOpen(s.id)}
+            style={{
+              display:"flex", alignItems:"center", gap:10,
+              background: th.card,
+              border:`1px solid ${dark ? "rgba(255,153,51,0.22)" : "rgba(255,153,51,0.28)"}`,
+              borderRadius:12, padding:"8px 10px", cursor:"pointer",
+              boxShadow: dark ? "0 1px 6px rgba(0,0,0,0.3)" : "0 1px 6px rgba(0,0,0,0.05)",
+              transition:"transform 0.12s",
+              maxWidth:"88%",
+            }}>
+            <div style={{ width:34, height:34, borderRadius:10, flexShrink:0, background:`${s.color || "#FF9933"}1f`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>
+              {s.icon || "📋"}
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:12.5, fontWeight:700, color:th.text, fontFamily:bf, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                {s.name?.[lang] || s.name?.en}
+              </div>
+              <div style={{ fontSize:11, color:th.textMid, fontFamily:bf, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginTop:1 }}>
+                {tracked
+                  ? <span style={{ color:"#16a34a", fontWeight:700 }}>{isHindi ? "✓ आवेदन किया · " : "✓ Applied · "}</span>
+                  : eligible ? <span style={{ color:"#16a34a", fontWeight:700 }}>{isHindi ? "✓ आप पात्र हैं · " : "✓ You qualify · "}</span> : null}
+                {s.benefit?.[lang] || s.benefit?.en}
+              </div>
+            </div>
+            <span style={{ fontSize:11.5, fontWeight:700, color:"#FF8000", flexShrink:0, fontFamily:bf }}>
+              {isHindi ? "खोलें ›" : "Open ›"}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// While streaming, an unclosed **bold** would show raw asterisks — drop the
+// dangling marker until its pair arrives.
+function tidyPartial(t) {
+  const n = (t.match(/\*\*/g) || []).length;
+  if (n % 2 === 1) { const i = t.lastIndexOf("**"); t = t.slice(0, i) + t.slice(i + 2); }
+  return t;
+}
+
+function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligibleIds, trackedApps }) {
   const th     = THEME[dark ? "dark" : "light"];
   const bf     = fontFamily(lang);
   const isUser = msg.role === "user";
 
+  // Read-aloud
+  const [speaking, setSpeaking] = useState(false);
+  const speakingRef = useRef(false);
+  speakingRef.current = speaking;
+  // Leaving the chat (or clearing it) stops this bubble's voice — only if it's the one talking.
+  useEffect(() => () => { if (speakingRef.current) try { window.speechSynthesis.cancel(); } catch {} }, []);
+  const speakRunRef = useRef(0);
+  const toggleSpeak = () => {
+    if (!canSpeak()) return;
+    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+    const run = ++speakRunRef.current;
+    setSpeaking(true);
+    speakText(msg.content, lang, () => { if (speakRunRef.current === run) setSpeaking(false); });
+  };
+
+  // Schemes this answer names → cards
+  const schemes = useMemo(
+    () => (!isUser && !live && onOpenDetail ? findSchemesInText(msg.content) : []),
+    [msg.content, isUser, live, onOpenDetail]
+  );
+
   // ── Feature 2: Typewriter animation for new AI messages ───────────────────
-  const shouldAnimate = isNew && !isUser;
+  // Streamed answers already appeared word by word — no second animation.
+  const shouldAnimate = isNew && !isUser && !live && !msg.streamed;
   const [displayed, setDisplayed] = useState(shouldAnimate ? "" : msg.content);
   const [isDone,    setIsDone]    = useState(!shouldAnimate);
   const timerRef = useRef(null);
@@ -982,7 +1268,7 @@ function ChatBubble({ msg, lang, dark, isNew }) {
   return (
     <div style={{ marginBottom:14 }}>
       {/* ── Bubble row (avatar + bubble) ─────────────────────────────────── */}
-      <div className={isUser ? "ai-msg-bubble-user" : "ai-msg-bubble-ai"}
+      <div className={isUser ? "ai-msg-bubble-user" : (msg.streamed && isNew ? "" : "ai-msg-bubble-ai")}
         style={{ display:"flex", flexDirection:isUser?"row-reverse":"row", alignItems:"flex-end", gap:6 }}>
         {!isUser && (
           <div style={{
@@ -1007,7 +1293,7 @@ function ChatBubble({ msg, lang, dark, isNew }) {
           {!isUser && (
             <div style={{
               display:"flex", alignItems:"center", gap:5, marginBottom:7,
-              animation:"header-fade 0.22s ease-out",
+              animation: msg.streamed && isNew ? "none" : "header-fade 0.22s ease-out",
             }}>
               <span style={{
                 fontSize:9.5, fontWeight:800, letterSpacing:0.55,
@@ -1029,7 +1315,17 @@ function ChatBubble({ msg, lang, dark, isNew }) {
             </div>
           )}
 
-          {isDone
+          {live ? (
+              <>
+                {renderContent(tidyPartial(msg.content), false, th, dark)}
+                <span style={{
+                  display:"inline-block", width:2, height:"1em",
+                  background:"#FF9933", marginLeft:2, borderRadius:1,
+                  animation:"typing-cursor 0.7s step-end infinite",
+                  verticalAlign:"text-bottom",
+                }} />
+              </>
+            ) : isDone
             ? renderContent(msg.content, isUser, th, dark)
             : (
               <>
@@ -1046,7 +1342,7 @@ function ChatBubble({ msg, lang, dark, isNew }) {
           }
 
           {/* ── Feature 3: Verified source badge ─────────────────────────── */}
-          {!isUser && isDone && (
+          {!isUser && isDone && !live && (
             <div style={{
               display:"flex", alignItems:"center", gap:5,
               marginTop:8, paddingTop:7,
@@ -1073,13 +1369,32 @@ function ChatBubble({ msg, lang, dark, isNew }) {
               }}>
                 Yojana Sahay AI
               </span>
+              {canSpeak() && (
+                <span role="button" onClick={toggleSpeak}
+                  aria-label={speaking ? "Stop" : "Listen"}
+                  style={{
+                    marginLeft:"auto", display:"inline-flex", alignItems:"center", gap:4,
+                    fontSize:10, fontWeight:700, cursor:"pointer", userSelect:"none",
+                    color: speaking ? "#ef4444" : (dark ? "#FFB366" : "#FF8000"),
+                    background: speaking ? "rgba(239,68,68,0.1)" : "rgba(255,153,51,0.1)",
+                    border:`1px solid ${speaking ? "rgba(239,68,68,0.3)" : "rgba(255,153,51,0.28)"}`,
+                    borderRadius:20, padding:"2px 8px",
+                  }}>
+                  {speaking ? "■ " : "🔊 "}{speaking ? (lang === "hi" ? "रोकें" : "Stop") : (lang === "hi" ? "सुनें" : "Listen")}
+                </span>
+              )}
             </div>
           )}
         </div>
       </div>
 
+      {/* ── Scheme cards — every scheme this answer names, one tap away ───── */}
+      {isDone && !live && schemes.length > 0 && (
+        <SchemeCards schemes={schemes} lang={lang} dark={dark} onOpen={onOpenDetail} eligibleIds={eligibleIds} trackedApps={trackedApps} />
+      )}
+
       {/* ── Timestamp row — below bubble, matches side alignment ─────────── */}
-      {timeLabel && (
+      {timeLabel && !live && (
         <div style={{
           display:"flex",
           justifyContent: isUser ? "flex-end" : "flex-start",
@@ -1219,7 +1534,7 @@ function WelcomeScreen({ lang, dark, onSuggest, profile }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function AIChat({ lang="en", dark=false, profile=null, uid=null, matchedSchemes=[] }) {
+export default function AIChat({ lang="en", dark=false, profile=null, uid=null, matchedSchemes=[], onOpenDetail=null }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
@@ -1237,6 +1552,13 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   const [error,        setError]        = useState("");
   const [chips,        setChips]        = useState([]);
   const [usedChips,    setUsedChips]    = useState(new Set());
+  // The answer being written right now: { text, status }. Kept out of
+  // `messages` so half-written text is never saved to history.
+  const [live,         setLive]         = useState(null);
+  const liveTextRef    = useRef("");
+  const liveFrameRef   = useRef(0);
+  const abortRef       = useRef(null);
+  const eligibleIds    = useMemo(() => new Set((matchedSchemes || []).map(s => s?.id).filter(Boolean)), [matchedSchemes]);
 
   // ── Unified Reading-Time cooldown ────────────────────────────────────────────
   const [secondsLeft,  setSecondsLeft]  = useState(0);
@@ -1246,6 +1568,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
 
   const cooldownRef          = useRef(null);
   const bottomRef            = useRef(null);
+  const scrollBoxRef         = useRef(null);
   const textareaRef          = useRef(null);
 
   // FIX Bug 4: pendingChips was state but never read in JSX → convert to ref
@@ -1269,9 +1592,20 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   }, [messages]);
 
   // ── Scroll to bottom ─────────────────────────────────────────────────────────
+  // Scrolls only the chat box — scrollIntoView also nudged the whole page,
+  // and ran on every countdown tick, which made the screen jump each second.
+  const isCoolingDown = secondsLeft > 0;
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior:"smooth" });
-  }, [messages, loading, chips, secondsLeft]);
+    const box = scrollBoxRef.current;
+    if (box) box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
+  }, [messages, loading, chips, isCoolingDown]);
+  // While an answer streams in, follow it — unless the user scrolled up to read.
+  useEffect(() => {
+    if (!live?.text) return;
+    const box = scrollBoxRef.current;
+    if (!box) return;
+    if (box.scrollHeight - box.scrollTop - box.clientHeight < 140) box.scrollTop = box.scrollHeight;
+  }, [live?.text]);
 
   // ── Auto-resize textarea ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -1287,6 +1621,8 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
     return () => {
       clearInterval(cooldownRef.current);
       clearTimeout(justUnlockedTimerRef.current);
+      cancelAnimationFrame(liveFrameRef.current);
+      try { abortRef.current?.abort(); } catch {}
     };
   }, []);
 
@@ -1314,9 +1650,10 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   }, [secondsLeft]);
 
   // ── Start reading-time cooldown ──────────────────────────────────────────────
-  const startCooldown = useCallback((replyText, incomingChips) => {
+  const startCooldown = useCallback((replyText, incomingChips, alreadyReadSecs = 0) => {
     clearInterval(cooldownRef.current);
-    const secs = calcReadingTime(replyText);
+    // A streamed answer was being read while it arrived — count that time.
+    const secs = Math.max(alreadyReadSecs ? 4 : 10, calcReadingTime(replyText) - Math.round(alreadyReadSecs));
     setTotalSeconds(secs);
     setSecondsLeft(secs);
     pendingChipsRef.current = incomingChips;  // FIX Bug 4: ref instead of state
@@ -1356,9 +1693,15 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
     setMessages(nextMessages);
     playSendSound();   // 🔊 send whoosh
     setLoading(true);
+    setLive({ text:"", status:"" });
+    liveTextRef.current = "";
+    try { abortRef.current?.abort(); } catch {}
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    abortRef.current = ctrl;
+    let firstTextAt = 0;
 
     try {
-      const { reply, followUps: aiChips } = await sendMessage(
+      const { reply, followUps: aiChips } = await sendMessageStream(
         [
           // ── Profile context prefix — invisible in UI, sent to API only ──────
           // Provides the AI with the user's profile so it can personalize responses.
@@ -1383,15 +1726,38 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           // Previous answer — lets "documents for the first one?" find the scheme.
           lastReply: [...messages].reverse().find(m => m.role === "assistant")?.content || "",
         },
+        {
+          signal: ctrl?.signal,
+          // Batch updates to one per frame — smooth even on slow phones.
+          onDelta: (text) => {
+            if (!firstTextAt && text) firstTextAt = Date.now();
+            liveTextRef.current = text;
+            if (!liveFrameRef.current) {
+              liveFrameRef.current = requestAnimationFrame(() => {
+                liveFrameRef.current = 0;
+                setLive(l => l && { ...l, text: liveTextRef.current });
+              });
+            }
+          },
+          onStatus: (kind, q) => {
+            if (kind === "search") setLive(l => l && { ...l, status: isHindi ? "🔍 वेब पर ताज़ा जानकारी खोज रहे हैं…" : `🔍 Checking the web for the latest${q ? `: “${q.slice(0, 60)}”` : "…"}` });
+          },
+        },
       );
-      setMessages(prev => [...prev, { role:"assistant", content:reply, timestamp: Date.now() }]);
+      if (ctrl && abortRef.current !== ctrl) return; // chat was cleared meanwhile
+      cancelAnimationFrame(liveFrameRef.current); liveFrameRef.current = 0;
+      setMessages(prev => [...prev, { role:"assistant", content:reply, timestamp: Date.now(), streamed: true }]);
+      setLive(null);
       playReceiveSound(); // 🔊 receive chime
       const freshChips = aiChips.filter(c => !nextUsedChips.has(c));
-      startCooldown(reply, freshChips);
+      startCooldown(reply, freshChips, firstTextAt ? (Date.now() - firstTextAt) / 1000 : 0);
     } catch (err) {
+      if (err?.name === "AbortError") return;
+      cancelAnimationFrame(liveFrameRef.current); liveFrameRef.current = 0;
+      setLive(null);
       setError(`❌ ${err.message || (isHindi ? "जवाब नहीं मिला। दोबारा कोशिश करें।" : "Could not get response. Please try again.")}`);
     } finally {
-      setLoading(false);
+      if (!ctrl || abortRef.current === ctrl) { setLoading(false); abortRef.current = null; }
     }
   // FIX Bug 5: secondsLeft removed from deps — secondsLeftRef.current is used instead
   // profile must be a dependency: without it the memoised handler kept the
@@ -1470,6 +1836,11 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           <AshokChakra size={44} duration="10s" />
           {messages.length > 0 && (
             <div onClick={() => {
+                try { abortRef.current?.abort(); } catch {}
+                abortRef.current = null;
+                cancelAnimationFrame(liveFrameRef.current); liveFrameRef.current = 0;
+                setLive(null); setLoading(false);
+                try { if (canSpeak()) window.speechSynthesis.cancel(); } catch {}
                 setMessages([]); setError(""); setChips([]);
                 pendingChipsRef.current = [];              // FIX Bug 4
                 setUsedChips(new Set()); setSecondsLeft(0);
@@ -1489,7 +1860,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       </div>
 
       {/* MESSAGES AREA */}
-      <div style={{ flex:1, overflowY:"auto", padding:"18px 10px 6px", WebkitOverflowScrolling:"touch" }}>
+      <div ref={scrollBoxRef} data-keep-nav="" style={{ flex:1, overflowY:"auto", overscrollBehavior:"contain", padding:"18px 10px 6px", WebkitOverflowScrolling:"touch" }}>
         {messages.length === 0 && !loading && (
           <WelcomeScreen lang={lang} dark={dark} onSuggest={handleSend} profile={profile} />
         )}
@@ -1500,15 +1871,23 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             lang={lang}
             dark={dark}
             isNew={msg.role === "assistant" && i === messages.length - 1}
+            onOpenDetail={onOpenDetail}
+            eligibleIds={eligibleIds}
+            trackedApps={trackedApps}
           />
         ))}
+
+        {/* The answer as it is being written */}
+        {live?.text && (
+          <ChatBubble msg={{ role:"assistant", content: live.text }} lang={lang} dark={dark} live />
+        )}
 
         {/* Chips — only shown after cooldown ends */}
         {!loading && chips.length > 0 && (
           <FollowUpChips chips={chips} onTap={handleSend} lang={lang} dark={dark} />
         )}
 
-        {loading && <TypingIndicator dark={dark} />}
+        {loading && !live?.text && <TypingIndicator dark={dark} lang={lang} status={live?.status} />}
         {error && (
           <div style={{
             textAlign:"center", marginBottom:12,

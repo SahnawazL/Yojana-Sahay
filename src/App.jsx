@@ -9675,6 +9675,9 @@ function YojanaSahayInner(){
     const handleScroll = (e) => {
       const el = e.target;
       if (!(el instanceof HTMLElement) || el === root) return;
+      // Chat scrolls itself while an answer is being written — hiding the nav
+      // there resized the chat, which scrolled it again: the nav "fought".
+      if (el.closest("[data-keep-nav]")) return;
       navScrollTargetRef.current = el;
       if (navScrollRafRef.current == null) {
         navScrollRafRef.current = requestAnimationFrame(processScroll);
@@ -10965,6 +10968,7 @@ function YojanaSahayInner(){
             dark={dark}
             profile={profile}
             matchedSchemes={allMatchedSchemes}
+            onOpenDetail={setSelectedScheme}
             uid={auth.currentUser.uid}
             key={auth.currentUser.uid}
           />

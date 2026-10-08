@@ -257,6 +257,7 @@ function sanitizeChatRequest(body) {
 
   const isReasoning = model.startsWith("openai/gpt-oss");
   return {
+    stream: body.stream === true,
     body: {
       model,
       messages,
@@ -302,6 +303,145 @@ function cleanAssistantMessage(msg) {
   };
 }
 
+// ── STREAMING (live answers) ──────────────────────────────────────────────────
+// When the app sends {stream:true}, the answer is sent piece by piece as Groq
+// writes it, so people see words within a second instead of waiting for the
+// whole reply. The response is newline-delimited JSON:
+//   {"t":"d","c":"text"}   — next piece of the answer
+//   {"t":"s","q":"query"}  — searching the web for this
+//   {"t":"e","m":"message"} — error
+//   {"t":"done"}           — finished
+// Same key rotation, web-search tool and telemetry as the normal path.
+
+// Opens a streaming Groq request, rotating keys on 429 / dead keys.
+async function openGroqStream(keys, bodyObject) {
+  let lastError = null, count429 = 0;
+  const failedKeys = [];
+  const n = keys.length;
+  const startIdx = await getNextStartIdx(n);
+  for (let offset = 0; offset < n; offset++) {
+    const i = (startIdx + offset) % n;
+    try {
+      const r = await fetch(GROQ_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${keys[i]}` },
+        body: JSON.stringify({ ...bodyObject, stream: true }),
+      });
+      if (r.status === 429) { count429++; failedKeys.push(i); lastError = await r.json().catch(() => ({})); continue; }
+      if (r.status !== 200) {
+        const data = await r.json().catch(() => ({}));
+        if (isKeyLevelFailure(r.status, data)) { lastError = data; continue; }
+        return { ok: false, status: r.status, data, keyIdx: i, count429, failedKeys };
+      }
+      return { ok: true, res: r, keyIdx: i, count429, failedKeys };
+    } catch (err) {
+      lastError = { message: err.message };
+    }
+  }
+  return { ok: false, status: 429, data: { error: { message: "All AI keys are busy right now. Please try again in a minute.", details: lastError } }, keyIdx: -1, count429, failedKeys };
+}
+
+// Reads Groq's SSE stream; calls onText for answer text, collects tool calls.
+async function pumpGroqStream(r, onText) {
+  const reader = r.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", finish = null, error = null;
+  const tools = {}; // index → {id, name, args}
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let nl;
+    while ((nl = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line.startsWith("data:")) continue;
+      const payload = line.slice(5).trim();
+      if (payload === "[DONE]") continue;
+      let j; try { j = JSON.parse(payload); } catch { continue; }
+      if (j.error) { error = j.error; continue; } // e.g. tool_use_failed arrives inside the stream
+      const ch = j.choices?.[0];
+      if (!ch) continue;
+      const d = ch.delta || {};
+      if (d.content) onText(d.content);
+      for (const tc of d.tool_calls || []) {
+        const k = tc.index ?? 0;
+        tools[k] = tools[k] || { id: "", name: "", args: "" };
+        if (tc.id) tools[k].id = tc.id;
+        if (tc.function?.name) tools[k].name += tc.function.name;
+        if (tc.function?.arguments) tools[k].args += tc.function.arguments;
+      }
+      if (ch.finish_reason) finish = ch.finish_reason;
+    }
+  }
+  return { finish, error, toolCall: tools[0] || null };
+}
+
+async function handleStream(req, res, keys, requestBody) {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("X-Accel-Buffering", "no");
+  const send = obj => { try { res.write(JSON.stringify(obj) + "\n"); } catch {} };
+  let sentText = false;
+  const onText = c => { sentText = true; send({ t: "d", c }); };
+
+  try {
+    let first = await openGroqStream(keys, { ...requestBody, tools: [WEB_SEARCH_TOOL], tool_choice: "auto" });
+    // The model couldn't format a tool call for this prompt → answer without the tool.
+    if (!first.ok && first.data?.error?.code === "tool_use_failed") first = await openGroqStream(keys, requestBody);
+    if (!first.ok) {
+      recordAiCall({ service: "groq", keyIdx: -1, count429: first.count429, failedKeys: first.failedKeys }).catch(() => {});
+      send({ t: "e", m: first.data?.error?.message || "The AI is busy. Please try again." });
+      return res.end();
+    }
+    let out = await pumpGroqStream(first.res, onText);
+    recordAiCall({ service: "groq", keyIdx: first.keyIdx, count429: first.count429, failedKeys: first.failedKeys }).catch(() => {});
+    logApiCallToHistory("groqCalls").catch(() => {});
+    // Tool-call formatting failed mid-stream before any text → answer once more without the tool.
+    if (out.error && !sentText) {
+      const again = await openGroqStream(keys, requestBody);
+      if (!again.ok) {
+        send({ t: "e", m: again.data?.error?.message || "The AI is busy. Please try again." });
+        return res.end();
+      }
+      out = await pumpGroqStream(again.res, onText);
+      recordAiCall({ service: "groq", keyIdx: again.keyIdx, count429: again.count429, failedKeys: again.failedKeys }).catch(() => {});
+      logApiCallToHistory("groqCalls").catch(() => {});
+    }
+
+    if (out.finish === "tool_calls" && out.toolCall?.name === "web_search") {
+      let q = "Indian government scheme latest news";
+      try { q = JSON.parse(out.toolCall.args || "{}").query || q; } catch {}
+      send({ t: "s", q });
+      const searchResult = await searchWeb(q);
+      recordAiCall({ service: "tavily" }).catch(() => {});
+      logApiCallToHistory("tavilyCalls").catch(() => {});
+      const second = await openGroqStream(keys, {
+        ...requestBody,
+        messages: [
+          ...requestBody.messages,
+          { role: "assistant", content: "", tool_calls: [{ id: out.toolCall.id || "call_0", type: "function", function: { name: "web_search", arguments: out.toolCall.args || "{}" } }] },
+          { role: "tool", tool_call_id: out.toolCall.id || "call_0", content: searchResult },
+        ],
+      });
+      if (!second.ok) {
+        send({ t: "e", m: second.data?.error?.message || "The AI is busy. Please try again." });
+        return res.end();
+      }
+      await pumpGroqStream(second.res, onText);
+      recordAiCall({ service: "groq", keyIdx: second.keyIdx, count429: second.count429, failedKeys: second.failedKeys, triggeredSearch: true }).catch(() => {});
+      logApiCallToHistory("groqCalls").catch(() => {});
+    }
+    if (!sentText) send({ t: "e", m: "Empty answer from the AI. Please try again." });
+    send({ t: "done" });
+  } catch (err) {
+    console.error("[Yojana Sahay] stream error:", err?.message);
+    send({ t: "e", m: "Connection to the AI was interrupted. Please try again." });
+  }
+  return res.end();
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -328,6 +468,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: { message: sanitized.error } });
   }
   const requestBody = sanitized.body;
+
+  // Live streaming for the chat screen (the results brief still uses JSON).
+  if (sanitized.stream) return handleStream(req, res, keys, requestBody);
 
   // ── STEP 1: First Groq call — WITH web_search tool ──────────────────────────
   const firstCallBody = {

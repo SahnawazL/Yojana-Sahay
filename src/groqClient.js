@@ -793,26 +793,7 @@ export async function sendMessage(conversationHistory, userQuery, lang = "en", p
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model:       MODEL,
-      max_tokens:  lang === "hi" ? 1200 : 800, // Hindi responses are longer — extra headroom to avoid mid-sentence cutoff
-      temperature: 0.5,        // More factual accuracy for scheme data
-      messages: (() => {
-        // FIX Bug 1: Profile context (positions 0 & 1) must ALWAYS be included.
-        // Detect profile prefix by the sentinel text injected in AIChat.jsx.
-        // Slice only the actual conversation messages (everything after the 2 profile rows).
-        const hasProfile =
-          conversationHistory.length >= 2 &&
-          conversationHistory[0]?.content?.includes("[Profile context for personalization");
-        const profilePart = hasProfile ? conversationHistory.slice(0, 2) : [];
-        const chatPart    = (hasProfile ? conversationHistory.slice(2) : conversationHistory).slice(-6);
-        return [
-          { role: "system", content: buildSystemPrompt(userQuery, lang, profile, extras) },
-          ...profilePart,   // always present — never sliced away
-          ...chatPart,      // last 6 chat turns (3 exchanges) — fits 70b context easily
-        ];
-      })(),
-    }),
+    body: JSON.stringify(buildChatBody(conversationHistory, userQuery, lang, profile, extras)),
   });
 
   if (!res.ok) {
@@ -832,4 +813,97 @@ export async function sendMessage(conversationHistory, userQuery, lang = "en", p
   }
 
   return parseResponse(content.trim());
+}
+
+// Text shown while streaming: hide the CHIPS block (and a half-written
+// "CHIPS" / "CHI" at the very end) so the user never sees raw JSON.
+export function visibleStreamText(raw) {
+  let t = raw;
+  const i = t.search(/\n?CHIPS:/);
+  if (i >= 0) t = t.slice(0, i);
+  else t = t.replace(/\n?C(H(I(P(S)?)?)?)?$/, "");
+  return t;
+}
+
+// ─── STREAMING EXPORT ────────────────────────────────────────────────────────
+// Same request as sendMessage, but the answer arrives word by word.
+// onDelta(visibleTextSoFar) is called as text arrives; onStatus("search", q)
+// when the AI looks something up on the web. Resolves to { reply, followUps }.
+// If the server answers with plain JSON (older deploy), falls back cleanly.
+export async function sendMessageStream(conversationHistory, userQuery, lang = "en", profile = null, extras = {}, { onDelta, onStatus, signal } = {}) {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...buildChatBody(conversationHistory, userQuery, lang, profile, extras), stream: true }),
+    signal,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `API error (${res.status})`);
+  }
+
+  const type = res.headers.get("content-type") || "";
+  if (!type.includes("ndjson") || !res.body?.getReader) {
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) throw new Error(data?.error?.message || "Empty response from AI. Please try again.");
+    const parsed = parseResponse(content.trim());
+    onDelta?.(parsed.reply);
+    return parsed;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "", full = "", errMsg = "", lastShown = "";
+
+  const handle = (line) => {
+    if (!line.trim()) return;
+    let ev; try { ev = JSON.parse(line); } catch { return; }
+    if (ev.t === "d" && typeof ev.c === "string") {
+      full += ev.c;
+      const vis = visibleStreamText(full);
+      if (vis !== lastShown) { lastShown = vis; onDelta?.(vis); }
+    } else if (ev.t === "s") {
+      onStatus?.("search", ev.q || "");
+    } else if (ev.t === "e") {
+      errMsg = ev.m || "AI error";
+    }
+  };
+
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buf.indexOf("\n")) >= 0) { handle(buf.slice(0, nl)); buf = buf.slice(nl + 1); }
+  }
+  buf += decoder.decode();
+  if (buf) handle(buf);
+
+  if (!full.trim()) throw new Error(errMsg || "Empty response from AI. Please try again.");
+  return parseResponse(full.trim());
+}
+
+function buildChatBody(conversationHistory, userQuery, lang, profile, extras) {
+  return {
+      model:       MODEL,
+      max_tokens:  lang === "hi" ? 1200 : 800, // Hindi responses are longer — extra headroom to avoid mid-sentence cutoff
+      temperature: 0.5,        // More factual accuracy for scheme data
+      messages: (() => {
+        // FIX Bug 1: Profile context (positions 0 & 1) must ALWAYS be included.
+        // Detect profile prefix by the sentinel text injected in AIChat.jsx.
+        // Slice only the actual conversation messages (everything after the 2 profile rows).
+        const hasProfile =
+          conversationHistory.length >= 2 &&
+          conversationHistory[0]?.content?.includes("[Profile context for personalization");
+        const profilePart = hasProfile ? conversationHistory.slice(0, 2) : [];
+        const chatPart    = (hasProfile ? conversationHistory.slice(2) : conversationHistory).slice(-6);
+        return [
+          { role: "system", content: buildSystemPrompt(userQuery, lang, profile, extras) },
+          ...profilePart,   // always present — never sliced away
+          ...chatPart,      // last 6 chat turns (3 exchanges) — fits 70b context easily
+        ];
+      })(),
+  };
 }
