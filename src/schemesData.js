@@ -1237,7 +1237,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹3,000/month pension after age 60 for shopkeepers, retail traders & self-employed persons · Govt. matches contribution", hi: "दुकानदारों, खुदरा व्यापारियों और स्व-नियोजित लोगों को 60 वर्ष बाद ₹3,000/माह पेंशन · सरकार बराबर अंशदान देती है" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 36000,
-    apply:   { en: "https://www.govtschemes.in/pradhan-mantri-laghu-vyapari-mandhan-yojanapmlvmy", hi: "maandhan.in" }, applyType: "online",
+    apply:   { en: "https://csc.gov.in/npspmlvm", hi: "maandhan.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Bank Account (Aadhaar-linked)","GST Registration / Shop Registration Proof","Self-Declaration of Annual Turnover < ₹1.5 Crore","Mobile Number"],
                hi: ["आधार कार्ड","बैंक खाता (आधार लिंक)","GST/दुकान पंजीकरण प्रमाण","वार्षिक टर्नओवर < ₹1.5 करोड़ स्व-घोषणा","मोबाइल नंबर"] },
     match: (a) => a.who === "business" && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
