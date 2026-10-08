@@ -275,9 +275,18 @@ function useCountUp(targets, trigger, duration=1400){
   return counts;
 }
 // ─── HAPTIC FEEDBACK ───────────────────────────────────────────────────────────
-// navigator.vibrate works on Android Chrome. iOS ignores it silently.
-// Patterns: "light"=30ms, default=50ms, "medium"=80ms, "double"=[50,60,50]
-const haptic = (pattern = 50) => { try { navigator.vibrate?.(pattern); } catch {} };
+// Vibration is kept for the few moments that matter — your results are
+// ready, an application is saved or approved, your profile is saved. Every
+// ordinary tap (tabs, cards, chips, buttons) stays silent: buzzing on every
+// touch felt noisy. haptic() is therefore a no-op; use hapticImportant().
+// navigator.vibrate works on Android Chrome; iOS ignores it silently.
+const haptic = () => {};
+const hapticImportant = (pattern = 18) => {
+  try {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+    navigator.vibrate?.(pattern);
+  } catch {}
+};
 
 // ─── URL HELPERS ───────────────────────────────────────────────────────────────
 // Prevents double https:// if the stored URL already includes a protocol
@@ -2241,7 +2250,7 @@ function ApplicationTracker({scheme,lang,dark=false}){
               haptic();
               const d=form.appliedAt&&form.appliedAt<=today?form.appliedAt:today;
               if(app) updateApplication(scheme.id,{appliedAt:d,ref:String(form.ref||"").trim().slice(0,60)});
-              else { trackApplication(scheme.id,{appliedAt:d,ref:form.ref}); track("app_track",{s:scheme.id}); }
+              else { trackApplication(scheme.id,{appliedAt:d,ref:form.ref}); track("app_track",{s:scheme.id}); hapticImportant(); }
               setForm(null);
             }}
             style={{flex:2,padding:12,borderRadius:12,background:"linear-gradient(135deg,#138808,#1aac09)",textAlign:"center",fontSize:13,fontWeight:800,color:"#fff",cursor:"pointer",fontFamily:bf,boxShadow:"0 4px 14px rgba(19,136,8,0.3)"}}>
@@ -2296,7 +2305,7 @@ function ApplicationTracker({scheme,lang,dark=false}){
         {["pending","approved","received","rejected"].map(k=>{
           const s=STATUS_TEXT[k]; const on=app.status===k;
           return(
-            <div key={k} onClick={()=>{haptic();if(k==="pending"&&on)snoozeApplication(scheme.id);else{ updateApplication(scheme.id,{status:k,lastCheckedAt:new Date().toISOString()}); if(k!=="pending"&&!on) track(k==="approved"?"app_approved":k==="received"?"app_received":"app_rejected",{s:scheme.id}); }}}
+            <div key={k} onClick={()=>{haptic();if(k==="pending"&&on)snoozeApplication(scheme.id);else{ updateApplication(scheme.id,{status:k,lastCheckedAt:new Date().toISOString()}); if(k!=="pending"&&!on){ track(k==="approved"?"app_approved":k==="received"?"app_received":"app_rejected",{s:scheme.id}); if(k!=="rejected") hapticImportant(); } }}}
               style={{fontSize:11.5,fontWeight:on?800:600,padding:"7px 11px",borderRadius:20,cursor:"pointer",fontFamily:bf,
                 border:`1.5px solid ${on?s.color:th.border}`,color:on?s.color:th.textMid,background:on?(dark?s.color+"22":s.bg):"transparent"}}>
               {s.icon} {k==="pending"&&on&&due?L("Still waiting","अभी इंतज़ार"):(isHindi?s.hi:s.en)}
@@ -4340,6 +4349,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     prevCalculatingRef.current=calculating;
     if(wasCalculating && !calculating && results.length>0){
       setShowCelebration(true);
+      hapticImportant([18,60,18]); // results are ready
       if(totalAnnual>0){
         setAnimatedBenefit(0);
         const dur=1800;
@@ -7040,7 +7050,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
               style={{flex:1,padding:14,borderRadius:14,border:`1.5px solid ${th.border3}`,background:th.card,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>
               {pt.backBtn}
             </div>
-            <div onClick={()=>{if(canSave){haptic([50,60,50]);handleSetup4Save();}}}
+            <div onClick={()=>{if(canSave){hapticImportant();handleSetup4Save();}}}
               style={{flex:2,background:canSave?"linear-gradient(135deg,#138808,#16a34a)":"#ddd",borderRadius:14,padding:14,textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canSave?"pointer":"default",fontFamily:bf,boxShadow:canSave?"0 6px 22px rgba(19,136,8,0.38)":"none",transition:"all 0.22s"}}>
               {pt.saveBtn}
             </div>

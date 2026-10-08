@@ -6302,8 +6302,10 @@ export default function AgentsTab({
 
   // ── Proactive anomaly alerts: toast queue, mute pref, desktop-notif perm ──
   const [toasts,          setToasts]          = useState([]);
+  // Sound is OFF unless the admin turns it on (🔇/🔔 in the alert banner).
+  // It used to be on by default and chimed during routine auto-refreshes.
   const [muted,           setMuted]           = useState(() => {
-    try { return localStorage.getItem("agt_alert_muted") === "true"; } catch { return false; }
+    try { return localStorage.getItem("agt_alert_sound") !== "on"; } catch { return true; }
   });
   const [notifPermission, setNotifPermission] = useState(() =>
     (typeof Notification !== "undefined") ? Notification.permission : "unsupported"
@@ -6315,7 +6317,7 @@ export default function AgentsTab({
   const toggleMuted = useCallback(() => {
     setMuted(m => {
       const next = !m;
-      try { localStorage.setItem("agt_alert_muted", String(next)); } catch {}
+      try { localStorage.setItem("agt_alert_sound", next ? "off" : "on"); } catch {}
       return next;
     });
   }, []);
@@ -6508,10 +6510,19 @@ export default function AgentsTab({
 
     const prevMap = prevAnomalyMapRef.current;
     const fresh = [];
+    // The same warning for the same agent alerts at most once every 6 hours —
+    // presence flips (offline → online → offline) used to re-fire it on every
+    // auto-refresh. Remembered across reloads.
+    const COOLDOWN = 6 * 3600 * 1000;
+    let lastAlert = {};
+    try { lastAlert = JSON.parse(localStorage.getItem("agt_alert_last") || "{}"); } catch {}
+    const nowMs = Date.now();
     allAgents.forEach(ag => {
       const key = agentKey(ag);
       if (!key || !ag.anomaly) return;
-      if (prevMap[key] !== ag.anomaly.label) {
+      const ck = `${key}|${ag.anomaly.label}`;
+      if (prevMap[key] !== ag.anomaly.label && !(nowMs - (lastAlert[ck] || 0) < COOLDOWN)) {
+        lastAlert[ck] = nowMs;
         fresh.push({
           id: `${key}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           agentKey: key,
@@ -6524,8 +6535,14 @@ export default function AgentsTab({
     });
 
     if (fresh.length > 0) {
+      try {
+        const pruned = Object.fromEntries(Object.entries(lastAlert).filter(([, t]) => nowMs - t < COOLDOWN));
+        localStorage.setItem("agt_alert_last", JSON.stringify(pruned));
+      } catch {}
       setToasts(ts => [...ts, ...fresh].slice(-5)); // cap visible stack
-      if (!muted) playAlertChime();
+      // Sound only if switched on, only for red (serious) warnings, and only
+      // while you're looking at the dashboard.
+      if (!muted && fresh.some(f => f.color === "#EF4444") && !document.hidden) playAlertChime();
       if (notifPermission === "granted" && typeof document !== "undefined" && document.hidden) {
         fresh.forEach(t => {
           try {

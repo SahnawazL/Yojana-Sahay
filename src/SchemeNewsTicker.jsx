@@ -48,7 +48,9 @@ const CSS = `
   .ys-body-scroll::-webkit-scrollbar-track { background: transparent; }
 `;
 
-const haptic = (ms = 10) => { try { navigator.vibrate?.(ms); } catch {} };
+// No vibration in the news ticker: it advanced every few seconds on its own
+// and buzzed the phone each time. Taps on the ticker stay silent too.
+const haptic = () => {};
 
 function isFresh(item) {
   const ms = item.createdAt?.toMillis?.()
