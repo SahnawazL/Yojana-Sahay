@@ -25,6 +25,8 @@ export const UTTAR_PRADESH_SCHEMES = [
     docs:    { en: ["Aadhaar Card (parent/guardian)", "Girl Child's Birth Certificate", "Family Income Certificate (< ₹3 lakh/year)", "UP Domicile / Residence Proof", "Bank Account (Aadhaar-linked, parent/guardian)", "School Enrollment Certificate (for Class 1/6/9 installment)", "Graduation / Diploma Admission Certificate (for final installment)", "Passport Photo", "Family ID (UP Parivar Pahchan Patra)"],
                hi: ["आधार कार्ड (माता-पिता/अभिभावक)", "बालिका का जन्म प्रमाण पत्र", "पारिवारिक आय प्रमाण पत्र (₹3 लाख/वर्ष से कम)", "UP निवास प्रमाण", "बैंक खाता (आधार-लिंक्ड, माता-पिता/अभिभावक)", "स्कूल नामांकन प्रमाण पत्र (कक्षा 1/6/9 किस्त के लिए)", "स्नातक/डिप्लोमा प्रवेश प्रमाण पत्र (अंतिम किस्त के लिए)", "पासपोर्ट फोटो", "UP परिवार पहचान पत्र"] },
     keywords: ["class10","class12"],
+    eligibilityText: { en: ["Girls born on or after 1 April 2019 in families living permanently in Uttar Pradesh", "Family income up to ₹3 lakh a year", "Up to two girls per family (three if the second birth is twins)"],
+                       hi: ["1 अप्रैल 2019 या उसके बाद जन्मी बेटियां, जिनका परिवार उत्तर प्रदेश का स्थायी निवासी है", "परिवार की सालाना आय ₹3 लाख तक", "प्रति परिवार अधिकतम दो बेटियां (दूसरे प्रसव में जुड़वां होने पर तीन)"] },
     match: (a) => a.state === "Uttar Pradesh" && ["below1","1to3","3to6"].includes(a.income),
   },
 

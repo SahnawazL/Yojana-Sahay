@@ -51,6 +51,8 @@ export const ASSAM_SCHEMES = [
     docs:    { en: ["Aadhaar Card","School / College Enrollment Certificate","Bank Account (girl's name)","Birth Certificate"],
                hi: ["आधार कार्ड","स्कूल/कॉलेज नामांकन प्रमाण","बैंक खाता (छात्रा के नाम)","जन्म प्रमाण पत्र"] },
     keywords: ["class10","class12"],
+    eligibilityText: { en: ["Unmarried girl students in Assam — Class 11, degree or post-graduation", "Studying in a government or provincialised institution", "Stipend is paid for 10 months a year while studying"],
+                       hi: ["असम की अविवाहित छात्राएं — कक्षा 11, स्नातक या स्नातकोत्तर", "सरकारी या प्रांतीयकृत संस्थान में पढ़ रही हों", "पढ़ाई के दौरान साल में 10 महीने छात्रवृत्ति मिलती है"] },
     match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Assam" && a.who === "student"),
   },
 

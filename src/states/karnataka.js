@@ -494,6 +494,8 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "Nearest Ration Shop (no separate application needed)", hi: "नज़दीकी राशन दुकान (अलग आवेदन जरूरी नहीं)" }, applyType: "offline",
     docs:    { en: ["BPL Ration Card", "Aadhaar Card (linked to ration card)"],
                hi: ["BPL राशन कार्ड", "आधार कार्ड (राशन कार्ड से लिंक)"] },
+    eligibilityText: { en: ["Families in Karnataka with a BPL or Antyodaya (AAY) ration card", "Every member listed on the card is covered", "Collect from your fair-price ration shop"],
+                       hi: ["BPL या अंत्योदय (AAY) राशन कार्ड वाले कर्नाटक के परिवार", "कार्ड में दर्ज हर सदस्य शामिल", "अपनी उचित मूल्य राशन दुकान से लें"] },
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
   },
 

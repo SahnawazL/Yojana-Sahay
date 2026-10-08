@@ -212,6 +212,8 @@ export const ANDHRA_PRADESH_SCHEMES = [
     docs:    { en: ["White ration card (rice card)","Aadhaar card"],
                hi: ["सफ़ेद राशन कार्ड (राइस कार्ड)","आधार कार्ड"] },
     autoAdded: "2026-10-07", source: "https://spsnellore.ap.gov.in/dr-nandamuri-taraka-rama-rao-vaidyaseva-trust/",
+    eligibilityText: { en: ["Families in Andhra Pradesh with a rice (white) ration card", "Or families with income up to ₹5 lakh a year who meet the scheme's land limits", "Show the health card or rice card with Aadhaar at an empanelled hospital"],
+                       hi: ["चावल (सफ़ेद) राशन कार्ड वाले आंध्र प्रदेश के परिवार", "या ₹5 लाख तक सालाना आय वाले परिवार जो ज़मीन की सीमा पूरी करते हों", "सूचीबद्ध अस्पताल में आधार के साथ हेल्थ कार्ड या राइस कार्ड दिखाएं"] },
     match: (a) => a.state === "Andhra Pradesh" && ["bpl","aay"].includes(a.rationCard),
   },
   // </auto-scheme id="ap_ntr_vaidya_seva">

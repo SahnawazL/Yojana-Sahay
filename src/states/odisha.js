@@ -24,6 +24,8 @@ export const ODISHA_SCHEMES = [
     apply:   { en: "https://www.govtschemes.in/odisha-cm-kisan-yojana", hi: "cmkisan.odisha.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records / Khatian (for small/marginal farmers)", "Farmer Registration on Krushak Portal", "Bank Account (Aadhaar-linked)", "Mobile Number (Aadhaar-linked)", "Proof of landlessness (for landless category)"],
                hi: ["आधार कार्ड", "भूमि अभिलेख / खतियान (छोटे/सीमांत किसानों के लिए)", "कृषक पोर्टल पर किसान पंजीकरण", "बैंक खाता (आधार-लिंक्ड)", "मोबाइल नंबर (आधार-लिंक्ड)", "भूमिहीनता का प्रमाण (भूमिहीन श्रेणी के लिए)"] },
+    eligibilityText: { en: ["Small and marginal farmers in Odisha", "Also landless agricultural households (sharecroppers and farm labourers)", "Not for income-tax payers or government employees"],
+                       hi: ["ओडिशा के छोटे और सीमांत किसान", "भूमिहीन कृषि परिवार भी (बटाईदार और खेतिहर मज़दूर)", "आयकर दाता या सरकारी कर्मचारी पात्र नहीं"] },
     match: (a) => a.state === "Odisha" && (a.who === "farmer" || ["below1","1to3"].includes(a.income)),
   },
 
@@ -126,6 +128,8 @@ export const ODISHA_SCHEMES = [
     apply:   { en: "https://gjay.odisha.gov.in", hi: "gjay.odisha.gov.in / निकटतम सरकारी अस्पताल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "GJAY / BSKY Card (or NFSA Ration Card)", "Residence Proof (Odisha)", "Income Certificate (for cancer/heart/kidney coverage above ₹5 lakh)", "Referral letter (for treatment outside Odisha)"],
                hi: ["आधार कार्ड", "GJAY / BSKY कार्ड (या NFSA राशन कार्ड)", "निवास प्रमाण (ओडिशा)", "आय प्रमाण पत्र (₹5 लाख से अधिक कैंसर/हृदय/किडनी उपचार के लिए)", "रेफरल पत्र (ओडिशा से बाहर उपचार के लिए)"] },
+    eligibilityText: { en: ["Families in Odisha covered under NFSA or the State Food Security Scheme", "Women members get a higher cover", "Cashless treatment at empanelled hospitals across India"],
+                       hi: ["NFSA या राज्य खाद्य सुरक्षा योजना में शामिल ओडिशा के परिवार", "महिला सदस्यों को अधिक कवर", "देश भर के सूचीबद्ध अस्पतालों में कैशलेस इलाज"] },
     match: (a) => a.state === "Odisha" && ["below1","1to3","3to6"].includes(a.income),
   },
 

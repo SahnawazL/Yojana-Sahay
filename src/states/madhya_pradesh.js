@@ -20,6 +20,8 @@ export const MADHYA_PRADESH_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/lly", hi: "ladlilaxmi.mp.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Birth Certificate","Residence Proof","Bank Account"],
                hi: ["आधार कार्ड","जन्म प्रमाण","निवास प्रमाण","बैंक खाता"] },
+    eligibilityText: { en: ["Girls born on or after 1 January 2006 in Madhya Pradesh", "Parents are natives of Madhya Pradesh and not income-tax payers", "Register at the Anganwadi within one year of the girl's birth"],
+                       hi: ["मध्य प्रदेश में 1 जनवरी 2006 या उसके बाद जन्मी बेटियां", "माता-पिता मध्य प्रदेश के मूल निवासी हों और आयकर दाता न हों", "बेटी के जन्म के एक साल के भीतर आंगनवाड़ी में पंजीकरण करें"] },
     match: (a) => a.state === "Madhya Pradesh" && ["below1","1to3","3to6"].includes(a.income),
   },
 

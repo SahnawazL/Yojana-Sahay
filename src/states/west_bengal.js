@@ -43,6 +43,8 @@ export const WEST_BENGAL_SCHEMES = [
     docs:    { en: ["Aadhaar Card","Birth Certificate / Age Proof","School Enrollment Certificate (Class 8–12)","Income Certificate (family income < ₹1.2 lakh/year)","Bank Account (girl's name)","Unmarried Declaration (self-attested)","Passport Photo"],
                hi: ["आधार कार्ड","जन्म प्रमाण पत्र / आयु प्रमाण","स्कूल नामांकन प्रमाण पत्र (कक्षा 8–12)","आय प्रमाण पत्र (पारिवारिक आय ₹1.2 लाख/वर्ष से कम)","बैंक खाता (छात्रा के नाम)","अविवाहित घोषणा (स्व-सत्यापित)","पासपोर्ट फोटो"] },
     keywords: ["class10","class12"],
+    eligibilityText: { en: ["Unmarried girls aged 13–18 living in West Bengal", "Studying in Class 8 or above (or in vocational / sports training)", "One-time grant at 18 if still unmarried and in education"],
+                       hi: ["पश्चिम बंगाल की 13–18 वर्ष की अविवाहित लड़कियां", "कक्षा 8 या उससे ऊपर पढ़ रही हों (या व्यावसायिक / खेल प्रशिक्षण में)", "18 वर्ष पर एकमुश्त अनुदान, यदि अविवाहित हों और पढ़ाई जारी हो"] },
     match: (a) => (a.gender == null || a.gender === "female") && (a.state === "West Bengal" && a.who === "student"),
   },
 
@@ -77,6 +79,8 @@ export const WEST_BENGAL_SCHEMES = [
     apply:   { en: "https://swasthyasathi.gov.in/", hi: "swasthyasathi.gov.in · दुआरे सरकार कैम्प से भी" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (family members)","Ration Card / Voter ID","Bank Account (woman's name)","Family Photo","Residence Proof (West Bengal)"],
                hi: ["आधार कार्ड (परिवार के सदस्यों का)","राशन कार्ड / मतदाता ID","बैंक खाता (महिला के नाम)","पारिवारिक फोटो","निवास प्रमाण (पश्चिम बंगाल)"] },
+    eligibilityText: { en: ["Every family living in West Bengal", "Not already covered by another government health scheme (like CGHS / WBHS)", "The card is issued in the name of the senior woman of the family"],
+                       hi: ["पश्चिम बंगाल में रहने वाला हर परिवार", "किसी अन्य सरकारी स्वास्थ्य योजना (जैसे CGHS / WBHS) में पहले से शामिल न हो", "कार्ड परिवार की वरिष्ठ महिला के नाम पर बनता है"] },
     match: (a) => a.state === "West Bengal",
   },
 

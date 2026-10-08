@@ -21,6 +21,8 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/aay", hi: "abuaawasyojana.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card", "Land Ownership Proof", "Bank Account", "No-Pucca House Certificate"],
                hi: ["आधार कार्ड", "राशन कार्ड", "जमीन का प्रमाण", "बैंक खाता", "पक्का मकान न होने का प्रमाण"] },
+    eligibilityText: { en: ["Families in Jharkhand with no pucca house — houseless or living in kutcha houses", "Not already covered under PM Awas Yojana or another housing scheme", "Selected through the gram sabha / panchayat list"],
+                       hi: ["झारखंड के परिवार जिनके पास पक्का घर नहीं — बेघर या कच्चे घर में रहने वाले", "PM आवास या किसी अन्य आवास योजना में पहले से शामिल न हों", "ग्राम सभा / पंचायत सूची से चयन"] },
     match: (a) => a.state === "Jharkhand" && ["no","kutcha"].includes(a.house) && ["below1","1to3"].includes(a.income),
   },
 

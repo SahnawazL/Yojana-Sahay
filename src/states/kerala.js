@@ -24,6 +24,8 @@ export const KERALA_SCHEMES = [
     apply:   { en: "https://joinditto.in/articles/health-insurance/kasp-insurance", hi: "kasp.kerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card", "Income Certificate", "Kerala Residence Proof"],
                hi: ["आधार कार्ड", "राशन कार्ड", "आय प्रमाण", "केरल निवास प्रमाण"] },
+    eligibilityText: { en: ["Families in Kerala listed under KASP / PM-JAY (based on SECC and RSBY lists)", "Check eligibility at any empanelled hospital's KASP help desk", "Cashless treatment at empanelled government and private hospitals"],
+                       hi: ["KASP / PM-JAY सूची (SECC और RSBY आधारित) में शामिल केरल के परिवार", "किसी भी सूचीबद्ध अस्पताल के KASP हेल्प डेस्क पर पात्रता जांचें", "सूचीबद्ध सरकारी और निजी अस्पतालों में कैशलेस इलाज"] },
     match: (a) => a.state === "Kerala" && ["below1", "1to3", "3to6"].includes(a.income),
   },
 

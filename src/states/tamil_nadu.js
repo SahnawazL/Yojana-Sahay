@@ -16,7 +16,7 @@ export const TAMIL_NADU_SCHEMES = [
     icon: "📚", color: "#B45309", scope: "state", state: "Tamil Nadu",
     ministry: { en: "Tamil Nadu School Education Dept.", hi: "तमिलनाडु स्कूल शिक्षा विभाग" },
     name:    { en: "Pudhumai Penn Scheme (TN)",                    hi: "पुधुमई पेन योजना (तमिलनाडु)" },
-    benefit: { en: "₹1,000/month stipend for girl students Std 6–12", hi: "कक्षा 6–12 की छात्राओं को ₹1,000/माह" },
+    benefit: { en: "₹1,000/month for girls in college, diploma or ITI who studied Class 6–12 in government schools", hi: "सरकारी स्कूलों में कक्षा 6–12 पढ़ी और अब कॉलेज, डिप्लोमा या ITI में पढ़ रही छात्राओं को ₹1,000/माह" },
     tag:     { en: "Girl Student",  hi: "छात्रा" },
     annual:  12000,
     apply:   { en: "https://www.myscheme.gov.in/schemes/pudhumai-penn-scheme", hi: "pudumaipenn.tn.gov.in" }, applyType: "online",
@@ -24,7 +24,9 @@ export const TAMIL_NADU_SCHEMES = [
                hi: ["आधार कार्ड", "स्कूल नामांकन प्रमाण पत्र", "बैंक खाता (छात्रा के नाम पर)"] },
     // Eligibility: TN girl student in Std 6-12 in govt school
     keywords: ["class10"],
-    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Tamil Nadu" && a.who === "student"),
+    eligibilityText: { en: ["Girls who studied Class 6 to 12 in Tamil Nadu government schools", "Now studying in college, a diploma course or ITI (first degree)", "Paid directly to the student's bank account every month until the course ends"],
+                       hi: ["तमिलनाडु के सरकारी स्कूलों में कक्षा 6 से 12 तक पढ़ी छात्राएं", "अब कॉलेज, डिप्लोमा या ITI (पहली डिग्री) में पढ़ रही हों", "कोर्स पूरा होने तक हर महीने छात्रा के बैंक खाते में सीधे भुगतान"] },
+    match: (a) => (a.gender == null || a.gender === "female") && (a.state === "Tamil Nadu" && a.who === "student" && (a.educationLevel == null || a.educationLevel === "undergrad")),
   },
 
   // ── 2. Kalaignar Magalir Urimai Thittam (Women's Rights Scheme) ───────────
@@ -143,12 +145,14 @@ export const TAMIL_NADU_SCHEMES = [
     icon: "🚌", color: "#0369A1", scope: "state", state: "Tamil Nadu",
     ministry: { en: "Tamil Nadu Transport Dept.", hi: "तमिलनाडु परिवहन विभाग" },
     name:    { en: "Free Bus Travel for Women (TN)",               hi: "महिलाओं के लिए निःशुल्क बस यात्रा (तमिलनाडु)" },
-    benefit: { en: "Free travel on all Tamil Nadu State Transport Corporation (TNSTC) buses for women", hi: "सभी TNSTC बसों में महिलाओं को निःशुल्क यात्रा" },
+    benefit: { en: "Free travel for women on Tamil Nadu government town buses (Vidiyal Payanam)", hi: "तमिलनाडु की सरकारी टाउन बसों में महिलाओं के लिए मुफ्त यात्रा (विडियल पयणम)" },
     tag:     { en: "Women Transport", hi: "महिला परिवहन" },
     annual:  0,
     apply:   { en: "No application needed — board any TNSTC bus", hi: "कोई आवेदन आवश्यक नहीं — कोई भी TNSTC बस में चढ़ें" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card or any Govt. ID with photo (as proof of gender)"],
                hi: ["आधार कार्ड या कोई भी सरकारी फोटो पहचान पत्र"] },
+    eligibilityText: { en: ["All women in Tamil Nadu — no income limit, no pass needed", "Also transgender persons, and persons with disability with one attendant", "Valid on government town buses (ordinary / white-board buses)"],
+                       hi: ["तमिलनाडु की सभी महिलाएं — कोई आय सीमा नहीं, पास की ज़रूरत नहीं", "ट्रांसजेंडर व्यक्ति, और दिव्यांगजन एक सहायक के साथ भी", "सरकारी टाउन बसों (साधारण / सफ़ेद बोर्ड बसों) में मान्य"] },
     match: (a) => a.state === "Tamil Nadu" && a.who === "women",
   },
 
@@ -483,6 +487,8 @@ export const TAMIL_NADU_SCHEMES = [
     apply:   { en: "tnrd.gov.in", hi: "tnrd.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Ration Card", "Residence Proof", "Voter ID", "Passport-size Photo", "No Existing House Certificate"],
                hi: ["आधार कार्ड", "राशन कार्ड", "निवास प्रमाण", "वोटर ID", "पासपोर्ट साइज फोटो", "मकान न होने का प्रमाण पत्र"] },
+    eligibilityText: { en: ["Rural families in Tamil Nadu living in thatched or kutcha houses", "Must own the land where the house will be built", "Selected through the village panchayat survey list"],
+                       hi: ["तमिलनाडु के ग्रामीण परिवार जो छप्पर या कच्चे घर में रहते हैं", "जहां घर बनेगा वह ज़मीन अपनी होनी चाहिए", "ग्राम पंचायत सर्वे सूची से चयन"] },
     match: (a) => a.state === "Tamil Nadu" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3"].includes(a.income) && a.area === "rural",
   },
 
