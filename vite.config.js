@@ -61,11 +61,30 @@ export default defineConfig({
         // Without this, a returning visitor with the PWA already installed who clicks a
         // Google result for one of these pages would get silently redirected to the
         // homepage by the service worker instead of seeing the actual scheme page.
-        navigateFallback:          "/index.html",
-        navigateFallbackDenylist:  [/^\/api\//, /^\/schemes\//, /^\/yojana\//, /^\/__\//], // /__/auth = Firebase sign-in helper
+        // ── Pages: NETWORK FIRST (fix for "I have to refresh 6–7 times") ──────
+        // The app page used to be served from the offline copy every time, so
+        // a refresh showed the OLD version until the new service worker had
+        // finished downloading in the background — that took several refreshes.
+        // Now the page always comes from the network when online (a refresh =
+        // the latest version), and the saved copy is used only when offline.
+        // /api, /schemes, /yojana (SEO pages) and /__/auth are left alone.
+        navigateFallback: null,
+        cleanupOutdatedCaches: true,
 
         // ── Runtime caching strategies ──────────────────────────────────────────
         runtimeCaching: [
+
+          {
+            urlPattern: ({ request, url }) =>
+              request.mode === "navigate" && !/^\/(api|schemes|yojana|__)\//.test(url.pathname),
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "ys-pages",
+              networkTimeoutSeconds: 6,   // slow network → open the saved copy instead of waiting
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              precacheFallback: { fallbackURL: "/index.html" }, // offline + never visited → app shell
+            },
+          },
 
           // /api/stats and any other Vercel serverless functions:
           // NetworkFirst with 5-second timeout.

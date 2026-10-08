@@ -595,11 +595,32 @@
 
     <!-- ─── Service Worker Registration ─────────────────────────── -->
     <script>
+      // Updates: when a new version's service worker takes over, reload once so
+      // the page and its files all come from the same (new) version. Right
+      // after opening, or while the app is in the background, that happens
+      // straight away; if someone is mid-use, it waits until they switch away.
+      // Also checks for a new version whenever the app comes back to the front.
       if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function() {
+        var ysHadSW = !!navigator.serviceWorker.controller, ysLoadedAt = Date.now(), ysReloading = false, ysPending = false, ysLastCheck = 0;
+        var ysReload = function () { if (ysReloading) return; ysReloading = true; location.reload(); };
+        navigator.serviceWorker.addEventListener("controllerchange", function () {
+          if (!ysHadSW) { ysHadSW = true; return; }          // first install — this page is already current
+          if (document.visibilityState === "hidden" || Date.now() - ysLoadedAt < 20000) ysReload();
+          else ysPending = true;
+        });
+        var ysCheck = function () {
+          if (Date.now() - ysLastCheck < 60000) return;
+          ysLastCheck = Date.now();
+          navigator.serviceWorker.getRegistration().then(function (r) { if (r) r.update().catch(function () {}); });
+        };
+        document.addEventListener("visibilitychange", function () {
+          if (document.visibilityState === "hidden" && ysPending) ysReload();
+          else if (document.visibilityState === "visible") ysCheck();
+        });
+        window.addEventListener("load", function () {
           navigator.serviceWorker.register("/sw.js", { scope: "/" })
-            .then(function(r) { console.log("SW registered:", r.scope); })
-            .catch(function(e) { console.warn("SW failed:", e); });
+            .then(function (r) { ysLastCheck = Date.now(); r.update().catch(function () {}); })
+            .catch(function (e) { console.warn("SW failed:", e); });
         });
       }
     </script>
