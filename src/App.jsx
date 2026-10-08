@@ -361,6 +361,8 @@ function buildProfileAnswers(profile){
 // listing of the same scheme) are hidden whenever the main entry already
 // matches — so nobody sees the same scheme twice or gets it counted twice.
 const SCHEME_BY_ID=new Map(SCHEME_DB.map(s=>[s.id,s]));
+// Distinct schemes (duplicate listings don't count twice in the numbers we show).
+const UNIQUE_SCHEME_COUNT=SCHEME_DB.filter(s=>!s.duplicateOf).length;
 function safeMatch(scheme,answers){
   try{
     if(scheme.duplicateOf){
@@ -501,7 +503,7 @@ const VERIFICATION_STATS = (()=>{
     if(s.lastVerified!=null) verified++;
     if(s.linkAlive===true) live++;
   }
-  const total=SCHEME_DB.length;
+  const total=SCHEME_DB.filter(s=>!s.duplicateOf).length;
   // pctLive: % of verified schemes whose link is confirmed live
   const pctLive=verified>0?Math.round((live/verified)*100):0;
   return { total, verified, live, pctLive };
@@ -4324,7 +4326,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                     {isHindi?"योजनाएं स्कैन हो रही हैं…":"Scanning schemes…"}
                   </div>
                   <div style={{fontSize:13,color:"rgba(255,255,255,0.48)",fontFamily:bf}}>
-                    {isHindi?`${SCHEME_DB.length} सरकारी योजनाएं जाँच रहे हैं`:`Checking ${SCHEME_DB.length} government schemes`}
+                    {isHindi?`${UNIQUE_SCHEME_COUNT} सरकारी योजनाएं जाँच रहे हैं`:`Checking ${UNIQUE_SCHEME_COUNT} government schemes`}
                   </div>
                 </div>
               </div>
@@ -9359,7 +9361,7 @@ function YojanaSahayInner(){
 
   // Live stat targets: real scheme count + states + real checkerTotal from Firestore
   const statTargets=useMemo(()=>[
-    SCHEME_DB.length,       // real scheme count — available immediately
+    UNIQUE_SCHEME_COUNT,    // real scheme count — available immediately
     28,                     // states covered — static fact
     liveCheckerTotal??0,    // real citizens who ran the eligibility checker
   ],[liveCheckerTotal]);
@@ -10255,7 +10257,7 @@ function YojanaSahayInner(){
             onGoToChecker={() => setShowChecker(true)}
             onGoToAboutPro={handleGoToAboutPro}
             activeTab={activeTab}
-            schemeCount={SCHEME_DB.length}
+            schemeCount={UNIQUE_SCHEME_COUNT}
           />
         )}
       </div>

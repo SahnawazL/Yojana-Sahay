@@ -27,7 +27,7 @@ export const UTTAR_PRADESH_SCHEMES = [
     keywords: ["class10","class12"],
     eligibilityText: { en: ["Girls born on or after 1 April 2019 in families living permanently in Uttar Pradesh", "Family income up to ₹3 lakh a year", "Up to two girls per family (three if the second birth is twins)"],
                        hi: ["1 अप्रैल 2019 या उसके बाद जन्मी बेटियां, जिनका परिवार उत्तर प्रदेश का स्थायी निवासी है", "परिवार की सालाना आय ₹3 लाख तक", "प्रति परिवार अधिकतम दो बेटियां (दूसरे प्रसव में जुड़वां होने पर तीन)"] },
-    match: (a) => a.state === "Uttar Pradesh" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => a.state === "Uttar Pradesh" && ["below1","1to3"].includes(a.income),
   },
 
   {

@@ -1667,7 +1667,7 @@ export const SCHEME_DB = [
     docs:    { en: ["Aadhaar Card","Tribal Caste Certificate (PVTG community)","Ration Card","Land / Residence Proof"],
                hi: ["आधार कार्ड","जनजाति जाति प्रमाण पत्र (PVTG समुदाय)","राशन कार्ड","भूमि / निवास प्रमाण"] },
     // Eligibility: residents of 75 Particularly Vulnerable Tribal Groups in notified tribal sub-plan areas
-    match: (a) => a.area === "rural" && ["below1","1to3"].includes(a.income),
+    match: (a) => a.caste === "st" && a.area === "rural" && ["below1","1to3"].includes(a.income),
   },
 
   {
