@@ -62,7 +62,7 @@ export default defineConfig({
         // Google result for one of these pages would get silently redirected to the
         // homepage by the service worker instead of seeing the actual scheme page.
         navigateFallback:          "/index.html",
-        navigateFallbackDenylist:  [/^\/api\//, /^\/schemes\//, /^\/yojana\//],
+        navigateFallbackDenylist:  [/^\/api\//, /^\/schemes\//, /^\/yojana\//, /^\/__\//], // /__/auth = Firebase sign-in helper
 
         // ── Runtime caching strategies ──────────────────────────────────────────
         runtimeCaching: [

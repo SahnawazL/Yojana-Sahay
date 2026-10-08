@@ -47,6 +47,11 @@ function writeRoleCache(uid, role) {
   } catch { /* private mode etc. */ }
 }
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function withTimeout(promise, ms) {
+  return Promise.race([promise, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("timeout"), { code: "timeout" })), ms))]);
+}
+
 function roleFromUserDoc(data) {
   if (!data) return null;
   if (data.isAdmin === true) return { full: true, tabs: null };
@@ -165,12 +170,20 @@ function SignIn({ initialError }) {
     provider.setCustomParameters({ prompt: "select_account" });
     const p = signInWithPopup(auth, provider);
     setBusy("google"); setError(""); setInfo("");
-    p.catch(err => {
+    p.catch(async err => {
       if (err.code === "auth/popup-blocked" || err.code === "auth/operation-not-supported-in-this-environment") {
+        setInfo("Opening Google…");
         signInWithRedirect(auth, provider).catch(e => { setError(authErrorText(e)); setBusy(null); });
         return;
       }
-      if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") setError(authErrorText(err));
+      if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+        // Phones often report "closed" even though the account was picked and
+        // the sign-in is still finishing — wait a moment before giving up.
+        for (let i = 0; i < 6; i++) { if (auth.currentUser) return; await new Promise(r => setTimeout(r, 500)); }
+        setBusy(null);
+        return;
+      }
+      setError(authErrorText(err));
       setBusy(null);
     });
   };
@@ -256,8 +269,6 @@ export default function AdminPage() {
   const [diag, setDiag] = useState(null);
   const [rechecking, setRechecking] = useState(false);
   const roleUnsubRef = useRef(null);
-  // uid whose login token we already force-refreshed after a permission-denied
-  const tokenRefreshedFor = useRef(null);
   const [expired, setExpired] = useState(null); // auth error code when the login can't be renewed
 
   // Keep the session across browser restarts (this is Firebase's web default,
@@ -268,71 +279,67 @@ export default function AdminPage() {
     getRedirectResult(auth).catch(err => setSignInError(authErrorText(err)));
   }, []);
 
+  // ── Who is signed in, and are they an admin? ─────────────────────────────
+  // 1. Read users/{uid} straight from the server (8 s limit per try).
+  // 2. Quietly retry up to 4 times (1 s, 2 s, 3 s apart) — a slow phone
+  //    network no longer drops you on a "Retry" screen.
+  // 3. permission-denied = the login token is stale → renew it once, retry.
+  // 4. Once allowed, a live listener closes the dashboard if access is removed.
   useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, (u) => {
+    let alive = true;
+    const unsubAuth = onAuthStateChanged(auth, async (u) => {
       roleUnsubRef.current?.(); roleUnsubRef.current = null;
+      if (!alive) return;
       setUser(u);
       if (!u) { setRole(null); setStatus("signin"); return; }
 
-      // Instant open with the last verified role, re-checked live below.
       const cached = readRoleCache(u.uid);
       if (cached) { setRole(prev => (JSON.stringify(prev) === JSON.stringify(cached) ? prev : cached)); setStatus("allowed"); }
       else setStatus("verifying");
 
-      roleUnsubRef.current = onSnapshot(
-        doc(db, "users", u.uid),
-        (snap) => {
-          const data = snap.exists() ? snap.data() : null;
-          const fromCache = !!snap.metadata?.fromCache;
-          if (!fromCache) tokenRefreshedFor.current = null; // a good server read — allow a future renewal
-          setDiag(describeDoc(u, data, fromCache));
-          const r = roleFromUserDoc(data);
-          // The phone's offline cache can hold an OLD copy of the user doc
-          // (from before isAdmin was set). A "no" from the cache is not
-          // trusted — wait for the server's answer (the listener fires again
-          // when it arrives). A "yes" from the cache is fine to show early.
-          if (!r && fromCache) {
-            if (!readRoleCache(u.uid)) setStatus("verifying");
-            return;
+      let data, renewed = false, lastErr = null, got = false;
+      for (let i = 0; i < 4 && alive; i++) {
+        try {
+          const snap = await withTimeout(getDocFromServer(doc(db, "users", u.uid)), 8000);
+          data = snap.exists() ? snap.data() : null; got = true; break;
+        } catch (err) {
+          lastErr = err;
+          if (err?.code === "permission-denied" && !renewed) {
+            renewed = true;
+            try { await u.getIdToken(true); continue; }
+            catch (e) { if (!cached) { setExpired(e?.code || "token refresh failed"); setStatus("expired"); } return; }
           }
-          writeRoleCache(u.uid, r);
-          // Same role → keep the same object so the dashboard doesn't re-render
-          // its tab list every time the user doc changes (lastSeen etc.).
-          if (r) { setRole(prev => (JSON.stringify(prev) === JSON.stringify(r) ? prev : r)); setStatus("allowed"); }
-          else   { setRole(null); setStatus("denied"); }
-        },
-        async (err) => {
-          console.warn("[AdminPage] role check failed:", err?.code || err?.message);
-          if (err?.code === "permission-denied") {
-            // Reading your OWN user doc is always allowed by the rules, so a
-            // denial means Firestore didn't get a valid login — usually the
-            // 1-hour login token expired and the phone couldn't renew it.
-            // Renew it once and listen again.
-            if (tokenRefreshedFor.current !== u.uid) {
-              tokenRefreshedFor.current = u.uid;
-              setStatus(st => (st === "allowed" ? st : "verifying"));
-              try {
-                await u.getIdToken(true);
-                setRetryKey(k => k + 1);
-              } catch (e) {
-                const code = e?.code || e?.message || "token refresh failed";
-                console.warn("[AdminPage] login renewal failed:", code);
-                setExpired(code);
-                setStatus("expired");
-              }
-              return;
-            }
-            setDiag(d => ({ ...(d || describeDoc(u, null, false)), error: "permission-denied (even after renewing the login)" }));
-            writeRoleCache(u.uid, null);
-            setStatus("denied");
-            return;
-          }
-          // Network / transient error: keep a cached session open, otherwise offer Retry.
-          if (!readRoleCache(u.uid)) setStatus("error");
+          if (err?.code === "permission-denied") break;
+          await sleep(1000 * (i + 1));
         }
-      );
+      }
+      if (!alive || auth.currentUser?.uid !== u.uid) return;
+
+      if (!got) {
+        console.warn("[AdminPage] role check failed:", lastErr?.code || lastErr?.message);
+        setDiag({ ...describeDoc(u, null, false), error: lastErr?.code || lastErr?.message || "no answer" });
+        if (lastErr?.code === "permission-denied") { writeRoleCache(u.uid, null); setStatus("denied"); }
+        else if (!cached) setStatus("error"); // keep a cached session open
+        return;
+      }
+
+      setDiag(describeDoc(u, data, false));
+      const r = roleFromUserDoc(data);
+      writeRoleCache(u.uid, r);
+      if (!r) { setRole(null); setStatus("denied"); return; }
+      setRole(prev => (JSON.stringify(prev) === JSON.stringify(r) ? prev : r));
+      setStatus("allowed");
+
+      // Live: if admin access is removed later, close the dashboard.
+      roleUnsubRef.current = onSnapshot(doc(db, "users", u.uid), (snap) => {
+        if (snap.metadata?.fromCache) return;
+        const live = roleFromUserDoc(snap.exists() ? snap.data() : null);
+        writeRoleCache(u.uid, live);
+        if (live) setRole(prev => (JSON.stringify(prev) === JSON.stringify(live) ? prev : live));
+        else { setRole(null); setStatus("denied"); }
+      }, () => { /* network blips while already inside — ignore */ });
     });
-    return () => { unsubAuth(); roleUnsubRef.current?.(); };
+    return () => { alive = false; unsubAuth(); roleUnsubRef.current?.(); };
   }, [retryKey]);
 
   // Force a fresh server read (bypasses the offline cache).
@@ -370,17 +377,8 @@ export default function AdminPage() {
     }
   };
 
-  // Server never answered (offline) — after a while show the real state
-  // instead of spinning forever.
-  useEffect(() => {
-    if (status !== "verifying") return;
-    const t = setTimeout(() => setStatus(s => (s === "verifying" ? "error" : s)), 15000);
-    return () => clearTimeout(t);
-  }, [status]);
-
   const switchAccount = async () => {
     if (user) writeRoleCache(user.uid, null);
-    tokenRefreshedFor.current = null;
     setExpired(null);
     try { await signOut(auth); } catch { /* ignore */ }
   };
