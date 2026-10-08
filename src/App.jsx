@@ -10964,6 +10964,7 @@ function YojanaSahayInner(){
             lang={lang}
             dark={dark}
             profile={profile}
+            matchedSchemes={allMatchedSchemes}
             uid={auth.currentUser.uid}
             key={auth.currentUser.uid}
           />

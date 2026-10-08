@@ -3,7 +3,13 @@
 // Everything else is unchanged — same two-tier context, same key rotation,
 // same CHIPS parsing. Web search execution happens entirely in chat.js (backend).
 
-import { SCHEME_DB } from "./schemesData.js";
+import { SCHEME_DB as ALL_SCHEMES } from "./schemesData.js";
+import { whoCanApply } from "./eligibilityText.js";
+import { benefitSummary, benefitKind } from "./benefitMath.js";
+
+// Duplicate listings (duplicateOf) are the same scheme listed twice — the AI
+// sees each scheme once, and counts match the app's home screen.
+const SCHEME_DB = ALL_SCHEMES.filter(s => !s.duplicateOf);
 
 // ─── MODEL SELECTION ─────────────────────────────────────────────────────────
 // llama-3.3-70b-versatile was deprecated by Groq (announced June 17, 2026) and
@@ -44,6 +50,11 @@ const APP = {
   url:         "https://yojanasahay.vercel.app",
   description: "A mobile-first web app that helps Indian citizens (especially rural) discover, check eligibility for, and apply to Central and State government schemes in Hindi and English.",
   features: [
+    "Eligibility check: 8–12 short questions (who you are, income, state, house, category, age, area, gender, disability, special groups like construction worker / fisherman) → schemes you qualify for with an honest yearly estimate",
+    "Scheme page: documents checklist, Apply button, 'I've applied — track it' (date + reference number + status)",
+    "Home: 'My Applications' card with 30-day status-check reminders; 'Family Benefits' card to find schemes for wife, children, parents",
+    "Phone reminders (signed-in users): deadline closing soon, time to check an application, new matching scheme — at most one a day",
+    "Share my result as an image on WhatsApp",
     "Home screen with popular schemes and category tiles",
     "Search tab to browse and filter all schemes",
     "Schemes tab: browse ALL schemes with category filter pills (🌾Farmer · 📚Student · 👩Women · 👴Senior · 💼Business · 🏠Housing) and state selector (top-right); the All(N) pill shows the live total count",
@@ -70,7 +81,7 @@ const KEYWORD_MAP = {
   business: ["business","loan","mudra","startup","entrepreneur","shop","vyapar","udyog","msme","self employ","trade","dukaan","rozgar","vendor","artisan","vishwakarma","svanidhi","standup","atmanirbhar"],
   health:   ["health","hospital","medical","ayushman","treatment","doctor","swasthya","bimari","insurance","pmjay","dawai","ilaaj","chiranjeevi","amrutum","karunya","mohalla","sahara","atal amrit"],
   senior:   ["senior","pension","old age","elderly","budhapa","vridha","vridh","aged","retire","widow pension","60 year","bujurg","apy","atal pension"],
-  ration:   ["ration","food","card","bpl","poverty","apl","pds","anaj","gehu","chawal","subsidy","antyodaya","nfsa"],
+  ration:   ["ration","food","ration card","bpl","poverty","apl","pds","anaj","gehu","chawal","subsidy","antyodaya","nfsa"],
   insurance:["insurance","bima","jeevan","suraksha","pmjjby","pmsby","accident"],
   skill:    ["skill","training","kaushal","pmkvy","ddu","rozgar","employment","job","saksham","yuva"],
   water:    ["water","jal","jeevan","piped","toilet","swachh","sanitation","shauchalay"],
@@ -83,8 +94,21 @@ const ALL_STATES = [
   "odisha","punjab","rajasthan","sikkim","tamil nadu","telangana","tripura",
   "uttar pradesh","uttarakhand","west bengal","delhi","jammu","kashmir",
   "ladakh","puducherry","chandigarh","andaman",
-  "up","mp","wb","ap","tn","hp","uk","mh","ka","rj","gj","pb","hr",
 ];
+// Short forms → full state name. Matched as whole words only — the old
+// substring check read "apply" as Andhra Pradesh and "support" as UP.
+const STATE_ABBR = {
+  up:"uttar pradesh", mp:"madhya pradesh", wb:"west bengal", ap:"andhra pradesh", tn:"tamil nadu",
+  hp:"himachal pradesh", uk:"uttarakhand", mh:"maharashtra", ka:"karnataka", rj:"rajasthan",
+  gj:"gujarat", pb:"punjab", hr:"haryana", jk:"jammu", "j&k":"jammu", orissa:"odisha", bengal:"west bengal",
+};
+const hasWord = (text, w) => new RegExp(`(^|[^a-z0-9\u0900-\u097F])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}($|[^a-z0-9\u0900-\u097F])`, "i").test(text);
+function detectState(text) {
+  const full = ALL_STATES.find(s => text.includes(s));
+  if (full) return full;
+  for (const [ab, st] of Object.entries(STATE_ABBR)) if (hasWord(text, ab)) return st;
+  return null;
+}
 
 // ─── TIER 1: COMPACT INDEX OF ALL SCHEMES ────────────────────────────────────
 // Gives the AI awareness of EVERY scheme name + count — tiny token footprint.
@@ -175,6 +199,28 @@ function buildCountGuidance(lang, context = "total") {
   return base;
 }
 
+// ─── LINK + STATUS HELPERS ───────────────────────────────────────────────────
+// Only real web addresses become links. 130+ offline schemes have text like
+// "Nearest bank branch" in `apply`, which used to be sent as
+// "https://Nearest bank branch" — a fake link the AI then showed to people.
+function schemeLink(s) {
+  const raw = String(s?.apply?.en ?? "").trim();
+  if (/^https?:\/\/[^\s]+\.[^\s]+/i.test(raw)) return raw;
+  if (/^(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/[^\s]*)?$/i.test(raw)) return `https://${raw}`;
+  return null;
+}
+// Deadline / open-closed status from the verifier (schemes-meta.json).
+function schemeStatus(s) {
+  const parts = [];
+  if (s?.lastDate) {
+    const d = new Date(s.lastDate);
+    if (!isNaN(d)) parts.push(`${d < new Date() ? "last date passed" : "last date"}: ${d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`);
+  }
+  if (s?.isActive === false) parts.push("currently closed (may reopen)");
+  else if (s?.isActive === true) parts.push("applications open");
+  return parts.join(" · ");
+}
+
 // ─── SMART CONTEXT BUILDER ───────────────────────────────────────────────────
 // Scores every scheme against the query, then auto-picks detail depth:
 //   • Total/global count query  → exact totals + per-state breakdown (NO listing)
@@ -185,14 +231,31 @@ function buildCountGuidance(lang, context = "total") {
 //
 // FIX Bug 2: accepts `profile` so implicit attributes (gender, occupation, state)
 // boost keyword scoring even when the query itself omits those words.
-function buildSmartContext(query, lang = "en", profile = null) {
+// "Me / my / can I / eligible / mujhe / मेरे…" → the person is asking about
+// THEMSELVES, so answer from the app's own eligibility results.
+const PERSONAL_RE = /\b(me|my|mine|myself|i|i'm|im|can i|for me|eligible|eligibility|qualify|mujhe|mujhko|mere|mera|meri|main|hum|hamare|hamein|kaunsi|konsi|kaun si|kya mil)\b|मुझे|मेरे|मेरा|मेरी|मैं|हमें|पात्र|कौन सी/i;
+// Short follow-ups that point back at the previous answer.
+const FOLLOWUP_RE = /\b(it|its|this|that|these|those|them|first|second|third|1st|2nd|3rd|last one|above|same|uska|iska|iske|uske|ye|yeh|woh|wo|pehla|pehli|doosra|dusra|teesra)\b|इसका|उसका|इसके|उसके|यह|वह|पहला|पहली|दूसरा|तीसरा/i;
+const ORDINALS = [
+  [/\b(first|1st|pehla|pehli|number 1|no\.? ?1)\b|पहला|पहली/i, 0],
+  [/\b(second|2nd|doosra|dusra|number 2|no\.? ?2)\b|दूसरा|दूसरी/i, 1],
+  [/\b(third|3rd|teesra|number 3|no\.? ?3)\b|तीसरा|तीसरी/i, 2],
+];
+
+function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
   const q = query.toLowerCase();
 
   // ── Build a profile-augmented query string for keyword scoring ───────────────
   // Example: female farmer in Assam asking "what schemes can I get?" now also
   // scores against "farmer kisan women mahila assam" even though none appear in q.
   const profileTokens = [];
-  if (profile) {
+  // A question that already names a topic ("scholarship", "pension") is
+  // answered on that topic — the profile only adds the state, otherwise a
+  // farmer asking about scholarships got farm schemes mixed in.
+  const queryHasTopic = Object.values(KEYWORD_MAP).some(kws => kws.some(kw => hasWord(q, kw)));
+  if (profile && queryHasTopic) {
+    if (profile.state) profileTokens.push(profile.state.toLowerCase());
+  } else if (profile) {
     if (profile.occupation) {
       const occMap = { farmer:"farmer kisan kheti", student:"student scholarship padhai", women:"homemaker mahila", senior:"senior elderly pension", business:"business loan udyog", general:"" };
       profileTokens.push(occMap[profile.occupation] ?? profile.occupation);
@@ -210,14 +273,15 @@ function buildSmartContext(query, lang = "en", profile = null) {
 
   // ── Detect state & detail-level signals from query ──────────────────────────
   // Use augQ (profile-aware) for state detection so profile.state boosts state schemes
-  const mentionedState = ALL_STATES.find(s => augQ.includes(s)) ?? null;
+  // The question's own state wins; the profile's state is the fallback.
+  const mentionedState = detectState(q) ?? (profile?.state ? profile.state.toLowerCase() : null);
   const wantsCount  = /how many|kitni|kitne|total|count/.test(q);
   const wantsList   = /list|all scheme|sabhi|show all|sab yojna|sab yojana/.test(q);
   const wantsDetail = /document|kagaz|apply|avedan|eligib|yogyta|how to|kaise|kya chahiye|detail|full info|link|website|portal/.test(q);
 
   // ── Detect "total/overall count" queries (no specific topic) ─────────────────
   // Use q (raw query) so profile tokens don't accidentally suppress total-count detection
-  const NO_TOPIC = !ALL_STATES.find(s => q.includes(s)) &&
+  const NO_TOPIC = !detectState(q) &&
     !/farmer|kisan|health|student|women|mahila|housing|awas|business|pension|senior|insurance|ration|water|jal|skill/.test(q);
   const wantsTotalCount = (wantsCount || wantsList) && NO_TOPIC;
 
@@ -235,33 +299,42 @@ function buildSmartContext(query, lang = "en", profile = null) {
       s.ministry?.en ?? "",
     ].join(" ").toLowerCase();
 
-    let score = 0;
+    // 1. The scheme is named in the question itself (query only, not profile).
+    let nameScore = 0;
+    if (q.includes(s.id.replace(/_/g, " "))) nameScore += 20;
+    if (q.includes(s.name.en.toLowerCase()))  nameScore += 15;
+    if (s.name.hi && q.includes(s.name.hi.toLowerCase())) nameScore += 15;
 
-    // Exact scheme name / id mention → very high boost (query only, not profile)
-    if (q.includes(s.id.replace(/_/g, " "))) score += 20;
-    if (q.includes(s.name.en.toLowerCase()))  score += 15;
-    if (q.includes(s.name.hi.toLowerCase()))  score += 15;
-
-    // State match — uses augQ so profile.state boosts correct state schemes
+    // 2. Schemes of OTHER states are left out entirely — a Kerala question
+    //    used to surface a Sikkim scheme whose long text matched many words.
+    let stateBonus = 0;
     if (mentionedState) {
-      if (s.scope === "state" && s.state?.toLowerCase().includes(mentionedState)) score += 8;
-      else if (s.scope === "national") score += 2; // national schemes always somewhat relevant
+      if (s.scope === "state") {
+        const st = String(s.state || "").toLowerCase();
+        if (st.includes(mentionedState) || mentionedState.includes(st)) stateBonus = 3;
+        else if (!nameScore) return { scheme: s, score: -1, nameScore: 0 };
+      } else stateBonus = 1; // Central schemes apply everywhere
     }
 
-    // Keyword category matches — uses augQ so profile occupation/gender fire keywords
+    // 3. Relevance: each topic counts once; topic words in the scheme's own
+    //    name/tag count extra; other words are capped so long descriptions
+    //    don't win by sheer length.
+    let rel = 0;
     for (const [, kws] of Object.entries(KEYWORD_MAP)) {
-      for (const kw of kws) {
-        if (augQ.includes(kw) && searchText.includes(kw)) score += 3;
-      }
+      if (kws.some(kw => hasWord(augQ, kw) && searchText.includes(kw))) rel += 4;
     }
-
-    // Words found in scheme text — augQ includes profile tokens, skip stop words
+    const nameTag = `${s.name.en} ${s.tag.en}`.toLowerCase();
+    for (const [, kws] of Object.entries(KEYWORD_MAP)) {
+      if (kws.some(kw => hasWord(q, kw) && nameTag.includes(kw))) rel += 3;
+    }
     const words = augQ.split(/\s+/).filter(w => w.length > 3 && !STOP_WORDS.has(w));
-    for (const w of words) {
-      if (searchText.includes(w)) score += 1;
-    }
+    let wordHits = 0;
+    for (const w of words) if (searchText.includes(w)) wordHits++;
+    rel += Math.min(wordHits, 4);
 
-    return { scheme: s, score };
+    // Being in the right state only helps a scheme that is actually relevant.
+    const score = nameScore + (rel > 0 ? rel + stateBonus : 0);
+    return { scheme: s, score, nameScore };
   })
   .filter(x => x.score >= 2)   // >= 2 prevents spurious matches on generic words
   .sort((a, b) => b.score - a.score);
@@ -272,23 +345,24 @@ function buildSmartContext(query, lang = "en", profile = null) {
     : SCHEME_DB.filter(s => s.scope === "national").slice(0, 5);
 
   // ── Helper: build official link ──────────────────────────────────────────────
-  const getLink = (s) => {
-    const raw = s.apply?.[l] ?? "";
-    return raw ? (raw.startsWith("http") ? raw : `https://${raw}`) : null;
-  };
+  const getLink = (s) => schemeLink(s);
 
   // ── FORMAT FUNCTIONS ─────────────────────────────────────────────────────────
   const formatFull = (s) => {
     const link = getLink(s);
     const docs = (s.docs?.[l] ?? []).join(", ") || "Aadhaar Card";
     const annual = s.annual > 0 ? `₹${s.annual.toLocaleString("en-IN")}/year` : "Non-monetary";
+    let who = ""; try { who = whoCanApply(s, l === "hi" ? "hi" : "en") || ""; } catch {}
+    const status = schemeStatus(s);
     return (
       `📌 ${s.name[l]} [${s.scope === "state" ? s.state : "Central"}]\n` +
       `  Ministry : ${s.ministry?.[l] ?? "—"}\n` +
       `  Benefit  : ${s.benefit[l]}\n` +
       `  Annual   : ${annual}\n` +
+      (who ? `  Who can apply: ${String(who).replace(/\s+/g, " ").slice(0, 400)}\n` : "") +
+      (status ? `  Status   : ${status}\n` : "") +
       `  Docs     : ${docs}\n` +
-      `  Apply    : ${s.applyType === "online" ? "Online" : "At office"}` +
+      `  Apply    : ${s.applyType === "online" ? "Online" : `At office — ${s.apply?.[l] ?? s.apply?.en ?? "nearest government office"}`}` +
       (link ? `\n  OFFICIAL_LINK: ${link}` : "")
     );
   };
@@ -309,6 +383,66 @@ function buildSmartContext(query, lang = "en", profile = null) {
       (link ? `\n   OFFICIAL_LINK: ${link}` : "")
     );
   };
+
+  // ── Follow-up about the previous answer ("documents for the first one") ──
+  const lastReply = String(extras.lastReply || "");
+  const shortAsk = q.split(/\s+/).length <= 5 && !(scored.length && scored[0].score >= 3) &&
+    /document|kagaz|apply|link|eligib|kaise|how|kab|when|deadline|last date|amount|kitna|paisa|benefit|labh|दस्तावेज़|आवेदन|कैसे|कब/.test(q);
+  const isFollowUp = lastReply && (FOLLOWUP_RE.test(q) || shortAsk);
+  const directHit = scored.some(x => x.nameScore >= 15); // a scheme named in the question itself
+  if (isFollowUp && !directHit) {
+    const inLast = SCHEME_DB
+      .map(sc => ({ sc, at: Math.min(...[sc.name.en, sc.name.hi].filter(Boolean).map(n => { const i = lastReply.indexOf(n); return i < 0 ? Infinity : i; })) }))
+      .filter(x => Number.isFinite(x.at))
+      .sort((a, b) => a.at - b.at)
+      .map(x => x.sc);
+    if (inLast.length) {
+      const ord = ORDINALS.find(([re]) => re.test(q));
+      const pick = ord && inLast[ord[1]] ? [inLast[ord[1]]] : inLast.slice(0, 3);
+      return (
+        `The user is asking a follow-up about scheme(s) from YOUR PREVIOUS ANSWER (in the order you listed them: ${inLast.slice(0, 8).map((x, i) => `${i + 1}. ${x.name[l]}`).join("; ")}).\n` +
+        `Answer about ${pick.length === 1 ? "this scheme" : "these schemes"}:\n\n` + pick.map(formatFull).join("\n\n")
+      );
+    }
+  }
+
+  // ── Questions about the person themselves → the app's own eligibility result ──
+  const mine = Array.isArray(extras.matched) ? extras.matched.filter(sc => !sc.duplicateOf) : [];
+  // "how many schemes can I get" is about them, not the database total.
+  const aboutMe = /\b(me|my|i|myself|mujhe|mujhko|mere|mera|meri|main)\b|मुझे|मेरे|मेरा|मेरी|मैं/i.test(query);
+  const isPersonal = PERSONAL_RE.test(query) && !directHit && (aboutMe || (!wantsTotalCount && !wantsStateBreakdown));
+  if (isPersonal && mine.length) {
+    // A topic in the question ("scholarship for me") narrows the list.
+    const topical = scored.filter(x => x.score >= 3).map(x => x.scheme.id);
+    const topicSet = new Set(topical);
+    const hasTopic = /farmer|kisan|student|scholar|padhai|women|mahila|beti|house|awas|ghar|pension|senior|health|ilaaj|hospital|business|loan|skill|job|rozgar|insurance|ration|disab|divyang/.test(q);
+    let list = hasTopic ? mine.filter(sc => topicSet.has(sc.id)) : mine;
+    if (!list.length) list = mine;
+    // Regular yearly money first, then one-time help, then health cover; loans/insurance last.
+    const KIND_RANK = { yearly: 0, oneTime: 1, health: 2, other: 3 };
+    list = [...list].sort((a, b) => (KIND_RANK[benefitKind(a)] - KIND_RANK[benefitKind(b)]) || ((b.annual || 0) - (a.annual || 0)));
+    const sum = benefitSummary(mine);
+    const fmtINR = n => `₹${Math.round(n).toLocaleString("en-IN")}`;
+    const head =
+      `THE USER'S OWN ELIGIBILITY RESULT (from the app's eligibility check — this already applies their state, income, category, age, gender, disability and special groups; TRUST it and do not re-check eligibility rules yourself):\n` +
+      `- They qualify for ${mine.length} schemes in total.\n` +
+      (sum.yearly ? `- Estimated yearly support: about ${fmtINR(sum.yearly)} a year` : "") +
+      (sum.health ? `${sum.yearly ? " · " : "- "}free health cover up to ${fmtINR(sum.health)}` : "") +
+      (sum.oneTime ? ` · one-time help about ${fmtINR(sum.oneTime)}` : "") + "\n" +
+      `- It is an estimate: money comes only after applying with the right documents and getting approved.\n` +
+      (hasTopic && list !== mine ? `- ${list.length} of them match what they asked about.\n` : "") +
+      `List the most useful ones (highest value first), say briefly why each fits them, and end with one clear next step.\n\n`;
+    const body = list.slice(0, 8).map((sc, i) => formatName(sc, i) + `\n   ${sc.benefit[l]}` + (schemeStatus(sc) ? `\n   Status: ${schemeStatus(sc)}` : "")).join("\n");
+    return head + body + (list.length > 8 ? `\n\n(+${list.length - 8} more — they can see all of them in the app's Eligibility results.)` : "");
+  }
+
+  // ── A scheme named in the question → full details for it ─────────────────
+  if (directHit && !wantsCount && !wantsList) {
+    const named = scored.filter(x => x.nameScore >= 15).map(x => x.scheme);
+    const others = scored.filter(x => x.nameScore < 15).slice(0, 2).map(x => x.scheme);
+    return named.slice(0, 2).map(formatFull).join("\n\n") +
+      (others.length ? `\n\nRelated (mention only if useful):\n` + others.map(formatMedium).join("\n\n") : "");
+  }
 
   // ── AUTO-PICK DEPTH based on match count + query signals ─────────────────────
 
@@ -411,15 +545,22 @@ function buildSmartContext(query, lang = "en", profile = null) {
 //   • Scheme counts + full index (Tier 1) — AI knows everything
 //   • Relevant scheme details (Tier 2) — injected at the end
 //   • WEB SEARCH GUIDANCE (NEW) — tells AI when/how to use search results
-function buildSystemPrompt(query, lang, profile = null) {
+function buildSystemPrompt(query, lang, profile = null, extras = {}) {
   const isHindi  = lang === "hi";
   const national = SCHEME_DB.filter(s => s.scope === "national").length;
   const state    = SCHEME_DB.filter(s => s.scope === "state").length;
   const total    = SCHEME_DB.length;
 
   const langRule = isHindi
-    ? "- ALWAYS reply in Hindi (हिंदी). Even if user writes in English, reply in Hindi only."
-    : "- ALWAYS reply in English. Even if user writes in Hindi, reply in English only.";
+    ? "- Reply in simple Hindi (हिंदी) by default. If the user writes in Hinglish (Hindi in English letters, e.g. 'mujhe kaunsi yojana milegi'), reply in the same easy Hinglish. If they write in clear English, you may reply in English."
+    : "- Reply in simple English by default. If the user writes in Hindi (Devanagari), reply in Hindi; if they write Hinglish (e.g. 'mujhe kaunsi yojana milegi'), reply in the same easy Hinglish.";
+  const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" });
+  const apps = Array.isArray(extras.applications) ? extras.applications : [];
+  const appsBlock = apps.length
+    ? `\n══ THE USER'S TRACKED APPLICATIONS (from 'I've applied' in the app) ══\n` +
+      apps.slice(0, 10).map(a => `- ${a.name}: applied ${a.appliedAt}${a.ref ? `, ref ${a.ref}` : ""}, status: ${a.status}${a.daysWaiting != null ? ` (${a.daysWaiting} days ago)` : ""}`).join("\n") +
+      `\nUse this when they ask about their applications or status. If something has waited 30+ days, suggest checking the status on the official site/office and updating it in the app.\n`
+    : "";
 
   const chipsRule = isHindi
     ? `अपने जवाब के एकदम अंत में एक नई लाइन पर लिखें (valid JSON array):
@@ -432,9 +573,11 @@ CHIPS:["question 1","question 2","question 3"]
 - Keep each chip 4–7 words, specific and actionable`;
 
   // ── Context: only smart-scored relevant schemes for this query ───────────────
-  const smartContext = buildSmartContext(query, lang, profile);
+  const smartContext = buildSmartContext(query, lang, profile, extras);
 
   return `You are Yojana Sahay AI — the official AI assistant of the Yojana Sahay app.
+
+TODAY: ${today} (India). Treat anything about dates and deadlines relative to today.
 
 ══ YOUR IDENTITY ══
 - App: ${APP.name} (${APP.tagline})
@@ -459,7 +602,10 @@ CHIPS:["question 1","question 2","question 3"]
 - Category filter pills in Schemes tab: 🌾 Farmer · 📚 Student · 👩 Women · 👴 Senior · 💼 Business · 🏠 Housing
 - State selector button (top-right of Schemes tab): filter by state → shows that state's + Central schemes
 - Home tab: category tiles show count badges — always live
-- Eligibility Checker: Home/Profile → "Check Eligibility" → 6 questions → personal matched schemes
+- Eligibility Checker: Home → "Check Eligibility" → 8–12 quick questions → personal matched schemes + honest yearly estimate
+- Scheme page → "I've applied — track it" saves the date & reference number; Home → "My Applications" shows status and 30-day check reminders
+- Home → "Family Benefits" → add wife / children / parents to find schemes for each of them
+- Home → "Get reminders on your phone" (signed-in users) for deadlines and application checks
 - COUNT QUERIES: Always give the number from context, THEN guide user to Schemes tab to verify live
 
 ══ RULES ══
@@ -509,6 +655,9 @@ FORMATTING (follow strictly):
 - If off-topic, politely redirect to schemes
 ${chipsRule}
 
+- Never promise money or approval — say "you may be eligible" and that the final decision is the government office's.
+- If the user seems to be in distress or an emergency (no food, medical emergency, violence), give the relevant helpline first (112 emergency, 181 women helpline, 1098 child helpline, 14567 elder helpline) and then schemes.
+${appsBlock}
 ══ RELEVANT SCHEME DATA FOR THIS QUERY ══
 ${smartContext}
 `;
@@ -638,7 +787,9 @@ Plain paragraph only. Exactly 4 sentences. No markdown.`;
 // Returns { reply: string, followUps: string[] }
 // FIX Bug 2: accepts profile so buildSmartContext can score schemes against
 // the user's implicit attributes (occupation, gender, state) not just the query.
-export async function sendMessage(conversationHistory, userQuery, lang = "en", profile = null) {
+// extras: { matched: schemes the user qualifies for (app's own result),
+//          applications: tracked applications, lastReply: previous AI answer }
+export async function sendMessage(conversationHistory, userQuery, lang = "en", profile = null, extras = {}) {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -656,7 +807,7 @@ export async function sendMessage(conversationHistory, userQuery, lang = "en", p
         const profilePart = hasProfile ? conversationHistory.slice(0, 2) : [];
         const chatPart    = (hasProfile ? conversationHistory.slice(2) : conversationHistory).slice(-6);
         return [
-          { role: "system", content: buildSystemPrompt(userQuery, lang, profile) },
+          { role: "system", content: buildSystemPrompt(userQuery, lang, profile, extras) },
           ...profilePart,   // always present — never sliced away
           ...chatPart,      // last 6 chat turns (3 exchanges) — fits 70b context easily
         ];

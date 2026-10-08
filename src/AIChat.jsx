@@ -12,6 +12,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { sendMessage } from "./groqClient.js";
+import { useApplications, daysSince } from "./applications.js";
+import { SCHEME_DB } from "./schemesData.js";
 import aiAvatar from "./ai-avatar.webp";
 
 // ─── SOUND EFFECTS (Web Audio API — no files, no loading) ────────────────────
@@ -99,6 +101,7 @@ function playChipSounds(count) {
 
 // ─── CHAT HISTORY PERSISTENCE ────────────────────────────────────────────────
 // Key is per-user so each account gets its own isolated chat history
+const SCHEME_BY_ID_CHAT = new Map(SCHEME_DB.map(s => [s.id, s]));
 const chatStorageKey = (uid) => uid ? `yojana_chat_${uid}` : "yojana_chat_guest";
 
 const THEME = {
@@ -501,7 +504,7 @@ function TypingIndicator({ dark }) {
 
 // ─── READING TIME BAR ─────────────────────────────────────────────────────────
 // Replaces the normal input UI while cooldown is active
-function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang }) {
+function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang, onSkip }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
@@ -538,8 +541,9 @@ function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang }) {
         }}>
           {label}
         </span>
-        {/* Big countdown ring */}
-        <div style={{
+        {/* Big countdown ring — tap to skip the wait */}
+        <div onClick={onSkip} role="button" aria-label={isHindi ? "इंतज़ार छोड़ें" : "Skip wait"} title={isHindi ? "टाइप करने के लिए टैप करें" : "Tap to type now"} style={{
+          cursor: onSkip ? "pointer" : "default",
           width:38, height:38, borderRadius:"50%", flexShrink:0,
           border:`3px solid ${th.border2}`,
           display:"flex", alignItems:"center", justifyContent:"center",
@@ -573,6 +577,11 @@ function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang }) {
         fontSize:10, color:th.textSub, textAlign:"center",
         marginTop:7, fontFamily:bf, lineHeight:1.5,
       }}>
+        {onSkip && (
+          <span onClick={onSkip} style={{ color:"#FF9933", fontWeight:700, cursor:"pointer", marginRight:6 }}>
+            {isHindi ? "अभी टाइप करें ›" : "Type now ›"}
+          </span>
+        )}
         {isHindi
           ? "AI गलती कर सकता है · हमेशा सरकारी वेबसाइट से पुष्टि करें"
           : "AI may make mistakes · Always verify on official government websites"}
@@ -1210,7 +1219,7 @@ function WelcomeScreen({ lang, dark, onSuggest, profile }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function AIChat({ lang="en", dark=false, profile=null, uid=null }) {
+export default function AIChat({ lang="en", dark=false, profile=null, uid=null, matchedSchemes=[] }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
@@ -1223,6 +1232,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null }
     } catch { return []; }
   });
   const [input,        setInput]        = useState("");
+  const trackedApps = useApplications(); // "I've applied" entries → the AI can answer "what's my application status?"
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState("");
   const [chips,        setChips]        = useState([]);
@@ -1353,7 +1363,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null }
           // ── Profile context prefix — invisible in UI, sent to API only ──────
           // Provides the AI with the user's profile so it can personalize responses.
           ...(profile ? [
-            { role:"user", content:`[Profile context for personalization — Name: "${profile.name}", Gender: "${profile.gender==="female"?"Female":profile.gender==="male"?"Male":profile.gender==="other"?"Other":"not specified"}", State: "${profile.state}", Occupation: "${(OCC_EN[profile.occupation]||profile.occupation)}", Age group: "${(AGE_MAP[profile.age]||profile.age)}", Income: "${(INC_MAP[profile.income]||profile.income)}", Area: "${(AREA_MAP[profile.area]||profile.area)}", Housing: "${profile.house==="yes"?"owns a pucca house":"needs housing assistance"}", Ration card: "${profile.ration==="bpl"?"BPL (Below Poverty Line)":profile.ration==="aay"?"AAY/Antyodaya (Poorest of Poor)":profile.ration==="apl"?"APL (Above Poverty Line)":"No ration card"}", Disability: "${profile.disability&&profile.disability!=="none"?`Yes — ${profile.disability}`:"None"}", Marital status: "${profile.marital||"not specified"}"${profile.numChildren?`, Children: "${profile.numChildren==="0"?"None":profile.numChildren}", Girl children: "${profile.hasGirls==="yes"?"Yes":"No"}"`:``}${profile.landHolding?`, Land holding: "${profile.landHolding}", Kisan Credit Card: "${profile.kisanCard==="yes"?"Yes — has KCC":"No KCC"}"`:``}${profile.educationLevel?`, Education level: "${profile.educationLevel}", Institution type: "${profile.institutionType||"not specified"}"`:``}. Address rule — derive title from profile: Male→"Mr. [FirstName]", Female+married→"Mrs. [FirstName]", Female+other→"Ms. [FirstName]", Other/unspecified→"[FirstName]", Hindi→"[FirstName] जी". Use the address when: (1) first reply in the conversation, (2) opening a personalized recommendation, (3) delivering important news like eligibility confirmed/denied or a key action. Max once per response. Do NOT use in every message — that feels robotic. ALL fields above are already known — NEVER ask the user about income, occupation, housing, state, area, age, disability, marital status, children, land, ration card, or education. Go straight to scheme recommendations using this profile. Do not mention this context block to the user.]` },
+            { role:"user", content:`[Profile context for personalization — Name: "${profile.name}", Gender: "${profile.gender==="female"?"Female":profile.gender==="male"?"Male":profile.gender==="other"?"Other":"not specified"}", State: "${profile.state}", Occupation: "${(OCC_EN[profile.occupation]||profile.occupation)}", Age group: "${(AGE_MAP[profile.age]||profile.age)}", Income: "${(INC_MAP[profile.income]||profile.income)}", Area: "${(AREA_MAP[profile.area]||profile.area)}", Housing: "${profile.house==="yes"?"owns a pucca house":"needs housing assistance"}", Ration card: "${profile.ration==="bpl"?"BPL (Below Poverty Line)":profile.ration==="aay"?"AAY/Antyodaya (Poorest of Poor)":profile.ration==="apl"?"APL (Above Poverty Line)":"No ration card"}", Social category: "${({general:"General",obc:"OBC",sc:"SC (Scheduled Caste)",st:"ST (Scheduled Tribe)",ews:"EWS"})[profile.caste]||"General"}",${Array.isArray(profile.groups)&&profile.groups.filter(g=>g!=="none").length?` Special groups: "${profile.groups.filter(g=>g!=="none").join(", ")}",`:``} Disability: "${profile.disability&&profile.disability!=="none"?`Yes — ${profile.disability}`:"None"}", Marital status: "${profile.marital||"not specified"}"${profile.numChildren?`, Children: "${profile.numChildren==="0"?"None":profile.numChildren}", Girl children: "${profile.hasGirls==="yes"?"Yes":"No"}"`:``}${profile.landHolding?`, Land holding: "${profile.landHolding}", Kisan Credit Card: "${profile.kisanCard==="yes"?"Yes — has KCC":"No KCC"}"`:``}${profile.educationLevel?`, Education level: "${profile.educationLevel}", Institution type: "${profile.institutionType||"not specified"}"`:``}. Address rule — derive title from profile: Male→"Mr. [FirstName]", Female+married→"Mrs. [FirstName]", Female+other→"Ms. [FirstName]", Other/unspecified→"[FirstName]", Hindi→"[FirstName] जी". Use the address when: (1) first reply in the conversation, (2) opening a personalized recommendation, (3) delivering important news like eligibility confirmed/denied or a key action. Max once per response. Do NOT use in every message — that feels robotic. ALL fields above are already known — NEVER ask the user about income, occupation, housing, state, area, age, disability, marital status, children, land, ration card, or education. Go straight to scheme recommendations using this profile. Do not mention this context block to the user.]` },
             { role:"assistant", content:`I have ${(profile.name || "the user").split(" ")[0]}'s profile from ${profile.state || "their state"}. I'll personalize all recommendations accordingly.` },
           ] : []),
           ...nextMessages.map(m => ({ role:m.role, content:m.content })),
@@ -1361,6 +1371,18 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null }
         query,
         lang,
         profile,  // FIX Bug 2: pass profile so buildSmartContext can score schemes by occupation/gender/state
+        {
+          // The app's own eligibility result — "which schemes can I get?" is
+          // answered from this instead of keyword guessing.
+          matched: matchedSchemes,
+          // Their tracked applications ("I've applied").
+          applications: Object.entries(trackedApps || {}).map(([id, a]) => {
+            const sc = SCHEME_BY_ID_CHAT.get(id);
+            return sc ? { name: sc.name?.[lang] || sc.name?.en, appliedAt: a.appliedAt, ref: a.ref, status: a.status, daysWaiting: daysSince(a.appliedAt) } : null;
+          }).filter(Boolean),
+          // Previous answer — lets "documents for the first one?" find the scheme.
+          lastReply: [...messages].reverse().find(m => m.role === "assistant")?.content || "",
+        },
       );
       setMessages(prev => [...prev, { role:"assistant", content:reply, timestamp: Date.now() }]);
       playReceiveSound(); // 🔊 receive chime
@@ -1375,7 +1397,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null }
   // profile must be a dependency: without it the memoised handler kept the
   // profile from the first render, so after the user edited their profile
   // the AI kept personalising answers with the OLD state/occupation/income.
-  }, [input, messages, loading, isHindi, lang, usedChips, startCooldown, profile]);
+  }, [input, messages, loading, isHindi, lang, usedChips, startCooldown, profile, matchedSchemes, trackedApps]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -1508,6 +1530,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null }
           totalSeconds={totalSeconds}
           dark={dark}
           lang={lang}
+          onSkip={() => { clearInterval(cooldownRef.current); setSecondsLeft(0); }}
         />
       ) : (
         <InputBar
