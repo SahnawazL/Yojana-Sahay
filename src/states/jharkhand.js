@@ -492,6 +492,7 @@ export const JHARKHAND_SCHEMES = [
     apply:   { en: "phed.jharkhand.gov.in", hi: "phed.jharkhand.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Ration Card", "Proof of Rural Residence", "Application to Village Water & Sanitation Committee (VWSC)"],
                hi: ["आधार कार्ड", "राशन कार्ड", "ग्रामीण निवास का प्रमाण", "ग्राम जल एवं स्वच्छता समिति (VWSC) को आवेदन"] },
+    duplicateOf: "jjm", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Jharkhand" && a.area === "rural",
   },
 

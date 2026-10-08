@@ -481,6 +481,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "nrhm.delhi.gov.in", hi: "nrhm.delhi.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "BPL / Income Certificate", "Pregnancy Registration Card (MCH Card)", "Bank Passbook"],
                hi: ["आधार कार्ड", "BPL / आय प्रमाण पत्र", "प्रेगनेंसी पंजीकरण कार्ड (MCH कार्ड)", "बैंक पासबुक"] },
+    duplicateOf: "jsy", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && a.who === "women" && (a.income === "below1" || a.income === "1to3") && (a.age === "18to35" || a.age === "35to60"),
   },
 
@@ -571,6 +572,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/pm-svanidhi", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Vendor Certificate / Letter of Recommendation from ULB", "Bank / Jan Dhan Account", "Mobile Number linked to Aadhaar"],
                hi: ["आधार कार्ड", "वेंडर प्रमाण पत्र / ULB से अनुशंसा पत्र", "बैंक / जन धन खाता", "आधार से जुड़ा मोबाइल नंबर"] },
+    duplicateOf: "pmsvanidhi", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && a.who === "business" && (a.income === "below1" || a.income === "1to3"),
   },
 
@@ -1134,6 +1136,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/pmv", hi: "pmvishwakarma.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Mobile Number linked to Aadhaar", "Ration Card / Delhi Address Proof", "Proof of Trade (Self-Declaration or Reference)", "Bank Account Details"],
                hi: ["आधार कार्ड", "आधार से जुड़ा मोबाइल नंबर", "राशन कार्ड / दिल्ली पता प्रमाण", "व्यापार प्रमाण (स्व-घोषणा या संदर्भ)", "बैंक खाता विवरण"] },
+    duplicateOf: "pmvishwakarma", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && (a.who === "general" || a.who === "business") && (a.income === "below1" || a.income === "1to3"),
   },
 
@@ -1230,6 +1233,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "pmmvy.nic.in / nearest Anganwadi centre", hi: "pmmvy.nic.in / नजदीकी आंगनवाड़ी केंद्र" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "MCP Card (Mother & Child Protection Card)", "Bank Passbook", "Mobile Number linked to Aadhaar", "Delhi Address Proof"],
                hi: ["आधार कार्ड", "MCP कार्ड (माता एवं शिशु संरक्षण कार्ड)", "बैंक पासबुक", "आधार से जुड़ा मोबाइल नंबर", "दिल्ली पता प्रमाण"] },
+    duplicateOf: "pmmvy", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && a.who === "women" && (a.age === "18to35" || a.age === "35to60"),
   },
 
@@ -1375,6 +1379,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "pmuy.gov.in / nearest IOC / HPCL / BPCL LPG distributor", hi: "pmuy.gov.in / नजदीकी IOC / HPCL / BPCL LPG वितरक" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card of Woman Applicant", "BPL / AAY Ration Card or Caste Certificate (SC/ST)", "Delhi Address Proof", "Bank Passbook (for DBT subsidy)", "Declaration of no existing LPG connection"],
                hi: ["महिला आवेदक का आधार कार्ड", "BPL / AAY राशन कार्ड या जाति प्रमाण पत्र (SC/ST)", "दिल्ली पता प्रमाण", "बैंक पासबुक (DBT सब्सिडी के लिए)", "कोई LPG कनेक्शन नहीं की घोषणा"] },
+    duplicateOf: "ujjwala", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && a.who === "women" && (a.income === "below1" || a.income === "1to3"),
   },
 
@@ -1391,6 +1396,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "dslsa.gov.in / NALSA Helpline: 15100 / nearest District Legal Services Authority", hi: "dslsa.gov.in / NALSA हेल्पलाइन: 15100 / नजदीकी जिला विधिक सेवा प्राधिकरण" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "BPL / Income Certificate or Caste / Disability / Age proof (whichever applicable)", "Delhi Address Proof", "Brief description of legal matter"],
                hi: ["आधार कार्ड", "BPL / आय प्रमाण पत्र या जाति / दिव्यांगता / आयु प्रमाण (जो लागू हो)", "दिल्ली पता प्रमाण", "कानूनी मामले का संक्षिप्त विवरण"] },
+    duplicateOf: "delhi_legal_aid", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && (a.income === "below1" || a.income === "1to3" || a.caste === "sc" || a.caste === "st" || a.who === "women" || a.who === "senior" || a.age === "above60"),
   },
 
@@ -1537,6 +1543,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "jansuraksha.gov.in / any bank / India Post branch in Delhi", hi: "jansuraksha.gov.in / दिल्ली में कोई भी बैंक / इंडिया पोस्ट शाखा" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Active Savings Bank Account", "Mobile Number linked to Aadhaar", "PMJJBY Consent-cum-Declaration Form"],
                hi: ["आधार कार्ड", "सक्रिय बचत बैंक खाता", "आधार से जुड़ा मोबाइल नंबर", "PMJJBY सहमति-सह-घोषणा फॉर्म"] },
+    duplicateOf: "pmjjby", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && (a.age === "18to35" || a.age === "35to60"),
   },
 
@@ -1553,6 +1560,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "jansuraksha.gov.in / any bank / India Post branch in Delhi", hi: "jansuraksha.gov.in / दिल्ली में कोई भी बैंक / इंडिया पोस्ट शाखा" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Active Savings Bank Account", "Mobile Number linked to Aadhaar", "PMSBY Consent-cum-Declaration Form"],
                hi: ["आधार कार्ड", "सक्रिय बचत बैंक खाता", "आधार से जुड़ा मोबाइल नंबर", "PMSBY सहमति-सह-घोषणा फॉर्म"] },
+    duplicateOf: "pmsby", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi",
   },
 
@@ -1569,6 +1577,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "npscra.nsdl.co.in / any bank in Delhi (in-person or net banking)", hi: "npscra.nsdl.co.in / दिल्ली में कोई भी बैंक (सीधे या नेट बैंकिंग)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Active Savings Bank Account (not income-tax payer)", "Mobile Number", "Date of Birth Proof"],
                hi: ["आधार कार्ड", "सक्रिय बचत बैंक खाता (आयकर दाता नहीं)", "मोबाइल नंबर", "जन्म तिथि प्रमाण"] },
+    duplicateOf: "apy", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && (a.income === "below1" || a.income === "1to3") && (a.age === "18to35" || a.age === "35to60"),
   },
 
@@ -1602,6 +1611,7 @@ export const DELHI_SCHEMES = [
     docs:    { en: ["Parent's BOCW Registration Certificate (active, min. 1 year)", "Aadhaar Card of Parent & Child", "School / College Enrollment / Bonafide Certificate", "Previous Year Marksheet", "Bank Passbook"],
                hi: ["माता-पिता का BOCW पंजीकरण प्रमाण पत्र (सक्रिय, न्यूनतम 1 वर्ष)", "माता-पिता व बच्चे का आधार कार्ड", "विद्यालय / महाविद्यालय नामांकन / बोनाफाइड प्रमाण पत्र", "पिछले वर्ष की अंकतालिका", "बैंक पासबुक"] },
     keywords: ["class10","class12"],
+    duplicateOf: "delhi_bocw_children_edu", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && a.who === "student" && (a.income === "below1" || a.income === "1to3"),
   },
 
@@ -1698,6 +1708,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "edudel.nic.in (automatic for enrolled students — no separate application)", hi: "edudel.nic.in (नामांकित छात्रों को स्वतः — अलग आवेदन नहीं)" }, applyType: "offline",
     docs:    { en: ["Delhi Govt School Enrollment Proof (automatic benefit — no separate application needed)"],
                hi: ["दिल्ली सरकारी स्कूल नामांकन प्रमाण (स्वतः लाभ — अलग आवेदन नहीं)"] },
+    duplicateOf: "pm_poshan", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && a.who === "student" && (a.educationLevel === "class1to8"),
   },
 
@@ -1762,6 +1773,7 @@ export const DELHI_SCHEMES = [
     apply:   { en: "https://edistrict.delhigovt.nic.in", hi: "edistrict.delhigovt.nic.in / दिल्ली समाज कल्याण विभाग कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card of Applicant", "Death Certificate of Breadwinner", "BPL / Income Certificate", "Age Proof of Deceased (18–59)", "Delhi Address Proof (3+ years)", "Bank Passbook", "Relationship Proof"],
                hi: ["आवेदक का आधार कार्ड", "कमाऊ सदस्य का मृत्यु प्रमाण पत्र", "BPL / आय प्रमाण पत्र", "मृतक का आयु प्रमाण (18–59)", "दिल्ली पता प्रमाण (3+ वर्ष)", "बैंक पासबुक", "संबंध प्रमाण"] },
+    duplicateOf: "nfbs", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Delhi" && a.income === "below1",
   },
 

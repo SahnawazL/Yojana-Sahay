@@ -273,6 +273,7 @@ export const TAMIL_NADU_SCHEMES = [
     apply:   { en: "twad.gov.in", hi: "twad.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Residence Proof", "No Existing Connection Certificate from Panchayat"],
                hi: ["आधार कार्ड", "निवास प्रमाण", "पंचायत से कनेक्शन न होने का प्रमाण पत्र"] },
+    duplicateOf: "jjm", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Tamil Nadu" && a.area === "rural",
   },
 

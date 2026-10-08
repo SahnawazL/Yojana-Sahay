@@ -30,6 +30,7 @@ export const ANDAMAN_NICOBAR_SCHEMES = [
     apply:   { en: "fisheries.and.nic.in / District Fisheries Office, Port Blair", hi: "fisheries.and.nic.in / जिला मत्स्य पालन कार्यालय, पोर्ट ब्लेयर" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Domicile Certificate (A&N UT)", "Fisher / Boat Registration Certificate", "Bank Account (Aadhaar-linked)", "Caste Certificate (for SC/ST priority subsidy)", "Fishing Licence issued by A&N Fisheries Dept.", "Passport Photo", "Mobile Number"],
                hi: ["आधार कार्ड", "अधिवास प्रमाण पत्र (A&N UT)", "मछुआरा / नाव पंजीकरण प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड)", "जाति प्रमाण पत्र (SC/ST प्राथमिकता सब्सिडी के लिए)", "A&N मत्स्य पालन विभाग द्वारा जारी मछली पकड़ने का लाइसेंस", "पासपोर्ट फोटो", "मोबाइल नंबर"] },
+    duplicateOf: "pmmsy", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Andaman & Nicobar" && (a.who === "farmer" || ["below1","1to3"].includes(a.income)),
   },
 
@@ -116,6 +117,7 @@ export const ANDAMAN_NICOBAR_SCHEMES = [
     apply:   { en: "Nearest Anganwadi Centre / PHC / GB Pant Hospital Port Blair", hi: "निकटतम आंगनवाड़ी केंद्र / PHC / GB पंत अस्पताल पोर्ट ब्लेयर" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "MCP (Mother & Child Protection) Card", "Pregnancy Certificate from ANM / Doctor", "Bank Account (Aadhaar-linked, woman's name)", "Age Proof (18+ years)", "Non-government employee declaration", "Domicile Certificate (A&N UT)"],
                hi: ["आधार कार्ड", "MCP (माँ व बाल संरक्षण) कार्ड", "ANM / डॉक्टर से गर्भावस्था प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड, महिला के नाम)", "आयु प्रमाण (18+ वर्ष)", "गैर-सरकारी कर्मचारी घोषणा पत्र", "अधिवास प्रमाण पत्र (A&N UT)"] },
+    duplicateOf: "pmmvy", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Andaman & Nicobar" && a.who === "women",
   },
 
@@ -188,6 +190,7 @@ export const ANDAMAN_NICOBAR_SCHEMES = [
     apply:   { en: "pmayg.nic.in / Block Development Office (BDO), respective island block", hi: "pmayg.nic.in / ब्लॉक विकास कार्यालय (BDO), संबंधित द्वीप ब्लॉक" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Domicile Certificate (A&N UT)", "BPL Ration Card / SECC 2011 inclusion proof", "Patta / Land Ownership Document (A&N UT records)", "Bank Account (Aadhaar-linked)", "No House Certificate from Panchayat", "Passport Photo", "Caste Certificate (SC/ST for priority selection)"],
                hi: ["आधार कार्ड", "अधिवास प्रमाण पत्र (A&N UT)", "BPL राशन कार्ड / SECC 2011 समावेश प्रमाण", "पट्टा / भूमि स्वामित्व दस्तावेज़ (A&N UT अभिलेख)", "बैंक खाता (आधार-लिंक्ड)", "पंचायत से बेघर प्रमाण पत्र", "पासपोर्ट फोटो", "जाति प्रमाण पत्र (SC/ST प्राथमिकता चयन के लिए)"] },
+    duplicateOf: "pmawas_rural", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Andaman & Nicobar" && a.area === "rural" && ["below1","1to3"].includes(a.income),
   },
 
@@ -206,6 +209,7 @@ export const ANDAMAN_NICOBAR_SCHEMES = [
     apply:   { en: "https://pmjay.gov.in", hi: "pmjay.gov.in / GB पंत अस्पताल, पोर्ट ब्लेयर — अस्पताल या कॉमन सर्विस सेंटर पर आयुष्मान कार्ड" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card (NFSA) OR Domicile Certificate (A&N UT)", "Bank Account (Aadhaar-linked)", "Passport Photo", "Mobile Number (Aadhaar-linked)"],
                hi: ["आधार कार्ड", "राशन कार्ड (NFSA) या अधिवास प्रमाण पत्र (A&N UT)", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "मोबाइल नंबर (आधार-लिंक्ड)"] },
+    duplicateOf: "ayushman", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Andaman & Nicobar" && ["below1","1to3","3to6"].includes(a.income),
   },
 

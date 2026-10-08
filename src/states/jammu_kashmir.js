@@ -56,6 +56,7 @@ export const JAMMU_KASHMIR_SCHEMES = [
     apply:   { en: "https://pmfby.gov.in", hi: "pmfby.gov.in / निकटतम बैंक या जन सेवा केंद्र (CSC)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records / Girdawari / Khasra (sowing details)", "Bank Account (Aadhaar-linked)", "Sowing Certificate from Patwari", "Kisan Credit Card (if applicable)", "Mobile Number"],
                hi: ["आधार कार्ड", "भूमि अभिलेख / गिरदावरी / खसरा (बुवाई विवरण)", "बैंक खाता (आधार-लिंक्ड)", "पटवारी से बुवाई प्रमाण पत्र", "किसान क्रेडिट कार्ड (यदि लागू हो)", "मोबाइल नंबर"] },
+    duplicateOf: "pmfby", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Jammu & Kashmir" && a.who === "farmer",
   },
 

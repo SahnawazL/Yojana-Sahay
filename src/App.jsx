@@ -357,8 +357,18 @@ function buildProfileAnswers(profile){
 
 // A single malformed match() in a state data file must never blank the whole
 // results screen — treat a throwing matcher as "not eligible".
+// Entries marked duplicateOf (a state copy of a central scheme, or a second
+// listing of the same scheme) are hidden whenever the main entry already
+// matches — so nobody sees the same scheme twice or gets it counted twice.
+const SCHEME_BY_ID=new Map(SCHEME_DB.map(s=>[s.id,s]));
 function safeMatch(scheme,answers){
-  try{ return !!scheme.match(answers); }catch{ return false; }
+  try{
+    if(scheme.duplicateOf){
+      const main=SCHEME_BY_ID.get(scheme.duplicateOf);
+      if(main&&main!==scheme){ try{ if(main.match(answers)) return false; }catch{} }
+    }
+    return !!scheme.match(answers);
+  }catch{ return false; }
 }
 
 function getGuestId(){
@@ -3620,7 +3630,7 @@ function getMissingCriteria(scheme, answers, lang){
 function getNearMissSchemes(answers, matchedIds, lang){
   const out = [];
   for(const scheme of SCHEME_DB){
-    if(matchedIds.has(scheme.id)) continue;
+    if(matchedIds.has(scheme.id) || scheme.duplicateOf) continue;
     if(scheme.scope==="state" && scheme.state!==answers.state) continue; // other states' schemes aren't "almost"
     const info = nearMissInfo(scheme, answers, lang);
     if(info) out.push({ scheme, ...info });

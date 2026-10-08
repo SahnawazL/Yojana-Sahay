@@ -111,6 +111,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","आय प्रमाण","बैंक स्टेटमेंट","संपत्ति न होने का प्रमाण"] },
     eligibilityText: { en: ["This older version has closed — new applications go through PM Awas Yojana 2.0 (Urban)", "Urban families with yearly income up to ₹9 lakh and no pucca house anywhere in India"],
                        hi: ["यह पुराना संस्करण बंद हो चुका है — नए आवेदन PM आवास योजना 2.0 (शहरी) से होते हैं", "₹9 लाख तक सालाना आय वाले शहरी परिवार जिनका भारत में कहीं पक्का मकान नहीं है"] },
+    duplicateOf: "pmay_urban2", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => ["no","kutcha"].includes(a.house) && ["below1","1to3","3to6"].includes(a.income) && ["urban","semi"].includes(a.area),
   },
 

@@ -78,6 +78,7 @@ export const LADAKH_SCHEMES = [
     apply:   { en: "Nearest Anganwadi Centre or PHC / District Hospital Leh or Kargil", hi: "निकटतम आंगनवाड़ी केंद्र या PHC / जिला अस्पताल लेह या कारगिल" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "MCP (Mother & Child Protection) Card", "Bank Account (Aadhaar-linked)", "Pregnancy Registration Certificate from ANM / Doctor", "Age Proof (18+ years)", "Non-government employee declaration"],
                hi: ["आधार कार्ड", "MCP (माँ व बाल संरक्षण) कार्ड", "बैंक खाता (आधार-लिंक्ड)", "ANM / डॉक्टर से गर्भावस्था पंजीकरण प्रमाण पत्र", "आयु प्रमाण (18+ वर्ष)", "गैर-सरकारी कर्मचारी घोषणा पत्र"] },
+    duplicateOf: "pmmvy", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Ladakh" && a.who === "women",
   },
 
@@ -150,6 +151,7 @@ export const LADAKH_SCHEMES = [
     apply:   { en: "pmayg.nic.in / Block Development Office (BDO) in Leh or Kargil district", hi: "pmayg.nic.in / ब्लॉक विकास कार्यालय (BDO) — लेह या कारगिल जिला" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Domicile Certificate (Ladakh UT)", "BPL Ration Card / SECC survey inclusion proof", "Land Ownership / Patwarkhana Land Record", "Bank Account (Aadhaar-linked)", "Passport Photo", "No House Certificate from Panchayat / Village Headman (Numbərdar)", "Caste Certificate (SC/ST for priority selection)"],
                hi: ["आधार कार्ड", "अधिवास प्रमाण पत्र (लद्दाख UT)", "BPL राशन कार्ड / SECC सर्वेक्षण समावेश प्रमाण", "भूमि स्वामित्व / पटवारखाना भूमि अभिलेख", "बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो", "ग्राम पंचायत / ग्राम प्रमुख (नंबरदार) से बेघर प्रमाण पत्र", "जाति प्रमाण पत्र (SC/ST प्राथमिकता चयन के लिए)"] },
+    duplicateOf: "pmawas_rural", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Ladakh" && a.area === "rural" && ["below1","1to3"].includes(a.income),
   },
 

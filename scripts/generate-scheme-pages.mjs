@@ -29,7 +29,10 @@ const SITE_URL   = "https://yojanasahay.vercel.app";
 // using import/export syntax + Vite's package.json. If your package.json does
 // NOT have "type":"module", rename this file to generate-scheme-pages.mjs and
 // update the prebuild script path accordingly.
-const { SCHEME_DB } = await import("../src/schemesData.js");
+const { SCHEME_DB: ALL_SCHEMES } = await import("../src/schemesData.js");
+// Duplicate listings (duplicateOf) get no page of their own — the main
+// scheme's page covers them, so Google never sees near-copy pages.
+const SCHEME_DB = ALL_SCHEMES.filter(s => !s.duplicateOf);
 const { whoCanApply } = await import("../src/eligibilityText.js");
 let META = {};
 try { META = JSON.parse(fs.readFileSync(path.join(ROOT, "src", "schemes-meta.json"), "utf8")); } catch { /* optional */ }

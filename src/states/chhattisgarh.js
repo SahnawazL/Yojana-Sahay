@@ -340,6 +340,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "phed.cg.gov.in", hi: "phed.cg.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Domicile Certificate","House Ownership/Residency Proof"],
                hi: ["आधार कार्ड","निवास प्रमाण पत्र","मकान स्वामित्व/निवास प्रमाण"] },
+    duplicateOf: "jjm", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Chhattisgarh" && a.area === "rural",
   },
 
@@ -354,6 +355,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/swachh-bharat-mission-grameen-phase-i_sbm-g-i.html", hi: "sbm.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","BPL/APL Ration Card","Land/House Proof","Bank Passbook","Gram Panchayat Letter"],
                hi: ["आधार कार्ड","बीपीएल/एपीएल राशन कार्ड","जमीन/मकान प्रमाण","बैंक पासबुक","ग्राम पंचायत पत्र"] },
+    duplicateOf: "sbm_gramin", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Chhattisgarh" && a.area === "rural" && ["below1","1to3"].includes(a.income),
   },
 
@@ -711,6 +713,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "https://www.bajajfinserv.in/pradhan-mantri-krishi-sinchayee-yojana", hi: "agri.cg.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Record (B1/P2)","Farmer Registration","Bank Passbook","Water Source Proof"],
                hi: ["आधार कार्ड","भूमि अभिलेख (B1/P2)","किसान पंजीयन","बैंक पासबुक","जल स्रोत प्रमाण"] },
+    duplicateOf: "pmksy", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Chhattisgarh" && a.who === "farmer",
   },
 
@@ -743,6 +746,7 @@ export const CHHATTISGARH_SCHEMES = [
     apply:   { en: "schooleducation.cg.gov.in", hi: "schooleducation.cg.gov.in" }, applyType: "offline",
     docs:    { en: ["School Enrollment Proof","Aadhaar Card (student)"],
                hi: ["विद्यालय नामांकन प्रमाण","आधार कार्ड (छात्र)"] },
+    duplicateOf: "pm_poshan", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Chhattisgarh" && (a.who === "student" || a.age === "below18"),
   },
 

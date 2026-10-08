@@ -634,6 +634,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://kredl.kar.nic.in", hi: "kredl.kar.nic.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Electricity Connection Proof (or absence of grid power)", "Bank Account"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बिजली कनेक्शन प्रमाण (या ग्रिड न होने का प्रमाण)", "बैंक खाता"] },
+    duplicateOf: "pm_kusum", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && a.who === "farmer" && a.area === "rural",
   },
 
@@ -726,6 +727,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/pm-street-vendors-atmanirbhar-nidhi-pm-svanidhi_pm-svanidhi.html", hi: "pmsvanidhi.mohua.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Vendor Certificate / Letter of Recommendation (LoR) from ULB", "Bank Account"],
                hi: ["आधार कार्ड", "विक्रेता प्रमाण / ULB से सिफारिश पत्र (LoR)", "बैंक खाता"] },
+    duplicateOf: "pmsvanidhi", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income) && ["urban", "semi"].includes(a.area),
   },
 
@@ -742,6 +744,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/pmv", hi: "pmvishwakarma.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Trade/Craft Proof", "Bank Account", "Mobile Number linked to Aadhaar"],
                hi: ["आधार कार्ड", "व्यापार/शिल्प प्रमाण", "बैंक खाता", "आधार से जुड़ा मोबाइल नंबर"] },
+    duplicateOf: "pmvishwakarma", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && a.who === "business" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -758,6 +761,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "Gram Panchayat office / jaljeevanmission.gov.in", hi: "ग्राम पंचायत कार्यालय / jaljeevanmission.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Ration Card", "House Ownership Proof"],
                hi: ["आधार कार्ड", "राशन कार्ड", "मकान स्वामित्व प्रमाण"] },
+    duplicateOf: "jjm", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && a.area === "rural",
   },
 
@@ -869,6 +873,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://bangalorerural.nic.in/en/agriculture", hi: "raitamitra.karnataka.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Farmer Group/Cluster Registration", "Bank Account"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "किसान समूह/क्लस्टर पंजीकरण", "बैंक खाता"] },
+    duplicateOf: "pkvy", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && a.who === "farmer" && a.area === "rural",
   },
 
@@ -979,6 +984,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.jansuraksha.gov.in/", hi: "किसी भी राष्ट्रीयकृत/निजी बैंक शाखा या नेट बैंकिंग" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Savings Bank Account", "Consent & Declaration Form"],
                hi: ["आधार कार्ड", "बचत बैंक खाता", "सहमति एवं घोषणा पत्र"] },
+    duplicateOf: "pmjjby", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && ["18to35", "35to60"].includes(a.age) && ["below1", "1to3"].includes(a.income),
   },
 
@@ -993,6 +999,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://www.jansuraksha.gov.in/", hi: "किसी भी राष्ट्रीयकृत/निजी बैंक शाखा या नेट बैंकिंग" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Savings Bank Account", "Consent Form"],
                hi: ["आधार कार्ड", "बचत बैंक खाता", "सहमति पत्र"] },
+    duplicateOf: "pmsby", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -1009,6 +1016,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "Nearest Anganwadi Centre (no application needed)", hi: "नज़दीकी आंगनवाड़ी केंद्र (आवेदन जरूरी नहीं)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Child Birth Certificate (for children)", "Pregnancy Certificate (for mothers)"],
                hi: ["आधार कार्ड", "बच्चे का जन्म प्रमाण", "गर्भावस्था प्रमाण (माताओं के लिए)"] },
+    duplicateOf: "poshan_abhiyaan", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && (a.who === "women" || a.age === "below18"),
   },
 
@@ -1103,6 +1111,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "School enrollment is sufficient — no separate application", hi: "स्कूल नामांकन पर्याप्त है — अलग आवेदन जरूरी नहीं" }, applyType: "offline",
     docs:    { en: ["School Enrollment Proof", "Aadhaar Card (for Aadhaar-seeded attendance)"],
                hi: ["स्कूल नामांकन प्रमाण", "आधार कार्ड (उपस्थिति सीडिंग हेतु)"] },
+    duplicateOf: "pm_poshan", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && a.who === "student" && a.area !== "urban",
   },
 
@@ -1119,6 +1128,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://pmgdisha.in", hi: "pmgdisha.in / नज़दीकी CSC (सामान्य सेवा केंद्र)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Mobile Number"],
                hi: ["आधार कार्ड", "मोबाइल नंबर"] },
+    duplicateOf: "pmgdisha", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && a.area === "rural" && ["below1", "1to3"].includes(a.income),
   },
 
@@ -1227,6 +1237,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "https://pmfby.gov.in", hi: "pmfby.gov.in / नज़दीकी बैंक / CSC" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records (RTC)", "Bank Account", "Crop Sowing Certificate"],
                hi: ["आधार कार्ड", "जमीन के कागज़ (RTC)", "बैंक खाता", "फसल बुवाई प्रमाण"] },
+    duplicateOf: "pmfby", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && a.who === "farmer",
   },
 
@@ -1351,6 +1362,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "Nearest Govt. District / Taluk Hospital", hi: "नज़दीकी सरकारी जिला / तालुक अस्पताल" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "BPL Ration Card", "Nephrologist Prescription / Diagnosis Report", "Bank Account"],
                hi: ["आधार कार्ड", "BPL राशन कार्ड", "नेफ्रोलॉजिस्ट पर्चा / निदान रिपोर्ट", "बैंक खाता"] },
+    duplicateOf: "ndp", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
   },
 

@@ -22,6 +22,7 @@ export const MAHARASHTRA_SCHEMES = [
                hi: ["आधार कार्ड","पीला/नारंगी राशन कार्ड","आय प्रमाण पत्र"] },
     eligibilityText: { en: ["All families living in Maharashtra with a ration card (yellow, orange or white) or domicile certificate", "Treatment at empanelled government and private hospitals", "Show the Ayushman / MJPJAY card or ration card with Aadhaar at the hospital's Arogyamitra desk"],
                        hi: ["राशन कार्ड (पीला, केसरी या सफ़ेद) या अधिवास प्रमाणपत्र वाले महाराष्ट्र के सभी परिवार", "सूचीबद्ध सरकारी और निजी अस्पतालों में इलाज", "अस्पताल के आरोग्यमित्र डेस्क पर आयुष्मान / MJPJAY कार्ड या आधार के साथ राशन कार्ड दिखाएं"] },
+    duplicateOf: "maha_mjpjay", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -940,6 +941,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://agriinfra.dac.gov.in", hi: "agriinfra.dac.gov.in / mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card / Company PAN", "Project Report / DPR", "Land Ownership / Lease Deed", "Bank Loan Sanction Letter", "7/12 Land Extract (farmers)", "FPO / Society Registration (if applicable)"],
                hi: ["आधार कार्ड / कंपनी PAN", "परियोजना रिपोर्ट / DPR", "भूमि स्वामित्व / लीज डीड", "बैंक लोन स्वीकृति पत्र", "7/12 उतारा (किसानों के लिए)", "FPO / सोसायटी पंजीकरण (यदि लागू)"] },
+    duplicateOf: "aif", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Maharashtra" && (a.who === "farmer" || a.who === "business") && ["3to6","6to10","above10"].includes(a.income),
   },
 
@@ -1119,6 +1121,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/pradhan-mantri-awas-yojana-urban_pmay-u.html", hi: "pmaymis.gov.in / नगरपालिका / वार्ड कार्यालय" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (EWS ≤₹3L/yr, LIG ≤₹6L/yr)", "No Pucca House Declaration (self & spouse)", "Address Proof", "Ration Card", "Bank Passbook", "Caste Certificate (if SC/ST/OBC/Minority)"],
                hi: ["आधार कार्ड", "आय प्रमाण (EWS ≤₹3L/वर्ष, LIG ≤₹6L/वर्ष)", "पक्के घर नसल्याचे घोषणापत्र (स्वतः व पती/पत्नी)", "पता प्रमाण", "राशन कार्ड", "बैंक पासबुक", "जाति प्रमाण (SC/ST/OBC/अल्पसंख्याक)"] },
+    duplicateOf: "pmay_urban2", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Maharashtra" && ["no","kutcha"].includes(a.house) && ["urban","semi"].includes(a.area) && ["below1","1to3","3to6"].includes(a.income),
   },
 
@@ -1135,6 +1138,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "soilhealth.dac.gov.in / nearest Krishi Sevak / Agriculture Dept. office", hi: "soilhealth.dac.gov.in / नजदीकी कृषी सेवक / कृषी विभाग कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract", "Soil Sample (collected by Krishi Sevak)", "Mobile Number"],
                hi: ["आधार कार्ड", "7/12 उतारा", "माती नमुना (कृषी सेवकाने गोळा केलेला)", "मोबाइल नंबर"] },
+    duplicateOf: "soil_health_card", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
   },
 
@@ -1199,6 +1203,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "pmgsy.nic.in / District Rural Development Agency (DRDA)", hi: "pmgsy.nic.in / जिला ग्रामीण विकास अभिकरण (DRDA)" }, applyType: "offline",
     docs:    { en: ["Gram Panchayat Resolution (requesting road)", "Village Population Certificate", "Land Map / Survey", "No Objection Certificate from landowners on alignment"],
                hi: ["ग्राम पंचायत ठराव (रस्त्याची मागणी)", "गावाचे लोकसंख्या प्रमाण", "जमीन नकाशा / सर्वेक्षण", "मार्गावरील जमीनमालकांकडून ना-हरकत प्रमाणपत्र"] },
+    duplicateOf: "pmgsy", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Maharashtra" && a.area === "rural",
   },
 

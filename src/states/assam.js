@@ -581,6 +581,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "https://mnre.gov.in/en/pradhan-mantri-kisan-urja-suraksha-evam-utthaan-mahabhiyaan-pm-kusum", hi: "aeda.assam.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records / Patta (agricultural land in Assam)","Farmer Registration Certificate","Bank Account (for 10% cost deposit)","Electricity Connection Proof (or No-Connection Declaration for off-grid pump)","Residence Proof","Passport Photo"],
                hi: ["आधार कार्ड","जमीन के कागज़/पट्टा (असम में कृषि भूमि)","किसान पंजीकरण प्रमाण पत्र","बैंक खाता (10% लागत जमा के लिए)","बिजली कनेक्शन प्रमाण (या ऑफ-ग्रिड पंप के लिए कोई कनेक्शन न होने की घोषणा)","निवास प्रमाण","पासपोर्ट फोटो"] },
+    duplicateOf: "pm_kusum", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Assam" && a.who === "farmer",
   },
 

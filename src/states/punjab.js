@@ -344,6 +344,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "nrega.nic.in / Nearest Gram Panchayat", hi: "nrega.nic.in / नजदीकी ग्राम पंचायत" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Ration Card","Bank Account","Punjab Domicile","Passport Photo"],
                hi: ["आधार कार्ड","राशन कार्ड","बैंक खाता","पंजाब अधिवास","पासपोर्ट फोटो"] },
+    duplicateOf: "mgnrega", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Punjab" && a.area === "rural" && ["below1","1to3"].includes(a.income),
   },
 
@@ -392,6 +393,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "swachhbharatmission.gov.in / Nearest Gram Panchayat", hi: "swachhbharatmission.gov.in / नजदीकी ग्राम पंचायत" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","BPL / Caste Certificate","Land or House Ownership Proof","Bank Account"],
                hi: ["आधार कार्ड","BPL / जाति प्रमाण पत्र","भूमि या मकान स्वामित्व प्रमाण","बैंक खाता"] },
+    duplicateOf: "sbm_gramin", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Punjab" && ["below1","1to3"].includes(a.income) && a.area === "rural",
   },
 
@@ -536,6 +538,7 @@ export const PUNJAB_SCHEMES = [
     apply:   { en: "jaljeevanmission.gov.in / Nearest Gram Panchayat", hi: "jaljeevanmission.gov.in / नजदीकी ग्राम पंचायत" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Ration Card","Punjab Domicile","Proof of Residence"],
                hi: ["आधार कार्ड","राशन कार्ड","पंजाब अधिवास","निवास प्रमाण"] },
+    duplicateOf: "jjm", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Punjab" && a.area === "rural",
   },
 

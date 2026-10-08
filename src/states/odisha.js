@@ -42,6 +42,7 @@ export const ODISHA_SCHEMES = [
     apply:   { en: "https://www.myscheme.gov.in/schemes/kalia", hi: "kalia.odisha.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Land Records", "Bank Passbook", "Farmer ID"],
                hi: ["आधार कार्ड", "जमीन के कागज़", "बैंक पासबुक", "किसान आईडी"] },
+    duplicateOf: "odisha_cm_kisan", // same scheme as the central / main entry — hidden when that one already matches
     match: (a) => a.state === "Odisha" && a.who === "farmer",
   },
 
