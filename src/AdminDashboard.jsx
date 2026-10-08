@@ -645,6 +645,61 @@ function UserDrawer({ user, dark, onClose, isDesktop }) {
   );
 }
 
+// ─── USER TABLE (desktop) ─────────────────────────────────────────────────────
+// Same data as UserRow, laid out as columns so a wide screen can be scanned at
+// a glance. Phones keep the compact UserRow list.
+function UserTable({ users, dark, onTap }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const cols = "minmax(220px,2.2fr) 1.1fr 1.2fr 1fr 0.8fr 1.4fr 0.9fr 0.9fr 24px";
+  const head = ["User", "Occupation", "State", "Income", "Area", "Contact", "Joined", "Last seen", ""];
+  const cell = { fontSize:12, color:th.textMid, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" };
+  return (
+    <div role="table" style={{ width:"100%" }}>
+      <div role="row" style={{
+        display:"grid", gridTemplateColumns:cols, gap:12, padding:"10px 16px",
+        fontSize:10, fontWeight:800, letterSpacing:0.6, textTransform:"uppercase",
+        color:th.textSub, borderBottom:`1px solid ${th.border}`, position:"sticky", top:0, background:th.card, zIndex:1,
+      }}>
+        {head.map(h => <div key={h || "x"} role="columnheader">{h}</div>)}
+      </div>
+      {users.map(u => {
+        const initial = (u.name || "?").charAt(0).toUpperCase();
+        return (
+          <div key={u.id} role="row" tabIndex={0} onClick={() => onTap(u)}
+            onKeyDown={e => { if (e.key === "Enter") onTap(u); }}
+            className="ys-utr"
+            style={{
+              display:"grid", gridTemplateColumns:cols, gap:12, alignItems:"center",
+              padding:"9px 16px", borderBottom:`1px solid ${th.border}`, cursor:"pointer",
+            }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
+              {u.photo ? (
+                <img src={u.photo} alt={initial} referrerPolicy="no-referrer" style={{ width:30, height:30, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+              ) : (
+                <div style={{ width:30, height:30, borderRadius:"50%", flexShrink:0, background:`linear-gradient(135deg,${SAFFRON},${NAVY})`,
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"#fff" }}>{initial}</div>
+              )}
+              <div style={{ minWidth:0 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:th.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.name || "—"}</div>
+                <div style={{ fontSize:10.5, color:th.textSub, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.email || "—"}</div>
+              </div>
+            </div>
+            <div style={cell}>{OCC_EMOJI[u.occupation] || "👤"} {OCC_LABELS[u.occupation] || u.occupation || "—"}</div>
+            <div style={cell}>{u.state || "—"}</div>
+            <div style={cell}>{INC_LABELS[u.income] || u.income || "—"}</div>
+            <div style={cell}>{AREA_LABELS[u.area] || u.area || "—"}</div>
+            <div style={cell}>{u.phone ? `📱 ${u.phone}` : "—"}</div>
+            <div style={cell}>{formatDate(u.createdAt)}</div>
+            <div style={{ ...cell, color:th.textSub }}>{timeAgo(u.lastSeen)}</div>
+            <div style={{ fontSize:14, color:th.textSub }}>›</div>
+          </div>
+        );
+      })}
+      <style>{`.ys-utr:hover{background:${dark ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.025)"}}.ys-utr:focus-visible{outline:2px solid ${SAFFRON};outline-offset:-2px}`}</style>
+    </div>
+  );
+}
+
 // ─── USER ROW ─────────────────────────────────────────────────────────────────
 function UserRow({ user, dark, onTap }) {
   const th = THEME[dark ? "dark" : "light"];
@@ -8968,9 +9023,13 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       {!loading && !error && keepTab("users") && (
         <TabPane active={activeSection === "users"}>
         {(
-        <div style={{ padding:"14px 14px", display:"flex", flexDirection:"column", gap:10 }}>
+        <div style={{ padding: isDesktop ? "22px 32px 32px" : "14px 14px", display:"flex", flexDirection:"column", gap:10,
+          ...(isDesktop ? { maxWidth:1400, margin:"0 auto", width:"100%", boxSizing:"border-box" } : {}) }}>
 
-          {/* Search */}
+          {/* Search + filters — one toolbar row on desktop */}
+          <div style={isDesktop
+            ? { display:"grid", gridTemplateColumns:"2.2fr 1fr 1fr 1fr 1fr", gap:8, alignItems:"center" }
+            : { display:"flex", flexDirection:"column", gap:10 }}>
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
@@ -8984,7 +9043,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           />
 
           {/* Filters row 1 */}
-          <div style={{ display:"flex", gap:8 }}>
+          <div style={{ display: isDesktop ? "contents" : "flex", gap:8 }}>
             <select value={filterOcc} onChange={e => { setFilterOcc(e.target.value); setPage(1); }}
               style={{ flex:1, padding:"8px 8px", borderRadius:10, border:`1.5px solid ${th.border}`,
                 background:th.inputBg, color:th.text, fontSize:11, fontFamily:"inherit", outline:"none" }}>
@@ -9002,7 +9061,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           </div>
 
           {/* Filters row 2 */}
-          <div style={{ display:"flex", gap:8 }}>
+          <div style={{ display: isDesktop ? "contents" : "flex", gap:8 }}>
             <select value={filterArea} onChange={e => { setFilterArea(e.target.value); setPage(1); }}
               style={{ flex:1, padding:"8px 8px", borderRadius:10, border:`1.5px solid ${th.border}`,
                 background:th.inputBg, color:th.text, fontSize:11, fontFamily:"inherit", outline:"none" }}>
@@ -9015,6 +9074,8 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
               <option value="all">All Income</option>
               {Object.entries(INC_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
+          </div>
+
           </div>
 
           {/* Sort row */}
@@ -9040,15 +9101,17 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
             )}
           </div>
 
-          {/* User list */}
+          {/* User list — a sortable-looking table on desktop, compact rows on phones */}
           <div style={{
             background:th.card, border:`1.5px solid ${th.border}`,
-            borderRadius:16, padding:"4px 14px",
+            borderRadius:16, padding: isDesktop ? 0 : "4px 14px", overflow:"hidden",
           }}>
             {pageSlice.length === 0 ? (
               <div style={{ padding:"24px 0", textAlign:"center", color:th.textSub, fontSize:13 }}>
                 No users match this filter
               </div>
+            ) : isDesktop ? (
+              <UserTable users={pageSlice} dark={dark} onTap={setSelectedUser} />
             ) : (
               pageSlice.map(u => <UserRow key={u.id} user={u} dark={dark} onTap={setSelectedUser} />)
             )}
@@ -9081,10 +9144,12 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       {!loading && !error && keepTab("analytics") && (
         <TabPane active={activeSection === "analytics"}>
         {(
-        <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+        <div style={isDesktop
+          ? { padding:"22px 32px 32px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, alignItems:"start", maxWidth:1400, margin:"0 auto", width:"100%", boxSizing:"border-box" }
+          : { padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
 
           {stats.guestCount > 0 && (
-            <div style={{
+            <div style={{ ...(isDesktop ? { gridColumn:"1 / -1" } : {}), 
               fontSize:10, color:th.textSub, textAlign:"center",
               background:th.card2, border:`1px solid ${th.border}`,
               borderRadius:10, padding:"6px 10px",
@@ -9097,7 +9162,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           )}
 
           {/* Summary pills */}
-          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+          <div style={{ ...(isDesktop ? { gridColumn:"1 / -1" } : {}), display:"flex", gap:8, flexWrap:"wrap" }}>
             {[
               { label:"Google Sign-ins", value:stats.googleUsers,
                 pct: users.length ? Math.round(stats.googleUsers/users.length*100) : 0,
@@ -9197,7 +9262,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           </div>
 
           {/* Occupation × Income cross-tab */}
-          <div style={{
+          <div style={{ ...(isDesktop ? { gridColumn:"1 / -1" } : {}), 
             background:th.card, border:`1.5px solid ${th.border}`,
             borderRadius:16, padding:"14px 16px",
           }}>
@@ -9213,7 +9278,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           </div>
 
           {/* Full state bar */}
-          <div style={{
+          <div style={{ ...(isDesktop ? { gridColumn:"1 / -1" } : {}), 
             background:th.card, border:`1.5px solid ${th.border}`,
             borderRadius:16, padding:"14px 16px",
           }}>
@@ -9236,10 +9301,12 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       {!loading && !error && keepTab("activity") && (
         <TabPane active={activeSection === "activity"}>
         {(
-        <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
+        <div style={isDesktop
+          ? { padding:"22px 32px 32px", display:"grid", gridTemplateColumns:"1.4fr 1fr", gap:16, alignItems:"start", maxWidth:1400, margin:"0 auto", width:"100%", boxSizing:"border-box" }
+          : { padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
 
           {/* Quick metrics — flexWrap so 3rd card drops to its own row on narrow phones */}
-          <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", gap:10, flexWrap:"wrap", ...(isDesktop ? { gridColumn:"1 / -1" } : {}) }}>
             {[
               { icon:"🟢", label:"Active Today",     value:stats.activeToday,  color:IND_GREEN },
               { icon:"📅", label:"Active This Week",  value:stats.activeWeek,   color:VIOLET    },
@@ -9254,6 +9321,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           <div style={{
             background:th.card, border:`1.5px solid ${th.border}`,
             borderRadius:16, padding:"14px 16px",
+            ...(isDesktop ? { gridRow:"span 2" } : {}),
           }}>
             <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>
               🕐 Recent Activity ({users.filter(u => u.lastSeen).length} users)
@@ -9291,28 +9359,35 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       {keepTab("usage") && (
         <TabPane active={activeSection === "usage"}>
         {(
-        <>
-          <ActionInsights
-            events={eventsData}
-            usageData={usageData}
-            th={th}
-            dark={dark}
-            loading={usageLoading}
-            onRefresh={fetchUsage}
-          />
-          <UsageSection
-            usageData={usageData}
-            users={users}
-            loading={usageLoading}
-            onRefresh={fetchUsage}
-            dark={dark}
-          />
-          <UsageDataCleaner
-            dark={dark}
-            onDeleteDone={fetchUsage}
-          />
+        <div style={isDesktop
+          ? { display:"grid", gridTemplateColumns:"minmax(0,1.35fr) minmax(0,1fr)", gap:8, alignItems:"start", maxWidth:1440, margin:"0 auto", width:"100%", boxSizing:"border-box", padding:"8px 18px 0" }
+          : {}}>
+          {/* Desktop: "What people do" on the left, the existing usage log + cleaner on the right */}
+          <div style={{ minWidth:0 }}>
+            <ActionInsights
+              events={eventsData}
+              usageData={usageData}
+              th={th}
+              dark={dark}
+              loading={usageLoading}
+              onRefresh={fetchUsage}
+            />
+          </div>
+          <div style={{ minWidth:0 }}>
+            <UsageSection
+              usageData={usageData}
+              users={users}
+              loading={usageLoading}
+              onRefresh={fetchUsage}
+              dark={dark}
+            />
+            <UsageDataCleaner
+              dark={dark}
+              onDeleteDone={fetchUsage}
+            />
+          </div>
           <div style={{ height: 20 }} />
-        </>
+        </div>
       )}
         </TabPane>
       )}
@@ -9321,7 +9396,9 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       {keepTab("schemes") && (
         <TabPane active={activeSection === "schemes"}>
         {(
-        <SchemeCoverageTab dark={dark} />
+        <div style={isDesktop ? { maxWidth:1400, margin:"0 auto", width:"100%", padding:"8px 18px 0", boxSizing:"border-box" } : {}}>
+          <SchemeCoverageTab dark={dark} />
+        </div>
       )}
         </TabPane>
       )}
@@ -9378,7 +9455,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       {keepTab("cleanup") && (
         <TabPane active={activeSection === "cleanup"}>
         {(
-        <>
+        <div style={isDesktop ? { maxWidth:760, margin:"0 auto", width:"100%", paddingTop:18 } : {}}>
           <ResolvedReportsCleaner
             dark={dark}
             onDeleteDone={() => {
@@ -9387,7 +9464,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
             }}
           />
           <div style={{ height: 20 }} />
-        </>
+        </div>
       )}
         </TabPane>
       )}
