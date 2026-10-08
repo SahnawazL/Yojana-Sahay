@@ -12,6 +12,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { sendMessageStream } from "./groqClient.js";
+import { canSpeak, speak, stopSpeaking, voiceLabel } from "./voice.js";
 import { useApplications, daysSince } from "./applications.js";
 import { SCHEME_DB } from "./schemesData.js";
 import aiAvatar from "./ai-avatar.webp";
@@ -153,47 +154,6 @@ function findSchemesInText(text, max = 4) {
     taken.push([at, end]);
   }
   return hits.sort((a, b) => a.at - b.at).slice(0, max).map(h => h.s);
-}
-
-// ─── VOICE: read an answer aloud ─────────────────────────────────────────────
-function speakableText(md) {
-  return md
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/https?:\/\/\S+/g, "")
-    .replace(/[*_#`>]/g, "")
-    .replace(/^\s*[-•]\s+/gm, "")
-    .replace(/\p{Extended_Pictographic}|️|‍/gu, "")
-    .replace(/₹\s?/g, "rupees ")
-    .replace(/[ \t]+/g, " ")
-    .trim();
-}
-const canSpeak = () => typeof window !== "undefined" && "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
-function speakText(md, lang, onEnd) {
-  const synth = window.speechSynthesis;
-  synth.cancel();
-  let text = speakableText(md);
-  if (lang === "hi") text = text.replace(/rupees /g, "रुपये ");
-  // Short chunks — some phones silently stop long utterances.
-  const parts = text.match(/[^.!?।\n]+[.!?।]?/g)?.map(t => t.trim()).filter(Boolean) || [];
-  const chunks = [];
-  for (const p of parts) {
-    if (chunks.length && (chunks[chunks.length - 1] + " " + p).length < 220) chunks[chunks.length - 1] += " " + p;
-    else chunks.push(p);
-  }
-  if (!chunks.length) { onEnd?.(); return; }
-  const want = lang === "hi" ? "hi" : "en";
-  const voices = synth.getVoices();
-  const voice = voices.find(v => v.lang === (want === "hi" ? "hi-IN" : "en-IN"))
-    || voices.find(v => v.lang?.toLowerCase().startsWith(want));
-  chunks.forEach((c, i) => {
-    const u = new SpeechSynthesisUtterance(c);
-    u.lang = want === "hi" ? "hi-IN" : "en-IN";
-    if (voice) u.voice = voice;
-    u.rate = 1;
-    if (i === chunks.length - 1) { u.onend = () => onEnd?.(); }
-    u.onerror = () => onEnd?.();
-    synth.speak(u);
-  });
 }
 
 const chatStorageKey = (uid) => uid ? `yojana_chat_${uid}` : "yojana_chat_guest";
@@ -1184,17 +1144,19 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
 
   // Read-aloud
   const [speaking, setSpeaking] = useState(false);
+  const [voiceName, setVoiceName] = useState("");
   const speakingRef = useRef(false);
   speakingRef.current = speaking;
   // Leaving the chat (or clearing it) stops this bubble's voice — only if it's the one talking.
-  useEffect(() => () => { if (speakingRef.current) try { window.speechSynthesis.cancel(); } catch {} }, []);
+  useEffect(() => () => { if (speakingRef.current) stopSpeaking(); }, []);
   const speakRunRef = useRef(0);
-  const toggleSpeak = () => {
+  const toggleSpeak = async () => {
     if (!canSpeak()) return;
-    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+    if (speaking) { stopSpeaking(); setSpeaking(false); return; }
     const run = ++speakRunRef.current;
     setSpeaking(true);
-    speakText(msg.content, lang, () => { if (speakRunRef.current === run) setSpeaking(false); });
+    const v = await speak(msg.content, lang, { onEnd: () => { if (speakRunRef.current === run) setSpeaking(false); } });
+    if (speakRunRef.current === run) setVoiceName(voiceLabel(v));
   };
 
   // Schemes this answer names → cards
@@ -1381,6 +1343,7 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
                     borderRadius:20, padding:"2px 8px",
                   }}>
                   {speaking ? "■ " : "🔊 "}{speaking ? (lang === "hi" ? "रोकें" : "Stop") : (lang === "hi" ? "सुनें" : "Listen")}
+                  {speaking && voiceName && <span style={{ fontWeight:500, opacity:0.75, maxWidth:110, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>· {voiceName}</span>}
                 </span>
               )}
             </div>
@@ -1840,7 +1803,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
                 abortRef.current = null;
                 cancelAnimationFrame(liveFrameRef.current); liveFrameRef.current = 0;
                 setLive(null); setLoading(false);
-                try { if (canSpeak()) window.speechSynthesis.cancel(); } catch {}
+                if (canSpeak()) stopSpeaking();
                 setMessages([]); setError(""); setChips([]);
                 pendingChipsRef.current = [];              // FIX Bug 4
                 setUsedChips(new Set()); setSecondsLeft(0);

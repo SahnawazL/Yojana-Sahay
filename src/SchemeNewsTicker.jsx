@@ -4,6 +4,7 @@ import React, {
 } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase.js";
+import { pickBestVoice } from "./voice.js";
 
 const SAFFRON    = "#FF9933";
 const NAVY       = "#06038D";
@@ -159,8 +160,8 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
     // instantly. Without this the browser cold-starts the engine on the
     // first tap, causing a noticeable 1-2 s delay.
     const w = window.speechSynthesis;
-    if (w) { const u = new SpeechSynthesisUtterance(""); w.speak(u); w.cancel(); }
-    return () => w?.cancel();
+    if (w && !w.speaking) { const u = new SpeechSynthesisUtterance(""); w.speak(u); w.cancel(); }
+    return () => { if (isSpeakingRef.current) w?.cancel(); };
   }, []);
 
   // Cache voices as soon as the browser loads them (async on first render)
@@ -197,8 +198,12 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
   }, [idx]);
 
   // ── Navigate ───────────────────────────────────────────────────────────────
+  // Only stop speech this card started — the auto-advance (every 8 s, even
+  // while Home is hidden) used to cut off the AI chat's "Listen" too.
+  const isSpeakingRef = useRef(false);
+  useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
   const goTo = useCallback((next) => {
-    window.speechSynthesis?.cancel();
+    if (isSpeakingRef.current) window.speechSynthesis?.cancel();
     setIsSpeaking(false);
     setIdx(next);
   }, []);
@@ -284,7 +289,7 @@ function SchemeNewsTicker({ lang = "en", dark = false }) {
     uttRef.current = new SpeechSynthesisUtterance(speakText);
     uttRef.current.lang  = lang === "hi" ? "hi-IN" : "en-IN";
     uttRef.current.rate  = 0.88;
-    const voice = pickVoice(voicesRef.current, lang);
+    const voice = pickBestVoice(lang) || pickVoice(voicesRef.current, lang);
     if (voice) uttRef.current.voice = voice;
 
     // iOS pause workaround — speechSynthesis silently stalls after a few
