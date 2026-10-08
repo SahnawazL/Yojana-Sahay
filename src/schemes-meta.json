@@ -774,57 +774,60 @@
     "confidence": 0
   },
   "kerala_karunya": {
-    "lastVerified": "2026-09-09T22:51:34.219Z",
+    "lastVerified": "2026-10-08T16:35:10.960Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_merit_scholarship": {
-    "lastVerified": "2026-09-09T22:52:12.222Z",
-    "confidence": 0
+    "lastVerified": "2026-10-08T16:35:10.960Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "kerala_asap": {
-    "lastVerified": "2026-09-08T23:07:27.087Z",
-    "confidence": 0
+    "lastVerified": "2026-10-08T16:35:27.134Z",
+    "confidence": 0,
+    "linkAlive": false
   },
   "kerala_unemployment_allowance": {
-    "lastVerified": "2026-09-09T22:53:07.991Z",
+    "lastVerified": "2026-10-08T16:35:27.134Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_startup_mission": {
-    "lastVerified": "2026-09-09T22:53:02.284Z",
+    "lastVerified": "2026-10-08T16:36:27.657Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_minority_scholarship": {
-    "lastVerified": "2026-09-09T22:52:19.073Z",
+    "lastVerified": "2026-10-08T16:36:27.657Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_cmss_abroad": {
-    "lastVerified": "2026-09-08T23:07:46.097Z",
+    "lastVerified": "2026-10-08T16:36:27.657Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_pratibha_scholarship": {
-    "lastVerified": "2026-09-09T22:52:39.413Z",
+    "lastVerified": "2026-10-08T16:36:27.657Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_norka_pravasi": {
-    "lastVerified": "2026-09-09T22:52:28.159Z",
+    "lastVerified": "2026-10-08T16:36:27.657Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "kerala_cm_distress_relief": {
-    "lastVerified": "2026-09-08T23:07:40.604Z",
+    "lastVerified": "2026-10-08T16:36:27.657Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -856,23 +859,25 @@
     "confidence": 0
   },
   "ts_rythu_bandhu": {
-    "lastVerified": "2026-09-22T23:24:08.976Z",
-    "confidence": 0
+    "lastVerified": "2026-10-08T16:37:28.471Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "ts_aarogyasri": {
-    "lastVerified": "2026-09-21T23:47:43.678Z",
+    "lastVerified": "2026-10-08T16:37:28.471Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_kalyana_lakshmi": {
-    "lastVerified": "2026-09-21T23:48:45.098Z",
+    "lastVerified": "2026-10-08T16:37:28.471Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_shaadi_mubarak": {
-    "lastVerified": "2026-09-22T23:24:25.076Z",
+    "lastVerified": "2026-10-08T16:37:28.471Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2695,45 +2700,49 @@
     "confidence": 0
   },
   "haryana_e_karma": {
-    "lastVerified": "2026-10-03T23:28:10.807Z",
+    "lastVerified": "2026-10-08T16:34:08.910Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_solar_pump": {
-    "lastVerified": "2026-10-04T23:45:23.648Z",
+    "lastVerified": "2026-10-08T16:34:08.910Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_ladli": {
-    "lastVerified": "2026-10-03T23:28:31.614Z",
+    "lastVerified": "2026-10-08T16:35:10.960Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_farm_equipment": {
-    "lastVerified": "2026-10-03T23:28:22.425Z",
-    "confidence": 0
+    "lastVerified": "2026-10-08T16:35:10.960Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "haryana_micro_irrigation": {
-    "lastVerified": "2026-10-03T23:29:00.268Z",
-    "confidence": 0
+    "lastVerified": "2026-10-08T16:35:10.960Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "haryana_bocw": {
-    "lastVerified": "2026-10-03T23:27:49.107Z",
+    "lastVerified": "2026-10-08T16:35:10.960Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_sc_postmatric": {
-    "lastVerified": "2026-10-04T23:45:18.095Z",
+    "lastVerified": "2026-10-08T16:35:10.960Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_ddjay": {
-    "lastVerified": "2026-10-03T23:28:00.356Z",
+    "lastVerified": "2026-10-08T16:35:10.960Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
