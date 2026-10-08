@@ -8025,6 +8025,23 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
     [docMap, checked]
   );
   const visibleDocs = showAll ? sortedDocs : sortedDocs.slice(0, 6);
+  // Ready-to-apply view: which schemes have every document ticked, and which
+  // single missing document would unlock the most schemes.
+  const readiness = useMemo(() => {
+    const ready = [], byMissing = {};
+    for (const scheme of allMatchedSchemes) {
+      const keys = [...new Set((scheme.docs?.en || []).map(canonicalDocKey))];
+      if (!keys.length) continue;
+      const missing = keys.filter(k => !checked[k]);
+      if (missing.length === 0) ready.push(scheme);
+      else if (missing.length === 1) (byMissing[missing[0]] ??= []).push(scheme);
+    }
+    const best = Object.entries(byMissing).sort((a, b) => b[1].length - a[1].length)[0] || null;
+    const bestDoc = best ? docMap.find(d => d.key === best[0]) : null;
+    ready.sort((a, b) => (b.annual || 0) - (a.annual || 0));
+    return { ready, bestDoc, bestSchemes: best ? best[1] : [], oneAway: Object.values(byMissing).reduce((n, l) => n + l.length, 0) };
+  }, [allMatchedSchemes, checked, docMap]);
+
 
   if (docMap.length === 0) return null;
 
@@ -8148,6 +8165,46 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
               {isHindi ? "आप सभी योजनाओं के लिए आवेदन कर सकते हैं।" : "You\'re set to apply for all your schemes."}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Ready to apply / best next document */}
+      {checkedCount > 0 && (
+        <div style={{ padding: "12px 16px 0", display: "grid", gap: 8 }}>
+          <div style={{
+            borderRadius: 14, padding: "11px 13px",
+            background: readiness.ready.length ? (dark ? "rgba(34,197,94,0.10)" : "#F0FDF4") : (dark ? "rgba(255,255,255,0.04)" : "#F8FAFC"),
+            border: `1px solid ${readiness.ready.length ? "rgba(34,197,94,0.35)" : th.border}`,
+          }}>
+            <div style={{ fontSize: 12.5, fontWeight: 800, color: readiness.ready.length ? "#15803D" : th.text, fontFamily: bf }}>
+              ✅ {isHindi ? `${readiness.ready.length} योजनाओं में अभी आवेदन कर सकते हैं` : `Ready to apply now: ${readiness.ready.length} scheme${readiness.ready.length === 1 ? "" : "s"}`}
+            </div>
+            {readiness.ready.length > 0 ? (
+              <div style={{ fontSize: 11, color: th.textSub, marginTop: 4, lineHeight: 1.5, fontFamily: bf }}>
+                {readiness.ready.slice(0, 4).map(r => `${r.icon} ${r.name[lang]}`).join(" · ")}{readiness.ready.length > 4 ? (isHindi ? ` +${readiness.ready.length - 4} और` : ` +${readiness.ready.length - 4} more`) : ""}
+              </div>
+            ) : (
+              <div style={{ fontSize: 11, color: th.textSub, marginTop: 4, fontFamily: bf }}>
+                {isHindi ? "अपने पास मौजूद दस्तावेज़ों पर टिक करते रहें।" : "Keep ticking the documents you have."}
+              </div>
+            )}
+          </div>
+          {readiness.bestDoc && (
+            <div style={{
+              borderRadius: 14, padding: "11px 13px",
+              background: dark ? "rgba(255,153,51,0.10)" : "#FFF7ED",
+              border: "1px solid rgba(255,153,51,0.40)",
+            }}>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: "#C2410C", fontFamily: bf }}>
+                🔓 {isHindi
+                  ? `"${readiness.bestDoc.hi}" बनवाएं → ${readiness.bestSchemes.length} और योजनाएं खुलेंगी`
+                  : `Get your ${readiness.bestDoc.en} → unlocks ${readiness.bestSchemes.length} more scheme${readiness.bestSchemes.length === 1 ? "" : "s"}`}
+              </div>
+              <div style={{ fontSize: 11, color: th.textSub, marginTop: 4, lineHeight: 1.5, fontFamily: bf }}>
+                {readiness.bestSchemes.slice(0, 3).map(r => `${r.icon} ${r.name[lang]}`).join(" · ")}{readiness.bestSchemes.length > 3 ? " …" : ""}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
