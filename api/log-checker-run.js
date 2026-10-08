@@ -32,7 +32,7 @@
  */
 
 import { initializeApp, getApps, cert } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, FieldValue, FieldPath } from "firebase-admin/firestore";
 
 function getAdminApp() {
   if (getApps().length) return getApps()[0];
@@ -55,7 +55,25 @@ function getAdminApp() {
 // inject arbitrary fields into appStats/usage through this endpoint.
 const ALLOWED_RUN_FIELDS = [
   "uid", "matchedCount", "state", "who", "income", "age", "area", "gender", "ration",
+  "caste", "disability", "groups",
 ];
+
+// ── Anonymous usage counters (type "events") → appStats/events ──────────
+// Only counters are stored — no user ids, names or answers. Each event is
+// whitelisted; scheme ids / keys are reduced to [A-Za-z0-9_].
+const SCHEME_EVENT_FIELD = {
+  scheme_view: "v", apply_click: "a", app_track: "t",
+  app_approved: "ok", app_received: "rc", app_rejected: "rj",
+};
+const EVENT_NAMES = new Set([
+  ...Object.keys(SCHEME_EVENT_FIELD),
+  "share_result", "share_checklist", "family_add", "push_on", "push_off",
+  "quiz_start", "quiz_step", "quiz_done", "quiz_group",
+]);
+const cleanKey = (v, max) => (typeof v === "string" && new RegExp(`^[A-Za-z0-9_]{1,${max}}$`).test(v) ? v : null);
+function istDay(d = new Date()) {
+  return new Date(d.getTime() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+}
 
 // appStats/usage is ONE Firestore document and every event used to be
 // arrayUnion()-ed onto it forever. Firestore caps a document at 1 MiB, so
@@ -102,7 +120,7 @@ export default async function handler(req, res) {
     // Unrecognized/missing type falls back to "checker" — this is what keeps
     // the original client call (which never sent a `type` field) working
     // completely unchanged.
-    const type = ["checker", "search", "state"].includes(body.type) ? body.type : "checker";
+    const type = ["checker", "search", "state", "events"].includes(body.type) ? body.type : "checker";
 
     const app = getAdminApp();
     const db = getFirestore(app);
@@ -132,6 +150,54 @@ export default async function handler(req, res) {
       return;
     }
 
+    // ── Anonymous usage counters ─────────────────────────────────────────
+    if (type === "events") {
+      const list = Array.isArray(body.events) ? body.events.slice(0, 40) : [];
+      const day = istDay();
+      const upd = { totals: {}, days: { [day]: {} }, schemes: {}, quiz: {}, groups: {} };
+      let n = 0;
+      const bump = (obj, k) => { obj[k] = (obj[k] || 0) + 1; };
+      const counts = { totals: {}, day: {}, schemes: {}, quiz: {}, groups: {} };
+      for (const ev of list) {
+        const e = ev && typeof ev.e === "string" ? ev.e : "";
+        if (!EVENT_NAMES.has(e)) continue;
+        n++;
+        bump(counts.totals, e); bump(counts.day, e);
+        const sid = cleanKey(ev.s, 60), k = cleanKey(ev.k, 30);
+        if (SCHEME_EVENT_FIELD[e] && sid) {
+          counts.schemes[sid] = counts.schemes[sid] || {};
+          bump(counts.schemes[sid], SCHEME_EVENT_FIELD[e]);
+        }
+        if (e === "quiz_start") bump(counts.quiz, "start");
+        if (e === "quiz_done") bump(counts.quiz, "done");
+        if (e === "quiz_step" && k) bump(counts.quiz, `step_${k}`);
+        if (e === "quiz_group" && k) bump(counts.groups, k);
+      }
+      if (!n) { res.status(200).json({ ok: true, skipped: true }); return; }
+      const asInc = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, FieldValue.increment(v)]));
+      upd.totals = asInc(counts.totals);
+      upd.days[day] = asInc(counts.day);
+      upd.schemes = Object.fromEntries(Object.entries(counts.schemes).map(([sid, o]) => [sid, asInc(o)]));
+      upd.quiz = asInc(counts.quiz);
+      upd.groups = asInc(counts.groups);
+      upd.updatedAt = new Date().toISOString();
+      for (const key of ["schemes", "quiz", "groups"]) if (!Object.keys(upd[key]).length) delete upd[key];
+      const evRef = db.collection("appStats").doc("events");
+      await evRef.set(upd, { merge: true });
+
+      // Keep ~90 days of daily counters (checked now and then, not every call).
+      if (Math.random() < 0.03) {
+        try {
+          const snap = await evRef.get();
+          const cutoff = istDay(new Date(Date.now() - 90 * 86400000));
+          const old = Object.keys(snap.data()?.days || {}).filter(d => d < cutoff);
+          if (old.length) await evRef.update(...old.flatMap(d => [new FieldPath("days", d), FieldValue.delete()]));
+        } catch { /* ignore */ }
+      }
+      res.status(200).json({ ok: true, counted: n });
+      return;
+    }
+
     // ── Search query tracking ────────────────────────────────────────────
     if (type === "search") {
       const q = typeof body.q === "string" ? body.q.trim().slice(0, 200) : "";
@@ -140,6 +206,8 @@ export default async function handler(req, res) {
         return;
       }
       const record = { q, uid: safeUid(body.uid), ts: new Date().toISOString() };
+      // How many schemes the search found — 0 means people look for something we don't have.
+      if (typeof body.n === "number" && Number.isFinite(body.n)) record.n = Math.max(0, Math.min(5000, Math.round(body.n)));
 
       await appendCapped(db, ref, "schemeSearches", record, { searchTotal: FieldValue.increment(1) });
 

@@ -18,6 +18,7 @@ import { nicheAudience, groupByAudience } from "./audience.js";
 import { useApplications, initApplications, mergeRemote, setRemoteWriter, trackApplication, updateApplication, snoozeApplication, removeApplication, isDueForCheck, daysSince, STATUS_TEXT, CHECK_AFTER_DAYS } from "./applications.js";
 import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamily, initFamily, saveMember, removeMember } from "./family.js";
 import { pushState, enablePush, disablePush } from "./push.js";
+import { track } from "./track.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import {
   INDIA_STATES,
@@ -1462,6 +1463,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
   const [copied,setCopied]=useState(false);
   const [showGSearch,setShowGSearch]=useState(false);
   const myApp=useApplications()[scheme.id]; // "I've applied" tracker entry, if any
+  useEffect(()=>{ if(expanded) track("scheme_view",{s:scheme.id},{once:true}); },[expanded,scheme.id]);
 
   const handleCopy=(e)=>{
     e.stopPropagation();
@@ -1957,6 +1959,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                     googleSearchScheme(scheme.name.en);
                     return;
                   }
+                  track("apply_click",{s:scheme.id});
                   if(applyUrl) window.open(applyUrl,"_blank","noopener");
                   else googleSearchScheme(scheme.name.en);
                 }}
@@ -2238,7 +2241,7 @@ function ApplicationTracker({scheme,lang,dark=false}){
               haptic();
               const d=form.appliedAt&&form.appliedAt<=today?form.appliedAt:today;
               if(app) updateApplication(scheme.id,{appliedAt:d,ref:String(form.ref||"").trim().slice(0,60)});
-              else trackApplication(scheme.id,{appliedAt:d,ref:form.ref});
+              else { trackApplication(scheme.id,{appliedAt:d,ref:form.ref}); track("app_track",{s:scheme.id}); }
               setForm(null);
             }}
             style={{flex:2,padding:12,borderRadius:12,background:"linear-gradient(135deg,#138808,#1aac09)",textAlign:"center",fontSize:13,fontWeight:800,color:"#fff",cursor:"pointer",fontFamily:bf,boxShadow:"0 4px 14px rgba(19,136,8,0.3)"}}>
@@ -2293,7 +2296,7 @@ function ApplicationTracker({scheme,lang,dark=false}){
         {["pending","approved","received","rejected"].map(k=>{
           const s=STATUS_TEXT[k]; const on=app.status===k;
           return(
-            <div key={k} onClick={()=>{haptic();if(k==="pending"&&on)snoozeApplication(scheme.id);else updateApplication(scheme.id,{status:k,lastCheckedAt:new Date().toISOString()});}}
+            <div key={k} onClick={()=>{haptic();if(k==="pending"&&on)snoozeApplication(scheme.id);else{ updateApplication(scheme.id,{status:k,lastCheckedAt:new Date().toISOString()}); if(k!=="pending"&&!on) track(k==="approved"?"app_approved":k==="received"?"app_received":"app_rejected",{s:scheme.id}); }}}
               style={{fontSize:11.5,fontWeight:on?800:600,padding:"7px 11px",borderRadius:20,cursor:"pointer",fontFamily:bf,
                 border:`1.5px solid ${on?s.color:th.border}`,color:on?s.color:th.textMid,background:on?(dark?s.color+"22":s.bg):"transparent"}}>
               {s.icon} {k==="pending"&&on&&due?L("Still waiting","अभी इंतज़ार"):(isHindi?s.hi:s.en)}
@@ -2320,6 +2323,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
   useEffect(()=>{const id=setTimeout(()=>setVisible(true),30);return()=>clearTimeout(id);},[]);
   const isOnline=scheme?.applyType==="online";
   const applyUrl=useMemo(()=>isOnline?safeApplyUrl(scheme.apply.en):null,[scheme]);
+  useEffect(()=>{ if(schemeId) track("scheme_view",{s:schemeId},{once:true}); },[schemeId]);
 
   // ── Per-scheme document checklist — own localStorage slot per account+scheme ──
   // Separate from DocumentVaultCard's aggregate vault: this tracks just THIS scheme's docs.
@@ -2349,6 +2353,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
   // Builds a plain-text version of the checklist for WhatsApp sharing
   const shareChecklist=()=>{
     haptic();
+    track("share_checklist",{s:scheme.id});
     const lines=[
       `📋 ${scheme.name[lang]}`,
       `💰 ${scheme.benefit[lang]}`,
@@ -2453,7 +2458,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
             <div style={{width:22,height:22,borderRadius:"50%",background:scheme.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10.5,fontWeight:900,color:"#fff",fontFamily:"'Noto Sans',sans-serif"}}>2</div>
             <div style={{fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf}}>{isHindi?"पोर्टल पर आवेदन करें":"Apply & Submit"}</div>
           </div>
-          <div onClick={()=>{haptic();if(applyUrl)window.open(applyUrl,"_blank","noopener");else googleSearchScheme(scheme.name.en);}}
+          <div onClick={()=>{haptic();track("apply_click",{s:scheme.id});if(applyUrl)window.open(applyUrl,"_blank","noopener");else googleSearchScheme(scheme.name.en);}}
             style={{background:applyUrl?`linear-gradient(135deg,${scheme.color},${scheme.color}cc)`:"linear-gradient(135deg,#1D4ED8,#2563eb)",borderRadius:16,padding:18,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",boxShadow:applyUrl?`0 6px 20px ${scheme.color}40`:"0 6px 20px rgba(37,99,235,0.35)"}}>
             <div>
               <div style={{fontSize:14,fontWeight:800,color:"#fff",fontFamily:bf}}>{t.applyLabel}</div>
@@ -2631,13 +2636,14 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
   // keystroke, so typing "scholarship" logged "sch", "scho", "schol"… as
   // separate searches. Log only once the user pauses typing.
   const lastLoggedSearchRef=useRef("");
+  const resultsCountRef=useRef(null); // filled in below once results are computed
   useEffect(()=>{
     const q=deferredQuery.trim();
     if(q.length<3) return;
     const t=setTimeout(()=>{
       if(q.toLowerCase()===lastLoggedSearchRef.current) return;
       lastLoggedSearchRef.current=q.toLowerCase();
-      logAppStat("search",{q,uid:auth.currentUser?.uid||getGuestId()});
+      logAppStat("search",{q,n:resultsCountRef.current,uid:auth.currentUser?.uid||getGuestId()});
     },1500);
     return()=>clearTimeout(t);
   },[deferredQuery]);
@@ -2664,6 +2670,7 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
       return textMatch||smartMatch;
     });
   },[deferredQuery,isReady,queryTags]);
+  resultsCountRef.current=deferredQuery.trim().length>=3?results.length:null;
 
   const national=useMemo(()=>results.filter(s=>s.scope==="national"),[results]);
   const stateRes=useMemo(()=>results.filter(s=>s.scope==="state"),[results]);
@@ -4101,6 +4108,9 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
   });
 
   useEffect(()=>{const id=setTimeout(()=>setVisible(true),30);return()=>clearTimeout(id);},[]);
+  // Quiz funnel (admin): someone opened the quiz with questions still to answer.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(()=>{ if(step<TOTAL) track("quiz_start",{},{once:true}); },[]);
 
   // ── Track scroll position to reveal/hide the sticky-header subtitle ──────
   // Reset to hidden on every step change (new question starts scrolled to
@@ -4183,6 +4193,8 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     const useVal=valOverride!==null?valOverride:activeVal;
     if(!useVal)return;
     const newAnswers={...answers,[q.id]:useVal};
+    track("quiz_step",{k:q.id},{once:true});
+    if(q.type==="multi"&&Array.isArray(useVal)) useVal.forEach(g=>{ if(g!=="none") track("quiz_group",{k:g},{once:true}); });
     // "Woman" already tells us the gender — the gender question is skipped.
     if(newAnswers.who==="women") newAnswers.gender="female";
     // Remember which groups were offered, so the ones left unticked can be
@@ -4204,6 +4216,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     setAnswers(newAnswers);setSelected(null);setDirection("fwd");setAnimKey(k=>k+1);
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify({answers:newAnswers,step:nextStep,v:2}));}catch{}
     if(step===newTotal-1){
+      track("quiz_done",{},{once:true});
       const matched=initResults(newAnswers);
       setResults(matched);
       onComplete?.(newAnswers); // notify parent so BenefitCalculatorCard reflects fresh results
@@ -4395,7 +4408,10 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
         age:answers.age||null,
         area:answers.area||null,
         gender:answers.gender||null,
-        ration:answers.ration||null,
+        ration:answers.rationCard||null,
+        caste:answers.caste||null,
+        disability:answers.disability||null,
+        groups:Array.isArray(answers.groups)?answers.groups.join(","):null,
       };
       fetch("/api/log-checker-run",{
         method:"POST",
@@ -4945,6 +4961,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       onClick={()=>{
                         haptic();
                         const top=topBenefits(results,5).map(({s:r,kind})=>({name:r.name[lang],annual:r.annual,kind}));
+                        track("share_result");
                         shareBenefitCard({total:benefit.yearly,health:benefit.health,oneTime:benefit.oneTime,count:results.length,top,state:answers.state,lang});
                       }}
                       style={{
@@ -8061,13 +8078,13 @@ function PushNotifyCard({ uid, lang, dark }) {
   const dismiss=()=>{haptic();try{localStorage.setItem("yojana_push_dismiss",String(Date.now()));}catch{}setHidden(true);};
   const turnOn=async()=>{
     haptic();setBusy(true);setErr("");
-    try{await enablePush(uid,saveSub);setState("on");}
+    try{await enablePush(uid,saveSub);setState("on");track("push_on");}
     catch(e){
       if(e?.code==="denied"){setState("denied");}
       else setErr(L("Couldn't turn on notifications. Please try again.","नोटिफ़िकेशन चालू नहीं हो सके। फिर से कोशिश करें।"));
     }finally{setBusy(false);}
   };
-  const turnOff=async()=>{haptic();setBusy(true);try{await disablePush(uid,removeSub);}catch{}setState("off");setBusy(false);};
+  const turnOff=async()=>{haptic();setBusy(true);try{await disablePush(uid,removeSub);}catch{}setState("off");setBusy(false);track("push_off");};
 
   if(state==="on") return(
     <div style={{display:"flex",alignItems:"center",gap:10,background:th.card,borderRadius:16,border:`1.5px solid ${th.border}`,padding:"11px 14px",marginBottom:14}}>
@@ -8218,7 +8235,7 @@ function FamilyCard({ baseAnswers, selfSchemes, lang, dark, onSchemeOpen, onStar
         <div style={{fontSize:10.5,color:th.textSub,fontFamily:bf,marginBottom:10}}>🔒 {L("Saved only on this phone. State, income, category and house are taken from your own answers.","केवल इस फ़ोन पर सेव। राज्य, आय, वर्ग और घर आपके अपने जवाबों से लिए जाते हैं।")}</div>
         <div style={{display:"flex",gap:8}}>
           <div onClick={()=>{haptic();setForm(null);}} style={{flex:1,padding:12,borderRadius:12,border:`1.5px solid ${th.border3}`,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>{L("Cancel","रद्द करें")}</div>
-          <div onClick={()=>{if(!ok)return;haptic();saveMember({id:form.id,relation:form.relation,name:(form.name||"").trim(),age:form.age,gender:gender,who,educationLevel:who==="student"?form.educationLevel:undefined,disability:form.disability==="yes"?"yes":"none"});setForm(null);}}
+          <div onClick={()=>{if(!ok)return;haptic();if(!form.id) track("family_add");saveMember({id:form.id,relation:form.relation,name:(form.name||"").trim(),age:form.age,gender:gender,who,educationLevel:who==="student"?form.educationLevel:undefined,disability:form.disability==="yes"?"yes":"none"});setForm(null);}}
             style={{flex:2,padding:12,borderRadius:12,background:ok?"linear-gradient(135deg,#FF9933,#FF8C00)":"#d6d3d1",textAlign:"center",fontSize:13,fontWeight:800,color:"#fff",cursor:ok?"pointer":"default",fontFamily:bf}}>
             {L("Save & find schemes","सेव करें और योजनाएं देखें")}
           </div>

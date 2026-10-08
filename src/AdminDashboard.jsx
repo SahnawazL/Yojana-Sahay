@@ -31,6 +31,7 @@ import AgentsTab, {
 import NewsTab from "./NewsTab.jsx";
 import FAQFeedbackTab from "./FAQFeedbackTab.jsx";
 import DeadlineAlertsTab from "./DeadlineAlertsTab.jsx";
+import ActionInsights from "./ActionInsights.jsx";
 import { useAdminTasks } from "./adminTasks.js";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
@@ -112,7 +113,8 @@ const GENDER_LABELS   = { male:"Male 👨", female:"Female 👩", other:"Other �
 const RATION_LABELS   = { none:"None / N/A 🚫", apl:"APL", bpl:"BPL 🟡", aay:"AAY — Antyodaya 🔴" };
 const MARITAL_LABELS  = { single:"Single", married:"Married 💍", widowed:"Widowed 🕊️", divorced:"Divorced" };
 const HOUSE_LABELS    = { yes:"Owns House ✅", no:"Needs Housing ❌", kutcha:"Kutcha / Temporary" };
-const DISAB_LABELS    = { none:"No Disability ✅", physical:"Physical 🦽", visual:"Visual 👁", hearing:"Hearing 🦻", intellectual:"Intellectual 🧠" };
+const DISAB_LABELS    = { none:"No Disability ✅", physical:"Physical 🦽", visual:"Visual 👁", hearing:"Hearing 🦻", intellectual:"Intellectual 🧠", yes:"Has a disability ♿" };
+const CASTE_LABELS    = { general:"General", obc:"OBC", sc:"SC", st:"ST", ews:"EWS" };
 const CHILDREN_LABELS = { "0":"No children", "1":"1 child", "2":"2 children", "3plus":"3 or more" };
 const LAND_LABELS     = { below1:"< 1 Acre", "1to2":"1–2 Acres", "2to5":"2–5 Acres", "5plus":"5+ Acres" };
 const KISAN_LABELS    = { yes:"Has KCC ✅", no:"No KCC" };
@@ -260,6 +262,8 @@ function deriveGuestProfiles(usageDataObj) {
   return Object.values(latestByGuest).map(r => ({
     state: r.state, occupation: r.who, income: r.income,
     age: r.age, area: r.area, gender: r.gender, ration: r.ration,
+    // Asked in the quiz since Oct 2026 (older runs simply don't have them).
+    caste: r.caste || undefined, disability: r.disability || undefined,
     __guest: true,
   }));
 }
@@ -4817,7 +4821,7 @@ function ModuleCard({ id, fullLabel, meta, isHov, isDesktop, dark, th, onClick, 
   );
 }
 
-function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab, error, refreshing, sessionStart, lastSynced, latencyMs, onRefresh }) {
+function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTab, error, refreshing, sessionStart, lastSynced, latencyMs, onRefresh, actionStats = {} }) {
   const th = THEME[dark ? "dark" : "light"];
   const [hovered, setHovered] = React.useState(null);
   const [newTodayDismissed, setNewTodayDismissed] = React.useState(false);
@@ -4864,7 +4868,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
     users:     { desc:"Browse, filter, search & inspect all user profiles",        badge: loading ? "…" : `${newWk} new this week`,                                        badge2Color:GOOGLE_B,  accentColor:GOOGLE_B,  glow:"rgba(66,133,244,0.35)",   icon:"users" },
     analytics: { desc:"Demographics, donuts, charts & cross-tab matrices",         badge:"8 dimensions",                                                                    badge2Color:VIOLET,    accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"analytics" },
     activity:  { desc:"Eligibility runs, logins & real-time usage feed",           badge: loading ? "…" : `${actDay} active today`,                                        badge2Color:SAFFRON,   accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"activity" },
-    usage:     { desc:"Feature telemetry — AI chat, searches & checker runs",      badge:"live metrics",                                                                    badge2Color:PINK,      accentColor:PINK,      glow:"rgba(236,72,153,0.35)",   icon:"usage" },
+    usage:     { desc:"What people do — scheme views, Apply taps, applications, quiz drop-off & searches", badge: actionStats.hasData ? `${actionStats.applyToday} apply taps today` : "live metrics",                                                                    badge2Color:PINK,      accentColor:PINK,      glow:"rgba(236,72,153,0.35)",   icon:"usage" },
     schemes:   { desc:"State-wise scheme coverage, gaps & distribution map",       badge:"all India states",                                                                badge2Color:IND_GREEN, accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"schemes" },
     reports:   { desc:"User-reported issues, admin replies & status workflow",     badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badge2Color: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)", icon:"reports" },
     cleanup:   { desc:"Purge resolved reports & flush stale usage data",           badge:"database hygiene",                                                                badge2Color:"#F59E0B", accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"cleanup" },
@@ -4891,6 +4895,16 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
       id:"inprog", icon:"refresh",
       text: `${inProg} report${inProg>1?"s":""} in progress`,
       color:"#D97706", action:"reports",
+    },
+    actionStats.success7 > 0 && {
+      id:"success", icon:"check",
+      text: `${actionStats.success7} ${actionStats.success7>1?"people":"person"} got a scheme approved this week 🎉`,
+      color:IND_GREEN, action:"usage",
+    },
+    actionStats.applyPrev7 >= 10 && actionStats.apply7 < actionStats.applyPrev7 * 0.6 && {
+      id:"applydrop", icon:"alert",
+      text: `Apply taps fell to ${actionStats.apply7} this week (was ${actionStats.applyPrev7})`,
+      color:"#D97706", action:"usage",
     },
     dormantCnt > 0 && {
       id:"dormant", icon:"moon",
@@ -5446,6 +5460,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     try { return localStorage.getItem("agt_prepared_by") || ""; } catch { return ""; }
   });
   const [usageData,     setUsageData]     = useState(null);
+  const [eventsData,    setEventsData]    = useState(null); // appStats/events — anonymous action counters
   const [usageLoading,  setUsageLoading]  = useState(false);
 
   // ── Export tab: per-module sub-filters ──────────────────────────────────
@@ -5690,9 +5705,13 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
   const fetchUsage = useCallback(async () => {
     setUsageLoading(true);
     try {
-      const snap = await getDoc(doc(db, "appStats", "usage"));
+      const [snap, evSnap] = await Promise.all([
+        getDoc(doc(db, "appStats", "usage")),
+        getDoc(doc(db, "appStats", "events")).catch(() => null),
+      ]);
       const data = snap.exists() ? snap.data() : {};
       setUsageData(data);
+      setEventsData(evSnap?.exists?.() ? evSnap.data() : {});
       return data; // returned so callers (e.g. PDF export) can use it immediately,
                    // without waiting on a re-render to see the updated state
     } catch (err) {
@@ -5799,7 +5818,10 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     // Marital status & disability come only from account profile setup, never
     // from the checker questionnaire — guests have no value to contribute here.
     const byMarital = groupBy(users, "marital");
-    const byDisab   = groupBy(users.map(u => ({...u, disability: u.disability==="none"||!u.disability?"none":u.disability})), "disability");
+    // Disability: profiles + guests who answered the quiz question (Oct 2026+).
+    const byDisab   = groupBy([...users, ...guestProfiles.filter(g => g.disability)].map(u => ({...u, disability: u.disability==="none"||!u.disability?"none":(DISAB_LABELS[u.disability]?u.disability:"yes")})), "disability");
+    const byCaste   = groupBy(withGuests.filter(u => u.caste), "caste");
+    const casteData = Object.entries(byCaste).map(([key, value]) => ({ label: CASTE_LABELS[key] || key, value }));
 
     const genderData = Object.entries(byGender)
       .map(([key, value]) => ({ label: GENDER_LABELS[key]?.replace(/[👨👩🧑]/gu,"").trim() || key, value }));
@@ -5830,11 +5852,30 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       occDonut, areaDonut,
       activeToday, activeWeek, newThisWeek, weekGrowth,
       googleUsers, withPhone, statesCount, housedUsers, needHousing, spark,
-      genderData, rationData, maritalData, disabData,
+      genderData, rationData, maritalData, disabData, casteData,
       dormantCount,
       withGuests, guestCount: guestProfiles.length,
     };
   }, [users, guestProfiles]);
+
+  // What people did in the app (anonymous counters, appStats/events).
+  const actionStats = useMemo(() => {
+    const days = eventsData?.days || {};
+    const ist = off => new Date(Date.now() + 5.5 * 3600 * 1000 - off * 86400000).toISOString().slice(0, 10);
+    const sum = (from, to, k) => Object.entries(days).filter(([d]) => d >= from && d <= to).reduce((n, [, c]) => n + (c?.[k] || 0), 0);
+    const today = ist(0), wk = ist(6), prevFrom = ist(13), prevTo = ist(7);
+    const t = eventsData?.totals || {};
+    return {
+      viewsToday: days[today]?.scheme_view || 0,
+      applyToday: days[today]?.apply_click || 0,
+      apply7: sum(wk, today, "apply_click"), applyPrev7: sum(prevFrom, prevTo, "apply_click"),
+      views7: sum(wk, today, "scheme_view"),
+      success7: sum(wk, today, "app_approved") + sum(wk, today, "app_received"),
+      successAll: (t.app_approved || 0) + (t.app_received || 0),
+      trackedAll: t.app_track || 0,
+      hasData: Object.keys(t).length > 0,
+    };
+  }, [eventsData]);
 
   // ── Sort helper ───────────────────────────────────────────────────────────
   const handleSort = useCallback((field) => {
@@ -8656,6 +8697,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           sessionStart={sessionStart}
           lastSynced={lastSynced}
           latencyMs={latencyMs}
+          actionStats={actionStats}
           onRefresh={() => { fetchUsers(true); fetchReports(); fetchUsage(); }}
         />
       )}
@@ -8689,8 +8731,12 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
                 { icon:"🗺️", label:"States Covered",    value:stats.statesCount,   color:PINK },
                 { icon:"🏠", label:"Needs Housing",     value:stats.needHousing,   color:GOOGLE_B,
                   sub:`${users.length ? Math.round(stats.needHousing/users.length*100) : 0}% of users` },
+                { icon:"↗️", label:"Apply Taps · 7 days", value:actionStats.apply7, color:SAFFRON,
+                  sub: actionStats.views7 ? `${Math.round(actionStats.apply7/actionStats.views7*100)}% of ${actionStats.views7} scheme views` : "people tapping Apply" },
+                { icon:"✅", label:"Approved / Got Money", value:actionStats.successAll, color:IND_GREEN,
+                  sub:`${actionStats.trackedAll} applications tracked` },
               ].map(({ icon, label, value, color, sub, trend, sparkline }) => (
-                <div key={label} style={{ flex:"1 1 calc(33.3% - 10px)", minWidth:180 }}>
+                <div key={label} style={{ flex:"1 1 calc(25% - 11px)", minWidth:180 }}>
                   <StatCard icon={icon} label={label} value={value} color={color}
                     sub={sub} trend={trend} sparkline={sparkline} dark={dark} />
                 </div>
@@ -8822,6 +8868,16 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
               <StatCard icon="🏠" label="Needs Housing" value={stats.needHousing}
                 sub={`${users.length ? Math.round(stats.needHousing/users.length*100) : 0}% of users`}
                 color={GOOGLE_B} dark={dark} />
+            </div>
+
+            {/* Row 4 — what people did (anonymous counters) */}
+            <div style={{ display:"flex", gap:10 }}>
+              <StatCard icon="↗️" label="Apply Taps · 7d" value={actionStats.apply7}
+                sub={actionStats.views7 ? `${Math.round(actionStats.apply7/actionStats.views7*100)}% of views` : "tapping Apply"}
+                color={SAFFRON} dark={dark} />
+              <StatCard icon="✅" label="Approved" value={actionStats.successAll}
+                sub={`${actionStats.trackedAll} tracked`}
+                color={IND_GREEN} dark={dark} />
             </div>
 
             {/* By State */}
@@ -9036,7 +9092,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
               🕵️ Gender/Ration/Occupation/Income/Age/Area/State charts below include{" "}
               <span style={{ fontWeight:800, color:VIOLET }}>{stats.guestCount}</span> guest
               {stats.guestCount === 1 ? "'s" : "s'"} checker answers, not just signed-in users.
-              Marital status &amp; Disability stay signed-in-only (guests never set those up).
+              Marital status stays signed-in-only; category and disability include guests from Oct 2026 (when the quiz started asking).
             </div>
           )}
 
@@ -9081,6 +9137,14 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
             <div style={{ background:th.card, border:`1.5px solid ${th.border}`, borderRadius:16, padding:"14px 16px" }}>
               <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>🪪 Ration Card Types</div>
               <BarChart data={stats.rationData} color={SAFFRON} dark={dark} />
+            </div>
+          )}
+
+          {/* Category (caste) */}
+          {stats.casteData.length > 0 && (
+            <div style={{ background:th.card, border:`1.5px solid ${th.border}`, borderRadius:16, padding:"14px 16px" }}>
+              <div style={{ fontSize:13, fontWeight:800, color:th.text, marginBottom:12 }}>🪪 Social Category</div>
+              <BarChart data={stats.casteData} color={NAVY} dark={dark} />
             </div>
           )}
 
@@ -9228,6 +9292,14 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
         <TabPane active={activeSection === "usage"}>
         {(
         <>
+          <ActionInsights
+            events={eventsData}
+            usageData={usageData}
+            th={th}
+            dark={dark}
+            loading={usageLoading}
+            onRefresh={fetchUsage}
+          />
           <UsageSection
             usageData={usageData}
             users={users}
