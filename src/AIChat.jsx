@@ -936,7 +936,7 @@ function renderContent(text, isUser, th, dark) {
       return;
     }
     const numberedMatch = line.match(/^(\d+)\.\s+([\s\S]*)/);
-    const bulletMatch   = line.match(/^[-•*]\s+([\s\S]*)/);
+    const bulletMatch   = line.match(/^(\s*)[-•*]\s+([\s\S]*)/);
     const isLast        = li === lines.length - 1;
 
     // ── Numbered list item ─────────────────────────────────────────────────
@@ -951,9 +951,10 @@ function renderContent(text, isUser, th, dark) {
           {/* Circle number badge */}
           <span style={{
             minWidth:20, height:20, borderRadius:"50%", flexShrink:0,
-            background: isUser ? "rgba(255,255,255,0.22)" : "rgba(255,153,51,0.15)",
-            color: isUser ? "#fff" : "#FF8000",
-            fontSize:10, fontWeight:800, lineHeight:1,
+            background: isUser ? "rgba(255,255,255,0.22)" : "linear-gradient(135deg,#FF9933 0%,#F97316 100%)",
+            color:"#fff",
+            boxShadow: isUser ? "none" : "0 1px 3px rgba(234,88,12,0.35)",
+            fontSize:10.5, fontWeight:800, lineHeight:1,
             display:"flex", alignItems:"center", justifyContent:"center",
             marginTop:3,
           }}>
@@ -969,16 +970,18 @@ function renderContent(text, isUser, th, dark) {
 
     // ── Bullet list item ───────────────────────────────────────────────────
     if (bulletMatch) {
-      const [, content] = bulletMatch;
+      const [, indent, content] = bulletMatch;
+      const nested = indent.length >= 2;
       result.push(
         <div key={`line-${li}`} style={{
           display:"flex", gap:9, alignItems:"flex-start",
+          paddingLeft: nested ? 29 : 0,
           marginTop: li === 0 ? 0 : 5,
           marginBottom: isLast ? 0 : 1,
         }}>
           {/* Dot */}
           <span style={{
-            color: isUser ? "rgba(255,255,255,0.65)" : "#FF9933",
+            color: isUser ? "rgba(255,255,255,0.65)" : "#EA580C",
             fontSize:15, lineHeight:1, flexShrink:0, marginTop:4,
           }}>
             •
@@ -1303,44 +1306,50 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
             )
           }
 
-          {/* ── Feature 3: Verified source badge ─────────────────────────── */}
+          {/* ── Footer: official-source seal + Listen ────────────────────────
+               The brand name is already in the header, so the footer carries
+               the "official" note instead of repeating it. Solid colours so it
+               stays readable on the tinted glass bubble. */}
           {!isUser && isDone && !live && (
             <div style={{
-              display:"flex", alignItems:"center", gap:5,
-              marginTop:8, paddingTop:7,
+              display:"flex", alignItems:"center", gap:8,
+              marginTop:10, paddingTop:8,
               borderTop: dark
-                ? "1px solid rgba(255,255,255,0.07)"
-                : "1px solid rgba(0,0,0,0.06)",
-              animation:"badge-pop 0.32s ease-out",
+                ? "1px solid rgba(255,255,255,0.10)"
+                : "1px solid rgba(0,53,128,0.12)",
+              animation: msg.streamed && isNew ? "none" : "badge-pop 0.32s ease-out",
+              whiteSpace:"normal",
             }}>
-              {/* Checkmark pill */}
               <div style={{
-                display:"flex", alignItems:"center", gap:3,
-                background: dark ? "rgba(34,197,94,0.12)" : "rgba(34,197,94,0.1)",
-                border:"1px solid rgba(34,197,94,0.3)",
-                borderRadius:20, padding:"2px 7px",
+                display:"inline-flex", alignItems:"center", gap:5, minWidth:0,
+                background: dark ? "rgba(20,40,80,0.55)" : "rgba(255,255,255,0.92)",
+                border:`1px solid ${dark ? "rgba(120,170,255,0.35)" : "rgba(0,53,128,0.22)"}`,
+                borderRadius:8, padding:"3px 8px 3px 6px",
+                boxShadow: dark ? "none" : "0 1px 2px rgba(0,53,128,0.08)",
               }}>
-                <span style={{ fontSize:9, color:"#22c55e", fontWeight:900, lineHeight:1 }}>✓</span>
-                <span style={{ fontSize:9, color:"#22c55e", fontWeight:700, letterSpacing:0.2 }}>
-                  {lang === "hi" ? "सत्यापित" : "Verified"}
+                <svg width="13" height="13" viewBox="0 0 24 24" style={{ flexShrink:0 }} aria-hidden="true">
+                  <path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z" fill={dark ? "#3b82f6" : "#003580"} />
+                  <path d="m8.5 12.2 2.4 2.4 4.8-5" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span style={{
+                  fontSize:10, fontWeight:700, letterSpacing:0.15, lineHeight:1.25,
+                  color: dark ? "#cfe0ff" : "#003580",
+                  fontFamily:bf,
+                }}>
+                  {lang === "hi" ? "आधिकारिक योजना डेटा पर आधारित" : "Based on official scheme data"}
                 </span>
               </div>
-              {/* Source label */}
-              <span style={{
-                fontSize:9.5, color:th.textSub, fontWeight:500, letterSpacing:0.2,
-              }}>
-                Yojana Sahay AI
-              </span>
               {canSpeak() && (
                 <span role="button" onClick={toggleSpeak}
                   aria-label={speaking ? "Stop" : "Listen"}
                   style={{
                     marginLeft:"auto", display:"inline-flex", alignItems:"center", gap:4,
-                    fontSize:10, fontWeight:700, cursor:"pointer", userSelect:"none",
-                    color: speaking ? "#ef4444" : (dark ? "#FFB366" : "#FF8000"),
-                    background: speaking ? "rgba(239,68,68,0.1)" : "rgba(255,153,51,0.1)",
-                    border:`1px solid ${speaking ? "rgba(239,68,68,0.3)" : "rgba(255,153,51,0.28)"}`,
-                    borderRadius:20, padding:"2px 8px",
+                    fontSize:10.5, fontWeight:700, cursor:"pointer", userSelect:"none", flexShrink:0,
+                    color: speaking ? "#fff" : (dark ? "#FFB366" : "#C2410C"),
+                    background: speaking ? "#dc2626" : (dark ? "rgba(28,28,30,0.85)" : "#fff"),
+                    border:`1px solid ${speaking ? "#dc2626" : (dark ? "rgba(255,153,51,0.45)" : "rgba(194,65,12,0.35)")}`,
+                    borderRadius:20, padding:"3px 10px",
+                    boxShadow: dark ? "none" : "0 1px 2px rgba(0,0,0,0.06)",
                   }}>
                   {speaking ? "■ " : "🔊 "}{speaking ? (lang === "hi" ? "रोकें" : "Stop") : (lang === "hi" ? "सुनें" : "Listen")}
                   {speaking && voiceName && <span style={{ fontWeight:500, opacity:0.75, maxWidth:110, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>· {voiceName}</span>}
