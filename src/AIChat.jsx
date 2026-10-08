@@ -13,7 +13,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { sendMessageStream } from "./groqClient.js";
 import { canSpeak, speak, stopSpeaking, voiceLabel } from "./voice.js";
-import { useApplications, daysSince } from "./applications.js";
+import { findSchemesInText } from "./schemeMatch.js";
+import { useApplications, daysSince, trackApplication } from "./applications.js";
+import { track } from "./track.js";
 import { SCHEME_DB } from "./schemesData.js";
 import aiAvatar from "./ai-avatar.webp";
 
@@ -103,59 +105,6 @@ function playChipSounds(count) {
 // ─── CHAT HISTORY PERSISTENCE ────────────────────────────────────────────────
 // Key is per-user so each account gets its own isolated chat history
 const SCHEME_BY_ID_CHAT = new Map(SCHEME_DB.map(s => [s.id, s]));
-// ─── SCHEME CARDS: find the schemes an answer talks about ───────────────────
-// Built once: every unique scheme's English + Hindi name, plus a short form
-// ("PM Awas Yojana" from "PM Awas Yojana (Gramin)") and its acronym ("PMJAY")
-// — but only when that short form belongs to ONE scheme, so a card never
-// opens the wrong scheme. Longest keys are tried first.
-let SCHEME_NAME_INDEX = null;
-function schemeNameIndex() {
-  if (SCHEME_NAME_INDEX) return SCHEME_NAME_INDEX;
-  const raw = [];
-  for (const s of SCHEME_DB) {
-    if (s.duplicateOf || !s.name) continue;
-    const en = (s.name.en || "").trim(), hi = (s.name.hi || "").trim();
-    if (en.length >= 8) raw.push({ key: en.toLowerCase(), s, full: true });
-    if (hi.length >= 6) raw.push({ key: hi, s, full: true });
-    const base = en.split(/\s+[—–-]\s+|\s*\(/)[0].trim();
-    if (base && base !== en && base.length >= 10) raw.push({ key: base.toLowerCase(), s });
-    const acr = en.match(/\(([A-Z][A-Z0-9-]{3,})\)/);
-    if (acr) raw.push({ key: acr[1], s, word: true });
-  }
-  const owners = new Map();
-  for (const r of raw) {
-    if (!owners.has(r.key)) owners.set(r.key, new Set());
-    owners.get(r.key).add(r.s.id);
-  }
-  const seen = new Set();
-  SCHEME_NAME_INDEX = raw
-    .filter(r => (r.full || owners.get(r.key).size === 1) && !seen.has(r.key) && seen.add(r.key))
-    .sort((a, b) => b.key.length - a.key.length);
-  return SCHEME_NAME_INDEX;
-}
-
-// Up to `max` schemes named in `text`, in the order they first appear.
-function findSchemesInText(text, max = 4) {
-  if (!text) return [];
-  const lower = text.toLowerCase();
-  const hits = [], taken = [];
-  for (const r of schemeNameIndex()) {
-    let at;
-    if (r.word) {
-      const m = new RegExp(`(^|[^A-Za-z0-9])${r.key.replace(/[-]/g, "\\-")}(?![A-Za-z0-9])`).exec(text);
-      at = m ? m.index + m[1].length : -1;
-    } else {
-      at = (/[a-z]/.test(r.key) ? lower : text).indexOf(r.key);
-    }
-    if (at < 0 || hits.some(h => h.s.id === r.s.id)) continue;
-    const end = at + r.key.length;
-    if (taken.some(([a, b]) => at < b && end > a)) continue; // part of a longer name already matched
-    hits.push({ s: r.s, at });
-    taken.push([at, end]);
-  }
-  return hits.sort((a, b) => a.at - b.at).slice(0, max).map(h => h.s);
-}
-
 const chatStorageKey = (uid) => uid ? `yojana_chat_${uid}` : "yojana_chat_guest";
 
 const THEME = {
@@ -1132,6 +1081,165 @@ function SchemeCards({ schemes, lang, dark, onOpen, eligibleIds, trackedApps }) 
   );
 }
 
+// ─── ANSWER ACTIONS ───────────────────────────────────────────────────────────
+// Buttons under an answer that DO something: track an application the user
+// says they've made, build one documents checklist for the schemes named,
+// share the answer, or re-run the eligibility check.
+const plainText = (md) => md
+  .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
+  .replace(/\*\*(.*?)\*\*/g, "$1")
+  .replace(/(^|\s)\*([^*\n]+)\*/g, "$1$2")
+  .replace(/^\s*-{3,}\s*$/gm, "")
+  .replace(/\n{3,}/g, "\n\n")
+  .trim();
+
+function shareText(text, title) {
+  const body = `${text}\n\n— Yojana Sahay · https://yojanasahay.vercel.app`;
+  try {
+    if (navigator.share) { navigator.share({ title, text: body }).catch(() => {}); return; }
+  } catch {}
+  window.open(`https://wa.me/?text=${encodeURIComponent(body)}`, "_blank", "noopener");
+}
+
+function ActionPill({ icon, label, onClick, done, dark, primary }) {
+  return (
+    <button type="button" onClick={onClick} disabled={done}
+      style={{
+        display:"inline-flex", alignItems:"center", gap:5,
+        fontSize:11.5, fontWeight:700, lineHeight:1.2,
+        padding:"6px 11px", borderRadius:20, cursor: done ? "default" : "pointer",
+        fontFamily:"inherit",
+        color: done ? "#15803d" : primary ? "#fff" : (dark ? "#e5e7eb" : "#1f2937"),
+        background: done ? (dark ? "rgba(34,197,94,0.15)" : "#dcfce7")
+          : primary ? "linear-gradient(135deg,#FF9933,#F97316)"
+          : (dark ? "#2c2c2e" : "#fff"),
+        border: `1px solid ${done ? "rgba(34,197,94,0.45)" : primary ? "transparent" : (dark ? "#3a3a3c" : "#e5e7eb")}`,
+        boxShadow: primary && !done ? "0 2px 8px rgba(249,115,22,0.3)" : (dark ? "none" : "0 1px 2px rgba(0,0,0,0.05)"),
+      }}>
+      <span aria-hidden="true">{icon}</span>{label}
+    </button>
+  );
+}
+
+function AnswerActions({ msg, schemes, lang, dark, trackedApps, onChecklist, onOpenChecker }) {
+  const isHindi = lang === "hi";
+  // Schemes the AI says the user has applied to → "Track it" buttons.
+  const applied = useMemo(() => {
+    const out = [];
+    for (const a of msg.actions || []) {
+      if (a.type !== "applied") continue;
+      const sc = findSchemesInText(a.name, 1)[0];
+      if (sc && !out.some(x => x.id === sc.id)) out.push(sc);
+    }
+    return out;
+  }, [msg.actions]);
+  const withDocs = schemes.filter(s => (s.docs?.[lang] || s.docs?.en || []).length);
+  if (!applied.length && !withDocs.length) return null;
+  return (
+    <div style={{ paddingLeft:34, marginTop:8, display:"flex", flexWrap:"wrap", gap:6, animation:"chips-reveal 0.3s ease-out" }}>
+      {applied.map(sc => {
+        const done = !!trackedApps?.[sc.id];
+        const short = (sc.name?.[lang] || sc.name?.en || "").replace(/\s*\(.*?\)\s*/g, " ").trim().slice(0, 28);
+        return (
+          <ActionPill key={sc.id} dark={dark} primary done={done}
+            icon={done ? "✓" : "📌"}
+            label={done ? (isHindi ? `${short} — ट्रैक हो रहा है` : `Tracking ${short}`) : (isHindi ? `${short} को ट्रैक करें` : `Track ${short} in My Applications`)}
+            onClick={() => { trackApplication(sc.id); track("app_track", { s: sc.id }); }} />
+        );
+      })}
+      {withDocs.length > 0 && (
+        <ActionPill dark={dark} icon="📋"
+          label={isHindi ? (withDocs.length > 1 ? `${withDocs.length} योजनाओं की दस्तावेज़ सूची` : "दस्तावेज़ सूची") : (withDocs.length > 1 ? `Documents for all ${withDocs.length}` : "Documents checklist")}
+          onClick={() => onChecklist?.(withDocs)} />
+      )}
+      <ActionPill dark={dark} icon="📤" label={isHindi ? "शेयर करें" : "Share"}
+        onClick={() => { shareText(plainText(msg.content), "Yojana Sahay"); track("share_result", { k: "ai" }); }} />
+      {onOpenChecker && (
+        <ActionPill dark={dark} icon="🧮" label={isHindi ? "पात्रता दोबारा जांचें" : "Re-check eligibility"} onClick={onOpenChecker} />
+      )}
+    </div>
+  );
+}
+
+// ─── ONE DOCUMENTS CHECKLIST for several schemes ─────────────────────────────
+// Same document needed by three schemes is listed once ("for 3 schemes").
+const docKey = (d) => String(d).toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0-9ऀ-ॿ]+/g, " ").replace(/\b(card|copy|certificate|details|of|the|a)\b/g, "").replace(/\s+/g, " ").trim();
+function ChecklistSheet({ schemes, lang, dark, onClose }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const bf = fontFamily(lang);
+  const isHindi = lang === "hi";
+  const items = useMemo(() => {
+    const map = new Map();
+    for (const s of schemes) {
+      for (const d of (s.docs?.[lang] || s.docs?.en || [])) {
+        const k = docKey(d) || d;
+        if (!map.has(k)) map.set(k, { doc: d, schemes: [] });
+        const it = map.get(k);
+        if (!it.schemes.includes(s)) it.schemes.push(s);
+      }
+    }
+    return [...map.values()].sort((a, b) => b.schemes.length - a.schemes.length);
+  }, [schemes, lang]);
+  const [have, setHave] = useState(() => new Set());
+  const toggle = (i) => setHave(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; });
+  const nameOf = (s) => s.name?.[lang] || s.name?.en;
+  const share = () => {
+    const text = (isHindi ? "📋 दस्तावेज़ सूची — " : "📋 Documents checklist — ") + schemes.map(nameOf).join(", ") + "\n\n" +
+      items.map((it, i) => `${have.has(i) ? "✅" : "⬜"} ${it.doc}${it.schemes.length > 1 ? (isHindi ? ` (${it.schemes.length} योजनाओं के लिए)` : ` (for ${it.schemes.length} schemes)`) : ""}`).join("\n");
+    shareText(text, "Documents checklist");
+    track("share_checklist", { k: "ai" });
+  };
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", animation:"fade-in 0.2s ease-out" }}>
+      <div onClick={e => e.stopPropagation()} role="dialog" aria-label="Documents checklist"
+        style={{ width:"100%", maxWidth:560, maxHeight:"82vh", background:th.card, borderRadius:"20px 20px 0 0", display:"flex", flexDirection:"column", fontFamily:bf, animation:"chips-reveal 0.25s ease-out", boxShadow:"0 -8px 30px rgba(0,0,0,0.25)" }}>
+        <div style={{ padding:"16px 18px 10px", borderBottom:`1px solid ${th.border}` }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ fontSize:16, fontWeight:800, color:th.text, flex:1 }}>{isHindi ? "📋 दस्तावेज़ सूची" : "📋 Documents checklist"}</div>
+            <button type="button" onClick={onClose} aria-label="Close" style={{ border:"none", background:"transparent", fontSize:20, color:th.textSub, cursor:"pointer", padding:4 }}>✕</button>
+          </div>
+          <div style={{ fontSize:11.5, color:th.textMid, marginTop:4, lineHeight:1.45 }}>
+            {isHindi ? "इन योजनाओं के लिए: " : "For: "}{schemes.map(nameOf).join(" · ")}
+          </div>
+          <div style={{ fontSize:11.5, fontWeight:700, color:"#16a34a", marginTop:6 }}>
+            {isHindi ? `${have.size} / ${items.length} तैयार` : `${have.size} of ${items.length} ready`}
+          </div>
+        </div>
+        <div style={{ overflowY:"auto", padding:"8px 12px" }}>
+          {items.map((it, i) => (
+            <label key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", padding:"9px 6px", borderBottom:`1px solid ${th.border}`, cursor:"pointer" }}>
+              <input type="checkbox" checked={have.has(i)} onChange={() => toggle(i)} style={{ width:18, height:18, marginTop:1, accentColor:"#F97316", flexShrink:0 }} />
+              <span style={{ flex:1, minWidth:0 }}>
+                <span style={{ fontSize:13.5, color:th.text, textDecoration: have.has(i) ? "line-through" : "none", opacity: have.has(i) ? 0.6 : 1 }}>{it.doc}</span>
+                {schemes.length > 1 && (
+                  <span style={{ display:"block", fontSize:10.5, color:th.textSub, marginTop:2 }}>
+                    {it.schemes.length === schemes.length
+                      ? (isHindi ? "सभी योजनाओं के लिए" : "Needed for all")
+                      : it.schemes.map(s => nameOf(s).replace(/\s*\(.*?\)\s*/g, " ").trim()).join(", ")}
+                  </span>
+                )}
+              </span>
+            </label>
+          ))}
+        </div>
+        <div style={{ padding:"10px 14px calc(12px + env(safe-area-inset-bottom))", display:"flex", gap:8, borderTop:`1px solid ${th.border}` }}>
+          <button type="button" onClick={share} style={{ flex:1, padding:"11px 12px", borderRadius:12, border:"none", fontWeight:800, fontSize:13, color:"#fff", background:"linear-gradient(135deg,#FF9933,#F97316)", cursor:"pointer", fontFamily:"inherit" }}>
+            {isHindi ? "📤 शेयर करें (WhatsApp)" : "📤 Share (WhatsApp)"}
+          </button>
+          <button type="button" onClick={onClose} style={{ padding:"11px 16px", borderRadius:12, border:`1px solid ${th.border2}`, fontWeight:700, fontSize:13, color:th.text, background:"transparent", cursor:"pointer", fontFamily:"inherit" }}>
+            {isHindi ? "बंद करें" : "Done"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // While streaming, an unclosed **bold** would show raw asterisks — drop the
 // dangling marker until its pair arrives.
 function tidyPartial(t) {
@@ -1140,7 +1248,7 @@ function tidyPartial(t) {
   return t;
 }
 
-function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligibleIds, trackedApps }) {
+function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligibleIds, trackedApps, onChecklist, onOpenChecker }) {
   const th     = THEME[dark ? "dark" : "light"];
   const bf     = fontFamily(lang);
   const isUser = msg.role === "user";
@@ -1364,6 +1472,9 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
       {isDone && !live && schemes.length > 0 && (
         <SchemeCards schemes={schemes} lang={lang} dark={dark} onOpen={onOpenDetail} eligibleIds={eligibleIds} trackedApps={trackedApps} />
       )}
+      {isDone && !live && !isUser && (schemes.length > 0 || msg.actions?.length > 0) && (
+        <AnswerActions msg={msg} schemes={schemes} lang={lang} dark={dark} trackedApps={trackedApps} onChecklist={onChecklist} onOpenChecker={isNew ? onOpenChecker : null} />
+      )}
 
       {/* ── Timestamp row — below bubble, matches side alignment ─────────── */}
       {timeLabel && !live && (
@@ -1506,7 +1617,7 @@ function WelcomeScreen({ lang, dark, onSuggest, profile }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function AIChat({ lang="en", dark=false, profile=null, uid=null, matchedSchemes=[], onOpenDetail=null }) {
+export default function AIChat({ lang="en", dark=false, profile=null, uid=null, matchedSchemes=[], onOpenDetail=null, eligAnswers=null, onOpenChecker=null }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
@@ -1527,6 +1638,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // The answer being written right now: { text, status }. Kept out of
   // `messages` so half-written text is never saved to history.
   const [live,         setLive]         = useState(null);
+  const [checklist,    setChecklist]    = useState(null); // schemes for the documents sheet
   const liveTextRef    = useRef("");
   const liveFrameRef   = useRef(0);
   const abortRef       = useRef(null);
@@ -1673,7 +1785,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
     let firstTextAt = 0;
 
     try {
-      const { reply, followUps: aiChips } = await sendMessageStream(
+      const { reply, followUps: aiChips, actions } = await sendMessageStream(
         [
           // ── Profile context prefix — invisible in UI, sent to API only ──────
           // Provides the AI with the user's profile so it can personalize responses.
@@ -1697,6 +1809,9 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           }).filter(Boolean),
           // Previous answer — lets "documents for the first one?" find the scheme.
           lastReply: [...messages].reverse().find(m => m.role === "assistant")?.content || "",
+          // Their eligibility answers → the AI can say exactly why a scheme
+          // is or isn't for them, and what's missing.
+          answers: eligAnswers,
         },
         {
           signal: ctrl?.signal,
@@ -1718,7 +1833,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       );
       if (ctrl && abortRef.current !== ctrl) return; // chat was cleared meanwhile
       cancelAnimationFrame(liveFrameRef.current); liveFrameRef.current = 0;
-      setMessages(prev => [...prev, { role:"assistant", content:reply, timestamp: Date.now(), streamed: true }]);
+      setMessages(prev => [...prev, { role:"assistant", content:reply, timestamp: Date.now(), streamed: true, ...(actions?.length ? { actions } : {}) }]);
       setLive(null);
       playReceiveSound(); // 🔊 receive chime
       const freshChips = aiChips.filter(c => !nextUsedChips.has(c));
@@ -1735,7 +1850,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // profile must be a dependency: without it the memoised handler kept the
   // profile from the first render, so after the user edited their profile
   // the AI kept personalising answers with the OLD state/occupation/income.
-  }, [input, messages, loading, isHindi, lang, usedChips, startCooldown, profile, matchedSchemes, trackedApps]);
+  }, [input, messages, loading, isHindi, lang, usedChips, startCooldown, profile, matchedSchemes, trackedApps, eligAnswers]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -1754,6 +1869,9 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       <style>{GLOBAL_CSS}</style>
       {avatarPreview && (
         <AvatarPreviewModal onClose={() => setAvatarPreview(false)} />
+      )}
+      {checklist && (
+        <ChecklistSheet schemes={checklist} lang={lang} dark={dark} onClose={() => setChecklist(null)} />
       )}
 
       {/* HEADER */}
@@ -1846,6 +1964,8 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             onOpenDetail={onOpenDetail}
             eligibleIds={eligibleIds}
             trackedApps={trackedApps}
+            onChecklist={setChecklist}
+            onOpenChecker={onOpenChecker}
           />
         ))}
 

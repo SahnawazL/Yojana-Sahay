@@ -6,6 +6,8 @@
 import { SCHEME_DB as ALL_SCHEMES } from "./schemesData.js";
 import { whoCanApply } from "./eligibilityText.js";
 import { benefitSummary, benefitKind } from "./benefitMath.js";
+import { cleanLinks, officialSchemeLink } from "./schemeMatch.js";
+import { eligibilityLine, nearMisses } from "./eligibilityExplain.js";
 
 // Duplicate listings (duplicateOf) are the same scheme listed twice — the AI
 // sees each scheme once, and counts match the app's home screen.
@@ -86,6 +88,46 @@ const KEYWORD_MAP = {
   skill:    ["skill","training","kaushal","pmkvy","ddu","rozgar","employment","job","saksham","yuva"],
   water:    ["water","jal","jeevan","piped","toilet","swachh","sanitation","shauchalay"],
 };
+
+// ─── HINGLISH, HINDI & LOOSE SPELLINGS → topic words ─────────────────────────
+// People type "budhape ki pension", "kisan wala paisa", "ladki ki padhai",
+// "skolarship" or plain Hindi. Each pattern adds the English words our scheme
+// data uses, so the right schemes are found. Applied to the question only.
+const QUERY_EXPANSIONS = [
+  [/budh?ap[ae]|budh?e\b|boodh|bujurg|buzurg|vridh|vriddh|बुढ़ाप|बुजुर्ग|वृद्ध|बूढ़/, "senior old age pension elderly"],
+  [/pen[st]ion|penshan|penson|पेंशन/, "pension"],
+  [/vidhwa|vidhava|bewa|widow|pati (ki )?(maut|death|nahi)|विधवा/, "widow pension women"],
+  [/kisan wala|kisan ka paisa|kisan ki kist|6 ?000 wala|6 ?hazar|किसान सम्मान|किसान का पैसा/, "pm kisan samman nidhi farmer"],
+  [/kisaan|kisan|kheti|khet|फसल|किसान|खेती/, "farmer kisan agriculture"],
+  [/fasal (kharab|barbad|nuksan|nuksaan)|crop (loss|damage)|फसल (खराब|बर्बाद|नुकसान)/, "crop insurance fasal bima farmer"],
+  [/ladki|ladkiyon|beti|bitiya|kanya|लड़की|बेटी|कन्या/, "girl beti women"],
+  [/padhai|padhna|padhne|school fees|college fees|vazifa|wazifa|chatravritti|chhatravriti|skolar|scolar|schlor|scholer|पढ़ाई|छात्रवृत्ति|स्कॉलरशिप/, "scholarship student education"],
+  [/ghar banan|ghar ke liye|pakka ghar|pakka makan|makaan|makan|मकान|घर बनान|पक्का घर|आवास/, "housing awas house"],
+  [/ilaa?j|bimari|beemari|dawai|\bdava\b|aspatal|hospital|ऑपरेशन|operation|इलाज|बीमारी|अस्पताल|दवा/, "health hospital treatment ayushman"],
+  [/ayushmaa?n|ayusman|aayushman|आयुष्मान/, "ayushman pmjay health"],
+  [/gas (cylinder|connection|chulha)|cylinder|chulha|lpg|गैस|सिलेंडर/, "lpg gas ujjwala"],
+  [/viklang|vikalang|divyang|handicap|apahij|apaahij|disabled|दिव्यांग|विकलांग/, "disability divyang"],
+  [/berozgar|naukri|nokri|rozgar|rojgar|kaam chahiye|job|नौकरी|रोज़गार|रोजगार|बेरोज़गार/, "employment job skill rozgar"],
+  [/shaadi|shadi|vivah|byah|marriage|शादी|विवाह/, "marriage vivah"],
+  [/garbh|pregnan|delivery|janani|matritva|prasav|गर्भ|प्रसव|मातृत्व/, "maternity pregnant women"],
+  [/karz|karj|karza|qarz|udhar|lone\b|loan|ऋण|कर्ज|लोन/, "loan"],
+  [/dukaan|dukan|dhanda|dhandha|vyapar|byapar|business|दुकान|व्यापार|धंधा/, "business loan self employed"],
+  [/bijli|light bill|electricity|solar|बिजली|सोलर/, "electricity solar"],
+  [/rashan|ration|anaj|anaaj|राशन|अनाज/, "ration food"],
+  [/mazdoor|majdoor|shramik|labour|labor|मजदूर|श्रमिक/, "worker labour shramik"],
+  [/machhuar|machhli|machli|मछुआर|मछली/, "fisherman fisheries"],
+  [/bunkar|karigar|kareegar|kaarigar|बुनकर|कारीगर/, "artisan weaver"],
+  [/anath|orphan|अनाथ/, "orphan child"],
+  [/shauchalay|toilet|शौचालय/, "toilet sanitation"],
+  [/bima|beema|insurance|बीमा/, "insurance"],
+  [/mahila|aurat|\bstree\b|\bstri\b|महिला|औरत/, "women mahila"],
+  [/pashu|gaay|\bgai\b|bhains|dairy|पशु|गाय|भैंस/, "animal husbandry dairy livestock farmer"],
+];
+function expandQuery(q) {
+  const add = [];
+  for (const [re, words] of QUERY_EXPANSIONS) if (re.test(q)) add.push(words);
+  return add.length ? `${q} ${add.join(" ")}` : q;
+}
 
 const ALL_STATES = [
   "andhra pradesh","arunachal pradesh","assam","bihar","chhattisgarh","goa",
@@ -203,12 +245,9 @@ function buildCountGuidance(lang, context = "total") {
 // Only real web addresses become links. 130+ offline schemes have text like
 // "Nearest bank branch" in `apply`, which used to be sent as
 // "https://Nearest bank branch" — a fake link the AI then showed to people.
-function schemeLink(s) {
-  const raw = String(s?.apply?.en ?? "").trim();
-  if (/^https?:\/\/[^\s]+\.[^\s]+/i.test(raw)) return raw;
-  if (/^(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/[^\s]*)?$/i.test(raw)) return `https://${raw}`;
-  return null;
-}
+// Only OFFICIAL links reach the AI (see schemeMatch.js) — about 60 entries
+// in the data point at blogs/news/private sites, and the AI used to repeat them.
+const schemeLink = (s) => officialSchemeLink(s);
 // Deadline / open-closed status from the verifier (schemes-meta.json).
 function schemeStatus(s) {
   const parts = [];
@@ -243,7 +282,11 @@ const ORDINALS = [
 ];
 
 function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
-  const q = query.toLowerCase();
+  const q0 = query.toLowerCase();
+  const q = expandQuery(q0); // Hinglish / Hindi / misspellings → topic words
+  // The topic words the question was mapped to ("budhape" → old age pension):
+  // a scheme whose NAME carries them is what the person meant.
+  const expWords = [...new Set(q.slice(q0.length).split(/\s+/).filter(w => w.length > 3))];
 
   // ── Build a profile-augmented query string for keyword scoring ───────────────
   // Example: female farmer in Assam asking "what schemes can I get?" now also
@@ -301,7 +344,8 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
 
     // 1. The scheme is named in the question itself (query only, not profile).
     let nameScore = 0;
-    if (q.includes(s.id.replace(/_/g, " "))) nameScore += 20;
+    // Whole words only — the id "ran" used to match inside "insurance" / "ration".
+    if (hasWord(q0, s.id.replace(/_/g, " "))) nameScore += 20;
     if (q.includes(s.name.en.toLowerCase()))  nameScore += 15;
     if (s.name.hi && q.includes(s.name.hi.toLowerCase())) nameScore += 15;
 
@@ -327,6 +371,9 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
     for (const [, kws] of Object.entries(KEYWORD_MAP)) {
       if (kws.some(kw => hasWord(q, kw) && nameTag.includes(kw))) rel += 3;
     }
+    let expHits = 0;
+    for (const w of expWords) if (nameTag.includes(w)) expHits++;
+    rel += Math.min(expHits * 3, 9);
     const words = augQ.split(/\s+/).filter(w => w.length > 3 && !STOP_WORDS.has(w));
     let wordHits = 0;
     for (const w of words) if (searchText.includes(w)) wordHits++;
@@ -347,6 +394,10 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
   // ── Helper: build official link ──────────────────────────────────────────────
   const getLink = (s) => schemeLink(s);
 
+  // ── Is THIS user eligible? (app's own rules with their answers) ─────────────
+  const ans = extras.answers || null;
+  const elig = (s) => (ans ? eligibilityLine(s, ans) : "");
+
   // ── FORMAT FUNCTIONS ─────────────────────────────────────────────────────────
   const formatFull = (s) => {
     const link = getLink(s);
@@ -362,8 +413,9 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
       (who ? `  Who can apply: ${String(who).replace(/\s+/g, " ").slice(0, 400)}\n` : "") +
       (status ? `  Status   : ${status}\n` : "") +
       `  Docs     : ${docs}\n` +
-      `  Apply    : ${s.applyType === "online" ? "Online" : `At office — ${s.apply?.[l] ?? s.apply?.en ?? "nearest government office"}`}` +
-      (link ? `\n  OFFICIAL_LINK: ${link}` : "")
+      `  Apply    : ${s.applyType === "online" ? "Online" : `At office — ${/^https?:|www\./i.test(s.apply?.[l] ?? "") ? "nearest government office" : (s.apply?.[l] ?? s.apply?.en ?? "nearest government office")}`}` +
+      (link ? `\n  OFFICIAL_LINK: ${link}` : "") +
+      (elig(s) ? `\n  ${elig(s)}` : "")
     );
   };
 
@@ -372,7 +424,8 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
     return (
       `• ${s.name[l]} [${s.scope === "state" ? s.state : "Central"}]\n` +
       `  ${s.benefit[l]}` +
-      (link ? `\n  OFFICIAL_LINK: ${link}` : "")
+      (link ? `\n  OFFICIAL_LINK: ${link}` : "") +
+      (elig(s) ? `\n  ${elig(s)}` : "")
     );
   };
 
@@ -386,7 +439,7 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
 
   // ── Follow-up about the previous answer ("documents for the first one") ──
   const lastReply = String(extras.lastReply || "");
-  const shortAsk = q.split(/\s+/).length <= 5 && !(scored.length && scored[0].score >= 3) &&
+  const shortAsk = q0.split(/\s+/).length <= 5 && !(scored.length && scored[0].score >= 3) &&
     /document|kagaz|apply|link|eligib|kaise|how|kab|when|deadline|last date|amount|kitna|paisa|benefit|labh|दस्तावेज़|आवेदन|कैसे|कब/.test(q);
   const isFollowUp = lastReply && (FOLLOWUP_RE.test(q) || shortAsk);
   const directHit = scored.some(x => x.nameScore >= 15); // a scheme named in the question itself
@@ -403,6 +456,19 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
         `The user is asking a follow-up about scheme(s) from YOUR PREVIOUS ANSWER (in the order you listed them: ${inLast.slice(0, 8).map((x, i) => `${i + 1}. ${x.name[l]}`).join("; ")}).\n` +
         `Answer about ${pick.length === 1 ? "this scheme" : "these schemes"}:\n\n` + pick.map(formatFull).join("\n\n")
       );
+    }
+  }
+
+  // ── "Which am I ALMOST eligible for?" / "what's stopping me?" ──────────────
+  const wantsNear = /almost|near.?miss|nearly|close to|missing|what.*(stop|block)|kya kami|kami hai|lagbhag|kis wajah|लगभग|कमी/.test(q0);
+  if (wantsNear && ans && !directHit) {
+    const ids = new Set((Array.isArray(extras.matched) ? extras.matched : []).map(x => x.id));
+    const nm = nearMisses(ans, ids, 6);
+    if (nm.length) {
+      return `SCHEMES THE USER ALMOST QUALIFIES FOR (computed by the app from their answers — ONE realistic change away; TRUST it):\n` +
+        nm.map((x, i) => `${i + 1}. **${x.scheme.name[l]}** [${x.scheme.scope === "state" ? x.scheme.state : "Central"}] — ${x.scheme.benefit[l]}\n   What's missing: ${x.line}` +
+          (schemeLink(x.scheme) ? `\n   OFFICIAL_LINK: ${schemeLink(x.scheme)}` : "")).join("\n") +
+        `\n\nFor each, say plainly what is missing and how they could get it (e.g. apply for a BPL ration card at the Food & Civil Supplies office or a CSC; an income certificate from the tehsil / e-district portal). Never suggest giving false information.`;
     }
   }
 
@@ -646,7 +712,8 @@ FORMATTING (follow strictly):
 - Show each scheme's OFFICIAL_LINK immediately below it as "🔗 https://..." on a new line
 - NEVER use plain bullet dots (•) for scheme lists — use numbers
 - COUNT RULE: If data has "YOUR FIRST LINE MUST BE EXACTLY THIS", use that sentence as your very first line — do NOT include the label itself. NEVER recount the list yourself — two schemes sharing the same website are still two separate schemes
-- NEVER hallucinate links — ONLY use links from OFFICIAL_LINK field in data below OR from web search results
+- NEVER hallucinate links — ONLY use links from the OFFICIAL_LINK field in the data below, or official government sites (.gov.in / .nic.in) from web search results
+- NEVER link to blogs, news sites, banks' marketing pages, NGOs or private companies — the app removes such links anyway. Name a news source in words if you used one.
 - NEVER show "${APP.url}" as a link — user is already in the app
 - If OFFICIAL_LINK is missing for a scheme: write "🔗 Apply at nearest govt. office"
 - Full detail (docs, annual, ministry) only when user asks for details/documents/how to apply
@@ -656,6 +723,10 @@ FORMATTING (follow strictly):
 ${chipsRule}
 
 - Never promise money or approval — say "you may be eligible" and that the final decision is the government office's.
+- ELIGIBILITY LINES: When the data has a "FOR THIS USER:" line, that is the app's own check with the user's answers — TRUST IT. If it says NOT ELIGIBLE, say so kindly, give the exact reason from that line, and say what would change it (e.g. a BPL card, an income certificate) — never suggest giving false information. If their real situation differs from what they entered, tell them to update their profile.
+- ACTIONS: If the user says they HAVE APPLIED / submitted the form for a specific scheme, add this line just before CHIPS (exact scheme name from the data):
+ACTION:applied:<scheme name>
+  The app then shows a button to track it. Don't mention this line.
 - If the user seems to be in distress or an emergency (no food, medical emergency, violence), give the relevant helpline first (112 emergency, 181 women helpline, 1098 child helpline, 14567 elder helpline) and then schemes.
 ${appsBlock}
 ══ RELEVANT SCHEME DATA FOR THIS QUERY ══
@@ -673,10 +744,11 @@ function parseResponse(raw) {
   }
 
   // Strip ALL CHIPS blocks globally — handles mid-reply leaks too
-  const reply = raw.replace(/\n?CHIPS:\s*\[[\s\S]*?\]/g, "").trim();
+  const actions = parseActions(raw);
+  const reply = cleanLinks(stripActions(raw.replace(/\n?CHIPS:\s*\[[\s\S]*?\]/g, "")).trim());
 
   followUps = [...new Set(followUps.filter(c => typeof c === "string" && c.trim()))].slice(0, 3);
-  return { reply, followUps };
+  return { reply, followUps, actions };
 }
 
 // ─── AI RESULTS BRIEF ────────────────────────────────────────────────────────
@@ -822,8 +894,27 @@ export function visibleStreamText(raw) {
   const i = t.search(/\n?CHIPS:/);
   if (i >= 0) t = t.slice(0, i);
   else t = t.replace(/\n?C(H(I(P(S)?)?)?)?$/, "");
-  return t;
+  t = stripActions(t).replace(/\n?A(C(T(I(O(N)?)?)?)?)?$/, "");
+  // Clean links on finished lines; hide a link that is still being written.
+  const nl = t.lastIndexOf("\n");
+  const done = nl >= 0 ? t.slice(0, nl + 1) : "";
+  const tail = (nl >= 0 ? t.slice(nl + 1) : t).replace(/\[[^\]\n]*\]\(https?:[^)\s]*$|https?:\/\/\S*$|www\.\S*$/, "");
+  return cleanLinks(done) + tail;
 }
+
+// ─── ACTIONS the AI can offer (shown as buttons) ─────────────────────────────
+// The model adds a line like  ACTION:applied:PM Kisan Samman Nidhi  when the
+// user says they've applied — the app shows "Add to My Applications".
+const ACTION_LINE = /^\s*ACTION:\s*([a-z_]+)\s*:?\s*(.*)$/gim;
+function parseActions(raw) {
+  const out = [];
+  for (const m of String(raw).matchAll(ACTION_LINE)) {
+    const type = m[1].toLowerCase(), arg = m[2].replace(/CHIPS:.*/, "").trim();
+    if (type === "applied" && arg) out.push({ type, name: arg.slice(0, 140) });
+  }
+  return out.slice(0, 3);
+}
+function stripActions(t) { return String(t).replace(/^\s*ACTION:.*$\n?/gim, ""); }
 
 // ─── STREAMING EXPORT ────────────────────────────────────────────────────────
 // Same request as sendMessage, but the answer arrives word by word.

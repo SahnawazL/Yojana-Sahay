@@ -10969,6 +10969,8 @@ function YojanaSahayInner(){
             profile={profile}
             matchedSchemes={allMatchedSchemes}
             onOpenDetail={setSelectedScheme}
+            eligAnswers={committedCheckerAnswers||profileAnswers||savedQuizAnswers}
+            onOpenChecker={handleViewChecker}
             uid={auth.currentUser.uid}
             key={auth.currentUser.uid}
           />
