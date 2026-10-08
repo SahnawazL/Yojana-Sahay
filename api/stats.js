@@ -67,6 +67,7 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { SCHEME_DB } from "../src/schemesData.js";
+import { vapidKeys } from "./_lib/vapid.js";
 
 const SCHEMES_META_PATH = "src/schemes-meta.json";
 
@@ -171,6 +172,13 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   if (req.method === "OPTIONS") {
     return res.status(204).end();
+  }
+
+  // Public half of the Web Push key pair (phone notifications). Safe to expose.
+  if (req.query?.action === "vapid") {
+    const k = vapidKeys();
+    res.setHeader("Cache-Control", "public, s-maxage=3600");
+    return k ? res.status(200).json({ publicKey: k.publicKey }) : res.status(503).json({ error: "push not configured" });
   }
 
   // Small CDN-level cache so a traffic spike doesn't hammer Firestore —

@@ -44,6 +44,16 @@ service cloud.firestore {
                             && request.resource.data.apps.size() <= 300;
     }
 
+    // Phone notifications — this user's browser push subscriptions (max 5
+    // devices). `sent` / `lastPushAt` are written by the server (admin SDK).
+    match /pushSubs/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+                            && request.resource.data.keys().hasOnly(['subs', 'lang', 'updatedAt', 'sent', 'lastPushAt'])
+                            && request.resource.data.subs is list
+                            && request.resource.data.subs.size() <= 5;
+    }
+
     match /reports/{reportId} {
       allow create: if request.auth != null
                     && request.resource.data.uid == request.auth.uid;

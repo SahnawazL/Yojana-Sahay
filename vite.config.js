@@ -40,6 +40,10 @@ export default defineConfig({
         // actual app shell instead of bloating it with pages nobody browses inside the PWA.
         globIgnores: ["schemes/**", "yojana/**"],
 
+        // Phone notifications: push + notificationclick handlers live in
+        // public/push-sw.js and are pulled into the generated worker.
+        importScripts: ["/push-sw.js"],
+
         // Apply updates immediately — no tab-close required.
         skipWaiting:  true,
         clientsClaim: true,

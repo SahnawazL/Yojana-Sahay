@@ -24,6 +24,7 @@ import { logApiCallToHistory }      from "./apiCallHistory.js";
 import { FieldValue }  from "firebase-admin/firestore";
 import nodemailer      from "nodemailer";
 import { SCHEME_DB }   from "../../src/schemesData.js";
+import { runPushReminders } from "./push.js";
 
 // ── Live fetch of schemes-meta.json from GitHub ─────────────────────────────
 // schemesData.js never has a `lastDate` field by hand — that field is written
@@ -231,6 +232,7 @@ function buildProfileAnswers(profile) {
     ...(profile.ration && profile.ration !== "none"                ? { rationCard: profile.ration }             : {}),
     ...(profile.disability ? { disability: profile.disability } : {}),
     ...(profile.gender     ? { gender: profile.gender }         : {}),
+    ...(Array.isArray(profile.groups) ? { groups: profile.groups } : {}),
   };
 }
 
@@ -571,8 +573,13 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
     { merge: true }
   );
 
+  // ── Phone notifications (Web Push) — at most one per subscribed user ──────
+  // Self-contained and never throws, so it can't break the e-mail alerts.
+  const push = await runPushReminders({ db, schemes: mergedSchemes, newSchemes, buildProfileAnswers, daysUntil });
+
   // ── Log this run to Firestore so the Admin Dashboard can show history ───────
   const runDoc = {
+    push,
     trigger,
     triggeredBy,
     runAt: FieldValue.serverTimestamp(),
@@ -602,6 +609,6 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
   return {
     runId: runRef.id, trigger, triggeredBy, checked, sent, announced, skipped,
     recipients, announcementRecipients, newSchemeIds, isFirstRegistryRun,
-    quotaUsed, quotaLimit: DAILY_EMAIL_LIMIT, quotaHit,
+    quotaUsed, quotaLimit: DAILY_EMAIL_LIMIT, quotaHit, push,
   };
 }

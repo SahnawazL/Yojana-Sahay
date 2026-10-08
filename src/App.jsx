@@ -17,6 +17,7 @@ import { benefitSummary, benefitKind, topBenefits } from "./benefitMath.js";
 import { nicheAudience, groupByAudience } from "./audience.js";
 import { useApplications, initApplications, mergeRemote, setRemoteWriter, trackApplication, updateApplication, snoozeApplication, removeApplication, isDueForCheck, daysSince, STATUS_TEXT, CHECK_AFTER_DAYS } from "./applications.js";
 import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamily, initFamily, saveMember, removeMember } from "./family.js";
+import { pushState, enablePush, disablePush } from "./push.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import {
   INDIA_STATES,
@@ -8033,6 +8034,76 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 // All function props passed to it must be stable (useCallback) for this to work.
 const ProfileTabMemo = memo(ProfileTab);
 
+// ─── PHONE NOTIFICATIONS CARD (home, signed-in users) ──────────────────────────
+// Web Push on/off. The daily cron sends at most one reminder a day (see
+// api/_lib/push.js); the subscription lives at pushSubs/{uid}.
+function PushNotifyCard({ uid, lang, dark }) {
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const L=(en,hi)=>lang==="hi"?hi:en;
+  const [state,setState]=useState(null);
+  const [busy,setBusy]=useState(false);
+  const [err,setErr]=useState("");
+  const [hidden,setHidden]=useState(()=>{try{return Date.now()-Number(localStorage.getItem("yojana_push_dismiss")||0)<30*86400000;}catch{return false;}});
+  useEffect(()=>{let live=true;pushState(uid).then(s=>{if(live)setState(s);});return()=>{live=false;};},[uid]);
+  if(!uid||!state||state==="unsupported") return null;
+  if(hidden&&state!=="on") return null;
+  const ref=doc(db,"pushSubs",uid);
+  const saveSub=async(sub)=>{
+    let subs=[];
+    try{const snap=await getDoc(ref);subs=(snap.exists()&&Array.isArray(snap.data().subs))?snap.data().subs:[];}catch{}
+    subs=[...subs.filter(s=>s?.endpoint!==sub.endpoint),sub].slice(-5);
+    await setDoc(ref,{subs,lang,updatedAt:serverTimestamp()},{merge:true});
+  };
+  const removeSub=async(endpoint)=>{
+    try{const snap=await getDoc(ref);if(!snap.exists())return;const subs=(snap.data().subs||[]).filter(s=>s?.endpoint!==endpoint);await setDoc(ref,{subs,updatedAt:serverTimestamp()},{merge:true});}catch{}
+  };
+  const dismiss=()=>{haptic();try{localStorage.setItem("yojana_push_dismiss",String(Date.now()));}catch{}setHidden(true);};
+  const turnOn=async()=>{
+    haptic();setBusy(true);setErr("");
+    try{await enablePush(uid,saveSub);setState("on");}
+    catch(e){
+      if(e?.code==="denied"){setState("denied");}
+      else setErr(L("Couldn't turn on notifications. Please try again.","नोटिफ़िकेशन चालू नहीं हो सके। फिर से कोशिश करें।"));
+    }finally{setBusy(false);}
+  };
+  const turnOff=async()=>{haptic();setBusy(true);try{await disablePush(uid,removeSub);}catch{}setState("off");setBusy(false);};
+
+  if(state==="on") return(
+    <div style={{display:"flex",alignItems:"center",gap:10,background:th.card,borderRadius:16,border:`1.5px solid ${th.border}`,padding:"11px 14px",marginBottom:14}}>
+      <span style={{fontSize:17}}>🔔</span>
+      <span style={{flex:1,fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf}}>{L("Phone reminders are on","फ़ोन रिमाइंडर चालू हैं")}</span>
+      <span onClick={busy?undefined:turnOff} style={{fontSize:11.5,fontWeight:700,color:th.textSub,cursor:"pointer",fontFamily:bf}}>{busy?"…":L("Turn off","बंद करें")}</span>
+    </div>
+  );
+  return(
+    <div style={{background:dark?"rgba(59,130,246,0.10)":"linear-gradient(135deg,#EFF6FF,#F5F3FF)",borderRadius:20,border:`1.5px solid ${dark?"rgba(147,197,253,0.3)":"#C7D2FE"}`,padding:16,marginBottom:14}}>
+      <div style={{display:"flex",gap:11,alignItems:"flex-start"}}>
+        <div style={{width:38,height:38,borderRadius:12,background:"linear-gradient(135deg,#2563EB,#7C3AED)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,boxShadow:"0 4px 12px rgba(37,99,235,0.3)"}}>🔔</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf}}>{L("Get reminders on your phone","फ़ोन पर रिमाइंडर पाएं")}</div>
+          <div style={{fontSize:11.5,color:th.textMid,marginTop:3,lineHeight:1.5,fontFamily:bf}}>
+            {state==="ios-install"
+              ?L("On iPhone, first add Yojana Sahay to your Home Screen (Share ⬆ → Add to Home Screen), then open it from there and turn reminders on.","iPhone पर पहले योजना सहाय को होम स्क्रीन पर जोड़ें (शेयर ⬆ → Add to Home Screen), फिर वहीं से खोलकर रिमाइंडर चालू करें।")
+              :state==="denied"
+                ?L("Notifications are blocked for this site. Allow them in your browser's site settings, then come back.","इस साइट के नोटिफ़िकेशन ब्लॉक हैं। ब्राउज़र की साइट सेटिंग में अनुमति दें, फिर वापस आएं।")
+                :L("Deadline closing soon, time to check your application, or a new scheme for you — at most one a day.","आवेदन की आख़िरी तारीख़, आवेदन की स्थिति जांचने का समय, या आपके लिए नई योजना — दिन में ज़्यादा से ज़्यादा एक।")}
+          </div>
+          {err&&<div style={{fontSize:11,color:"#B91C1C",marginTop:6,fontFamily:bf}}>{err}</div>}
+        </div>
+      </div>
+      <div style={{display:"flex",gap:8,marginTop:12}}>
+        <div onClick={dismiss} style={{flex:1,padding:11,borderRadius:12,border:`1.5px solid ${th.border3}`,textAlign:"center",fontSize:12.5,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>{L("Not now","अभी नहीं")}</div>
+        {state==="off"&&(
+          <div onClick={busy?undefined:turnOn} style={{flex:2,padding:11,borderRadius:12,background:"linear-gradient(135deg,#2563EB,#7C3AED)",textAlign:"center",fontSize:12.5,fontWeight:800,color:"#fff",cursor:"pointer",fontFamily:bf,boxShadow:"0 4px 14px rgba(37,99,235,0.3)",opacity:busy?0.7:1}}>
+            {busy?L("Turning on…","चालू हो रहा है…"):L("Turn on reminders","रिमाइंडर चालू करें")}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── FAMILY CARD (home) ────────────────────────────────────────────────────────
 // Add the people you live with; each gets their own scheme list. Household
 // schemes are counted once, personal ones per member (see family.js).
@@ -10416,6 +10487,9 @@ function YojanaSahayInner(){
 
             {/* My Applications — only once something has been marked "applied" */}
             <MyApplicationsCard lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
+
+            {/* Phone notifications — signed-in users only */}
+            {profile&&auth.currentUser&&<PushNotifyCard uid={auth.currentUser.uid} lang={lang} dark={dark}/>}
 
             {/* Benefit Calculator — shown when profile OR committed checker answers exist with annual benefits */}
             {(profile||committedCheckerAnswers)&&allMatchedSchemes.length>0&&(
