@@ -42,7 +42,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-export async function drawBenefitCard({ total, count, top = [], state, lang = "en" }) {
+export async function drawBenefitCard({ total, health = 0, oneTime = 0, count, top = [], state, lang = "en" }) {
   const hi = lang === "hi";
   const W = 1080, H = 1350;
   const c = document.createElement("canvas");
@@ -72,7 +72,7 @@ export async function drawBenefitCard({ total, count, top = [], state, lang = "e
   // Headline
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = font(700, 34);
-  ctx.fillText(hi ? "मेरी पात्र योजनाओं से संभावित सालाना लाभ" : "My possible yearly benefit from government schemes", 72, 290);
+  ctx.fillText(hi ? "सरकारी योजनाओं से मेरी संभावित सालाना सहायता" : "My possible yearly support from government schemes", 72, 290);
   ctx.fillStyle = "#FFD54A"; ctx.font = font(900, 168);
   ctx.shadowColor = "rgba(0,0,0,0.25)"; ctx.shadowBlur = 24;
   ctx.fillText(shortINR(total), 64, 470);
@@ -80,8 +80,14 @@ export async function drawBenefitCard({ total, count, top = [], state, lang = "e
   ctx.fillStyle = "#fff"; ctx.font = font(700, 40);
   ctx.fillText(hi ? `${count} योजनाएं${state ? ` · ${state}` : ""}` : `${count} scheme${count === 1 ? "" : "s"} I may qualify for${state ? ` · ${state}` : ""}`, 72, 545);
 
+  // Health cover / one-time help — shown separately, never added to the total
+  const extras = [];
+  if (health > 0) extras.push(hi ? `+ ${shortINR(health)} तक मुफ्त इलाज कवर` : `+ free health cover up to ${shortINR(health)}`);
+  if (oneTime > 0) extras.push(hi ? `+ ${shortINR(oneTime)} एकमुश्त सहायता` : `+ ${shortINR(oneTime)} one-time help`);
+  if (extras.length) { ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = font(600, 30); ctx.fillText(extras.join("   ·   "), 72, 595); }
+
   // Top schemes panel
-  const px = 56, py = 600, pw = W - 112, rowH = 88, rows = top.slice(0, 5);
+  const px = 56, py = extras.length ? 630 : 600, pw = W - 112, rowH = 84, rows = top.slice(0, 5);
   const ph = 90 + rows.length * rowH;
   ctx.fillStyle = "rgba(255,255,255,0.12)"; roundRect(ctx, px, py, pw, ph, 36); ctx.fill();
   ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 2; ctx.stroke();
@@ -93,7 +99,8 @@ export async function drawBenefitCard({ total, count, top = [], state, lang = "e
     ctx.fillStyle = "#fff"; ctx.font = font(700, 36);
     ctx.fillText(fitText(ctx, s.name, pw - 330), px + 40, y + 57);
     ctx.fillStyle = "#FFD54A"; ctx.font = font(800, 38); ctx.textAlign = "right";
-    ctx.fillText(`${shortINR(s.annual)}${hi ? "/वर्ष" : "/yr"}`, px + pw - 40, y + 57);
+    const sfx = s.kind === "health" ? (hi ? " कवर" : " cover") : s.kind === "oneTime" ? (hi ? " एकमुश्त" : " once") : (hi ? "/वर्ष" : "/yr");
+    ctx.fillText(`${shortINR(s.annual)}${sfx}`, px + pw - 40, y + 57);
     ctx.textAlign = "left";
   });
 
@@ -114,8 +121,8 @@ export async function drawBenefitCard({ total, count, top = [], state, lang = "e
 export async function shareBenefitCard(opts) {
   const hi = opts.lang === "hi";
   const text = hi
-    ? `मैं सरकारी योजनाओं से हर साल ${shortINR(opts.total)} तक पा सकता/सकती हूं (${opts.count} योजनाएं)। आप भी मुफ्त में जांचें: ${SITE}`
-    : `I may be eligible for up to ${shortINR(opts.total)} a year from ${opts.count} government schemes. Check yours free: ${SITE}`;
+    ? `मैं ${opts.count} सरकारी योजनाओं से हर साल लगभग ${shortINR(opts.total)} की सहायता पा सकता/सकती हूं${opts.health ? ` + ${shortINR(opts.health)} तक मुफ्त इलाज` : ""}। आप भी मुफ्त में जांचें: ${SITE}`
+    : `I may get about ${shortINR(opts.total)} a year in support from ${opts.count} government schemes${opts.health ? ` + free health cover up to ${shortINR(opts.health)}` : ""}. Check yours free: ${SITE}`;
   try {
     const canvas = await drawBenefitCard(opts);
     const blob = await new Promise(r => canvas.toBlob(r, "image/png"));

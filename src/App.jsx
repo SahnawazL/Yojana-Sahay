@@ -13,6 +13,8 @@
 
 import { whoCanApply } from "./eligibilityText.js";
 import { shareBenefitCard, shortINR } from "./shareCard.js";
+import { benefitSummary, benefitKind, topBenefits } from "./benefitMath.js";
+import { nicheAudience, groupByAudience } from "./audience.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import {
   INDIA_STATES,
@@ -363,7 +365,14 @@ function buildProfileAnswers(profile){
 const SCHEME_BY_ID=new Map(SCHEME_DB.map(s=>[s.id,s]));
 // Distinct schemes (duplicate listings don't count twice in the numbers we show).
 const UNIQUE_SCHEME_COUNT=SCHEME_DB.filter(s=>!s.duplicateOf).length;
+// Main results leave out schemes for special groups (govt employees, athletes,
+// construction workers…) — the quiz can't know those, so they're listed in
+// their own "if this applies to you" section instead of inflating the totals.
 function safeMatch(scheme,answers){
+  if(nicheAudience(scheme)) return false;
+  return safeMatchAny(scheme,answers);
+}
+function safeMatchAny(scheme,answers){
   try{
     if(scheme.duplicateOf){
       const main=SCHEME_BY_ID.get(scheme.duplicateOf);
@@ -3914,7 +3923,12 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     }).length;
   },[queue,prefilledAnswers]);
   const filteredStates=useMemo(()=>INDIA_STATES.filter(s=>s.toLowerCase().includes(stateSearch.toLowerCase())),[stateSearch]);
-  const totalAnnual=useMemo(()=>results.reduce((s,r)=>s+(r.annual||0),0),[results]);
+  // Honest totals: yearly support (summed sensibly), health cover (largest),
+  // one-time help (summed, one house) — never mixed together.
+  const benefit=useMemo(()=>benefitSummary(results),[results]);
+  const totalAnnual=benefit.yearly;
+  const nicheGroups=useMemo(()=>step===TOTAL?groupByAudience(SCHEME_DB.filter(s=>nicheAudience(s)&&safeMatchAny(s,answers))):[],[step,TOTAL,answers]);
+  const [openNiche,setOpenNiche]=useState(null);
   const nationalResults=useMemo(()=>results.filter(r=>r.scope==="national").sort((a,b)=>(b.annual||0)-(a.annual||0)),[results]);
   const stateResults=useMemo(()=>results.filter(r=>r.scope==="state").sort((a,b)=>(b.annual||0)-(a.annual||0)),[results]);
   const matchedIds=useMemo(()=>new Set(results.map(r=>r.id)),[results]);
@@ -4589,7 +4603,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       animation:"celebrate-amount-pop 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.32s both",
                     }}>
                       <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.68)",letterSpacing:1.6,textTransform:"uppercase",fontFamily:bf,marginBottom:6}}>
-                        {isHindi?"कुल अनुमानित सालाना लाभ":"Total Estimated Annual Benefit"}
+                        {isHindi?"अनुमानित सालाना सहायता":"Estimated Yearly Support"}
                       </div>
                       <div style={{
                         fontSize:42,fontWeight:900,color:"#FFD700",fontFamily:bf,lineHeight:1,
@@ -4603,16 +4617,24 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       <div style={{fontSize:11.5,color:"rgba(255,255,255,0.72)",marginTop:5,fontFamily:bf,fontWeight:500}}>
                         {isHindi?"*अनुमानित — सभी योजनाओं में आवेदन व मंज़ूरी पर निर्भर":"*Estimated — if you apply & get approved for all matched schemes"}
                       </div>
-                      {/* Where the total comes from — top 3 by yearly value */}
+                      {/* Health cover and one-time help — shown separately, never added in */}
+                      {(benefit.health>0||benefit.oneTime>0)&&(
+                        <div style={{marginTop:8,display:"flex",flexWrap:"wrap",justifyContent:"center",gap:6}}>
+                          {benefit.health>0&&<span style={{fontSize:11.5,fontWeight:700,color:"#fff",background:"rgba(255,255,255,0.14)",borderRadius:20,padding:"4px 10px",fontFamily:bf}}>🏥 {isHindi?`+ ${shortINR(benefit.health)} तक मुफ्त इलाज कवर`:`+ Free health cover up to ${shortINR(benefit.health)}`}</span>}
+                          {benefit.oneTime>0&&<span style={{fontSize:11.5,fontWeight:700,color:"#fff",background:"rgba(255,255,255,0.14)",borderRadius:20,padding:"4px 10px",fontFamily:bf}}>🏠 {isHindi?`+ ${shortINR(benefit.oneTime)} एकमुश्त सहायता`:`+ ${shortINR(benefit.oneTime)} one-time help`}</span>}
+                        </div>
+                      )}
+                      {/* Where the yearly figure comes from */}
                       {(()=>{
-                        const top=[...results].filter(r=>r.annual>0).sort((a,b)=>b.annual-a.annual).slice(0,3);
+                        const top=topBenefits(results,3);
                         if(top.length<2) return null;
+                        const sfx=k=>k==="yearly"?(isHindi?"/वर्ष":"/yr"):k==="health"?(isHindi?" कवर":" cover"):(isHindi?" एकमुश्त":" once");
                         return (
                           <div style={{marginTop:10,display:"flex",flexDirection:"column",gap:4,textAlign:"left"}}>
-                            {top.map(r=>(
+                            {top.map(({s:r,kind})=>(
                               <div key={r.id} style={{display:"flex",justifyContent:"space-between",gap:10,fontSize:11.5,color:"rgba(255,255,255,0.88)",fontFamily:bf}}>
                                 <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.icon} {r.name[lang]}</span>
-                                <span style={{fontWeight:800,color:"#FFE58A",flexShrink:0}}>{shortINR(r.annual)}{isHindi?"/वर्ष":"/yr"}</span>
+                                <span style={{fontWeight:800,color:"#FFE58A",flexShrink:0}}>{shortINR(r.annual)}{sfx(kind)}</span>
                               </div>
                             ))}
                           </div>
@@ -4644,8 +4666,8 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                     <button
                       onClick={()=>{
                         haptic();
-                        const top=[...results].filter(r=>r.annual>0).sort((a,b)=>b.annual-a.annual).slice(0,5).map(r=>({name:r.name[lang],annual:r.annual}));
-                        shareBenefitCard({total:totalAnnual,count:results.length,top,state:answers.state,lang});
+                        const top=topBenefits(results,5).map(({s:r,kind})=>({name:r.name[lang],annual:r.annual,kind}));
+                        shareBenefitCard({total:benefit.yearly,health:benefit.health,oneTime:benefit.oneTime,count:results.length,top,state:answers.state,lang});
                       }}
                       style={{
                         marginTop:12,width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:8,
@@ -4927,6 +4949,38 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       />
                     )}
                   </>
+                )}
+
+                {/* ── SPECIAL GROUPS — schemes that depend on something the quiz doesn't ask ── */}
+                {nicheGroups.length>0&&(
+                  <div style={{marginTop:22}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                      <div style={{height:1,flex:1,background:th.border2}}/>
+                      <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",background:dark?"rgba(59,130,246,0.12)":"#EFF6FF",borderRadius:20,padding:"3px 10px",border:"1px solid #BFDBFE",fontFamily:bf}}>
+                        {isHindi?"यह भी देखें — अगर आप पर लागू हो 👥":"Also check — if this applies to you 👥"}
+                      </span>
+                      <div style={{height:1,flex:1,background:th.border2}}/>
+                    </div>
+                    <div style={{fontSize:12,color:th.textSub,marginBottom:10,lineHeight:1.5,fontFamily:bf}}>
+                      {isHindi?"ये योजनाएं खास समूहों के लिए हैं। ये ऊपर की गिनती और कुल राशि में शामिल नहीं हैं।":"These schemes are for specific groups, so they're not counted in your total above."}
+                    </div>
+                    {nicheGroups.map(({audience,schemes})=>(
+                      <div key={audience.key} style={{marginBottom:8,border:`1px solid ${th.border}`,borderRadius:12,overflow:"hidden",background:th.card}}>
+                        <div onClick={()=>{haptic();setOpenNiche(openNiche===audience.key?null:audience.key);}}
+                          style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"11px 13px",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+                          <span style={{fontSize:13,fontWeight:700,color:th.text,fontFamily:bf}}>{isHindi?audience.hi:audience.en}</span>
+                          <span style={{fontSize:11,fontWeight:800,color:"#1D4ED8",flexShrink:0}}>{schemes.length} {openNiche===audience.key?"▲":"▼"}</span>
+                        </div>
+                        {openNiche===audience.key&&(
+                          <div style={{padding:"0 8px 8px"}}>
+                            {schemes.map(s=>(
+                              <SchemeCard key={s.id} scheme={s} lang={lang} dark={dark} expanded={expandedId===s.id} onToggle={()=>setExpandedId(expandedId===s.id?null:s.id)} onOpenDetail={onOpenDetail}/>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {/* ── NEAR-MISS SECTION ── */}
@@ -7720,8 +7774,8 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
     [allMatchedSchemes]
   );
   const totalAnnual = useMemo(
-    () => schemesWithBenefit.reduce((sum, s) => sum + s.annual, 0),
-    [schemesWithBenefit]
+    () => benefitSummary(allMatchedSchemes).yearly, // honest yearly figure (see benefitMath.js)
+    [allMatchedSchemes]
   );
 
   const [animTotal] = useCountUp([totalAnnual], revealed, 2200);

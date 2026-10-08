@@ -825,7 +825,7 @@ export const KARNATAKA_SCHEMES = [
     apply:   { en: "labour.karnataka.gov.in", hi: "labour.karnataka.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card (child)", "Parent/Guardian Aadhaar", "Rescue Certificate from Labour Dept.", "Bank Account (guardian)"],
                hi: ["आधार कार्ड (बच्चा)", "माता-पिता/अभिभावक आधार", "श्रम विभाग का बचाव प्रमाण", "बैंक खाता (अभिभावक)"] },
-    match: (a) => a.state === "Karnataka" && ["below1", "1to3"].includes(a.income),
+    match: (a) => a.state === "Karnataka" && a.age === "below18" && ["below1", "1to3"].includes(a.income),
   },
 
   // ── EX-SERVICEMEN ─────────────────────────────────────────────────────────

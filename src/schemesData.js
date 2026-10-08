@@ -1454,7 +1454,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड (या UGC-छूट श्रेणी)","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: SC student admitted to M.Phil/PhD in UGC-recognised university; no income restriction
     keywords: ["class12"],
-    match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age),
+    match: (a) => a.who === "student" && a.caste === "sc" && (a.educationLevel == null || a.educationLevel === "postgrad") && ["18to35","35to60"].includes(a.age),
   },
 
   {
@@ -1471,7 +1471,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","OBC (गैर-क्रीमी लेयर) प्रमाण पत्र","M.Phil/PhD प्रवेश पत्र","NET/JRF स्कोर कार्ड","आय प्रमाण (परिवार आय ≤₹8 लाख/वर्ष)","बैंक खाता (आधार लिंक)"] },
     // Eligibility: OBC (non-creamy layer) student admitted to M.Phil/PhD, income ≤ ₹8L
     keywords: ["class12"],
-    match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => a.who === "student" && a.caste === "obc" && (a.educationLevel == null || a.educationLevel === "postgrad") && ["18to35","35to60"].includes(a.age) && ["below1","1to3","3to6"].includes(a.income),
   },
 
   {
@@ -1835,7 +1835,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","जाति प्रमाण पत्र (SC/ST/DNT)","विदेशी विश्वविद्यालय प्रवेश पत्र","आय प्रमाण पत्र","पासपोर्ट","बैंक पासबुक"] },
     // Eligibility: SC/ST/DNT student, family income within cap, admitted abroad
     keywords: ["class12"],
-    match: (a) => a.who === "student" && ["below1","1to3","3to6"].includes(a.income),
+    match: (a) => a.who === "student" && ["sc","st"].includes(a.caste) && (a.educationLevel == null || ["undergrad","postgrad"].includes(a.educationLevel)) && ["below1","1to3","3to6"].includes(a.income),
   },
 
   {
@@ -1852,7 +1852,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","ST जाति प्रमाण पत्र","PG मार्कशीट","M.Phil/PhD पंजीकरण प्रमाण","बैंक खाता"] },
     // Eligibility: ST student registered for M.Phil/PhD
     keywords: ["class12"],
-    match: (a) => a.who === "student" && ["18to35","35to60"].includes(a.age),
+    match: (a) => a.who === "student" && a.caste === "st" && (a.educationLevel == null || a.educationLevel === "postgrad") && ["18to35","35to60"].includes(a.age),
   },
 
   {
@@ -1869,7 +1869,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","एकल बालिका शपथ पत्र","PG प्रवेश प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: single girl child admitted to 1st year full-time PG course
     keywords: ["class12"],
-    match: (a) => (a.gender == null || a.gender === "female") && (a.who === "student" || a.who === "women"),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.who === "student" && (a.educationLevel == null || a.educationLevel === "postgrad")),
   },
 
   {
@@ -2005,7 +2005,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","दिव्यांगता प्रमाण पत्र (≥40%)","PG मार्कशीट","M.Phil/PhD पंजीकरण प्रमाण","बैंक खाता"] },
     // Eligibility: student with ≥40% disability registered for M.Phil/PhD
     keywords: ["class12"],
-    match: (a) => (a.disability == null || a.disability !== "none") && (a.who === "student" && ["18to35","35to60"].includes(a.age)),
+    match: (a) => (a.disability == null || a.disability !== "none") && (a.who === "student" && (a.educationLevel == null || a.educationLevel === "postgrad") && ["18to35","35to60"].includes(a.age)),
   },
 
   {
