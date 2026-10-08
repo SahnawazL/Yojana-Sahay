@@ -16,6 +16,7 @@ import { shareBenefitCard, shortINR } from "./shareCard.js";
 import { benefitSummary, benefitKind, topBenefits } from "./benefitMath.js";
 import { nicheAudience, groupByAudience } from "./audience.js";
 import { useApplications, initApplications, mergeRemote, setRemoteWriter, trackApplication, updateApplication, snoozeApplication, removeApplication, isDueForCheck, daysSince, STATUS_TEXT, CHECK_AFTER_DAYS } from "./applications.js";
+import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamily, initFamily, saveMember, removeMember } from "./family.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import {
   INDIA_STATES,
@@ -8032,6 +8033,151 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 // All function props passed to it must be stable (useCallback) for this to work.
 const ProfileTabMemo = memo(ProfileTab);
 
+// ─── FAMILY CARD (home) ────────────────────────────────────────────────────────
+// Add the people you live with; each gets their own scheme list. Household
+// schemes are counted once, personal ones per member (see family.js).
+function FamilyCard({ baseAnswers, selfSchemes, lang, dark, onSchemeOpen }) {
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const L=(en,hi)=>isHindi?hi:en;
+  const members=useFamily();
+  const [form,setForm]=useState(null);
+  const [open,setOpen]=useState(null);
+  const res=useMemo(()=>familyResults(baseAnswers||{},members,selfSchemes||[],safeMatch,SCHEME_DB),[baseAnswers,members,selfSchemes]);
+  const selfYearly=useMemo(()=>benefitSummary(selfSchemes||[]).yearly,[selfSchemes]);
+
+  const Chip=({on,onClick,children})=>(
+    <div onClick={()=>{haptic();onClick();}} style={{fontSize:12,fontWeight:on?800:600,padding:"7px 11px",borderRadius:20,cursor:"pointer",fontFamily:bf,
+      border:`1.5px solid ${on?"#FF9933":th.border}`,color:on?"#C2410C":th.textMid,background:on?th.optionActive:"transparent",whiteSpace:"nowrap"}}>{children}</div>
+  );
+  const Row=({label,children})=>(
+    <div style={{marginBottom:12}}>
+      <div style={{fontSize:10.5,fontWeight:800,color:th.textSub,letterSpacing:0.3,marginBottom:6,fontFamily:bf}}>{label}</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{children}</div>
+    </div>
+  );
+  const AGES=[["below18",L("Below 18","18 से कम")],["18to35","18–35"],["35to60","35–60"],["above60",L("60+","60+")]];
+  const EDU=[["class1to8",L("Class 1–8","कक्षा 1–8")],["class9to12",L("Class 9–12","कक्षा 9–12")],["undergrad",L("Graduation","स्नातक")],["postgrad",L("Post-grad","स्नातकोत्तर")]];
+  const relName=m=>m.name?.trim()||(isHindi?REL_BY_KEY[m.relation]?.hi:REL_BY_KEY[m.relation]?.en)||"";
+
+  if(form){
+    const rel=REL_BY_KEY[form.relation];
+    const gender=rel?.gender||form.gender||null;
+    const who=form.who||(form.age?defaultWho({age:form.age,gender}):null);
+    const WHO=[["student",L("Student 📚","विद्यार्थी 📚")],["farmer",L("Farmer 🌾","किसान 🌾")],...(gender==="female"?[["women",L("Homemaker 🏠","गृहिणी 🏠")]]:[]),...(form.age==="above60"?[["senior",L("Senior 👴","वरिष्ठ 👴")]]:[]),["business",L("Business 💼","व्यवसाय 💼")],["general",L("Working / other","नौकरी / अन्य")]];
+    const ok=form.relation&&form.age&&(rel?.gender||form.gender);
+    return(
+      <div style={{background:th.card,borderRadius:20,border:"1.5px solid #FF993355",padding:16,marginBottom:14}}>
+        <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf,marginBottom:12}}>{form.id?L("Edit family member","सदस्य बदलें"):L("Add a family member","परिवार का सदस्य जोड़ें")}</div>
+        <Row label={L("RELATION","रिश्ता")}>
+          {RELATIONS.map(r=><Chip key={r.key} on={form.relation===r.key} onClick={()=>setForm(f=>({...f,relation:r.key,gender:r.gender||f.gender,age:f.age||(r.key==="mother"||r.key==="father"?"above60":r.adult?"35to60":undefined),who:undefined}))}>{r.icon} {isHindi?r.hi:r.en}</Chip>)}
+        </Row>
+        <div style={{marginBottom:12}}>
+          <div style={{fontSize:10.5,fontWeight:800,color:th.textSub,letterSpacing:0.3,marginBottom:6,fontFamily:bf}}>{L("NAME (OPTIONAL)","नाम (वैकल्पिक)")}</div>
+          <input value={form.name||""} maxLength={30} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder={L("e.g. Priya","जैसे प्रिया")}
+            style={{width:"100%",boxSizing:"border-box",padding:"10px 12px",borderRadius:11,border:`1.5px solid ${th.border}`,background:th.inputBg,color:th.text,fontSize:14,fontFamily:bf,outline:"none"}}/>
+        </div>
+        {form.relation==="other"&&(
+          <Row label={L("GENDER","लिंग")}>
+            {[["female",L("Female","महिला")],["male",L("Male","पुरुष")],["other",L("Other","अन्य")]].map(([v,l])=><Chip key={v} on={form.gender===v} onClick={()=>setForm(f=>({...f,gender:v,who:undefined}))}>{l}</Chip>)}
+          </Row>
+        )}
+        <Row label={L("AGE","उम्र")}>
+          {AGES.map(([v,l])=><Chip key={v} on={form.age===v} onClick={()=>setForm(f=>({...f,age:v,who:undefined}))}>{l}</Chip>)}
+        </Row>
+        {form.age&&(
+          <Row label={L("WHAT THEY DO","क्या करते हैं")}>
+            {WHO.map(([v,l])=><Chip key={v} on={who===v} onClick={()=>setForm(f=>({...f,who:v}))}>{l}</Chip>)}
+          </Row>
+        )}
+        {who==="student"&&(
+          <Row label={L("STUDYING IN","पढ़ाई")}>
+            {EDU.map(([v,l])=><Chip key={v} on={form.educationLevel===v} onClick={()=>setForm(f=>({...f,educationLevel:v}))}>{l}</Chip>)}
+          </Row>
+        )}
+        <Row label={L("DISABILITY","दिव्यांगता")}>
+          <Chip on={form.disability!=="yes"} onClick={()=>setForm(f=>({...f,disability:"none"}))}>{L("No","नहीं")}</Chip>
+          <Chip on={form.disability==="yes"} onClick={()=>setForm(f=>({...f,disability:"yes"}))}>{L("Yes ♿","हाँ ♿")}</Chip>
+        </Row>
+        <div style={{fontSize:10.5,color:th.textSub,fontFamily:bf,marginBottom:10}}>🔒 {L("Saved only on this phone. State, income, category and house are taken from your own answers.","केवल इस फ़ोन पर सेव। राज्य, आय, वर्ग और घर आपके अपने जवाबों से लिए जाते हैं।")}</div>
+        <div style={{display:"flex",gap:8}}>
+          <div onClick={()=>{haptic();setForm(null);}} style={{flex:1,padding:12,borderRadius:12,border:`1.5px solid ${th.border3}`,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>{L("Cancel","रद्द करें")}</div>
+          <div onClick={()=>{if(!ok)return;haptic();saveMember({id:form.id,relation:form.relation,name:(form.name||"").trim(),age:form.age,gender:gender,who,educationLevel:who==="student"?form.educationLevel:undefined,disability:form.disability==="yes"?"yes":"none"});setForm(null);}}
+            style={{flex:2,padding:12,borderRadius:12,background:ok?"linear-gradient(135deg,#FF9933,#FF8C00)":"#d6d3d1",textAlign:"center",fontSize:13,fontWeight:800,color:"#fff",cursor:ok?"pointer":"default",fontFamily:bf}}>
+            {L("Save & find schemes","सेव करें और योजनाएं देखें")}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return(
+    <div style={{background:th.card,borderRadius:20,border:`1.5px solid ${th.border}`,padding:16,marginBottom:14,boxShadow:dark?"none":"0 4px 18px rgba(0,0,0,0.05)"}}>
+      <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:members.length?12:10}}>
+        <div style={{width:38,height:38,borderRadius:12,background:"linear-gradient(135deg,#7C3AED,#A855F7)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,boxShadow:"0 4px 12px rgba(124,58,237,0.3)"}}>👨‍👩‍👧</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf}}>{L("Family Benefits","परिवार के लाभ")}</div>
+          <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf,lineHeight:1.4}}>
+            {members.length
+              ?L(`Whole family: about ${shortINR(res.familyYearly)} a year · ${res.familyCount} schemes`,`पूरा परिवार: लगभग ${shortINR(res.familyYearly)} सालाना · ${res.familyCount} योजनाएं`)
+              :L("Add the people you live with — we'll find schemes for each of them","अपने परिवार के सदस्य जोड़ें — हम हर एक के लिए योजनाएं खोजेंगे")}
+          </div>
+        </div>
+      </div>
+      {members.length>0&&(
+        <div style={{display:"flex",flexDirection:"column",marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,padding:"9px 2px"}}>
+            <div style={{fontSize:20,width:28,textAlign:"center"}}>🙋</div>
+            <div style={{flex:1,fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf}}>{L("You","आप")}</div>
+            <div style={{fontSize:11.5,color:th.textMid,fontFamily:bf}}>{selfSchemes.length} {L("schemes","योजनाएं")} · <b style={{color:"#138808"}}>{shortINR(selfYearly)}{L("/yr","/वर्ष")}</b></div>
+          </div>
+          {res.members.map(({member:m,schemes,benefit})=>{
+            const isOpen=open===m.id;
+            return(
+              <div key={m.id} style={{borderTop:`1px solid ${th.divider}`}}>
+                <div onClick={()=>{haptic();setOpen(isOpen?null:m.id);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 2px",cursor:"pointer"}}>
+                  <div style={{fontSize:20,width:28,textAlign:"center"}}>{REL_BY_KEY[m.relation]?.icon||"🧑"}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:12.5,fontWeight:700,color:th.text,fontFamily:bf,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{relName(m)}{m.name?.trim()?<span style={{color:th.textSub,fontWeight:500}}> · {isHindi?REL_BY_KEY[m.relation]?.hi:REL_BY_KEY[m.relation]?.en}</span>:null}</div>
+                  </div>
+                  <div style={{fontSize:11.5,color:th.textMid,fontFamily:bf,flexShrink:0}}>{schemes.length} {L("schemes","योजनाएं")}{benefit.yearly>0&&<> · <b style={{color:"#138808"}}>{shortINR(benefit.yearly)}{L("/yr","/वर्ष")}</b></>}</div>
+                  <span style={{fontSize:14,color:th.textSub,transform:isOpen?"rotate(90deg)":"none",transition:"transform 0.2s",flexShrink:0}}>›</span>
+                </div>
+                {isOpen&&(
+                  <div style={{padding:"0 2px 10px 38px"}}>
+                    {schemes.length===0&&<div style={{fontSize:11.5,color:th.textSub,fontFamily:bf,padding:"4px 0 8px"}}>{L("No extra schemes found for this member — the household ones are already counted under you.","इस सदस्य के लिए कोई अतिरिक्त योजना नहीं — घर की योजनाएं आपके नाम में गिनी गई हैं।")}</div>}
+                    {schemes.slice(0,8).map(s=>(
+                      <div key={s.id} onClick={()=>{haptic();onSchemeOpen?.(s.id);}} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",cursor:"pointer"}}>
+                        <span style={{fontSize:15,flexShrink:0}}>{s.icon}</span>
+                        <span style={{flex:1,minWidth:0,fontSize:12,color:th.text,fontFamily:bf,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.name[lang]}</span>
+                        {s.annual>0&&<span style={{fontSize:11,fontWeight:700,color:th.textMid,flexShrink:0}}>{shortINR(s.annual)}</span>}
+                      </div>
+                    ))}
+                    {schemes.length>8&&<div style={{fontSize:11,color:th.textSub,fontFamily:bf,paddingTop:2}}>+{schemes.length-8} {L("more","और")}</div>}
+                    <div style={{display:"flex",gap:16,marginTop:8}}>
+                      <span onClick={()=>{haptic();setForm({...m});}} style={{fontSize:11.5,fontWeight:700,color:"#C2410C",cursor:"pointer",fontFamily:bf}}>✏️ {L("Edit","बदलें")}</span>
+                      <span onClick={()=>{haptic();if(window.confirm(L(`Remove ${relName(m)}?`,`${relName(m)} को हटाएं?`))){removeMember(m.id);setOpen(null);}}} style={{fontSize:11.5,fontWeight:600,color:th.textSub,cursor:"pointer",fontFamily:bf}}>{L("Remove","हटाएं")}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {members.length<MAX_MEMBERS&&(
+        <div onClick={()=>{haptic();setForm({disability:"none"});}}
+          style={{display:"flex",alignItems:"center",justifyContent:"center",gap:7,padding:"11px 12px",borderRadius:13,border:"1.5px dashed #A855F7",background:dark?"rgba(168,85,247,0.08)":"#FAF5FF",cursor:"pointer"}}>
+          <span style={{fontSize:15,color:"#7C3AED",fontWeight:800}}>＋</span>
+          <span style={{fontSize:12.5,fontWeight:800,color:dark?"#C4B5FD":"#6D28D9",fontFamily:bf}}>{L("Add family member","परिवार का सदस्य जोड़ें")}</span>
+        </div>
+      )}
+      {members.length>0&&<div style={{fontSize:10,color:th.textSub,textAlign:"center",marginTop:8,fontFamily:bf}}>{L("*Estimate. House, ration & family health schemes are counted once.","*अनुमान। घर, राशन और परिवार स्वास्थ्य योजनाएं एक ही बार गिनी गई हैं।")}</div>}
+    </div>
+  );
+}
+
 // ─── MY APPLICATIONS CARD (home) ───────────────────────────────────────────────
 // Every scheme the person marked "I've applied", with status. Pending ones
 // older than 30 days float to the top with a "time to check" reminder.
@@ -9613,6 +9759,7 @@ function YojanaSahayInner(){
       // "My applications" — switch to this account's list, then merge the copy
       // kept in Firestore (its own doc, so profile saves never overwrite it).
       initApplications(user?.uid||null);
+      initFamily(user?.uid||null);
       if(user){
         setRemoteWriter((uid,apps)=>setDoc(doc(db,"userApplications",uid),{apps,updatedAt:serverTimestamp()}).catch(()=>{}));
         getDoc(doc(db,"userApplications",user.uid)).then(snap=>mergeRemote(snap.exists()?snap.data()?.apps:{})).catch(()=>{});
@@ -10273,6 +10420,11 @@ function YojanaSahayInner(){
             {/* Benefit Calculator — shown when profile OR committed checker answers exist with annual benefits */}
             {(profile||committedCheckerAnswers)&&allMatchedSchemes.length>0&&(
               <BenefitCalculatorCard key={checkerRunId} allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
+            )}
+
+            {/* Family mode — schemes for everyone in the household */}
+            {(profileAnswers||committedCheckerAnswers)&&(
+              <FamilyCard baseAnswers={committedCheckerAnswers||profileAnswers} selfSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
             )}
 
             {/* Document Vault — auto-generated checklist from matched schemes */}

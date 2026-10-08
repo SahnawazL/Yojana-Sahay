@@ -735,7 +735,7 @@ export const SCHEME_DB = [
     // Eligibility: unmarried SC/ST girl (or any-caste KGBV Class 8 pass) enrolled in Class 9 at a govt/govt-aided/local-body
     // school, age ≤16 at enrollment. No income ceiling. Excludes private-unaided and central govt schools (KV/NV/CBSE).
     keywords: ["class10"],
-    match: (a) => (a.gender == null || a.gender === "female") && (a.who === "student" || a.who === "women"),
+    match: (a) => (a.gender == null || a.gender === "female") && (a.who === "student" || a.who === "women") && (a.educationLevel == null || a.educationLevel === "class9to12"),
   },
 
   {
@@ -1700,7 +1700,7 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","आय प्रमाण (पारिवारिक आय ≤₹8 लाख/वर्ष)","AICTE संस्था प्रवेश पत्र","कक्षा 10 और 12 की मार्कशीट","बैंक खाता (आधार लिंक)","पासपोर्ट फोटो"] },
     // Eligibility: girl student in AICTE-approved technical diploma/degree, family income ≤ ₹8L
     keywords: ["class10","class12","polytechnic","diploma"],
-    match: (a) => (a.gender == null || a.gender === "female") && ((a.who === "women" || a.who === "student") && ["below1","1to3","3to6"].includes(a.income)),
+    match: (a) => (a.gender == null || a.gender === "female") && ((a.who === "women" || a.who === "student") && ["below1","1to3","3to6"].includes(a.income)) && (a.educationLevel == null || a.educationLevel === "undergrad"),
   },
 
   {
@@ -1920,7 +1920,8 @@ export const SCHEME_DB = [
                hi: ["आधार कार्ड","पूर्व सैनिक/CAPF पहचान प्रमाण","कक्षा 12 मार्कशीट (60%+)","प्रवेश प्रमाण","बैंक खाता"] },
     // Eligibility: ward/widow of Ex-Servicemen/CAPF, 60%+ in Class 12, in professional degree
     keywords: ["class12"],
-    match: (a) => a.who === "student",
+    audience: "defence", // only for wards / widows of ex-servicemen
+    match: (a) => a.who === "student" && (a.educationLevel == null || ["undergrad","postgrad"].includes(a.educationLevel)),
   },
 
   {
