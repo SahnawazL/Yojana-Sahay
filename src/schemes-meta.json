@@ -1742,7 +1742,7 @@
     "confidence": 0
   },
   "karnataka_krishi_bhagya": {
-    "lastVerified": "2026-10-07T11:08:40.221Z",
+    "lastVerified": "2026-10-08T00:39:55.331Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1754,7 +1754,7 @@
     "confidence": 0
   },
   "karnataka_gruha_lakshmi": {
-    "lastVerified": "2026-10-07T11:07:49.379Z",
+    "lastVerified": "2026-10-08T00:39:04.929Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1824,7 +1824,7 @@
     "confidence": 0
   },
   "karnataka_horticulture_subsidy": {
-    "lastVerified": "2026-10-07T11:08:14.423Z",
+    "lastVerified": "2026-10-08T00:39:29.809Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1842,7 +1842,7 @@
     "confidence": 0
   },
   "karnataka_morarji_desai": {
-    "lastVerified": "2026-10-07T11:09:39.331Z",
+    "lastVerified": "2026-10-08T00:40:54.779Z",
     "confidence": 0
   },
   "karnataka_rajiv_gandhi_loan": {
@@ -1858,7 +1858,7 @@
     "confidence": 0
   },
   "karnataka_jeevandayini": {
-    "lastVerified": "2026-10-07T11:08:26.825Z",
+    "lastVerified": "2026-10-08T00:39:42.462Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1898,13 +1898,13 @@
     "confidence": 0
   },
   "karnataka_matsya_bhagya": {
-    "lastVerified": "2026-10-07T11:08:53.258Z",
+    "lastVerified": "2026-10-08T00:40:07.782Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_handloom_weaver": {
-    "lastVerified": "2026-10-07T11:08:02.473Z",
+    "lastVerified": "2026-10-08T00:39:18.136Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1916,7 +1916,7 @@
     "confidence": 0
   },
   "karnataka_minorities_scholarship": {
-    "lastVerified": "2026-10-07T11:09:16.902Z",
+    "lastVerified": "2026-10-08T00:40:32.612Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1954,41 +1954,41 @@
     "confidence": 0
   },
   "karnataka_pm_svanidhi": {
-    "lastVerified": "2026-09-07T23:13:39.079Z",
+    "lastVerified": "2026-10-08T00:41:52.311Z",
     "confidence": 0
   },
   "karnataka_pm_vishwakarma": {
-    "lastVerified": "2026-09-07T23:13:43.732Z",
+    "lastVerified": "2026-10-08T00:42:00.100Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_divyangjan_scholarship": {
-    "lastVerified": "2026-10-07T11:06:59.509Z",
+    "lastVerified": "2026-10-08T00:38:15.437Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_divyangjan_self_employment": {
-    "lastVerified": "2026-10-07T11:07:11.969Z",
+    "lastVerified": "2026-10-08T00:38:27.471Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_organic_farming": {
-    "lastVerified": "2026-09-07T23:13:24.797Z",
+    "lastVerified": "2026-10-08T00:41:35.509Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_micro_irrigation": {
-    "lastVerified": "2026-10-07T11:09:04.307Z",
+    "lastVerified": "2026-10-08T00:40:19.883Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_domestic_worker_welfare": {
-    "lastVerified": "2026-10-07T11:07:24.345Z",
+    "lastVerified": "2026-10-08T00:38:40.572Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2024,25 +2024,25 @@
     "confidence": 0
   },
   "karnataka_msme_subsidy": {
-    "lastVerified": "2026-10-07T11:09:42.020Z",
+    "lastVerified": "2026-10-08T00:40:57.697Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_fasal_bima": {
-    "lastVerified": "2026-10-07T11:07:36.823Z",
+    "lastVerified": "2026-10-08T00:38:52.501Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "karnataka_obc_prematric": {
-    "lastVerified": "2026-09-07T23:13:19.371Z",
+    "lastVerified": "2026-10-08T00:41:22.837Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_obc_hostel": {
-    "lastVerified": "2026-09-07T23:13:13.989Z",
+    "lastVerified": "2026-10-08T00:41:10.478Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3196,5 +3196,8 @@
     "httpStatus": 200,
     "linkAlive": true,
     "lastVerified": "2026-10-01T00:16:57.959Z"
+  },
+  "karnataka_pmjjby": {
+    "lastVerified": "2026-10-08T00:42:17.783Z"
   }
 }
