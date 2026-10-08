@@ -297,7 +297,9 @@ async function refreshNewsCore(req, res) {
     ? authHeader === `Bearer ${cronSecret}`
     : false;
 
-  if (!isVercelCron && !secretMatches) {
+  // x-vercel-cron can be faked by anyone; once CRON_SECRET is set (Vercel sends
+  // it with every cron call) only the secret counts.
+  if (cronSecret ? !secretMatches : !isVercelCron) {
     console.warn("[refresh-news] Unauthorised request — missing cron header / secret.");
     return res.status(401).json({ error: "Unauthorised" });
   }
@@ -580,7 +582,7 @@ export default async function handler(req, res) {
   const authorised = (() => {
     const secret = process.env.CRON_SECRET?.trim();
     const h = req.headers?.authorization ?? "";
-    return req.headers?.["x-vercel-cron"] === "1" || (secret && h === `Bearer ${secret}`);
+    return secret ? h === `Bearer ${secret}` : req.headers?.["x-vercel-cron"] === "1";
   })();
   if (authorised) {
     try { getDb(); req._progress = createProgress(db, "news", { trigger: req.query?.trigger ?? (req.query?.force === "true" ? "manual" : "cron") }); } catch { /* no Firebase */ }

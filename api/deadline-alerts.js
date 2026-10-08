@@ -391,7 +391,9 @@ function isCronRequest(req) {
   const cronSecret    = process.env.CRON_SECRET?.trim();
   const authHeader     = req.headers["authorization"] ?? "";
   const secretMatches  = cronSecret ? authHeader === `Bearer ${cronSecret}` : false;
-  return isVercelCron || secretMatches;
+  // The x-vercel-cron header can be sent by anyone, so once CRON_SECRET is set
+  // (Vercel then sends it with every cron call) only the secret counts.
+  return cronSecret ? secretMatches : isVercelCron;
 }
 
 // ── Background verify batch + its run log (cron, watchdog and admin "Run now") ──
@@ -485,6 +487,16 @@ export default async function handler(req, res) {
   // to verify CRON_SECRET as a Firebase ID token, and answer 401 — so the
   // scheduled daily deadline emails never actually ran.
   if (req.method === "GET" && isCronRequest(req)) {
+    // Second daily Vercel Cron: /api/deadline-alerts?action=verifyBatch (moved
+    // here from GitHub Actions, whose scheduler started it hours late).
+    if (req.query?.action === "verifyBatch") {
+      if (await isJobRunning(getAdminDb(), "verifyBatch")) return res.status(409).json({ error: "verify batch already running" });
+      try {
+        return res.status(200).json(await runAndLogVerifyBatch());
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    }
     try {
       const result = await runDeadlineAlertsLogged({ trigger: "cron", triggeredBy: null });
       return res.status(200).json(result);

@@ -15,13 +15,13 @@ name: Verify Schemes (rotating batch)
 # repos, and this job finishes in under a second each time (it just fires the
 # request and moves on — Vercel does the actual work).
 on:
-  schedule:
-    - cron: "0 21 * * *"  # 21:00 UTC = 2:30 AM IST — verify batch
+  # Both jobs now run daily from Vercel Cron (vercel.json) — GitHub's scheduler
+  # started them hours late or skipped them. Kept here for manual runs only.
   workflow_dispatch: {} # lets you also trigger it manually from the Actions tab, for testing
 
 jobs:
   ping-verify-batch:
-    if: github.event_name != 'schedule' || github.event.schedule == '0 21 * * *'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger scheme verification batch
