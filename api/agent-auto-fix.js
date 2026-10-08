@@ -70,8 +70,8 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── Scheme Discovery (daily, GitHub Actions) ─────────────────────────────
-  if (req.method === "POST" && req.body?.action === "discover") {
+  // ── Scheme Discovery (daily Vercel Cron GET ?action=discover, or POST) ──
+  if (req.body?.action === "discover" || req.query?.action === "discover") {
     if (await isJobRunning(getAdminDb(), "discover")) return res.status(409).json({ success: false, error: "Scheme Discovery is already running" });
     try {
       const result = await runAndLogDiscovery({ db: getAdminDb(), trigger: req.body?.trigger === "watchdog" ? "watchdog" : "cron" });

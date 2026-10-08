@@ -17,7 +17,6 @@ name: Verify Schemes (rotating batch)
 on:
   schedule:
     - cron: "0 21 * * *"  # 21:00 UTC = 2:30 AM IST — verify batch
-    - cron: "30 3 * * *"  # 03:30 UTC = 9:00 AM IST — scheme discovery (fresh Groq limits)
   workflow_dispatch: {} # lets you also trigger it manually from the Actions tab, for testing
 
 jobs:
@@ -38,9 +37,10 @@ jobs:
   # automatically and queues the rest for approval in Admin → Agents.
   # Separate job = separate serverless invocation (own 300 s budget).
   discover-schemes:
-    # Own morning slot, hours after the verify batch, so the two never compete
-    # for the same Groq keys. (Manual "Run workflow" still runs both.)
-    if: github.event_name != 'schedule' || github.event.schedule == '30 3 * * *'
+    # Daily discovery now runs from Vercel Cron (vercel.json, 07:00 UTC ≈ 12:30 PM IST) —
+    # GitHub's scheduler kept starting hours late or skipping it. This job stays
+    # for manual "Run workflow" only.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger scheme discovery

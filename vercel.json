@@ -49,6 +49,10 @@
     {
       "path": "/api/agent-auto-fix",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/agent-auto-fix?action=discover",
+      "schedule": "0 7 * * *"
     }
   ],
   "functions": {
