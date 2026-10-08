@@ -3537,76 +3537,98 @@ const WHO_VALUES    = ["farmer","student","women","senior","business","general"]
 const INCOME_VALUES = ["below1","1to3","3to6","above6"];
 const CASTE_RESERVED = ["obc","sc","st","ews"];
 
-function getMissingCriteria(scheme, answers, lang){
-  const criteria = T[lang].nearMissCriteria;
-  const reasons  = [];
+// Near-miss v2 — a scheme is "almost" yours when changing ONE answer that a
+// person can actually act on (ration card, which group they belong to, income
+// proof, house, class) would unlock it. Age / caste / area misses are skipped:
+// they're not something you can fix, so they only add noise.
+// Returns { reasons:[one specific line], tip, field, values } or null.
+const NM_FIELDS = [
+  ["rationCard",     ["bpl","aay","apl"]],
+  ["who",            WHO_VALUES],
+  ["income",         INCOME_VALUES],
+  ["house",          ["no","kutcha"]],
+  ["educationLevel", ["class1to8","class9to12","undergrad","postgrad"]],
+];
+const NM_TEXT = {
+  en: {
+    ration: { bpl:"BPL", aay:"Antyodaya (AAY)", apl:"APL" },
+    rationReason: l => `Needs a ${l} ration card`,
+    rationTip: "Poor family without this card? Apply at your Food & Civil Supplies office or a CSC — the same card unlocks other schemes too.",
+    who: { farmer:"farmers", student:"students", women:"women", senior:"senior citizens", business:"self-employed / business owners", general:"the general public" },
+    whoReason: l => `Meant for ${l}`,
+    whoTip: "If this also describes you, retake the quiz and pick it — the quiz allows only one choice.",
+    incomeMax: ["₹1 lakh","₹3 lakh","₹6 lakh"],
+    incomeReason: v => `Family income must be up to ${v} a year`,
+    incomeTip: "If your real family income is lower than you entered, an income certificate from your tehsil or e-district portal proves it.",
+    houseReason: "Only for families without a pucca house",
+    edu: { class1to8:"Class 1–8", class9to12:"Class 9–12", undergrad:"graduation", postgrad:"post-graduation" },
+    eduReason: l => `For students in ${l}`,
+    or: " or ",
+  },
+  hi: {
+    ration: { bpl:"BPL", aay:"अंत्योदय (AAY)", apl:"APL" },
+    rationReason: l => `${l} राशन कार्ड ज़रूरी`,
+    rationTip: "गरीब परिवार और यह कार्ड नहीं है? खाद्य एवं आपूर्ति कार्यालय या CSC पर आवेदन करें — यही कार्ड दूसरी योजनाएं भी खोलता है।",
+    who: { farmer:"किसानों", student:"विद्यार्थियों", women:"महिलाओं", senior:"वरिष्ठ नागरिकों", business:"स्वरोज़गार / व्यवसायियों", general:"आम नागरिकों" },
+    whoReason: l => `${l} के लिए`,
+    whoTip: "अगर यह भी आप पर लागू होता है तो क्विज़ दोबारा करें और इसे चुनें — क्विज़ में एक ही विकल्प चुना जा सकता है।",
+    incomeMax: ["₹1 लाख","₹3 लाख","₹6 लाख"],
+    incomeReason: v => `परिवार की सालाना आय ${v} तक होनी चाहिए`,
+    incomeTip: "अगर असली पारिवारिक आय आपकी बताई आय से कम है, तो तहसील या ई-डिस्ट्रिक्ट पोर्टल से आय प्रमाण पत्र बनवाएं।",
+    houseReason: "केवल उन परिवारों के लिए जिनका पक्का मकान नहीं है",
+    edu: { class1to8:"कक्षा 1–8", class9to12:"कक्षा 9–12", undergrad:"स्नातक", postgrad:"स्नातकोत्तर" },
+    eduReason: l => `${l} के विद्यार्थियों के लिए`,
+    or: " या ",
+  },
+};
+const NM_RANK = { rationCard:3, income:3, house:2, who:1, educationLevel:1 };
 
-  // Helper: does the scheme match when we override one field?
-  const matchWith = (overrides) => {
-    try{ return scheme.match({...answers,...overrides}); }catch{ return false; }
-  };
-
-  // 1. who — find the first alternate "who" value that unlocks the scheme
-  const passingWho = WHO_VALUES.find(v => v !== answers.who && matchWith({who:v}));
-  if(passingWho){
-    const key = `who_${passingWho}`;
-    if(criteria[key]) reasons.push(criteria[key]);
-  }
-
-  // 2. income — check if any lower income bracket unlocks the scheme
-  const myIncomeIdx = INCOME_VALUES.indexOf(answers.income);
-  if(myIncomeIdx > 0){
-    const lowerUnlocks = INCOME_VALUES.slice(0, myIncomeIdx).some(v => matchWith({income:v}));
-    if(lowerUnlocks) reasons.push(criteria.income_lower);
-  }
-
-  // 3. house — if user owns pucca house, check if not owning one unlocks the scheme
-  if(answers.house === "yes"){
-    if(matchWith({house:"no"}) || matchWith({house:"kutcha"})){
-      reasons.push(criteria.house_no);
+function nearMissInfo(scheme, answers, lang){
+  const tx = NM_TEXT[lang] ?? NM_TEXT.en;
+  const ok = o => { try { return !!scheme.match({...answers, ...o}); } catch { return false; } };
+  for(const [field, vals] of NM_FIELDS){
+    const unlock = vals.filter(v => v !== answers[field] && ok({[field]:v}));
+    if(!unlock.length) continue;
+    if(field==="rationCard") return { field, values:unlock, reasons:[tx.rationReason(unlock.filter(v=>v!=="apl").map(v=>tx.ration[v]).join(tx.or) || tx.ration.apl)], tip:tx.rationTip };
+    if(field==="who"){
+      // Only groups this person could plausibly also belong to.
+      const plausible = unlock.filter(v =>
+        (v!=="senior"  || answers.age==="above60") &&
+        (v!=="student" || ["below18","18to35"].includes(answers.age)) &&
+        (v!=="women"   || answers.gender!=="male"));
+      if(!plausible.length || unlock.length>2) continue;
+      return { field, values:plausible, reasons:[tx.whoReason(plausible.map(v=>tx.who[v]).join(tx.or))], tip:tx.whoTip };
     }
+    if(field==="income"){
+      const myIdx = INCOME_VALUES.indexOf(answers.income);
+      const maxIdx = Math.max(...unlock.map(v=>INCOME_VALUES.indexOf(v)));
+      if(myIdx>=0 && maxIdx>=myIdx) continue; // only "income too high" is a near miss
+      return { field, values:unlock, reasons:[tx.incomeReason(tx.incomeMax[maxIdx])], tip:tx.incomeTip };
+    }
+    if(field==="house") return { field, values:unlock, reasons:[tx.houseReason], tip:null };
+    if(field==="educationLevel") return { field, values:unlock, reasons:[tx.eduReason(unlock.map(v=>tx.edu[v]).join(tx.or))], tip:null };
   }
+  return null;
+}
 
-  // 4. area — check if switching area type unlocks the scheme
-  if(answers.area !== "rural" && matchWith({area:"rural"}))
-    reasons.push(criteria.area_rural);
-  if(answers.area === "rural" && (matchWith({area:"urban"}) || matchWith({area:"semi"})))
-    reasons.push(criteria.area_urban);
-
-  // 5. age — check if a different age bracket unlocks the scheme
-  if(answers.age !== "above60" && matchWith({age:"above60"})) reasons.push(criteria.age_above60);
-  if(answers.age !== "18to35"  && matchWith({age:"18to35"}))  reasons.push(criteria.age_18to35);
-  if(answers.age !== "35to60"  && matchWith({age:"35to60"}))  reasons.push(criteria.age_35to60);
-  if(answers.age !== "below18" && matchWith({age:"below18"})) reasons.push(criteria.age_below18);
-
-  // 6. caste — if user is General, check if a reserved category would unlock the scheme
-  if(answers.caste === "general" || !answers.caste){
-    const reservedUnlocks = CASTE_RESERVED.some(v => matchWith({caste:v}));
-    if(reservedUnlocks) reasons.push(criteria.caste_reserved);
-  }
-
-  // Deduplicate (a single substitution could push the same label twice in theory)
-  return [...new Set(reasons)];
+// Kept for anything else that still calls it (AI brief etc.).
+function getMissingCriteria(scheme, answers, lang){
+  return nearMissInfo(scheme, answers, lang)?.reasons ?? [];
 }
 
 function getNearMissSchemes(answers, matchedIds, lang){
-  // Only look at schemes that weren't matched and have scope matching user state
-  const unmatched = SCHEME_DB.filter(s=>{
-    if(matchedIds.has(s.id)) return false;
-    if(s.scope==="state"&&s.state!==answers.state) return false; // different state schemes aren't near-miss
-    return true;
-  });
-
-  const result = [];
-  for(const scheme of unmatched){
-    const reasons = getMissingCriteria(scheme, answers, lang);
-    // Only surface schemes where 1–2 clear reasons explain the miss
-    if(reasons.length>=1&&reasons.length<=2){
-      result.push({scheme, reasons});
-    }
-    if(result.length>=5) break; // cap at 5 near-miss cards
+  const out = [];
+  for(const scheme of SCHEME_DB){
+    if(matchedIds.has(scheme.id)) continue;
+    if(scheme.scope==="state" && scheme.state!==answers.state) continue; // other states' schemes aren't "almost"
+    const info = nearMissInfo(scheme, answers, lang);
+    if(info) out.push({ scheme, ...info });
   }
-  return result;
+  // Fixable reasons first, then the biggest benefits.
+  out.sort((a,b)=>((NM_RANK[b.field]||0)-(NM_RANK[a.field]||0)) || ((b.scheme.annual||0)-(a.scheme.annual||0)));
+  // "Meant for <group>" is a guess about the person — show at most two.
+  let who = 0;
+  return out.filter(x => x.field!=="who" || ++who<=2).slice(0, 8);
 }
 
 // ─── SHOW-MORE / SHOW-LESS TOGGLE ──────────────────────────────────────────────
@@ -4877,7 +4899,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       {t.nearMissSub}
                     </div>
                     {/* Near-miss cards */}
-                    {(showAllNearMiss?nearMiss:nearMiss.slice(0,NM_PREVIEW)).map(({scheme,reasons},nmIdx)=>(
+                    {(showAllNearMiss?nearMiss:nearMiss.slice(0,NM_PREVIEW)).map(({scheme,reasons,tip},nmIdx)=>(
                       <div key={scheme.id} style={{
                         background:dark?"#1c1300":"#FFFDF5",
                         borderRadius:14,padding:"13px 14px",marginBottom:10,
@@ -4935,6 +4957,11 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                             </span>
                           ))}
                         </div>
+                        {tip&&(
+                          <div style={{marginTop:8,fontSize:11,lineHeight:1.5,color:th.textSub,fontFamily:bf,display:"flex",gap:6}}>
+                            <span>💡</span><span>{tip}</span>
+                          </div>
+                        )}
                         {/* Fix my answer CTA */}
                         <div
                           onClick={()=>{haptic();retake();}}
@@ -4984,7 +5011,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       <div style={{height:1,flex:1,background:th.border2}}/>
                     </div>
                     <div style={{fontSize:12,color:th.textSub,marginBottom:12,lineHeight:1.5,fontFamily:bf}}>{t.nearMissSub}</div>
-                    {(showAllNearMiss?nearMiss:nearMiss.slice(0,NM_PREVIEW)).map(({scheme,reasons},nmIdx)=>(
+                    {(showAllNearMiss?nearMiss:nearMiss.slice(0,NM_PREVIEW)).map(({scheme,reasons,tip},nmIdx)=>(
                       <div key={scheme.id} style={{background:dark?"#1c1300":"#FFFDF5",borderRadius:14,padding:"13px 14px",marginBottom:10,border:`1.5px dashed ${scheme.color}55`,position:"relative",overflow:"hidden",animation:`fadeSlide 0.35s ease both`,animationDelay:`${(showAllNearMiss&&nmIdx>=NM_PREVIEW?(nmIdx-NM_PREVIEW):nmIdx)*60}ms`}}>
                         <div style={{position:"absolute",top:8,right:10,fontSize:8,fontWeight:800,letterSpacing:0.6,color:scheme.color,background:scheme.color+"18",borderRadius:20,padding:"2px 8px",border:`1px solid ${scheme.color}33`,textTransform:"uppercase"}}>
                           {isHindi?"लगभग":"Almost"}
@@ -5004,6 +5031,11 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                             <span key={i} style={{fontSize:10,fontWeight:700,color:"#B45309",background:"#FEF3C7",borderRadius:20,padding:"3px 9px",border:"1px solid #FCD34D",display:"flex",alignItems:"center",gap:4}}>⚠️ {r}</span>
                           ))}
                         </div>
+                        {tip&&(
+                          <div style={{marginTop:8,fontSize:11,lineHeight:1.5,color:th.textSub,fontFamily:bf,display:"flex",gap:6}}>
+                            <span>💡</span><span>{tip}</span>
+                          </div>
+                        )}
                         {/* Fix my answer CTA */}
                         <div
                           onClick={()=>{haptic();retake();}}
