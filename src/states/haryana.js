@@ -431,4 +431,21 @@ export const HARYANA_SCHEMES = [
   //   match: (a) => a.state === "Haryana",
   // },
 
+  // Deen Dayal Lado Lakshmi Yojana — launched 25 Sep 2025, criteria widened Jan 2026 (researched + verified)
+  {
+    id: "haryana_lado_lakshmi",
+    icon: "👩", color: "#DB2777", scope: "state", state: "Haryana",
+    ministry: { en: "Haryana Women & Child Development Dept.", hi: "हरियाणा महिला एवं बाल विकास विभाग" },
+    name:    { en: "Deen Dayal Lado Lakshmi Yojana (Haryana)", hi: "दीन दयाल लाडो लक्ष्मी योजना (हरियाणा)" },
+    benefit: { en: "₹2,100/month for women — ₹1,100 paid every month + ₹1,000 saved in a government deposit for 5 years", hi: "महिलाओं को ₹2,100/माह — हर महीने ₹1,100 + ₹1,000 सरकारी जमा में 5 साल के लिए" },
+    tag:     { en: "Women", hi: "महिला" },
+    annual: 25200,
+    apply:   { en: "Register on the Lado Lakshmi app or at an Atal Seva Kendra with your Family ID (PPP)", hi: "लाडो लक्ष्मी ऐप या अटल सेवा केंद्र पर अपनी परिवार पहचान पत्र (PPP) से पंजीकरण करें" }, applyType: "offline",
+    docs:    { en: ["Family ID (Parivar Pehchan Patra)", "Aadhaar Card", "Bank Account (Aadhaar-linked)", "Mobile Number"],
+               hi: ["परिवार पहचान पत्र (PPP)", "आधार कार्ड", "बैंक खाता (आधार से लिंक)", "मोबाइल नंबर"] },
+    eligibilityText: { en: ["Women aged 23 or above living in Haryana","Family income below ₹1 lakh a year as per Family ID (up to ₹1.8 lakh for mothers of children who scored 80%+ in Class 10/12 at a government school)","Married or unmarried — one or more women of the family can apply"],
+                       hi: ["हरियाणा में रहने वाली 23 वर्ष या अधिक उम्र की महिलाएं","परिवार पहचान पत्र के अनुसार सालाना आय ₹1 लाख से कम (सरकारी स्कूल से 10वीं/12वीं में 80%+ अंक लाने वाले बच्चों की माताओं के लिए ₹1.8 लाख तक)","विवाहित या अविवाहित — परिवार की एक या अधिक महिलाएं आवेदन कर सकती हैं"] },
+    match: (a) => a.state === "Haryana" && a.who === "women" && a.age !== "below18" && ["below1","1to3"].includes(a.income),
+  },
+
 ];

@@ -33,9 +33,11 @@ export const JHARKHAND_SCHEMES = [
     benefit: { en: "₹2,500/month direct bank transfer to women aged 18–50 years", hi: "18–50 आयु की महिलाओं को ₹2,500/माह सीधे बैंक में" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 30000,
-    apply:   { en: "https://jharkhand.gov.in", hi: "jharkhand.gov.in" }, applyType: "online",
+    apply:   { en: "https://mmmsy.jharkhand.gov.in", hi: "https://mmmsy.jharkhand.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Age Proof (18–50)", "Bank Account (Aadhaar-linked)", "Ration Card"],
                hi: ["आधार कार्ड", "आयु प्रमाण (18–50)", "बैंक खाता (आधार से लिंक)", "राशन कार्ड"] },
+    eligibilityText: { en: ["Women aged 18–50 who are permanent residents of Jharkhand", "Not if anyone in the family pays income tax or is a permanent government employee", "Not if already getting a similar pension or monthly cash benefit from another government scheme"],
+                       hi: ["झारखंड की स्थायी निवासी 18–50 वर्ष की महिलाएं", "परिवार में कोई आयकर दाता या स्थायी सरकारी कर्मचारी न हो", "किसी अन्य सरकारी योजना से पहले से पेंशन या मासिक नकद लाभ न मिल रहा हो"] },
     match: (a) => a.state === "Jharkhand" && a.who === "women" && ["18to35","35to60"].includes(a.age),
   },
 
