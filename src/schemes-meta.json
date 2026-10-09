@@ -726,49 +726,49 @@
     "confidence": 0
   },
   "wb_kanyashree": {
-    "lastVerified": "2026-09-23T23:24:30.757Z",
+    "lastVerified": "2026-10-09T09:29:55.141Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_rupashree": {
-    "lastVerified": "2026-09-24T23:42:10.004Z",
+    "lastVerified": "2026-10-09T09:29:55.141Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_student_credit_card": {
-    "lastVerified": "2026-09-24T23:42:31.949Z",
+    "lastVerified": "2026-10-09T09:29:55.141Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_shikshashree": {
-    "lastVerified": "2026-09-24T23:42:26.550Z",
+    "lastVerified": "2026-10-09T09:29:55.141Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_aikyashree": {
-    "lastVerified": "2026-09-23T23:24:09.038Z",
+    "lastVerified": "2026-10-09T09:29:55.141Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_yuvashree": {
-    "lastVerified": "2026-09-24T23:42:54.711Z",
+    "lastVerified": "2026-10-09T09:30:15.832Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_utkarsh_bangla": {
-    "lastVerified": "2026-09-24T23:42:49.879Z",
+    "lastVerified": "2026-10-09T09:30:15.832Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "wb_krishak_bandhu": {
-    "lastVerified": "2026-09-23T23:24:36.522Z",
+    "lastVerified": "2026-10-09T09:30:15.832Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -834,27 +834,31 @@
     "confidence": 0
   },
   "odisha_cm_kisan": {
-    "lastVerified": "2026-09-14T23:40:33.296Z",
+    "lastVerified": "2026-10-09T09:32:32.990Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_kalia": {
-    "lastVerified": "2026-09-14T23:41:02.308Z",
+    "lastVerified": "2026-10-09T09:33:36.921Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_subhadra": {
-    "lastVerified": "2026-09-15T23:20:38.887Z",
-    "confidence": 0
+    "lastVerified": "2026-10-09T09:33:36.921Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "odisha_mission_shakti": {
-    "lastVerified": "2026-09-15T23:20:25.977Z",
-    "confidence": 0
+    "lastVerified": "2026-10-09T09:33:36.921Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "odisha_godabarisha_laptop": {
-    "lastVerified": "2026-09-14T23:40:53.512Z",
+    "lastVerified": "2026-10-09T09:34:16.570Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -884,16 +888,16 @@
     "confidence": 0
   },
   "ts_epass_fee": {
-    "lastVerified": "2026-09-21T23:48:29.560Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_task_skill": {
-    "lastVerified": "2026-09-22T23:24:56.047Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 0.49
   },
   "goa_housing_board_affordable": {
     "lastVerified": "2026-10-02T00:23:29.224Z",
@@ -1494,64 +1498,72 @@
     "confidence": 0
   },
   "ts_t_pride": {
-    "lastVerified": "2026-09-22T23:24:49.917Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_prematric_scholarship": {
-    "lastVerified": "2026-09-22T23:23:54.083Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_dalit_bandhu": {
-    "lastVerified": "2026-09-21T23:48:24.314Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_stree_nidhi": {
-    "lastVerified": "2026-09-22T23:24:38.244Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "linkAlive": true,
     "httpStatus": 200,
-    "confidence": 0
+    "confidence": 1,
+    "lastDate": "2026-05-29",
+    "isActive": false
   },
   "ts_micro_irrigation": {
-    "lastVerified": "2026-09-21T23:48:58.371Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_overseas_scholarship": {
-    "lastVerified": "2026-09-22T23:23:49.256Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_minority_scholarship": {
-    "lastVerified": "2026-09-22T23:23:40.739Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_t_fiber": {
-    "lastVerified": "2026-09-22T23:24:43.713Z",
+    "lastVerified": "2026-10-09T09:28:51.860Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_rajiv_yuva_vikasam": {
-    "lastVerified": "2026-09-22T23:23:58.101Z",
-    "confidence": 0
+    "lastVerified": "2026-10-09T09:29:55.141Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 403
   },
   "odisha_samrudha_krushak": {
-    "lastVerified": "2026-09-15T23:20:34.047Z",
-    "confidence": 0
+    "lastVerified": "2026-10-09T09:33:36.921Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "odisha_gjay": {
-    "lastVerified": "2026-09-14T23:40:46.798Z",
-    "confidence": 0
+    "lastVerified": "2026-10-09T09:34:16.570Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "punjab_minority_scholarship": {
     "lastVerified": "2026-09-17T23:21:29.598Z",
@@ -2959,8 +2971,10 @@
     "confidence": 0
   },
   "wb_lakshmir_bhandar": {
-    "lastVerified": "2026-09-23T23:24:41.269Z",
-    "confidence": 0
+    "lastVerified": "2026-10-09T09:29:55.141Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "wb_swasthya_sathi": {
     "lastVerified": "2026-06-22T17:21:50.535Z",
@@ -2969,7 +2983,7 @@
     "confidence": 0
   },
   "wb_jai_bangla_pension": {
-    "lastVerified": "2026-09-23T23:24:24.660Z",
+    "lastVerified": "2026-10-09T09:32:32.990Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2993,13 +3007,13 @@
     "confidence": 0
   },
   "punjab_ashirwad": {
-    "lastVerified": "2026-09-17T23:18:45.309Z",
+    "lastVerified": "2026-10-09T09:34:16.570Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_atta_dal": {
-    "lastVerified": "2026-09-17T23:18:52.415Z",
+    "lastVerified": "2026-10-09T09:34:16.570Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
