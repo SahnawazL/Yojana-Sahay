@@ -1421,6 +1421,7 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
           {!isUser && isDone && !live && (
             <div style={{
               display:"flex", alignItems:"center", gap:8,
+              justifyContent: schemes.length ? "flex-start" : "flex-end",
               marginTop:10, paddingTop:8,
               borderTop: dark
                 ? "1px solid rgba(255,255,255,0.10)"
@@ -1428,7 +1429,9 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
               animation: msg.streamed && isNew ? "none" : "badge-pop 0.32s ease-out",
               whiteSpace:"normal",
             }}>
-              <div style={{
+              {/* The "official data" seal only on answers about schemes —
+                  not on greetings, app or developer questions. */}
+              {schemes.length > 0 && <div style={{
                 display:"inline-flex", alignItems:"center", gap:5, minWidth:0,
                 background: dark ? "rgba(20,40,80,0.55)" : "rgba(255,255,255,0.92)",
                 border:`1px solid ${dark ? "rgba(120,170,255,0.35)" : "rgba(0,53,128,0.22)"}`,
@@ -1446,7 +1449,7 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
                 }}>
                   {lang === "hi" ? "आधिकारिक योजना डेटा पर आधारित" : "Based on official scheme data"}
                 </span>
-              </div>
+              </div>}
               {canSpeak() && (
                 <span role="button" onClick={toggleSpeak}
                   aria-label={speaking ? "Stop" : "Listen"}

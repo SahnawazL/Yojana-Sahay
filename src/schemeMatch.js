@@ -107,6 +107,18 @@ function officialHosts() {
   OFFICIAL_HOSTS = new Set(EXTRA_OFFICIAL);
   return OFFICIAL_HOSTS;
 }
+// The app's own links (developer portfolio / Instagram) — the AI shares these
+// when asked who built the app.
+const OWN_LINKS = [/^sahnawaz-portfolio\.vercel\.app$/, /^yojanasahay\.vercel\.app$/];
+const OWN_PATHS = [/^(?:www\.)?instagram\.com\/sahnawaz\.ui\.dev\/?$/i];
+export function isAllowedUrl(url) {
+  if (isOfficialUrl(url)) return true;
+  const h = hostOf(url);
+  if (OWN_LINKS.some(re => re.test(h))) return true;
+  const bare = String(url).replace(/^https?:\/\//i, "").replace(/[?#].*$/, "");
+  return OWN_PATHS.some(re => re.test(bare));
+}
+
 export function isOfficialUrl(url) {
   const h = hostOf(url);
   if (!h) return false;
@@ -143,7 +155,7 @@ export function cleanLinks(text) {
     const next = line.replace(LINK_RE, (m, mdText, mdUrl, bare) => {
       let url = mdUrl || bare, trail = "";
       if (bare) { const t = url.match(/[.,;:!?)\]'"]+$/); if (t) { trail = t[0]; url = url.slice(0, -trail.length); } }
-      if (isOfficialUrl(url)) return m;
+      if (isAllowedUrl(url)) return m;
       changed = true;
       const sc = isSource ? null : (named || ctx);
       const good = sc ? officialSchemeLink(sc) : null;
@@ -151,6 +163,8 @@ export function cleanLinks(text) {
       if (sc && !good) offline = true;
       return mdText ? mdText : trail;
     });
+    // "• Portfolio:" left with nothing after its link was removed → drop the line.
+    if (changed && /^\s*(?:[-•*]\s*)?(?:\*\*)?[^:\n]{1,30}(?:\*\*)?\s*[:：]\s*(?:\*\*)?\s*$/.test(next) && !LINK_ONLY_LINE.test(next)) continue;
     if (changed && LINK_ONLY_LINE.test(next)) {
       // The line was only "🔗 <unofficial link>".
       const msg = /[ऀ-ॿ]/.test(text) ? "🔗 नज़दीकी सरकारी कार्यालय में आवेदन करें" : "🔗 Apply at nearest govt. office";
