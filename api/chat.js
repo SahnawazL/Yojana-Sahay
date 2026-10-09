@@ -48,6 +48,40 @@ const WEB_SEARCH_TOOL = {
   },
 };
 
+// ── AGENT TOOLS ───────────────────────────────────────────────────────────────
+// In agent mode ({agent:true}) the model can call the app's own tools. They
+// RUN IN THE APP (the scheme database lives there) — this function only
+// streams the model's tool calls back; the app runs them and calls again with
+// the results. The schemas live here so the endpoint never forwards arbitrary
+// tool definitions from a client.
+const fn = (name, description, properties = {}, required = []) => ({
+  type: "function",
+  function: { name, description, parameters: { type: "object", properties, required } },
+});
+const S = (description) => ({ type: "string", description });
+const LIST = (description) => ({ type: "array", items: { type: "string" }, description });
+const AGENT_TOOLS = [
+  fn("search_schemes", "Search the app's database of 1,100+ Indian government schemes by need, topic, group or state. Returns schemes with benefit, official link and whether the user is eligible.",
+    { query: S("What to look for, in English, e.g. 'widow pension', 'loan for small shop', 'scholarship for girls'"), state: S("Optional Indian state to focus on"), limit: { type: "integer", description: "Max results (default 6, max 10)" } }, ["query"]),
+  fn("scheme_details", "Full details of ONE scheme: benefit, who can apply, documents, how to apply, deadline/status, official link, and whether THIS user is eligible (with the exact reason if not).",
+    { scheme: S("Scheme name or id") }, ["scheme"]),
+  fn("check_eligibility", "The app's own eligibility check for this user. With no schemes: their overall result (count, yearly estimate, top schemes). With schemes: eligible or not for each, with the exact reason.",
+    { schemes: LIST("Optional scheme names to check") }),
+  fn("almost_eligible", "Schemes the user ALMOST qualifies for — one realistic change away (ration card, income certificate, house, class, land) — and what's missing."),
+  fn("compare_schemes", "Compare 2–4 schemes side by side: benefit, yearly value, who can apply, documents, how to apply, and the user's eligibility.",
+    { schemes: LIST("2–4 scheme names") }, ["schemes"]),
+  fn("my_applications", "The user's tracked applications ('I've applied' in the app): scheme, date, reference number, status, days waiting."),
+  fn("track_application", "Add a scheme to the user's My Applications tracker (the app then reminds them to check the status). Use ONLY when the user clearly says they have already applied/submitted.",
+    { scheme: S("Scheme name"), reference: S("Optional application/reference number the user gave"), applied_on: S("Optional date YYYY-MM-DD") }, ["scheme"]),
+  fn("documents_checklist", "One combined documents checklist for one or more schemes (documents needed by several schemes are listed once). The app shows it to the user as a checklist they can tick and share.",
+    { schemes: LIST("Scheme names") }, ["schemes"]),
+  fn("open_app_screen", "Offer the user a button to open a screen in the app: the eligibility checker, or a scheme's page.",
+    { screen: { type: "string", enum: ["eligibility_checker", "scheme_page"] }, scheme: S("Scheme name (for scheme_page)") }, ["screen"]),
+  fn("web_search", "Search the web for real-time information: new schemes, deadlines, installment dates, latest news, or anything not in the database.",
+    { query: S("Specific search query in English, e.g. 'PM Kisan 21st installment date 2026'") }, ["query"]),
+];
+const AGENT_TOOL_NAMES = new Set(AGENT_TOOLS.map(t => t.function.name));
+
 // ── Load all Groq API keys from env ──────────────────────────────────────────
 function loadKeys() {
   const seen = new Set();
@@ -229,6 +263,8 @@ const MODEL_REPLACEMENTS = {
   "qwen/qwen3-32b":          "openai/gpt-oss-120b",
 };
 const MAX_MESSAGES      = 24;
+const MAX_AGENT_MESSAGES = 44; // history + up to 4 rounds of tool calls/results
+const MAX_TOOL_RESULT_CHARS = 7000;
 const MAX_MESSAGE_CHARS = 8000;
 const MAX_SYSTEM_CHARS  = 24000;
 const MAX_OUTPUT_TOKENS = 1600;
@@ -243,12 +279,26 @@ function sanitizeChatRequest(body) {
   const model     = ALLOWED_MODELS.has(mapped) ? mapped : DEFAULT_MODEL;
 
   if (!Array.isArray(body.messages) || body.messages.length === 0) return { error: "messages must be a non-empty array" };
-  const messages = body.messages.slice(-MAX_MESSAGES).map(m => {
-    const role = ["system", "user", "assistant"].includes(m?.role) ? m.role : "user";
+  const agent = body.agent === true;
+  // Keep the system prompt even when trimming a long conversation.
+  const all = body.messages;
+  const sys = all[0]?.role === "system" ? [all[0]] : [];
+  const tail = all.slice(sys.length).slice(-((agent ? MAX_AGENT_MESSAGES : MAX_MESSAGES) - sys.length));
+  const messages = [...sys, ...tail].map(m => {
+    const role = ["system", "user", "assistant", ...(agent ? ["tool"] : [])].includes(m?.role) ? m.role : "user";
     // The app's own system prompt carries the scheme context (~8–10K chars).
-    const cap  = role === "system" ? MAX_SYSTEM_CHARS : MAX_MESSAGE_CHARS;
-    return { role, content: String(m?.content ?? "").slice(0, cap) };
-  }).filter(m => m.content.trim());
+    const cap  = role === "system" ? MAX_SYSTEM_CHARS : role === "tool" ? MAX_TOOL_RESULT_CHARS : MAX_MESSAGE_CHARS;
+    const out = { role, content: String(m?.content ?? "").slice(0, cap) };
+    if (agent && role === "tool") out.tool_call_id = String(m?.tool_call_id ?? "").slice(0, 64);
+    if (agent && role === "assistant" && Array.isArray(m?.tool_calls)) {
+      const calls = m.tool_calls.slice(0, 6)
+        .filter(c => AGENT_TOOL_NAMES.has(c?.function?.name))
+        .map(c => ({ id: String(c.id ?? "").slice(0, 64), type: "function",
+          function: { name: c.function.name, arguments: String(c.function.arguments ?? "{}").slice(0, 2000) } }));
+      if (calls.length) out.tool_calls = calls;
+    }
+    return out;
+  }).filter(m => m.content.trim() || m.tool_calls || m.role === "tool");
   if (messages.length === 0) return { error: "messages are empty" };
 
   const wanted = Number(body.max_tokens ?? body.max_completion_tokens) || 800;
@@ -258,6 +308,8 @@ function sanitizeChatRequest(body) {
   const isReasoning = model.startsWith("openai/gpt-oss");
   return {
     stream: body.stream === true,
+    agent,
+    final: body.final === true, // last round: no more tools, write the answer
     body: {
       model,
       messages,
@@ -374,7 +426,8 @@ async function pumpGroqStream(r, onText) {
       if (ch.finish_reason) finish = ch.finish_reason;
     }
   }
-  return { finish, error, toolCall: tools[0] || null };
+  const toolCalls = Object.keys(tools).sort((a, b) => a - b).map(k => tools[k]).filter(t => t.name);
+  return { finish, error, toolCall: tools[0] || null, toolCalls };
 }
 
 async function handleStream(req, res, keys, requestBody) {
@@ -442,6 +495,52 @@ async function handleStream(req, res, keys, requestBody) {
   return res.end();
 }
 
+// Agent mode: stream the answer; if the model wants tools, send the calls to
+// the app ({"t":"tc","calls":[…]}) — the app runs them and calls again.
+async function handleAgentStream(req, res, keys, requestBody, final) {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("X-Accel-Buffering", "no");
+  const send = obj => { try { res.write(JSON.stringify(obj) + "\n"); } catch {} };
+  let sentText = false;
+  const onText = c => { sentText = true; send({ t: "d", c }); };
+  try {
+    const withTools = final ? requestBody : { ...requestBody, tools: AGENT_TOOLS, tool_choice: "auto" };
+    let r = await openGroqStream(keys, withTools);
+    if (!r.ok && !final && ["tool_use_failed", "invalid_request_error"].includes(r.data?.error?.code || r.data?.error?.type)) {
+      r = await openGroqStream(keys, requestBody); // answer without tools
+    }
+    if (!r.ok) {
+      recordAiCall({ service: "groq", keyIdx: -1, count429: r.count429, failedKeys: r.failedKeys }).catch(() => {});
+      send({ t: "e", m: r.data?.error?.message || "The AI is busy. Please try again." });
+      return res.end();
+    }
+    let out = await pumpGroqStream(r.res, onText);
+    recordAiCall({ service: "groq", keyIdx: r.keyIdx, count429: r.count429, failedKeys: r.failedKeys }).catch(() => {});
+    logApiCallToHistory("groqCalls").catch(() => {});
+    if (out.error && !sentText && !out.toolCalls.length) {
+      // The model fumbled a tool call → answer without tools.
+      const again = await openGroqStream(keys, requestBody);
+      if (!again.ok) { send({ t: "e", m: again.data?.error?.message || "The AI is busy. Please try again." }); return res.end(); }
+      out = await pumpGroqStream(again.res, onText);
+      recordAiCall({ service: "groq", keyIdx: again.keyIdx, count429: again.count429, failedKeys: again.failedKeys }).catch(() => {});
+      logApiCallToHistory("groqCalls").catch(() => {});
+    }
+    const calls = (out.toolCalls || []).filter(t => AGENT_TOOL_NAMES.has(t.name)).slice(0, 6);
+    if (calls.length && !final) {
+      send({ t: "tc", calls: calls.map((c, i) => ({ id: c.id || `call_${Date.now()}_${i}`, name: c.name, args: c.args || "{}" })) });
+    } else if (!sentText) {
+      send({ t: "e", m: "Empty answer from the AI. Please try again." });
+    }
+    send({ t: "done" });
+  } catch (err) {
+    console.error("[Yojana Sahay] agent stream error:", err?.message);
+    send({ t: "e", m: "Connection to the AI was interrupted. Please try again." });
+  }
+  return res.end();
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -463,6 +562,16 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: { message: "Too many messages — please wait a minute and try again." } });
   }
 
+  // The agent's web_search tool: the app asks for search results directly.
+  if (req.body?.action === "search") {
+    const q = String(req.body.query ?? "").trim().slice(0, 200);
+    if (!q) return res.status(400).json({ error: { message: "query required" } });
+    const result = await searchWeb(q);
+    recordAiCall({ service: "tavily" }).catch(() => {});
+    logApiCallToHistory("tavilyCalls").catch(() => {});
+    return res.status(200).json({ result: result.slice(0, 6000) });
+  }
+
   const sanitized = sanitizeChatRequest(req.body);
   if (sanitized.error) {
     return res.status(400).json({ error: { message: sanitized.error } });
@@ -470,6 +579,7 @@ export default async function handler(req, res) {
   const requestBody = sanitized.body;
 
   // Live streaming for the chat screen (the results brief still uses JSON).
+  if (sanitized.stream && sanitized.agent) return handleAgentStream(req, res, keys, requestBody, sanitized.final);
   if (sanitized.stream) return handleStream(req, res, keys, requestBody);
 
   // ── STEP 1: First Groq call — WITH web_search tool ──────────────────────────

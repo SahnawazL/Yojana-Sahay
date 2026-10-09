@@ -11,7 +11,7 @@
 // FIXED (5 bugs): anti-pattern in updater, memory leaks, dead state, stale closure
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { sendMessageStream } from "./groqClient.js";
+import { runAgent } from "./agent.js";
 import { canSpeak, speak, stopSpeaking, voiceLabel } from "./voice.js";
 import { findSchemesInText } from "./schemeMatch.js";
 import { useApplications, daysSince, trackApplication } from "./applications.js";
@@ -473,7 +473,46 @@ function AshokChakra({ size = 44, duration = "10s" }) {
   );
 }
 
-function TypingIndicator({ dark, status, lang }) {
+// ─── AGENT STEPS — what the assistant is doing / did ──────────────────────────
+function AgentSteps({ steps, dark, lang, compact = false }) {
+  if (!steps?.length) return null;
+  const th = THEME[dark ? "dark" : "light"];
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap: compact ? 3 : 5, fontFamily:fontFamily(lang) }}>
+      {steps.map((st, i) => (
+        <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, fontSize: compact ? 11 : 11.5, lineHeight:1.4, color: st.done === false ? th.text : th.textMid, animation:"fade-in 0.25s ease-out" }}>
+          <span style={{ width:16, flexShrink:0, textAlign:"center" }}>
+            {st.done === false
+              ? <span style={{ display:"inline-block", width:10, height:10, border:"2px solid #F97316", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.8s linear infinite", verticalAlign:"middle" }} />
+              : st.icon}
+          </span>
+          <span style={{ flex:1, minWidth:0, fontWeight: st.done === false ? 700 : 500 }}>{st.label}{st.done === false ? "…" : ""}</span>
+          {st.done === true && <span style={{ color:"#16a34a", fontWeight:800, flexShrink:0 }}>✓</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Collapsed "Did 3 steps" row inside a finished answer.
+function StepsSummary({ steps, dark, lang }) {
+  const [open, setOpen] = useState(false);
+  if (!steps?.length) return null;
+  const isHindi = lang === "hi";
+  return (
+    <div style={{ marginBottom:8 }}>
+      <span role="button" onClick={() => setOpen(o => !o)}
+        style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:10.5, fontWeight:700, cursor:"pointer", userSelect:"none",
+          color: dark ? "#cfe0ff" : "#003580", background: dark ? "rgba(20,40,80,0.5)" : "rgba(255,255,255,0.85)",
+          border:`1px solid ${dark ? "rgba(120,170,255,0.3)" : "rgba(0,53,128,0.18)"}`, borderRadius:12, padding:"2px 9px" }}>
+        ⚙️ {isHindi ? `${steps.length} कदम उठाए` : `Did ${steps.length} step${steps.length === 1 ? "" : "s"}`} <span style={{ fontSize:9 }}>{open ? "▲" : "▼"}</span>
+      </span>
+      {open && <div style={{ marginTop:7, whiteSpace:"normal" }}><AgentSteps steps={steps.map(x => ({ ...x, done: true }))} dark={dark} lang={lang} compact /></div>}
+    </div>
+  );
+}
+
+function TypingIndicator({ dark, status, lang, steps }) {
   const th = THEME[dark ? "dark" : "light"];
   const shimmerBg = dark
     ? "linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%)"
@@ -507,6 +546,7 @@ function TypingIndicator({ dark, status, lang }) {
             {status}
           </div>
         )}
+        {steps?.length > 0 && <div style={{ maxWidth:260 }}><AgentSteps steps={steps} dark={dark} lang={lang} /></div>}
         <div style={{ height:11, width:"72%", background:shimmerBg, ...shimmerBase }} />
         <div style={{ height:11, width:"45%", background:shimmerBg, ...shimmerBase,
           animationDelay:"0.2s" }} />
@@ -1121,7 +1161,7 @@ function ActionPill({ icon, label, onClick, done, dark, primary }) {
   );
 }
 
-function AnswerActions({ msg, schemes, lang, dark, trackedApps, onChecklist, onOpenChecker }) {
+function AnswerActions({ msg, schemes, lang, dark, trackedApps, onChecklist, onOpenChecker, onOpenDetail }) {
   const isHindi = lang === "hi";
   // Schemes the AI says the user has applied to → "Track it" buttons.
   const applied = useMemo(() => {
@@ -1134,9 +1174,30 @@ function AnswerActions({ msg, schemes, lang, dark, trackedApps, onChecklist, onO
     return out;
   }, [msg.actions]);
   const withDocs = schemes.filter(s => (s.docs?.[lang] || s.docs?.en || []).length);
-  if (!applied.length && !withDocs.length) return null;
+  // What the agent prepared: a checklist, screen shortcuts, tracked applications.
+  const agentChecklist = (msg.ui?.checklist || []).map(id => SCHEME_BY_ID_CHAT.get(id)).filter(Boolean);
+  const opens = msg.ui?.open || [];
+  const trackedNow = (msg.ui?.tracked || []).map(id => SCHEME_BY_ID_CHAT.get(id)).filter(Boolean);
+  const shortName = (sc) => (sc.name?.[lang] || sc.name?.en || "").replace(/\s*\(.*?\)\s*/g, " ").trim().slice(0, 28);
+  if (!applied.length && !withDocs.length && !agentChecklist.length && !opens.length && !trackedNow.length) return null;
   return (
     <div style={{ paddingLeft:34, marginTop:8, display:"flex", flexWrap:"wrap", gap:6, animation:"chips-reveal 0.3s ease-out" }}>
+      {trackedNow.map(sc => (
+        <ActionPill key={"t" + sc.id} dark={dark} done icon="✓"
+          label={isHindi ? `${shortName(sc)} मेरे आवेदन में जुड़ा` : `${shortName(sc)} added to My Applications`} />
+      ))}
+      {agentChecklist.length > 0 && (
+        <ActionPill dark={dark} primary icon="📋"
+          label={isHindi ? "दस्तावेज़ सूची खोलें" : "Open documents checklist"}
+          onClick={() => onChecklist?.(agentChecklist)} />
+      )}
+      {opens.map((o, i) => {
+        if (o.screen === "scheme_page") {
+          const sc = SCHEME_BY_ID_CHAT.get(o.id);
+          return sc && onOpenDetail ? <ActionPill key={"o" + i} dark={dark} primary icon="📄" label={isHindi ? `${shortName(sc)} खोलें` : `Open ${shortName(sc)}`} onClick={() => onOpenDetail(sc.id)} /> : null;
+        }
+        return onOpenChecker ? <ActionPill key={"o" + i} dark={dark} primary icon="🧮" label={isHindi ? "पात्रता जांच खोलें" : "Open eligibility checker"} onClick={onOpenChecker} /> : null;
+      })}
       {applied.map(sc => {
         const done = !!trackedApps?.[sc.id];
         const short = (sc.name?.[lang] || sc.name?.en || "").replace(/\s*\(.*?\)\s*/g, " ").trim().slice(0, 28);
@@ -1147,14 +1208,14 @@ function AnswerActions({ msg, schemes, lang, dark, trackedApps, onChecklist, onO
             onClick={() => { trackApplication(sc.id); track("app_track", { s: sc.id }); }} />
         );
       })}
-      {withDocs.length > 0 && (
+      {withDocs.length > 0 && !agentChecklist.length && (
         <ActionPill dark={dark} icon="📋"
           label={isHindi ? (withDocs.length > 1 ? `${withDocs.length} योजनाओं की दस्तावेज़ सूची` : "दस्तावेज़ सूची") : (withDocs.length > 1 ? `Documents for all ${withDocs.length}` : "Documents checklist")}
           onClick={() => onChecklist?.(withDocs)} />
       )}
       <ActionPill dark={dark} icon="📤" label={isHindi ? "शेयर करें" : "Share"}
         onClick={() => { shareText(plainText(msg.content), "Yojana Sahay"); track("share_result", { k: "ai" }); }} />
-      {onOpenChecker && (
+      {onOpenChecker && !opens.some(o => o.screen === "eligibility_checker") && (
         <ActionPill dark={dark} icon="🧮" label={isHindi ? "पात्रता दोबारा जांचें" : "Re-check eligibility"} onClick={onOpenChecker} />
       )}
     </div>
@@ -1388,6 +1449,7 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
             </div>
           )}
 
+          {!isUser && msg.steps?.length > 0 && isDone && !live && <StepsSummary steps={msg.steps} dark={dark} lang={lang} />}
           {live ? (
               <>
                 {renderContent(tidyPartial(msg.content), false, th, dark)}
@@ -1475,8 +1537,8 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
       {isDone && !live && schemes.length > 0 && (
         <SchemeCards schemes={schemes} lang={lang} dark={dark} onOpen={onOpenDetail} eligibleIds={eligibleIds} trackedApps={trackedApps} />
       )}
-      {isDone && !live && !isUser && (schemes.length > 0 || msg.actions?.length > 0) && (
-        <AnswerActions msg={msg} schemes={schemes} lang={lang} dark={dark} trackedApps={trackedApps} onChecklist={onChecklist} onOpenChecker={isNew ? onOpenChecker : null} />
+      {isDone && !live && !isUser && (schemes.length > 0 || msg.actions?.length > 0 || msg.ui) && (
+        <AnswerActions msg={msg} schemes={schemes} lang={lang} dark={dark} trackedApps={trackedApps} onChecklist={onChecklist} onOpenChecker={isNew || msg.ui?.open?.length ? onOpenChecker : null} onOpenDetail={onOpenDetail} />
       )}
 
       {/* ── Timestamp row — below bubble, matches side alignment ─────────── */}
@@ -1788,7 +1850,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
     let firstTextAt = 0;
 
     try {
-      const { reply, followUps: aiChips, actions } = await sendMessageStream(
+      const { reply, followUps: aiChips, actions, steps, ui } = await runAgent(
         [
           // ── Profile context prefix — invisible in UI, sent to API only ──────
           // Provides the AI with the user's profile so it can personalize responses.
@@ -1829,6 +1891,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
               });
             }
           },
+          onStep: (st) => setLive(l => l && { ...l, steps: st }),
           onStatus: (kind, q) => {
             if (kind === "search") setLive(l => l && { ...l, status: isHindi ? "🔍 वेब पर ताज़ा जानकारी खोज रहे हैं…" : `🔍 Checking the web for the latest${q ? `: “${q.slice(0, 60)}”` : "…"}` });
           },
@@ -1836,7 +1899,13 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       );
       if (ctrl && abortRef.current !== ctrl) return; // chat was cleared meanwhile
       cancelAnimationFrame(liveFrameRef.current); liveFrameRef.current = 0;
-      setMessages(prev => [...prev, { role:"assistant", content:reply, timestamp: Date.now(), streamed: true, ...(actions?.length ? { actions } : {}) }]);
+      const hasUi = ui && (ui.checklist || ui.open?.length || ui.tracked?.length);
+      setMessages(prev => [...prev, {
+        role:"assistant", content:reply, timestamp: Date.now(), streamed: true,
+        ...(actions?.length ? { actions } : {}),
+        ...(steps?.length ? { steps } : {}),
+        ...(hasUi ? { ui } : {}),
+      }]);
       setLive(null);
       playReceiveSound(); // 🔊 receive chime
       const freshChips = aiChips.filter(c => !nextUsedChips.has(c));
@@ -1973,6 +2042,9 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
         ))}
 
         {/* The answer as it is being written */}
+        {loading && live?.text && live?.steps?.length > 0 && (
+          <div style={{ paddingLeft:34, marginBottom:6 }}><AgentSteps steps={live.steps} dark={dark} lang={lang} compact /></div>
+        )}
         {live?.text && (
           <ChatBubble msg={{ role:"assistant", content: live.text }} lang={lang} dark={dark} live />
         )}
@@ -1982,7 +2054,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           <FollowUpChips chips={chips} onTap={handleSend} lang={lang} dark={dark} />
         )}
 
-        {loading && !live?.text && <TypingIndicator dark={dark} lang={lang} status={live?.status} />}
+        {loading && !live?.text && <TypingIndicator dark={dark} lang={lang} status={live?.status} steps={live?.steps} />}
         {error && (
           <div style={{
             textAlign:"center", marginBottom:12,

@@ -281,7 +281,9 @@ const ORDINALS = [
   [/\b(third|3rd|teesra|number 3|no\.? ?3)\b|तीसरा|तीसरी/i, 2],
 ];
 
-function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
+// Scores every scheme against a question (+ the person's profile). Shared by
+// the chat context below and the agent's search_schemes tool.
+export function scoreSchemes(query, profile = null, stateOverride = null) {
   const q0 = query.toLowerCase();
   const q = expandQuery(q0); // Hinglish / Hindi / misspellings → topic words
   // The topic words the question was mapped to ("budhape" → old age pension):
@@ -312,25 +314,8 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
   }
   // Merge: original query gets full weight; profile tokens augment it
   const augQ = (q + " " + profileTokens.join(" ")).trim();
-  const l = lang === "hi" ? "hi" : "en";
-
-  // ── Detect state & detail-level signals from query ──────────────────────────
-  // Use augQ (profile-aware) for state detection so profile.state boosts state schemes
   // The question's own state wins; the profile's state is the fallback.
-  const mentionedState = detectState(q) ?? (profile?.state ? profile.state.toLowerCase() : null);
-  const wantsCount  = /how many|kitni|kitne|total|count/.test(q);
-  const wantsList   = /list|all scheme|sabhi|show all|sab yojna|sab yojana/.test(q);
-  const wantsDetail = /document|kagaz|apply|avedan|eligib|yogyta|how to|kaise|kya chahiye|detail|full info|link|website|portal/.test(q);
-
-  // ── Detect "total/overall count" queries (no specific topic) ─────────────────
-  // Use q (raw query) so profile tokens don't accidentally suppress total-count detection
-  const NO_TOPIC = !detectState(q) &&
-    !/farmer|kisan|health|student|women|mahila|housing|awas|business|pension|senior|insurance|ration|water|jal|skill/.test(q);
-  const wantsTotalCount = (wantsCount || wantsList) && NO_TOPIC;
-
-  // ── Detect per-state breakdown request ───────────────────────────────────────
-  const wantsStateBreakdown = /each state|state.?wise|har state|per state|state mein kitni|state ke liye|every state/.test(q) && (wantsCount || wantsList);
-
+  const mentionedState = (stateOverride ? String(stateOverride).toLowerCase() : null) ?? detectState(q) ?? (profile?.state ? profile.state.toLowerCase() : null);
   // ── Score each scheme against the profile-augmented query ───────────────────
   const scored = SCHEME_DB.map(s => {
     const searchText = [
@@ -385,6 +370,29 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
   })
   .filter(x => x.score >= 2)   // >= 2 prevents spurious matches on generic words
   .sort((a, b) => b.score - a.score);
+  return { q0, q, augQ, expWords, mentionedState, scored };
+}
+
+function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
+  const { q0, q, augQ, expWords, mentionedState, scored } = scoreSchemes(query, profile);
+  const l = lang === "hi" ? "hi" : "en";
+
+  // ── Detect state & detail-level signals from query ──────────────────────────
+  // Use augQ (profile-aware) for state detection so profile.state boosts state schemes
+  // The question's own state wins; the profile's state is the fallback.
+  const wantsCount  = /how many|kitni|kitne|total|count/.test(q);
+  const wantsList   = /list|all scheme|sabhi|show all|sab yojna|sab yojana/.test(q);
+  const wantsDetail = /document|kagaz|apply|avedan|eligib|yogyta|how to|kaise|kya chahiye|detail|full info|link|website|portal/.test(q);
+
+  // ── Detect "total/overall count" queries (no specific topic) ─────────────────
+  // Use q (raw query) so profile tokens don't accidentally suppress total-count detection
+  const NO_TOPIC = !detectState(q) &&
+    !/farmer|kisan|health|student|women|mahila|housing|awas|business|pension|senior|insurance|ration|water|jal|skill/.test(q);
+  const wantsTotalCount = (wantsCount || wantsList) && NO_TOPIC;
+
+  // ── Detect per-state breakdown request ───────────────────────────────────────
+  const wantsStateBreakdown = /each state|state.?wise|har state|per state|state mein kitni|state ke liye|every state/.test(q) && (wantsCount || wantsList);
+
 
   // Fallback: top 5 national if nothing scored
   const matched = scored.length > 0
@@ -604,6 +612,26 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
 }
 
 
+// ─── AGENT MODE ───────────────────────────────────────────────────────────────
+// When the chat runs as an agent (src/agent.js), the model can call the app's
+// own tools. The data block below is still included so simple questions need
+// no tool call at all.
+const AGENT_RULES = `- YOU ARE AN AGENT WITH TOOLS. The data block at the end is a quick first look; call tools when you need more:
+  • search_schemes — find schemes for a need/topic/state not covered by the data below
+  • scheme_details — full details, documents, who can apply, official link, and whether THIS user is eligible
+  • check_eligibility — the app's own eligibility result for this user (overall, or for named schemes with the exact reason)
+  • almost_eligible — schemes one realistic change away (e.g. a BPL card, income certificate)
+  • compare_schemes — side-by-side comparison of 2–4 schemes
+  • my_applications — the user's tracked applications and how long they've waited
+  • track_application — ONLY when the user clearly says they HAVE applied/submitted for a scheme
+  • documents_checklist — one combined list of documents for several schemes (the app shows it as a checklist)
+  • open_app_screen — offer a button to open the eligibility checker or a scheme's page
+  • web_search — latest news, dates, installments, anything recent or not in the database
+- Plan briefly, call only the tools you need (usually 0–2), at most 3 rounds. Several independent lookups can go in one round.
+- Never invent tool results. If a tool returns nothing useful, say so honestly.
+- Don't call tools for greetings, thanks, app/developer questions, or when the data below already answers it.
+- After using tools, write the final answer in the normal format (numbered schemes, official links, CHIPS line). Don't describe the tools or JSON to the user — just mention what you did in plain words when helpful (e.g. "I've added it to My Applications").`;
+
 // ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
 // Built once per request. Contains:
 //   • Language rule
@@ -724,9 +752,9 @@ ${chipsRule}
 
 - Never promise money or approval — say "you may be eligible" and that the final decision is the government office's.
 - ELIGIBILITY LINES: When the data has a "FOR THIS USER:" line, that is the app's own check with the user's answers — TRUST IT. If it says NOT ELIGIBLE, say so kindly, give the exact reason from that line, and say what would change it (e.g. a BPL card, an income certificate) — never suggest giving false information. If their real situation differs from what they entered, tell them to update their profile.
-- ACTIONS: If the user says they HAVE APPLIED / submitted the form for a specific scheme, add this line just before CHIPS (exact scheme name from the data):
+${extras.agent ? AGENT_RULES : `- ACTIONS: If the user says they HAVE APPLIED / submitted the form for a specific scheme, add this line just before CHIPS (exact scheme name from the data):
 ACTION:applied:<scheme name>
-  The app then shows a button to track it. Don't mention this line.
+  The app then shows a button to track it. Don't mention this line.`}
 - If the user seems to be in distress or an emergency (no food, medical emergency, violence), give the relevant helpline first (112 emergency, 181 women helpline, 1098 child helpline, 14567 elder helpline) and then schemes.
 ${appsBlock}
 ══ RELEVANT SCHEME DATA FOR THIS QUERY ══
@@ -735,7 +763,7 @@ ${smartContext}
 }
 
 // ─── PARSE AI RESPONSE → { reply, followUps } ────────────────────────────────
-function parseResponse(raw) {
+export function parseResponse(raw) {
   const chipsMatch = raw.match(/CHIPS:\s*(\[[\s\S]*?\])/);
   let followUps = [];
 
@@ -976,7 +1004,7 @@ export async function sendMessageStream(conversationHistory, userQuery, lang = "
   return parseResponse(full.trim());
 }
 
-function buildChatBody(conversationHistory, userQuery, lang, profile, extras) {
+export function buildChatBody(conversationHistory, userQuery, lang, profile, extras) {
   return {
       model:       MODEL,
       max_tokens:  lang === "hi" ? 1200 : 800, // Hindi responses are longer — extra headroom to avoid mid-sentence cutoff
