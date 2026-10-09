@@ -1710,9 +1710,9 @@
     "confidence": 0.5
   },
   "tn_stamp_duty_women": {
-    "lastVerified": "2026-10-08T07:45:25.002Z",
+    "lastVerified": "2026-10-09T09:27:20.794Z",
     "confidence": 0,
-    "linkAlive": false,
+    "linkAlive": true,
     "httpStatus": 410
   },
   "chandigarh_post_matric_scholarship": {
