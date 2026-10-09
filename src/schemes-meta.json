@@ -786,9 +786,10 @@
     "httpStatus": 200
   },
   "kerala_asap": {
-    "lastVerified": "2026-10-08T16:35:27.134Z",
+    "lastVerified": "2026-10-09T03:41:53.411Z",
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "kerala_unemployment_allowance": {
     "lastVerified": "2026-10-08T16:35:27.134Z",
