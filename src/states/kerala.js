@@ -164,7 +164,7 @@ export const KERALA_SCHEMES = [
     benefit: { en: "Free skill certification in IT, communication & soft skills for Class 8–Degree students", hi: "कक्षा 8 से डिग्री के छात्रों के लिए IT, संचार व सॉफ्ट स्किल में मुफ्त सर्टिफिकेशन" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 0,
-    apply:   { en: "https://universitycollege.ac.in?page_id=781", hi: "asapkerala.gov.in" }, applyType: "online",
+    apply:   { en: "https://asapkerala.gov.in/", hi: "asapkerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "School / College ID Card", "Kerala Residence Proof"],
                hi: ["आधार कार्ड", "विद्यालय/महाविद्यालय पहचान पत्र", "केरल निवास प्रमाण"] },
     keywords: ["class10","class12","skill"],
