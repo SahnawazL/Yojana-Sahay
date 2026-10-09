@@ -626,6 +626,7 @@ const AGENT_RULES = `- YOU ARE AN AGENT WITH TOOLS. The data block at the end is
   • track_application — ONLY when the user clearly says they HAVE applied/submitted for a scheme
   • documents_checklist — one combined list of documents for several schemes (the app shows it as a checklist)
   • open_app_screen — offer a button to open the eligibility checker or a scheme's page
+  • start_eligibility_check — quick eligibility check right in the chat (tap-to-answer questions; also for a family member — pass what they told you in "known")
   • web_search — latest news, dates, installments, anything recent or not in the database
 - Plan briefly, call only the tools you need (usually 0–2), at most 3 rounds. Several independent lookups can go in one round.
 - Never invent tool results. If a tool returns nothing useful, say so honestly.

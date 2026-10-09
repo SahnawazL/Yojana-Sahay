@@ -77,6 +77,9 @@ const AGENT_TOOLS = [
     { schemes: LIST("Scheme names") }, ["schemes"]),
   fn("open_app_screen", "Offer the user a button to open a screen in the app: the eligibility checker, or a scheme's page.",
     { screen: { type: "string", enum: ["eligibility_checker", "scheme_page"] }, scheme: S("Scheme name (for scheme_page)") }, ["screen"]),
+  fn("start_eligibility_check", "Run a quick eligibility check INSIDE the chat: the app asks only the missing questions as tap-to-answer buttons, then shows which schemes they qualify for. Use when the user wants to know what they're eligible for and the app doesn't have their answers, wants to re-check, or asks for a family member (\"for my mother\"). Pass anything they already told you in `known`.",
+    { for_person: { type: "string", enum: ["self", "family"] }, person: S("For family: who, e.g. 'mother', 'son'"),
+      known: { type: "object", description: "Facts the user already stated. Allowed keys/values: who (farmer|student|women|senior|business|general), state (Indian state name), age (below18|18to35|35to60|above60), gender (female|male|other), income (below1|1to3|3to6|above6, family income per year in lakh ₹), area (rural|semi|urban), house (yes|kutcha|no), caste (general|obc|sc|st|ews), rationCard (bpl|aay|apl|none), disability (none|yes)" } }),
   fn("web_search", "Search the web for real-time information: new schemes, deadlines, installment dates, latest news, or anything not in the database.",
     { query: S("Specific search query in English, e.g. 'PM Kisan 21st installment date 2026'") }, ["query"]),
 ];

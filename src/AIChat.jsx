@@ -12,6 +12,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { runAgent } from "./agent.js";
+import { QUESTIONS, nextQuestion, questionQueue, withImplied, eligibilityResult, startingAnswers, STATES } from "./chatEligibility.js";
 import { canSpeak, speak, stopSpeaking, voiceLabel } from "./voice.js";
 import { findSchemesInText } from "./schemeMatch.js";
 import { useApplications, daysSince, trackApplication } from "./applications.js";
@@ -1161,7 +1162,7 @@ function ActionPill({ icon, label, onClick, done, dark, primary }) {
   );
 }
 
-function AnswerActions({ msg, schemes, lang, dark, trackedApps, onChecklist, onOpenChecker, onOpenDetail }) {
+function AnswerActions({ msg, schemes, lang, dark, trackedApps, onChecklist, onOpenChecker, onOpenDetail, onRecheck }) {
   const isHindi = lang === "hi";
   // Schemes the AI says the user has applied to → "Track it" buttons.
   const applied = useMemo(() => {
@@ -1215,8 +1216,159 @@ function AnswerActions({ msg, schemes, lang, dark, trackedApps, onChecklist, onO
       )}
       <ActionPill dark={dark} icon="📤" label={isHindi ? "शेयर करें" : "Share"}
         onClick={() => { shareText(plainText(msg.content), "Yojana Sahay"); track("share_result", { k: "ai" }); }} />
-      {onOpenChecker && !opens.some(o => o.screen === "eligibility_checker") && (
-        <ActionPill dark={dark} icon="🧮" label={isHindi ? "पात्रता दोबारा जांचें" : "Re-check eligibility"} onClick={onOpenChecker} />
+      {onRecheck && !opens.some(o => o.screen === "eligibility_checker") && (
+        <ActionPill dark={dark} icon="🧮" label={isHindi ? "पात्रता दोबारा जांचें" : "Re-check eligibility"} onClick={onRecheck} />
+      )}
+    </div>
+  );
+}
+
+// ─── ELIGIBILITY CHECK INSIDE THE CHAT ───────────────────────────────────────
+// Asks only what isn't known yet, one tap-to-answer question at a time, then
+// shows the result in place. quiz = { forSelf, label, start, prefill, done }.
+function EligibilityFlow({ quiz, lang, dark, onDone, onAsk, onOpenDetail, onRestart }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const bf = fontFamily(lang);
+  const isHindi = lang === "hi";
+  const [answers, setAnswers] = useState(() => quiz.done || withImplied(quiz.start || {}));
+  const [history, setHistory] = useState([]);           // previous answer states, for Back
+  const [multi, setMulti] = useState([]);
+  const [stateSel, setStateSel] = useState(quiz.prefill?.state || "");
+  const done = quiz.done ? quiz.done : null;
+  const current = done ? null : nextQuestion(answers);
+  const answeredCount = history.length;
+  const total = answeredCount + questionQueue(answers).length;
+  const who = quiz.forSelf ? null : (quiz.label || (isHindi ? "परिवार के सदस्य" : "family member"));
+
+  // Finished (no question left) → report once.
+  useEffect(() => {
+    if (!done && !current) onDone?.(answers);
+  }, [done, current]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const answer = (key, value) => {
+    setHistory(h => [...h, answers]);
+    setAnswers(a => withImplied({ ...a, [key]: value }));
+    setMulti([]);
+  };
+  const back = () => {
+    setHistory(h => { const prev = h[h.length - 1]; if (prev) setAnswers(prev); return h.slice(0, -1); });
+    setMulti([]);
+  };
+
+  const card = {
+    marginLeft:34, marginTop:8, maxWidth:"88%", background: th.card, borderRadius:16, padding:"12px 14px",
+    border:`1.5px solid ${dark ? "rgba(255,153,51,0.35)" : "rgba(249,115,22,0.35)"}`,
+    boxShadow: dark ? "0 2px 12px rgba(0,0,0,0.35)" : "0 4px 16px rgba(249,115,22,0.10)", fontFamily:bf,
+    animation:"chips-reveal 0.3s ease-out",
+  };
+  const titleTxt = who
+    ? (isHindi ? `✅ ${who} की पात्रता जांच` : `✅ Eligibility check for your ${who}`)
+    : (isHindi ? "✅ झटपट पात्रता जांच" : "✅ Quick eligibility check");
+
+  // ── Result ──
+  if (done) {
+    const r = eligibilityResult(done);
+    const fmt = n => `₹${Math.round(n).toLocaleString("en-IN")}`;
+    const nm = s => s.name?.[lang] || s.name?.en;
+    const head = who
+      ? (isHindi ? `🎉 आपके ${who} ${r.count} योजनाओं के लिए पात्र हैं` : `🎉 Your ${who} qualifies for ${r.count} schemes`)
+      : (isHindi ? `🎉 आप ${r.count} योजनाओं के लिए पात्र हैं` : `🎉 You qualify for ${r.count} schemes`);
+    const money = [
+      r.summary.yearly ? (isHindi ? `लगभग ${fmt(r.summary.yearly)} सालाना` : `about ${fmt(r.summary.yearly)} a year`) : "",
+      r.summary.health ? (isHindi ? `${fmt(r.summary.health)} तक मुफ़्त इलाज` : `free treatment up to ${fmt(r.summary.health)}`) : "",
+    ].filter(Boolean).join(" · ");
+    const askText = who
+      ? (isHindi ? `मेरे ${who} के लिए सबसे अच्छी योजनाएं समझाएं: ${r.top.slice(0, 4).map(nm).join(", ")}` : `Explain the best schemes for my ${who}: ${r.top.slice(0, 4).map(nm).join(", ")}`)
+      : (isHindi ? "मैंने पात्रता जांच पूरी की। मेरी सबसे अच्छी योजनाएं समझाएं और पहले क्या करूं बताएं।" : "I finished the eligibility check. Explain my best schemes and what I should do first.");
+    return (
+      <div style={card}>
+        <div style={{ fontSize:11, fontWeight:800, color:"#C2410C", letterSpacing:0.3, textTransform:"uppercase" }}>{titleTxt}</div>
+        <div style={{ fontSize:16, fontWeight:800, color:th.text, marginTop:6 }}>{head}</div>
+        {money && <div style={{ fontSize:12.5, color:"#15803d", fontWeight:700, marginTop:3 }}>{money}</div>}
+        <div style={{ fontSize:10.5, color:th.textSub, marginTop:3 }}>
+          {isHindi ? "अनुमान — लाभ आवेदन और मंज़ूरी के बाद ही मिलता है" : "An estimate — benefits come after applying and approval"}
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap:6, marginTop:10 }}>
+          {r.top.map(s => (
+            <div key={s.id} role="button" className="ai-scheme-card" onClick={() => onOpenDetail?.(s.id)}
+              style={{ display:"flex", alignItems:"center", gap:9, padding:"7px 9px", borderRadius:10, cursor:"pointer",
+                background: dark ? "rgba(255,255,255,0.04)" : "#FFF8F1", border:`1px solid ${dark ? "#3a3a3c" : "#FDE3CC"}` }}>
+              <span style={{ fontSize:17 }}>{s.icon || "📋"}</span>
+              <span style={{ flex:1, minWidth:0 }}>
+                <span style={{ display:"block", fontSize:12.5, fontWeight:700, color:th.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{nm(s)}</span>
+                <span style={{ display:"block", fontSize:10.5, color:th.textMid, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{s.benefit?.[lang] || s.benefit?.en}</span>
+              </span>
+              <span style={{ fontSize:11, fontWeight:700, color:"#EA580C" }}>›</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:10 }}>
+          {r.count > 0 && <ActionPill dark={dark} primary icon="💬" label={isHindi ? "AI से समझें" : "Explain these"} onClick={() => onAsk?.(askText)} />}
+          <ActionPill dark={dark} icon="✏️" label={isHindi ? "जवाब बदलें" : "Change answers"} onClick={() => onRestart?.(done)} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!current) return null;
+  const q = QUESTIONS[current];
+  const qText = (!quiz.forSelf && q.enOther) ? (isHindi ? q.hiOther : q.enOther) : (isHindi ? q.hi : q.en);
+  const pre = quiz.prefill?.[current];
+  const btn = (selected) => ({
+    padding:"9px 10px", borderRadius:11, fontSize:12.5, fontWeight:700, cursor:"pointer", fontFamily:"inherit", textAlign:"left", lineHeight:1.25,
+    color: selected ? "#fff" : th.text,
+    background: selected ? "linear-gradient(135deg,#FF9933,#F97316)" : (dark ? "#2c2c2e" : "#fff"),
+    border:`1.5px solid ${selected ? "transparent" : (dark ? "#3a3a3c" : "#F3D9C2")}`,
+  });
+  return (
+    <div style={card}>
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <div style={{ flex:1, fontSize:11, fontWeight:800, color:"#C2410C", letterSpacing:0.3, textTransform:"uppercase" }}>{titleTxt}</div>
+        <div style={{ fontSize:10.5, fontWeight:700, color:th.textSub }}>{answeredCount + 1} / {Math.max(total, answeredCount + 1)}</div>
+      </div>
+      <div style={{ height:4, borderRadius:4, background: dark ? "#2c2c2e" : "#FDECDC", marginTop:6, overflow:"hidden" }}>
+        <div style={{ height:"100%", width:`${Math.round((answeredCount / Math.max(total, 1)) * 100)}%`, background:"linear-gradient(90deg,#FF9933,#F97316)", transition:"width 0.3s" }} />
+      </div>
+      <div key={current} style={{ fontSize:14.5, fontWeight:800, color:th.text, margin:"12px 0 10px", animation:"fade-in 0.25s ease-out" }}>
+        <span style={{ marginRight:6 }}>{q.icon}</span>{qText}
+      </div>
+      {q.type === "state" ? (
+        <div style={{ display:"flex", gap:8 }}>
+          <select value={stateSel} onChange={e => setStateSel(e.target.value)}
+            style={{ flex:1, minWidth:0, padding:"10px", borderRadius:11, fontSize:13, fontFamily:"inherit", color:th.text, background: dark ? "#2c2c2e" : "#fff", border:`1.5px solid ${dark ? "#3a3a3c" : "#F3D9C2"}` }}>
+            <option value="">{isHindi ? "राज्य चुनें" : "Select state"}</option>
+            {STATES.map(st => <option key={st} value={st}>{st}</option>)}
+          </select>
+          <button type="button" disabled={!stateSel} onClick={() => answer("state", stateSel)} style={{ ...btn(!!stateSel), textAlign:"center", opacity: stateSel ? 1 : 0.5 }}>
+            {isHindi ? "आगे ›" : "Next ›"}
+          </button>
+        </div>
+      ) : q.type === "multi" ? (
+        <>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7 }}>
+            {q.options.map(o => {
+              const on = multi.includes(o.value);
+              return <button key={o.value} type="button" onClick={() => setMulti(m => on ? m.filter(x => x !== o.value) : [...m, o.value])} style={btn(on)}>{on ? "✓ " : ""}{isHindi ? o.hi : o.en}</button>;
+            })}
+          </div>
+          <div style={{ display:"flex", gap:7, marginTop:8 }}>
+            <button type="button" onClick={() => answer("groups", [])} style={{ ...btn(false), flex:1, textAlign:"center" }}>{isHindi ? "इनमें से कोई नहीं" : "None of these"}</button>
+            <button type="button" disabled={!multi.length} onClick={() => answer("groups", multi)} style={{ ...btn(multi.length > 0), flex:1, textAlign:"center", opacity: multi.length ? 1 : 0.5 }}>{isHindi ? "आगे ›" : "Next ›"}</button>
+          </div>
+        </>
+      ) : (
+        <div style={{ display:"grid", gridTemplateColumns: q.options.length <= 3 ? `repeat(${q.options.length},1fr)` : "1fr 1fr", gap:7 }}>
+          {q.options.map(o => (
+            <button key={o.value} type="button" onClick={() => answer(current, o.value)} style={btn(pre === o.value)}>
+              {isHindi ? o.hi : o.en}
+            </button>
+          ))}
+        </div>
+      )}
+      {answeredCount > 0 && (
+        <button type="button" onClick={back} style={{ marginTop:10, border:"none", background:"transparent", color:th.textSub, fontSize:12, fontWeight:700, cursor:"pointer", padding:0, fontFamily:"inherit" }}>
+          ‹ {isHindi ? "पीछे" : "Back"}
+        </button>
       )}
     </div>
   );
@@ -1309,7 +1461,7 @@ function tidyPartial(t) {
   return t;
 }
 
-function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligibleIds, trackedApps, onChecklist, onOpenChecker }) {
+function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligibleIds, trackedApps, onChecklist, onOpenChecker, onQuizDone, onAsk, onQuizRestart, onRecheck }) {
   const th     = THEME[dark ? "dark" : "light"];
   const bf     = fontFamily(lang);
   const isUser = msg.role === "user";
@@ -1537,8 +1689,11 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
       {isDone && !live && schemes.length > 0 && (
         <SchemeCards schemes={schemes} lang={lang} dark={dark} onOpen={onOpenDetail} eligibleIds={eligibleIds} trackedApps={trackedApps} />
       )}
-      {isDone && !live && !isUser && (schemes.length > 0 || msg.actions?.length > 0 || msg.ui) && (
-        <AnswerActions msg={msg} schemes={schemes} lang={lang} dark={dark} trackedApps={trackedApps} onChecklist={onChecklist} onOpenChecker={isNew || msg.ui?.open?.length ? onOpenChecker : null} onOpenDetail={onOpenDetail} />
+      {isDone && !live && !isUser && msg.ui?.quiz && (
+        <EligibilityFlow quiz={msg.ui.quiz} lang={lang} dark={dark} onDone={onQuizDone} onAsk={onAsk} onOpenDetail={onOpenDetail} onRestart={onQuizRestart} />
+      )}
+      {isDone && !live && !isUser && !msg.ui?.quiz && (schemes.length > 0 || msg.actions?.length > 0 || msg.ui) && (
+        <AnswerActions msg={msg} schemes={schemes} lang={lang} dark={dark} trackedApps={trackedApps} onChecklist={onChecklist} onOpenChecker={msg.ui?.open?.length ? onOpenChecker : null} onRecheck={isNew ? onRecheck : null} onOpenDetail={onOpenDetail} />
       )}
 
       {/* ── Timestamp row — below bubble, matches side alignment ─────────── */}
@@ -1583,7 +1738,7 @@ const INC_MAP = { below1:"below ₹1 Lakh/yr","1to3":"₹1–3 Lakh/yr","3to6":"
 const AGE_MAP = { below18:"below 18 yrs","18to35":"18–35 yrs","35to60":"35–60 yrs",above60:"above 60 yrs" };
 const AREA_MAP= { rural:"rural/village",urban:"urban/city",semi:"semi-urban town" };
 
-function WelcomeScreen({ lang, dark, onSuggest, profile }) {
+function WelcomeScreen({ lang, dark, onSuggest, profile, onQuiz }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
@@ -1634,6 +1789,21 @@ function WelcomeScreen({ lang, dark, onSuggest, profile }) {
           {welcomeMsg}
         </div>
       </div>
+
+      {/* ── Quick eligibility check, right here in the chat ── */}
+      {onQuiz && (
+        <div role="button" onClick={onQuiz} className="ai-suggested"
+          style={{ marginLeft:40, marginBottom:12, display:"flex", alignItems:"center", gap:10, cursor:"pointer",
+            background:"linear-gradient(135deg,#FF9933,#F97316)", color:"#fff", borderRadius:14, padding:"11px 14px",
+            boxShadow:"0 4px 14px rgba(249,115,22,0.3)", fontFamily:bf, maxWidth:"82%" }}>
+          <span style={{ fontSize:20 }}>✅</span>
+          <span style={{ flex:1 }}>
+            <span style={{ display:"block", fontSize:13.5, fontWeight:800 }}>{isHindi ? "पता करें आपको कौन सी योजनाएं मिलेंगी" : "Find schemes you qualify for"}</span>
+            <span style={{ display:"block", fontSize:11, opacity:0.9, marginTop:2 }}>{isHindi ? "कुछ टैप — यहीं चैट में" : "A few taps — right here in the chat"}</span>
+          </span>
+          <span style={{ fontSize:16, fontWeight:800 }}>›</span>
+        </div>
+      )}
 
       {/* ── Profile active badge — only when logged in ── */}
       {profile && (
@@ -1704,10 +1874,32 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // `messages` so half-written text is never saved to history.
   const [live,         setLive]         = useState(null);
   const [checklist,    setChecklist]    = useState(null); // schemes for the documents sheet
+  // Answers from the in-chat eligibility check (newest wins over the profile).
+  const chatAnsKey = `yojana_chat_answers_${uid || "guest"}`;
+  const [chatAnswers, setChatAnswers] = useState(() => { try { return JSON.parse(localStorage.getItem(chatAnsKey) || "null"); } catch { return null; } });
+  const effAnswers = chatAnswers || eligAnswers;
+  const effMatched = useMemo(() => {
+    if (!chatAnswers) return matchedSchemes;
+    return eligibilityResult(chatAnswers).ids.map(id => SCHEME_BY_ID_CHAT.get(id)).filter(Boolean);
+  }, [chatAnswers, matchedSchemes]);
+  const eligibleIds = useMemo(() => new Set((effMatched || []).map(s => s?.id).filter(Boolean)), [effMatched]);
+
+  // Start the in-chat check without calling the AI (instant, free).
+  const startQuiz = useCallback((prefill = null) => {
+    const start = prefill ? {} : startingAnswers(chatAnswers || eligAnswers, {}, true);
+    setMessages(prev => [...prev,
+      { role:"user", content: isHindi ? "मेरी पात्रता जांचें" : "Check my eligibility", timestamp: Date.now() },
+      { role:"assistant", streamed:true, timestamp: Date.now(),
+        content: prefill
+          ? (isHindi ? "ठीक है — अपने जवाब दोबारा चुनें। पहले वाले जवाब हाइलाइट हैं।" : "Sure — pick your answers again. Your previous answers are highlighted.")
+          : (isHindi ? "चलिए जांचते हैं — नीचे जवाब पर टैप करें। मैं वही पूछूंगा जो मुझे अभी नहीं पता।" : "Let's check — tap your answers below. I'll only ask what I don't know yet."),
+        ui: { quiz: { forSelf: true, start, ...(prefill ? { prefill } : {}) } } },
+    ]);
+  }, [chatAnswers, eligAnswers, isHindi]);
   const liveTextRef    = useRef("");
   const liveFrameRef   = useRef(0);
   const abortRef       = useRef(null);
-  const eligibleIds    = useMemo(() => new Set((matchedSchemes || []).map(s => s?.id).filter(Boolean)), [matchedSchemes]);
+  // (eligibleIds is defined below, once the in-chat answers are known)
 
   // ── Unified Reading-Time cooldown ────────────────────────────────────────────
   const [secondsLeft,  setSecondsLeft]  = useState(0);
@@ -1866,7 +2058,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
         {
           // The app's own eligibility result — "which schemes can I get?" is
           // answered from this instead of keyword guessing.
-          matched: matchedSchemes,
+          matched: effMatched,
           // Their tracked applications ("I've applied").
           applications: Object.entries(trackedApps || {}).map(([id, a]) => {
             const sc = SCHEME_BY_ID_CHAT.get(id);
@@ -1876,7 +2068,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           lastReply: [...messages].reverse().find(m => m.role === "assistant")?.content || "",
           // Their eligibility answers → the AI can say exactly why a scheme
           // is or isn't for them, and what's missing.
-          answers: eligAnswers,
+          answers: effAnswers,
         },
         {
           signal: ctrl?.signal,
@@ -1899,7 +2091,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       );
       if (ctrl && abortRef.current !== ctrl) return; // chat was cleared meanwhile
       cancelAnimationFrame(liveFrameRef.current); liveFrameRef.current = 0;
-      const hasUi = ui && (ui.checklist || ui.open?.length || ui.tracked?.length);
+      const hasUi = ui && (ui.checklist || ui.open?.length || ui.tracked?.length || ui.quiz);
       setMessages(prev => [...prev, {
         role:"assistant", content:reply, timestamp: Date.now(), streamed: true,
         ...(actions?.length ? { actions } : {}),
@@ -1922,7 +2114,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // profile must be a dependency: without it the memoised handler kept the
   // profile from the first render, so after the user edited their profile
   // the AI kept personalising answers with the OLD state/occupation/income.
-  }, [input, messages, loading, isHindi, lang, usedChips, startCooldown, profile, matchedSchemes, trackedApps, eligAnswers]);
+  }, [input, messages, loading, isHindi, lang, usedChips, startCooldown, profile, effMatched, trackedApps, effAnswers]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -1978,7 +2170,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             <div style={{ color:"rgba(255,255,255,0.8)", fontSize:11, marginTop:3 }}>
               🟢 {isHindi ? "ऑनलाइन · हिंदी / English" : "Online · Hindi / English"}
             </div>
-            {profile && (
+            {profile?.name && (
               <div style={{
                 display:"inline-flex", alignItems:"center", gap:5, marginTop:5,
                 background:"rgba(255,255,255,0.16)", border:"1px solid rgba(255,255,255,0.28)",
@@ -1988,8 +2180,8 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
                 <span style={{ fontSize:10 }}>🎯</span>
                 <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.95)", fontFamily:bf }}>
                   {isHindi
-                    ? `${profile.name.split(" ")[0]} के लिए पर्सनल`
-                    : `Personalized for ${profile.name.split(" ")[0]}`}
+                    ? `${(profile.name || "").split(" ")[0]} के लिए पर्सनल`
+                    : `Personalized for ${(profile.name || "").split(" ")[0]}`}
                 </span>
               </div>
             )}
@@ -2004,6 +2196,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
                 setLive(null); setLoading(false);
                 if (canSpeak()) stopSpeaking();
                 setMessages([]); setError(""); setChips([]);
+                setChatAnswers(null); try { localStorage.removeItem(chatAnsKey); } catch {}
                 pendingChipsRef.current = [];              // FIX Bug 4
                 setUsedChips(new Set()); setSecondsLeft(0);
                 clearInterval(cooldownRef.current);
@@ -2024,7 +2217,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       {/* MESSAGES AREA */}
       <div ref={scrollBoxRef} data-keep-nav="" style={{ flex:1, overflowY:"auto", overscrollBehavior:"contain", padding:"18px 10px 6px", WebkitOverflowScrolling:"touch" }}>
         {messages.length === 0 && !loading && (
-          <WelcomeScreen lang={lang} dark={dark} onSuggest={handleSend} profile={profile} />
+          <WelcomeScreen lang={lang} dark={dark} onSuggest={handleSend} profile={profile} onQuiz={() => startQuiz()} />
         )}
         {messages.map((msg, i) => (
           <ChatBubble
@@ -2038,6 +2231,19 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             trackedApps={trackedApps}
             onChecklist={setChecklist}
             onOpenChecker={onOpenChecker}
+            onRecheck={() => startQuiz(effAnswers || {})}
+            onAsk={(t) => handleSend(t)}
+            onQuizRestart={(prev) => startQuiz(prev || {})}
+            onQuizDone={(ans) => {
+              setMessages(prev => prev.map((m, j) => j === i && m.ui?.quiz ? { ...m, ui: { ...m.ui, quiz: { ...m.ui.quiz, done: ans } } } : m));
+              if (msg.ui?.quiz?.forSelf) {
+                setChatAnswers(ans);
+                try {
+                  localStorage.setItem(chatAnsKey, JSON.stringify(ans));
+                  localStorage.setItem("yojana_eligibility_answers", JSON.stringify(ans));
+                } catch {}
+              }
+            }}
           />
         ))}
 

@@ -18,6 +18,7 @@ import { whoCanApply } from "./eligibilityText.js";
 import { benefitSummary } from "./benefitMath.js";
 import { getApplications, trackApplication, daysSince } from "./applications.js";
 import { track } from "./track.js";
+import { startingAnswers, questionQueue, withImplied } from "./chatEligibility.js";
 
 const DB = ALL.filter(s => !s.duplicateOf);
 const BY_ID = new Map(ALL.map(s => [s.id, s]));
@@ -242,6 +243,24 @@ const TOOLS = {
     return { result: { ok: true, shown: "button to open the eligibility checker" }, step: "Added a button to the eligibility checker", ui: { open: { screen: "eligibility_checker" } } };
   },
 
+  start_eligibility_check({ for_person = "self", person = "", known = {} }, ctx) {
+    const forSelf = for_person !== "family";
+    const start = withImplied(startingAnswers(ctx.answers, known || {}, forSelf));
+    const left = questionQueue(start).length;
+    const label = forSelf ? "" : String(person || "").slice(0, 30);
+    return {
+      result: {
+        ok: true,
+        questions_to_ask: left,
+        note: left
+          ? `The app is now showing ${left} quick tap-to-answer question(s) in the chat, then the result. In your reply just say in 1–2 short sentences that you'll check with a few quick questions below. Do not list schemes or ask the questions yourself.`
+          : "Everything needed is already known — the app is showing the result card now. Reply in one short sentence pointing to it.",
+      },
+      step: forSelf ? "Started a quick eligibility check" : `Started an eligibility check for your ${label || "family member"}`,
+      ui: { quiz: { forSelf, label, start } },
+    };
+  },
+
   async web_search({ query = "" }, ctx) {
     const q = String(query).slice(0, 200);
     try {
@@ -269,6 +288,7 @@ export const TOOL_META = {
   track_application:   { icon: "📌", en: "Adding to My Applications",    hi: "मेरे आवेदन में जोड़ रहे हैं" },
   documents_checklist: { icon: "📋", en: "Building documents checklist", hi: "दस्तावेज़ सूची बना रहे हैं" },
   open_app_screen:     { icon: "📱", en: "Preparing a shortcut",         hi: "शॉर्टकट तैयार कर रहे हैं" },
+  start_eligibility_check: { icon: "🧮", en: "Preparing quick questions", hi: "छोटे सवाल तैयार कर रहे हैं" },
   web_search:          { icon: "🌐", en: "Searching the web",            hi: "वेब पर खोज रहे हैं" },
 };
 

@@ -62,7 +62,7 @@ export async function runAgent(history, query, lang = "en", profile = null, extr
   const base = buildChatBody(history, query, lang, profile, { ...extras, agent: true });
   const messages = [...base.messages];
   const steps = [];
-  const ui = { checklist: null, open: [], tracked: [] };
+  const ui = { checklist: null, open: [], tracked: [], quiz: null };
   const schemeIds = [];
   const pushStep = (s) => { steps.push(s); onStep?.(steps.map(x => ({ ...x }))); };
 
@@ -103,6 +103,7 @@ export async function runAgent(history, query, lang = "en", profile = null, extr
         if (out.ui?.checklist) ui.checklist = out.ui.checklist;
         if (out.ui?.open) ui.open.push(out.ui.open);
         if (out.ui?.tracked) ui.tracked.push(out.ui.tracked);
+        if (out.ui?.quiz) ui.quiz = out.ui.quiz;
         for (const id of out.schemeIds || []) if (!schemeIds.includes(id)) schemeIds.push(id);
         return { id: c.id, content: JSON.stringify(out.result ?? {}).slice(0, 6500) };
       }));
