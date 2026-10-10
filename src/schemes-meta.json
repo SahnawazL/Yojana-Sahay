@@ -1,82 +1,84 @@
 {
   "assam_orunodoi": {
-    "lastVerified": "2026-09-26T23:17:18.780Z",
+    "lastVerified": "2026-10-10T11:53:51.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_atal_amrit": {
-    "lastVerified": "2026-09-25T23:44:23.882Z",
+    "lastVerified": "2026-10-10T11:53:51.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_nijut_moina": {
-    "lastVerified": "2026-09-25T23:46:14.674Z",
+    "lastVerified": "2026-10-10T11:53:51.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_pragyan_bharati": {
-    "lastVerified": "2026-09-26T23:17:23.594Z",
+    "lastVerified": "2026-10-10T11:53:58.797Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_anundoram": {
-    "lastVerified": "2026-09-25T23:43:47.689Z",
-    "confidence": 0
+    "lastVerified": "2026-10-10T11:55:02.067Z",
+    "confidence": 0,
+    "linkAlive": false,
+    "httpStatus": 410
   },
   "assam_krishi_sajuli": {
-    "lastVerified": "2026-09-25T23:45:29.235Z",
+    "lastVerified": "2026-10-10T11:55:02.067Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_swanirbhar_naari": {
-    "lastVerified": "2026-09-26T23:18:12.185Z",
+    "lastVerified": "2026-10-10T11:55:02.067Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_amrit_briksha": {
-    "lastVerified": "2026-09-24T23:46:10.016Z",
+    "lastVerified": "2026-10-10T11:55:02.067Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_mukhyamantri_atmanirbhar": {
-    "lastVerified": "2026-09-25T23:46:09.612Z",
+    "lastVerified": "2026-10-10T11:55:02.067Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_arundhati_gold": {
-    "lastVerified": "2026-09-25T23:44:18.609Z",
+    "lastVerified": "2026-10-10T11:55:02.067Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_svayem": {
-    "lastVerified": "2026-09-26T23:18:03.186Z",
+    "lastVerified": "2026-10-10T11:55:02.067Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_aponar_apon_ghar": {
-    "lastVerified": "2026-09-25T23:43:56.742Z",
+    "lastVerified": "2026-10-10T11:55:02.067Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_kushal_konwar_pension": {
-    "lastVerified": "2026-09-25T23:45:34.685Z",
+    "lastVerified": "2026-10-10T11:56:48.961Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_lakhpati_baideo": {
-    "lastVerified": "2026-09-25T23:45:41.977Z",
+    "lastVerified": "2026-10-10T11:56:48.961Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1567,7 +1569,7 @@
     "linkAlive": true
   },
   "punjab_minority_scholarship": {
-    "lastVerified": "2026-09-17T23:21:29.598Z",
+    "lastVerified": "2026-10-10T11:50:55.098Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -2854,95 +2856,96 @@
     "confidence": 0
   },
   "jharkhand_abua_awas": {
-    "lastVerified": "2026-10-06T01:38:23.979Z",
+    "lastVerified": "2026-10-10T11:52:26.290Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_maiya_samman": {
-    "lastVerified": "2026-10-06T01:39:20.407Z",
+    "lastVerified": "2026-10-10T11:52:26.290Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_mmkay": {
-    "lastVerified": "2026-10-06T01:39:48.456Z",
+    "lastVerified": "2026-10-10T11:52:26.290Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_abjkay": {
-    "lastVerified": "2026-10-06T01:38:18.760Z",
+    "lastVerified": "2026-10-10T11:52:26.290Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_protsahan_yojana": {
-    "lastVerified": "2026-10-07T00:17:06.574Z",
+    "lastVerified": "2026-10-10T11:52:26.290Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_jrfry": {
-    "lastVerified": "2026-10-06T01:39:11.614Z",
-    "confidence": 0
+    "lastVerified": "2026-10-10T11:52:26.290Z",
+    "confidence": 0,
+    "linkAlive": false
   },
   "jharkhand_ekalyan_scholarship": {
-    "lastVerified": "2026-10-06T01:38:58.215Z",
+    "lastVerified": "2026-10-10T11:52:26.290Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_bocw": {
-    "lastVerified": "2026-10-06T01:38:41.142Z",
+    "lastVerified": "2026-10-10T11:52:43.986Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_nalkoop": {
-    "lastVerified": "2026-10-07T00:16:49.161Z",
+    "lastVerified": "2026-10-10T11:52:43.986Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_sukhad_rahat": {
-    "lastVerified": "2026-10-07T00:17:39.796Z",
+    "lastVerified": "2026-10-10T11:52:43.986Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_minority_scholarship": {
-    "lastVerified": "2026-10-06T01:39:43.218Z",
+    "lastVerified": "2026-10-10T11:53:51.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_medha_chatravriti": {
-    "lastVerified": "2026-10-06T01:39:29.547Z",
+    "lastVerified": "2026-10-10T11:53:51.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_solar_jreda": {
-    "lastVerified": "2026-10-07T00:17:25.718Z",
+    "lastVerified": "2026-10-10T11:53:51.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_rojgar_srijan": {
-    "lastVerified": "2026-10-07T00:17:11.894Z",
+    "lastVerified": "2026-10-10T11:53:51.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_obc_scholarship": {
-    "lastVerified": "2026-10-07T00:16:54.198Z",
+    "lastVerified": "2026-10-10T11:53:51.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_micro_irrigation": {
-    "lastVerified": "2026-10-06T01:39:37.878Z",
+    "lastVerified": "2026-10-10T11:53:51.234Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3020,107 +3023,115 @@
     "confidence": 0
   },
   "punjab_crop_insurance": {
-    "lastVerified": "2026-09-17T23:19:30.724Z",
-    "confidence": 0
+    "lastVerified": "2026-10-10T11:49:31.867Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "punjab_kisan_karj_mafi": {
-    "lastVerified": "2026-09-17T23:20:59.115Z",
-    "confidence": 0
+    "lastVerified": "2026-10-10T11:49:31.867Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "punjab_medhavi_scholarship": {
-    "lastVerified": "2026-09-17T23:21:19.576Z",
+    "lastVerified": "2026-10-10T11:49:31.867Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_gharkari_yojana": {
-    "lastVerified": "2026-09-17T23:20:31.317Z",
-    "confidence": 0
+    "lastVerified": "2026-10-10T11:49:31.867Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "punjab_budhapa_pension": {
-    "lastVerified": "2026-09-17T23:19:16.510Z",
+    "lastVerified": "2026-10-10T11:49:31.867Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_divyang_pension": {
-    "lastVerified": "2026-09-17T23:19:53.562Z",
+    "lastVerified": "2026-10-10T11:49:31.867Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_sarbat_sehat_bima": {
-    "lastVerified": "2026-09-18T22:56:21.853Z",
+    "lastVerified": "2026-10-10T11:49:31.867Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_widow_pension": {
-    "lastVerified": "2026-09-18T22:57:20.724Z",
+    "lastVerified": "2026-10-10T11:49:31.867Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_solar_pump": {
-    "lastVerified": "2026-09-18T22:56:48.259Z",
+    "lastVerified": "2026-10-10T11:49:48.824Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_sc_postmatric_scholarship": {
-    "lastVerified": "2026-09-18T22:56:34.488Z",
+    "lastVerified": "2026-10-10T11:49:48.824Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_labour_welfare": {
-    "lastVerified": "2026-09-17T23:21:05.920Z",
+    "lastVerified": "2026-10-10T11:50:55.098Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_street_vendor_loan": {
-    "lastVerified": "2026-09-18T22:57:02.319Z",
-    "confidence": 0
+    "lastVerified": "2026-10-10T11:50:55.098Z",
+    "confidence": 0,
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "punjab_khel_khilaadi": {
-    "lastVerified": "2026-09-17T23:20:50.592Z",
+    "lastVerified": "2026-10-10T11:50:55.098Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_bocw_welfare": {
-    "lastVerified": "2026-09-17T23:19:07.658Z",
+    "lastVerified": "2026-10-10T11:50:55.098Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_organic_farming": {
-    "lastVerified": "2026-09-18T22:55:54.842Z",
+    "lastVerified": "2026-10-10T11:50:55.098Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_disability_scholarship": {
-    "lastVerified": "2026-09-17T23:19:44.745Z",
+    "lastVerified": "2026-10-10T11:50:55.098Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_himmat_scheme": {
-    "lastVerified": "2026-09-17T23:20:40.795Z",
+    "lastVerified": "2026-10-10T11:51:24.984Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_nursing_scholarship": {
-    "lastVerified": "2026-09-18T22:55:50.095Z",
+    "lastVerified": "2026-10-10T11:51:24.984Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_startup_punjab": {
-    "lastVerified": "2026-09-18T22:56:53.886Z",
+    "lastVerified": "2026-10-10T11:51:24.984Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
