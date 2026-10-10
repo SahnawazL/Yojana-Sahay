@@ -40,7 +40,7 @@ export const UTTAR_PRADESH_SCHEMES = [
                hi: "BPL परिवारों की बेटियों को प्रति जोड़ा ₹51,000 — ₹35,000 सीधे दुल्हन के बैंक खाते में + ₹10,000 के घरेलू उपहार + ₹6,000 शादी समारोह खर्च; जिला स्तर पर सरकार द्वारा सामूहिक विवाह आयोजित; दुल्हन 18+ और दूल्हा 21+; सभी जाति व धर्म पात्र" },
     tag:     { en: "Women / Marriage Assistance", hi: "महिला / विवाह सहायता" },
     annual: 51000,
-    apply:   { en: "https://schemesinindia.in/schemes/uttar-pradesh/mukhyamantri-samuhik-vivah-yojana-up", hi: "shadianudan.upsdc.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/msvy", hi: "shadianudan.upsdc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (bride and groom)", "Age Proof — Birth Certificate / Voter ID (bride 18+, groom 21+)", "Family Income Certificate (annual income ≤ ₹2 lakh)", "Caste Certificate (SC/ST/OBC/Minority if applicable)", "UP Residence / Domicile Proof", "Bank Account of Bride (Aadhaar-linked)", "Passport Photo (bride and groom)", "Marriage Card / Invitation (if available)"],
                hi: ["आधार कार्ड (वर-वधू दोनों)", "आयु प्रमाण — जन्म प्रमाण पत्र / मतदाता ID (दुल्हन 18+, दूल्हा 21+)", "पारिवारिक आय प्रमाण पत्र (वार्षिक आय ₹2 लाख से कम)", "जाति प्रमाण पत्र (SC/ST/OBC/अल्पसंख्यक हेतु)", "UP निवास प्रमाण", "दुल्हन का बैंक खाता (आधार-लिंक्ड)", "पासपोर्ट फोटो (वर-वधू दोनों)", "विवाह कार्ड/निमंत्रण पत्र (यदि उपलब्ध)"] },
     match: (a) => a.state === "Uttar Pradesh" && a.who === "women" && ["below1","1to3"].includes(a.income),
