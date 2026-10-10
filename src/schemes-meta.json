@@ -24,10 +24,10 @@
     "confidence": 0
   },
   "assam_anundoram": {
-    "lastVerified": "2026-10-10T11:55:02.067Z",
+    "lastVerified": "2026-10-10T13:12:15.473Z",
     "confidence": 0,
-    "linkAlive": false,
-    "httpStatus": 410
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "assam_krishi_sajuli": {
     "lastVerified": "2026-10-10T11:55:02.067Z",
@@ -1435,9 +1435,9 @@
     "confidence": 0
   },
   "cg_labour_card": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
-    "linkAlive": false,
-    "httpStatus": 404,
+    "lastVerified": "2026-10-10T13:12:15.473Z",
+    "linkAlive": true,
+    "httpStatus": 200,
     "confidence": 0
   },
   "cg_pre_matric_tribal": {
@@ -1471,9 +1471,9 @@
     "confidence": 0
   },
   "cg_startup_niti": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
-    "linkAlive": false,
-    "httpStatus": 404,
+    "lastVerified": "2026-10-10T13:12:15.473Z",
+    "linkAlive": true,
+    "httpStatus": 200,
     "confidence": 0
   },
   "uk_nanda_gaura": {
@@ -2918,9 +2918,10 @@
     "confidence": 0
   },
   "jharkhand_jrfry": {
-    "lastVerified": "2026-10-10T11:52:26.290Z",
+    "lastVerified": "2026-10-10T13:12:15.473Z",
     "confidence": 0,
-    "linkAlive": false
+    "linkAlive": true,
+    "httpStatus": 200
   },
   "jharkhand_ekalyan_scholarship": {
     "lastVerified": "2026-10-10T11:52:26.290Z",
