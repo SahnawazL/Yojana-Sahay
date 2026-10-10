@@ -1637,10 +1637,10 @@
     "confidence": 0
   },
   "mizoram_cm_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-10T12:34:27.813Z",
     "confidence": 0,
     "httpStatus": 404,
-    "linkAlive": false
+    "linkAlive": true
   },
   "nagaland_health_scheme": {
     "lastVerified": "2026-10-10T12:20:51.901Z",
@@ -2786,9 +2786,9 @@
     "confidence": 0
   },
   "hp_himcare": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-10T12:34:27.813Z",
     "httpStatus": 404,
-    "linkAlive": false,
+    "linkAlive": true,
     "confidence": 0
   },
   "hp_widow_pension": {
