@@ -107,7 +107,7 @@ export const MIZORAM_SCHEMES = [
                hi: "MBSE कक्षा 10 या 12 परीक्षा में 60%+ अंक लाने वाले मिजोरम अधिवास छात्रों को ₹10,000–₹24,000 वार्षिक छात्रवृत्ति; स्तर के अनुसार — कक्षा 11–12: ₹10,000/वर्ष, स्नातक: ₹16,000/वर्ष, स्नातकोत्तर: ₹24,000/वर्ष; सीधे आधार-लिंक्ड बैंक खाते में; प्रत्येक वर्ष 55%+ बनाए रखने पर नवीनीकरण; ST छात्रों और दूरदराज जिलों के छात्रों को प्राथमिकता" },
     tag:     { en: "Student / Scholarship", hi: "छात्र / छात्रवृत्ति" },
     annual: 24000,
-    apply:   { en: "https://dhe.mizoram.gov.in", hi: "dhe.mizoram.gov.in / स्कूल या कॉलेज कार्यालय (ऑनलाइन + ऑफलाइन)" }, applyType: "online",
+    apply:   { en: "https://msb.mizoram.gov.in/post/tribal-scholarship-pre-post-matric-2026-2027", hi: "dhe.mizoram.gov.in / स्कूल या कॉलेज कार्यालय (ऑनलाइन + ऑफलाइन)" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "MBSE Class 10 / 12 Marksheet", "Income Certificate (family income below threshold)", "ST / OBC Certificate (if applicable)", "Admission / Enrollment Certificate from current institution", "Bank Account (Aadhaar-linked, student's name)", "Residence / Domicile Certificate (Mizoram)", "Passport Photo"],
                hi: ["आधार कार्ड", "MBSE कक्षा 10 / 12 अंकसूची", "आय प्रमाण पत्र (पारिवारिक आय सीमा से कम)", "ST / OBC प्रमाण पत्र (यदि लागू हो)", "वर्तमान संस्थान से प्रवेश / नामांकन प्रमाण पत्र", "बैंक खाता (आधार-लिंक्ड, छात्र के नाम)", "निवास / अधिवास प्रमाण पत्र (मिजोरम)", "पासपोर्ट फोटो"] },
     keywords: ["class10","class12"],
