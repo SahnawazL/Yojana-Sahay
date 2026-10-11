@@ -2122,7 +2122,7 @@
     "confidence": 0
   },
   "maha_health": {
-    "lastVerified": "2026-09-10T22:53:19.787Z",
+    "lastVerified": "2026-10-11T21:33:54.519Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2134,10 +2134,10 @@
     "confidence": 0
   },
   "maha_majhi_ladki_bahin": {
-    "lastVerified": "2026-09-10T22:54:30.359Z",
+    "lastVerified": "2026-10-11T21:35:35.018Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 0.49
   },
   "maha_annasaheb_patil": {
     "lastVerified": "2026-10-10T21:36:00.633Z",
@@ -2162,7 +2162,7 @@
     "confidence": 0
   },
   "maha_gharkul": {
-    "lastVerified": "2026-09-10T22:53:06.696Z",
+    "lastVerified": "2026-10-11T21:33:51.799Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2204,7 +2204,7 @@
     "confidence": 0
   },
   "maha_nanaji_deshmukh": {
-    "lastVerified": "2026-09-11T22:56:05.465Z",
+    "lastVerified": "2026-10-11T21:37:15.033Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2222,23 +2222,23 @@
     "confidence": 0
   },
   "maha_minority_scholarship": {
-    "lastVerified": "2026-09-11T22:55:03.099Z",
+    "lastVerified": "2026-10-11T21:36:12.397Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_karjmafi_2026": {
-    "lastVerified": "2026-09-10T22:53:29.789Z",
+    "lastVerified": "2026-10-11T21:34:07.180Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_namo_shetkari": {
-    "lastVerified": "2026-09-11T22:55:54.601Z",
+    "lastVerified": "2026-10-11T21:37:05.637Z",
     "confidence": 0
   },
   "maha_magel_tyala_solar_pump": {
-    "lastVerified": "2026-09-10T22:54:17.341Z",
+    "lastVerified": "2026-10-11T21:35:22.157Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2256,8 +2256,10 @@
     "confidence": 0
   },
   "maha_one_rupee_fasal_bima": {
-    "lastVerified": "2026-09-11T22:56:22.467Z",
-    "confidence": 0
+    "lastVerified": "2026-10-11T21:37:27.207Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "maha_ahilyadevi_mahila_startup": {
     "lastVerified": "2026-10-10T21:35:10.042Z",
@@ -2272,7 +2274,7 @@
     "confidence": 0
   },
   "maha_mukhyamantri_saur_krishi_vahini": {
-    "lastVerified": "2026-09-11T22:55:34.336Z",
+    "lastVerified": "2026-10-11T21:36:37.322Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2285,13 +2287,13 @@
     "lastDate": "2026-12-31"
   },
   "maha_matsya_vikas": {
-    "lastVerified": "2026-09-10T22:54:43.888Z",
+    "lastVerified": "2026-10-11T21:35:47.620Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_mazi_kanya_bhagyashree": {
-    "lastVerified": "2026-09-10T22:54:52.127Z",
+    "lastVerified": "2026-10-11T21:36:00.148Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2309,7 +2311,7 @@
     "confidence": 0
   },
   "maha_kukut_palan_karj": {
-    "lastVerified": "2026-09-10T22:53:38.888Z",
+    "lastVerified": "2026-10-11T21:34:32.941Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2349,7 +2351,7 @@
     "confidence": 0
   },
   "maha_mukhyamantri_udyojak": {
-    "lastVerified": "2026-09-11T22:55:40.137Z",
+    "lastVerified": "2026-10-11T21:36:49.935Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2361,19 +2363,19 @@
     "confidence": 0
   },
   "maha_lek_ladki": {
-    "lastVerified": "2026-09-10T22:53:56.351Z",
+    "lastVerified": "2026-10-11T21:34:59.108Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_mjpjay": {
-    "lastVerified": "2026-09-11T22:55:20.480Z",
+    "lastVerified": "2026-10-11T21:36:25.490Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_madhmakhi_palan": {
-    "lastVerified": "2026-09-10T22:54:05.363Z",
+    "lastVerified": "2026-10-11T21:35:09.455Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2391,13 +2393,13 @@
     "confidence": 0
   },
   "maha_ladka_bhau": {
-    "lastVerified": "2026-09-10T22:53:44.096Z",
+    "lastVerified": "2026-10-11T21:34:46.634Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_pm_shram_yogi": {
-    "lastVerified": "2026-09-11T22:56:31.728Z",
+    "lastVerified": "2026-10-11T21:37:44.614Z",
     "confidence": 0
   },
   "maha_enam_maharashtra": {
@@ -2413,7 +2415,7 @@
     "confidence": 0
   },
   "maha_krishi_yantra_subsidy": {
-    "lastVerified": "2026-06-22T19:55:55.636Z",
+    "lastVerified": "2026-10-11T21:34:19.757Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
