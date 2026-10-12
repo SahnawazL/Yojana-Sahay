@@ -735,4 +735,21 @@ export const ASSAM_SCHEMES = [
   },
   // </auto-scheme id="assam_speed_phase_duck">
 
+  // <auto-scheme id="assam_arogya_nidhi"> added by Scheme Discovery agent on 2026-10-10 · source: https://nhm.assam.gov.in/schemes/assam-arogya-nidhi
+  {
+    id: "assam_arogya_nidhi",
+    icon: "🏥", color: "#0369A1", scope: "state", state: "Assam",
+    ministry: { en: "National Health Mission, Assam", hi: "राष्ट्रीय स्वास्थ्य मिशन, असम" },
+    name:    { en: "Assam Arogya Nidhi", hi: "असम आरोग्य निधि" },
+    benefit: { en: "Health benefit fund for eligible beneficiaries", hi: "पात्र लाभार्थियों के लिए स्वास्थ्य लाभ निधि" },
+    tag:     { en: "Health Benefit Fund", hi: "स्वास्थ्य लाभ निधि" },
+    annual: 0,
+    apply:   { en: "https://nhm.assam.gov.in/schemes/assam-arogya-nidhi", hi: "https://nhm.assam.gov.in/schemes/assam-arogya-nidhi" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-10", source: "https://nhm.assam.gov.in/schemes/assam-arogya-nidhi",
+    match: (a) => a.state === "Assam",
+  },
+  // </auto-scheme id="assam_arogya_nidhi">
+
 ];
