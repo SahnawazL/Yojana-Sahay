@@ -906,4 +906,21 @@ export const CHHATTISGARH_SCHEMES = [
     match: (a) => a.state === "Chhattisgarh" && (a.who === "senior" || a.age === "above60") && a.income === "below1",
   },
 
+  // <auto-scheme id="cg_unemployment_allowance"> added by Scheme Discovery agent on 2026-10-11 · source: https://erojgar.cg.gov.in/LandingSite/en/BerojgariBhatta.aspx
+  {
+    id: "cg_unemployment_allowance",
+    icon: "💼", color: "#0E7490", scope: "state", state: "Chhattisgarh",
+    ministry: { en: "Employment Department, Chhattisgarh", hi: "रोज़गार विभाग, छत्तीसगढ़" },
+    name:    { en: "Unemployment Allowance Scheme", hi: "बेरोज़गारी भत्ता योजना" },
+    benefit: { en: "₹2,500/month to educated unemployed", hi: "₹2,500/माह शिक्षित बेरोज़गारों को" },
+    tag:     { en: "Unemployment", hi: "बेरोज़गारी" },
+    annual: 30000,
+    apply:   { en: "https://erojgar.cg.gov.in/LandingSite/en/BerojgariBhatta.aspx", hi: "https://erojgar.cg.gov.in/LandingSite/en/BerojgariBhatta.aspx" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-11", source: "https://erojgar.cg.gov.in/LandingSite/en/BerojgariBhatta.aspx",
+    match: (a) => a.state === "Chhattisgarh",
+  },
+  // </auto-scheme id="cg_unemployment_allowance">
+
 ];
