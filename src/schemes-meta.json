@@ -358,7 +358,7 @@
     "confidence": 0
   },
   "mgnrega": {
-    "lastVerified": "2026-09-12T22:47:24.111Z",
+    "lastVerified": "2026-10-13T21:35:48.858Z",
     "confidence": 0
   },
   "pmkvy": {
@@ -578,7 +578,7 @@
     "linkAlive": true
   },
   "mcm_minority": {
-    "lastVerified": "2026-09-12T22:46:23.401Z",
+    "lastVerified": "2026-10-13T21:34:45.149Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -913,13 +913,13 @@
     "confidence": 0
   },
   "mp_ladli": {
-    "lastVerified": "2026-10-08T08:18:06.086Z",
+    "lastVerified": "2026-10-13T21:37:15.131Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_kanya_vivah": {
-    "lastVerified": "2026-10-08T08:18:06.086Z",
+    "lastVerified": "2026-10-13T21:37:02.399Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -965,13 +965,13 @@
     "confidence": 0
   },
   "mp_chirayu": {
-    "lastVerified": "2026-10-08T08:19:11.611Z",
+    "lastVerified": "2026-10-13T21:36:24.919Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_ladli_behna": {
-    "lastVerified": "2026-10-08T08:19:18.057Z",
+    "lastVerified": "2026-10-13T21:37:27.346Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -983,7 +983,7 @@
     "confidence": 0
   },
   "mp_kalyani_sahayata": {
-    "lastVerified": "2026-10-08T08:20:20.425Z",
+    "lastVerified": "2026-10-13T21:36:50.164Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -995,7 +995,7 @@
     "confidence": 0
   },
   "mp_gaon_ki_beti": {
-    "lastVerified": "2026-10-08T08:20:20.425Z",
+    "lastVerified": "2026-10-13T21:36:38.444Z",
     "confidence": 0
   },
   "uk_vatsalya": {
@@ -1587,60 +1587,62 @@
     "confidence": 0
   },
   "manipur_cm_kisan_samman": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-13T21:34:10.664Z",
     "confidence": 0
   },
   "manipur_cm_health_insurance": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-13T21:33:55.107Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "manipur_cm_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-13T21:34:19.806Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "manipur_startup_manipur": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-13T21:34:33.307Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_cm_kisan_samman": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-13T21:34:57.331Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_mhis": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-13T21:35:31.872Z",
     "confidence": 0
   },
   "meghalaya_cm_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-13T21:35:10.899Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_msy_entrepreneur": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-13T21:35:34.906Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "mizoram_health_insurance": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-13T21:36:12.993Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "mizoram_cm_scholarship": {
-    "lastVerified": "2026-10-10T12:34:27.813Z",
-    "confidence": 0,
-    "httpStatus": 404,
-    "linkAlive": true
+    "lastVerified": "2026-10-13T21:35:59.926Z",
+    "confidence": 1,
+    "httpStatus": 200,
+    "linkAlive": true,
+    "isActive": false,
+    "lastDate": "2026-09-30"
   },
   "nagaland_health_scheme": {
     "lastVerified": "2026-10-10T12:20:51.901Z",
@@ -2186,7 +2188,7 @@
     "confidence": 0
   },
   "maha_yuva_karya": {
-    "lastVerified": "2026-09-12T22:45:12.056Z",
+    "lastVerified": "2026-10-13T21:33:46.468Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3002,7 +3004,7 @@
     "confidence": 0
   },
   "mp_ladli_behna_awas": {
-    "lastVerified": "2026-10-08T08:20:20.425Z",
+    "lastVerified": "2026-10-13T21:37:39.889Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
