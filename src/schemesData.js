@@ -257,7 +257,7 @@ export const SCHEME_DB = [
     ministry: { en: "Ministry of Finance", hi: "वित्त मंत्रालय" },
     name:    { en: "PM Jeevan Jyoti Bima Yojana (PMJJBY)", hi: "पीएम जीवन ज्योति बीमा योजना" },
     description: { en: "Cheap life insurance (₹436/year) that pays ₹2 lakh to the family if the policyholder passes away.", hi: "सस्ता जीवन बीमा (₹436/वर्ष) जिसमें बीमाधारक की मृत्यु पर परिवार को ₹2 लाख मिलते हैं।" },
-    benefit: { en: "₹2 lakh life insurance · Only ₹330/year premium", hi: "₹2 लाख जीवन बीमा · केवल ₹330/वर्ष प्रीमियम" },
+    benefit: { en: "₹2 lakh life insurance · Only ₹436/year premium", hi: "₹2 लाख जीवन बीमा · केवल ₹436/वर्ष प्रीमियम" },
     tag:     { en: "Insurance", hi: "बीमा" },
     annual: 0,
     apply:   { en: "https://financialservices.gov.in/pradhan-mantri-jeevan-jyoti-bima-yojana-pmjjby", hi: "jansuraksha.gov.in" }, applyType: "online",

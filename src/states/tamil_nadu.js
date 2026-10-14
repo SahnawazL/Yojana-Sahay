@@ -255,7 +255,7 @@ export const TAMIL_NADU_SCHEMES = [
     benefit: { en: "Subsidised flat/house allotment for EWS & LIG; ₹2–₹4 Lakh subsidy on home cost", hi: "EWS और LIG के लिए सब्सिडी पर फ्लैट/मकान; गृह मूल्य पर ₹2–₹4 लाख सब्सिडी" },
     tag:     { en: "Housing", hi: "आवास" },
     annual:  200000,
-    apply:   { en: "https://grihumhousing.com/blogs/tamil-nadu-housing-board-schemes-tnhb", hi: "tnhb.gov.in" }, applyType: "online",
+    apply:   { en: "https://tnhb.tn.gov.in", hi: "tnhb.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Income Certificate (EWS ≤ ₹3L / LIG ≤ ₹6L)", "No Property Certificate", "Bank Account", "Community Certificate"],
                hi: ["आधार कार्ड", "आय प्रमाण पत्र", "संपत्ति न होने का प्रमाण", "बैंक खाता", "जाति प्रमाण पत्र"] },
     match: (a) => a.state === "Tamil Nadu" && ["no", "kutcha"].includes(a.house) && ["below1", "1to3", "3to6"].includes(a.income),

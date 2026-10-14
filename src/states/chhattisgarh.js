@@ -710,7 +710,7 @@ export const CHHATTISGARH_SCHEMES = [
     benefit: { en: "55–75% subsidy on drip & sprinkler irrigation systems for small & marginal farmers", hi: "लघु व सीमांत किसानों को ड्रिप/स्प्रिंकलर सिंचाई पर 55–75% सब्सिडी" },
     tag:     { en: "Farmer", hi: "किसान" },
     annual: 75000,
-    apply:   { en: "https://www.bajajfinserv.in/pradhan-mantri-krishi-sinchayee-yojana", hi: "agri.cg.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmksy.gov.in", hi: "agri.cg.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Record (B1/P2)","Farmer Registration","Bank Passbook","Water Source Proof"],
                hi: ["आधार कार्ड","भूमि अभिलेख (B1/P2)","किसान पंजीयन","बैंक पासबुक","जल स्रोत प्रमाण"] },
     duplicateOf: "pmksy", // same scheme as the central / main entry — hidden when that one already matches

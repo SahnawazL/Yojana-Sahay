@@ -41,6 +41,7 @@ import ReportIssueSheet from "./ReportIssueSheet.jsx";
 import { SchemeFlagButton, SchemeFlagNotice, claimGuestReports } from "./SchemeFlag.jsx";
 import { GUIDES, GUIDES_REVIEWED } from "../scripts/seo-guides.mjs";
 import { LIFE_EVENTS, lifeEventPlan } from "./lifeEvents.js";
+import { moneyCalendar, googleCalendarUrl, NOT_RECEIVED_TIPS } from "./moneyCalendar.js";
 import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
@@ -8403,6 +8404,161 @@ function PushNotifyCard({ uid, lang, dark }) {
   );
 }
 
+// ─── MY MONEY CALENDAR (home) ──────────────────────────────────────────────────
+// When scheme money usually arrives and when to pay / act (premium debit,
+// deposit, enrolment window) — for applied + eligible schemes. Patterns, not
+// promises: see src/moneyCalendar.js. Hidden until there's something to show.
+const MC_MONTHS={en:["January","February","March","April","May","June","July","August","September","October","November","December"],
+  hi:["जनवरी","फ़रवरी","मार्च","अप्रैल","मई","जून","जुलाई","अगस्त","सितंबर","अक्टूबर","नवंबर","दिसंबर"]};
+const MC_DIR={in:{icon:"💰",c:"#15803d"},out:{icon:"💳",c:"#B45309"},act:{icon:"📝",c:"#1D4ED8"}};
+function mcDir(r){ return r.ev?r.ev.dir:r.sched.kind==="monthly_out"?"out":"in"; }
+function mcLine(r,lang){ const x=r.ev||r.sched; return lang==="hi"?x.hi:x.en; }
+function mcReminder(r,lang){
+  const name=r.scheme.name?.[lang]||r.scheme.name?.en||"";
+  const hi=lang==="hi";
+  const dir=mcDir(r);
+  const title=r.ev
+    ? (dir==="in"?(hi?`${name}: किस्त का समय`:`${name}: instalment period`):dir==="out"?(hi?`${name}: खाते में पैसे रखें`:`${name}: keep money in account`):(hi?`${name}: ज़रूरी काम`:`${name}: to do`))
+    : (dir==="out"?(hi?`${name}: मासिक कटौती के लिए बैलेंस रखें`:`${name}: keep balance for monthly debit`):(hi?`${name}: पैसा आया या नहीं देखें`:`${name}: check if money arrived`));
+  const details=`${mcLine(r,lang)}\n\n${schemePageUrl(r.scheme,lang)}\n— YojanaSahay`;
+  return r.ev
+    ? googleCalendarUrl({title,details,month:r.ev.month,day:r.ev.day,freq:"YEARLY"})
+    : googleCalendarUrl({title,details,day:dir==="out"?1:10,freq:"MONTHLY"});
+}
+function MoneyRow({r,lang,dark,onSchemeOpen,compact=false}){
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const L=(en,hi)=>isHindi?hi:en;
+  const [tips,setTips]=useState(false);
+  const d=MC_DIR[mcDir(r)];
+  const st=r.mine&&STATUS_TEXT[r.status];
+  const canChase=r.mine&&mcDir(r)==="in"&&["pending","approved","received"].includes(r.status);
+  const names=[r.scheme,...(r.also||[])].map(s=>s.name?.[lang]||s.name?.en);
+  const pill={fontSize:11,fontWeight:800,padding:"6px 10px",borderRadius:9,cursor:"pointer",fontFamily:bf,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:4,whiteSpace:"nowrap"};
+  return(
+    <div style={{padding:"10px 11px",borderRadius:13,border:`1px solid ${th.border}`,marginBottom:7,background:dark?"rgba(255,255,255,0.02)":"#fff",minWidth:0}}>
+      <div role="button" onClick={()=>{haptic();onSchemeOpen?.(r.scheme.id);}} style={{display:"flex",gap:9,cursor:"pointer",minWidth:0}}>
+        <span style={{fontSize:17,flexShrink:0,lineHeight:1.2}}>{d.icon}</span>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:12.5,fontWeight:800,color:th.text,lineHeight:1.3,fontFamily:bf,overflowWrap:"anywhere"}}>
+            {names.length>1?`${names[0]} ${L(`+ ${names.length-1} more`,`+ ${names.length-1} और`)}`:names[0]}
+          </div>
+          <div style={{fontSize:11.5,color:d.c,marginTop:3,lineHeight:1.45,fontFamily:bf,fontWeight:600,overflowWrap:"anywhere"}}>
+            {r.running&&<span style={{fontWeight:900}}>{L("Now · ","अभी · ")}</span>}{mcLine(r,lang)}
+          </div>
+          <div style={{fontSize:10.5,marginTop:4,fontFamily:bf,fontWeight:700,color:st?st.color:th.textSub}}>
+            {st?`${st.icon} ${L("Applied","आवेदन किया")} · ${isHindi?st.hi:st.en}`:L("✓ You qualify — not applied yet","✓ आप पात्र हैं — अभी आवेदन नहीं किया")}
+          </div>
+        </div>
+        <span style={{fontSize:15,color:th.textSub,flexShrink:0}}>›</span>
+      </div>
+      {!compact&&r.sched.tip&&<div style={{fontSize:10.5,color:th.textSub,marginTop:6,paddingLeft:26,lineHeight:1.45,fontFamily:bf}}>💡 {isHindi?r.sched.tip.hi:r.sched.tip.en}</div>}
+      {!compact&&(
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:8,paddingLeft:26}}>
+          <a href={mcReminder(r,lang)} target="_blank" rel="noopener noreferrer" onClick={()=>{haptic();track("money_cal",{k:"reminder"});}}
+            style={{...pill,color:"#7C3AED",background:dark?"rgba(124,58,237,0.14)":"#F5F3FF"}}>🔔 {L("Add reminder","रिमाइंडर लगाएं")}</a>
+          {canChase&&(
+            <div role="button" onClick={()=>{haptic();track("money_cal",{k:"not_received"});
+              if(GUIDES[r.scheme.id]) onSchemeOpen?.(r.scheme.id,"status"); else setTips(t=>!t);}}
+              style={{...pill,color:"#B91C1C",background:dark?"rgba(220,38,38,0.12)":"#FEF2F2"}}>{L("Didn't get it?","पैसा नहीं आया?")}</div>
+          )}
+        </div>
+      )}
+      {tips&&(
+        <ol style={{margin:"8px 0 0 26px",paddingLeft:16}}>
+          {NOT_RECEIVED_TIPS[isHindi?"hi":"en"].map((t,i)=><li key={i} style={{fontSize:11.5,lineHeight:1.5,color:th.text,margin:"3px 0",fontFamily:bf,overflowWrap:"anywhere"}}>{t}</li>)}
+        </ol>
+      )}
+    </div>
+  );
+}
+function MoneyCalendarCard({lang,dark,eligible,onSchemeOpen}){
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const L=(en,hi)=>isHindi?hi:en;
+  const apps=useApplications();
+  const [open,setOpen]=useState(false);
+  const cal=useMemo(()=>moneyCalendar(apps,eligible||[]),[apps,eligible]);
+  if(!cal.count) return null;
+  const thisMonth=cal.months[0];
+  const top=[...thisMonth.items,...cal.monthly].sort((a,b)=>(b.mine-a.mine)).slice(0,3);
+  const next=cal.months.slice(1).find(m=>m.items.length);
+  return(
+    <div style={{background:th.card,borderRadius:20,border:`1.5px solid ${th.border}`,padding:16,marginBottom:14,boxShadow:dark?"none":"0 4px 18px rgba(0,0,0,0.05)"}}>
+      <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:12}}>
+        <div style={{width:38,height:38,borderRadius:12,background:"linear-gradient(135deg,#0EA5E9,#6366F1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,boxShadow:"0 4px 12px rgba(99,102,241,0.3)"}}>📅</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf}}>{L("My Money Calendar","मेरा पैसा कैलेंडर")}</div>
+          <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>{L("When scheme money usually comes — and what to pay or do","योजना का पैसा आमतौर पर कब आता है — और क्या भरना/करना है")}</div>
+        </div>
+      </div>
+      <div style={{fontSize:10.5,fontWeight:800,color:th.textSub,letterSpacing:0.3,marginBottom:7,fontFamily:bf}}>{L(`THIS MONTH · ${MC_MONTHS.en[thisMonth.m-1].toUpperCase()}`,`इस महीने · ${MC_MONTHS.hi[thisMonth.m-1]}`)}</div>
+      {top.length?top.map((r,i)=><MoneyRow key={r.scheme.id+"-"+i} r={r} lang={lang} dark={dark} onSchemeOpen={onSchemeOpen} compact/>)
+        :<div style={{fontSize:12,color:th.textSub,padding:"4px 0 8px",fontFamily:bf}}>{L("Nothing due this month.","इस महीने कुछ नहीं।")}{next?L(` Next: ${MC_MONTHS.en[next.m-1]}.`,` अगला: ${MC_MONTHS.hi[next.m-1]}।`):""}</div>}
+      <div role="button" onClick={()=>{haptic();track("money_cal",{k:"open"});setOpen(true);}}
+        style={{marginTop:4,padding:"10px 12px",borderRadius:12,textAlign:"center",fontSize:12.5,fontWeight:800,color:"#4F46E5",background:dark?"rgba(99,102,241,0.14)":"#EEF2FF",cursor:"pointer",fontFamily:bf}}>
+        {L("See the next 12 months & add reminders →","अगले 12 महीने देखें और रिमाइंडर लगाएं →")}
+      </div>
+      {open&&<MoneyCalendarSheet cal={cal} lang={lang} dark={dark} onClose={()=>setOpen(false)} onSchemeOpen={onSchemeOpen}/>}
+    </div>
+  );
+}
+function MoneyCalendarSheet({cal,lang,dark,onClose,onSchemeOpen}){
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const L=(en,hi)=>isHindi?hi:en;
+  const [visible,setVisible]=useState(false);
+  const hasMine=cal.monthly.some(r=>r.mine)||cal.months.some(m=>m.items.some(r=>r.mine));
+  const [onlyMine,setOnlyMine]=useState(false);
+  useEffect(()=>{const id=setTimeout(()=>setVisible(true),20);return()=>clearTimeout(id);},[]);
+  const keep=r=>!onlyMine||r.mine;
+  const monthly=cal.monthly.filter(keep);
+  const months=cal.months.map(m=>({...m,items:m.items.filter(keep)})).filter(m=>m.items.length);
+  const H=({children})=><div style={{fontSize:11.5,fontWeight:900,color:dark?"#A5B4FC":"#4338CA",letterSpacing:0.3,margin:"14px 0 8px",fontFamily:bf}}>{children}</div>;
+  const Chip=({on,onClick,children})=>(
+    <div role="button" onClick={()=>{haptic();onClick();}} style={{fontSize:11.5,fontWeight:on?800:600,padding:"6px 11px",borderRadius:20,cursor:"pointer",fontFamily:bf,
+      border:`1.5px solid ${on?"#6366F1":th.border}`,color:on?"#4338CA":th.textMid,background:on?(dark?"rgba(99,102,241,0.18)":"#EEF2FF"):"transparent",whiteSpace:"nowrap"}}>{children}</div>
+  );
+  return createPortal(
+    <div onClick={e=>{if(e.target===e.currentTarget)onClose();}} style={{position:"fixed",inset:0,zIndex:195,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.2s"}}>
+      <div className="sheet-85" style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.card,borderRadius:"24px 24px 0 0",overflowY:"auto",overflowX:"hidden",maxHeight:"88vh",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.28s cubic-bezier(0.32,0.72,0,1)",paddingBottom:24}}>
+        <div style={{display:"flex",justifyContent:"center",paddingTop:10}}><div style={{width:40,height:4,background:th.handle,borderRadius:2}}/></div>
+        <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px 4px"}}>
+          <div style={{fontSize:28,flexShrink:0}}>📅</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:17,fontWeight:800,color:th.text,fontFamily:bf}}>{L("My Money Calendar","मेरा पैसा कैलेंडर")}</div>
+            <div style={{fontSize:11.5,color:th.textSub,marginTop:2,fontFamily:bf}}>{L(`${cal.count} schemes · next 12 months`,`${cal.count} योजनाएं · अगले 12 महीने`)}</div>
+          </div>
+          <div role="button" aria-label={L("Close","बंद करें")} onClick={()=>{haptic();onClose();}} style={{width:32,height:32,borderRadius:"50%",background:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.06)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0,fontSize:15,color:th.textMid}}>✕</div>
+        </div>
+        <div style={{padding:"0 16px"}}>
+          <div style={{fontSize:11,color:th.textSub,lineHeight:1.5,margin:"6px 0 4px",padding:"8px 10px",borderRadius:10,background:dark?"rgba(255,255,255,0.04)":"#F8FAFC",fontFamily:bf}}>
+            {L("ℹ️ These are the usual patterns, not promises — governments don't publish fixed payment dates. Mark schemes as \"I've applied\" to see yours first.","ℹ️ ये आमतौर पर होने वाले समय हैं, वादा नहीं — सरकार भुगतान की पक्की तारीख नहीं बताती। अपनी योजनाओं पर \"मैंने आवेदन किया\" दबाएं ताकि वे सबसे ऊपर दिखें।")}
+          </div>
+          {hasMine&&(
+            <div style={{display:"flex",gap:6,marginTop:10}}>
+              <Chip on={!onlyMine} onClick={()=>setOnlyMine(false)}>{L("All","सभी")}</Chip>
+              <Chip on={onlyMine} onClick={()=>setOnlyMine(true)}>{L("Only what I applied for","सिर्फ़ जिनमें आवेदन किया")}</Chip>
+            </div>
+          )}
+          {monthly.length>0&&<><H>{L("EVERY MONTH","हर महीने")}</H>{monthly.map((r,i)=><MoneyRow key={"m"+r.scheme.id+i} r={r} lang={lang} dark={dark} onSchemeOpen={onSchemeOpen}/>)}</>}
+          {months.map(m=>(
+            <div key={m.y+"-"+m.m}>
+              <H>{`${(isHindi?MC_MONTHS.hi:MC_MONTHS.en)[m.m-1]} ${m.y}`.toUpperCase()}</H>
+              {m.items.map((r,i)=><MoneyRow key={r.scheme.id+"-"+i} r={r} lang={lang} dark={dark} onSchemeOpen={onSchemeOpen}/>)}
+            </div>
+          ))}
+          {!monthly.length&&!months.length&&<div style={{fontSize:12.5,color:th.textSub,padding:"18px 0",textAlign:"center",fontFamily:bf}}>{L("Nothing here yet.","अभी यहां कुछ नहीं।")}</div>}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ─── LIFE EVENTS (home) — "What's happening in your life?" ─────────────────────
 // One tap on a life moment → the schemes that help, stage by stage, for the
 // user's state (src/lifeEvents.js). Works for everyone, signed in or not.
@@ -9879,6 +10035,8 @@ function YojanaSahayInner(){
   const [checkerRunId,setCheckerRunId]=useState(0);        // increments each checker run → forces BenefitCard remount
   const [showUpdateProfileSheet,setShowUpdateProfileSheet]=useState(false); // "just checking / update profile" popup
   const [selectedScheme,setSelectedScheme]=useState(null);   // SchemeDetailSheet
+  const [schemeFocus,setSchemeFocus]=useState(null);         // e.g. "status" → open the status guide
+  const openSchemeWithFocus=useCallback((id,focus=null)=>{setSchemeFocus(focus);setSelectedScheme(id);},[]);
   const [selectedCategory,setSelectedCategory]=useState(null); // CategorySheet
   const [showAvatarModal,setShowAvatarModal]=useState(false);
 
@@ -10952,6 +11110,9 @@ function YojanaSahayInner(){
             {/* My Applications — only once something has been marked "applied" */}
             <MyApplicationsCard lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
 
+            {/* My Money Calendar — when scheme money usually comes; hidden until there's something */}
+            <MoneyCalendarCard lang={lang} dark={dark} eligible={allMatchedSchemes} onSchemeOpen={openSchemeWithFocus}/>
+
             {/* Phone notifications — signed-in users only */}
             {profile&&auth.currentUser&&<PushNotifyCard uid={auth.currentUser.uid} lang={lang} dark={dark}/>}
 
@@ -11890,9 +12051,9 @@ function YojanaSahayInner(){
         <CategorySheet category={selectedCategory} lang={lang} onClose={()=>setSelectedCategory(null)} dark={dark} onOpenDetail={setSelectedScheme}/>
       )}
       {selectedScheme&&(
-        <SchemeDetailSheet schemeId={selectedScheme} lang={lang} onClose={()=>setSelectedScheme(null)} dark={dark}
-          userName={profile?.name||""} onSignIn={auth.currentUser?null:()=>{setSelectedScheme(null);setActiveTab("profile");}}
-          eligible={!!allMatchedSchemes?.some(s=>s.id===selectedScheme)}/>
+        <SchemeDetailSheet schemeId={selectedScheme} lang={lang} onClose={()=>{setSelectedScheme(null);setSchemeFocus(null);}} dark={dark}
+          userName={profile?.name||""} onSignIn={auth.currentUser?null:()=>{setSelectedScheme(null);setSchemeFocus(null);setActiveTab("profile");}}
+          eligible={!!allMatchedSchemes?.some(s=>s.id===selectedScheme)} focus={schemeFocus}/>
       )}
       {showFAQ&&(
         <div
