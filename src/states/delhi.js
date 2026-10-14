@@ -1788,6 +1788,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "Monthly stipend ₹5,000–₹15,000 + free professional coaching + free sports kit + free hostel for selected Delhi athletes in 30+ disciplines; additional cash awards for national & international medals (₹25,000–₹5 lakh)", hi: "30+ खेल विधाओं में चयनित दिल्ली एथलीटों को ₹5,000–₹15,000 मासिक वजीफा + मुफ्त कोचिंग + मुफ्त किट + मुफ्त छात्रावास; राष्ट्रीय व अंतरराष्ट्रीय पदक पर ₹25,000–₹5 लाख नकद पुरस्कार" },
     tag:     { en: "Sports", hi: "खेल" },
     annual: 60000,
+    benefitKind: "yearly", // explicit — wording would otherwise mis-classify it
     apply:   { en: "https://www.edudel.nic.in/mis/misadmin/SportBranchCircular.aspx", hi: "dssportsindia.com / दिल्ली खेल विश्वविद्यालय पोर्टल" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Delhi Domicile Certificate", "Age Proof", "Sport Achievement Certificate (district/state/national level)", "School / College Enrollment Proof", "Passport-size Photo"],
                hi: ["आधार कार्ड", "दिल्ली अधिवास प्रमाण पत्र", "आयु प्रमाण", "खेल उपलब्धि प्रमाण पत्र (जिला/राज्य/राष्ट्रीय स्तर)", "विद्यालय / महाविद्यालय नामांकन प्रमाण", "पासपोर्ट फोटो"] },

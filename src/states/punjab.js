@@ -566,6 +566,7 @@ export const PUNJAB_SCHEMES = [
     benefit: { en: "50% subsidy on beehive boxes (up to 50 boxes) + free training + ₹5,000 startup grant for new beekeepers", hi: "नए मधुमक्खी पालकों को 50% सब्सिडी (50 बक्से तक) + मुफ्त प्रशिक्षण + ₹5,000 स्टार्टअप अनुदान" },
     tag:     { en: "Farmer / Beekeeping", hi: "किसान / मधुमक्खी पालन" },
     annual: 5000,
+    benefitKind: "oneTime", // explicit — wording would otherwise mis-classify it
     apply:   { en: "hortpb.gov.in", hi: "hortpb.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Land Records","Bank Account","Punjab Domicile","Passport Photo"],
                hi: ["आधार कार्ड","जमीन के कागज़","बैंक खाता","पंजाब अधिवास","पासपोर्ट फोटो"] },

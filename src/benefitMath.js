@@ -10,7 +10,8 @@
 //              never summed (covers don't stack)
 //   oneTime  — one-off grants (house, toilet, livestock, solar…) → summed,
 //              shown separately, never mixed into the yearly figure
-//   other    — loans, insurance payouts, salaries → not counted at all
+//   other    — loans, insurance payouts, salaries, business/startup grants,
+//              prizes and emergency relief → not counted at all
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function benefitKind(s) {
@@ -23,7 +24,11 @@ export function benefitKind(s) {
   if (/life-threatening|rare disease|critical illness|transplant|compensation|ex-gratia|acid attack/.test(t)) return "other"; // emergency funds — only if it happens
   if (/^health|^medical/.test(tag) || /cashless|hospital|treatment|medical (cover|insurance|assistance)|health (cover|insurance)|dialysis|free (opd|medicines|surgery)|generic medicines/.test(t)) return "health";
   if (/(life|accident|crop|livestock|pashu)\s*(insurance|cover)|\bbima\b|insurance/.test(t)) return "other";
-  if (/capital (investment )?subsidy|subsidy on (setting|purchase|loom|tourism)|seed (fund|grant)|equity grant|startup|cash (award|prize)|\bprize\b|\baward\b|emergency|distress relief|relief fund|fixed deposit|total support|in \d+ (milestone|instal)|sheep|vehicle|patta|land title|outright grant/.test(t)) return "oneTime";
+  // Business / organisation grants (capital subsidy to set up a unit, startup
+  // seed funds, FPO grants), prizes / awards and emergency relief funds depend on
+  // a project or an event — not money a family can count on → never summed.
+  if (/capital (investment )?subsidy|subsidy on (setting|tourism)|seed (fund|grant)|equity grant|startup|\bfpo\b|cash (award|prize)|\bprize\b|\baward\b|emergency|distress relief|relief fund|(subsidy|grant)[^·;]{0,40}(setting up|set up|project cost|to start)/.test(t)) return "other";
+  if (/subsidy on (purchase|loom)|coaching fee|fixed deposit|total support|in \d+ (milestone|instal)|sheep|vehicle|patta|land title|outright grant/.test(t)) return "oneTime";
   if (/house construction|build (a |your )?(pucca )?house|pucca house|housing|\btoilet|one-time|one time|(marriage|wedding) (assistance|grant|help|gift|incentive)|vivah|shagun|free goat|goat unit|tractor|\bpump\b|rooftop|solar|cycle|scooty|smartphone|tablet|laptop/.test(t)) return "oneTime";
   return "yearly";
 }

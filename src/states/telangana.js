@@ -312,6 +312,7 @@ export const TELANGANA_SCHEMES = [
     tag:     { en: "SC Welfare", hi: "SC कल्याण" },
     annual: 1000000,
     apply:   { en: "https://www.myscheme.gov.in/schemes/dalit-bandhu", hi: "dalitbandhu.telangana.gov.in / नजदीकी जिला कलेक्टर कार्यालय" }, applyType: "online",
+    closed:  true, // ⚠️ No new sanctions since the 2023 change of government; the promised ₹12 lakh "Ambedkar Abhaya Hastham" has not started (Telangana Today, Sep 2026)
     docs:    { en: ["Aadhaar Card", "SC Caste Certificate", "Sadar / Land / Business Activity Proof", "Bank Account (Aadhaar-linked)", "Income Certificate", "Passport Photo"],
                hi: ["आधार कार्ड", "SC जाति प्रमाण पत्र", "सदर / भूमि / व्यापार गतिविधि प्रमाण", "बैंक खाता (आधार लिंक)", "आय प्रमाण पत्र", "पासपोर्ट फोटो"] },
     match: (a) => ["sc"].includes(a.caste) && (a.state === "Telangana" && ["below1", "1to3"].includes(a.income)),

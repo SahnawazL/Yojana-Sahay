@@ -97,7 +97,7 @@ function qualityScore(s) {
 }
 function isIndexable(s) {
   const m = META[s.id] || {};
-  if (m.isActive === false || m.linkAlive === false) return false;
+  if (s.closed || m.isActive === false || m.linkAlive === false) return false;
   if (FORCE_INDEX.has(String(s.id).toLowerCase().replace(/[^a-z0-9-]/g, "-"))) return true;
   return s.scope === "national" || qualityScore(s) >= 5;
 }
@@ -698,6 +698,7 @@ function renderPage(scheme, lang) {
     <h1>${esc(name)}</h1>
     ${aliases.length ? `<p class="aka">${isHindi ? "इन नामों से भी जानी जाती है" : "Also known as"}: ${aliases.map(esc).join(" · ")}</p>` : ""}
     ${ministry ? `<div class="ministry">${esc(ministry)}</div>` : ""}
+    ${scheme.closed ? `<p class="notice" style="background:#FEF2F2;border-color:#FECACA;color:#991B1B">${isHindi ? "🔒 यह योजना अभी नए आवेदन नहीं ले रही है। जानकारी सिर्फ़ संदर्भ के लिए है।" : "🔒 This scheme is not taking new applications. The details are kept here for reference only."}</p>` : ""}
 
     <div class="benefit-card">
       <div class="label">${isHindi ? "लाभ" : "Benefit"}</div>

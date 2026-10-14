@@ -521,6 +521,7 @@ export const ASSAM_SCHEMES = [
     benefit: { en: "30% capital subsidy on loom upgrades (up to ₹30,000) + yarn subsidy (10% on purchase price) + free tool kit for traditional weavers of Mekhela Chador, Gamosa & Eri silk; cluster-based training and market linkage", hi: "पारंपरिक बुनकरों (मेखला चादोर, गमोसा, ईरी रेशम) को करघा उन्नयन पर 30% पूंजी सब्सिडी (₹30,000 तक) + धागा सब्सिडी 10% + मुफ्त टूल किट; क्लस्टर प्रशिक्षण व बाजार जुड़ाव" },
     tag:     { en: "Weaver / Artisan", hi: "बुनकर / कारीगर" },
     annual: 30000,
+    benefitKind: "oneTime", // explicit — wording would otherwise mis-classify it
     apply:   { en: "handloom.assam.gov.in", hi: "handloom.assam.gov.in" }, applyType: "offline", // ⚠️ offline — apply via District Handloom & Textile Officer
     docs:    { en: ["Aadhaar Card","Weaver Identity Card (issued by Handloom Dept.)","Caste / Community Certificate (if applicable)","Bank Account (Aadhaar-linked)","Loom Ownership Proof / Declaration","Residence Proof"],
                hi: ["आधार कार्ड","बुनकर पहचान पत्र (हस्तशिल्प विभाग द्वारा)","जाति/समुदाय प्रमाण पत्र (यदि लागू हो)","बैंक खाता (आधार-लिंक्ड)","करघा स्वामित्व प्रमाण/घोषणा","निवास प्रमाण"] },

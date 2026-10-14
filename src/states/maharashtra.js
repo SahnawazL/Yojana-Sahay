@@ -922,6 +922,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "80% subsidy on beehive boxes, equipment & training to start/expand beekeeping units. Up to 50 boxes per farmer; SC/ST/women get priority. Supports honey production & crop pollination income.", hi: "मधुमक्खी पालन सुरू/विस्तारसाठी मधुपेटी, उपकरणे व प्रशिक्षणावर 80% सब्सिडी। प्रति शेतकरी 50 पेटी पर्यंत; SC/ST/महिलांना प्राधान्य। मध उत्पादन व परागीभवन उत्पन्नास मदत।" },
     tag:     { en: "Farmer / Beekeeping / Apiculture", hi: "किसान / मधुमक्खी पालन / मधुपालन" },
     annual: 20000,
+    benefitKind: "oneTime", // explicit — wording would otherwise mis-classify it
     apply:   { en: "https://mahadbt.maharashtra.gov.in", hi: "horticulture.maharashtra.gov.in / mahadbt.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract or Farm Land Proof", "Caste Certificate (SC/ST for priority)", "Bank Passbook", "Passport Photo", "Training Certificate (if completed)"],
                hi: ["आधार कार्ड", "7/12 उतारा या खेत प्रमाण", "जाति प्रमाण (SC/ST प्राधान्यासाठी)", "बैंक पासबुक", "पासपोर्ट फोटो", "प्रशिक्षण प्रमाण पत्र (पूर्ण झाल्यास)"] },
@@ -955,6 +956,7 @@ export const MAHARASHTRA_SCHEMES = [
     benefit: { en: "50–75% subsidy on mulberry plantation, rearing equipment & silk reeling units; free training + ₹10,000 startup support for new sericulture farmers in Marathwada & Vidarbha", hi: "तुती लागवड, संगोपन उपकरणे व सूत काढण्याच्या युनिटवर 50–75% सब्सिडी; मराठवाडा व विदर्भातील नवीन रेशीम शेतकऱ्यांना मुफ्त प्रशिक्षण + ₹10,000 प्रारंभ सहाय्य" },
     tag:     { en: "Farmer / Sericulture / Silk", hi: "किसान / रेशीम शेती / सिल्क" },
     annual: 25000,
+    benefitKind: "oneTime", // explicit — wording would otherwise mis-classify it
     apply:   { en: "silkmMaharashtra.gov.in / District Sericulture Officer", hi: "silkmMaharashtra.gov.in / जिला रेशीम अधिकारी" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "7/12 Land Extract (min. 0.5 acre for mulberry)", "Bank Passbook", "Caste Certificate (SC/ST for higher subsidy)", "Training Completion Certificate (if available)"],
                hi: ["आधार कार्ड", "7/12 उतारा (न्यूनतम 0.5 एकड़ तुती लागवडीसाठी)", "बैंक पासबुक", "जाति प्रमाण (SC/ST अधिक सब्सिडी हेतु)", "प्रशिक्षण पूर्णता प्रमाण पत्र (उपलब्ध असल्यास)"] },

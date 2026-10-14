@@ -261,6 +261,7 @@ export const GOA_SCHEMES = [
     benefit: { en: "₹50,000 one-time award to a couple where at least one spouse has a disability", hi: "ऐसे दंपती को ₹50,000 का एकमुश्त पुरस्कार जिसमें कम से कम एक जीवनसाथी दिव्यांग हो" },
     tag:     { en: "Disability / Marriage", hi: "दिव्यांगता / विवाह" },
     annual: 50000,
+    benefitKind: "oneTime", // explicit — wording would otherwise mis-classify it
     apply:   { en: "https://scpwd.goa.gov.in/?p=182", hi: "https://scpwd.goa.gov.in/?p=182" }, applyType: "offline",
     docs:    { en: ["Disability certificate","Marriage certificate","Income certificate","Residence certificate (15 years)","Aadhaar card"],
                hi: ["दिव्यांगता प्रमाण पत्र","विवाह प्रमाण पत्र","आय प्रमाण पत्र","निवास प्रमाण पत्र (15 वर्ष)","आधार कार्ड"] },
