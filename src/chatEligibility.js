@@ -8,7 +8,7 @@
 // like state, income, caste and ration card are carried over from the user).
 // ─────────────────────────────────────────────────────────────────────────────
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
-import { nicheAudience } from "./audience.js";
+import { nicheAudience, audienceApplies as audienceAppliesShared } from "./audience.js";
 import { benefitSummary, benefitKind } from "./benefitMath.js";
 
 const BY_ID = new Map(SCHEME_DB.map(s => [s.id, s]));
@@ -41,7 +41,7 @@ export const QUESTIONS = {
     O("class1to8", "Class 1–8", "कक्षा 1–8"), O("class9to12", "Class 9–12", "कक्षा 9–12"), O("undergrad", "Graduation / diploma", "स्नातक / डिप्लोमा"), O("postgrad", "Post-graduation", "स्नातकोत्तर")] },
   groups: { icon: "🧩", en: "Does any of this apply? (tick all)", hi: "क्या इनमें से कुछ लागू होता है? (सभी चुनें)", type: "multi", options: [
     O("construct", "Construction worker 👷", "निर्माण श्रमिक 👷"), O("fisher", "Fisherman 🎣", "मछुआरा 🎣"), O("artisan", "Weaver / artisan 🧵", "बुनकर / कारीगर 🧵"),
-    O("minority", "Minority community", "अल्पसंख्यक समुदाय"), O("tea", "Tea garden worker 🍃", "चाय बागान श्रमिक 🍃"), O("patient", "Serious illness (TB, cancer…) 🏥", "गंभीर बीमारी (TB, कैंसर…) 🏥"),
+    O("minority", "Minority community", "अल्पसंख्यक समुदाय"), O("widow", "Widow / single woman 🤍", "विधवा / एकल महिला 🤍"), O("tea", "Tea garden worker 🍃", "चाय बागान श्रमिक 🍃"), O("patient", "Serious illness (TB, cancer…) 🏥", "गंभीर बीमारी (TB, कैंसर…) 🏥"),
     O("defence", "Ex-serviceman family 🎖️", "पूर्व सैनिक परिवार 🎖️"), O("sports", "Sportsperson 🏅", "खिलाड़ी 🏅"), O("orphan", "Lost a parent (child) 🕊️", "माता-पिता खो चुका बच्चा 🕊️")] },
 };
 const HOUSEHOLD = ["state", "income", "area", "house", "caste", "rationCard"];
@@ -93,11 +93,7 @@ export function startingAnswers(own = null, known = {}, forSelf = true) {
   return { ...cleanAnswers(base), ...cleanAnswers(known) };
 }
 
-function audienceApplies(key, a) {
-  if (key === "disability") return !!a.disability && a.disability !== "none";
-  if (key === "trans") return a.gender === "other";
-  return Array.isArray(a.groups) && a.groups.includes(key);
-}
+const audienceApplies = audienceAppliesShared;
 function eligible(s, a) {
   if (s.duplicateOf || s.closed) return false;
   if (s.scope === "state" && s.state && a.state && s.state !== a.state) return false;

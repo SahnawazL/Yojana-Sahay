@@ -25,6 +25,9 @@ import { FieldValue }  from "firebase-admin/firestore";
 import nodemailer      from "nodemailer";
 import { SCHEME_DB }   from "../../src/schemesData.js";
 import { runPushReminders } from "./push.js";
+import { nicheAudience, audienceApplies } from "../../src/audience.js";
+// Special-group schemes (athletes, widows, construction workers…) only when the group applies — same as the app.
+const audienceOk = (s, a) => { const aud = nicheAudience(s); return !aud || audienceApplies(aud.key, a); };
 
 // ── Live fetch of schemes-meta.json from GitHub ─────────────────────────────
 // schemesData.js never has a `lastDate` field by hand — that field is written
@@ -232,6 +235,7 @@ function buildProfileAnswers(profile) {
     ...(profile.ration && profile.ration !== "none"                ? { rationCard: profile.ration }             : {}),
     ...(profile.disability ? { disability: profile.disability } : {}),
     ...(profile.gender     ? { gender: profile.gender }         : {}),
+    ...(profile.marital    ? { marital: profile.marital }       : {}),
     ...(Array.isArray(profile.groups) ? { groups: profile.groups } : {}),
   };
 }
@@ -423,7 +427,7 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
     const alreadyUrgentAlerted   = new Set(profile.urgentAlertedSchemeIds || []);
 
     const matched = mergedSchemes.filter(s => {
-      try { return !s.closed && s.match(profileAnswers); } catch { return false; }
+      try { return !s.closed && audienceOk(s, profileAnswers) && s.match(profileAnswers); } catch { return false; }
     });
 
     const urgent = matched
@@ -511,7 +515,7 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
       const alreadyAnnounced = new Set(profile.announcedSchemeIds || []);
       const matchingNew = newSchemes
         .filter(s => !alreadyAnnounced.has(s.id))
-        .filter(s => { try { return !s.closed && s.match(profileAnswers); } catch { return false; } })
+        .filter(s => { try { return !s.closed && audienceOk(s, profileAnswers) && s.match(profileAnswers); } catch { return false; } })
         .slice(0, MAX_SCHEMES_PER_EMAIL)
         .map(scheme => ({ scheme }));
 

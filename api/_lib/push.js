@@ -16,7 +16,7 @@
 // GET /api/stats?action=vapid.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { nicheAudience } from "../../src/audience.js";
+import { nicheAudience, audienceApplies } from "../../src/audience.js";
 import { vapidKeys } from "./vapid.js";
 import { sendWebPush } from "./webPushSend.js";
 
@@ -28,9 +28,7 @@ const SITE = "https://yojanasahay.vercel.app";
 function audienceOk(s, a) {
   const aud = nicheAudience(s);
   if (!aud) return true;
-  if (aud.key === "disability") return !!a.disability && a.disability !== "none";
-  if (aud.key === "trans") return a.gender === "other";
-  return Array.isArray(a.groups) && a.groups.includes(aud.key);
+  return audienceApplies(aud.key, a);
 }
 
 const daysSince = iso => { const t = Date.parse(iso); return Number.isFinite(t) ? Math.floor((Date.now() - t) / DAY) : 0; };

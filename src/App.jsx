@@ -14,7 +14,7 @@
 import { whoCanApply } from "./eligibilityText.js";
 import { shareBenefitCard, shortINR } from "./shareCard.js";
 import { benefitSummary, benefitKind, topBenefits, valueLabel } from "./benefitMath.js";
-import { nicheAudience, groupByAudience } from "./audience.js";
+import { nicheAudience, groupByAudience, audienceApplies as audienceAppliesShared } from "./audience.js";
 import { useApplications, initApplications, mergeRemote, setRemoteWriter, trackApplication, updateApplication, snoozeApplication, removeApplication, isDueForCheck, daysSince, STATUS_TEXT, CHECK_AFTER_DAYS } from "./applications.js";
 import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamily, initFamily, saveMember, removeMember } from "./family.js";
 import { pushState, enablePush, disablePush } from "./push.js";
@@ -408,6 +408,7 @@ function buildProfileAnswers(profile){
     ...(profile.ration&&profile.ration!=="none"?{rationCard:profile.ration}:{}),
     ...(profile.disability?{disability:profile.disability}:{}),
     ...(profile.gender?{gender:profile.gender}:{}),
+    ...(profile.marital?{marital:profile.marital}:{}),
     ...(Array.isArray(profile.groups)?{groups:profile.groups}:{}),
     ...(Array.isArray(profile.groupsAsked)?{groupsAsked:profile.groupsAsked}:{}),
   };
@@ -432,22 +433,18 @@ function safeMatch(scheme,answers){
   if(aud && !audienceApplies(aud.key,answers)) return false;
   return safeMatchAny(scheme,answers);
 }
-function audienceApplies(key,answers){
-  if(!answers) return false;
-  if(key==="disability") return !!answers.disability && answers.disability!=="none";
-  if(key==="trans") return answers.gender==="other";
-  return Array.isArray(answers.groups) && answers.groups.includes(key);
-}
+function audienceApplies(key,answers){ return audienceAppliesShared(key,answers); }
 // The person explicitly said this group does NOT apply → don't list it under
 // "Also check" either. Groups we never asked about stay listed.
 function audienceDeclined(key,answers){
   if(!answers) return false;
   if(key==="disability") return answers.disability==="none";
   if(key==="trans") return !!answers.gender && answers.gender!=="other";
+  if(key==="widow" && answers.marital && answers.marital!=="widowed" && !answers.groups?.includes("widow")) return true;
   return Array.isArray(answers.groups) && Array.isArray(answers.groupsAsked) && answers.groupsAsked.includes(key) && !answers.groups.includes(key);
 }
 // Special groups the quiz can ask about, most common first.
-const GROUP_KEYS=["construct","fisher","artisan","minority","sports","artist","defence","govt","patient","tea","orphan","media","merit","abroad","graduate"];
+const GROUP_KEYS=["construct","fisher","artisan","minority","widow","sports","artist","defence","govt","patient","tea","orphan","media","merit","abroad","graduate"];
 // Only offer a group when at least one of its schemes fits the person's other
 // answers — no dead options (e.g. tea-garden workers outside tea states).
 let NICHE_BY_KEY=null;
@@ -1016,7 +1013,7 @@ const T = {
         noneLabel:"None of these",
         labels:{
           construct:"Registered construction worker 👷", fisher:"Fisherman / fish farmer 🎣", artisan:"Weaver, artisan or craftsperson 🧵",
-          minority:"Minority community (Muslim, Christian, Sikh, Buddhist, Jain, Parsi)", sports:"Sportsperson / athlete 🏅", artist:"Artist / folk performer 🎭",
+          minority:"Minority community (Muslim, Christian, Sikh, Buddhist, Jain, Parsi)", widow:"Widow / single woman 🤍", sports:"Sportsperson / athlete 🏅", artist:"Artist / folk performer 🎭",
           defence:"Ex-serviceman / defence family 🎖️", govt:"Government employee / pensioner 🏛️", patient:"Patient with a serious illness (TB, cancer, kidney…) 🏥",
           tea:"Tea garden worker 🍃", orphan:"Child who lost a parent 🕊️", media:"Journalist / lawyer 📰",
           merit:"Topper / high marks (75%+) 🏆", abroad:"Planning to study abroad ✈️", graduate:"Fresh graduate — internship / apprenticeship 🎓",
@@ -1186,7 +1183,7 @@ const T = {
         noneLabel:"इनमें से कोई नहीं",
         labels:{
           construct:"पंजीकृत निर्माण श्रमिक 👷", fisher:"मछुआरा / मछली पालक 🎣", artisan:"बुनकर, कारीगर या शिल्पकार 🧵",
-          minority:"अल्पसंख्यक समुदाय (मुस्लिम, ईसाई, सिख, बौद्ध, जैन, पारसी)", sports:"खिलाड़ी 🏅", artist:"कलाकार / लोक कलाकार 🎭",
+          minority:"अल्पसंख्यक समुदाय (मुस्लिम, ईसाई, सिख, बौद्ध, जैन, पारसी)", widow:"विधवा / एकल महिला 🤍", sports:"खिलाड़ी 🏅", artist:"कलाकार / लोक कलाकार 🎭",
           defence:"पूर्व सैनिक / सैनिक परिवार 🎖️", govt:"सरकारी कर्मचारी / पेंशनभोगी 🏛️", patient:"गंभीर बीमारी का मरीज़ (TB, कैंसर, किडनी…) 🏥",
           tea:"चाय बागान श्रमिक 🍃", orphan:"माता-पिता खो चुका बच्चा 🕊️", media:"पत्रकार / वकील 📰",
           merit:"टॉपर / अच्छे अंक (75%+) 🏆", abroad:"विदेश में पढ़ाई की योजना ✈️", graduate:"नया स्नातक — इंटर्नशिप / अप्रेंटिसशिप 🎓",

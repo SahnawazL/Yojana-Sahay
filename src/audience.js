@@ -13,7 +13,7 @@
 export const AUDIENCES = [
   { key: "govt",      re: /government employee|govt\.? employee|state employee|lok sevak|employees'? (health|welfare)/, en: "Government employees & pensioners", hi: "सरकारी कर्मचारी व पेंशनभोगी" },
   { key: "defence",   re: /ex-servicem|veteran|sainik kalyan|defence personnel|soldier|agniveer|agnipath|armed forces/,      en: "Defence personnel, ex-servicemen & recruits",      hi: "सैनिक, पूर्व सैनिक व भर्ती" },
-  { key: "sports",    re: /sportsperson|athlete|khelo|sports (scholarship|award|person|talent)|medal|\bplayers?\b/,           en: "Sportspersons",                    hi: "खिलाड़ी" },
+  { key: "sports",    re: /sportsperson|athlete|khelo|sports (scholarship|award|person|talent)|medal|\bplayers?\b|khila+di|\bkhel\b|sports excellence/,           en: "Sportspersons",                    hi: "खिलाड़ी" },
   { key: "disability", re: /disab|divyang|viklang|handicap|differently.abled|nishakt|\bpwd\b|assistive device/,                   en: "Persons with disabilities",        hi: "दिव्यांगजन" },
   { key: "abroad",    re: /overseas|study abroad|foreign (univers|stud)/,                                                     en: "Students going abroad to study",    hi: "विदेश में पढ़ने वाले विद्यार्थी" },
   { key: "graduate",  re: /tulip|national apprenticeship training|\bnats\b|internship|graduate apprentice/,                    en: "Fresh graduates (internships & apprenticeships)", hi: "नए स्नातक (इंटर्नशिप व अप्रेंटिसशिप)" },
@@ -26,6 +26,8 @@ export const AUDIENCES = [
   { key: "media",     re: /journalist|patrakar|\badvocate|lawyer/,                                                              en: "Journalists & lawyers",            hi: "पत्रकार व वकील" },
   { key: "patient",   re: /\btb\b|tuberculosis|nikshay|dialysis|kidney|cancer|\bhiv\b|leprosy|thalass|haemophilia|life-threatening|rare disease|critical illness/, en: "Patients with specific illnesses", hi: "विशेष बीमारियों के मरीज़" },
   { key: "orphan",    re: /covid|orphan|lost (both )?parents/,                                                                  en: "Children who lost a parent",       hi: "माता-पिता खो चुके बच्चे" },
+  // Widow pensions / support — not combined pensions that also cover old age or disability.
+  { key: "widow",     re: /^(?!.*(?:old.?age|vri?ddh|vridh|senior|disab|divyang|social security)).*(?:widow|vidh(?:wa|ava|va)\b|ganga swarupa|single wom|destitute wom|nirashrit mahila)/, en: "Widows & single women", hi: "विधवा व एकल महिलाएं" },
   { key: "minority",  re: /minority|minorities|muslim|christian|\bsikh|buddhist|parsi|\bjain\b/,                               en: "Minority communities",             hi: "अल्पसंख्यक समुदाय" },
   { key: "trans",     re: /transgender/,                                                                                        en: "Transgender persons",              hi: "ट्रांसजेंडर व्यक्ति" },
   { key: "victim",    re: /acid attack|victim|survivor|atrocit/,                                                                en: "Survivors of crime or atrocities", hi: "अपराध / अत्याचार पीड़ित" },
@@ -41,10 +43,29 @@ export function nicheAudience(s) {
   if (cache.has(s.id)) return cache.get(s.id);
   const t = `${s.name?.en ?? ""} ${s.tag?.en ?? ""}`.toLowerCase();
   let a = AUDIENCES.find(x => x.re.test(t)) ?? null;
+  // Combined social-security pensions ("Old Age / Widow / Disability") are the
+  // state's main old-age pension too — don't hide them behind the disability
+  // group; their own rules check age / disability.
+  if (a?.key === "disability") {
+    const nm = String(s.name?.en ?? "").toLowerCase();
+    const combined = /old.?age|senior|vri?ddh|social security|elderly/.test(nm)
+      || (/old.?age|senior|vri?ddh|social security|elderly/.test(t) && !/disab|divyang|viklang|handicap|nishakt/.test(nm));
+    if (combined) a = null;
+  }
   // Marks-based rewards (distinction, first division, 75%+…) are for toppers.
   if (!a && /distinction|first division|scoring \d{2}%|\d{2}%\+ (in|marks)|\d{2}% or (above|more)|top \d+ ?%|toppers?\b|rank holders?/.test(String(s.benefit?.en ?? "").toLowerCase())) a = BY_KEY.merit;
   cache.set(s.id, a);
   return a;
+}
+
+// Does this special group apply to the person? (answers from the quiz / profile)
+// Shared by the app, the chat assistant and the server reminders so they agree.
+export function audienceApplies(key, a) {
+  if (!a) return false;
+  if (key === "disability") return !!a.disability && a.disability !== "none";
+  if (key === "trans") return a.gender === "other";
+  if (key === "widow" && a.marital === "widowed") return true;
+  return Array.isArray(a.groups) && a.groups.includes(key);
 }
 
 // Group matched niche schemes by audience, biggest groups first.

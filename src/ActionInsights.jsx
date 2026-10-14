@@ -25,7 +25,7 @@ const STEP_ORDER = ["who", "income", "landHolding", "educationLevel", "rationCar
 const GROUP_LABEL = {
   construct: "Construction workers", fisher: "Fishermen", artisan: "Weavers & artisans", minority: "Minority communities",
   sports: "Sportspersons", artist: "Artists", defence: "Ex-servicemen", govt: "Govt employees", patient: "Patients",
-  tea: "Tea garden workers", orphan: "Lost a parent", media: "Journalists & lawyers", merit: "Toppers", abroad: "Study abroad", graduate: "Fresh graduates",
+  tea: "Tea garden workers", orphan: "Lost a parent", widow: "Widows & single women", media: "Journalists & lawyers", merit: "Toppers", abroad: "Study abroad", graduate: "Fresh graduates",
 };
 
 const LIFE_LABEL = {
