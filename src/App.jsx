@@ -13,7 +13,7 @@
 
 import { whoCanApply } from "./eligibilityText.js";
 import { shareBenefitCard, shortINR } from "./shareCard.js";
-import { benefitSummary, benefitKind, topBenefits } from "./benefitMath.js";
+import { benefitSummary, benefitKind, topBenefits, valueLabel } from "./benefitMath.js";
 import { nicheAudience, groupByAudience } from "./audience.js";
 import { useApplications, initApplications, mergeRemote, setRemoteWriter, trackApplication, updateApplication, snoozeApplication, removeApplication, isDueForCheck, daysSince, STATUS_TEXT, CHECK_AFTER_DAYS } from "./applications.js";
 import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamily, initFamily, saveMember, removeMember } from "./family.js";
@@ -459,6 +459,7 @@ function groupKeysFor(ans){
   return GROUP_KEYS.filter(k=>(NICHE_BY_KEY[k]??[]).some(s=>safeMatchAny(s,ans)));
 }
 function safeMatchAny(scheme,answers){
+  if(scheme.closed) return false; // not taking applications — never "you qualify"
   try{
     if(scheme.duplicateOf){
       const main=SCHEME_BY_ID.get(scheme.duplicateOf);
@@ -2374,7 +2375,7 @@ function ReadinessCard({scheme,lang,dark,eligible,docDone,docTotal}){
   const left=Math.max(0,docTotal-docDone);
   const kind=benefitKind(scheme);
   const amt=scheme.annual>0?`₹${Number(scheme.annual).toLocaleString("en-IN")}`:"";
-  const money=amt?(kind==="oneTime"?amt:kind==="health"?L(`${amt} health cover`,`${amt} इलाज कवर`):L(`${amt} a year`,`${amt} सालाना`)):L("this benefit","यह लाभ");
+  const money=amt&&kind!=="other"?(kind==="oneTime"?amt:kind==="health"?L(`${amt} health cover`,`${amt} इलाज कवर`):L(`${amt} a year`,`${amt} सालाना`)):L("this benefit","यह लाभ");
   // Readiness = documents ready (100% once applied).
   const pct=app?100:docTotal?Math.round(100*docDone/docTotal):100;
   const tone=app||(!left&&docTotal)?"#16a34a":pct>=50?"#D97706":"#2563EB";
@@ -2579,7 +2580,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
           <div style={{display:"inline-flex",background:scheme.color,borderRadius:20,padding:"5px 14px",marginBottom:8}}>
             <span style={{fontSize:13,fontWeight:700,color:"#fff"}}>{scheme.benefit[lang]}</span>
           </div>
-          {scheme.annual>0&&<div style={{fontSize:12,color:th.textMid}}>📅 Annual: <strong style={{color:scheme.color}}>₹{scheme.annual.toLocaleString("en-IN")}</strong></div>}
+          {valueLabel(scheme)&&<div style={{fontSize:12,color:th.textMid}}>{({yearly:isHindi?"📅 सालाना":"📅 Annual",health:isHindi?"🏥 इलाज कवर":"🏥 Health cover",oneTime:isHindi?"🎁 एकमुश्त":"🎁 One-time"})[benefitKind(scheme)]}: <strong style={{color:scheme.color}}>₹{scheme.annual.toLocaleString("en-IN")}</strong></div>}
           <div style={{fontSize:11,color:th.textSub,marginTop:4}}>{scheme.ministry[lang]}</div>
         </div>
         {/* ── Plain-language description — what the scheme actually does, in simple words ── */}
@@ -2594,6 +2595,11 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
         <div style={{padding:"0 16px 36px"}}>
           {/* ── Warning when other people recently reported a problem ── */}
           <SchemeFlagNotice schemeId={scheme.id} lang={lang} dark={dark}/>
+          {scheme.closed&&(
+            <div style={{margin:"0 0 12px",padding:"11px 13px",borderRadius:14,background:dark?"rgba(220,38,38,0.12)":"#FEF2F2",border:`1px solid ${dark?"rgba(220,38,38,0.35)":"#FECACA"}`,fontSize:12.5,lineHeight:1.5,color:dark?"#FCA5A5":"#991B1B",fontFamily:bf}}>
+              🔒 {isHindi?"यह योजना अभी नए आवेदन नहीं ले रही है। जानकारी सिर्फ़ संदर्भ के लिए है।":"This scheme is not taking new applications. The details are kept here for reference only."}
+            </div>
+          )}
           {/* ── Readiness: "2 documents away from ₹6,000 a year" ── */}
           <ReadinessCard scheme={scheme} lang={lang} dark={dark} eligible={eligible} docDone={docDone} docTotal={docTotal}/>
           {/* ── Application Checklist header + live progress ── */}
@@ -5436,7 +5442,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       {/* ── Smart insight chips (data-driven, no extra API) ── */}
                       {brief&&results.length>0&&(()=>{
                         const chips=[];
-                        const topS=[...results].sort((a,b)=>(b.annual||0)-(a.annual||0))[0];
+                        const topS=[...results].filter(r=>benefitKind(r)==="yearly").sort((a,b)=>(b.annual||0)-(a.annual||0))[0];
                         if(topS?.annual>0) chips.push({
                           icon:"💰",
                           label:isHindi?`₹${(topS.annual/1000).toFixed(0)}K/वर्ष तक`:`Up to ₹${(topS.annual/1000).toFixed(0)}K/yr`,
@@ -8931,7 +8937,7 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
   const isFirstTotalAnnualRun = useRef(true);
 
   const schemesWithBenefit = useMemo(
-    () => allMatchedSchemes.filter(s => s.annual > 0).sort((a, b) => b.annual - a.annual),
+    () => allMatchedSchemes.filter(s => s.annual > 0 && benefitKind(s) !== "other").sort((a, b) => b.annual - a.annual),
     [allMatchedSchemes]
   );
   const totalAnnual = useMemo(
@@ -9110,7 +9116,7 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
             </div>
             <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
               <div style={{ fontSize:12, fontWeight:800, color:s.color, background:s.color+"1a", borderRadius:8, padding:"3px 9px", border:`1px solid ${s.color}30` }}>
-                {formatINR(s.annual)}{isHindi ? "/वर्ष" : "/yr"}
+                {formatINR(s.annual)}{({ yearly: isHindi ? "/वर्ष" : "/yr", health: isHindi ? " कवर" : " cover", oneTime: isHindi ? " एकमुश्त" : " once" })[benefitKind(s)] || ""}
               </div>
               <div style={{ fontSize:10, color:"rgba(255,255,255,0.35)", paddingRight:2 }}>→</div>
             </div>
@@ -10621,7 +10627,7 @@ function YojanaSahayInner(){
     const maxB={};
     CATEGORIES.en.forEach(cat=>{
       const schemes=getSchemesForCategory(cat.filterKey);
-      const max=Math.max(0,...schemes.map(s=>s.annual||0));
+      const max=Math.max(0,...schemes.filter(s=>benefitKind(s)!=="other").map(s=>s.annual||0)); // not loan sizes / insurance cover
       maxB[cat.filterKey]=max;
     });
     return maxB;

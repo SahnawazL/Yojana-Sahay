@@ -21,7 +21,7 @@ export const KERALA_SCHEMES = [
     benefit: { en: "₹5 Lakh/year cashless treatment at empanelled hospitals", hi: "₹5 लाख/वर्ष सूचीबद्ध अस्पतालों में कैशलेस इलाज" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 500000,
-    apply:   { en: "https://joinditto.in/articles/health-insurance/kasp-insurance", hi: "kasp.kerala.gov.in" }, applyType: "online",
+    apply:   { en: "https://kasp.kerala.gov.in", hi: "kasp.kerala.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Ration Card", "Income Certificate", "Kerala Residence Proof"],
                hi: ["आधार कार्ड", "राशन कार्ड", "आय प्रमाण", "केरल निवास प्रमाण"] },
     eligibilityText: { en: ["Families in Kerala listed under KASP / PM-JAY (based on SECC and RSBY lists)", "Check eligibility at any empanelled hospital's KASP help desk", "Cashless treatment at empanelled government and private hospitals"],

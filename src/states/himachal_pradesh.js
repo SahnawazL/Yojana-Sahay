@@ -17,7 +17,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "₹3,000/month financial aid for patients of serious chronic diseases", hi: "गंभीर पुरानी बीमारियों के रोगियों को ₹3,000/माह सहायता" },
     tag:     { en: "Health", hi: "स्वास्थ्य" },
     annual: 36000,
-    apply:   { en: "https://www.govtschemes.in/himachal-pradesh-mukhyamantri-sahara-yojana", hi: "hpsocialjustice.gov.in" }, applyType: "online",
+    apply:   { en: "https://hpsocialjustice.gov.in", hi: "hpsocialjustice.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Medical Certificate (Disease Proof)","Income Certificate","Bank Account","Domicile Certificate"],
                hi: ["आधार कार्ड","चिकित्सा प्रमाण पत्र (बीमारी का प्रमाण)","आय प्रमाण","बैंक खाता","अधिवास प्रमाण"] },
     match: (a) => a.state === "Himachal Pradesh" && ["below1","1to3"].includes(a.income),
@@ -677,7 +677,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
   //   match: (a) => a.state === "Himachal Pradesh",
   // },
 
-  // <auto-scheme id="hp_apna_parivar_sukhi"> added by Scheme Discovery agent on 2026-10-13 · source: https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html
+  // <auto-scheme id="hp_apna_parivar_sukhi"> added by Scheme Discovery agent on 2026-10-13 · source: https://en.vikaspedia.in/viewcontent/schemesall/state-specific-schemes/schemes-of-himachal-pradesh/apna-parivar-sukhi-parivar-yojana-of-himachal-pradesh
   {
     id: "hp_apna_parivar_sukhi",
     icon: "📋", color: "#334155", scope: "state", state: "Himachal Pradesh",
@@ -686,7 +686,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "₹1,500/month + 300 units free electricity", hi: "₹1,500/माह + 300 यूनिट मुफ्त बिजली" },
     tag:     { en: "Family Welfare", hi: "परिवार कल्याण" },
     annual: 18000,
-    apply:   { en: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html", hi: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html" }, applyType: "online",
+    apply:   { en: "vikaspedia.in", hi: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html" }, applyType: "online",
     docs:    { en: ["Aadhaar Card"],
                hi: ["आधार कार्ड"] },
     autoAdded: "2026-10-13", source: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html",

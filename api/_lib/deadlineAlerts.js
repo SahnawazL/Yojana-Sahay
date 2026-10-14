@@ -423,7 +423,7 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
     const alreadyUrgentAlerted   = new Set(profile.urgentAlertedSchemeIds || []);
 
     const matched = mergedSchemes.filter(s => {
-      try { return s.match(profileAnswers); } catch { return false; }
+      try { return !s.closed && s.match(profileAnswers); } catch { return false; }
     });
 
     const urgent = matched
@@ -511,7 +511,7 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
       const alreadyAnnounced = new Set(profile.announcedSchemeIds || []);
       const matchingNew = newSchemes
         .filter(s => !alreadyAnnounced.has(s.id))
-        .filter(s => { try { return s.match(profileAnswers); } catch { return false; } })
+        .filter(s => { try { return !s.closed && s.match(profileAnswers); } catch { return false; } })
         .slice(0, MAX_SCHEMES_PER_EMAIL)
         .map(scheme => ({ scheme }));
 

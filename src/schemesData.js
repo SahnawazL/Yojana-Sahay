@@ -438,7 +438,7 @@ export const SCHEME_DB = [
     benefit: { en: "15–35% subsidy on loan up to ₹50 Lakh to start business", hi: "व्यापार शुरू करने पर ₹50 लाख तक 15–35% सब्सिडी" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
-    apply:   { en: "https://www.airtel.in/blog/personal-loan/pmegp-loan-scheme-your-complete-guide", hi: "kviconline.gov.in/pmegpeportal" }, applyType: "online",
+    apply:   { en: "https://kviconline.gov.in/pmegpeportal", hi: "kviconline.gov.in/pmegpeportal" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Project Report","Educational Certificate","Caste Certificate (if SC/ST/OBC)"],
                hi: ["आधार कार्ड","प्रोजेक्ट रिपोर्ट","शैक्षणिक प्रमाण","जाति प्रमाण पत्र (SC/ST/OBC के लिए)"] },
     eligibilityText: { en: ["Anyone aged 18+ setting up a new business (not expanding an existing one)", "Class 8 pass needed for projects above ₹10 lakh (manufacturing) or ₹5 lakh (services)", "Self-help groups, cooperatives and charitable trusts can also apply"],
@@ -614,7 +614,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free nutritious mid-day meal daily to children in Govt. schools (Class 1–8)", hi: "सरकारी स्कूलों में कक्षा 1–8 के बच्चों को मुफ्त पौष्टिक भोजन" },
     tag:     { en: "Student / Child", hi: "छात्र / बच्चे" },
     annual: 3600,
-    apply:   { en: "https://bdokhargram.in/page/department/pm-poshan", hi: "pmposhan.education.gov.in" }, applyType: "online",
+    apply:   { en: "https://pmposhan.education.gov.in", hi: "pmposhan.education.gov.in" }, applyType: "online",
     docs:    { en: ["School Enrollment Certificate","Aadhaar Card (child)"],
                hi: ["स्कूल नामांकन प्रमाण पत्र","आधार कार्ड (बच्चे का)"] },
     match: (a) => a.who === "student" && ["below1","1to3"].includes(a.income) && (a.educationLevel == null || a.educationLevel === "class1to8") && (a.age == null || a.age === "below18"), // school meals, Class 1–8
@@ -1416,7 +1416,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹150–₹350/month maintenance allowance + full tuition & school fee reimbursement for SC students in Class 9–10", hi: "कक्षा 9–10 के SC छात्रों को ₹150–₹350/माह रखरखाव भत्ता + पूरी ट्यूशन और स्कूल फीस प्रतिपूर्ति" },
     tag:     { en: "Student / SC-ST", hi: "छात्र / SC-ST" },
     annual: 4200,
-    apply:   { en: "https://www.indiascholarships.in/scholarships/pre-matric-scholarship-for-sc-students-odisha", hi: "scholarships.gov.in" }, applyType: "online",
+    apply:   { en: "https://scholarships.gov.in", hi: "scholarships.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","SC Caste Certificate","Income Certificate (≤₹2.5L/year)","Class 8 Mark Sheet","School Enrollment Certificate","Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड","SC जाति प्रमाण पत्र","आय प्रमाण (≤₹2.5 लाख/वर्ष)","कक्षा 8 मार्कशीट","स्कूल नामांकन प्रमाण","बैंक खाता (आधार लिंक)"] },
     // Eligibility: SC student in Class 9–10 in govt/govt-aided school, family income ≤ ₹2.5L
@@ -1967,7 +1967,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free coaching for competitive & entrance exams for DNT/NT/SNT community students", hi: "DNT/NT/SNT समुदाय के छात्रों के लिए प्रतियोगी व प्रवेश परीक्षाओं की निःशुल्क कोचिंग" },
     tag:     { en: "Student / DNT", hi: "छात्र / DNT" },
     annual: 0,
-    apply:   { en: "https://www.buddy4study.com/page/free-coaching-for-dnt-students-under-seed-scheme", hi: "socialjustice.gov.in" }, applyType: "online",
+    apply:   { en: "https://socialjustice.gov.in", hi: "socialjustice.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","DNT/NT/SNT Community Certificate","Income Certificate","Educational Certificates","Bank Account"],
                hi: ["आधार कार्ड","DNT/NT/SNT समुदाय प्रमाण पत्र","आय प्रमाण पत्र","शैक्षणिक प्रमाण पत्र","बैंक खाता"] },
     // Eligibility: DNT/NT/SNT student, low family income

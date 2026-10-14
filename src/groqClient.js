@@ -5,7 +5,7 @@
 
 import { SCHEME_DB as ALL_SCHEMES } from "./schemesData.js";
 import { whoCanApply } from "./eligibilityText.js";
-import { benefitSummary, benefitKind } from "./benefitMath.js";
+import { benefitSummary, benefitKind, valueLabel } from "./benefitMath.js";
 import { cleanLinks, officialSchemeLink } from "./schemeMatch.js";
 import { eligibilityLine, nearMisses } from "./eligibilityExplain.js";
 
@@ -417,7 +417,7 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
   const formatFull = (s) => {
     const link = getLink(s);
     const docs = (s.docs?.[l] ?? []).join(", ") || "Aadhaar Card";
-    const annual = s.annual > 0 ? `₹${s.annual.toLocaleString("en-IN")}/year` : "Non-monetary";
+    const annual = valueLabel(s) || "See benefit (loan / insurance / non-cash)";
     let who = ""; try { who = whoCanApply(s, l === "hi" ? "hi" : "en") || ""; } catch {}
     const status = schemeStatus(s);
     return (
@@ -822,7 +822,7 @@ export async function generateResultsBrief(answers, matchedSchemes, nearMissSche
 
   // Top matched schemes — name + annual value
   const topMatched = matchedSchemes.slice(0, 5)
-    .map(s => `${s.name.en}${s.annual ? ` (₹${s.annual.toLocaleString("en-IN")}/year)` : ""}`)
+    .map(s => { const v = valueLabel(s); return `${s.name.en}${v ? ` (${v})` : ""}`; })
     .join(", ");
 
   // Top near-misses — name + first reason

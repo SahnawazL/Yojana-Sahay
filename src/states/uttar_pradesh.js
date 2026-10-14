@@ -157,7 +157,7 @@ export const UTTAR_PRADESH_SCHEMES = [
                hi: "प्रतियोगी परीक्षाओं के लिए पूर्णतः निःशुल्क कोचिंग — UPSC (IAS/IPS/IFS), UPPSC/PCS, JEE, NEET, NDA, CDS, SSC, बैंकिंग (PO/क्लर्क), UPSSSC, TET व अन्य भर्ती परीक्षाएं; सेवारत IAS/PCS अधिकारियों द्वारा सीधी मेंटरशिप; निःशुल्क डिजिटल पुस्तकालय व अध्ययन सामग्री; UP के मंडल केंद्रों पर ऑनलाइन व ऑफलाइन बैचें; किसी भी स्तर पर शुल्क नहीं" },
     tag:     { en: "Student / Free Coaching", hi: "छात्र / निःशुल्क कोचिंग" },
     annual: 0,
-    apply:   { en: "https://www.govtschemes.in/chief-minister-abhyuday-scheme", hi: "abhyuday.up.gov.in" }, applyType: "online",
+    apply:   { en: "https://abhyuday.up.gov.in", hi: "abhyuday.up.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "UP Domicile / Residence Proof", "Educational Qualification Certificate (as per exam targeted)", "Age Proof (as per exam eligibility)", "Passport Photo", "Mobile Number (Aadhaar-linked)"],
                hi: ["आधार कार्ड", "UP अधिवास/निवास प्रमाण", "शैक्षिक योग्यता प्रमाण पत्र (लक्षित परीक्षा के अनुसार)", "आयु प्रमाण (परीक्षा पात्रता के अनुसार)", "पासपोर्ट फोटो", "मोबाइल नंबर (आधार-लिंक्ड)"] },
     keywords: ["class12"],

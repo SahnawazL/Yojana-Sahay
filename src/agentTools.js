@@ -16,7 +16,7 @@ import { findSchemesInText, officialSchemeLink } from "./schemeMatch.js";
 import { checkMessage } from "./scamCheck.js";
 import { explainEligibility, eligibilityLine, nearMisses } from "./eligibilityExplain.js";
 import { whoCanApply } from "./eligibilityText.js";
-import { benefitSummary } from "./benefitMath.js";
+import { benefitSummary, valueLabel } from "./benefitMath.js";
 import { getApplications, trackApplication, daysSince } from "./applications.js";
 import { track } from "./track.js";
 import { startingAnswers, questionQueue, withImplied } from "./chatEligibility.js";
@@ -85,7 +85,8 @@ export function resolveScheme(name, ctx = {}) {
 
 function brief(s, ctx) {
   const out = { name: nm(s, ctx), where: where(s), benefit: s.benefit?.[L(ctx)] || s.benefit?.en };
-  if (s.annual > 0) out.yearly_value = inr(s.annual);
+  const value = valueLabel(s);
+  if (value) out.value = value; // "₹6,000/year", "₹5,00,000 health cover", "₹1,20,000 one-time"; none for loans / insurance
   const link = officialSchemeLink(s);
   out.official_link = link || "apply at nearest govt. office";
   if (ctx.answers) out.for_this_user = eligibilityLine(s, ctx.answers).replace(/^FOR THIS USER:\s*/, "");

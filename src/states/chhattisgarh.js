@@ -63,7 +63,7 @@ export const CHHATTISGARH_SCHEMES = [
     benefit: { en: "₹1,000/month (₹12,000/year) direct benefit to married women", hi: "विवाहित महिलाओं को ₹1,000/माह (₹12,000/वर्ष) सीधे बैंक में" },
     tag:     { en: "Women", hi: "महिला" },
     annual: 12000,
-    apply:   { en: "https://www.govtschemes.in/chhattisgarh-mahtari-vandan-scheme", hi: "mahtarivandan.cgstate.gov.in" }, applyType: "online",
+    apply:   { en: "https://mahtarivandan.cgstate.gov.in", hi: "mahtarivandan.cgstate.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Marriage Certificate","Bank Passbook","Domicile Certificate"],
                hi: ["आधार कार्ड","विवाह प्रमाण पत्र","बैंक पासबुक","निवास प्रमाण पत्र"] },
     eligibilityText: { en: ["Married women aged 21+ living in Chhattisgarh — widows, divorced and abandoned women included", "No income-tax payer in the family", "Not a government employee or elected representative"],
@@ -657,15 +657,18 @@ export const CHHATTISGARH_SCHEMES = [
   {
     id: "cg_jeevan_jyoti_cg",
     icon: "🛡️", color: "#1E40AF", scope: "state", state: "Chhattisgarh",
-    ministry: { en: "Chhattisgarh Finance Dept.", hi: "छत्तीसगढ़ वित्त विभाग" },
-    name:    { en: "Mukhyamantri Jan Dhan Jeevan Bima (CG)",       hi: "मुख्यमंत्री जन धन जीवन बीमा (छत्तीसगढ़)" },
-    benefit: { en: "₹2 Lakh life insurance coverage at just ₹12/year premium for BPL/APL families", hi: "बीपीएल/एपीएल परिवारों को मात्र ₹12/वर्ष प्रीमियम पर ₹2 लाख जीवन बीमा" },
-    tag:     { en: "General", hi: "सामान्य" },
-    annual: 200000,
-    apply:   { en: "cgstate.gov.in", hi: "cgstate.gov.in" }, applyType: "offline",
-    docs:    { en: ["Aadhaar Card","Bank Account (Jan Dhan)","Ration Card","Domicile Certificate"],
-               hi: ["आधार कार्ड","बैंक खाता (जन धन)","राशन कार्ड","निवास प्रमाण पत्र"] },
-    match: (a) => a.state === "Chhattisgarh" && ["below1","1to3"].includes(a.income),
+    ministry: { en: "Ministry of Finance — Banks / India Post (PMJJBY Chhattisgarh)", hi: "वित्त मंत्रालय — बैंक / इंडिया पोस्ट (PMJJBY छत्तीसगढ़)" },
+    // Was listed as a separate "Mukhyamantri Jan Dhan Jeevan Bima (CG)" at ₹12/year —
+    // no official source for such a scheme; the real cheap life cover is PMJJBY.
+    name:    { en: "PM Jeevan Jyoti Bima Yojana — PMJJBY (Chhattisgarh)", hi: "प्रधानमंत्री जीवन ज्योति बीमा योजना — PMJJBY (छत्तीसगढ़)" },
+    benefit: { en: "₹2 lakh life insurance cover for death from any cause; annual premium only ₹436 (auto-debited from bank account); for age 18–50 with a savings bank account", hi: "किसी भी कारण से मृत्यु पर ₹2 लाख जीवन बीमा; सालाना प्रीमियम केवल ₹436 (बैंक खाते से अपने-आप कटता है); 18–50 वर्ष, बचत खाते वालों के लिए" },
+    tag:     { en: "Insurance", hi: "बीमा" },
+    annual: 0,
+    apply:   { en: "https://jansuraksha.gov.in", hi: "jansuraksha.gov.in / कोई भी बैंक / इंडिया पोस्ट शाखा" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card", "Active Savings Bank Account", "Mobile Number linked to Aadhaar"],
+               hi: ["आधार कार्ड", "सक्रिय बचत बैंक खाता", "आधार से जुड़ा मोबाइल नंबर"] },
+    duplicateOf: "pmjjby", // same scheme as the central / main entry — hidden when that one already matches
+    match: (a) => a.state === "Chhattisgarh" && (a.age === "18to35" || a.age === "35to60"),
   },
 
   // ── Urban Poor & Slum ──────────────────────────────────────────────────────

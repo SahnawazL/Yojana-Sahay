@@ -99,7 +99,7 @@ function audienceApplies(key, a) {
   return Array.isArray(a.groups) && a.groups.includes(key);
 }
 function eligible(s, a) {
-  if (s.duplicateOf) return false;
+  if (s.duplicateOf || s.closed) return false;
   if (s.scope === "state" && s.state && a.state && s.state !== a.state) return false;
   const aud = nicheAudience(s);
   if (aud && !audienceApplies(aud.key, a)) return false;

@@ -28,6 +28,21 @@ export function benefitKind(s) {
   return "yearly";
 }
 
+// The scheme's money as a short honest label — "₹6,000/year", "₹5,00,000
+// health cover", "₹1,20,000 one-time" — or "" for loans / insurance payouts /
+// salaries, whose `annual` is a loan size or a cover amount, not money you get.
+export function valueLabel(s, lang = "en") {
+  if (!(s?.annual > 0)) return "";
+  const amt = "₹" + Number(s.annual).toLocaleString("en-IN");
+  const hi = lang === "hi";
+  switch (benefitKind(s)) {
+    case "yearly":  return hi ? `${amt}/वर्ष` : `${amt}/year`;
+    case "health":  return hi ? `${amt} इलाज कवर` : `${amt} health cover`;
+    case "oneTime": return hi ? `${amt} एकमुश्त` : `${amt} one-time`;
+    default:        return "";
+  }
+}
+
 // People normally get ONE scholarship, ONE pension and ONE training stipend at
 // a time — so within each of these groups only the largest counts.
 export function exclusiveGroup(s) {

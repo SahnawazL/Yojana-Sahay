@@ -319,7 +319,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "80–85% subsidy on drip & sprinkler irrigation systems (90% for SC/ST/small farmers)", hi: "ड्रिप और स्प्रिंकलर सिंचाई प्रणाली पर 80–85% सब्सिडी (SC/ST/लघु किसानों को 90%)" },
     tag:     { en: "Farmer / Irrigation Subsidy", hi: "किसान / सिंचाई सब्सिडी" },
     annual: 0,
-    apply:   { en: "http://203.100.79.131/new-initiatives", hi: "agriharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://agriharyana.gov.in", hi: "agriharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khasra/Jamabandi)","Water Source Proof (borewell/canal)","Bank Account","Parivar Pehchan Patra","Caste Certificate (if SC/ST)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खसरा/जमाबंदी)","जल स्रोत प्रमाण (बोरवेल/नहर)","बैंक खाता","परिवार पहचान पत्र","जाति प्रमाण पत्र (SC/ST के लिए)"] },
     // Eligibility: Haryana farmer with own land & irrigation source, priority to small/marginal
@@ -395,7 +395,7 @@ export const HARYANA_SCHEMES = [
     benefit: { en: "Affordable residential plots & flats for EWS/LIG urban families at subsidised rates in licensed colonies", hi: "लाइसेंस प्राप्त कॉलोनियों में EWS/LIG शहरी परिवारों को सब्सिडी दर पर आवासीय प्लॉट एवं फ्लैट" },
     tag:     { en: "Housing / Urban EWS", hi: "आवास / शहरी EWS" },
     annual: 0,
-    apply:   { en: "https://deendayaljanaawasyojna.org", hi: "tcpharyana.gov.in" }, applyType: "online",
+    apply:   { en: "https://tcpharyana.gov.in", hi: "tcpharyana.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Parivar Pehchan Patra","Income Certificate (EWS ≤₹3L / LIG ≤₹6L per year)","No Property Certificate","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","परिवार पहचान पत्र","आय प्रमाण (EWS ≤₹3 लाख / LIG ≤₹6 लाख)","संपत्ति न होने का प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },
     // Eligibility: Haryana urban resident, no pucca house, income EWS or LIG category

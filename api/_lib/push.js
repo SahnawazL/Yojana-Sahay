@@ -101,7 +101,7 @@ export async function runPushReminders({ db, schemes, newSchemes = [], buildProf
           db.collection("userApplications").doc(uid).get(),
         ]);
         const answers = userSnap.exists ? buildProfileAnswers(userSnap.data()) : null;
-        const matchedList = answers ? schemes.filter(s => { try { return audienceOk(s, answers) && s.match(answers); } catch { return false; } }) : [];
+        const matchedList = answers ? schemes.filter(s => { try { return !s.closed && audienceOk(s, answers) && s.match(answers); } catch { return false; } }) : [];
         const matched = Object.assign(matchedList, {
           ids: new Set(matchedList.map(s => s.id)),
           byId: new Map(schemes.map(s => [s.id, s])), // tracked apps may be for any scheme
