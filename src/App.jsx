@@ -20,6 +20,7 @@ import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamil
 import { pushState, enablePush, disablePush } from "./push.js";
 import { track } from "./track.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
+import { createPortal } from "react-dom";
 import {
   INDIA_STATES,
   SCHEME_DB,
@@ -39,6 +40,7 @@ const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 import ReportIssueSheet from "./ReportIssueSheet.jsx";
 import { SchemeFlagButton, SchemeFlagNotice, claimGuestReports } from "./SchemeFlag.jsx";
 import { GUIDES, GUIDES_REVIEWED } from "../scripts/seo-guides.mjs";
+import { LIFE_EVENTS, lifeEventPlan } from "./lifeEvents.js";
 import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
@@ -8401,6 +8403,109 @@ function PushNotifyCard({ uid, lang, dark }) {
   );
 }
 
+// ─── LIFE EVENTS (home) — "What's happening in your life?" ─────────────────────
+// One tap on a life moment → the schemes that help, stage by stage, for the
+// user's state (src/lifeEvents.js). Works for everyone, signed in or not.
+function LifeEventsCard({lang,dark,state,eligibleIds,onSchemeOpen,onStartChecker}){
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const L=(en,hi)=>isHindi?hi:en;
+  const [open,setOpen]=useState(null);
+  return(
+    <div style={{background:th.card,borderRadius:20,border:`1.5px solid ${th.border}`,padding:16,marginBottom:14,boxShadow:dark?"none":"0 4px 18px rgba(0,0,0,0.05)"}}>
+      <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:12}}>
+        <div style={{width:38,height:38,borderRadius:12,background:"linear-gradient(135deg,#7C3AED,#EC4899)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,boxShadow:"0 4px 12px rgba(124,58,237,0.3)"}}>🎯</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf}}>{L("What's happening in your life?","आपके जीवन में क्या हो रहा है?")}</div>
+          <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>{L("Tap one — see the schemes that help, step by step","एक चुनें — मदद करने वाली योजनाएं, कदम-दर-कदम")}</div>
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        {LIFE_EVENTS.map(ev=>(
+          <div key={ev.id} role="button" onClick={()=>{haptic();track("life_event",{k:ev.id});setOpen(ev.id);}}
+            style={{display:"flex",alignItems:"center",gap:8,padding:"10px 10px",borderRadius:13,cursor:"pointer",border:`1px solid ${th.border}`,background:dark?"rgba(255,255,255,0.03)":"#FAFAF9",minWidth:0}}>
+            <span style={{fontSize:18,flexShrink:0}}>{ev.icon}</span>
+            <span style={{fontSize:11.5,fontWeight:700,color:th.text,lineHeight:1.3,fontFamily:bf,minWidth:0}}>{isHindi?ev.hi:ev.en}</span>
+          </div>
+        ))}
+      </div>
+      {open&&<LifeEventSheet eventId={open} lang={lang} dark={dark} state={state} eligibleIds={eligibleIds}
+        onClose={()=>setOpen(null)} onSchemeOpen={onSchemeOpen} onStartChecker={()=>{setOpen(null);onStartChecker?.();}}/>}
+    </div>
+  );
+}
+function LifeEventSheet({eventId,lang,dark,state,eligibleIds,onClose,onSchemeOpen,onStartChecker}){
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const L=(en,hi)=>isHindi?hi:en;
+  const ev=LIFE_EVENTS.find(e=>e.id===eventId);
+  const [st,setSt]=useState(state||"");
+  const plan=useMemo(()=>lifeEventPlan(eventId,st),[eventId,st]);
+  const [visible,setVisible]=useState(false);
+  useEffect(()=>{const id=setTimeout(()=>setVisible(true),20);return()=>clearTimeout(id);},[]);
+  if(!ev) return null;
+  const total=plan.reduce((n,x)=>n+x.schemes.length,0);
+  const yes=plan.reduce((n,x)=>n+x.schemes.filter(s=>eligibleIds?.has(s.id)).length,0);
+  // Rendered on <body> so it sits above the bottom nav; the scheme sheet
+  // (zIndex 200, opened from here) still goes on top of it.
+  return createPortal(
+    <div onClick={e=>{if(e.target===e.currentTarget)onClose();}} style={{position:"fixed",inset:0,zIndex:195,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.2s"}}>
+      <div className="sheet-85" style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.card,borderRadius:"24px 24px 0 0",overflowY:"auto",overflowX:"hidden",maxHeight:"88vh",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.28s cubic-bezier(0.32,0.72,0,1)",paddingBottom:24}}>
+        <div style={{display:"flex",justifyContent:"center",paddingTop:10}}><div style={{width:40,height:4,background:th.handle,borderRadius:2}}/></div>
+        <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px 6px"}}>
+          <div style={{fontSize:30,flexShrink:0}}>{ev.icon}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:17,fontWeight:800,color:th.text,fontFamily:bf}}>{isHindi?ev.hi:ev.en}</div>
+            <div style={{fontSize:11.5,color:th.textSub,marginTop:2,fontFamily:bf}}>
+              {L(`${total} schemes that can help`,`${total} योजनाएं जो मदद कर सकती हैं`)}{yes?L(` · ${yes} you qualify for`,` · ${yes} के आप पात्र हैं`):""}
+            </div>
+          </div>
+          <div role="button" aria-label={L("Close","बंद करें")} onClick={()=>{haptic();onClose();}} style={{width:32,height:32,borderRadius:"50%",background:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.06)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0,fontSize:15,color:th.textMid}}>✕</div>
+        </div>
+        <div style={{margin:"4px 16px 12px",display:"flex",alignItems:"center",gap:8,fontSize:11.5,color:th.textSub,fontFamily:bf}}>
+          <span style={{flexShrink:0}}>📍</span>
+          <select value={st} onChange={e=>setSt(e.target.value)} aria-label={L("Your state","आपका राज्य")}
+            style={{flex:1,minWidth:0,padding:"7px 8px",borderRadius:10,border:`1px solid ${th.border}`,background:dark?"#1c1c1e":"#fff",color:th.text,fontSize:12,fontFamily:bf}}>
+            <option value="">{L("Central schemes only — choose your state","सिर्फ़ केंद्र की योजनाएं — अपना राज्य चुनें")}</option>
+            {INDIA_STATES.map(x=><option key={x} value={x}>{L(`Central + ${x}`,`केंद्र + ${x}`)}</option>)}
+          </select>
+        </div>
+        <div style={{padding:"0 16px"}}>
+          {plan.map((x,i)=>(
+            <div key={i} style={{position:"relative",paddingLeft:24,paddingBottom:i<plan.length-1?14:4}}>
+              {i<plan.length-1&&<div style={{position:"absolute",left:8,top:20,bottom:0,width:2,background:dark?"rgba(255,255,255,0.08)":"#ede9fe"}}/>}
+              <div style={{position:"absolute",left:0,top:2,width:18,height:18,borderRadius:"50%",background:"linear-gradient(135deg,#7C3AED,#EC4899)",color:"#fff",fontSize:10,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center"}}>{i+1}</div>
+              <div style={{fontSize:12.5,fontWeight:800,color:dark?"#C4B5FD":"#6D28D9",marginBottom:7,fontFamily:bf}}>{isHindi?x.stage.hi:x.stage.en}</div>
+              {x.schemes.map(s=>{
+                const ok=eligibleIds?.has(s.id);
+                return(
+                  <div key={s.id} role="button" onClick={()=>{haptic();onSchemeOpen?.(s.id);}} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 10px",borderRadius:12,border:`1px solid ${th.border}`,marginBottom:6,cursor:"pointer",background:dark?"rgba(255,255,255,0.02)":"#fff"}}>
+                    <span style={{fontSize:17,flexShrink:0}}>{s.icon}</span>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:12.5,fontWeight:700,color:th.text,lineHeight:1.3,fontFamily:bf,overflowWrap:"anywhere"}}>{s.name[lang]||s.name.en}</div>
+                      <div style={{fontSize:11,color:th.textSub,marginTop:2,lineHeight:1.35,fontFamily:bf,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        {ok&&<span style={{color:"#15803d",fontWeight:800}}>{L("✓ You qualify · ","✓ आप पात्र हैं · ")}</span>}{s.benefit[lang]||s.benefit.en}
+                      </div>
+                    </div>
+                    <span style={{fontSize:15,color:th.textSub,flexShrink:0}}>›</span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          {!plan.length&&<div style={{fontSize:12.5,color:th.textSub,padding:"16px 0",textAlign:"center",fontFamily:bf}}>{L("No schemes found — try choosing your state.","कोई योजना नहीं मिली — अपना राज्य चुनकर देखें।")}</div>}
+          <div role="button" onClick={()=>{haptic();onStartChecker?.();}} style={{marginTop:10,padding:12,borderRadius:13,textAlign:"center",fontSize:13,fontWeight:800,color:"#fff",background:"linear-gradient(135deg,#7C3AED,#EC4899)",cursor:"pointer",fontFamily:bf}}>
+            {L("Check exactly which ones you qualify for →","जांचें कि आप किनके पात्र हैं →")}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ─── FAMILY CARD (home) ────────────────────────────────────────────────────────
 // Add the people you live with; each gets their own scheme list. Household
 // schemes are counted once, personal ones per member (see family.js).
@@ -10406,6 +10511,7 @@ function YojanaSahayInner(){
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[checkerRunId,showChecker]);
   const familyBase=committedCheckerAnswers||profileAnswers||savedQuizAnswers;
+  const eligibleIdSet=useMemo(()=>new Set((allMatchedSchemes||[]).map(s=>s.id)),[allMatchedSchemes]);
   const familySelf=useMemo(()=>{
     if(committedCheckerAnswers||profileAnswers) return allMatchedSchemes;
     return savedQuizAnswers?SCHEME_DB.filter(s=>safeMatch(s,savedQuizAnswers)):[];
@@ -10853,6 +10959,10 @@ function YojanaSahayInner(){
             {(profile||committedCheckerAnswers)&&allMatchedSchemes.length>0&&(
               <BenefitCalculatorCard key={checkerRunId} allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
             )}
+
+            {/* Life events — "What's happening in your life?" */}
+            <LifeEventsCard lang={lang} dark={dark} state={familyBase?.state||profile?.state||""}
+              eligibleIds={eligibleIdSet} onSchemeOpen={setSelectedScheme} onStartChecker={()=>setShowChecker(true)}/>
 
             {/* Family mode — schemes for everyone in the household */}
             <FamilyCard baseAnswers={familyBase} selfSchemes={familySelf} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme} onStartChecker={()=>setShowChecker(true)}/>
