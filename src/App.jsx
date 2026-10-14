@@ -33,7 +33,7 @@ import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, 
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment, deleteField } from "firebase/firestore";
 import AIChat from "./AIChat.jsx";
 import { generateResultsBrief } from "./groqClient.js";
-import { officialSchemeLink } from "./schemeMatch.js";
+import { officialSchemeLink, schemePageUrl } from "./schemeMatch.js";
 import AILockedScreen from "./AILockedScreen.jsx";
 const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 import ReportIssueSheet from "./ReportIssueSheet.jsx";
@@ -2499,6 +2499,8 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
     const lines=[
       `📋 ${scheme.name[lang]}`,
       `💰 ${scheme.benefit[lang]}`,
+      // The scheme's own page first — WhatsApp builds the preview from it.
+      `🔗 ${schemePageUrl(scheme,lang)}`,
       "",
       isHindi?"ज़रूरी दस्तावेज़:":"Documents needed:",
       ...docList.map((d,i)=>`${docChecked[i]?"✅":"⬜"} ${d}`),
@@ -2507,9 +2509,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
         ?(isHindi?`आवेदन करें: ${applyUrl}`:`Apply here: ${applyUrl}`)
         :(isHindi?`आवेदन: ${applyHelpText(scheme.apply[lang],true)}`:`How to apply: ${applyHelpText(scheme.apply[lang],false)}`),
       "",
-      "─────────────────────",
-      isHindi?"🇮🇳 अपनी पात्र योजनाएं मुफ्त खोजें:":"🇮🇳 Find schemes you qualify for — free:",
-      "👉 https://yojanasahay.vercel.app",
+      isHindi?"🇮🇳 पूरी जानकारी और मुफ्त पात्रता जांच — ऊपर दिया लिंक खोलें":"🇮🇳 Full details & free eligibility check — open the link above",
     ];
     window.open(`https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`,"_blank");
   };

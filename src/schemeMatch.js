@@ -175,3 +175,16 @@ export function cleanLinks(text) {
   }
   return out.join("\n");
 }
+
+// ── Shareable page for a scheme ─────────────────────────────────────────────
+// Every scheme has its own public page (/schemes/… English, /yojana/… Hindi —
+// scripts/generate-scheme-pages.mjs). Sharing that page instead of the app's
+// home gives WhatsApp a proper preview and brings visits Google counts.
+export const SITE_URL = "https://yojanasahay.vercel.app";
+export function schemePageUrl(idOrScheme, lang = "en") {
+  const s = typeof idOrScheme === "string" ? SCHEME_DB.find(x => x.id === idOrScheme) : idOrScheme;
+  if (!s?.id) return `${SITE_URL}/`;
+  const main = s.duplicateOf ? (SCHEME_DB.find(x => x.id === s.duplicateOf) || s) : s;
+  return `${SITE_URL}/${lang === "hi" ? "yojana" : "schemes"}/${String(main.id).toLowerCase().replace(/[^a-z0-9-]/g, "-")}.html`;
+}
+

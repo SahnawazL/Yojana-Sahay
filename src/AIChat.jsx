@@ -14,7 +14,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { runAgent } from "./agent.js";
 import { QUESTIONS, nextQuestion, questionQueue, withImplied, eligibilityResult, startingAnswers, STATES } from "./chatEligibility.js";
 import { canSpeak, speak, stopSpeaking, voiceLabel } from "./voice.js";
-import { findSchemesInText } from "./schemeMatch.js";
+import { findSchemesInText, schemePageUrl, SITE_URL } from "./schemeMatch.js";
 import { useApplications, daysSince, trackApplication } from "./applications.js";
 import { track } from "./track.js";
 import { SCHEME_DB } from "./schemesData.js";
@@ -1289,8 +1289,10 @@ const plainText = (md) => md
   .replace(/\n{3,}/g, "\n\n")
   .trim();
 
-function shareText(text, title) {
-  const body = `${text}\n\n— Yojana Sahay · https://yojanasahay.vercel.app`;
+// link: the scheme's own page when the shared text is about one scheme
+// (WhatsApp shows its preview), otherwise the app.
+function shareText(text, title, link = `${SITE_URL}/`) {
+  const body = `${text}\n\n— Yojana Sahay · ${link}`;
   try {
     if (navigator.share) { navigator.share({ title, text: body }).catch(() => {}); return; }
   } catch {}
@@ -1370,7 +1372,11 @@ function AnswerActions({ msg, schemes, lang, dark, trackedApps, onChecklist, onO
           onClick={() => onChecklist?.(withDocs)} />
       )}
       <ActionPill dark={dark} icon="📤" label={isHindi ? "शेयर करें" : "Share"}
-        onClick={() => { shareText(plainText(msg.content), "Yojana Sahay"); track("share_result", { k: "ai" }); }} />
+        onClick={() => {
+          const one = schemes?.length ? schemes : findSchemesInText(msg.content);
+          shareText(plainText(msg.content), "Yojana Sahay", one.length === 1 ? schemePageUrl(one[0], lang) : undefined);
+          track("share_result", { k: "ai" });
+        }} />
       {onRecheck && !opens.some(o => o.screen === "eligibility_checker") && (
         <ActionPill dark={dark} icon="🧮" label={isHindi ? "पात्रता दोबारा जांचें" : "Re-check eligibility"} onClick={onRecheck} />
       )}
@@ -1554,7 +1560,7 @@ function ChecklistSheet({ schemes, lang, dark, onClose }) {
   const share = () => {
     const text = (isHindi ? "📋 दस्तावेज़ सूची — " : "📋 Documents checklist — ") + schemes.map(nameOf).join(", ") + "\n\n" +
       items.map((it, i) => `${have.has(i) ? "✅" : "⬜"} ${it.doc}${it.schemes.length > 1 ? (isHindi ? ` (${it.schemes.length} योजनाओं के लिए)` : ` (for ${it.schemes.length} schemes)`) : ""}`).join("\n");
-    shareText(text, "Documents checklist");
+    shareText(text, "Documents checklist", schemes.length === 1 ? schemePageUrl(schemes[0], lang) : undefined);
     track("share_checklist", { k: "ai" });
   };
   useEffect(() => {

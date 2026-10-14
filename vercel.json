@@ -19,6 +19,23 @@
   ],
   "headers": [
     {
+      "source": "/widget.html",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors *"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
       "source": "/embed",
       "headers": [
         {
@@ -28,7 +45,7 @@
       ]
     },
     {
-      "source": "/((?!embed).*)",
+      "source": "/((?!embed|widget\\.html).*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
@@ -72,7 +89,9 @@
     }
   ],
   "functions": {
-    "api/log-checker-run.js": { "maxDuration": 30 },
+    "api/log-checker-run.js": {
+      "maxDuration": 30
+    },
     "api/agent-auto-fix.js": {
       "maxDuration": 300
     },

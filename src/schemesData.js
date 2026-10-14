@@ -88,7 +88,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹1.20 Lakh for house construction", hi: "मकान निर्माण के लिए ₹1.20 लाख" },
     tag:     { en: "Housing", hi: "आवास" },
     annual: 120000,
-    apply:   { en: "https://rdd.maharashtra.gov.in/en/scheme/pradhan-mantri-awas-yojana-rural", hi: "pmayg.nic.in" }, applyType: "online",
+    apply:   { en: "https://pmayg.nic.in/", hi: "https://pmayg.nic.in/" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","BPL Certificate","Land Documents","Bank Account"],
                hi: ["आधार कार्ड","बीपीएल प्रमाण पत्र","जमीन के कागज़","बैंक खाता"] },
     // Eligibility: no/kutcha house + low income + rural
@@ -350,7 +350,7 @@ export const SCHEME_DB = [
     benefit: { en: "8.2% interest p.a. · Tax-free savings for girl's education & marriage", hi: "8.2% वार्षिक ब्याज · बेटी की पढ़ाई व शादी के लिए कर-मुक्त बचत" },
     tag:     { en: "Girl Child / Savings", hi: "बालिका / बचत" },
     annual: 0,
-    apply:   { en: "https://www.icici.bank.in/personal-banking/investments/sukanya-samriddhi-yojana-account", hi: "nsiindia.gov.in" }, applyType: "online",
+    apply:   { en: "https://www.indiapost.gov.in/", hi: "https://www.indiapost.gov.in/" }, applyType: "online",
     docs:    { en: ["Girl's Birth Certificate", "Parent / Guardian Aadhaar & PAN", "Passport Size Photos"],
                hi: ["बच्ची का जन्म प्रमाण पत्र", "माता-पिता का आधार व पैन कार्ड", "पासपोर्ट साइज़ फोटो"] },
     // Eligibility: parents/guardians of girl child below age 10 years

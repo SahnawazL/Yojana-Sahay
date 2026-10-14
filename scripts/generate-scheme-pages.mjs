@@ -228,7 +228,7 @@ function officialUrl(raw) {
 function trustFooter(isHindi) {
   return `<footer>
       ${isHindi ? "YojanaSahay एक स्वतंत्र, मुफ्त नागरिक मंच है — भारत सरकार या किसी राज्य सरकार से संबद्ध नहीं।" : "YojanaSahay is a free, independent civic-tech guide — not affiliated with the Government of India or any state government."}
-      <div class="trust"><a href="/about.html">${isHindi ? "हमारे बारे में" : "About"}</a>·<a href="/how-we-verify.html">${isHindi ? "हम जानकारी कैसे जांचते हैं" : "How we verify"}</a>·<a href="/faq.html">FAQ</a>·<a href="/contact.html">${isHindi ? "संपर्क / सुधार" : "Contact & corrections"}</a></div>
+      <div class="trust"><a href="/about.html">${isHindi ? "हमारे बारे में" : "About"}</a>·<a href="/how-we-verify.html">${isHindi ? "हम जानकारी कैसे जांचते हैं" : "How we verify"}</a>·<a href="/faq.html">FAQ</a>·<a href="/add-widget.html">${isHindi ? "मुफ्त विजेट" : "Free widget"}</a>·<a href="/contact.html">${isHindi ? "संपर्क / सुधार" : "Contact & corrections"}</a></div>
       <a href="${SITE_URL}/">yojanasahay.vercel.app</a>
     </footer>`;
 }
@@ -465,7 +465,13 @@ function renderPage(scheme, lang) {
   // and click results that show the amount. Kept short enough not to be cut.
   const money = moneyOf(benefit) || moneyOf(scheme.benefit?.en);
   const fit = (t) => (t.length <= 62 ? `${t} | YojanaSahay` : t);
-  const title = isHindi
+  // Schemes with a status guide: people search "<scheme> status" — lead with it.
+  const hasGuide = !!GUIDES[scheme.id];
+  const title = hasGuide
+    ? (isHindi
+        ? fit(`${name} स्टेटस ${YEAR} – पैसा नहीं आया? पात्रता और आवेदन`)
+        : fit(`${name} Status Check ${YEAR} – Not Received? Eligibility & Apply`))
+    : isHindi
     ? fit(money ? `${name} ${YEAR}: ${money} – पात्रता, दस्तावेज़, आवेदन` : `${name} ${YEAR} – पात्रता, लाभ, दस्तावेज़ और आवेदन`)
     : fit(money
         ? `${name} ${YEAR}: ${money} – ${name.length > 40 ? "Eligibility & Apply" : "Eligibility, Documents & Apply"}`
@@ -550,6 +556,16 @@ function renderPage(scheme, lang) {
       ? (isHindi ? `आधिकारिक वेबसाइट पर ऑनलाइन आवेदन करें: ${applyUrl}` : `Apply online on the official website: ${applyUrl}`)
       : (applyText || (isHindi ? "नज़दीकी सरकारी कार्यालय या CSC पर आवेदन करें।" : "Apply at the nearest government office or Common Service Centre (CSC).")),
   ]);
+  if (guide) {
+    faqs.push([
+      isHindi ? `${name} का स्टेटस कैसे चेक करें?` : `How to check ${name} status?`,
+      guide.status.join(" "),
+    ]);
+    faqs.push([
+      isHindi ? `${name} का पैसा / लाभ नहीं मिला तो क्या करें?` : `What to do if ${name} money or benefit is not received?`,
+      guide.notReceived.slice(0, 3).join(" ") + " " + guide.help,
+    ]);
+  }
   faqs.push([
     isHindi ? `कैसे पता करें कि मैं ${name} के लिए पात्र हूं?` : `How can I check if I am eligible for ${name}?`,
     isHindi
@@ -885,6 +901,22 @@ function main() {
   }
   fs.writeFileSync(path.join(ROOT, "public", "faq.html"), renderFaq(), "utf8");
   sitemapEntries.push({ loc: `${SITE_URL}/faq.html` });
+  // Data for the embeddable widget (public/widget.html, shown on other
+  // websites) — one small file per language: rows of [slug, name, benefit,
+  // state ("" = Central), category keys, yearly ₹]. Open schemes only.
+  {
+    const cut = (t, n) => { t = String(t || "").replace(/\s+/g, " ").trim(); return t.length <= n ? t : t.slice(0, n - 1).replace(/\s+\S*$/, "") + "…"; };
+    const open = SCHEME_DB.filter(s => !s.closed && s.name?.en);
+    const states = [...new Set(open.map(s => s.scope === "state" ? s.state : "").filter(Boolean))].sort();
+    for (const lng of ["en", "hi"]) {
+      const rows = open.map(s => [
+        slugify(s.id), s.name[lng] || s.name.en, cut(s.benefit?.[lng] || s.benefit?.en, 80),
+        s.scope === "state" ? (s.state || "") : "", catsOf(s).map(c => c.key).join(","), Number(s.annual) || 0,
+      ]);
+      fs.writeFileSync(path.join(ROOT, "public", `widget-data-${lng}.json`), JSON.stringify({ updated: new Date().toISOString().slice(0, 10), states, d: rows }), "utf8");
+    }
+  }
+  sitemapEntries.push({ loc: `${SITE_URL}/add-widget.html` });
 
   let count = 0, indexed = 0;
   for (const scheme of SCHEME_DB) {

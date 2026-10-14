@@ -198,4 +198,411 @@ export const GUIDES = {
       help: "अपनी ग्राम पंचायत या वार्ड कार्यालय से, या cmladlibahna.mp.gov.in पर दी गई हेल्पलाइन से संपर्क करें।",
     },
   },
+
+  // ── Added October 2026 — more of the most-searched schemes ─────────────────
+  pmawas_rural: {
+    en: {
+      status: [
+        "Open pmayg.nic.in → \"Stakeholders\" → \"IAY / PMAYG Beneficiary\".",
+        "Enter your PMAY-G registration number (on your sanction letter, or ask your gram panchayat).",
+        "You'll see your sanction, each instalment paid and the house-construction stage. The AwaasApp shows the same.",
+      ],
+      notReceived: [
+        "Instalments are paid stage by stage — the next one comes only after the geo-tagged photo of that construction stage is uploaded and approved. Ask your gram panchayat / block office if it's pending.",
+        DBT_EN,
+        "Name not in the list — selection comes from the Awaas+ survey / permanent wait list of your gram panchayat; ask the gram panchayat secretary.",
+      ],
+      help: "Your gram panchayat secretary or the Block Development Office.",
+    },
+    hi: {
+      status: [
+        "pmayg.nic.in खोलें → \"Stakeholders\" → \"IAY / PMAYG Beneficiary\"।",
+        "अपना PMAY-G रजिस्ट्रेशन नंबर डालें (स्वीकृति पत्र पर होता है, या ग्राम पंचायत से पूछें)।",
+        "स्वीकृति, हर किस्त का भुगतान और मकान निर्माण का चरण दिखेगा। AwaasApp में भी यही दिखता है।",
+      ],
+      notReceived: [
+        "किस्तें निर्माण के चरण के हिसाब से मिलती हैं — उस चरण की जियो-टैग फोटो अपलोड और स्वीकृत होने के बाद ही अगली किस्त आती है। रुका हो तो ग्राम पंचायत / ब्लॉक कार्यालय से पूछें।",
+        DBT_HI,
+        "सूची में नाम नहीं — चयन आवास+ सर्वे / ग्राम पंचायत की स्थायी प्रतीक्षा सूची से होता है; ग्राम पंचायत सचिव से पूछें।",
+      ],
+      help: "अपने ग्राम पंचायत सचिव या ब्लॉक विकास कार्यालय से संपर्क करें।",
+    },
+  },
+
+  pmay_urban2: {
+    en: {
+      status: [
+        "Open pmay-urban.gov.in and use the application status / track option.",
+        "Enter your application number (or the details asked) to see where your application is.",
+        "You can also ask your municipality (Urban Local Body), which verifies and approves applications.",
+      ],
+      notReceived: [
+        "Help for building a house is released in instalments after each construction stage is verified (geo-tagged) by the municipality.",
+        "Interest subsidy on a home loan is credited to the loan account through your bank — ask the bank branch that gave the loan.",
+        DBT_EN,
+      ],
+      help: "Your municipality / Urban Local Body PMAY cell, or the bank that gave your home loan.",
+    },
+    hi: {
+      status: [
+        "pmay-urban.gov.in खोलें और आवेदन की स्थिति / ट्रैक विकल्प इस्तेमाल करें।",
+        "अपना आवेदन नंबर (या मांगी गई जानकारी) डालें — आवेदन कहां तक पहुंचा, दिखेगा।",
+        "आप अपनी नगर पालिका / नगर निगम से भी पूछ सकते हैं, जो आवेदन की जांच और स्वीकृति करते हैं।",
+      ],
+      notReceived: [
+        "घर बनाने की मदद किस्तों में मिलती है — नगर निकाय हर चरण की जांच (जियो-टैग) करता है, उसके बाद।",
+        "होम लोन पर ब्याज सब्सिडी बैंक के ज़रिए लोन खाते में आती है — जिस बैंक से लोन लिया उस शाखा से पूछें।",
+        DBT_HI,
+      ],
+      help: "अपनी नगर पालिका / नगर निगम का PMAY प्रकोष्ठ, या होम लोन देने वाला बैंक।",
+    },
+  },
+
+  ujjwala: {
+    en: {
+      status: [
+        "Ask your LPG distributor (Indane, Bharat Gas or HP Gas) with your application number — they process Ujjwala connections.",
+        "Or check on pmuy.gov.in and your gas company's official app / website.",
+        "Once approved, you get the connection, stove and first refill as per the scheme.",
+      ],
+      notReceived: [
+        "Refill subsidy goes to your bank account — your LPG connection must be linked to Aadhaar and an Aadhaar-seeded bank account.",
+        DBT_EN,
+        "Complete Aadhaar eKYC (biometric) at your distributor if they ask for it — subsidy can stop until it's done.",
+      ],
+      help: "Your LPG distributor, or your gas company's official customer care.",
+    },
+    hi: {
+      status: [
+        "अपने LPG वितरक (इंडेन, भारत गैस या HP गैस) से आवेदन नंबर बताकर पूछें — उज्ज्वला कनेक्शन वही देते हैं।",
+        "या pmuy.gov.in और अपनी गैस कंपनी के आधिकारिक ऐप / वेबसाइट पर देखें।",
+        "स्वीकृति के बाद योजना के अनुसार कनेक्शन, चूल्हा और पहली रिफिल मिलती है।",
+      ],
+      notReceived: [
+        "रिफिल सब्सिडी बैंक खाते में आती है — LPG कनेक्शन आधार से और आधार-सीडेड बैंक खाते से जुड़ा होना चाहिए।",
+        DBT_HI,
+        "वितरक मांगे तो आधार eKYC (बायोमेट्रिक) करवाएं — इसके बिना सब्सिडी रुक सकती है।",
+      ],
+      help: "अपना LPG वितरक, या गैस कंपनी का आधिकारिक कस्टमर केयर।",
+    },
+  },
+
+  scholarship: {
+    en: {
+      status: [
+        "Open scholarships.gov.in (National Scholarship Portal) and log in with your registration (OTR) number.",
+        "Open your application to see its status — submitted, verified by your institute, by the district / state, or sanctioned and paid.",
+        "Payment details are shown once the scholarship is sanctioned.",
+      ],
+      notReceived: [
+        "Verification pending — your school / college must verify the application first, then the district or state. Ask your institute's nodal officer.",
+        DBT_EN,
+        "Renewal not done — continuing students must renew every year before the last date.",
+      ],
+      help: "NSP helpdesk: 0120-6619540, or your institute's scholarship nodal officer.",
+    },
+    hi: {
+      status: [
+        "scholarships.gov.in (राष्ट्रीय छात्रवृत्ति पोर्टल) खोलें और अपने रजिस्ट्रेशन (OTR) नंबर से लॉगिन करें।",
+        "अपना आवेदन खोलें — स्थिति दिखेगी: जमा, संस्थान से सत्यापित, ज़िला / राज्य से सत्यापित, या स्वीकृत और भुगतान।",
+        "छात्रवृत्ति स्वीकृत होने पर भुगतान की जानकारी दिखती है।",
+      ],
+      notReceived: [
+        "सत्यापन बाकी — पहले स्कूल / कॉलेज आवेदन सत्यापित करता है, फिर ज़िला या राज्य। अपने संस्थान के नोडल अधिकारी से पूछें।",
+        DBT_HI,
+        "रिन्यूअल नहीं किया — पढ़ाई जारी रखने वाले छात्रों को हर साल आखिरी तारीख से पहले रिन्यू करना होता है।",
+      ],
+      help: "NSP हेल्पडेस्क: 0120-6619540, या अपने संस्थान के छात्रवृत्ति नोडल अधिकारी।",
+    },
+  },
+
+  mgnrega: {
+    en: {
+      status: [
+        "Open nrega.nic.in and go to the job card / reports section.",
+        "Choose your state, district, block and gram panchayat to see the job card list.",
+        "Open your job card to see work days, muster rolls and wage payments.",
+      ],
+      notReceived: [
+        "Wages are paid to an Aadhaar-linked account — make sure your job card and bank account are linked to Aadhaar.",
+        "Payment may be pending at the block (muster roll or payment order not processed) — ask the Gram Rozgar Sahayak or block Programme Officer.",
+        "You can ask for work in writing at the gram panchayat and get a dated receipt — work should be given within 15 days.",
+      ],
+      help: "Your Gram Rozgar Sahayak, gram panchayat, or the block Programme Officer (MGNREGA).",
+    },
+    hi: {
+      status: [
+        "nrega.nic.in खोलें और जॉब कार्ड / रिपोर्ट वाले हिस्से में जाएं।",
+        "अपना राज्य, ज़िला, ब्लॉक और ग्राम पंचायत चुनें — जॉब कार्ड की सूची दिखेगी।",
+        "अपना जॉब कार्ड खोलें — काम के दिन, मस्टर रोल और मज़दूरी का भुगतान दिखेगा।",
+      ],
+      notReceived: [
+        "मज़दूरी आधार से जुड़े खाते में आती है — जॉब कार्ड और बैंक खाता आधार से जुड़ा होना चाहिए।",
+        "भुगतान ब्लॉक पर अटका हो सकता है (मस्टर रोल या भुगतान आदेश बाकी) — ग्राम रोज़गार सहायक या ब्लॉक कार्यक्रम अधिकारी से पूछें।",
+        "ग्राम पंचायत में लिखित में काम मांगें और तारीख वाली रसीद लें — 15 दिन में काम मिलना चाहिए।",
+      ],
+      help: "अपने ग्राम रोज़गार सहायक, ग्राम पंचायत या ब्लॉक कार्यक्रम अधिकारी (मनरेगा) से संपर्क करें।",
+    },
+  },
+
+  pmfby: {
+    en: {
+      status: [
+        "Open pmfby.gov.in and choose the application status option.",
+        "Enter the receipt / application number you got when your crop was insured.",
+        "You'll see the policy details and, after a loss, the claim status.",
+      ],
+      notReceived: [
+        "Crop loss must be reported within 72 hours — on the Crop Insurance app, to your bank / insurance company, or on the helpline 14447.",
+        "Claims are paid after the loss is assessed (crop-cutting / survey) — this can take time after the season ends.",
+        DBT_EN,
+      ],
+      help: "PMFBY / Krishi Rakshak helpline: 14447.",
+    },
+    hi: {
+      status: [
+        "pmfby.gov.in खोलें और आवेदन की स्थिति (application status) चुनें।",
+        "फसल बीमा करवाते समय मिली रसीद / आवेदन संख्या डालें।",
+        "पॉलिसी की जानकारी और नुकसान होने पर क्लेम की स्थिति दिखेगी।",
+      ],
+      notReceived: [
+        "फसल नुकसान की सूचना 72 घंटे के अंदर दें — Crop Insurance ऐप पर, बैंक / बीमा कंपनी को, या हेल्पलाइन 14447 पर।",
+        "क्लेम नुकसान के आकलन (फसल कटाई / सर्वे) के बाद मिलता है — सीज़न खत्म होने के बाद कुछ समय लग सकता है।",
+        DBT_HI,
+      ],
+      help: "PMFBY / कृषि रक्षक हेल्पलाइन: 14447।",
+    },
+  },
+
+  vriddhapension: {
+    en: {
+      status: [
+        "Open nsap.nic.in and use the beneficiary search in the reports section (choose your state, district and area).",
+        "Many states show old-age pension payments on their own social welfare / pension portal too.",
+        "You can also check the credits in your bank or post office passbook.",
+      ],
+      notReceived: [
+        DBT_EN,
+        "Yearly life certificate / verification pending — complete it at the block / tehsil social welfare office, bank or CSC.",
+        "Pension is paid by your state (the Centre adds its share) — the date can differ by state; ask the social welfare office.",
+      ],
+      help: "Your block / tehsil social welfare office.",
+    },
+    hi: {
+      status: [
+        "nsap.nic.in खोलें और रिपोर्ट वाले हिस्से में लाभार्थी खोज इस्तेमाल करें (राज्य, ज़िला और क्षेत्र चुनें)।",
+        "कई राज्य अपने समाज कल्याण / पेंशन पोर्टल पर भी वृद्धावस्था पेंशन का भुगतान दिखाते हैं।",
+        "आप बैंक या डाकघर की पासबुक में भी पैसे आने की जांच कर सकते हैं।",
+      ],
+      notReceived: [
+        DBT_HI,
+        "सालाना जीवन प्रमाण पत्र / सत्यापन बाकी — ब्लॉक / तहसील समाज कल्याण कार्यालय, बैंक या CSC पर करवाएं।",
+        "पेंशन राज्य देता है (केंद्र अपना हिस्सा जोड़ता है) — तारीख राज्य के हिसाब से अलग हो सकती है; समाज कल्याण कार्यालय से पूछें।",
+      ],
+      help: "अपना ब्लॉक / तहसील समाज कल्याण कार्यालय।",
+    },
+  },
+
+  apy: {
+    en: {
+      status: [
+        "Your APY account (PRAN) is with your bank — ask the branch for a statement, or use its net-banking / app.",
+        "You can also view the APY statement on the official NPS / APY record-keeping portal using your PRAN.",
+        "Contributions are auto-debited every month / quarter from your savings account.",
+      ],
+      notReceived: [
+        "Pension starts only after age 60 — before that you build the corpus with your contributions.",
+        "Keep enough balance for the auto-debit; missed contributions attract a small penalty and the account can be frozen if left unpaid for long.",
+        "If the subscriber dies, the spouse continues to get the pension; after both, the nominee gets the corpus — through the same bank.",
+      ],
+      help: "The bank branch where your APY account was opened.",
+    },
+    hi: {
+      status: [
+        "आपका APY खाता (PRAN) आपके बैंक में है — शाखा से स्टेटमेंट लें, या उसकी नेट-बैंकिंग / ऐप इस्तेमाल करें।",
+        "आप अपने PRAN से आधिकारिक NPS / APY रिकॉर्ड पोर्टल पर भी APY स्टेटमेंट देख सकते हैं।",
+        "अंशदान हर महीने / तिमाही बचत खाते से अपने आप कटता है।",
+      ],
+      notReceived: [
+        "पेंशन 60 साल की उम्र के बाद ही शुरू होती है — उससे पहले आप अंशदान से राशि जमा करते हैं।",
+        "ऑटो-डेबिट के लिए खाते में पैसे रखें; अंशदान छूटने पर थोड़ा जुर्माना लगता है और लंबे समय तक न भरने पर खाता रुक सकता है।",
+        "सदस्य की मृत्यु पर पति / पत्नी को पेंशन मिलती रहती है; दोनों के बाद नॉमिनी को राशि मिलती है — उसी बैंक के ज़रिए।",
+      ],
+      help: "वह बैंक शाखा जहां आपका APY खाता खुला है।",
+    },
+  },
+
+  sukanya: {
+    en: {
+      status: [
+        "Check the balance in your Sukanya Samriddhi passbook at the post office or bank where the account was opened.",
+        "If the bank / India Post (IPPB) app or net-banking is linked, you can see the balance there too.",
+        "Interest is added once a year; the rate is set by the government every quarter.",
+      ],
+      notReceived: [
+        "Deposit at least ₹250 every financial year — otherwise the account becomes 'default'; you can revive it with the missed deposits plus ₹50 penalty per year.",
+        "Up to 50% can be withdrawn for the girl's higher education after she turns 18 or passes Class 10.",
+        "The account matures 21 years after opening; it can also be closed for her marriage after age 18.",
+      ],
+      help: "The post office or bank branch where the account was opened.",
+    },
+    hi: {
+      status: [
+        "सुकन्या समृद्धि पासबुक में बैलेंस उसी डाकघर या बैंक में देखें जहां खाता खुला है।",
+        "बैंक / इंडिया पोस्ट (IPPB) ऐप या नेट-बैंकिंग जुड़ी हो तो वहां भी बैलेंस दिखता है।",
+        "ब्याज साल में एक बार जुड़ता है; दर सरकार हर तिमाही तय करती है।",
+      ],
+      notReceived: [
+        "हर वित्त वर्ष कम से कम ₹250 जमा करें — नहीं तो खाता 'डिफ़ॉल्ट' हो जाता है; छूटी राशि और ₹50 प्रति वर्ष जुर्माना देकर फिर चालू कर सकते हैं।",
+        "बेटी के 18 साल की होने या 10वीं पास करने के बाद उच्च शिक्षा के लिए 50% तक निकाल सकते हैं।",
+        "खाता खुलने के 21 साल बाद पूरा होता है; 18 साल के बाद शादी के लिए भी बंद किया जा सकता है।",
+      ],
+      help: "वह डाकघर या बैंक शाखा जहां खाता खुला है।",
+    },
+  },
+
+  pmsby: {
+    en: {
+      status: [
+        "Check your bank passbook / statement for the yearly premium debit (around the end of May) — that means your cover is active.",
+        "Cover runs from 1 June to 31 May and renews by auto-debit from your savings account.",
+        "Your bank branch can confirm your enrolment and nominee.",
+      ],
+      notReceived: [
+        "To claim, the nominee / insured submits the claim form with the required documents (such as FIR / post-mortem report for an accident death, or disability certificate) at the bank branch.",
+        "Claim forms are on jansuraksha.gov.in and at the bank.",
+        "No balance at renewal time means no premium was debited and the cover lapsed — keep balance in May.",
+      ],
+      help: "The bank branch where your savings account is.",
+    },
+    hi: {
+      status: [
+        "बैंक पासबुक / स्टेटमेंट में सालाना प्रीमियम कटने (लगभग मई के अंत में) की जांच करें — इसका मतलब बीमा चालू है।",
+        "बीमा 1 जून से 31 मई तक रहता है और बचत खाते से ऑटो-डेबिट से रिन्यू होता है।",
+        "आपकी बैंक शाखा नामांकन और नॉमिनी की पुष्टि कर सकती है।",
+      ],
+      notReceived: [
+        "क्लेम के लिए नॉमिनी / बीमित व्यक्ति ज़रूरी दस्तावेज़ों (जैसे दुर्घटना मृत्यु में FIR / पोस्टमार्टम रिपोर्ट, या विकलांगता प्रमाण पत्र) के साथ क्लेम फॉर्म बैंक शाखा में जमा करें।",
+        "क्लेम फॉर्म jansuraksha.gov.in पर और बैंक में मिलते हैं।",
+        "रिन्यूअल के समय खाते में पैसे न हों तो प्रीमियम नहीं कटता और बीमा खत्म हो जाता है — मई में बैलेंस रखें।",
+      ],
+      help: "वह बैंक शाखा जहां आपका बचत खाता है।",
+    },
+  },
+
+  pmjjby: {
+    en: {
+      status: [
+        "Check your bank passbook / statement for the yearly premium debit (around the end of May) — that means your life cover is active.",
+        "Cover runs from 1 June to 31 May and renews by auto-debit from your savings account.",
+        "Your bank branch can confirm your enrolment and nominee.",
+      ],
+      notReceived: [
+        "To claim, the nominee submits the claim form with the death certificate and other required documents at the bank branch.",
+        "Claim forms are on jansuraksha.gov.in and at the bank.",
+        "No balance at renewal time means the cover lapsed — keep balance in May.",
+      ],
+      help: "The bank branch where your savings account is.",
+    },
+    hi: {
+      status: [
+        "बैंक पासबुक / स्टेटमेंट में सालाना प्रीमियम कटने (लगभग मई के अंत में) की जांच करें — इसका मतलब जीवन बीमा चालू है।",
+        "बीमा 1 जून से 31 मई तक रहता है और बचत खाते से ऑटो-डेबिट से रिन्यू होता है।",
+        "आपकी बैंक शाखा नामांकन और नॉमिनी की पुष्टि कर सकती है।",
+      ],
+      notReceived: [
+        "क्लेम के लिए नॉमिनी मृत्यु प्रमाण पत्र और बाकी ज़रूरी दस्तावेज़ों के साथ क्लेम फॉर्म बैंक शाखा में जमा करे।",
+        "क्लेम फॉर्म jansuraksha.gov.in पर और बैंक में मिलते हैं।",
+        "रिन्यूअल के समय खाते में पैसे न हों तो बीमा खत्म हो जाता है — मई में बैलेंस रखें।",
+      ],
+      help: "वह बैंक शाखा जहां आपका बचत खाता है।",
+    },
+  },
+
+  pmsvanidhi: {
+    en: {
+      status: [
+        "Open pmsvanidhi.mohua.gov.in and use the application status option with your mobile number.",
+        "Approved applications go to the lending bank, which disburses the loan.",
+        "Your municipality (Urban Local Body) confirms you are a street vendor (vending certificate / letter of recommendation).",
+      ],
+      notReceived: [
+        "Pending with the municipality — ask the ULB town vending / PM SVANidhi cell to verify you.",
+        "Pending with the bank — visit the branch shown in your application with your documents.",
+        "The interest subsidy and digital cashback are credited to your account periodically when you repay on time and use digital payments.",
+      ],
+      help: "Your municipality / Urban Local Body PM SVANidhi cell, or the lending bank branch.",
+    },
+    hi: {
+      status: [
+        "pmsvanidhi.mohua.gov.in खोलें और मोबाइल नंबर से आवेदन की स्थिति देखें।",
+        "स्वीकृत आवेदन ऋण देने वाले बैंक को जाते हैं, जो लोन देता है।",
+        "आपकी नगर पालिका / नगर निगम पुष्टि करती है कि आप पथ विक्रेता हैं (वेंडिंग सर्टिफिकेट / सिफारिश पत्र)।",
+      ],
+      notReceived: [
+        "नगर निकाय में अटका — नगर निकाय के टाउन वेंडिंग / PM SVANidhi प्रकोष्ठ से सत्यापन करवाएं।",
+        "बैंक में अटका — आवेदन में दिखाई गई शाखा में दस्तावेज़ लेकर जाएं।",
+        "समय पर किस्त भरने और डिजिटल भुगतान करने पर ब्याज सब्सिडी और डिजिटल कैशबैक समय-समय पर खाते में आते हैं।",
+      ],
+      help: "अपनी नगर पालिका / नगर निगम का PM SVANidhi प्रकोष्ठ, या ऋण देने वाली बैंक शाखा।",
+    },
+  },
+
+  surya_ghar: {
+    en: {
+      status: [
+        "Open pmsuryaghar.gov.in and log in with your state, electricity company, consumer number and mobile OTP.",
+        "Your dashboard shows each step — feasibility, installation, net-meter, inspection and subsidy.",
+        "Install only through a vendor registered on the portal.",
+      ],
+      notReceived: [
+        "Subsidy is released after the rooftop system is installed, the net meter is fitted and the electricity company inspects it — and after you submit your bank details on the portal.",
+        "Check the stage that is pending on your dashboard and contact the vendor or electricity company for that step.",
+        DBT_EN,
+      ],
+      help: "PM Surya Ghar helpline: 15555, or your electricity company.",
+    },
+    hi: {
+      status: [
+        "pmsuryaghar.gov.in खोलें और राज्य, बिजली कंपनी, उपभोक्ता संख्या और मोबाइल OTP से लॉगिन करें।",
+        "डैशबोर्ड पर हर चरण दिखेगा — फ़ीज़िबिलिटी, इंस्टॉलेशन, नेट-मीटर, निरीक्षण और सब्सिडी।",
+        "इंस्टॉलेशन केवल पोर्टल पर पंजीकृत वेंडर से करवाएं।",
+      ],
+      notReceived: [
+        "सब्सिडी तब मिलती है जब रूफटॉप सिस्टम लग जाए, नेट मीटर लग जाए और बिजली कंपनी निरीक्षण कर ले — और आप पोर्टल पर बैंक विवरण जमा करें।",
+        "डैशबोर्ड पर कौन सा चरण बाकी है देखें और उसके लिए वेंडर या बिजली कंपनी से संपर्क करें।",
+        DBT_HI,
+      ],
+      help: "PM सूर्य घर हेल्पलाइन: 15555, या अपनी बिजली कंपनी।",
+    },
+  },
+
+  pmmvy: {
+    en: {
+      status: [
+        "Ask your Anganwadi worker or ASHA — they register you and can tell the status of each instalment.",
+        "You can also check on pmmvy.wcd.gov.in.",
+        "Keep your Mother & Child Protection (MCP) card updated with check-ups and the child's vaccination.",
+      ],
+      notReceived: [
+        "Each instalment needs its condition met — registration of pregnancy, antenatal check-up, and the child's birth registration / first vaccinations.",
+        DBT_EN,
+        "Name or Aadhaar details don't match the bank account — get them corrected through the Anganwadi worker.",
+      ],
+      help: "Your Anganwadi worker, ASHA, or the CDPO (ICDS) office of your block.",
+    },
+    hi: {
+      status: [
+        "अपनी आंगनवाड़ी कार्यकर्ता या आशा से पूछें — वही पंजीकरण करती हैं और हर किस्त की स्थिति बता सकती हैं।",
+        "आप pmmvy.wcd.gov.in पर भी देख सकती हैं।",
+        "मातृ एवं शिशु सुरक्षा (MCP) कार्ड में जांच और बच्चे के टीकाकरण की जानकारी अपडेट रखें।",
+      ],
+      notReceived: [
+        "हर किस्त के लिए उसकी शर्त पूरी होनी चाहिए — गर्भावस्था का पंजीकरण, प्रसव पूर्व जांच, और बच्चे का जन्म पंजीकरण / पहले टीके।",
+        DBT_HI,
+        "नाम या आधार की जानकारी बैंक खाते से मेल नहीं खाती — आंगनवाड़ी कार्यकर्ता के ज़रिए सही करवाएं।",
+      ],
+      help: "अपनी आंगनवाड़ी कार्यकर्ता, आशा, या ब्लॉक का CDPO (ICDS) कार्यालय।",
+    },
+  },
 };

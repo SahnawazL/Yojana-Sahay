@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Free Government Scheme Finder Widget for Your Website – YojanaSahay</title>
+<meta name="description" content="Add a free government scheme finder to your website, blog, CSC centre or NGO page. Copy one line of code — Central and State schemes in Hindi and English, always up to date." />
+<link rel="canonical" href="https://yojanasahay.vercel.app/add-widget.html" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Free Government Scheme Finder Widget – YojanaSahay" />
+<meta property="og:description" content="Add a free scheme finder to your website in one step. Hindi & English, always up to date." />
+<meta property="og:url" content="https://yojanasahay.vercel.app/add-widget.html" />
+<meta property="og:image" content="https://yojanasahay.vercel.app/og-image.png" />
+<link rel="icon" href="/favicon.ico" />
+<style>
+  :root{ color-scheme:light dark; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:'Noto Sans',-apple-system,system-ui,sans-serif; background:#fafaf9; color:#1c1917; }
+  .wrap{ max-width:760px; margin:0 auto; padding:28px 20px 60px; }
+  h1{ font-size:24px; line-height:1.3; margin:0 0 8px; font-weight:800; } h2{ font-size:16px; margin:26px 0 10px; }
+  p, li{ font-size:14.5px; line-height:1.65; color:#44403c; } p.lead{ color:#57534e; }
+  ul{ padding-left:20px; } li{ margin:5px 0; }
+  a{ color:#c2410c; }
+  .crumbs{ font-size:12.5px; color:#78716c; margin-bottom:12px; } .crumbs a{ text-decoration:none; }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
+  @media (max-width:720px){ .grid{ grid-template-columns:1fr; } }
+  .opts label{ display:block; font-size:12px; font-weight:700; color:#78716c; margin:0 0 10px; }
+  .opts select{ display:block; width:100%; margin-top:4px; padding:9px; border-radius:10px; border:1.5px solid #e7e5e4; font:inherit; font-size:14px; background:#fff; color:inherit; }
+  textarea{ width:100%; min-height:150px; font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace; padding:10px; border-radius:10px; border:1.5px solid #e7e5e4; background:#fff; color:inherit; resize:vertical; }
+  .btn{ display:inline-block; border:0; cursor:pointer; background:#FF9933; color:#fff; font:inherit; font-weight:800; font-size:14px; padding:11px 16px; border-radius:11px; margin-top:8px; }
+  .ok{ font-size:12.5px; color:#15803d; font-weight:700; margin-left:8px; }
+  .preview{ border:1px dashed #d6d3d1; border-radius:14px; padding:8px; background:#fff; }
+  .preview iframe{ width:100%; height:560px; border:0; display:block; }
+  .note{ font-size:12.5px; color:#78716c; }
+  footer{ margin-top:40px; font-size:12px; color:#a8a29e; text-align:center; line-height:1.8; } footer a{ color:#a8a29e; } .trust a{ margin:0 6px; }
+  @media (prefers-color-scheme: dark){ body{ background:#111; color:#f5f5f4; } p,li{ color:#d6d3d1; } p.lead{ color:#a8a29e; }
+    .opts select, textarea, .preview{ background:#1c1917; border-color:#292524; } }
+</style>
+</head>
+<body><div class="wrap">
+  <nav class="crumbs"><a href="/">YojanaSahay</a> › Free widget</nav>
+  <h1>Add a free Scheme Finder to your website</h1>
+  <p class="lead">Help your visitors find the government schemes they can get — Central and State schemes, in Hindi and English. Free, no sign-up, always up to date. Perfect for blogs, news sites, CSC / Jan Seva Kendra pages, NGOs, panchayats, schools and colleges.</p>
+
+  <div class="grid">
+    <div>
+      <h2 style="margin-top:6px">1. Choose options</h2>
+      <div class="opts">
+        <label>Language
+          <select id="o-lang"><option value="en">English</option><option value="hi">हिंदी (Hindi)</option></select></label>
+        <label>Start with this state (optional)
+          <select id="o-state"><option value="">All India — visitor chooses</option></select></label>
+        <label>Start with (optional)
+          <select id="o-who">
+            <option value="">Everyone</option><option value="women">Women &amp; girls</option><option value="farmers">Farmers</option>
+            <option value="students">Students</option><option value="senior">Senior citizens</option><option value="workers">Workers &amp; jobs</option>
+            <option value="business">Business / self-employed</option><option value="disability">Persons with disabilities</option>
+            <option value="housing">Housing</option><option value="health">Health</option>
+          </select></label>
+      </div>
+      <h2>2. Copy this code</h2>
+      <textarea id="code" readonly aria-label="Embed code"></textarea>
+      <button class="btn" id="copy" type="button">Copy code</button><span class="ok" id="ok" hidden>Copied ✓</span>
+      <h2>3. Paste it into your page</h2>
+      <p class="note">WordPress: add a “Custom HTML” block. Blogger: “Add a Gadget” → “HTML/JavaScript”, or switch the post to HTML view. Wix / Google Sites: use “Embed code”. Any website: paste it where you want the box to appear.</p>
+    </div>
+    <div>
+      <h2 style="margin-top:6px">Live preview</h2>
+      <div class="preview"><iframe id="pv" title="Free Government Scheme Finder preview" loading="lazy"></iframe></div>
+    </div>
+  </div>
+
+  <h2>Good to know</h2>
+  <ul>
+    <li><strong>Free forever</strong> — no account, no fee, no ads inside the widget.</li>
+    <li><strong>Private</strong> — the widget sets no cookies and doesn't track your visitors.</li>
+    <li><strong>Always up to date</strong> — new and updated schemes appear automatically.</li>
+    <li><strong>Official links only</strong> — every scheme opens a page with who can apply, documents and the official government link.</li>
+    <li>Please keep the small “Powered by YojanaSahay” line under the widget.</li>
+  </ul>
+  <p>YojanaSahay is a free, independent guide — not a government website. Questions? <a href="/contact.html">Contact us</a>.</p>
+
+  <footer>
+    YojanaSahay is a free, independent civic-tech guide — not affiliated with the Government of India or any state government.
+    <div class="trust"><a href="/about.html">About</a>·<a href="/how-we-verify.html">How we verify</a>·<a href="/faq.html">FAQ</a>·<a href="/contact.html">Contact &amp; corrections</a></div>
+    <a href="https://yojanasahay.vercel.app/">yojanasahay.vercel.app</a>
+  </footer>
+</div>
+<script>
+(function () {
+  var SITE = "https://yojanasahay.vercel.app";
+  var $ = function (id) { return document.getElementById(id); };
+  function url() {
+    var p = new URLSearchParams();
+    if ($("o-lang").value === "hi") p.set("lang", "hi");
+    if ($("o-state").value) p.set("state", $("o-state").value);
+    if ($("o-who").value) p.set("who", $("o-who").value);
+    var s = p.toString();
+    return SITE + "/widget.html" + (s ? "?" + s : "");
+  }
+  function update() {
+    var u = url(), hi = $("o-lang").value === "hi";
+    $("code").value =
+      '<iframe src="' + u + '" title="' + (hi ? "मुफ्त सरकारी योजना खोजें" : "Free Government Scheme Finder") + '" width="100%" height="560" style="border:0;max-width:520px" loading="lazy"></iframe>\n' +
+      '<p style="font-size:12px;margin:4px 0 0">' + (hi ? "सरकारी योजनाएं खोजें: " : "Find government schemes you qualify for: ") +
+      '<a href="' + SITE + '/">YojanaSahay – Free Scheme Finder</a></p>';
+    var local = u.replace(SITE, ""); // preview from this same site
+    if ($("pv").getAttribute("src") !== local) $("pv").setAttribute("src", local);
+  }
+  fetch("/widget-data-en.json").then(function (r) { return r.json(); }).then(function (d) {
+    $("o-state").insertAdjacentHTML("beforeend", d.states.map(function (s) { return '<option value="' + s.replace(/"/g, "&quot;") + '">' + s.replace(/</g, "&lt;") + "</option>"; }).join(""));
+  }).catch(function () {});
+  ["o-lang", "o-state", "o-who"].forEach(function (id) { $(id).addEventListener("change", update); });
+  $("copy").addEventListener("click", function () {
+    var t = $("code"); t.select();
+    var done = function () { $("ok").hidden = false; setTimeout(function () { $("ok").hidden = true; }, 2000); };
+    if (navigator.clipboard) navigator.clipboard.writeText(t.value).then(done, function () { document.execCommand("copy"); done(); });
+    else { document.execCommand("copy"); done(); }
+  });
+  update();
+})();
+</script>
+</body>
+</html>

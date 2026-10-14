@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Free Scheme Finder – YojanaSahay</title>
+<meta name="description" content="Find Central and State government schemes for your state — free, in Hindi and English. By YojanaSahay." />
+<!-- Shown inside other websites (iframe). The real pages are linked from it, so keep this one out of search results. -->
+<meta name="robots" content="noindex, follow" />
+<link rel="icon" href="/favicon.ico" />
+<!--
+  YojanaSahay · embeddable "Free Scheme Finder" widget
+  Embed code + options: https://yojanasahay.vercel.app/add-widget.html
+  URL options: ?lang=hi  ?state=Bihar  ?who=farmers (women|farmers|students|senior|workers|business|disability|housing|health)
+  Reads /widget-data-<lang>.json (made by scripts/generate-scheme-pages.mjs). No cookies, no tracking.
+-->
+<style>
+  :root{ color-scheme: light dark; --bg:#ffffff; --card:#fafaf9; --text:#1c1917; --sub:#6b6560; --line:#e7e5e4; --acc:#FF9933; --acc2:#c2410c; --navy:#003580; }
+  @media (prefers-color-scheme: dark){ :root{ --bg:#141414; --card:#1c1c1e; --text:#f2f2f2; --sub:#a3a3a3; --line:#2c2c2e; --acc2:#fdba74; } }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-family:'Noto Sans',-apple-system,system-ui,"Segoe UI",sans-serif; }
+  .w{ max-width:520px; margin:0 auto; padding:14px 14px 10px; }
+  .top{ display:flex; align-items:center; gap:10px; }
+  .logo{ width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,var(--navy),#1d4ed8 55%,var(--acc)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  h1{ font-size:15.5px; margin:0; font-weight:800; line-height:1.25; }
+  .tag{ font-size:11px; color:var(--sub); margin-top:1px; }
+  .lang{ margin-left:auto; display:flex; border:1px solid var(--line); border-radius:99px; overflow:hidden; flex-shrink:0; }
+  .lang button{ border:0; background:transparent; color:var(--sub); font:inherit; font-size:11.5px; font-weight:700; padding:5px 10px; cursor:pointer; }
+  .lang button[aria-pressed="true"]{ background:var(--acc); color:#fff; }
+  .row{ display:flex; gap:8px; margin:12px 0 10px; }
+  label{ flex:1; min-width:0; display:block; font-size:10.5px; font-weight:700; color:var(--sub); letter-spacing:.3px; }
+  select{ width:100%; margin-top:4px; padding:9px 8px; border-radius:10px; border:1.5px solid var(--line); background:var(--card); color:var(--text); font:inherit; font-size:13px; }
+  .count{ font-size:12px; color:var(--sub); margin:2px 0 8px; }
+  .count b{ color:var(--text); }
+  ul{ list-style:none; margin:0; padding:0; }
+  li a{ display:flex; gap:10px; align-items:flex-start; padding:9px 10px; border:1px solid var(--line); border-radius:12px; margin-bottom:7px; text-decoration:none; color:inherit; background:var(--card); }
+  li a:hover, li a:focus-visible{ border-color:var(--acc); outline:none; }
+  .n{ font-size:13px; font-weight:700; line-height:1.35; overflow-wrap:anywhere; }
+  .b{ font-size:11.5px; color:var(--sub); margin-top:2px; line-height:1.4; overflow-wrap:anywhere; }
+  .badge{ font-size:9.5px; font-weight:800; border-radius:6px; padding:2px 6px; margin-top:2px; flex-shrink:0; background:#eff6ff; color:#1d4ed8; }
+  .badge.st{ background:#fef9c3; color:#854d0e; }
+  .go{ margin-left:auto; color:var(--acc2); font-weight:800; flex-shrink:0; }
+  .cta{ display:block; text-align:center; text-decoration:none; background:linear-gradient(135deg,var(--acc),#f97316); color:#fff; font-weight:800; font-size:13.5px; padding:12px; border-radius:12px; margin:10px 0 8px; }
+  .foot{ font-size:10.5px; color:var(--sub); text-align:center; line-height:1.5; }
+  .foot a{ color:var(--sub); }
+  .empty{ font-size:12.5px; color:var(--sub); padding:14px 4px; text-align:center; }
+  .skel{ height:52px; border-radius:12px; background:var(--card); border:1px solid var(--line); margin-bottom:7px; animation:p 1.2s ease-in-out infinite; }
+  @keyframes p{ 50%{ opacity:.55; } }
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="top">
+    <div class="logo" aria-hidden="true">🇮🇳</div>
+    <div style="min-width:0">
+      <h1 id="t">Free Government Scheme Finder</h1>
+      <div class="tag" id="tg">1,100+ Central &amp; State schemes · by YojanaSahay</div>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-l="en" aria-pressed="true">EN</button>
+      <button type="button" data-l="hi" aria-pressed="false">हिं</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <label><span id="ls">STATE</span><select id="state"></select></label>
+    <label><span id="lw">I AM / FOR</span><select id="who"></select></label>
+  </div>
+
+  <div class="count" id="count">&nbsp;</div>
+  <ul id="list"><li class="skel"></li><li class="skel"></li><li class="skel"></li></ul>
+
+  <a class="cta" id="cta" target="_blank" rel="noopener" href="https://yojanasahay.vercel.app/?ref=widget">Check your exact eligibility — free →</a>
+  <div class="foot" id="foot">Powered by <a href="https://yojanasahay.vercel.app/?ref=widget" target="_blank" rel="noopener">YojanaSahay</a> · Free · Not a government website</div>
+</div>
+
+<script>
+(function () {
+  var SITE = "https://yojanasahay.vercel.app";
+  var WHO = [
+    ["all", "Everyone", "सभी"], ["women", "Women & girls", "महिलाएं व बेटियां"], ["farmers", "Farmers", "किसान"],
+    ["students", "Students", "विद्यार्थी"], ["senior", "Senior citizens", "वरिष्ठ नागरिक"], ["workers", "Workers & jobs", "श्रमिक व रोज़गार"],
+    ["business", "Business / self-employed", "व्यापार / स्वरोज़गार"], ["disability", "Persons with disabilities", "दिव्यांगजन"],
+    ["housing", "Housing", "आवास"], ["health", "Health", "स्वास्थ्य"]
+  ];
+  var T = {
+    en: { t: "Free Government Scheme Finder", tg: "1,100+ Central & State schemes · by YojanaSahay", ls: "STATE", lw: "I AM / FOR",
+          all: "All India (Central schemes)", pick: "Choose your state", found: function (n, c, s) { return "<b>" + n + "</b> schemes found" + (s ? " · " + c + " Central + " + s + " State" : ""); },
+          more: function (n) { return "+ " + n + " more in the app"; }, none: "No schemes found for this choice — try another option.",
+          central: "CENTRAL", cta: "Check your exact eligibility — free →", err: "Couldn't load schemes. Please refresh.",
+          foot: 'Powered by <a href="' + SITE + '/?ref=widget" target="_blank" rel="noopener">YojanaSahay</a> · Free · Not a government website' },
+    hi: { t: "मुफ्त सरकारी योजना खोजें", tg: "केंद्र और राज्यों की 1,100+ योजनाएं · YojanaSahay", ls: "राज्य", lw: "मैं / किसके लिए",
+          all: "पूरा भारत (केंद्र की योजनाएं)", pick: "अपना राज्य चुनें", found: function (n, c, s) { return "<b>" + n + "</b> योजनाएं मिलीं" + (s ? " · " + c + " केंद्र + " + s + " राज्य" : ""); },
+          more: function (n) { return "+ " + n + " और ऐप में"; }, none: "इस चुनाव के लिए योजना नहीं मिली — कोई दूसरा विकल्प चुनें।",
+          central: "केंद्र", cta: "अपनी सही पात्रता जांचें — मुफ्त →", err: "योजनाएं लोड नहीं हुईं। पेज रीफ्रेश करें।",
+          foot: '<a href="' + SITE + '/?ref=widget" target="_blank" rel="noopener">YojanaSahay</a> द्वारा · मुफ्त · सरकारी वेबसाइट नहीं' }
+  };
+  var q = new URLSearchParams(location.search);
+  var lang = q.get("lang") === "hi" ? "hi" : "en";
+  var want = { state: q.get("state") || "", who: q.get("who") || "all" };
+  var cache = {}, data = null;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+
+  function fillSelects() {
+    var t = T[lang], st = $("state"), wh = $("who");
+    var cur = st.value || want.state, curW = wh.value || want.who;
+    st.innerHTML = '<option value="">' + esc(t.all) + "</option>" + data.states.map(function (s) { return '<option value="' + esc(s) + '">' + esc(s) + "</option>"; }).join("");
+    st.value = data.states.indexOf(cur) >= 0 ? cur : "";
+    wh.innerHTML = WHO.map(function (w) { return '<option value="' + w[0] + '">' + esc(lang === "hi" ? w[2] : w[1]) + "</option>"; }).join("");
+    wh.value = WHO.some(function (w) { return w[0] === curW; }) ? curW : "all";
+  }
+  function render() {
+    var t = T[lang], st = $("state").value, who = $("who").value;
+    var rows = data.d.filter(function (r) {
+      return (!r[3] || r[3] === st) && (who === "all" || (r[4] || "").split(",").indexOf(who) >= 0);
+    });
+    // Your state's schemes first, then by yearly value
+    rows.sort(function (a, b) { return ((b[3] ? 1 : 0) - (a[3] ? 1 : 0)) || (b[5] - a[5]); });
+    var c = rows.filter(function (r) { return !r[3]; }).length, s = rows.length - c;
+    $("count").innerHTML = rows.length ? t.found(rows.length, c, st ? s : 0) : "&nbsp;";
+    var top = rows.slice(0, 6), base = SITE + "/" + (lang === "hi" ? "yojana" : "schemes") + "/";
+    $("list").innerHTML = top.length ? top.map(function (r) {
+      return '<li><a target="_blank" rel="noopener" href="' + base + encodeURIComponent(r[0]) + '.html?ref=widget">' +
+        '<span class="badge' + (r[3] ? " st" : "") + '">' + esc(r[3] ? r[3].slice(0, 12) : t.central) + "</span>" +
+        '<span style="min-width:0"><span class="n">' + esc(r[1]) + '</span><span class="b" style="display:block">' + esc(r[2]) + "</span></span>" +
+        '<span class="go" aria-hidden="true">›</span></a></li>';
+    }).join("") + (rows.length > 6 ? '<li class="count" style="text-align:center">' + esc(t.more(rows.length - 6)) + "</li>" : "")
+      : '<li class="empty">' + esc(t.none) + "</li>";
+    var p = new URLSearchParams({ ref: "widget" });
+    $("cta").href = SITE + "/?" + p.toString();
+  }
+  function setLang(l) {
+    lang = l;
+    document.documentElement.lang = l;
+    var t = T[l];
+    $("t").textContent = t.t; $("tg").textContent = t.tg; $("ls").textContent = t.ls; $("lw").textContent = t.lw;
+    $("cta").textContent = t.cta; $("foot").innerHTML = t.foot;
+    [].forEach.call(document.querySelectorAll(".lang button"), function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-l") === l)); });
+    load();
+  }
+  function load() {
+    if (cache[lang]) { data = cache[lang]; fillSelects(); render(); return; }
+    fetch("/widget-data-" + lang + ".json").then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (d) {
+      cache[lang] = d; data = d; fillSelects(); render();
+    }).catch(function () { $("list").innerHTML = '<li class="empty">' + esc(T[lang].err) + "</li>"; });
+  }
+  $("state").addEventListener("change", render);
+  $("who").addEventListener("change", render);
+  [].forEach.call(document.querySelectorAll(".lang button"), function (b) { b.addEventListener("click", function () { setLang(b.getAttribute("data-l")); }); });
+  setLang(lang);
+})();
+</script>
+</body>
+</html>
