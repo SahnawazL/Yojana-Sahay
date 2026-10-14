@@ -1463,4 +1463,21 @@ export const KARNATAKA_SCHEMES = [
   },
   // </auto-scheme id="karnataka_deepika_scholarship">
 
+  // <auto-scheme id="karnataka_backward_classes_welfare"> added by Scheme Discovery agent on 2026-10-14 · source: https://bcwd.karnataka.gov.in/110/PostMatric%20Scholarship%20Application/en
+  {
+    id: "karnataka_backward_classes_welfare",
+    icon: "📚", color: "#003580", scope: "state", state: "Karnataka",
+    ministry: { en: "Backward Classes Welfare Department", hi: "पिछड़ा वर्ग कल्याण विभाग" },
+    name:    { en: "Karnataka Backward Classes Welfare Department – Post Matric Fee Concession", hi: "कर्नाटक पिछड़ा वर्ग कल्याण विभाग – पोस्ट मैट्रिक फीस छूट" },
+    benefit: { en: "Fee concession for eligible OBC and NT/SNT students", hi: "योग्य ओबीसी और एनटी/एसएनटी छात्रों के लिए फीस छूट" },
+    tag:     { en: "Fee Concession", hi: "फीस छूट" },
+    annual: 0,
+    apply:   { en: "https://bcwd.karnataka.gov.in/110/PostMatric%20Scholarship%20Application/en", hi: "https://bcwd.karnataka.gov.in/110/PostMatric%20Scholarship%20Application/en" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-14", source: "https://bcwd.karnataka.gov.in/110/PostMatric%20Scholarship%20Application/en",
+    match: (a) => a.state === "Karnataka" && a.who === "student" && a.caste === "obc" && a.educationLevel === "undergrad",
+  },
+  // </auto-scheme id="karnataka_backward_classes_welfare">
+
 ];
