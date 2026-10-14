@@ -308,6 +308,14 @@ const safeApplyUrl = (url) => {
 };
 // Apply button target: only an official (government) link — about 60 data
 // entries point at blogs or private sites; those fall back to a Google search.
+// YojanaSahay Pro — set on the user's Firestore doc: plan:"pro" (optional
+// proUntil = expiry date). Today it only removes the AI reading pause.
+const isProUser = (p) => {
+  if (p?.plan !== "pro") return false;
+  if (!p.proUntil) return true;
+  const t = typeof p.proUntil?.toMillis === "function" ? p.proUntil.toMillis() : new Date(p.proUntil).getTime();
+  return Number.isFinite(t) && t > Date.now();
+};
 const officialApplyUrl = (scheme) => {
   if (scheme?.applyType !== "online") return null;
   const u = officialSchemeLink(scheme);
@@ -11084,6 +11092,7 @@ function YojanaSahayInner(){
             onOpenDetail={setSelectedScheme}
             eligAnswers={committedCheckerAnswers||profileAnswers||savedQuizAnswers}
             onOpenChecker={handleViewChecker}
+            isPro={isProUser(profile)||isAdmin}
             uid={auth.currentUser.uid}
             key={auth.currentUser.uid}
           />

@@ -656,7 +656,7 @@ function TypingIndicator({ dark, status, lang, steps }) {
 
 // ─── READING TIME BAR ─────────────────────────────────────────────────────────
 // Replaces the normal input UI while cooldown is active
-function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang, onSkip }) {
+function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang, onSkip, queued, onCancelQueued }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
@@ -711,6 +711,19 @@ function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang, onSkip }) {
           {secondsLeft}
         </div>
       </div>
+
+      {/* Something tapped during the pause waits here and runs when it ends */}
+      {queued && (
+        <div style={{ display:"flex", alignItems:"center", gap:8, margin:"-2px 0 9px", padding:"7px 10px", borderRadius:10,
+          background: dark ? "rgba(255,153,51,0.10)" : "#FFF7ED", border:`1px solid ${dark ? "rgba(255,153,51,0.25)" : "#FED7AA"}` }}>
+          <span style={{ flex:1, minWidth:0, fontSize:11.5, fontFamily:bf, color:th.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            ⏭ {isHindi ? "अगला" : "Next"}: <b>“{queued}”</b> {isHindi ? "— टाइमर खत्म होते ही" : "— starts when the timer ends"}
+          </span>
+          <span role="button" onClick={onCancelQueued} style={{ fontSize:11, fontWeight:700, color:th.textSub, cursor:"pointer", fontFamily:bf, flexShrink:0 }}>
+            {isHindi ? "रद्द करें" : "Cancel"}
+          </span>
+        </div>
+      )}
 
       {/* Draining progress bar */}
       <div style={{
@@ -1946,7 +1959,7 @@ function WelcomeScreen({ lang, dark, onSuggest, profile, onPick, onShowAll }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function AIChat({ lang="en", dark=false, profile=null, uid=null, matchedSchemes=[], onOpenDetail=null, eligAnswers=null, onOpenChecker=null }) {
+export default function AIChat({ lang="en", dark=false, profile=null, uid=null, matchedSchemes=[], onOpenDetail=null, eligAnswers=null, onOpenChecker=null, isPro=false }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
@@ -2018,6 +2031,15 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // to be recreated every second as the countdown ticks. Use a ref instead.
   const secondsLeftRef       = useRef(0);
 
+  // Pro users skip the reading pause (read via a ref so startCooldown stays stable).
+  const isProRef             = useRef(isPro);
+  isProRef.current           = isPro;
+
+  // Something tapped during the reading pause (✨ option, answer button,
+  // re-check…) waits here instead of skipping the pause, and runs as soon as
+  // the pause ends — or right away if the user taps "Type now".
+  const [queued, setQueued]  = useState(null);   // { label, run }
+
   // FIX Bug 3: store the justUnlocked setTimeout handle so it can be cleared on
   // unmount, preventing "setState on unmounted component" errors.
   const justUnlockedTimerRef = useRef(null);
@@ -2088,9 +2110,24 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
     }
   }, [secondsLeft]);
 
+  useEffect(() => {
+    if (!queued || loading || secondsLeft > 0) return;
+    const job = queued;
+    setQueued(null);
+    secondsLeftRef.current = 0;
+    job.run();
+  }, [queued, loading, secondsLeft]);
+
   // ── Start reading-time cooldown ──────────────────────────────────────────────
   const startCooldown = useCallback((replyText, incomingChips, alreadyReadSecs = 0) => {
     clearInterval(cooldownRef.current);
+    // Pro: no reading pause — follow-up chips show straight away.
+    if (isProRef.current) {
+      setSecondsLeft(0); setTotalSeconds(0); secondsLeftRef.current = 0;
+      pendingChipsRef.current = [];
+      setChips(incomingChips || []);
+      return;
+    }
     // A streamed answer was being read while it arrived — count that time.
     const secs = Math.max(alreadyReadSecs ? 4 : 10, calcReadingTime(replyText) - Math.round(alreadyReadSecs));
     setTotalSeconds(secs);
@@ -2214,20 +2251,30 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // the AI kept personalising answers with the OLD state/occupation/income.
   }, [input, messages, loading, isHindi, lang, usedChips, startCooldown, profile, effMatched, trackedApps, effAnswers]);
 
+  // Run now if the chat is free; during the reading pause or while an answer
+  // is coming, line it up instead (shown in the timer bar, runs when it ends).
+  const loadingRef = useRef(false);
+  loadingRef.current = loading;
+  const whenFree = useCallback((label, run) => {
+    if (secondsLeftRef.current > 0 || loadingRef.current) setQueued({ label: String(label || "").slice(0, 60), run });
+    else run();
+  }, []);
+
   // A feature card was tapped.
   const pickCapability = useCallback((c) => {
     dismissNews();
     const L = isHindi ? "hi" : "en";
-    if (c.action === "quiz") { startQuiz(); return; }
-    // Typing is blocked during the reading pause — end it so the box is usable.
-    clearInterval(cooldownRef.current); setSecondsLeft(0); secondsLeftRef.current = 0;
-    if (c.action === "send") { handleSend(c[L].x); return; }
-    setInput(c[L].x);
-    setTimeout(() => {
-      const el = textareaRef.current;
-      if (el) { el.focus(); const n = el.value.length; try { el.setSelectionRange(n, n); } catch {} }
-    }, 60);
-  }, [isHindi, startQuiz, handleSend]); // eslint-disable-line react-hooks/exhaustive-deps
+    const label = c[L]?.t || c[L]?.x || "";
+    if (c.action === "quiz") { whenFree(label, () => startQuiz()); return; }
+    if (c.action === "send") { whenFree(label, () => handleSend(c[L].x)); return; }
+    whenFree(label, () => {
+      setInput(c[L].x);
+      setTimeout(() => {
+        const el = textareaRef.current;
+        if (el) { el.focus(); const n = el.value.length; try { el.setSelectionRange(n, n); } catch {} }
+      }, 60);
+    });
+  }, [isHindi, startQuiz, handleSend, whenFree]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -2320,7 +2367,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
                 setMessages([]); setError(""); setChips([]);
                 setChatAnswers(null); try { localStorage.removeItem(chatAnsKey); } catch {}
                 pendingChipsRef.current = [];              // FIX Bug 4
-                setUsedChips(new Set()); setSecondsLeft(0);
+                setUsedChips(new Set()); setSecondsLeft(0); setQueued(null);
                 clearInterval(cooldownRef.current);
                 clearTimeout(justUnlockedTimerRef.current); // FIX Bug 3
                 try { localStorage.removeItem(chatKey); } catch {}
@@ -2370,9 +2417,9 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             trackedApps={trackedApps}
             onChecklist={setChecklist}
             onOpenChecker={onOpenChecker}
-            onRecheck={() => startQuiz(effAnswers || {})}
-            onAsk={(t) => handleSend(t)}
-            onQuizRestart={(prev) => startQuiz(prev || {})}
+            onRecheck={() => whenFree(isHindi ? "पात्रता दोबारा जांचें" : "Re-check eligibility", () => startQuiz(effAnswers || {}))}
+            onAsk={(t) => whenFree(t, () => handleSend(t))}
+            onQuizRestart={(prev) => whenFree(isHindi ? "पात्रता दोबारा जांचें" : "Re-check eligibility", () => startQuiz(prev || {}))}
             onQuizDone={(ans) => {
               setMessages(prev => prev.map((m, j) => j === i && m.ui?.quiz ? { ...m, ui: { ...m.ui, quiz: { ...m.ui.quiz, done: ans } } } : m));
               if (msg.ui?.quiz?.forSelf) {
@@ -2422,6 +2469,8 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           dark={dark}
           lang={lang}
           onSkip={() => { clearInterval(cooldownRef.current); setSecondsLeft(0); }}
+          queued={queued?.label}
+          onCancelQueued={() => setQueued(null)}
         />
       ) : (
         <InputBar
