@@ -584,7 +584,7 @@ function ConversationThread({ report, dark, lang }) {
   thread.push({
     key:    "original",
     who:    "user",
-    text:   report.message || "—",
+    text:   String(report.message || "").split(/\n*\[Auto-check\]/)[0].trim() || "—",
     time:   formatDateTime(report.createdAt, lang),
     status: null,
   });

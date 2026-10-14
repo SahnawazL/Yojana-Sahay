@@ -1652,6 +1652,10 @@ function ConversationThread({ report, dark }) {
   );
 }
 
+// The user's own words only — older scheme reports had the internal
+// "[Auto-check] …" note appended to the message.
+const cleanReportMessage = (m) => String(m || "").split(/\n*\[Auto-check\]/)[0].trim();
+
 function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onLogActivity, isDesktop = false }) {
   const th = THEME[dark ? "dark" : "light"];
   const [filter,      setFilter]      = useState("all"); // "all" | "open" | "in_progress" | "resolved"
@@ -1723,7 +1727,10 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
       const systemPrompt =
         `You are a warm, professional support agent for Yojana Sahay — a government scheme ` +
         `discovery app for Indian citizens.\n` +
-        `Reply in plain text only. No markdown, no bullet points, no headers.\n\n` +
+        `Reply in plain text only. No markdown, no bullet points, no headers.\n` +
+        `Write ONLY the message body: no greeting line (no "Dear …", "Hi …") and no sign-off ` +
+        `(no "Regards", "Team") — the email already adds "Hi <name>" and the closing. ` +
+        `Never use the person's name${report.uid === "guest" ? " (this reply is shown publicly on the scheme page)" : ""}.\n\n` +
         `Current admin action: ${effectiveStatus.replace("_", " ").toUpperCase()}\n` +
         `Instruction: ${statusGuide}`;
 
@@ -1731,10 +1738,11 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
         `Report type: ${typeLabel}\n` +
         `User: ${report.userName || "a user"}\n` +
         `Subject: ${report.subject || "(none)"}\n` +
-        `Original message: ${report.message}` +
+        `${report.schemeName ? `Scheme: ${report.schemeName}\n` : ""}` +
+        `Original message: ${cleanReportMessage(report.message)}` +
+        `${report.autoCheck || report.linkCheck ? `\nAutomatic link check (internal, for you only): ${report.autoCheck || (report.linkCheck?.alive === true ? "link answered OK" : report.linkCheck?.alive === false ? "link unreachable from our server" : "could not confirm")}` : ""}` +
         `${historyContext}\n\n` +
-        `Write a concise admin reply (2–4 sentences) matching the admin action above. ` +
-        `End with a polite closing from the Yojana Sahay Team.`;
+        `Write a concise admin reply (2–4 sentences) matching the admin action above.`;
 
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -1754,7 +1762,12 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
         throw new Error(err?.error?.message || `API error (${res.status})`);
       }
       const data = await res.json();
-      const suggestion = data.choices?.[0]?.message?.content?.trim() || "";
+      // Body only — the email template adds "Hi <name>" and the closing.
+      const suggestion = (data.choices?.[0]?.message?.content?.trim() || "")
+        .replace(/^\s*(dear|hi|hello|namaste)\b[^\n]{0,60},?\s*\n+/i, "")
+        .replace(/\n+\s*(warm(est)? regards|best regards|regards|thanks(,| and)? regards|sincerely|thank you)[,!.]?\s*(\n[^\n]{0,40})?\s*$/i, "")
+        .replace(/\n+\s*[—-]?\s*(the )?yojana ?sahay team\.?\s*$/i, "")
+        .trim();
       if (suggestion) setReplyText(suggestion);
     } catch (err) {
       console.error("AI suggest failed:", err);
@@ -1814,7 +1827,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
             email:            report.userEmail,
             user_name:        report.userName  || "User",
             admin_reply:      replyText.trim(),
-            original_message: report.message   || "",
+            original_message: (report.schemeName ? `${report.schemeName} — ` : "") + cleanReportMessage(report.message),
           },
           { publicKey: EJS_PUBLIC_KEY }
         );
@@ -2347,8 +2360,13 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
                 }}>
                   <div style={{ fontSize:10, fontWeight:700, color:th.textSub, marginBottom:6, letterSpacing:0.4 }}>MESSAGE</div>
                   <div style={{ fontSize:13, color:th.text, lineHeight:1.65, whiteSpace:"pre-wrap" }}>
-                    {report.message || "—"}
+                    {cleanReportMessage(report.message) || "—"}
                   </div>
+                  {(report.autoCheck || /\[Auto-check\]/.test(report.message || "")) && (
+                    <div style={{ marginTop:8, fontSize:11, color:th.textSub, lineHeight:1.5 }}>
+                      🔎 {report.autoCheck || (report.message.match(/\[Auto-check\][^\n]*/) || [""])[0]} <i>(only you see this)</i>
+                    </div>
+                  )}
                   {Array.isArray(report.notes) && report.notes.length > (report.uid === "guest" ? 1 : 0) && (
                     <div style={{ marginTop:8, fontSize:12, color:th.text, lineHeight:1.55 }}>
                       <div style={{ fontSize:10, fontWeight:700, color:th.textSub, letterSpacing:0.4, marginBottom:4 }}>{report.uid === "guest" ? `NOTES FROM ${report.notes.length} PEOPLE` : "FOLLOW-UP NOTES FROM THE USER"}</div>

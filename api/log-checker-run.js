@@ -331,15 +331,16 @@ async function handleFlag(req, res, body, db, app) {
   }
 
   const label = FLAG_REASONS[reason];
+  // Admin-only note (kept OUT of the user's message — it's emailed back to them)
   const checkLine = !linkCheck ? "" :
-    linkCheck.alive === true ? `\n\n[Auto-check] Link answered OK (HTTP ${linkCheck.httpStatus}) from our server — may be slow or blocked for this user.`
-    : linkCheck.alive === false ? `\n\n[Auto-check] Our server could not reach it (HTTP ${linkCheck.httpStatus || "no answer"}) — queued for the daily auto-repair (it re-checks before changing anything).`
-    : "\n\n[Auto-check] Could not confirm (government sites often block servers outside India).";
+    linkCheck.alive === true ? `[Auto-check] Link answered OK (HTTP ${linkCheck.httpStatus}) from our server — may be slow or blocked for this user.`
+    : linkCheck.alive === false ? `[Auto-check] Our server could not reach it (HTTP ${linkCheck.httpStatus || "no answer"}) — queued for the daily auto-repair (it re-checks before changing anything).`
+    : "[Auto-check] Could not confirm (government sites often block servers outside India).";
   const base = {
     type: "issue", source: "scheme_flag", status: "open", lang,
     schemeId: sid, schemeName: scheme.name?.en || sid, flagReason: reason,
     subject: `⚑ ${scheme.name?.en || sid} — ${label}`.slice(0, 140),
-    ...(linkCheck ? { linkCheck } : {}),
+    ...(linkCheck ? { linkCheck, autoCheck: checkLine } : {}),
   };
 
   let merged = false, flagCount = 1, reportId = null;
@@ -350,7 +351,7 @@ async function handleFlag(req, res, body, db, app) {
     if (prev) {
       await prev.ref.update({
         lastFlagAt: FieldValue.serverTimestamp(),
-        ...(linkCheck ? { linkCheck } : {}),
+        ...(linkCheck ? { linkCheck, autoCheck: checkLine } : {}),
         ...(note ? { notes: FieldValue.arrayUnion(note) } : {}),
       });
       res.status(200).json({ ok: true, existing: true, status: prev.data().status || "open", linkAlive: linkCheck ? linkCheck.alive : undefined, signedIn: true });
@@ -358,7 +359,7 @@ async function handleFlag(req, res, body, db, app) {
     }
     await db.collection("reports").add({
       ...base, uid: user.uid, userName: user.name || "User", userEmail: user.email, userPhone: user.phone,
-      message: `${note || label}${checkLine}`, flagCount: 1, createdAt: FieldValue.serverTimestamp(),
+      message: note || label, flagCount: 1, createdAt: FieldValue.serverTimestamp(),
     });
   } else {
     // Merge into the open guest report for the same scheme + reason
@@ -370,13 +371,13 @@ async function handleFlag(req, res, body, db, app) {
       flagCount = (open.data().flagCount || 1) + 1;
       await open.ref.update({
         flagCount: FieldValue.increment(1), lastFlagAt: FieldValue.serverTimestamp(),
-        ...(linkCheck ? { linkCheck } : {}),
+        ...(linkCheck ? { linkCheck, autoCheck: checkLine } : {}),
         ...(note ? { notes: FieldValue.arrayUnion(note) } : {}),
       });
     } else {
       reportId = (await db.collection("reports").add({
         ...base, uid: "guest", userName: "Guest (no sign-in)", userEmail: "", userPhone: "",
-        message: `${note || label}${checkLine}`, flagCount: 1, createdAt: FieldValue.serverTimestamp(),
+        message: note || label, flagCount: 1, createdAt: FieldValue.serverTimestamp(),
         ...(note ? { notes: [note] } : {}),
       })).id;
     }
