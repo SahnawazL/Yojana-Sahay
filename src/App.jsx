@@ -38,6 +38,7 @@ import AILockedScreen from "./AILockedScreen.jsx";
 const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 import ReportIssueSheet from "./ReportIssueSheet.jsx";
 import { SchemeFlagButton, SchemeFlagNotice, claimGuestReports } from "./SchemeFlag.jsx";
+import { GUIDES, GUIDES_REVIEWED } from "../scripts/seo-guides.mjs";
 import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
@@ -2454,7 +2455,47 @@ function HelpNearMe({scheme,lang,dark,docs=[]}){
   );
 }
 
-function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userName="",eligible=false}){
+// ─── STATUS GUIDE — "How to check status" + "Money not received?" ──────────────
+// Same hand-checked guides as the public scheme pages (scripts/seo-guides.mjs,
+// 20 most-searched schemes). Opens by itself once you've applied, or when
+// asked to (Money Calendar → "Didn't receive it?").
+function StatusGuide({scheme,lang,dark,forceOpen=false}){
+  const g=GUIDES[scheme.id]?.[lang]||GUIDES[scheme.id]?.en;
+  const app=useApplications()[scheme.id];
+  const [open,setOpen]=useState(!!(forceOpen||app));
+  const ref=useRef(null);
+  useEffect(()=>{ if(forceOpen){ setOpen(true); setTimeout(()=>ref.current?.scrollIntoView({behavior:"smooth",block:"start"}),350); } },[forceOpen]);
+  if(!g) return null;
+  const isHindi=lang==="hi";
+  const bf=fontFamily(lang);
+  const L=(en,hi)=>isHindi?hi:en;
+  const txt=dark?"#e5e5e5":"#1f2937", sub=dark?"#9a9a9a":"#64748b";
+  const Ol=({items})=>(<ol style={{margin:"6px 0 0",paddingLeft:20}}>{items.map((t,i)=><li key={i} style={{fontSize:12.5,lineHeight:1.55,color:txt,margin:"4px 0",fontFamily:bf,overflowWrap:"anywhere"}}>{t}</li>)}</ol>);
+  return(
+    <div ref={ref} id="ys-status-guide" style={{margin:"0 0 14px",borderRadius:16,border:`1px solid ${dark?"rgba(19,136,8,0.35)":"#BBF7D0"}`,background:dark?"rgba(19,136,8,0.08)":"#F0FDF4",overflow:"hidden"}}>
+      <div role="button" onClick={()=>{haptic();setOpen(o=>!o);}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",cursor:"pointer"}}>
+        <span style={{fontSize:18,flexShrink:0}}>📌</span>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:800,color:dark?"#86EFAC":"#166534",fontFamily:bf}}>{L("Check status · Money not received?","स्टेटस जांचें · पैसा नहीं आया?")}</div>
+          <div style={{fontSize:10.5,color:sub,marginTop:1,fontFamily:bf}}>{L("Step-by-step on the official portal","आधिकारिक पोर्टल पर कदम-दर-कदम")}</div>
+        </div>
+        <span style={{fontSize:14,color:sub,transform:open?"rotate(90deg)":"none",transition:"transform 0.2s"}}>›</span>
+      </div>
+      {open&&(
+        <div style={{padding:"0 14px 13px"}}>
+          <div style={{fontSize:11,fontWeight:800,color:sub,letterSpacing:0.3,fontFamily:bf}}>{L("HOW TO CHECK STATUS","स्टेटस कैसे जांचें")}</div>
+          <Ol items={g.status}/>
+          <div style={{fontSize:11,fontWeight:800,color:sub,letterSpacing:0.3,marginTop:10,fontFamily:bf}}>{L("MONEY OR BENEFIT NOT RECEIVED?","पैसा / लाभ नहीं मिला?")}</div>
+          <ul style={{margin:"6px 0 0",paddingLeft:20}}>{g.notReceived.map((t,i)=><li key={i} style={{fontSize:12.5,lineHeight:1.55,color:txt,margin:"4px 0",fontFamily:bf,overflowWrap:"anywhere"}}>{t}</li>)}</ul>
+          <div style={{fontSize:12,fontWeight:700,color:txt,marginTop:9,fontFamily:bf,overflowWrap:"anywhere"}}>📞 {g.help}</div>
+          <div style={{fontSize:10,color:sub,marginTop:6,fontFamily:bf}}>{L(`Steps reviewed ${GUIDES_REVIEWED} — processes can change, confirm on the official portal.`,`कदम ${GUIDES_REVIEWED} में जांचे गए — प्रक्रिया बदल सकती है, आधिकारिक पोर्टल पर पुष्टि करें।`)}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userName="",eligible=false,focus=null}){
   const th=THEME[dark?"dark":"light"];
   // Looks up full scheme data from SCHEME_DB by id
   const scheme=useMemo(()=>SCHEME_DB.find(s=>s.id===schemeId),[schemeId]);
@@ -2628,6 +2669,9 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
 
           {/* ── STEP 3 — Track the application ── */}
           <ApplicationTracker scheme={scheme} lang={lang} dark={dark}/>
+
+          {/* ── Check status · Money not received? (20 most-searched schemes) ── */}
+          <StatusGuide scheme={scheme} lang={lang} dark={dark} forceOpen={focus==="status"}/>
 
           {/* ── Share checklist on WhatsApp ── */}
           <div onClick={shareChecklist}
