@@ -91,6 +91,23 @@ export function SchemeFlagNotice({ schemeId, lang, dark }) {
   );
 }
 
+// "Sign in to track all your reports in one place" — for people not signed in.
+function SignInPrompt({ isHindi, sub, onSignIn }) {
+  const L = (en, hi) => (isHindi ? hi : en);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 9, paddingTop: 9, borderTop: "1px dashed rgba(127,127,127,0.25)" }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{L("Track all your reports in one place", "अपनी सभी रिपोर्ट एक जगह देखें")}</div>
+        <div style={{ fontSize: 10.5, color: sub, lineHeight: 1.45, marginTop: 2 }}>
+          {L("Sign in and find them in Profile → Report / Query, with email updates when we reply. This report moves there automatically.",
+             "साइन इन करें — सब रिपोर्ट प्रोफाइल → रिपोर्ट / सवाल में दिखेंगी, और जवाब आने पर ईमेल मिलेगा। यह रिपोर्ट अपने आप वहां पहुंच जाएगी।")}
+        </div>
+      </div>
+      <span role="button" onClick={onSignIn} style={{ flexShrink: 0, fontSize: 11.5, fontWeight: 800, color: "#fff", background: "#FF9933", borderRadius: 99, padding: "7px 13px", cursor: "pointer" }}>{L("Sign in", "साइन इन करें")}</span>
+    </div>
+  );
+}
+
 export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
   const isHindi = lang === "hi";
   const L = (en, hi) => (isHindi ? hi : en);
@@ -198,7 +215,9 @@ export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
               </div>
             );
           })}
-          {auth.currentUser && <div style={{ fontSize: 10.5, color: sub, marginTop: 6 }}>{L("Full details: Profile → Report / Query → My Reports", "पूरी जानकारी: प्रोफाइल → रिपोर्ट / सवाल → मेरी रिपोर्ट")}</div>}
+          {auth.currentUser
+            ? <div style={{ fontSize: 10.5, color: sub, marginTop: 6 }}>{L("Full details: Profile → Report / Query → My Reports", "पूरी जानकारी: प्रोफाइल → रिपोर्ट / सवाल → मेरी रिपोर्ट")}</div>
+            : onSignIn ? <div style={{ color: txt }}><SignInPrompt isHindi={isHindi} sub={sub} onSignIn={onSignIn} /></div> : null}
         </div>
         <div role="button" onClick={() => setOpen(true)} style={{ textAlign: "center", fontSize: 11.5, fontWeight: 600, color: sub, cursor: "pointer", padding: "9px 0 2px" }}>
           {allFixed ? L("Still wrong? Report again", "अब भी गलत है? फिर से बताएं") : L("Report a different problem", "कोई दूसरी समस्या बताएं")}
@@ -228,11 +247,8 @@ export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
           <div style={{ fontSize: 12.5, fontWeight: 600, color: dark ? "#86EFAC" : "#166534", lineHeight: 1.5, overflowWrap: "anywhere" }}>✅ {msg}</div>
           {done.signedIn ? (
             <div style={{ fontSize: 11, color: sub, marginTop: 6, lineHeight: 1.45 }}>{L("Follow it in Profile → Report / Query → My Reports.", "इसे प्रोफाइल → रिपोर्ट / सवाल → मेरी रिपोर्ट में देखें।")}</div>
-          ) : !done.duplicate && onSignIn ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 11, color: sub, lineHeight: 1.45 }}>{L("Want an update when it's fixed?", "ठीक होने पर जानकारी चाहिए?")}</span>
-              <span role="button" onClick={onSignIn} style={{ flexShrink: 0, fontSize: 11.5, fontWeight: 800, color: "#fff", background: "#FF9933", borderRadius: 99, padding: "6px 12px", cursor: "pointer" }}>{L("Sign in", "साइन इन करें")}</span>
-            </div>
+          ) : onSignIn ? (
+            <div style={{ color: txt }}><SignInPrompt isHindi={isHindi} sub={sub} onSignIn={onSignIn} /></div>
           ) : null}
         </div>
       </div>
