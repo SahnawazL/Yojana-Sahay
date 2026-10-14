@@ -101,19 +101,72 @@ function isIndexable(s) {
   return s.scope === "national" || qualityScore(s) >= 5;
 }
 
+
+// ── Other names people search a scheme by ──────────────────────────────────
+// Only real variants of the scheme's own name (acronym, PM/CM forms, Yojana /
+// Scheme, Hindi name, state) plus a few well-known nicknames. No keyword lists.
+const NICKNAMES = {
+  pmkisan: ["PM-KISAN", "Kisan Samman Nidhi", "PM Kisan Yojana"],
+  ayushman: ["Ayushman Card", "Ayushman Bharat Yojana", "PM-JAY", "Golden Card"],
+  nfsa_pds: ["Ration Card", "Free Ration Yojana"],
+  e_shram: ["e-Shram Card", "Shramik Card", "ई-श्रम कार्ड"],
+  maha_majhi_ladki_bahin: ["Ladki Bahin Yojana", "Ladki Bahin"],
+  mp_ladli_behna: ["Ladli Behna", "Ladli Bahna Yojana"],
+  pmjdy: ["Jan Dhan Account", "Jan Dhan Yojana"],
+  ujjwala: ["Free Gas Connection Yojana"],
+  apy: ["Atal Pension"],
+  sukanya: ["Sukanya Yojana", "Sukanya Account"],
+  pmsby: ["₹20 Accident Insurance"],
+  pmjjby: ["₹436 Life Insurance"],
+  pmsvanidhi: ["Street Vendor Loan Yojana", "SVANidhi"],
+  mudra: ["Mudra Loan"],
+};
+const TAIL = /\b(yojana|yojna|scheme|mission|abhiyan|card|pension|nidhi|programme|program|fund|bima|insurance|loan|scholarship|portal|account)\b/i;
+function aliasesOf(scheme, lang) {
+  const en = String(scheme.name?.en || "").trim(), hi = String(scheme.name?.hi || "").trim();
+  const shown = (lang === "hi" ? hi || en : en).toLowerCase();
+  const out = [];
+  const add = (x) => { x = String(x || "").replace(/\s+/g, " ").trim(); if (x.length < 3 || x.length > 70) return;
+    const k = x.toLowerCase(); if (k === shown || out.some(o => o.toLowerCase() === k)) return; out.push(x); };
+  const acr = (en.match(/\(([A-Z][A-Za-z0-9-]{1,14})\)/) || en.match(/[—–-]\s*([A-Z][A-Z0-9-]{2,14})$/) || [])[1];
+  let base = en.replace(/\s*\([^)]*\)/g, "").replace(/\s+[—–]\s+[A-Z][A-Z0-9-]{2,14}$/, "").trim();
+  const full = base;
+  const head = base.split(/\s+[—–-]\s+|:\s+/)[0].trim();
+  if (head !== base) { add(full); base = head; }
+  const forms = [base];
+  if (/\bChief Minister'?s?\b/i.test(base)) forms.push(base.replace(/\bChief Minister'?s?\b/i, "CM"), base.replace(/\bChief Minister'?s?\b/i, "Mukhyamantri"));
+  if (/\bPradhan Mantri\b/i.test(base)) forms.push(base.replace(/\bPradhan Mantri\b/i, "PM"));
+  else if (/^PM\b/.test(base)) forms.push(base.replace(/^PM\b/, "Pradhan Mantri"));
+  if (/\bMukhya ?mantri\b/i.test(base)) forms.push(base.replace(/\bMukhya ?mantri\b/i, "CM"));
+  forms.forEach((f, i) => {
+    add(f);
+    if (i > 0) return;
+    if (/\byojana$/i.test(f)) add(f.replace(/\byojana$/i, "Scheme"));
+    else if (/\bscheme$/i.test(f)) add(f.replace(/\bscheme$/i, "Yojana"));
+    else if (!TAIL.test(f) && !/^[A-Z0-9-]+$/.test(f) && !/\bfor\b/i.test(f) && f.split(" ").length <= 5) add(`${f} Yojana`);
+  });
+  const formerly = en.match(/\bformerly\s+([^()—–,]+)/i);
+  if (formerly) add(formerly[1].replace(/[.)\s]+$/, ""));
+  if (acr && (acr.match(/[A-Z]/g) || []).length >= 2 && !/^(UP|MP|CG|HP|UK|J&K|WB|TN|AP)$/.test(acr)) add(acr);
+  for (const n of NICKNAMES[scheme.id] || []) add(n);
+  if (scheme.scope === "state" && scheme.state && base.split(" ").length <= 5 && !/\bfor\b/i.test(base) && !base.toLowerCase().includes(scheme.state.toLowerCase())) add(`${base} ${scheme.state}`);
+  add(lang === "hi" ? en.replace(/\s*\((UP|MP|CG|HP|UK|WB|TN|AP)\)$/, "") : hi.replace(/\s*\([^)]*\)$/, ""));
+  return out.slice(0, 7);
+}
+
 // ── Category hubs: "schemes for women", "schemes for farmers"… ───────────────
 // National hub per category + a state version only where the state really has
 // 5+ such schemes (never every state × category combination).
 const CATS = [
-  { key: "women",      re: /women|girl|maternity|widow|mahila/i,                  en: "Women",               hi: "महिलाओं",              icon: "👩" },
-  { key: "farmers",    re: /farmer|fisher|animal|livestock|agri|dairy/i,          en: "Farmers",             hi: "किसानों",              icon: "🌾" },
-  { key: "students",   re: /student|education|scholarship/i,                      en: "Students",            hi: "विद्यार्थियों",          icon: "📚" },
-  { key: "health",     re: /health|medic|wellness|medicine/i,                     en: "Health",              hi: "स्वास्थ्य",              icon: "🏥" },
-  { key: "senior",     re: /senior|pension|old age/i,                             en: "Senior Citizens",     hi: "वरिष्ठ नागरिकों",         icon: "👴" },
-  { key: "business",   re: /business|entrepreneur|startup|self.?employ|street vendor|livelihood|artisan|weaver/i, en: "Business & Self-Employment", hi: "व्यापार व स्वरोज़गार", icon: "💼" },
-  { key: "housing",    re: /housing/i,                                            en: "Housing",             hi: "आवास",                 icon: "🏠" },
-  { key: "workers",    re: /labour|worker|employment|skill|unemploy|construction/i, en: "Workers & Jobs",    hi: "श्रमिकों व रोज़गार",       icon: "👷" },
-  { key: "disability", re: /disab|divyang/i,                                       en: "Persons with Disabilities", hi: "दिव्यांगजनों",     icon: "♿" },
+  { key: "women",      re: /women|girl|maternity|widow|mahila/i,                  en: "Women",               hi: "महिलाओं",              alt: "Mahila Yojana, Ladki / Beti Yojana", altHi: "महिला योजना, बेटी योजना", icon: "👩" },
+  { key: "farmers",    re: /farmer|fisher|animal|livestock|agri|dairy/i,          en: "Farmers",             hi: "किसानों",              alt: "Kisan Yojana, Krishi Yojana", altHi: "किसान योजना, कृषि योजना", icon: "🌾" },
+  { key: "students",   re: /student|education|scholarship/i,                      en: "Students",            hi: "विद्यार्थियों",          alt: "Scholarship, Chhatravritti Yojana", altHi: "छात्रवृत्ति योजना, स्कॉलरशिप", icon: "📚" },
+  { key: "health",     re: /health|medic|wellness|medicine/i,                     en: "Health",              hi: "स्वास्थ्य",              alt: "Swasthya Yojana, Free Treatment Schemes", altHi: "स्वास्थ्य योजना, मुफ्त इलाज योजना", icon: "🏥" },
+  { key: "senior",     re: /senior|pension|old age/i,                             en: "Senior Citizens",     hi: "वरिष्ठ नागरिकों",         alt: "Old Age Pension, Vridha Pension Yojana", altHi: "वृद्धा पेंशन योजना, बुढ़ापा पेंशन", icon: "👴" },
+  { key: "business",   re: /business|entrepreneur|startup|self.?employ|street vendor|livelihood|artisan|weaver/i, en: "Business & Self-Employment", hi: "व्यापार व स्वरोज़गार", alt: "Swarozgar Yojana, Business Loan Yojana", altHi: "स्वरोज़गार योजना, लोन योजना", icon: "💼" },
+  { key: "housing",    re: /housing/i,                                            en: "Housing",             hi: "आवास",                 alt: "Awas Yojana, Ghar Yojana", altHi: "आवास योजना, घर योजना", icon: "🏠" },
+  { key: "workers",    re: /labour|worker|employment|skill|unemploy|construction/i, en: "Workers & Jobs",    hi: "श्रमिकों व रोज़गार",       alt: "Shramik Yojana, Rozgar Yojana", altHi: "श्रमिक योजना, रोज़गार योजना", icon: "👷" },
+  { key: "disability", re: /disab|divyang/i,                                       en: "Persons with Disabilities", hi: "दिव्यांगजनों",     alt: "Divyang Yojana, Viklang Pension", altHi: "दिव्यांग योजना, विकलांग पेंशन", icon: "♿" },
 ];
 const catsOf = s => CATS.filter(c => c.re.test(String(s?.tag?.en || "")));
 const stateKey = st => String(st || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -249,6 +302,7 @@ function renderCatHub(hub, lang) {
   ${NOTICE(isHindi)}
   <h1>${c.icon} ${esc(isHindi ? `${hub.state ? hub.state + " में " : ""}${c.hi} के लिए सरकारी योजनाएं ${YEAR}` : `Government Schemes for ${c.en}${hub.state ? " in " + hub.state : ""} ${YEAR}`)}</h1>
   <p class="lead">${esc(desc)}</p>
+  <p class="lead">${isHindi ? `इन्हें ${c.altHi} भी कहा जाता है।` : `Also searched as ${c.alt}${hub.state ? " in " + hub.state : ""}.`}</p>
   <a class="cta" href="${SITE_URL}/">${isHindi ? "ऐप में देखें आप किनके पात्र हैं →" : "Check which ones you qualify for →"}</a>
   ${stateHubs.length ? `<h2>${isHindi ? "राज्य के अनुसार" : "By state"}</h2>
   <p class="catlinks">${stateHubs.map(h => `<a href="/${lp}/${h.file}.html">${esc(h.state)} (${h.schemes.length})</a>`).join("")}</p>` : ""}
@@ -403,11 +457,13 @@ function renderPage(scheme, lang) {
 
   // GovernmentService structured data — helps Google understand this is an
   // official-style benefit page, distinct from a generic article.
+  const aliases = aliasesOf(scheme, lang);
   const jsonLd = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "GovernmentService",
     "name": name,
     "description": description,
+    ...(aliases.length ? { "alternateName": aliases } : {}),
     "serviceType": tag,
     "provider": {
       "@type": "GovernmentOrganization",
@@ -508,6 +564,7 @@ function renderPage(scheme, lang) {
   }
   h1{ font-size:24px; line-height:1.3; margin:0 0 10px; font-weight:800; }
   .ministry{ font-size:13.5px; color:#78716c; margin-bottom:18px; }
+  .aka{ font-size:13px; color:#78716c; margin:-4px 0 8px; line-height:1.5; overflow-wrap:anywhere; }
   .benefit-card{
     background:#fff; border:1px solid #e7e5e4; border-radius:14px;
     padding:18px; margin-bottom:18px;
@@ -570,6 +627,7 @@ function renderPage(scheme, lang) {
       : "ℹ️ YojanaSahay is a free, independent guide — not a government website. We never ask for money or OTP. Apply only on the official .gov.in website."}</p>
     <span class="badge">${esc(stateLabel)} · ${esc(tag)}</span>
     <h1>${esc(name)}</h1>
+    ${aliases.length ? `<p class="aka">${isHindi ? "इन नामों से भी जानी जाती है" : "Also known as"}: ${aliases.map(esc).join(" · ")}</p>` : ""}
     ${ministry ? `<div class="ministry">${esc(ministry)}</div>` : ""}
 
     <div class="benefit-card">

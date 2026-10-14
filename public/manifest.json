@@ -2,11 +2,15 @@
   "id": "com.yojanasahay.app",
   "name": "Yojana Sahay — Government Schemes Finder",
   "short_name": "Yojana Sahay",
-  "description": "Find Indian government welfare schemes you are eligible for. Free, bilingual, and made in India.",
+  "description": "Free Scheme Finder: find Indian government welfare schemes (sarkari yojana) you are eligible for. Free, Hindi & English, made in India. सरकारी योजनाएं खोजें।",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui", "browser"],
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
   "orientation": "portrait",
   "background_color": "#003580",
   "theme_color": "#FF9933",
@@ -75,21 +79,37 @@
       "label": "Yojana Sahay — Government Scheme Finder"
     }
   ],
-  "categories": ["government", "utilities", "finance"],
+  "categories": [
+    "government",
+    "utilities",
+    "finance",
+    "education",
+    "productivity"
+  ],
   "shortcuts": [
     {
       "name": "Find Schemes",
       "short_name": "Schemes",
       "description": "Search government schemes",
       "url": "/",
-      "icons": [{ "src": "/icons/logo192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/logo192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Check Eligibility",
       "short_name": "Eligibility",
       "description": "Check your scheme eligibility",
       "url": "/",
-      "icons": [{ "src": "/icons/logo192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/logo192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
