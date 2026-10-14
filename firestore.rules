@@ -25,14 +25,19 @@ service cloud.firestore {
       allow create: if request.auth != null
                     && request.auth.uid == uid
                     && !('isAdmin' in request.resource.data)
-                    && !('adminTabs' in request.resource.data);
+                    && !('adminTabs' in request.resource.data)
+                    // Pro status is set only by an admin / the server
+                    && !('plan' in request.resource.data)
+                    && !('proUntil' in request.resource.data);
 
       allow update: if request.auth != null
                     && request.auth.uid == uid
                     && !('isAdmin' in request.resource.data
                            .diff(resource.data).affectedKeys())
                     && !('adminTabs' in request.resource.data
-                           .diff(resource.data).affectedKeys());
+                           .diff(resource.data).affectedKeys())
+                    && !request.resource.data.diff(resource.data)
+                           .affectedKeys().hasAny(['plan', 'proUntil']);
     }
 
     // "My applications" tracker — one private doc per user ({apps: {schemeId: {...}}}).
