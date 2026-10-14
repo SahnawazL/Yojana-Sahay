@@ -11092,7 +11092,7 @@ function YojanaSahayInner(){
             onOpenDetail={setSelectedScheme}
             eligAnswers={committedCheckerAnswers||profileAnswers||savedQuizAnswers}
             onOpenChecker={handleViewChecker}
-            isPro={isProUser(profile)}
+            isPro={isProUser(profile)||isAdmin}
             uid={auth.currentUser.uid}
             key={auth.currentUser.uid}
           />
