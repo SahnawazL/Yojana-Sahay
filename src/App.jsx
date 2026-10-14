@@ -33,6 +33,7 @@ import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, 
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment, deleteField } from "firebase/firestore";
 import AIChat from "./AIChat.jsx";
 import { generateResultsBrief } from "./groqClient.js";
+import { officialSchemeLink } from "./schemeMatch.js";
 import AILockedScreen from "./AILockedScreen.jsx";
 const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 import ReportIssueSheet from "./ReportIssueSheet.jsx";
@@ -305,6 +306,33 @@ const safeApplyUrl = (url) => {
   }
   try { return new URL(candidate).href; } catch { return null; }
 };
+// Apply button target: only an official (government) link — about 60 data
+// entries point at blogs or private sites; those fall back to a Google search.
+const officialApplyUrl = (scheme) => {
+  if (scheme?.applyType !== "online") return null;
+  const u = officialSchemeLink(scheme);
+  return u ? safeApplyUrl(u) : null;
+};
+// What to SHOW for a link: just the site name ("pmindia.gov.in"), never the
+// full address — a 200-character link used to stretch the page sideways.
+const linkLabel = (url) => {
+  try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return ""; }
+};
+// Apply text that may contain web addresses → addresses shortened to site names.
+const tidyApplyText = (text) => String(text || "")
+  .replace(/https?:\/\/[^\s)]+/gi, (u) => linkLabel(u) || u)
+  .replace(/\bwww\.([a-z0-9.-]+)(\/[^\s)]*)?/gi, "$1");
+
+// Offline / no-official-link help line. A value that is only a web address
+// (often a blog) becomes a plain instruction instead.
+const applyHelpText = (raw, isHindi) => {
+  const t = tidyApplyText(raw).trim();
+  if (!t || /^[a-z0-9.-]+\.[a-z]{2,}(\/\S*)?$/i.test(t)) {
+    return isHindi ? "अपने ज़िला / विभाग कार्यालय या नज़दीकी CSC (जन सेवा केंद्र) पर पूछें" : "Ask at your district / department office or the nearest CSC (Common Service Centre)";
+  }
+  return t;
+};
+
 // Opens a Google search for the scheme so offline/CSC schemes are still actionable
 const googleSearchScheme = (name) => {
   window.open(`https://www.google.com/search?q=${encodeURIComponent(name+" scheme apply")}`, "_blank", "noopener");
@@ -1466,7 +1494,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
   const bf=fontFamily(lang);
   const isNational=scheme.scope==="national";
   const isOnline=scheme.applyType==="online";
-  const applyUrl=isOnline?safeApplyUrl(scheme.apply.en):null;
+  const applyUrl=officialApplyUrl(scheme);
   const isHindi=lang==="hi";
 
   const [copied,setCopied]=useState(false);
@@ -1995,7 +2023,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:3}}>
                     {linkState(scheme)===false&&scheme.httpStatus===404
                       ?"🔎 "+scheme.name.en
-                      :applyUrl?"🌐 "+scheme.apply[lang]:"🔎 Find on Google"}
+                      :applyUrl?"🌐 "+linkLabel(applyUrl):"🔎 Find on Google"}
                   </div>
                 </div>
                 <div style={{
@@ -2018,7 +2046,7 @@ function _SchemeCard({scheme,lang,expanded,onToggle,dark=false,onOpenDetail=null
                   }}>
                     <span style={{fontSize:14,flexShrink:0}}>🏢</span>
                     <span style={{fontSize:11,color:th.textMid,fontFamily:bf,lineHeight:1.45}}>
-                      {scheme.apply[lang]} — {isHindi?"नजदीकी केंद्र में जाएं।":"Visit nearest centre."}
+                      {applyHelpText(scheme.apply[lang],isHindi)} — {isHindi?"नजदीकी केंद्र में जाएं।":"Visit nearest centre."}
                     </span>
                   </div>
                   {/* Always-visible Google search for offline/unverifiable schemes */}
@@ -2331,7 +2359,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
   const [visible,setVisible]=useState(false);
   useEffect(()=>{const id=setTimeout(()=>setVisible(true),30);return()=>clearTimeout(id);},[]);
   const isOnline=scheme?.applyType==="online";
-  const applyUrl=useMemo(()=>isOnline?safeApplyUrl(scheme.apply.en):null,[scheme]);
+  const applyUrl=useMemo(()=>officialApplyUrl(scheme),[scheme]);
   useEffect(()=>{ if(schemeId) track("scheme_view",{s:schemeId},{once:true}); },[schemeId]);
 
   // ── Per-scheme document checklist — own localStorage slot per account+scheme ──
@@ -2372,7 +2400,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
       "",
       applyUrl
         ?(isHindi?`आवेदन करें: ${applyUrl}`:`Apply here: ${applyUrl}`)
-        :(isHindi?`आवेदन: ${scheme.apply[lang]}`:`How to apply: ${scheme.apply[lang]}`),
+        :(isHindi?`आवेदन: ${applyHelpText(scheme.apply[lang],true)}`:`How to apply: ${applyHelpText(scheme.apply[lang],false)}`),
       "",
       "─────────────────────",
       isHindi?"🇮🇳 अपनी पात्र योजनाएं मुफ्त खोजें:":"🇮🇳 Find schemes you qualify for — free:",
@@ -2471,7 +2499,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
             style={{background:applyUrl?`linear-gradient(135deg,${scheme.color},${scheme.color}cc)`:"linear-gradient(135deg,#1D4ED8,#2563eb)",borderRadius:16,padding:18,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",boxShadow:applyUrl?`0 6px 20px ${scheme.color}40`:"0 6px 20px rgba(37,99,235,0.35)"}}>
             <div>
               <div style={{fontSize:14,fontWeight:800,color:"#fff",fontFamily:bf}}>{t.applyLabel}</div>
-              <div style={{fontSize:12,color:"rgba(255,255,255,0.8)",marginTop:3}}>{applyUrl?"🌐 "+scheme.apply[lang]:"🔎 Find on Google"}</div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,0.8)",marginTop:3}}>{applyUrl?"🌐 "+linkLabel(applyUrl):"🔎 Find on Google"}</div>
             </div>
             <div style={{width:40,height:40,background:"rgba(255,255,255,0.2)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,border:"1.5px solid rgba(255,255,255,0.3)"}}>
               {applyUrl?"↗":"🔍"}
@@ -2481,7 +2509,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
             <div style={{marginTop:10,display:"flex",alignItems:"center",gap:8,background:"#f8f9fa",border:"1px solid #e8e8e8",borderRadius:12,padding:"10px 14px"}}>
               <span style={{fontSize:15,flexShrink:0}}>🏢</span>
               <span style={{fontSize:12,color:"#555",fontFamily:bf,lineHeight:1.5}}>
-                {scheme.apply[lang]} — Visit nearest centre or search online for exact process.
+                {applyHelpText(scheme.apply[lang],isHindi)} — {isHindi?"नज़दीकी केंद्र जाएं या सही प्रक्रिया ऑनलाइन खोजें।":"Visit nearest centre or search online for exact process."}
               </span>
             </div>
           )}

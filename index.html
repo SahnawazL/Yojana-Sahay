@@ -296,6 +296,11 @@
   <!-- ─── HTML Splash Screen — Critical CSS (shows BEFORE React loads) ──── -->
   <style>
     html, body { margin: 0; padding: 0; }
+    /* Long words / links (e.g. a 200-character web address) wrap instead of
+       pushing the page sideways, and no vertical scroll area can be dragged
+       sideways. Inline overflow-x set by a component still wins. */
+    body { overflow-wrap: break-word; }
+    [style*="overflow-y: auto"], [style*="overflow-y: scroll"] { overflow-x: hidden; }
     /* Body bg matches splash so there's zero white flash even before #html-splash paints */
     body { background: #001659; }
 
