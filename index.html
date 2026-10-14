@@ -100,7 +100,7 @@
       "name": "YojanaSahay",
       "alternateName": ["Yojana Sahay", "Yojana Sahay App", "YojanaSahay Scheme Finder", "Free Scheme Finder", "Sarkari Yojana Finder", "Government Scheme Finder India", "Scheme Eligibility Checker", "YojanaSetu", "योजना सहाय", "सरकारी योजना खोजें"],
       "url": "https://yojanasahay.vercel.app/",
-      "description": "YojanaSahay is India's free government scheme discovery and assistance platform. Citizens can search 1,100+ Central and State welfare schemes, check eligibility in 6 steps, and get AI-powered guidance in Hindi and English — completely free.",
+      "description": "YojanaSahay is India's free government scheme discovery and assistance platform. Citizens can search 1,100+ Central and State welfare schemes, check eligibility with a few simple questions, and get AI-powered guidance in Hindi and English — completely free.",
       "applicationCategory": "GovernmentApplication",
       "applicationSubCategory": "Welfare Scheme Discovery",
       "operatingSystem": "Any — Web, Android, iOS (browser)",
@@ -115,11 +115,13 @@
       },
       "featureList": [
         "1,100+ Central and State Government Scheme Database",
-        "6-Step AI Eligibility Checker",
+        "Eligibility Checker — a few simple questions",
+        "AI assistant that checks eligibility in chat, by text or voice",
+        "Document checklist and application tracking",
         "Bilingual AI Assistant — Hindi and English",
         "Profile-based Personalised Scheme Matching",
         "Report and Resolution Centre with Admin Response",
-        "28+ Indian States and Union Territories covered",
+        "34 Indian States and Union Territories covered",
         "Firebase Authentication — Phone, Email, Google",
         "Dark Mode and Light Mode Support",
         "Free to use — no subscription or payment required"
@@ -209,71 +211,7 @@
     }
     </script>
 
-    <!-- 4. FAQPage -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is YojanaSahay?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "YojanaSahay is a free civic technology platform that helps Indian citizens discover government welfare schemes they are eligible for. It covers 1,100+ Central and State schemes across all 28+ Indian states and union territories, with an AI assistant available in Hindi and English."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Is YojanaSahay free to use?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes, YojanaSahay is completely free to use. There is no subscription, fee, or payment required at any stage."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "How does the eligibility checker work?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "YojanaSahay's eligibility checker asks 6 quick questions about your profile — including state, age, income, category, gender, and occupation — and instantly shows you the government schemes you qualify for at both Central and State levels."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Does YojanaSahay support Hindi?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes. YojanaSahay is fully bilingual — the entire app, including the AI assistant, works in both Hindi and English. Users can switch languages at any time."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Who built YojanaSahay?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "YojanaSahay was built by Sahnawaz Ahmed Laskar, an independent software developer from India. It is an independent civic technology platform and is not affiliated with any government body. The developer's portfolio is at https://sahnawaz-portfolio.vercel.app."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Is YojanaSahay affiliated with the Indian Government?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "No. YojanaSahay is an independent digital platform and is not affiliated with, endorsed by, or representative of any Central or State Government body or ministry. All scheme data is sourced from publicly available official government portals."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "What technology powers YojanaSahay?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "YojanaSahay is built with React for the frontend, Firebase for authentication and real-time database, and Groq AI for its fast bilingual AI assistant. It is hosted on Vercel."
-          }
-        }
-      ]
-    }
-    </script>
+    <!-- 4. FAQ: lives on /faq.html (same text as the in-app FAQ, from src/faqData.js) -->
 
     <!-- 5. BreadcrumbList -->
     <script type="application/ld+json">

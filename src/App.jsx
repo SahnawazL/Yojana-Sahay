@@ -3890,6 +3890,7 @@ function SchemeDirectory({ lang, dark }) {
         {isHindi ? "YojanaSahay एक मुफ्त, स्वतंत्र गाइड है — सरकारी वेबसाइट नहीं। हम कभी पैसे या OTP नहीं मांगते।" : "YojanaSahay is a free, independent guide — not a government website. We never ask for money or OTP."}
         {" "}<a href="/about.html" style={{ color:"inherit" }}>{isHindi ? "हमारे बारे में" : "About"}</a>
         {" · "}<a href="/how-we-verify.html" style={{ color:"inherit" }}>{isHindi ? "जानकारी कैसे जांचते हैं" : "How we verify"}</a>
+        {" · "}<a href="/faq.html" style={{ color:"inherit" }}>FAQ</a>
         {" · "}<a href="/contact.html" style={{ color:"inherit" }}>{isHindi ? "संपर्क" : "Contact"}</a>
       </div>
     </nav>

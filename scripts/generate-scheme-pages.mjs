@@ -33,6 +33,7 @@ const { SCHEME_DB: ALL_SCHEMES } = await import("../src/schemesData.js");
 // Duplicate listings (duplicateOf) get no page of their own — the main
 // scheme's page covers them, so Google never sees near-copy pages.
 const SCHEME_DB = ALL_SCHEMES.filter(s => !s.duplicateOf);
+const { FAQ_DATA, faqAnswerText } = await import("../src/faqData.js");
 const { whoCanApply } = await import("../src/eligibilityText.js");
 const { isOfficialUrl } = await import("../src/schemeMatch.js");
 const { GUIDES, GUIDES_REVIEWED } = await import("./seo-guides.mjs");
@@ -227,7 +228,7 @@ function officialUrl(raw) {
 function trustFooter(isHindi) {
   return `<footer>
       ${isHindi ? "YojanaSahay एक स्वतंत्र, मुफ्त नागरिक मंच है — भारत सरकार या किसी राज्य सरकार से संबद्ध नहीं।" : "YojanaSahay is a free, independent civic-tech guide — not affiliated with the Government of India or any state government."}
-      <div class="trust"><a href="/about.html">${isHindi ? "हमारे बारे में" : "About"}</a>·<a href="/how-we-verify.html">${isHindi ? "हम जानकारी कैसे जांचते हैं" : "How we verify"}</a>·<a href="/contact.html">${isHindi ? "संपर्क / सुधार" : "Contact & corrections"}</a></div>
+      <div class="trust"><a href="/about.html">${isHindi ? "हमारे बारे में" : "About"}</a>·<a href="/how-we-verify.html">${isHindi ? "हम जानकारी कैसे जांचते हैं" : "How we verify"}</a>·<a href="/faq.html">FAQ</a>·<a href="/contact.html">${isHindi ? "संपर्क / सुधार" : "Contact & corrections"}</a></div>
       <a href="${SITE_URL}/">yojanasahay.vercel.app</a>
     </footer>`;
 }
@@ -316,67 +317,85 @@ ${groups.get(g).map(li).join("\n")}
 </div></body></html>`;
 }
 
-// ── Trust pages (bilingual): About, How we verify, Contact & corrections ────
+// ── Trust pages + FAQ (bilingual). Facts here must match the app:
+//    reports = Profile → "Report / Query" (sign-in needed); email below;
+//    FAQ text comes from src/faqData.js (same as the in-app FAQ).
+const SUPPORT_EMAIL = "yojanasahayofficial@gmail.com";
+const MAIL = `<a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>`;
 function renderTrust(kind) {
   const pages = {
     about: {
-      title: "About YojanaSahay – Free, Independent Government Scheme Finder",
-      desc: "Who runs YojanaSahay, why it exists, and how it helps Indian citizens find government schemes they qualify for — free, in Hindi and English.",
+      title: "About YojanaSahay – Free Government Scheme Finder for India",
+      desc: "What YojanaSahay is, who built it and how it helps people in India find the government schemes they qualify for — free, in Hindi and English.",
       body: `
   <h1>About YojanaSahay</h1>
-  <p class="lead">YojanaSahay helps people in India find the government schemes they qualify for — in simple Hindi and English, free of cost.</p>
-  <h2>Who runs it</h2>
-  <p>YojanaSahay is built and maintained by <strong>Sahnawaz Ahmed Laskar</strong>, an independent developer from Assam (MCA, Yenepoya University). It is a civic-tech project, not a company and <strong>not a government website</strong>. It is not affiliated with the Government of India or any state government.</p>
-  <h2>Why it exists</h2>
-  <p>Benefits are spread across hundreds of portals and long notifications. Many families who qualify never apply because they don't know a scheme exists, or which documents to bring. YojanaSahay brings 1,100+ Central and State schemes into one place, asks a few simple questions, and shows what you may get, the documents you need, and the official place to apply.</p>
+  <p class="lead">YojanaSahay is a free app and website that helps people in India find the government schemes they can get — in simple Hindi and English.</p>
+  <h2>What it does</h2>
+  <ul>
+    <li><strong>1,100+ schemes in one place</strong> — Central Government schemes plus State schemes from 34 states and union territories: pensions, scholarships, farmer support, housing, health cover, loans and more.</li>
+    <li><strong>Eligibility Checker</strong> — answer a few simple questions and see the schemes you qualify for, with the money or benefit for each.</li>
+    <li><strong>Clear scheme details</strong> — who can apply, documents needed, how to apply and the official government link.</li>
+    <li><strong>AI assistant</strong> — ask in Hindi, English or Hinglish, by typing or by voice. It can check your eligibility in the chat, explain why you do or don't qualify, make a document checklist and track your applications.</li>
+    <li><strong>Document checklist, My Applications and deadline alerts</strong> to help you apply on time.</li>
+  </ul>
+  <h2>Who built it</h2>
+  <p>YojanaSahay is built and run by <strong>Sahnawaz Ahmed Laskar</strong>, an independent developer from Assam, India. It is a civic-tech project — <strong>not a government website</strong>, and not connected to the Government of India or any state government.</p>
   <h2>What we never do</h2>
   <ul>
-    <li>We never charge money — every feature is free.</li>
-    <li>We never ask for your OTP, bank password or Aadhaar number to "release" a payment.</li>
-    <li>We never take applications — you always apply on the official government website or office.</li>
+    <li>We never charge you to find schemes or check eligibility.</li>
+    <li>We never ask for money, OTP, bank details or your Aadhaar number. Anyone asking for these in our name is a scammer.</li>
+    <li>We never take or submit applications — you always apply on the official government website or at the office.</li>
   </ul>
+  <p>Questions? Read the <a href="/faq.html">FAQ</a> or <a href="/contact.html">contact us</a>.</p>
   <h2>हमारे बारे में (हिंदी)</h2>
-  <p>YojanaSahay एक मुफ्त, स्वतंत्र मंच है जो भारत के लोगों को उनकी पात्र सरकारी योजनाएं ढूंढने में मदद करता है। इसे सहनवाज़ अहमद लस्कर (असम) ने बनाया है। यह सरकारी वेबसाइट नहीं है। हम कभी पैसे या OTP नहीं मांगते, और आवेदन हमेशा आधिकारिक सरकारी वेबसाइट या कार्यालय में ही होता है।</p>`,
+  <p>योजना सहाय एक मुफ़्त ऐप और वेबसाइट है जो भारत के लोगों को उनकी पात्र सरकारी योजनाएं ढूंढने में मदद करती है — केंद्र और 34 राज्यों/केंद्र शासित प्रदेशों की 1,100+ योजनाएं, आसान हिंदी और English में। इसे असम के स्वतंत्र डेवलपर सहनवाज़ अहमद लस्कर ने बनाया है। यह सरकारी वेबसाइट नहीं है। हम कभी पैसे, OTP या आधार नंबर नहीं मांगते, और आवेदन हमेशा आधिकारिक सरकारी वेबसाइट या कार्यालय में ही होता है।</p>`,
     },
     "how-we-verify": {
-      title: "How YojanaSahay Verifies Scheme Information",
-      desc: "Where YojanaSahay's scheme information comes from, how official links are checked automatically, and how mistakes are corrected.",
+      title: "How YojanaSahay Checks Scheme Information",
+      desc: "Where YojanaSahay's scheme information comes from, how new schemes are added, how official links are checked automatically and how mistakes are corrected.",
       body: `
-  <h1>How we verify scheme information</h1>
-  <p class="lead">Scheme rules change. Here is exactly how we keep information accurate — and how to tell us when something is wrong.</p>
+  <h1>How we check scheme information</h1>
+  <p class="lead">Scheme rules change. This is how we keep the information correct — and how you can tell us when something is wrong.</p>
   <h2>Where the information comes from</h2>
   <ul>
-    <li>Official government portals, scheme guidelines and notifications from the ministry or state department that runs each scheme.</li>
-    <li>Press releases from PIB and state information departments for new schemes and changes.</li>
+    <li>Official government websites, scheme guidelines and notifications from the ministry or state department that runs each scheme.</li>
+    <li>Official announcements (such as PIB and state information departments) for new schemes and changes.</li>
   </ul>
-  <h2>Automatic link checks</h2>
-  <p>A program checks the official link of every scheme on a regular schedule. Each scheme page shows the date its official link was last checked. Links that stop working are flagged for review.</p>
+  <h2>How new schemes are added</h2>
+  <p>New schemes are found from official announcements. A scheme is published only after its details are checked against an official government (.gov.in / .nic.in) page. Anything that is not fully clear is reviewed by hand before it goes live.</p>
+  <h2>Automatic checks</h2>
+  <p>The official link of every scheme is checked automatically on a regular schedule, and each scheme page shows the date it was last checked. Links that stop working, and schemes that close or change, are flagged and corrected.</p>
   <h2>Eligibility results</h2>
-  <p>The eligibility checker applies each scheme's published conditions (income, age, category, state and so on) to your answers. Results are a guide — the final decision is always made by the government office that runs the scheme.</p>
+  <p>The Eligibility Checker applies each scheme's published conditions (state, age, income, category and so on) to your answers. Results are a guide — the final decision is always made by the government office that runs the scheme.</p>
   <h2>AI assistant</h2>
-  <p>The in-app AI assistant answers using this scheme database and official websites. It can make mistakes, so always confirm important details on the official portal.</p>
-  <h2>Corrections</h2>
-  <p>Found a mistake or an outdated scheme? Use “Report an issue” in the app or email <a href="mailto:yojanasahayofficial@gmail.com">yojanasahayofficial@gmail.com</a>. Corrections are usually made within a few days.</p>
+  <p>The in-app AI assistant answers from this scheme list and official sources. It can make mistakes, so always confirm important details on the official website.</p>
+  <h2>Found a mistake?</h2>
+  <p>In the app, sign in and go to <strong>Profile → “Report / Query”</strong>, or email ${MAIL}. Every report is acknowledged within 24 hours.</p>
   <h2>हम जानकारी कैसे जांचते हैं (हिंदी)</h2>
-  <p>जानकारी आधिकारिक सरकारी पोर्टलों, योजना दिशानिर्देशों और PIB की प्रेस विज्ञप्तियों से ली जाती है। हर योजना का आधिकारिक लिंक नियमित रूप से अपने आप जांचा जाता है, और पेज पर आखिरी जांच की तारीख दिखती है। कोई गलती दिखे तो ऐप में “समस्या बताएं” से या ईमेल से बताएं।</p>`,
+  <p>जानकारी आधिकारिक सरकारी वेबसाइटों, योजना दिशानिर्देशों और अधिसूचनाओं से ली जाती है। नई योजना तभी प्रकाशित होती है जब उसकी जानकारी आधिकारिक सरकारी (.gov.in / .nic.in) पेज से जांच ली जाए। हर योजना का आधिकारिक लिंक नियमित रूप से अपने आप जांचा जाता है, और पेज पर आखिरी जांच की तारीख दिखती है। कोई गलती दिखे तो ऐप में साइन इन करके प्रोफाइल → “रिपोर्ट / सवाल” से बताएं, या ${SUPPORT_EMAIL} पर ईमेल करें।</p>`,
     },
     contact: {
       title: "Contact YojanaSahay – Report a Mistake or Ask for Help",
-      desc: "Contact YojanaSahay to report wrong or outdated scheme information, suggest a scheme, or ask for help using the app.",
+      desc: "Contact YojanaSahay to report wrong scheme information, request a missing scheme, ask a question or get help with the app.",
       body: `
   <h1>Contact & corrections</h1>
-  <p class="lead">We read every message. Tell us about wrong information, a missing scheme, or a problem with the app.</p>
+  <p class="lead">Tell us about wrong information, a missing scheme, a question, or a problem with the app.</p>
+  <h2>Two ways to reach us</h2>
   <ul>
-    <li>Email: <a href="mailto:yojanasahayofficial@gmail.com">yojanasahayofficial@gmail.com</a></li>
-    <li>In the app: open any scheme → “Report an issue”.</li>
+    <li><strong>In the app</strong> — sign in, open the <strong>Profile</strong> tab and tap <strong>“Report / Query”</strong>. You can report a bug, request a scheme, ask a question or share feedback, and follow the status of your request there.</li>
+    <li><strong>Email</strong> — ${MAIL}</li>
   </ul>
+  <p>Every report is acknowledged within 24 hours.</p>
+  <h2>Delete your account</h2>
+  <p>Email ${MAIL} from your registered email with the subject “Data Deletion Request”. Your account and data are deleted within 7 working days.</p>
   <h2>Please note</h2>
   <ul>
-    <li>We cannot check or change your application status — only the department that runs the scheme can. Use the official portal or helpline shown on each scheme page.</li>
+    <li>We cannot check or change your application status — only the department that runs the scheme can. Use the official website or helpline shown on each scheme page.</li>
     <li>We will never call you asking for an OTP or money. If someone does, it is a scam.</li>
   </ul>
+  <p>Many answers are already in the <a href="/faq.html">FAQ</a>.</p>
   <h2>संपर्क (हिंदी)</h2>
-  <p>गलत जानकारी, छूटी हुई योजना या ऐप की समस्या बताने के लिए ईमेल करें: yojanasahayofficial@gmail.com। आवेदन की स्थिति केवल संबंधित सरकारी विभाग ही बता सकता है। हम कभी OTP या पैसे के लिए फ़ोन नहीं करते।</p>`,
+  <p>ऐप में साइन इन करें, <strong>प्रोफाइल</strong> टैब खोलें और <strong>“रिपोर्ट / सवाल”</strong> दबाएं — बग बताएं, योजना जोड़ने का अनुरोध करें, सवाल पूछें या सुझाव दें। या ईमेल करें: ${SUPPORT_EMAIL}। आवेदन की स्थिति केवल संबंधित सरकारी विभाग ही बता सकता है। हम कभी OTP या पैसे के लिए फ़ोन नहीं करते।</p>`,
     },
   };
   const p = pages[kind];
@@ -384,6 +403,39 @@ function renderTrust(kind) {
 <body><div class="wrap">
   <nav class="crumbs"><a href="/">YojanaSahay</a> › ${esc(p.title.split(" – ")[0])}</nav>
 ${p.body}
+  <a class="cta" href="${SITE_URL}/">Find schemes you qualify for →</a>
+  ${trustFooter(false)}
+</div></body></html>`;
+}
+
+// ── Public FAQ page — same text as the in-app FAQ (src/faqData.js) ──────────
+function renderFaq() {
+  const CAT = { about: ["About the app", "ऐप के बारे में"], privacy: ["Privacy & data", "गोपनीयता"], schemes: ["Schemes & eligibility", "योजनाएं"], ai: ["AI assistant", "AI सहायक"], account: ["Account & support", "अकाउंट और सहायता"] };
+  const section = (lang) => {
+    const list = FAQ_DATA[lang] || [];
+    const isHi = lang === "hi";
+    return Object.keys(CAT).map(cat => {
+      const qs = list.filter(f => f.cat === cat);
+      if (!qs.length) return "";
+      return `  <h2>${esc(CAT[cat][isHi ? 1 : 0])}</h2>
+${qs.map(f => `  <details id="${isHi ? "hi-" : ""}${f.id}"><summary>${esc(f.q)}</summary><p>${esc(faqAnswerText(f.a))}</p></details>`).join("\n")}`;
+    }).join("\n");
+  };
+  const all = [...FAQ_DATA.en, ...FAQ_DATA.hi];
+  const faqLd = JSON.stringify({
+    "@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": all.map(f => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": faqAnswerText(f.a) } })),
+  });
+  return `${head({ lang: "en", title: "YojanaSahay FAQ – Questions About Finding Government Schemes", desc: "Answers to common questions about YojanaSahay: is it free, is it official, how the Eligibility Checker and AI assistant work, privacy, and how to report a problem.", url: `${SITE_URL}/faq.html` }).replace("</head>", `<script type="application/ld+json">${faqLd}</script>
+<style>details{border:1px solid #e7e5e4;border-radius:12px;padding:10px 14px;margin:8px 0;background:#fff;} summary{font-weight:700;font-size:14.5px;cursor:pointer;} details p{margin:8px 0 2px;} @media (prefers-color-scheme: dark){details{background:#1c1917;border-color:#292524;}}</style>
+</head>`)}
+<body><div class="wrap">
+  <nav class="crumbs"><a href="/">YojanaSahay</a> › FAQ</nav>
+  <h1>Frequently asked questions</h1>
+  <p class="lead">The same answers as the FAQ inside the app. <a href="#hindi">हिंदी में पढ़ें ↓</a></p>
+${section("en")}
+  <h1 id="hindi" style="margin-top:36px">अक्सर पूछे जाने वाले सवाल</h1>
+${section("hi")}
   <a class="cta" href="${SITE_URL}/">Find schemes you qualify for →</a>
   ${trustFooter(false)}
 </div></body></html>`;
@@ -830,6 +882,8 @@ function main() {
     fs.writeFileSync(path.join(ROOT, "public", `${kind}.html`), renderTrust(kind), "utf8");
     sitemapEntries.push({ loc: `${SITE_URL}/${kind}.html` });
   }
+  fs.writeFileSync(path.join(ROOT, "public", "faq.html"), renderFaq(), "utf8");
+  sitemapEntries.push({ loc: `${SITE_URL}/faq.html` });
 
   let count = 0, indexed = 0;
   for (const scheme of SCHEME_DB) {

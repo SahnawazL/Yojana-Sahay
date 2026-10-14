@@ -101,7 +101,7 @@ const STRINGS = {
 
     statsTitle: "Platform at a Glance",
     stats: [
-      { number:"28+",  label:"States & UTs\nCovered" },
+      { number:"34",   label:"States & UTs\nCovered" },
       { number:"—",    label:"Citizens\nGuided" },
       { number:"2",    label:"Languages\nSupported" },
       { number:"100%", label:"Free to\nUse" },
@@ -145,6 +145,9 @@ const STRINGS = {
       { icon:"🔒", text:"Per-account conversation history — private and isolated" },
       { icon:"⚡", text:"Powered by Groq AI for high-speed, accurate responses" },
       { icon:"📊", text:"Get AI-powered guidance on your eligibility checker results — understand why you qualify and what to do next" },
+      { icon:"✅", text:"Checks your eligibility right in the chat — for you or a family member — asking only what it doesn't already know" },
+      { icon:"🎤", text:"Speak your question with the mic, and tap Listen to hear any answer read aloud" },
+      { icon:"📋", text:"Makes document checklists and saves the schemes you applied for to My Applications" },
     ],
 
     proTitle:    "YojanaSahay Pro",
@@ -169,7 +172,7 @@ const STRINGS = {
     proPricingNote:  "Pricing and payment options will be announced at launch. Payments via UPI, cards, and net banking.",
     proLoginTitle:   "Login Required for AI Chat",
     proLoginNotice:
-      "Once YojanaSahay Pro launches, signing in with Google will be mandatory to access the AI Chat tab. This links your daily usage count and Pro benefits directly to your account — ensuring fair access for free users and full access for Pro.",
+      "Signing in (mobile OTP, Google or email) is required to use the AI Chat tab. When YojanaSahay Pro launches, this also links your daily usage and Pro benefits to your account — ensuring fair access for free users and full access for Pro.",
 
     signInTitle: "Benefits of Signing In",
     signInSub:   "Creating an account unlocks the full YojanaSahay experience.",
@@ -224,7 +227,7 @@ const STRINGS = {
     privacyIntro:
       "YojanaSahay is committed to protecting your privacy. This policy explains how your data is collected, used, and safeguarded.",
     privacyPoints: [
-      { icon:"🔒", text:"Data Collection & Purpose — We collect only the minimum data necessary: your name, email address, state, age range, income range, and occupation category. This information is used exclusively to power personalised eligibility results, AI recommendations, and scheme discovery within the app. We never collect data beyond what is required for your experience." },
+      { icon:"🔒", text:"Data Collection & Purpose — We collect only the minimum data necessary: your name, email address or mobile number (depending on how you sign in), state, age range, income range, occupation and category. The microphone is used only when you tap the mic in AI Chat to speak — never in the background. This information is used exclusively to power personalised eligibility results, AI recommendations, and scheme discovery within the app. We never collect data beyond what is required for your experience." },
       { icon:"🚫", text:"No Third-Party Sharing — We do not sell, rent, license, share, or disclose your personal information to any third-party individual, company, or organisation — under any circumstances, including commercial partnerships or advertising. YojanaSahay is, and will always remain, an entirely ad-free platform." },
       { icon:"☁️",  text:"Secure Cloud Storage — All user data is stored on Firebase, a Google Cloud platform that implements AES-256 encryption at rest and TLS 1.2+ encryption in transit. Firebase complies with major international security standards including ISO 27001, SOC 1, SOC 2, and SOC 3, and undergoes regular independent security audits." },
       { icon:"💬", text:"AI Conversation Privacy — Your conversations with the AI Assistant are stored securely in your private Firestore account, fully isolated from all other users. Your conversations are never shared with third parties, never disclosed publicly, and never used to train, fine-tune, or evaluate any external AI model or service." },
@@ -242,12 +245,13 @@ const STRINGS = {
     devLink:     "sahnawaz-portfolio.vercel.app →",
 
     contactTitle: "YojanaSahay Support",
-    contactNote:  "For platform-related inquiries only. For scheme-specific support, please use the in-app Report & Query feature.",
+    contactNote:  "For platform-related inquiries only. For scheme-specific support, please use Profile → Report / Query in the app.",
 
-    lastUpdated: "Last Updated · May 2026",
+    lastUpdated: "Last Updated · October 2026",
 
     whatsNewTitle: "What's New",
     whatsNew: [
+      { version:"v1.4", date:"Oct 2026",   note:"AI agent: eligibility check in chat, voice, application tracking · 1,100+ schemes · Scheme pages on Google" },
       { version:"v1.3", date:"May 2026",   note:"Email & Google sign-in · Dark mode · Vercel edge deployment" },
       { version:"v1.2", date:"Mar 2026",   note:"Report & Resolution Centre · Admin dashboard · Email alerts" },
       { version:"v1.1", date:"Jan 2026",   note:"AI Assistant (Groq) · Bilingual support · Profile-aware responses" },
@@ -267,7 +271,7 @@ const STRINGS = {
     ],
 
     grievanceTitle:   "User Support & Grievance Officer",
-    grievanceBody:    "YojanaSahay is committed to resolving every user concern promptly and transparently. Sahnawaz Ahmed Laskar is the designated Grievance Officer under the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021. Every submission made through the in-app Report & Query system receives an automatic confirmation email instantly, is acknowledged within 24 hours, and is personally reviewed and resolved by the Grievance Officer.",
+    grievanceBody:    "YojanaSahay is committed to resolving every user concern promptly and transparently. Sahnawaz Ahmed Laskar is the designated Grievance Officer under the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021. Every submission made through the in-app Report / Query system (Profile tab) receives an automatic confirmation email instantly, is acknowledged within 24 hours, and is personally reviewed and resolved by the Grievance Officer.",
     grievanceNote:    "Grievance Officer: Sahnawaz Ahmed Laskar",
 
     copyright:  "© 2026 Sahnawaz Ahmed Laskar · Open source under MIT License",
@@ -288,7 +292,7 @@ const STRINGS = {
 
     statsTitle: "प्लेटफ़ॉर्म एक नज़र में",
     stats: [
-      { number:"28+",  label:"राज्य और\nकेंद्र शासित" },
+      { number:"34",   label:"राज्य और\nकेंद्र शासित" },
       { number:"—",    label:"नागरिक\nलाभान्वित" },
       { number:"2",    label:"भाषाएं\nउपलब्ध" },
       { number:"100%", label:"बिल्कुल\nनिःशुल्क" },
@@ -316,6 +320,9 @@ const STRINGS = {
       { icon:"🔒", text:"प्रति-खाता चैट इतिहास — निजी और सुरक्षित" },
       { icon:"⚡", text:"Groq AI द्वारा संचालित — तेज़ और सटीक उत्तर" },
       { icon:"📊", text:"पात्रता जांच के परिणामों पर AI मार्गदर्शन पाएं — जानें आप क्यों पात्र हैं और आगे क्या करें" },
+      { icon:"✅", text:"चैट में ही पात्रता जांचें — अपने लिए या परिवार के किसी सदस्य के लिए, केवल वही सवाल जो पहले से पता नहीं" },
+      { icon:"🎤", text:"माइक से बोलकर सवाल पूछें, और किसी भी जवाब को सुनने के लिए 'सुनें' दबाएं" },
+      { icon:"📋", text:"दस्तावेज़ चेकलिस्ट बनाता है और आपके आवेदन 'मेरे आवेदन' में सेव करता है" },
     ],
 
     proTitle:    "योजनासहाय Pro",
@@ -340,7 +347,7 @@ const STRINGS = {
     proPricingNote:  "मूल्य और भुगतान विकल्प लॉन्च पर घोषित होंगे। UPI, कार्ड और नेट बैंकिंग के माध्यम से भुगतान।",
     proLoginTitle:   "AI Chat के लिए लॉगिन आवश्यक",
     proLoginNotice:
-      "जब YojanaSahay Pro लॉन्च होगा, तब AI Chat टैब तक पहुँचने के लिए Google से साइन इन करना अनिवार्य होगा। इससे आपकी दैनिक उपयोग सीमा और Pro सुविधाएं सीधे आपके खाते से जुड़ी रहेंगी।",
+      "AI Chat टैब इस्तेमाल करने के लिए साइन इन (मोबाइल OTP, Google या ईमेल) ज़रूरी है। YojanaSahay Pro लॉन्च होने पर इससे आपकी दैनिक उपयोग सीमा और Pro सुविधाएं भी सीधे आपके खाते से जुड़ी रहेंगी।",
 
     signInTitle: "साइन इन के लाभ",
     signInSub:   "खाता बनाकर YojanaSahay का पूरा अनुभव प्राप्त करें।",
@@ -394,7 +401,7 @@ const STRINGS = {
     privacyIntro:
       "योजना सहाय आपकी गोपनीयता की रक्षा के लिए प्रतिबद्ध है। यह नीति बताती है कि आपका डेटा कैसे एकत्र, उपयोग और सुरक्षित किया जाता है।",
     privacyPoints: [
-      { icon:"🔒", text:"डेटा संग्रह और उद्देश्य — हम केवल न्यूनतम आवश्यक डेटा एकत्र करते हैं: आपका नाम, ईमेल पता, राज्य, आयु वर्ग, आय वर्ग और व्यवसाय श्रेणी। यह जानकारी विशेष रूप से ऐप में व्यक्तिगत पात्रता परिणाम, AI सुझाव और योजना खोज को बेहतर बनाने के लिए उपयोग की जाती है। हम आपके अनुभव के लिए आवश्यकता से अधिक डेटा कभी नहीं लेते।" },
+      { icon:"🔒", text:"डेटा संग्रह और उद्देश्य — हम केवल न्यूनतम आवश्यक डेटा एकत्र करते हैं: आपका नाम, ईमेल पता या मोबाइल नंबर (आप कैसे साइन इन करते हैं उसके अनुसार), राज्य, आयु वर्ग, आय वर्ग, व्यवसाय और वर्ग। माइक का इस्तेमाल केवल तब होता है जब आप AI चैट में बोलने के लिए माइक दबाते हैं — कभी पृष्ठभूमि में नहीं। यह जानकारी विशेष रूप से ऐप में व्यक्तिगत पात्रता परिणाम, AI सुझाव और योजना खोज को बेहतर बनाने के लिए उपयोग की जाती है। हम आपके अनुभव के लिए आवश्यकता से अधिक डेटा कभी नहीं लेते।" },
       { icon:"🚫", text:"तृतीय पक्ष के साथ साझाकरण नहीं — हम किसी भी परिस्थिति में — किसी भी व्यावसायिक साझेदारी या विज्ञापन उद्देश्य सहित — आपकी व्यक्तिगत जानकारी को किसी भी तृतीय पक्ष को नहीं बेचते, किराए पर नहीं देते, लाइसेंस नहीं देते, साझा नहीं करते या प्रकट नहीं करते। योजना सहाय एक पूर्ण विज्ञापन-मुक्त प्लेटफ़ॉर्म है और सदा रहेगा।" },
       { icon:"☁️",  text:"सुरक्षित क्लाउड स्टोरेज — सभी उपयोगकर्ता डेटा Firebase पर संग्रहीत है — एक Google Cloud प्लेटफ़ॉर्म जो AES-256 एन्क्रिप्शन (डेटा स्थिरता में) और TLS 1.2+ एन्क्रिप्शन (डेटा प्रसारण में) लागू करता है। Firebase ISO 27001, SOC 1, SOC 2 और SOC 3 सहित प्रमुख अंतर्राष्ट्रीय सुरक्षा मानकों का अनुपालन करता है।" },
       { icon:"💬", text:"AI बातचीत की गोपनीयता — AI सहायक के साथ आपकी बातचीत आपके निजी Firestore खाते में सुरक्षित रूप से संग्रहीत होती है और अन्य सभी उपयोगकर्ताओं से पूरी तरह अलग रहती है। आपकी बातचीत कभी साझा नहीं की जाती, सार्वजनिक नहीं की जाती और किसी भी बाहरी AI मॉडल को प्रशिक्षित या बेहतर बनाने के लिए उपयोग नहीं की जाती।" },
@@ -412,12 +419,13 @@ const STRINGS = {
     devLink:     "sahnawaz-portfolio.vercel.app →",
 
     contactTitle: "YojanaSahay सपोर्ट",
-    contactNote:  "केवल प्लेटफ़ॉर्म संबंधी पूछताछ के लिए। योजना-विशिष्ट सहायता के लिए इन-ऐप Report & Query सुविधा का उपयोग करें।",
+    contactNote:  "केवल प्लेटफ़ॉर्म संबंधी पूछताछ के लिए। योजना-विशिष्ट सहायता के लिए ऐप में प्रोफाइल → रिपोर्ट / सवाल सुविधा का उपयोग करें।",
 
-    lastUpdated: "अंतिम अपडेट · मई 2026",
+    lastUpdated: "अंतिम अपडेट · अक्टूबर 2026",
 
     whatsNewTitle: "नया क्या है",
     whatsNew: [
+      { version:"v1.4", date:"अक्टू 2026", note:"AI एजेंट: चैट में पात्रता जांच, आवाज़, आवेदन ट्रैकिंग · 1,100+ योजनाएं · Google पर योजना पेज" },
       { version:"v1.3", date:"मई 2026",    note:"ईमेल & Google साइन-इन · डार्क मोड · Vercel एज डिप्लॉयमेंट" },
       { version:"v1.2", date:"मार्च 2026", note:"रिपोर्ट & समाधान केंद्र · एडमिन डैशबोर्ड · ईमेल अलर्ट" },
       { version:"v1.1", date:"जनवरी 2026", note:"AI सहायक (Groq) · द्विभाषी समर्थन · प्रोफाइल-आधारित उत्तर" },
@@ -437,7 +445,7 @@ const STRINGS = {
     ],
 
     grievanceTitle:   "उपयोगकर्ता सहायता एवं शिकायत अधिकारी",
-    grievanceBody:    "योजना सहाय हर उपयोगकर्ता की समस्या को शीघ्र और पारदर्शी तरीके से हल करने के लिए प्रतिबद्ध है। सूचना प्रौद्योगिकी (मध्यवर्ती दिशानिर्देश और डिजिटल मीडिया आचार संहिता) नियम, 2021 के अंतर्गत Sahnawaz Ahmed Laskar को नामित शिकायत अधिकारी (Grievance Officer) नियुक्त किया गया है। इन-ऐप Report & Query के माध्यम से सबमिट की गई हर शिकायत पर तुरंत स्वचालित पुष्टि ईमेल भेजी जाती है, 24 घंटों के भीतर स्वीकार की जाती है, और शिकायत अधिकारी द्वारा व्यक्तिगत रूप से समीक्षा एवं समाधान किया जाता है।",
+    grievanceBody:    "योजना सहाय हर उपयोगकर्ता की समस्या को शीघ्र और पारदर्शी तरीके से हल करने के लिए प्रतिबद्ध है। सूचना प्रौद्योगिकी (मध्यवर्ती दिशानिर्देश और डिजिटल मीडिया आचार संहिता) नियम, 2021 के अंतर्गत Sahnawaz Ahmed Laskar को नामित शिकायत अधिकारी (Grievance Officer) नियुक्त किया गया है। ऐप के प्रोफाइल टैब में रिपोर्ट / सवाल के माध्यम से सबमिट की गई हर शिकायत पर तुरंत स्वचालित पुष्टि ईमेल भेजी जाती है, 24 घंटों के भीतर स्वीकार की जाती है, और शिकायत अधिकारी द्वारा व्यक्तिगत रूप से समीक्षा एवं समाधान किया जाता है।",
     grievanceNote:    "शिकायत अधिकारी: Sahnawaz Ahmed Laskar",
 
     copyright:  "© 2026 Sahnawaz Ahmed Laskar · MIT License के अंतर्गत ओपन सोर्स",
