@@ -40,7 +40,7 @@ const DEVELOPER = {
   location:  "Silchar, Assam, India",
   education: "MCA, Yenepoya University, Bangalore",
   portfolio: "https://sahnawaz-portfolio.vercel.app",
-  email:     "shzthedigitalalchemist@gmail.com",
+  email:     "yojanasahayofficial@gmail.com",
   instagram: "https://instagram.com/sahnawaz.ui.dev",
   clients:   "Flipkart, Xiaomi India, Rapido",
   skills:    "React.js, Node.js, JavaScript, Python, PHP, Tailwind CSS, Figma, Firebase, Groq AI",

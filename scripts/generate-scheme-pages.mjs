@@ -356,7 +356,7 @@ function renderTrust(kind) {
   <h2>AI assistant</h2>
   <p>The in-app AI assistant answers using this scheme database and official websites. It can make mistakes, so always confirm important details on the official portal.</p>
   <h2>Corrections</h2>
-  <p>Found a mistake or an outdated scheme? Use “Report an issue” in the app or email <a href="mailto:shzthedigitalalchemist@gmail.com">shzthedigitalalchemist@gmail.com</a>. Corrections are usually made within a few days.</p>
+  <p>Found a mistake or an outdated scheme? Use “Report an issue” in the app or email <a href="mailto:yojanasahayofficial@gmail.com">yojanasahayofficial@gmail.com</a>. Corrections are usually made within a few days.</p>
   <h2>हम जानकारी कैसे जांचते हैं (हिंदी)</h2>
   <p>जानकारी आधिकारिक सरकारी पोर्टलों, योजना दिशानिर्देशों और PIB की प्रेस विज्ञप्तियों से ली जाती है। हर योजना का आधिकारिक लिंक नियमित रूप से अपने आप जांचा जाता है, और पेज पर आखिरी जांच की तारीख दिखती है। कोई गलती दिखे तो ऐप में “समस्या बताएं” से या ईमेल से बताएं।</p>`,
     },
@@ -367,7 +367,7 @@ function renderTrust(kind) {
   <h1>Contact & corrections</h1>
   <p class="lead">We read every message. Tell us about wrong information, a missing scheme, or a problem with the app.</p>
   <ul>
-    <li>Email: <a href="mailto:shzthedigitalalchemist@gmail.com">shzthedigitalalchemist@gmail.com</a></li>
+    <li>Email: <a href="mailto:yojanasahayofficial@gmail.com">yojanasahayofficial@gmail.com</a></li>
     <li>In the app: open any scheme → “Report an issue”.</li>
   </ul>
   <h2>Please note</h2>
@@ -376,7 +376,7 @@ function renderTrust(kind) {
     <li>We will never call you asking for an OTP or money. If someone does, it is a scam.</li>
   </ul>
   <h2>संपर्क (हिंदी)</h2>
-  <p>गलत जानकारी, छूटी हुई योजना या ऐप की समस्या बताने के लिए ईमेल करें: shzthedigitalalchemist@gmail.com। आवेदन की स्थिति केवल संबंधित सरकारी विभाग ही बता सकता है। हम कभी OTP या पैसे के लिए फ़ोन नहीं करते।</p>`,
+  <p>गलत जानकारी, छूटी हुई योजना या ऐप की समस्या बताने के लिए ईमेल करें: yojanasahayofficial@gmail.com। आवेदन की स्थिति केवल संबंधित सरकारी विभाग ही बता सकता है। हम कभी OTP या पैसे के लिए फ़ोन नहीं करते।</p>`,
     },
   };
   const p = pages[kind];
