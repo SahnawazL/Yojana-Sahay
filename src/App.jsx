@@ -3802,6 +3802,14 @@ const DIR_HUBS = (() => {
   }
   return [...m.values()].sort((a, b) => (a.state === null ? -1 : b.state === null ? 1 : a.state.localeCompare(b.state)));
 })();
+// Same keys as the category pages made by scripts/generate-scheme-pages.mjs.
+const DIR_CATS = [
+  { k:"women", i:"👩", en:"Women", hi:"महिलाएं" }, { k:"farmers", i:"🌾", en:"Farmers", hi:"किसान" },
+  { k:"students", i:"📚", en:"Students", hi:"विद्यार्थी" }, { k:"health", i:"🏥", en:"Health", hi:"स्वास्थ्य" },
+  { k:"senior", i:"👴", en:"Senior citizens", hi:"वरिष्ठ नागरिक" }, { k:"business", i:"💼", en:"Business", hi:"व्यापार" },
+  { k:"housing", i:"🏠", en:"Housing", hi:"आवास" }, { k:"workers", i:"👷", en:"Workers & jobs", hi:"श्रमिक व रोज़गार" },
+  { k:"disability", i:"♿", en:"Disability", hi:"दिव्यांगजन" },
+];
 const DIR_POPULAR = ["pmkisan","ayushman","pmawas_rural","pmawas_urban","scholarship","mudra","ujjwala","kisancredit","vriddhapension","pmjdy","apy","pmjjby"];
 function SchemeDirectory({ lang, dark }) {
   const isHindi = lang === "hi";
@@ -3812,7 +3820,11 @@ function SchemeDirectory({ lang, dark }) {
     color: dark ? "#e7e5e4" : "#44403c", background: dark ? "#1c1c1e" : "#fff",
     border:`1px solid ${dark ? "#2c2c2e" : "#ece7e1"}`, fontFamily:bf,
   };
-  const pop = DIR_POPULAR.map(id => SCHEME_DB.find(s => s.id === id)).filter(Boolean);
+  // Duplicate listings have no page of their own — link the main entry instead.
+  const pop = [...new Set(DIR_POPULAR.map(id => {
+    const s = SCHEME_DB.find(x => x.id === id);
+    return s?.duplicateOf ? SCHEME_DB.find(x => x.id === s.duplicateOf) : s;
+  }).filter(Boolean))];
   return (
     <nav aria-label={isHindi ? "योजनाओं की सूची" : "Scheme directory"} style={{ margin:"6px 16px 22px", fontFamily:bf }}>
       <div style={{ fontSize:14.5, fontWeight:800, color: dark ? "#f0f0f0" : "#1a1a1a", marginBottom:4 }}>
@@ -3829,6 +3841,14 @@ function SchemeDirectory({ lang, dark }) {
         ))}
       </div>
       <div style={{ fontSize:14.5, fontWeight:800, color: dark ? "#f0f0f0" : "#1a1a1a", margin:"18px 0 10px" }}>
+        {isHindi ? "🗂️ श्रेणी के अनुसार" : "🗂️ Browse by category"}
+      </div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+        {DIR_CATS.map(c => (
+          <a key={c.k} href={`${base}cat-${c.k}.html`} style={chip}>{c.i} {isHindi ? c.hi : c.en}</a>
+        ))}
+      </div>
+      <div style={{ fontSize:14.5, fontWeight:800, color: dark ? "#f0f0f0" : "#1a1a1a", margin:"18px 0 10px" }}>
         {isHindi ? "⭐ लोकप्रिय योजनाएं" : "⭐ Popular schemes"}
       </div>
       <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
@@ -3837,6 +3857,12 @@ function SchemeDirectory({ lang, dark }) {
             {s.icon} {s.name?.[lang] || s.name?.en}
           </a>
         ))}
+      </div>
+      <div style={{ marginTop:14, fontSize:11.5, color: dark ? "#a8a29e" : "#78716c", lineHeight:1.7 }}>
+        {isHindi ? "YojanaSahay एक मुफ्त, स्वतंत्र गाइड है — सरकारी वेबसाइट नहीं। हम कभी पैसे या OTP नहीं मांगते।" : "YojanaSahay is a free, independent guide — not a government website. We never ask for money or OTP."}
+        {" "}<a href="/about.html" style={{ color:"inherit" }}>{isHindi ? "हमारे बारे में" : "About"}</a>
+        {" · "}<a href="/how-we-verify.html" style={{ color:"inherit" }}>{isHindi ? "जानकारी कैसे जांचते हैं" : "How we verify"}</a>
+        {" · "}<a href="/contact.html" style={{ color:"inherit" }}>{isHindi ? "संपर्क" : "Contact"}</a>
       </div>
     </nav>
   );

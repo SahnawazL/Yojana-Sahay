@@ -34,6 +34,8 @@ const { SCHEME_DB: ALL_SCHEMES } = await import("../src/schemesData.js");
 // scheme's page covers them, so Google never sees near-copy pages.
 const SCHEME_DB = ALL_SCHEMES.filter(s => !s.duplicateOf);
 const { whoCanApply } = await import("../src/eligibilityText.js");
+const { isOfficialUrl } = await import("../src/schemeMatch.js");
+const { GUIDES, GUIDES_REVIEWED } = await import("./seo-guides.mjs");
 let META = {};
 try { META = JSON.parse(fs.readFileSync(path.join(ROOT, "src", "schemes-meta.json"), "utf8")); } catch { /* optional */ }
 
@@ -67,6 +69,79 @@ for (const s of SCHEME_DB) {
 }
 const YEAR = new Date().getFullYear();
 
+// ── Which pages Google should index ─────────────────────────────────────────
+// Google was leaving 2,000+ pages "discovered – not indexed": it holds back
+// sites that look like many thin, similar pages. So only pages with solid,
+// checked information are offered to Google (index + sitemap); the rest stay
+// live for visitors but say "noindex" until their data is filled in.
+// Central schemes and pages already getting Google impressions always count.
+const FORCE_INDEX = new Set([
+  "ts-epass-fee", "maha-smart-solar", "punjab-kisan-karj-mafi", "chandigarh-ladli-yojana", "bihar-student-credit-card",
+  "tn-chief-minister-health", "ts-micro-irrigation", "jk-widow-pension", "odisha-cm-kisan", "maha-ai-agriculture-policy",
+  "wb-student-credit-card", "punjab-free-eye-checkup", "ts-t-fiber", "karnataka-sericulture", "inspire-she", "pmawas-rural",
+  "assam-she-scholarship", "assam-jibika-sakhi", "maha-majhi-ladki-bahin", "mp-ladli-behna", "odisha-subhadra",
+  "jharkhand-maiya-samman", "cg-mahtari-vandan", "wb-lakshmir-bhandar", "karnataka-gruha-lakshmi", "assam-orunodoi",
+]);
+function qualityScore(s) {
+  const m = META[s.id] || {};
+  let sc = 0;
+  if ((whoCanApply(s, "en") || []).length >= 2) sc++;
+  if ((s.docs?.en || []).length >= 3) sc++;
+  if (s.description?.en) sc++;
+  if (s.annual > 0) sc++;
+  if (m.lastVerified) sc++;
+  if ((s.benefit?.en || "").length >= 40) sc++;
+  if (m.linkAlive === true) sc++;
+  return sc;
+}
+function isIndexable(s) {
+  const m = META[s.id] || {};
+  if (m.isActive === false || m.linkAlive === false) return false;
+  if (FORCE_INDEX.has(String(s.id).toLowerCase().replace(/[^a-z0-9-]/g, "-"))) return true;
+  return s.scope === "national" || qualityScore(s) >= 5;
+}
+
+// ── Category hubs: "schemes for women", "schemes for farmers"… ───────────────
+// National hub per category + a state version only where the state really has
+// 5+ such schemes (never every state × category combination).
+const CATS = [
+  { key: "women",      re: /women|girl|maternity|widow|mahila/i,                  en: "Women",               hi: "महिलाओं",              icon: "👩" },
+  { key: "farmers",    re: /farmer|fisher|animal|livestock|agri|dairy/i,          en: "Farmers",             hi: "किसानों",              icon: "🌾" },
+  { key: "students",   re: /student|education|scholarship/i,                      en: "Students",            hi: "विद्यार्थियों",          icon: "📚" },
+  { key: "health",     re: /health|medic|wellness|medicine/i,                     en: "Health",              hi: "स्वास्थ्य",              icon: "🏥" },
+  { key: "senior",     re: /senior|pension|old age/i,                             en: "Senior Citizens",     hi: "वरिष्ठ नागरिकों",         icon: "👴" },
+  { key: "business",   re: /business|entrepreneur|startup|self.?employ|street vendor|livelihood|artisan|weaver/i, en: "Business & Self-Employment", hi: "व्यापार व स्वरोज़गार", icon: "💼" },
+  { key: "housing",    re: /housing/i,                                            en: "Housing",             hi: "आवास",                 icon: "🏠" },
+  { key: "workers",    re: /labour|worker|employment|skill|unemploy|construction/i, en: "Workers & Jobs",    hi: "श्रमिकों व रोज़गार",       icon: "👷" },
+  { key: "disability", re: /disab|divyang/i,                                       en: "Persons with Disabilities", hi: "दिव्यांगजनों",     icon: "♿" },
+];
+const catsOf = s => CATS.filter(c => c.re.test(String(s?.tag?.en || "")));
+const stateKey = st => String(st || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const catFile = (c, st) => st ? `cat-${c.key}-${stateKey(st)}` : `cat-${c.key}`;
+const CAT_HUBS = [];            // { file, cat, state|null, schemes }
+const CAT_STATE = new Set();    // files of state × category hubs that exist
+for (const c of CATS) {
+  const all = SCHEME_DB.filter(s => catsOf(s).includes(c));
+  CAT_HUBS.push({ file: catFile(c), cat: c, state: null, schemes: all });
+  const byState = new Map();
+  for (const s of all) if (s.scope === "state" && s.state) { if (!byState.has(s.state)) byState.set(s.state, []); byState.get(s.state).push(s); }
+  for (const [st, list] of byState) if (list.length >= 5) { CAT_HUBS.push({ file: catFile(c, st), cat: c, state: st, schemes: list }); CAT_STATE.add(catFile(c, st)); }
+}
+
+// Money for titles: "₹6,000/year", "₹4 lakh"…
+function moneyOf(text) {
+  const m = String(text || "").match(/₹\s?[\d,.]+(?:\s?(?:lakh|lac|crore|cr|k|L))?(?:\s?(?:\/|per |a |प्रति )\s?(?:month|year|yr|mo|annum|माह|महीना|वर्ष|साल))?/i);
+  return m ? m[0].replace(/\s+/g, " ").trim() : "";
+}
+// Only government links are shown as "official" (some data links point to blogs).
+function officialOnly(s, lang) {
+  for (const raw of [s.apply?.en, s.apply?.[lang], s.apply?.hi]) {
+    const u = officialUrl(raw);
+    if (u && isOfficialUrl(u)) return u;
+  }
+  return "";
+}
+
 // ── Slug helper ────────────────────────────────────────────────────────────────
 // Use the scheme's own `id` field — already unique, already URL-safe (lowercase,
 // no spaces) based on how schemesData.js is written (e.g. "pmkisan", "ayushman").
@@ -95,6 +170,171 @@ function officialUrl(raw) {
   try { return new URL(candidate).href; } catch { return null; }
 }
 
+// ── Shared footer: who we are + trust links ─────────────────────────────────
+function trustFooter(isHindi) {
+  return `<footer>
+      ${isHindi ? "YojanaSahay एक स्वतंत्र, मुफ्त नागरिक मंच है — भारत सरकार या किसी राज्य सरकार से संबद्ध नहीं।" : "YojanaSahay is a free, independent civic-tech guide — not affiliated with the Government of India or any state government."}
+      <div class="trust"><a href="/about.html">${isHindi ? "हमारे बारे में" : "About"}</a>·<a href="/how-we-verify.html">${isHindi ? "हम जानकारी कैसे जांचते हैं" : "How we verify"}</a>·<a href="/contact.html">${isHindi ? "संपर्क / सुधार" : "Contact & corrections"}</a></div>
+      <a href="${SITE_URL}/">yojanasahay.vercel.app</a>
+    </footer>`;
+}
+const SHARED_CSS = `:root{color-scheme:light dark;} *{box-sizing:border-box;}
+  body{margin:0;font-family:'Noto Sans',-apple-system,system-ui,sans-serif;background:#fafaf9;color:#1c1917;}
+  .wrap{max-width:720px;margin:0 auto;padding:28px 20px 60px;}
+  h1{font-size:24px;line-height:1.3;margin:0 0 8px;font-weight:800;} h2{font-size:16px;margin:24px 0 10px;}
+  p, li{font-size:14.5px;line-height:1.65;color:#44403c;} p.lead{color:#57534e;}
+  ul{padding-left:20px;} li{margin:6px 0;}
+  li a{color:#c2410c;font-weight:700;text-decoration:none;} li span{color:#57534e;}
+  a{color:#c2410c;}
+  .cta{display:block;text-align:center;text-decoration:none;background:#FF9933;color:#fff;font-weight:700;padding:14px;border-radius:12px;margin:22px 0;}
+  .others{font-size:13px;line-height:2;color:#78716c;} .others a{color:#78716c;}
+  .crumbs{font-size:12.5px;color:#78716c;margin-bottom:12px;} .crumbs a{color:#c2410c;text-decoration:none;}
+  .notice{font-size:12.5px;line-height:1.5;color:#57534e;background:#f5f5f4;border:1px solid #e7e5e4;border-radius:10px;padding:9px 12px;margin:0 0 16px;}
+  .catlinks a{display:inline-block;margin:4px 6px 0 0;padding:5px 10px;border:1px solid #fed7aa;border-radius:99px;font-size:12.5px;color:#9a3412;text-decoration:none;background:#fff7ed;}
+  footer{margin-top:40px;font-size:12px;color:#a8a29e;text-align:center;line-height:1.8;} footer a{color:#a8a29e;} .trust a{margin:0 6px;}
+  @media (prefers-color-scheme: dark){ body{background:#111;color:#f5f5f4;} p,li,li span{color:#d6d3d1;} p.lead{color:#a8a29e;} .notice{background:#1c1917;border-color:#292524;color:#d6d3d1;} }`;
+const NOTICE = (isHindi) => `<p class="notice">${isHindi
+  ? "ℹ️ YojanaSahay एक मुफ्त, स्वतंत्र गाइड है — सरकारी वेबसाइट नहीं। हम कभी पैसे या OTP नहीं मांगते।"
+  : "ℹ️ YojanaSahay is a free, independent guide — not a government website. We never ask for money or OTP."}</p>`;
+function head({ lang, title, desc, url, enUrl, hiUrl, robots = "index, follow, max-image-preview:large" }) {
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(desc)}" />
+<link rel="canonical" href="${url}" />
+${enUrl && hiUrl ? `<link rel="alternate" hreflang="en-IN" href="${enUrl}" />
+<link rel="alternate" hreflang="hi-IN" href="${hiUrl}" />
+<link rel="alternate" hreflang="x-default" href="${enUrl}" />` : ""}
+<meta name="robots" content="${robots}" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="${esc(title)}" />
+<meta property="og:description" content="${esc(desc)}" />
+<meta property="og:url" content="${url}" />
+<meta property="og:image" content="${SITE_URL}/og-image.png" />
+<link rel="icon" href="/favicon.ico" />
+<style>${SHARED_CSS}</style>
+</head>`;
+}
+
+// ── Category hubs ("Schemes for Women", "Farmer schemes in Bihar") ──────────
+function renderCatHub(hub, lang) {
+  const isHindi = lang === "hi";
+  const lp = isHindi ? "yojana" : "schemes";
+  const c = hub.cat, n = hub.schemes.length;
+  const place = hub.state || (isHindi ? "भारत" : "India");
+  const title = isHindi
+    ? `${hub.state ? hub.state + " में " : ""}${c.hi} के लिए सरकारी योजनाएं ${YEAR} – ${n} योजनाओं की सूची`
+    : `${hub.state ? hub.state + " " : ""}Government Schemes for ${c.en} ${YEAR} – ${n} Schemes List`;
+  const desc = isHindi
+    ? `${place} में ${c.hi} के लिए ${n} सरकारी योजनाएं — लाभ, कौन आवेदन कर सकता है, दस्तावेज़ और आवेदन का तरीका। मुफ्त में अपनी पात्रता जांचें।`
+    : `${n} government schemes for ${c.en.toLowerCase()} in ${place} — benefits, who can apply, documents and how to apply. Check your eligibility free.`;
+  const url = `${SITE_URL}/${lp}/${hub.file}.html`;
+  // Central first, then by state; biggest yearly value first inside each group.
+  const groups = new Map();
+  for (const s of [...hub.schemes].sort((a, b) => (b.annual || 0) - (a.annual || 0))) {
+    const g = s.scope === "state" ? s.state : (isHindi ? "केंद्र सरकार" : "Central Government");
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(s);
+  }
+  const order = [...groups.keys()].sort((a, b) => (/^(Central|केंद्र)/.test(a) ? -1 : /^(Central|केंद्र)/.test(b) ? 1 : a.localeCompare(b)));
+  const li = x => `      <li><a href="/${lp}/${slugify(x.id)}.html">${esc(x.name[lang] || x.name.en)}</a><span> — ${esc(x.benefit?.[lang] || x.benefit?.en || "")}</span></li>`;
+  const stateHubs = !hub.state ? CAT_HUBS.filter(h => h.cat === c && h.state).sort((a, b) => a.state.localeCompare(b.state)) : [];
+  const crumbs = [`<a href="/">YojanaSahay</a>`, hub.state ? `<a href="/${lp}/${catFile(c)}.html">${esc(isHindi ? c.hi + " के लिए योजनाएं" : "Schemes for " + c.en)}</a>` : "", esc(hub.state || (isHindi ? c.hi + " के लिए योजनाएं" : "Schemes for " + c.en))].filter(Boolean).join(" › ");
+  return `${head({ lang: isHindi ? "hi" : "en", title, desc, url, enUrl: `${SITE_URL}/schemes/${hub.file}.html`, hiUrl: `${SITE_URL}/yojana/${hub.file}.html` })}
+<body><div class="wrap">
+  <nav class="crumbs">${crumbs}</nav>
+  ${NOTICE(isHindi)}
+  <h1>${c.icon} ${esc(isHindi ? `${hub.state ? hub.state + " में " : ""}${c.hi} के लिए सरकारी योजनाएं ${YEAR}` : `Government Schemes for ${c.en}${hub.state ? " in " + hub.state : ""} ${YEAR}`)}</h1>
+  <p class="lead">${esc(desc)}</p>
+  <a class="cta" href="${SITE_URL}/">${isHindi ? "ऐप में देखें आप किनके पात्र हैं →" : "Check which ones you qualify for →"}</a>
+  ${stateHubs.length ? `<h2>${isHindi ? "राज्य के अनुसार" : "By state"}</h2>
+  <p class="catlinks">${stateHubs.map(h => `<a href="/${lp}/${h.file}.html">${esc(h.state)} (${h.schemes.length})</a>`).join("")}</p>` : ""}
+${order.map(g => `  <h2>${esc(g)} (${groups.get(g).length})</h2>
+  <ul>
+${groups.get(g).map(li).join("\n")}
+  </ul>`).join("\n")}
+  <h2>${isHindi ? "दूसरी श्रेणियां" : "Other categories"}</h2>
+  <p class="catlinks">${CATS.filter(x => x !== c).map(x => `<a href="/${lp}/${catFile(x)}.html">${x.icon} ${esc(isHindi ? x.hi : x.en)}</a>`).join("")}</p>
+  ${trustFooter(isHindi)}
+</div></body></html>`;
+}
+
+// ── Trust pages (bilingual): About, How we verify, Contact & corrections ────
+function renderTrust(kind) {
+  const pages = {
+    about: {
+      title: "About YojanaSahay – Free, Independent Government Scheme Finder",
+      desc: "Who runs YojanaSahay, why it exists, and how it helps Indian citizens find government schemes they qualify for — free, in Hindi and English.",
+      body: `
+  <h1>About YojanaSahay</h1>
+  <p class="lead">YojanaSahay helps people in India find the government schemes they qualify for — in simple Hindi and English, free of cost.</p>
+  <h2>Who runs it</h2>
+  <p>YojanaSahay is built and maintained by <strong>Sahnawaz Ahmed Laskar</strong>, an independent developer from Assam (MCA, Yenepoya University). It is a civic-tech project, not a company and <strong>not a government website</strong>. It is not affiliated with the Government of India or any state government.</p>
+  <h2>Why it exists</h2>
+  <p>Benefits are spread across hundreds of portals and long notifications. Many families who qualify never apply because they don't know a scheme exists, or which documents to bring. YojanaSahay brings 1,100+ Central and State schemes into one place, asks a few simple questions, and shows what you may get, the documents you need, and the official place to apply.</p>
+  <h2>What we never do</h2>
+  <ul>
+    <li>We never charge money — every feature is free.</li>
+    <li>We never ask for your OTP, bank password or Aadhaar number to "release" a payment.</li>
+    <li>We never take applications — you always apply on the official government website or office.</li>
+  </ul>
+  <h2>हमारे बारे में (हिंदी)</h2>
+  <p>YojanaSahay एक मुफ्त, स्वतंत्र मंच है जो भारत के लोगों को उनकी पात्र सरकारी योजनाएं ढूंढने में मदद करता है। इसे सहनवाज़ अहमद लस्कर (असम) ने बनाया है। यह सरकारी वेबसाइट नहीं है। हम कभी पैसे या OTP नहीं मांगते, और आवेदन हमेशा आधिकारिक सरकारी वेबसाइट या कार्यालय में ही होता है।</p>`,
+    },
+    "how-we-verify": {
+      title: "How YojanaSahay Verifies Scheme Information",
+      desc: "Where YojanaSahay's scheme information comes from, how official links are checked automatically, and how mistakes are corrected.",
+      body: `
+  <h1>How we verify scheme information</h1>
+  <p class="lead">Scheme rules change. Here is exactly how we keep information accurate — and how to tell us when something is wrong.</p>
+  <h2>Where the information comes from</h2>
+  <ul>
+    <li>Official government portals, scheme guidelines and notifications from the ministry or state department that runs each scheme.</li>
+    <li>Press releases from PIB and state information departments for new schemes and changes.</li>
+  </ul>
+  <h2>Automatic link checks</h2>
+  <p>A program checks the official link of every scheme on a regular schedule. Each scheme page shows the date its official link was last checked. Links that stop working are flagged for review.</p>
+  <h2>Eligibility results</h2>
+  <p>The eligibility checker applies each scheme's published conditions (income, age, category, state and so on) to your answers. Results are a guide — the final decision is always made by the government office that runs the scheme.</p>
+  <h2>AI assistant</h2>
+  <p>The in-app AI assistant answers using this scheme database and official websites. It can make mistakes, so always confirm important details on the official portal.</p>
+  <h2>Corrections</h2>
+  <p>Found a mistake or an outdated scheme? Use “Report an issue” in the app or email <a href="mailto:shzthedigitalalchemist@gmail.com">shzthedigitalalchemist@gmail.com</a>. Corrections are usually made within a few days.</p>
+  <h2>हम जानकारी कैसे जांचते हैं (हिंदी)</h2>
+  <p>जानकारी आधिकारिक सरकारी पोर्टलों, योजना दिशानिर्देशों और PIB की प्रेस विज्ञप्तियों से ली जाती है। हर योजना का आधिकारिक लिंक नियमित रूप से अपने आप जांचा जाता है, और पेज पर आखिरी जांच की तारीख दिखती है। कोई गलती दिखे तो ऐप में “समस्या बताएं” से या ईमेल से बताएं।</p>`,
+    },
+    contact: {
+      title: "Contact YojanaSahay – Report a Mistake or Ask for Help",
+      desc: "Contact YojanaSahay to report wrong or outdated scheme information, suggest a scheme, or ask for help using the app.",
+      body: `
+  <h1>Contact & corrections</h1>
+  <p class="lead">We read every message. Tell us about wrong information, a missing scheme, or a problem with the app.</p>
+  <ul>
+    <li>Email: <a href="mailto:shzthedigitalalchemist@gmail.com">shzthedigitalalchemist@gmail.com</a></li>
+    <li>In the app: open any scheme → “Report an issue”.</li>
+  </ul>
+  <h2>Please note</h2>
+  <ul>
+    <li>We cannot check or change your application status — only the department that runs the scheme can. Use the official portal or helpline shown on each scheme page.</li>
+    <li>We will never call you asking for an OTP or money. If someone does, it is a scam.</li>
+  </ul>
+  <h2>संपर्क (हिंदी)</h2>
+  <p>गलत जानकारी, छूटी हुई योजना या ऐप की समस्या बताने के लिए ईमेल करें: shzthedigitalalchemist@gmail.com। आवेदन की स्थिति केवल संबंधित सरकारी विभाग ही बता सकता है। हम कभी OTP या पैसे के लिए फ़ोन नहीं करते।</p>`,
+    },
+  };
+  const p = pages[kind];
+  return `${head({ lang: "en", title: p.title, desc: p.desc, url: `${SITE_URL}/${kind}.html` })}
+<body><div class="wrap">
+  <nav class="crumbs"><a href="/">YojanaSahay</a> › ${esc(p.title.split(" – ")[0])}</nav>
+${p.body}
+  <a class="cta" href="${SITE_URL}/">Find schemes you qualify for →</a>
+  ${trustFooter(false)}
+</div></body></html>`;
+}
+
 // ── Page template ───────────────────────────────────────────────────────────────
 function renderPage(scheme, lang) {
   const isHindi = lang === "hi";
@@ -106,21 +346,32 @@ function renderPage(scheme, lang) {
   // Prefer the English value (it's the verified, full URL); the Hindi field
   // is often a bare or outdated domain. Plain-text values like "Nearest bank
   // branch" used to become a broken "https://Nearest bank branch" link.
-  const applyUrl = officialUrl(scheme.apply?.en) || officialUrl(scheme.apply?.[lang]) || "";
+  const applyUrl = officialOnly(scheme, lang);
+  const indexable = isIndexable(scheme);
   const slug     = slugify(scheme.id);
   const langPath = isHindi ? "yojana" : "schemes";
   const pageUrl  = `${SITE_URL}/${langPath}/${slug}.html`;
   const deepLink = `${SITE_URL}/?scheme=${encodeURIComponent(scheme.id)}`;
   const stateLabel = scheme.scope === "state" ? scheme.state : (isHindi ? "संपूर्ण भारत" : "All India");
 
-  // The year in the title: people search "pm kisan 2026", and it tells them the page is current.
+  // Title leads with the money and the year — people search "pm kisan 2026"
+  // and click results that show the amount. Kept short enough not to be cut.
+  const money = moneyOf(benefit) || moneyOf(scheme.benefit?.en);
+  const fit = (t) => (t.length <= 62 ? `${t} | YojanaSahay` : t);
   const title = isHindi
-    ? `${name} ${YEAR} – पात्रता, लाभ, दस्तावेज़ और आवेदन | YojanaSahay`
-    : `${name} ${YEAR} – Eligibility, Benefits, Documents & How to Apply | YojanaSahay`;
-
-  const description = isHindi
-    ? `${name}: ${benefit}. ${ministry ? ministry + " द्वारा। " : ""}पात्रता जांचें और मुफ्त में आवेदन करने का तरीका जानें।`
-    : `${name}: ${benefit}. ${ministry ? "By " + ministry + ". " : ""}Check eligibility and learn how to apply for free.`;
+    ? fit(money ? `${name} ${YEAR}: ${money} – पात्रता, दस्तावेज़, आवेदन` : `${name} ${YEAR} – पात्रता, लाभ, दस्तावेज़ और आवेदन`)
+    : fit(money
+        ? `${name} ${YEAR}: ${money} – ${name.length > 40 ? "Eligibility & Apply" : "Eligibility, Documents & Apply"}`
+        : `${name} ${YEAR} – Eligibility, Benefits & How to Apply`);
+  const checked0 = checkedDate(scheme.id);
+  const trimTo = (t, n) => (t.length <= n ? t : t.slice(0, n - 1).replace(/\s+\S*$/, "").replace(/[\s&,;:(–-]+$/, "") + "…");
+  const benefitShort = trimTo(String(benefit).replace(/[.।\s]+$/, ""), 90);
+  const end = benefitShort.endsWith("…") ? " " : (isHindi ? "। " : ". ");
+  const descCore = isHindi
+    ? `${benefitShort}${end}कौन आवेदन कर सकता है, ज़रूरी दस्तावेज़ और आवेदन का तरीका${scheme.scope === "state" ? ` (${scheme.state})` : ""}। मुफ्त पात्रता जांच।`
+    : `${benefitShort}${end}Who can apply, documents & how to apply${scheme.scope === "state" ? ` (${scheme.state})` : ""}. Free eligibility check.`;
+  const descDate = checked0 ? (isHindi ? ` जांचा गया: ${checked0}` : ` Checked ${checked0}.`) : "";
+  const description = (descCore + descDate).length <= 175 ? descCore + descDate : descCore;
   // (who-can-apply lines are added to the page body below)
 
   const docsListItems = docs.map(d => `        <li>${esc(d)}</li>`).join("\n");
@@ -131,6 +382,8 @@ function renderPage(scheme, lang) {
   const hubHref  = `/${langPath}/${hubFile(scheme)}.html`;
   const related  = (hub?.schemes ?? []).filter(x => x.id !== scheme.id).slice(0, 8);
   const about    = scheme.description?.[lang] || scheme.description?.en || "";
+  const guide    = GUIDES[scheme.id]?.[lang] || null;
+  const myCats   = catsOf(scheme);
   const yearly   = scheme.annual > 0 ? `₹${Number(scheme.annual).toLocaleString("en-IN")}` : "";
   const catKey   = category(scheme);
   // Similar schemes elsewhere: same category, other states/Central (Central first).
@@ -141,8 +394,11 @@ function renderPage(scheme, lang) {
     .sort((a, b) => (a.scope === "national" ? 0 : 1) - (b.scope === "national" ? 0 : 1))
     .filter(x => { const h = hubFile(x); if (h !== "list-central" && seenHub.has(h)) return false; seenHub.add(h); return true; })
     .slice(0, 6);
+  const rawApply = scheme.apply?.[lang] || scheme.apply?.en || "";
   const applyText = scheme.applyType === "offline" || !applyUrl
-    ? (scheme.apply?.[lang] || scheme.apply?.en || "")
+    ? (rawApply && !/^https?:|^www\.|\.(com|in|org|net)\b/i.test(rawApply)
+        ? rawApply
+        : (isHindi ? "आवेदन का आधिकारिक तरीका अपने ज़िला / विभाग कार्यालय या नज़दीकी CSC (जन सेवा केंद्र) से पता करें।" : "Get the official application route from your district / department office or the nearest CSC (Common Service Centre)."))
     : (isHindi ? "आधिकारिक सरकारी वेबसाइट पर ऑनलाइन आवेदन करें (नीचे लिंक)।" : "Apply online on the official government website (link below).");
 
   // GovernmentService structured data — helps Google understand this is an
@@ -215,7 +471,7 @@ function renderPage(scheme, lang) {
 <link rel="alternate" hreflang="en-IN" href="${SITE_URL}/schemes/${slug}.html" />
 <link rel="alternate" hreflang="hi-IN" href="${SITE_URL}/yojana/${slug}.html" />
 <link rel="alternate" hreflang="x-default" href="${SITE_URL}/schemes/${slug}.html" />
-<meta name="robots" content="index, follow" />
+<meta name="robots" content="${indexable ? "index, follow, max-image-preview:large" : "noindex, follow"}" />
 
 <meta property="og:type" content="website" />
 <meta property="og:title" content="${esc(title)}" />
@@ -228,6 +484,11 @@ function renderPage(scheme, lang) {
 <script type="application/ld+json">${jsonLd}</script>
 <script type="application/ld+json">${faqLd}</script>
 <script type="application/ld+json">${crumbLd}</script>
+<script type="application/ld+json">${JSON.stringify({
+  "@context": "https://schema.org", "@type": "WebPage", "name": title, "url": pageUrl, "inLanguage": isHindi ? "hi-IN" : "en-IN",
+  ...(checked0 ? { "dateModified": checked0 } : {}),
+  "publisher": { "@type": "Organization", "name": "YojanaSahay", "url": `${SITE_URL}/` },
+})}</script>
 
 <style>
   :root{color-scheme:light dark;}
@@ -274,6 +535,12 @@ function renderPage(scheme, lang) {
   .how{ font-size:14.5px; line-height:1.6; color:#44403c; margin:0; }
   .note{ font-size:12px; color:#a8a29e; margin:6px 0 0; }
   .checked{ font-size:12px; color:#a8a29e; text-align:center; margin-top:18px; }
+  .notice{ font-size:12.5px; line-height:1.5; color:#57534e; background:#f5f5f4; border:1px solid #e7e5e4; border-radius:10px; padding:9px 12px; margin:0 0 16px; }
+  .guide{ background:#fff; border:1px solid #e7e5e4; border-radius:14px; padding:6px 16px 14px; margin:18px 0; }
+  .guide ol, .guide ul{ padding-left:20px; } .guide li{ margin:4px 0; }
+  .help{ font-size:13.5px; font-weight:600; color:#1c1917; margin:10px 0 0; }
+  .catlinks a{ display:inline-block; margin:4px 6px 0 0; padding:5px 10px; border:1px solid #fed7aa; border-radius:99px; font-size:12.5px; color:#9a3412; text-decoration:none; background:#fff7ed; }
+  .trust{ margin-top:10px; } .trust a{ margin:0 6px; }
   footer{ margin-top:40px; font-size:12px; color:#a8a29e; text-align:center; }
   .about{ font-size:15px; line-height:1.65; color:#44403c; margin:0 0 16px; }
   table.facts{ width:100%; border-collapse:collapse; font-size:14px; margin:4px 0 6px; }
@@ -291,12 +558,16 @@ function renderPage(scheme, lang) {
     li{ color:#d6d3d1; }
     .about, details p{ color:#d6d3d1; } table.facts td{ color:#f5f5f4; border-color:#292524; } table.facts th{ border-color:#292524; }
     details{ background:#1c1917; border-color:#292524; }
+    .notice{ background:#1c1917; border-color:#292524; color:#d6d3d1; } .guide{ background:#1c1917; border-color:#292524; } .help{ color:#f5f5f4; }
   }
 </style>
 </head>
 <body>
   <div class="wrap">
     <nav class="crumbs"><a href="/">YojanaSahay</a> › <a href="${hubHref}">${esc(hubName)}</a></nav>
+    <p class="notice">${isHindi
+      ? "ℹ️ YojanaSahay एक मुफ्त, स्वतंत्र गाइड है — सरकारी वेबसाइट नहीं। हम कभी पैसे या OTP नहीं मांगते। आवेदन केवल आधिकारिक .gov.in साइट पर करें।"
+      : "ℹ️ YojanaSahay is a free, independent guide — not a government website. We never ask for money or OTP. Apply only on the official .gov.in website."}</p>
     <span class="badge">${esc(stateLabel)} · ${esc(tag)}</span>
     <h1>${esc(name)}</h1>
     ${ministry ? `<div class="ministry">${esc(ministry)}</div>` : ""}
@@ -336,6 +607,20 @@ ${docsListItems}
     <h2>${isHindi ? "आवेदन कैसे करें" : "How to Apply"}</h2>
     <p class="how">${esc(applyText)}</p>` : ""}
 
+    ${guide ? `
+    <div class="guide" id="status">
+      <h2>${isHindi ? `${esc(name)} का स्टेटस कैसे देखें` : `How to check ${esc(name)} status`}</h2>
+      <ol>
+${guide.status.map(t => `        <li>${esc(t)}</li>`).join("\n")}
+      </ol>
+      <h2>${isHindi ? "पैसे / लाभ नहीं मिला? क्या करें" : "Money or benefit not received? What to do"}</h2>
+      <ul>
+${guide.notReceived.map(t => `        <li>${esc(t)}</li>`).join("\n")}
+      </ul>
+      <p class="help">📞 ${esc(guide.help)}</p>
+      <p class="note">${isHindi ? `ये चरण ${GUIDES_REVIEWED} में जांचे गए — प्रक्रिया बदल सकती है, आधिकारिक पोर्टल पर पुष्टि करें।` : `Steps reviewed ${GUIDES_REVIEWED} — processes can change, confirm on the official portal.`}</p>
+    </div>` : ""}
+
     <a class="cta" href="${deepLink}">
       ${isHindi ? "YojanaSahay ऐप में खोलें और पात्रता जांचें →" : "Open in YojanaSahay App & Check Eligibility →"}
     </a>
@@ -354,6 +639,15 @@ ${related.map(r => `      <li><a href="/${langPath}/${slugify(r.id)}.html">${esc
     </ul>
     <a class="cta-sub" href="${hubHref}">${isHindi ? `सभी ${hub.schemes.length} योजनाएं देखें →` : `See all ${hub.schemes.length} schemes →`}</a>` : ""}
 
+
+    ${myCats.length ? `
+    <h2>${isHindi ? "इसी तरह की और योजनाएं" : "Browse similar schemes"}</h2>
+    <p class="catlinks">${myCats.map(c => {
+      const sf = scheme.scope === "state" && CAT_STATE.has(catFile(c, scheme.state)) ? catFile(c, scheme.state) : null;
+      return (sf ? `<a href="/${langPath}/${sf}.html">${c.icon} ${esc(isHindi ? `${scheme.state} में ${c.hi} के लिए योजनाएं` : `${c.en} schemes in ${scheme.state}`)}</a>` : "")
+        + `<a href="/${langPath}/${catFile(c)}.html">${c.icon} ${esc(isHindi ? `${c.hi} के लिए सभी योजनाएं` : `All schemes for ${c.en}`)}</a>`;
+    }).join("")}</p>` : ""}
+
     <h2>${isHindi ? "अक्सर पूछे जाने वाले सवाल" : "Frequently asked questions"}</h2>
 ${faqs.map(([q, a]) => `    <details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("\n")}
 
@@ -365,10 +659,7 @@ ${similar.map(r => `      <li><a href="/${langPath}/${slugify(r.id)}.html">${esc
 
     ${checked ? `<p class="checked">${isHindi ? "आधिकारिक लिंक अंतिम बार जांचा गया" : "Official link last checked"}: ${checked}</p>` : ""}
 
-    <footer>
-      ${isHindi ? "YojanaSahay भारत सरकार से संबद्ध नहीं है। यह एक स्वतंत्र नागरिक तकनीक मंच है।" : "YojanaSahay is an independent civic-tech platform, not affiliated with the Government of India."}
-      <br/><a href="${SITE_URL}/">yojanasahay.vercel.app</a>
-    </footer>
+    ${trustFooter(isHindi)}
   </div>
 </body>
 </html>`;
@@ -380,13 +671,14 @@ function renderHub(hub, lang, allHubs) {
   const langPath = isHindi ? "yojana" : "schemes";
   const place = hub.state ?? (isHindi ? "केंद्र सरकार" : "Central Government");
   const title = isHindi
-    ? `${place} की सरकारी योजनाएं (${hub.schemes.length}) – पात्रता और आवेदन | YojanaSahay`
-    : `${place} Government Schemes List (${hub.schemes.length}) – Eligibility & Apply | YojanaSahay`;
+    ? `${place} की सरकारी योजनाएं ${YEAR} – ${hub.schemes.length} योजनाओं की सूची | YojanaSahay`
+    : `${place} Government Schemes List ${YEAR} – ${hub.schemes.length} Yojanas | YojanaSahay`;
   const desc = isHindi
     ? `${place} की ${hub.schemes.length} सरकारी योजनाओं की सूची — लाभ, ज़रूरी दस्तावेज़ और आवेदन का तरीका। मुफ्त में पात्रता जांचें।`
     : `List of ${hub.schemes.length} ${place} government schemes — benefits, required documents and how to apply. Check your eligibility free.`;
   const url = `${SITE_URL}/${langPath}/${hub.key}.html`;
   const items = hub.schemes.map(x => `      <li><a href="/${langPath}/${slugify(x.id)}.html">${esc(x.name[lang] || x.name.en)}</a><span> — ${esc(x.benefit?.[lang] || x.benefit?.en || "")}</span></li>`).join("\n");
+  const hubCats = hub.state ? CAT_HUBS.filter(h => h.state === hub.state) : CAT_HUBS.filter(h => !h.state);
   const others = allHubs.filter(h => h.key !== hub.key).map(h => `<a href="/${langPath}/${h.key}.html">${esc(h.state ?? (isHindi ? "केंद्र सरकार" : "Central"))}</a>`).join(" · ");
   return `<!DOCTYPE html>
 <html lang="${isHindi ? "hi" : "en"}">
@@ -411,19 +703,26 @@ function renderHub(hub, lang, allHubs) {
   .cta{display:block;text-align:center;text-decoration:none;background:#FF9933;color:#fff;font-weight:700;padding:14px;border-radius:12px;margin:22px 0;}
   .others{font-size:13px;line-height:2;color:#78716c;} .others a{color:#78716c;}
   .crumbs{font-size:12.5px;color:#78716c;margin-bottom:12px;} .crumbs a{color:#c2410c;text-decoration:none;}
-  @media (prefers-color-scheme: dark){ body{background:#111;color:#f5f5f4;} li,li span{color:#d6d3d1;} p.lead{color:#a8a29e;} }
+  .notice{font-size:12.5px;line-height:1.5;color:#57534e;background:#f5f5f4;border:1px solid #e7e5e4;border-radius:10px;padding:9px 12px;margin:0 0 16px;}
+  .catlinks a{display:inline-block;margin:4px 6px 0 0;padding:5px 10px;border:1px solid #fed7aa;border-radius:99px;font-size:12.5px;color:#9a3412;text-decoration:none;background:#fff7ed;}
+  footer{margin-top:40px;font-size:12px;color:#a8a29e;text-align:center;line-height:1.8;} footer a{color:#a8a29e;} .trust a{margin:0 6px;}
+  @media (prefers-color-scheme: dark){ body{background:#111;color:#f5f5f4;} li,li span{color:#d6d3d1;} p.lead{color:#a8a29e;} .notice{background:#1c1917;border-color:#292524;color:#d6d3d1;} }
 </style>
 </head>
 <body><div class="wrap">
   <nav class="crumbs"><a href="/">YojanaSahay</a> › ${esc(place)}</nav>
+  ${NOTICE(isHindi)}
   <h1>${esc(isHindi ? `${place} की सरकारी योजनाएं` : `${place} Government Schemes`)}</h1>
   <p class="lead">${esc(desc)}</p>
   <a class="cta" href="${SITE_URL}/">${isHindi ? "ऐप में अपनी पात्रता जांचें →" : "Check which ones you qualify for →"}</a>
   <ul>
 ${items}
   </ul>
+  ${hubCats.length ? `<h2 style="font-size:15px">${isHindi ? "श्रेणी के अनुसार" : "By category"}</h2>
+  <p class="catlinks">${hubCats.map(h => `<a href="/${langPath}/${h.file}.html">${h.cat.icon} ${esc(isHindi ? h.cat.hi : h.cat.en)} (${h.schemes.length})</a>`).join("")}</p>` : ""}
   <h2 style="font-size:15px">${isHindi ? "अन्य राज्य" : "Other states"}</h2>
   <p class="others">${others}</p>
+  ${trustFooter(isHindi)}
 </div></body></html>`;
 }
 
@@ -450,7 +749,21 @@ function main() {
     sitemapEntries.push({ loc: `${SITE_URL}/yojana/${hub.key}.html`,  lastmod: last });
   }
 
-  let count = 0;
+  // Category hubs
+  for (const hub of CAT_HUBS) {
+    if (ids.has(hub.file)) throw new Error(`Category page ${hub.file} clashes with a scheme id`);
+    fs.writeFileSync(path.join(schemesDir, `${hub.file}.html`), renderCatHub(hub, "en"), "utf8");
+    fs.writeFileSync(path.join(yojanaDir,   `${hub.file}.html`), renderCatHub(hub, "hi"), "utf8");
+    sitemapEntries.push({ loc: `${SITE_URL}/schemes/${hub.file}.html` });
+    sitemapEntries.push({ loc: `${SITE_URL}/yojana/${hub.file}.html` });
+  }
+  // Trust pages
+  for (const kind of ["about", "how-we-verify", "contact"]) {
+    fs.writeFileSync(path.join(ROOT, "public", `${kind}.html`), renderTrust(kind), "utf8");
+    sitemapEntries.push({ loc: `${SITE_URL}/${kind}.html` });
+  }
+
+  let count = 0, indexed = 0;
   for (const scheme of SCHEME_DB) {
     if (!scheme?.id || !scheme?.name?.en) continue; // skip malformed entries safely
     const slug = slugify(scheme.id);
@@ -461,9 +774,13 @@ function main() {
     fs.writeFileSync(path.join(schemesDir, `${slug}.html`), enHtml, "utf8");
     fs.writeFileSync(path.join(yojanaDir,   `${slug}.html`), hiHtml, "utf8");
 
-    const lastmod = checkedDate(scheme.id);
-    sitemapEntries.push({ loc: `${SITE_URL}/schemes/${slug}.html`, lastmod });
-    sitemapEntries.push({ loc: `${SITE_URL}/yojana/${slug}.html`,  lastmod });
+    // Only pages offered to Google go in the sitemap.
+    if (isIndexable(scheme)) {
+      const lastmod = checkedDate(scheme.id);
+      sitemapEntries.push({ loc: `${SITE_URL}/schemes/${slug}.html`, lastmod });
+      sitemapEntries.push({ loc: `${SITE_URL}/yojana/${slug}.html`,  lastmod });
+      indexed++;
+    }
 
     count++;
   }
@@ -480,6 +797,8 @@ ${sitemapEntries.map(e => `  <url><loc>${e.loc}</loc>${e.lastmod ? `<lastmod>${e
 
   console.log(`✓ Generated ${count} schemes × 2 languages = ${count * 2} static pages`);
   console.log(`✓ ${hubs.length} state/central list pages × 2 languages`);
+  console.log(`✓ ${CAT_HUBS.length} category pages × 2 languages · 3 trust pages`);
+  console.log(`✓ ${indexed} schemes offered to Google (index + sitemap); ${count - indexed} kept noindex until their data is fuller`);
   console.log(`✓ sitemap.xml updated with ${sitemapEntries.length} URLs`);
 }
 

@@ -1,0 +1,25 @@
+name: IndexNow (Bing) ping
+
+# After scheme data or the page generator changes, tell Bing & co. which pages
+# exist, so they're crawled within days instead of weeks.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/schemesData.js"
+      - "src/states/**"
+      - "scripts/generate-scheme-pages.mjs"
+      - "scripts/seo-guides.mjs"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Give Vercel time to finish deploying the new pages.
+      - run: sleep 240
+      - run: node scripts/indexnow.mjs
