@@ -27,7 +27,7 @@ function monthlyAmount(s) {
 const WOMEN_CASH = /women|woman|mahila|homemaker|housewife/i;
 const NOT_CASH = /hostel|stipend|scholar|training|pension|after|loan|insurance|widow|creche|nutrition|ration|grain|wage|unemploy/i;
 // Social-security pensions that are paid now (not "₹3,000/month after age 60").
-const PENSION_NAME = /old.?age|vridh|vriddh|budhapa|widow|vidhwa|vidhva|disab|divyang|viklang|nirashrit|niradhar|social security|sandhya suraksha|aasara|samman allowance|madhu babu|pension kanuka|jai bangla|ganga swarupa|shravan bal|sanjay gandhi|parityakta|avivahit|abandoned wom|unmarried wom/i;
+const PENSION_NAME = /old.?age|vridh|vriddh|budhapa|widow|vidhwa|vidhva|disab|divyang|viklang|nirashrit|niradhar|social security|sandhya suraksha|aasara|samman allowance|madhu babu|pension kanuka|jai bangla|ganga swarupa|shravan bal|sanjay gandhi|parityakta|avivahit|abandoned wom|unmarried wom|samajik suraksha/i;
 const LATER_PENSION = /after (the )?age|at age 60|on reaching|after 60|on turning|invest/i;
 // Pension savings where the person pays every month until 60.
 const CONTRIB_IDS = new Set(["apy", "pmkmy", "pmkmy_kisan", "pmlvmy"]);
