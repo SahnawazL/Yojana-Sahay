@@ -52,8 +52,9 @@ export function SchemeFlagNotice({ schemeId, lang, dark }) {
   }, [schemeId]);
   if (!f) return null;
   const isHindi = lang === "hi";
-  const linkDown = f.link?.alive === false && (f.link?.count || 0) >= 2 && recent(f.link?.lastAt, 14);
-  const details = ["amount", "closed", "eligibility"].some(k => (f[k]?.count || 0) >= 2 && recent(f[k]?.lastAt, 30));
+  const active = (k) => f[k] && f[k].status !== "resolved";
+  const linkDown = active("link") && f.link?.alive === false && (f.link?.count || 0) >= 2 && recent(f.link?.lastAt, 14);
+  const details = ["amount", "closed", "eligibility"].some(k => active(k) && (f[k]?.count || 0) >= 2 && recent(f[k]?.lastAt, 30));
   if (!linkDown && !details) return null;
   const text = linkDown
     ? (isHindi ? "कुछ लोगों ने बताया कि इस योजना का लिंक अभी काम नहीं कर रहा। हम इसे ठीक कर रहे हैं — तब तक 'गूगल पर खोजें' से आधिकारिक पेज ढूंढें।"
@@ -105,7 +106,13 @@ export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
         // the admin resolving the report removes that reason from it.
         let f = {};
         try { const d = await getDoc(doc(db, "schemeFlags", sid)); f = d.exists() ? d.data() : {}; } catch { /* keep "open" */ }
-        list = local.map(x => ({ ...x, status: f[x.reason] ? "open" : (Date.now() - x.at > 60000 ? "resolved" : "open") }));
+        // status + team reply as the admin set them (older reports without a
+        // status: entry gone = resolved)
+        list = local.map(x => {
+          const e = f[x.reason];
+          const status = e ? (e.status || "open") : (Date.now() - x.at > 60000 ? "resolved" : "open");
+          return { ...x, status, reply: e?.reply || "" };
+        });
       }
       // newest report per reason
       const seen = new Set();

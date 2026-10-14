@@ -377,13 +377,22 @@ async function handleFlag(req, res, body, db, app) {
     }
   }
 
-  // Public summary for the in-app warning
-  await db.collection("schemeFlags").doc(sid).set({
-    [reason]: {
-      count: FieldValue.increment(1), lastAt: new Date().toISOString(),
-      ...(linkCheck ? { alive: linkCheck.alive } : {}),
-    },
-  }, { merge: true }).catch(() => {});
+  // Public summary: in-app warning + status/reply for people not signed in.
+  // A report after the last one was resolved starts a fresh round.
+  try {
+    const fRef = db.collection("schemeFlags").doc(sid);
+    const cur = ((await fRef.get()).data() || {})[reason];
+    const fresh = !cur || cur.status === "resolved";
+    await fRef.set({
+      [reason]: {
+        count: fresh ? 1 : FieldValue.increment(1),
+        status: fresh ? "open" : (cur.status || "open"),
+        lastAt: new Date().toISOString(),
+        ...(fresh ? { reply: FieldValue.delete() } : {}),
+        ...(linkCheck ? { alive: linkCheck.alive } : {}),
+      },
+    }, { merge: true });
+  } catch { /* summary is best-effort */ }
 
   res.status(200).json({ ok: true, merged, flagCount, linkAlive: linkCheck ? linkCheck.alive : undefined, signedIn: !!user });
 }

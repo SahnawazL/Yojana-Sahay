@@ -12,7 +12,7 @@
 // and Cleanup tab for purging old resolved reports.
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDoc, onSnapshot, deleteField } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
@@ -2625,8 +2625,17 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
                         </div>
                       </div>
 
-                      {/* No email warning */}
-                      {!report.userEmail && (
+                      {/* Signed-out scheme report: the reply is shown on the scheme instead of emailed */}
+                      {report.source === "scheme_flag" && report.uid === "guest" ? (
+                        <div style={{
+                          fontSize:10, color:"#2563EB", fontWeight:600,
+                          background: dark ? "rgba(37,99,235,0.12)" : "#EFF6FF",
+                          border:"1px solid rgba(37,99,235,0.3)",
+                          borderRadius:8, padding:"6px 10px",
+                        }}>
+                          ℹ️ Reported without sign-in — your reply and status are shown on this scheme to the people who reported it (not emailed). Keep it general, no personal details.
+                        </div>
+                      ) : !report.userEmail && (
                         <div style={{
                           fontSize:10, color:SAFFRON, fontWeight:600,
                           background: dark ? "rgba(255,153,51,0.1)" : "#FFFBEB",
@@ -9431,10 +9440,15 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           onRefresh={fetchReports}
           onLogActivity={logActivity}
           onStatusChange={async (reportId, newStatus, replyData) => {
-            // Resolving a scheme ⚑ report also removes the warning users see on that scheme.
+            // Scheme ⚑ reports: mirror status (and, for signed-out reporters, your
+            // reply) to the scheme's public summary — that's where people who
+            // weren't signed in see it. Resolved also ends the warning on the scheme.
             const rep = reports.find(r => r.id === reportId);
-            if (newStatus === "resolved" && rep?.source === "scheme_flag" && rep.schemeId && rep.flagReason) {
-              updateDoc(doc(db, "schemeFlags", rep.schemeId), { [rep.flagReason]: deleteField() }).catch(() => {});
+            if (rep?.source === "scheme_flag" && rep.schemeId && rep.flagReason) {
+              const k = rep.flagReason;
+              const upd = { [`${k}.status`]: newStatus, [`${k}.updatedAt`]: new Date().toISOString() };
+              if (rep.uid === "guest" && replyData?.text) upd[`${k}.reply`] = String(replyData.text).slice(0, 600);
+              updateDoc(doc(db, "schemeFlags", rep.schemeId), upd).catch(() => {});
             }
             if (replyData) {
               // Called after reply already saved to Firestore — just sync local state
