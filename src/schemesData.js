@@ -1254,6 +1254,7 @@ export const SCHEME_DB = [
     benefit: { en: "Free market-driven skill training (3–12 months) for minority youth + placement assistance · Stipend during training", hi: "अल्पसंख्यक युवाओं के लिए मुफ्त कौशल प्रशिक्षण (3–12 माह) + रोजगार सहायता · प्रशिक्षण के दौरान वजीफा" },
     tag:     { en: "Skill / Youth", hi: "कौशल / युवा" },
     annual: 18000,
+    audience: "minority", // for minority-community youth only
     apply:   { en: "https://my.msme.gov.in/MyMsmeMob/MsmeScheme/Pages/8_2.html", hi: "seekhoaurkamao-moma.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Minority Community Certificate (Muslim/Christian/Sikh/Buddhist/Jain/Parsi)","Educational Certificate","Bank Account","Passport Photo"],
                hi: ["आधार कार्ड","अल्पसंख्यक समुदाय प्रमाण पत्र","शैक्षणिक प्रमाण","बैंक खाता","पासपोर्ट फोटो"] },

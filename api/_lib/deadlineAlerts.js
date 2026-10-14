@@ -232,7 +232,7 @@ function buildProfileAnswers(profile) {
     ...(profile.occupation === "farmer"  && profile.landHolding    ? { landHolding: profile.landHolding }       : {}),
     ...(profile.occupation === "farmer"  && profile.kisanCard      ? { kisanCard: profile.kisanCard }           : {}),
     ...(profile.occupation === "student" && profile.educationLevel ? { educationLevel: profile.educationLevel } : {}),
-    ...(profile.ration && profile.ration !== "none"                ? { rationCard: profile.ration }             : {}),
+    ...(profile.ration                                             ? { rationCard: profile.ration }             : {}),
     ...(profile.disability ? { disability: profile.disability } : {}),
     ...(profile.gender     ? { gender: profile.gender }         : {}),
     ...(profile.marital    ? { marital: profile.marital }       : {}),

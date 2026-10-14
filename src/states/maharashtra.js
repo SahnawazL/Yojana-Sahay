@@ -943,7 +943,7 @@ export const MAHARASHTRA_SCHEMES = [
     docs:    { en: ["Aadhaar Card / Company PAN", "Project Report / DPR", "Land Ownership / Lease Deed", "Bank Loan Sanction Letter", "7/12 Land Extract (farmers)", "FPO / Society Registration (if applicable)"],
                hi: ["आधार कार्ड / कंपनी PAN", "परियोजना रिपोर्ट / DPR", "भूमि स्वामित्व / लीज डीड", "बैंक लोन स्वीकृति पत्र", "7/12 उतारा (किसानों के लिए)", "FPO / सोसायटी पंजीकरण (यदि लागू)"] },
     duplicateOf: "aif", // same scheme as the central / main entry — hidden when that one already matches
-    match: (a) => a.state === "Maharashtra" && (a.who === "farmer" || a.who === "business") && ["3to6","6to10","above10"].includes(a.income),
+    match: (a) => a.state === "Maharashtra" && (a.who === "farmer" || a.who === "business") && ["3to6","above6"].includes(a.income),
   },
 
   // ── Sericulture ───────────────────────────────────────────────────────────────
@@ -1075,7 +1075,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://transport.maharashtra.gov.in", hi: "transport.maharashtra.gov.in / अधिकृत डीलरमार्फत RTO नोंदणीवेळी" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Vehicle Purchase Invoice (approved EV model)", "Maharashtra Address Proof", "Bank Passbook", "Vehicle Registration Certificate (RC)"],
                hi: ["आधार कार्ड", "वाहन खरेदी चलान (मंजूर EV मॉडेल)", "महाराष्ट्र पता प्रमाण", "बैंक पासबुक", "वाहन नोंदणी प्रमाणपत्र (RC)"] },
-    match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6","6to10"].includes(a.income),
+    match: (a) => a.state === "Maharashtra" && ["below1","1to3","3to6","above6"].includes(a.income),
   },
 
   // ── Farm Machinery ────────────────────────────────────────────────────────────
@@ -1173,7 +1173,7 @@ export const MAHARASHTRA_SCHEMES = [
     apply:   { en: "https://sfacindia.com", hi: "https://mahadbt.maharashtra.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (all promoter farmers)", "7/12 Land Extract (members)", "FPO Registration Certificate (Companies Act / Cooperative Society)", "Business Plan", "Bank Account in FPO's name"],
                hi: ["आधार कार्ड (सर्व प्रवर्तक शेतकरी)", "7/12 उतारा (सदस्य)", "FPO नोंदणी प्रमाणपत्र (कंपनी कायदा/सहकारी संस्था)", "व्यापार योजना", "FPO च्या नावे बैंक खाते"] },
-    match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["1to3","3to6","6to10"].includes(a.income),
+    match: (a) => a.state === "Maharashtra" && a.who === "farmer" && ["1to3","3to6","above6"].includes(a.income),
   },
 
   // ── Disability – Employment ───────────────────────────────────────────────────

@@ -2488,7 +2488,10 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
                 setChatAnswers(ans);
                 try {
                   localStorage.setItem(chatAnsKey, JSON.stringify(ans));
-                  localStorage.setItem("yojana_eligibility_answers", JSON.stringify(ans));
+                  // Same shape the eligibility quiz saves (finished → shows results),
+                  // and tell Home so its cards update without a reload.
+                  localStorage.setItem("yojana_eligibility_answers", JSON.stringify({ answers: ans, step: 999, v: 2 }));
+                  window.dispatchEvent(new Event("ys-quiz-saved"));
                 } catch {}
               }
             }}

@@ -13,7 +13,7 @@
 
 import { whoCanApply } from "./eligibilityText.js";
 import { shareBenefitCard, shortINR } from "./shareCard.js";
-import { benefitSummary, benefitKind, topBenefits, valueLabel } from "./benefitMath.js";
+import { benefitSummary, benefitKind, topBenefits, valueLabel, exclusiveGroup } from "./benefitMath.js";
 import { nicheAudience, groupByAudience, audienceApplies as audienceAppliesShared } from "./audience.js";
 import { useApplications, initApplications, mergeRemote, setRemoteWriter, trackApplication, updateApplication, snoozeApplication, removeApplication, isDueForCheck, daysSince, STATUS_TEXT, CHECK_AFTER_DAYS } from "./applications.js";
 import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamily, initFamily, saveMember, removeMember } from "./family.js";
@@ -405,7 +405,7 @@ function buildProfileAnswers(profile){
     ...(profile.occupation==="farmer"&&profile.landHolding?{landHolding:profile.landHolding}:{}),
     ...(profile.occupation==="farmer"&&profile.kisanCard?{kisanCard:profile.kisanCard}:{}),
     ...(profile.occupation==="student"&&profile.educationLevel?{educationLevel:profile.educationLevel}:{}),
-    ...(profile.ration&&profile.ration!=="none"?{rationCard:profile.ration}:{}),
+    ...(profile.ration?{rationCard:profile.ration}:{}), // "none" too — they told us, so the quiz doesn't ask again
     ...(profile.disability?{disability:profile.disability}:{}),
     ...(profile.gender?{gender:profile.gender}:{}),
     ...(profile.marital?{marital:profile.marital}:{}),
@@ -421,7 +421,20 @@ function buildProfileAnswers(profile){
 // matches — so nobody sees the same scheme twice or gets it counted twice.
 const SCHEME_BY_ID=new Map(SCHEME_DB.map(s=>[s.id,s]));
 // Distinct schemes (duplicate listings don't count twice in the numbers we show).
-const UNIQUE_SCHEME_COUNT=SCHEME_DB.filter(s=>!s.duplicateOf).length;
+// A scheme's colour used as text on the dark benefit card — dark blues/greens
+// were nearly invisible there, so they're lifted towards white.
+function onDarkColor(hex){
+  const m=/^#?([0-9a-f]{6})$/i.exec(String(hex||""));
+  if(!m) return "#FDE68A";
+  const n=parseInt(m[1],16), r=n>>16&255, g=n>>8&255, b=n&255;
+  const lum=(0.2126*r+0.7152*g+0.0722*b)/255;
+  if(lum>=0.45) return `#${m[1]}`;
+  const mix=c=>Math.round(c+(255-c)*0.55);
+  return `rgb(${mix(r)},${mix(g)},${mix(b)})`;
+}
+const UNIQUE_SCHEME_COUNT=SCHEME_DB.filter(s=>!s.duplicateOf&&!s.closed).length; // open schemes only
+// States & UTs that have their own schemes in the app (not a hard-coded 28).
+const STATE_COVERAGE=new Set(SCHEME_DB.filter(s=>s.scope==="state"&&s.state).map(s=>s.state)).size;
 // Main results leave out schemes for special groups (govt employees, athletes,
 // construction workers…) — the quiz can't know those, so they're listed in
 // their own "if this applies to you" section instead of inflating the totals.
@@ -854,7 +867,7 @@ const T = {
     greeting:(n)=> n ? `Namaste, ${n} 🙏` : "Namaste, Citizen 🙏",
     headline:"Find Your Schemes", subheadline:"Discover benefits you truly deserve",
     searchPlaceholder:"Search schemes...", searchBtn:"Search",
-    stats:[{number:"—",label:"Schemes"},{number:"28",label:"States"},{number:"—",label:"Indians Helped"}],
+    stats:[{number:"—",label:"Schemes"},{number:"—",label:"States & UTs"},{number:"—",label:"Indians Helped"}],
     aiBannerTitle:"Ask AI Assistant", aiBannerSub:"Ask anything about any scheme in Hindi or English",
     categoriesTitle:"Categories", categoriesSub:"Browse by Category", seeAll:"See All →",
     ctaTitle:"Check Eligibility",
@@ -1026,7 +1039,7 @@ const T = {
     greeting:(n)=> n ? `नमस्ते, ${n} 🙏` : "नमस्ते, नागरिक 🙏",
     headline:"आपकी योजनाएं खोजें", subheadline:"जानें आप किन लाभों के हकदार हैं",
     searchPlaceholder:"योजना खोजें...", searchBtn:"खोजें",
-    stats:[{number:"—",label:"योजनाएं"},{number:"28",label:"राज्य"},{number:"—",label:"मदद मिली"}],
+    stats:[{number:"—",label:"योजनाएं"},{number:"—",label:"राज्य व UT"},{number:"—",label:"मदद मिली"}],
     aiBannerTitle:"AI सहायक से पूछें", aiBannerSub:"हिंदी या अंग्रेज़ी में कोई भी सवाल पूछें",
     categoriesTitle:"श्रेणियां", categoriesSub:"श्रेणी के अनुसार देखें", seeAll:"सभी देखें →",
     ctaTitle:"पात्रता जांचें",
@@ -2518,20 +2531,38 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
     try{setDocChecked(JSON.parse(localStorage.getItem(checkKey)||"{}"));}
     catch{setDocChecked({});}
   },[checkKey]);
+  // The Home "Document checklist" (one list for all your schemes) and this
+  // per-scheme list now agree: a document ticked in either place counts here,
+  // and ticking it here ticks it on Home and in every other scheme too.
+  const vaultKey=`yojana_doc_vault_${uid}`;
+  const [vault,setVault]=useState({});
+  useEffect(()=>{ try{setVault(JSON.parse(localStorage.getItem(vaultKey)||"{}"));}catch{setVault({});} },[vaultKey]);
+  const enDocs=scheme?.docs?.en||[];
+  const isDocChecked=(i)=>!!(docChecked[i]||(enDocs[i]&&vault[canonicalDocKey(enDocs[i])]));
   const toggleDoc=useCallback((i)=>{
     haptic(30);
+    const val=!(docChecked[i]||(enDocs[i]&&vault[canonicalDocKey(enDocs[i])]));
     setDocChecked(prev=>{
-      const next={...prev,[i]:!prev[i]};
+      const next={...prev,[i]:val};
       try{localStorage.setItem(checkKey,JSON.stringify(next));}catch{}
       return next;
     });
-  },[checkKey]);
+    if(enDocs[i]){
+      const ck=canonicalDocKey(enDocs[i]);
+      setVault(prev=>{
+        const next={...prev,[ck]:val};
+        try{localStorage.setItem(vaultKey,JSON.stringify(next)); window.dispatchEvent(new Event("ys-docs-changed"));}catch{}
+        return next;
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[checkKey,vaultKey,docChecked,vault,schemeId]);
 
   if(!scheme)return null;
 
   const docList=scheme.docs[lang]||[];
   const docTotal=docList.length;
-  const docDone=docList.filter((_,i)=>docChecked[i]).length;
+  const docDone=docList.filter((_,i)=>isDocChecked(i)).length;
   const allDocsDone=docTotal>0&&docDone===docTotal;
 
   // Builds a plain-text version of the checklist for WhatsApp sharing
@@ -2545,7 +2576,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
       `🔗 ${schemePageUrl(scheme,lang)}`,
       "",
       isHindi?"ज़रूरी दस्तावेज़:":"Documents needed:",
-      ...docList.map((d,i)=>`${docChecked[i]?"✅":"⬜"} ${d}`),
+      ...docList.map((d,i)=>`${isDocChecked(i)?"✅":"⬜"} ${d}`),
       "",
       applyUrl
         ?(isHindi?`आवेदन करें: ${applyUrl}`:`Apply here: ${applyUrl}`)
@@ -2628,7 +2659,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
           {/* ── STEP 1 — Gather Documents (tap to check off) ── */}
           <div style={{background:th.card2,borderRadius:16,padding:"4px 15px",marginBottom:14,border:`1px solid ${th.border}`}}>
             {docList.map((doc,i)=>{
-              const isChecked=!!docChecked[i];
+              const isChecked=isDocChecked(i);
               return(
                 <div key={i} onClick={()=>toggleDoc(i)}
                   style={{display:"flex",alignItems:"center",gap:11,padding:"12px 4px",margin:"0 -4px",borderRadius:10,borderBottom:i<docList.length-1?`1px solid ${th.border}`:"none",cursor:"pointer",WebkitTapHighlightColor:"transparent",transition:"transform 0.15s cubic-bezier(0.22,1,0.36,1), background 0.2s",willChange:"transform"}}
@@ -5819,6 +5850,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   const [setupInstitutionType,setSetupInstitutionType]=useState(profile?.institutionType||"");
   const [setupNumChildren,    setSetupNumChildren]    =useState(profile?.numChildren    ||"");
   const [setupHasGirls,       setSetupHasGirls]       =useState(profile?.hasGirls       ||"");
+  const [setupGroups,         setSetupGroups]         =useState(null); // null = not touched in this setup
   const [authLoading,setAuthLoading]=useState(false);
   const [authError,setAuthError]=useState("");
   const [googleLoading,setGoogleLoading]=useState(false);
@@ -5854,9 +5886,36 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   const confirmationRef=useRef(null);
 
   // Read eligibility checker saved answers for pre-fill
-  const savedAnswers=useMemo(()=>{
-    try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")||null;}catch{return null;}
-  },[]);
+  // Saved as {answers, step, v:2} since the adaptive quiz — older phones may
+  // still have the bare answers object. Read at the moment it's needed (the
+  // quiz may have been finished after this screen mounted).
+  const readSavedAnswers=()=>{
+    try{
+      const v=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+      const a=v?.answers&&typeof v.step==="number"?v.answers:v;
+      return a&&typeof a==="object"?a:null;
+    }catch{return null;}
+  };
+  // Pre-fill profile setup from a quiz finished on this phone — every field the
+  // quiz asked, so nobody answers the same question twice.
+  const prefillFromQuiz=()=>{
+    const a=readSavedAnswers();
+    if(!a) return;
+    if(a.state){setSetupState(a.state);setStateSearch(a.state);}
+    if(a.who)    setSetupCat(a.who);
+    if(a.income) setSetupIncome(a.income);
+    if(a.age)    setSetupAge(a.age);
+    if(a.area)   setSetupArea(a.area);
+    if(a.house)  setSetupHouse(a.house);
+    if(a.caste)  setSetupCaste(a.caste);
+    if(a.gender) setSetupGender(a.gender);
+    if(a.rationCard) setSetupRation(a.rationCard);
+    if(a.disability) setSetupDisability(a.disability);
+    if(a.landHolding) setSetupLandHolding(a.landHolding);
+    if(a.educationLevel) setSetupEducationLevel(a.educationLevel);
+    if(Array.isArray(a.groups)){ quizGroupsRef.current={groups:a.groups,groupsAsked:a.groupsAsked||[]}; setSetupGroups(a.groups); }
+  };
+  const quizGroupsRef=useRef(null);
 
   // Sync stage if profile changes (e.g. after save or sign-out).
   // Guard against overriding setup stages so Edit Profile flow works correctly.
@@ -5945,15 +6004,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     setAuthLoading(true);setAuthError("");
     try{
       await confirmationRef.current.confirm(otp.join(""));
-      if(savedAnswers){
-        if(savedAnswers.state){setSetupState(savedAnswers.state);setStateSearch(savedAnswers.state);}
-        if(savedAnswers.who)    setSetupCat(savedAnswers.who);
-        if(savedAnswers.income) setSetupIncome(savedAnswers.income);
-        if(savedAnswers.age)    setSetupAge(savedAnswers.age);
-        if(savedAnswers.area)   setSetupArea(savedAnswers.area);
-        if(savedAnswers.house)  setSetupHouse(savedAnswers.house);
-        if(savedAnswers.caste)  setSetupCaste(savedAnswers.caste);
-      }
+      prefillFromQuiz();
       setStage("setup1");
     }catch(err){
       setAuthError("Invalid OTP. Please check and try again.");
@@ -6003,8 +6054,19 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       ...(setupCat==="student"?{educationLevel:setupEducationLevel,institutionType:setupInstitutionType}:{}),
       ...(googleEmail?{email:googleEmail}:{}),
       ...(googlePhoto?{photo:googlePhoto}:{}),
+      // Special groups: picked in this setup, else kept from the profile, else
+      // carried over from a quiz finished on this phone.
+      ...(Array.isArray(setupGroups)?{groups:setupGroups,groupsAsked:GROUP_KEYS}
+        :Array.isArray(profile?.groups)?{groups:profile.groups,groupsAsked:profile.groupsAsked||[]}
+        :quizGroupsRef.current?{...quizGroupsRef.current}:{}),
     };
-    setProfile(profileData);
+    // Keep everything else already on the profile (plan, createdAt, photo…) —
+    // replacing the object dropped those until the next reload. Fields of an
+    // occupation that no longer applies are removed, like in Firestore below.
+    const merged={...(profile||{}),...profileData};
+    if(setupCat!=="farmer"){delete merged.landHolding;delete merged.kisanCard;}
+    if(setupCat!=="student"){delete merged.educationLevel;delete merged.institutionType;}
+    setProfile(merged);
     setStage("dashboard");
     try{
       const uid=auth.currentUser?.uid;
@@ -6044,6 +6106,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     setSetupInstitutionType(profile?.institutionType||"");
     setSetupNumChildren(profile?.numChildren||"");
     setSetupHasGirls(profile?.hasGirls||"");
+    setSetupGroups(Array.isArray(profile?.groups)?profile.groups:null);
     setStage("setup1");
   };
 
@@ -6061,7 +6124,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     setSetupRation("");setSetupDisability("none");setSetupMarital("");setSetupCaste("");
     setSetupLandHolding("");setSetupKisanCard("");
     setSetupEducationLevel("");setSetupInstitutionType("");
-    setSetupNumChildren("");setSetupHasGirls("");
+    setSetupNumChildren("");setSetupHasGirls("");setSetupGroups(null);
     setGoogleEmail("");setGooglePhoto("");setEmailInput("");setPasswordInput("");setShowPassword(false);setEmailTab("signin");
     setStage("phone");
   };
@@ -6075,15 +6138,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     setGoogleEmail(user.email||"");
     setGooglePhoto(user.photoURL||"");
     if(user.displayName) setSetupName(user.displayName);
-    if(savedAnswers){
-      if(savedAnswers.state){setSetupState(savedAnswers.state);setStateSearch(savedAnswers.state);}
-      if(savedAnswers.who)    setSetupCat(savedAnswers.who);
-      if(savedAnswers.income) setSetupIncome(savedAnswers.income);
-      if(savedAnswers.age)    setSetupAge(savedAnswers.age);
-      if(savedAnswers.area)   setSetupArea(savedAnswers.area);
-      if(savedAnswers.house)  setSetupHouse(savedAnswers.house);
-      if(savedAnswers.caste)  setSetupCaste(savedAnswers.caste);
-    }
+    prefillFromQuiz();
     setStage("setup1");
   },[]);
 
@@ -6111,15 +6166,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         }
       }catch{}
       if(user.displayName) setSetupName(user.displayName);
-      if(savedAnswers){
-        if(savedAnswers.state){setSetupState(savedAnswers.state);setStateSearch(savedAnswers.state);}
-        if(savedAnswers.who)    setSetupCat(savedAnswers.who);
-        if(savedAnswers.income) setSetupIncome(savedAnswers.income);
-        if(savedAnswers.age)    setSetupAge(savedAnswers.age);
-        if(savedAnswers.area)   setSetupArea(savedAnswers.area);
-        if(savedAnswers.house)  setSetupHouse(savedAnswers.house);
-        if(savedAnswers.caste)  setSetupCaste(savedAnswers.caste);
-      }
+      prefillFromQuiz();
       setStage("setup1");
       setGoogleLoading(false); // reset spinner for new user entering setup flow
     }).catch(err=>{
@@ -6142,15 +6189,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
   const afterEmailAuth=(email)=>{
     setGoogleEmail(email);
-    if(savedAnswers){
-      if(savedAnswers.state){setSetupState(savedAnswers.state);setStateSearch(savedAnswers.state);}
-      if(savedAnswers.who)    setSetupCat(savedAnswers.who);
-      if(savedAnswers.income) setSetupIncome(savedAnswers.income);
-      if(savedAnswers.age)    setSetupAge(savedAnswers.age);
-      if(savedAnswers.area)   setSetupArea(savedAnswers.area);
-      if(savedAnswers.house)  setSetupHouse(savedAnswers.house);
-      if(savedAnswers.caste)  setSetupCaste(savedAnswers.caste);
-    }
+    prefillFromQuiz();
     setStage("setup1");
   };
 
@@ -6846,7 +6885,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
   // ── STAGE: SETUP 2 — State + Category ────────────────────────────────────────
   if(stage==="setup2"){
     const canSave=!!setupState&&!!setupCat;
-    const hasPrefill=!!(savedAnswers?.state||savedAnswers?.who);
+    const quizA=readSavedAnswers(); const hasPrefill=!!(quizA?.state||quizA?.who);
     return(
       <div style={{flex:1,display:"flex",flexDirection:"column",background:th.appBg,overflowY:"auto"}}>
         <TriHeader bg="linear-gradient(135deg,#003580 0%,#1a56db 100%)">
@@ -7319,6 +7358,32 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
               </div>
             </div>
           )}
+
+          {/* ── Special groups (optional) — same list as the eligibility quiz ── */}
+          <div style={{marginBottom:22}}>
+            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:4,fontFamily:bf,letterSpacing:0.3}}>🧩 {isHindi?"क्या इनमें से कुछ लागू होता है? (वैकल्पिक)":"Does any of this apply? (optional)"}</div>
+            <div style={{fontSize:10.5,color:th.textSub,marginBottom:8,fontFamily:bf}}>
+              {isHindi?"इनके लिए खास योजनाएं हैं — जो लागू हो, सब चुनें":"There are special schemes for these — tick all that apply"}
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {(()=>{
+                // Only groups that have a scheme for this person (state, age, income…);
+                // anything already ticked stays visible.
+                const ans={who:setupCat,income:setupIncome,state:setupState,house:setupHouse,caste:setupCaste||"general",age:setupAge,area:setupArea,gender:setupGender,disability:setupDisability};
+                let live=GROUP_KEYS; try{ live=groupKeysFor(ans); }catch{}
+                return GROUP_KEYS.filter(k=>live.includes(k)||(setupGroups||[]).includes(k));
+              })().map(k=>{
+                const on=(setupGroups||[]).includes(k);
+                const label=T[lang].adaptiveQuestions?.groups?.labels?.[k]||k;
+                return(
+                  <div key={k} role="button" onClick={()=>{haptic();setSetupGroups(g=>{const cur=g||[];return cur.includes(k)?cur.filter(x=>x!==k):[...cur,k];});}}
+                    style={{padding:"7px 10px",borderRadius:20,cursor:"pointer",border:`1.5px solid ${on?"#FF9933":th.border3}`,background:on?th.optionActive:th.optionBg,fontSize:11.5,fontWeight:on?700:500,color:on?"#CC6600":th.textMid,fontFamily:bf,lineHeight:1.3}}>
+                    {on?"✓ ":""}{label}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Back + Save buttons */}
           <div style={{display:"flex",gap:8}}>
@@ -8486,7 +8551,12 @@ function MoneyCalendarCard({lang,dark,eligible,onSchemeOpen}){
   const cal=useMemo(()=>moneyCalendar(apps,eligible||[]),[apps,eligible]);
   if(!cal.count) return null;
   const thisMonth=cal.months[0];
-  const top=[...thisMonth.items,...cal.monthly].sort((a,b)=>(b.mine-a.mine)).slice(0,3);
+  // Preview: your own schemes first, money coming in before payments going
+  // out; a debit for a scheme you haven't joined is only in the full calendar.
+  const DR={in:0,act:1,out:2};
+  const top=[...thisMonth.items,...cal.monthly].filter(r=>r.mine||mcDir(r)!=="out")
+    .sort((a,b)=>(b.mine-a.mine)||(DR[mcDir(a)]-DR[mcDir(b)])).slice(0,3);
+  const anyMine=cal.monthly.some(r=>r.mine)||cal.months.some(m=>m.items.some(r=>r.mine));
   const next=cal.months.slice(1).find(m=>m.items.length);
   return(
     <div style={{background:th.card,borderRadius:20,border:`1.5px solid ${th.border}`,padding:16,marginBottom:14,boxShadow:dark?"none":"0 4px 18px rgba(0,0,0,0.05)"}}>
@@ -8500,6 +8570,7 @@ function MoneyCalendarCard({lang,dark,eligible,onSchemeOpen}){
       <div style={{fontSize:10.5,fontWeight:800,color:th.textSub,letterSpacing:0.3,marginBottom:7,fontFamily:bf}}>{L(`THIS MONTH · ${MC_MONTHS.en[thisMonth.m-1].toUpperCase()}`,`इस महीने · ${MC_MONTHS.hi[thisMonth.m-1]}`)}</div>
       {top.length?top.map((r,i)=><MoneyRow key={r.scheme.id+"-"+i} r={r} lang={lang} dark={dark} onSchemeOpen={onSchemeOpen} compact/>)
         :<div style={{fontSize:12,color:th.textSub,padding:"4px 0 8px",fontFamily:bf}}>{L("Nothing due this month.","इस महीने कुछ नहीं।")}{next?L(` Next: ${MC_MONTHS.en[next.m-1]}.`,` अगला: ${MC_MONTHS.hi[next.m-1]}।`):""}</div>}
+      {!anyMine&&<div style={{fontSize:10.5,color:th.textSub,margin:"2px 0 8px",lineHeight:1.45,fontFamily:bf}}>{L("💡 Tap \"I've applied\" on a scheme — your own payments will show here first.","💡 योजना पर \"मैंने आवेदन किया\" दबाएं — आपके अपने भुगतान यहां सबसे ऊपर दिखेंगे।")}</div>}
       <div role="button" onClick={()=>{haptic();track("money_cal",{k:"open"});setOpen(true);}}
         style={{marginTop:4,padding:"10px 12px",borderRadius:12,textAlign:"center",fontSize:12.5,fontWeight:800,color:"#4F46E5",background:dark?"rgba(99,102,241,0.14)":"#EEF2FF",cursor:"pointer",fontFamily:bf}}>
         {L("See the next 12 months & add reminders →","अगले 12 महीने देखें और रिमाइंडर लगाएं →")}
@@ -9028,8 +9099,8 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
           </div>
           <div style={{ color:"rgba(255,255,255,0.5)", fontSize:10, marginTop:2 }}>
             {isHindi
-              ? `${schemesWithBenefit.length} योजनाओं में आप पात्र हो सकते हैं`
-              : `You may qualify for ${schemesWithBenefit.length} scheme${schemesWithBenefit.length !== 1 ? "s" : ""}`}
+              ? `आपकी ${allMatchedSchemes.length} योजनाओं में से ${schemesWithBenefit.length} में पैसा / सीधा लाभ`
+              : `${schemesWithBenefit.length} of your ${allMatchedSchemes.length} schemes give money or direct help`}
           </div>
         </div>
         {/* Live indicator + collapse */}
@@ -9112,7 +9183,7 @@ function BenefitCalculatorCard({ allMatchedSchemes, lang, dark, onSchemeOpen }) 
               </div>
             </div>
             <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
-              <div style={{ fontSize:12, fontWeight:800, color:s.color, background:s.color+"1a", borderRadius:8, padding:"3px 9px", border:`1px solid ${s.color}30` }}>
+              <div style={{ fontSize:12, fontWeight:800, color:onDarkColor(s.color), background:s.color+"1a", borderRadius:8, padding:"3px 9px", border:`1px solid ${s.color}30` }}>
                 {formatINR(s.annual)}{({ yearly: isHindi ? "/वर्ष" : "/yr", health: isHindi ? " कवर" : " cover", oneTime: isHindi ? " एकमुश्त" : " once" })[benefitKind(s)] || ""}
               </div>
               <div style={{ fontSize:10, color:"rgba(255,255,255,0.35)", paddingRight:2 }}>→</div>
@@ -9222,8 +9293,11 @@ function DocumentVaultCard({ allMatchedSchemes, lang, dark, uid }) {
   // Load checked state whenever the vault key changes (i.e. different user logs in)
   const [checked, setChecked] = useState({});
   useEffect(() => {
-    try { setChecked(JSON.parse(localStorage.getItem(vaultKey) || "{}")); }
-    catch { setChecked({}); }
+    const load = () => { try { setChecked(JSON.parse(localStorage.getItem(vaultKey) || "{}")); } catch { setChecked({}); } };
+    load();
+    // A document ticked inside a scheme's own checklist shows here too.
+    window.addEventListener("ys-docs-changed", load);
+    return () => window.removeEventListener("ys-docs-changed", load);
   }, [vaultKey]);
 
   const toggle = useCallback((key) => {
@@ -10034,6 +10108,9 @@ function YojanaSahayInner(){
   const [langAnim,setLangAnim]=useState(false);
   const [showChecker,setShowChecker]=useState(false);
   const [checkerAnswers,setCheckerAnswers]=useState(null); // answers from latest eligibility recheck (raw, pre-decision)
+  // Bumped when the AI chat finishes an eligibility check, so Home re-reads it.
+  const [quizSavedTick,setQuizSavedTick]=useState(0);
+  useEffect(()=>{ const f=()=>setQuizSavedTick(n=>n+1); window.addEventListener("ys-quiz-saved",f); return()=>window.removeEventListener("ys-quiz-saved",f); },[]);
   const [committedCheckerAnswers,setCommittedCheckerAnswers]=useState(null); // answers committed to BenefitCard only after "Update My Profile" (or when no profile exists)
   const [checkerRunId,setCheckerRunId]=useState(0);        // increments each checker run → forces BenefitCard remount
   const [showUpdateProfileSheet,setShowUpdateProfileSheet]=useState(false); // "just checking / update profile" popup
@@ -10595,7 +10672,7 @@ function YojanaSahayInner(){
   // Live stat targets: real scheme count + states + real checkerTotal from Firestore
   const statTargets=useMemo(()=>[
     UNIQUE_SCHEME_COUNT,    // real scheme count — available immediately
-    28,                     // states covered — static fact
+    STATE_COVERAGE,         // states & UTs with their own schemes
     liveCheckerTotal??0,    // real citizens who ran the eligibility checker
   ],[liveCheckerTotal]);
 
@@ -10606,7 +10683,7 @@ function YojanaSahayInner(){
 
   const animatedStats=useMemo(()=>t.stats.map((s,i)=>{
     if(i===0) return{...s,number:loaded?String(c0):"—"};
-    if(i===1) return{...s,number:"28"};
+    if(i===1) return{...s,number:String(STATE_COVERAGE)};
     // Indians Helped: show "—" if Firestore hasn't returned a real value yet or returned 0
     if(i===2) return{...s,number:(!loaded||liveCheckerTotal===null)?"—":liveCheckerTotal>0?c2+"+":"—"};
     return s;
@@ -10624,7 +10701,9 @@ function YojanaSahayInner(){
     const maxB={};
     CATEGORIES.en.forEach(cat=>{
       const schemes=getSchemesForCategory(cat.filterKey);
-      const max=Math.max(0,...schemes.filter(s=>benefitKind(s)!=="other").map(s=>s.annual||0)); // not loan sizes / insurance cover
+      // Not loan sizes / insurance cover, not special-group schemes (study-abroad,
+      // athlete awards…) and not closed schemes — what an ordinary family can get.
+      const max=Math.max(0,...schemes.filter(s=>!s.closed&&benefitKind(s)!=="other"&&!nicheAudience(s)).map(s=>s.annual||0));
       maxB[cat.filterKey]=max;
     });
     return maxB;
@@ -10645,38 +10724,65 @@ function YojanaSahayInner(){
   const profileAnswers=useMemo(()=>profile?buildProfileAnswers(profile):null,[profile]);
 
   // Top 3 matched schemes for home "Matched for You" section
-  const matchedSchemes=useMemo(()=>{
-    if(!profileAnswers)return[];
-    return SCHEME_DB.filter(s=>safeMatch(s,profileAnswers)).slice(0,3);
-  },[profileAnswers]);
 
   // All matched schemes — used for BenefitCalculatorCard and DocumentVaultCard.
   // Uses committedCheckerAnswers (set only when user clicks "Update My Profile",
   // or immediately when there's no profile so no sheet appears) so the cards
   // never update from a raw checker run before the user makes their choice.
-  const allMatchedSchemes=useMemo(()=>{
-    const answers=committedCheckerAnswers||profileAnswers;
-    if(!answers)return[];
-    return SCHEME_DB.filter(s=>safeMatch(s,answers));
-  },[committedCheckerAnswers,profileAnswers]);
-
-  // Family mode needs your own answers (state, income, category…). Use the
-  // profile or this session's quiz; otherwise the last finished quiz saved on
-  // this phone, so the family card still works after a reload.
+  // A guest who finished the quiz earlier on this phone keeps their results
+  // after a reload (Money Calendar, benefit total, documents, "you qualify"
+  // marks) — they used to vanish because only this session's quiz counted.
   const savedQuizAnswers=useMemo(()=>{
     try{
       const v=JSON.parse(localStorage.getItem("yojana_eligibility_answers")||"null");
       const a=v?.answers&&typeof v.step==="number"?v.answers:v;
-      return a&&a.who&&a.income&&a.state&&a.age?a:null;
+      // Only a finished quiz: all the main questions answered.
+      return a&&a.who&&a.income&&a.state&&a.house&&a.caste&&a.age&&a.area?a:null;
     }catch{return null;}
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[checkerRunId,showChecker]);
+  },[checkerRunId,showChecker,quizSavedTick]);
+  const allMatchedSchemes=useMemo(()=>{
+    const answers=committedCheckerAnswers||profileAnswers||savedQuizAnswers;
+    if(!answers)return[];
+    return SCHEME_DB.filter(s=>safeMatch(s,answers));
+  },[committedCheckerAnswers,profileAnswers,savedQuizAnswers]);
+  // Profile edited (Profile tab) → it is the source of truth again; an older
+  // quiz from this session must not keep overriding it.
+  const prevProfileAnswersRef=useRef(profileAnswers);
+  useEffect(()=>{
+    const prev=prevProfileAnswersRef.current; prevProfileAnswersRef.current=profileAnswers;
+    if(profileAnswers&&JSON.stringify(prev)!==JSON.stringify(profileAnswers)) setCommittedCheckerAnswers(null);
+  },[profileAnswers]);
+
+  // Family mode needs your own answers (state, income, category…): profile,
+  // this session's quiz, or the last finished quiz saved on this phone.
   const familyBase=committedCheckerAnswers||profileAnswers||savedQuizAnswers;
   const eligibleIdSet=useMemo(()=>new Set((allMatchedSchemes||[]).map(s=>s.id)),[allMatchedSchemes]);
-  const familySelf=useMemo(()=>{
-    if(committedCheckerAnswers||profileAnswers) return allMatchedSchemes;
-    return savedQuizAnswers?SCHEME_DB.filter(s=>safeMatch(s,savedQuizAnswers)):[];
-  },[committedCheckerAnswers,profileAnswers,allMatchedSchemes,savedQuizAnswers]);
+  const familySelf=allMatchedSchemes;
+  // "Matched for You" — the best 3 of everything you qualify for (it used to be
+  // simply the first 3 in the database): schemes you haven't applied for yet,
+  // then ones made for what you do (a farmer sees farm schemes first), then
+  // flagship schemes, then real yearly money → health cover → one-time help,
+  // bigger first. Training
+  // stipends come after money schemes.
+  const homeApps=useApplications();
+  const matchedSchemes=useMemo(()=>{
+    const who=(committedCheckerAnswers||profileAnswers||savedQuizAnswers)?.who;
+    const OCC={farmer:/farm|kisan|krishi|agri|crop|fasal|irrigat|pashu|dairy|horticult/,student:/scholar|student|school|college|educat|chhatra|fellowship/,
+      women:/women|woman|mahila|girl|beti|matru|maternity|ladli|ladki|behna/,senior:/senior|old.?age|vri?ddh|elderly|budhapa/,
+      business:/business|entrepreneur|mudra|msme|udyam|startup|vendor|enterprise/};
+    const re=OCC[who];
+    const fits=x=>re&&re.test(`${x.name?.en||""} ${x.tag?.en||""}`.toLowerCase())?0:1;
+    const KR={yearly:0,health:1,oneTime:2,other:3};
+    const kr=x=>KR[benefitKind(x)]+(exclusiveGroup(x)==="training"?1.5:0);
+    // Flagship schemes (the ones with a status guide — PM-KISAN, Ayushman…) are
+    // well known and reliably paid, so they lead within each group.
+    const big=x=>GUIDES[x.id]?0:1;
+    return [...(allMatchedSchemes||[])].sort((a,b)=>
+      ((homeApps[a.id]?1:0)-(homeApps[b.id]?1:0)) || (fits(a)-fits(b)) || (big(a)-big(b)) || (kr(a)-kr(b)) || ((b.annual||0)-(a.annual||0))
+    ).slice(0,3);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[allMatchedSchemes,homeApps]);
 
   const navItems=useMemo(()=>[
     {
@@ -11120,7 +11226,7 @@ function YojanaSahayInner(){
             {profile&&auth.currentUser&&<PushNotifyCard uid={auth.currentUser.uid} lang={lang} dark={dark}/>}
 
             {/* Benefit Calculator — shown when profile OR committed checker answers exist with annual benefits */}
-            {(profile||committedCheckerAnswers)&&allMatchedSchemes.length>0&&(
+            {allMatchedSchemes.length>0&&(
               <BenefitCalculatorCard key={checkerRunId} allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
             )}
 
@@ -11132,7 +11238,7 @@ function YojanaSahayInner(){
             <FamilyCard baseAnswers={familyBase} selfSchemes={familySelf} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme} onStartChecker={()=>setShowChecker(true)}/>
 
             {/* Document Vault — auto-generated checklist from matched schemes */}
-            {(profile||committedCheckerAnswers)&&allMatchedSchemes.length>0&&(
+            {allMatchedSchemes.length>0&&(
               <DocumentVaultCard allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} uid={auth.currentUser?.uid||null}/>
             )}
 
@@ -11276,17 +11382,17 @@ function YojanaSahayInner(){
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <div>
                   <div style={{fontSize:15,fontWeight:800,color:th.text,fontFamily:bf}}>{t.matchedTitle}</div>
-                  {profile&&<div style={{fontSize:11,color:th.textSub,marginTop:1}}>{t.matchedSub(matchedSchemes.length)}</div>}
-                  {!profile&&<div style={{fontSize:11,color:th.textSub,marginTop:1}}>{isHindi?"प्रोफाइल बनाएं — अपनी योजनाएं देखें":"Create profile to see your matched schemes"}</div>}
+                  {(profile||allMatchedSchemes.length>0)&&<div style={{fontSize:11,color:th.textSub,marginTop:1}}>{t.matchedSub(allMatchedSchemes.length)}{allMatchedSchemes.length>3?(isHindi?" · सबसे अच्छी 3":" · your best 3"):""}</div>}
+                  {!profile&&!allMatchedSchemes.length&&<div style={{fontSize:11,color:th.textSub,marginTop:1}}>{isHindi?"प्रोफाइल बनाएं — अपनी योजनाएं देखें":"Create profile to see your matched schemes"}</div>}
                 </div>
-                {profile&&<div onClick={()=>{haptic();setShowChecker(true);}}
+                {(profile||allMatchedSchemes.length>0)&&<div onClick={()=>{haptic();setShowChecker(true);}}
                   style={{display:"flex",alignItems:"center",gap:4,color:"#003580",fontSize:12,fontWeight:700,cursor:"pointer",
                     background:"rgba(0,53,128,0.07)",borderRadius:20,padding:"5px 11px",border:"1px solid rgba(0,53,128,0.15)"}}>
                   {t.seeAll}
                 </div>}
               </div>
 
-              {profile ? (
+              {(profile||allMatchedSchemes.length>0) ? (
                 matchedSchemes.length>0 ? (
                   <div style={{display:"flex",flexDirection:"column",gap:9}}>
                     {matchedSchemes.map((s)=>(
@@ -11302,6 +11408,7 @@ function YojanaSahayInner(){
                               border:`1px solid ${s.scope==="national"?"#BFDBFE":"#FEF08A"}`}}>
                               {s.scope==="national"?`🇮🇳 ${isHindi?"केंद्रीय":"Central"}`:s.state}
                             </span>
+                            {homeApps[s.id]&&<span style={{fontSize:9,fontWeight:800,background:"#DCFCE7",color:"#15803D",borderRadius:6,padding:"1px 6px",border:"1px solid #BBF7D0"}}>{STATUS_TEXT[homeApps[s.id].status]?.icon} {isHindi?"आवेदन किया":"Applied"}</span>}
                           </div>
                           <div style={{fontSize:13,fontWeight:700,color:th.text,lineHeight:1.3,fontFamily:bf}}>{s.name[lang]}</div>
                           <div style={{display:"flex",alignItems:"center",gap:6,marginTop:3}}>

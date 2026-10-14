@@ -468,7 +468,7 @@ export const ASSAM_SCHEMES = [
     apply:   { en: "fisheries.assam.gov.in", hi: "fisheries.assam.gov.in" }, applyType: "offline", // ⚠️ offline — apply via District Fishery Officer
     docs:    { en: ["Aadhaar Card","Fishermen Identity Card (issued by Fisheries Dept.)","Caste Certificate (SC/ST/OBC preferred)","BPL / Income Certificate","Bank Account (Aadhaar-linked)","Residence Proof","Boat / Equipment Quotation"],
                hi: ["आधार कार्ड","मछुआरा पहचान पत्र (मत्स्य विभाग द्वारा)","जाति प्रमाण पत्र (SC/ST/OBC को प्राथमिकता)","BPL/आय प्रमाण पत्र","बैंक खाता (आधार-लिंक्ड)","निवास प्रमाण","नाव/उपकरण कोटेशन"] },
-    match: (a) => a.state === "Assam" && (a.who === "farmer" || a.occupation === "fisherman"),
+    match: (a) => a.state === "Assam" && (a.who === "farmer" || (Array.isArray(a.groups) && a.groups.includes("fisher"))),
   },
 
   {
