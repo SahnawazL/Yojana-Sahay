@@ -736,7 +736,7 @@ function renderHub(hub, lang, allHubs) {
     : `${placeEn} List ${YEAR} – ${hub.schemes.length} Yojanas | YojanaSahay`;
   const desc = isHindi
     ? `${place} की ${hub.schemes.length} सरकारी योजनाओं की सूची — लाभ, ज़रूरी दस्तावेज़ और आवेदन का तरीका। मुफ्त में पात्रता जांचें।`
-    : `List of ${hub.schemes.length} ${place} government schemes — benefits, required documents and how to apply. Check your eligibility free.`;
+    : `List of ${hub.schemes.length} ${hub.state ? hub.state + " government" : "Central Government"} schemes — benefits, required documents and how to apply. Check your eligibility free.`;
   const url = `${SITE_URL}/${langPath}/${hub.key}.html`;
   const items = hub.schemes.map(x => `      <li><a href="/${langPath}/${slugify(x.id)}.html">${esc(x.name[lang] || x.name.en)}</a><span> — ${esc(x.benefit?.[lang] || x.benefit?.en || "")}</span></li>`).join("\n");
   const hubCats = hub.state ? CAT_HUBS.filter(h => h.state === hub.state) : CAT_HUBS.filter(h => !h.state);
