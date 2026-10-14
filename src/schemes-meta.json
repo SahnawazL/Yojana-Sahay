@@ -913,23 +913,23 @@
     "confidence": 0
   },
   "mp_ladli": {
-    "lastVerified": "2026-10-13T21:37:15.131Z",
+    "lastVerified": "2026-10-14T21:35:35.162Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_kanya_vivah": {
-    "lastVerified": "2026-10-13T21:37:02.399Z",
+    "lastVerified": "2026-10-14T21:35:10.492Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_mmvy": {
-    "lastVerified": "2026-10-08T08:19:11.611Z",
+    "lastVerified": "2026-10-14T21:36:26.113Z",
     "confidence": 0
   },
   "mp_sambal": {
-    "lastVerified": "2026-10-08T08:19:11.611Z",
+    "lastVerified": "2026-10-14T21:37:27.728Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -965,13 +965,13 @@
     "confidence": 0
   },
   "mp_chirayu": {
-    "lastVerified": "2026-10-13T21:36:24.919Z",
+    "lastVerified": "2026-10-14T21:34:32.603Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_ladli_behna": {
-    "lastVerified": "2026-10-13T21:37:27.346Z",
+    "lastVerified": "2026-10-14T21:35:47.495Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -983,7 +983,7 @@
     "confidence": 0
   },
   "mp_kalyani_sahayata": {
-    "lastVerified": "2026-10-13T21:36:50.164Z",
+    "lastVerified": "2026-10-14T21:34:58.406Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -995,7 +995,7 @@
     "confidence": 0
   },
   "mp_gaon_ki_beti": {
-    "lastVerified": "2026-10-13T21:36:38.444Z",
+    "lastVerified": "2026-10-14T21:34:44.579Z",
     "confidence": 0
   },
   "uk_vatsalya": {
@@ -1507,7 +1507,7 @@
     "httpStatus": 200
   },
   "mp_nishakt_vivah": {
-    "lastVerified": "2026-10-08T08:20:20.425Z",
+    "lastVerified": "2026-10-14T21:36:37.737Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -2998,13 +2998,13 @@
     "isActive": false
   },
   "mp_prasuti": {
-    "lastVerified": "2026-10-08T08:19:11.611Z",
+    "lastVerified": "2026-10-14T21:37:02.401Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_ladli_behna_awas": {
-    "lastVerified": "2026-10-13T21:37:39.889Z",
+    "lastVerified": "2026-10-14T21:36:00.004Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3345,5 +3345,42 @@
     "linkAlive": true,
     "confidence": 0.49,
     "isActive": false
+  },
+  "mp_aahar_anudan": {
+    "lastVerified": "2026-10-14T21:33:48.603Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "mp_avivahita_pension": {
+    "lastVerified": "2026-10-14T21:34:00.440Z"
+  },
+  "mp_awas_sahayata": {
+    "lastVerified": "2026-10-14T21:34:08.012Z"
+  },
+  "mp_birsa_munda_swarojgar": {
+    "lastVerified": "2026-10-14T21:34:29.739Z"
+  },
+  "mp_kisan_kalyan": {
+    "lastVerified": "2026-10-14T21:35:22.560Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "mp_laptop": {
+    "lastVerified": "2026-10-14T21:36:17.951Z"
+  },
+  "mp_parityakta_pension": {
+    "lastVerified": "2026-10-14T21:36:50.083Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0.49,
+    "isActive": false
+  },
+  "mp_pratibha_kiran": {
+    "lastVerified": "2026-10-14T21:37:14.783Z"
+  },
+  "mp_sant_ravidas": {
+    "lastVerified": "2026-10-14T21:37:50.124Z"
   }
 }
