@@ -28,7 +28,7 @@ export const AUDIENCES = [
   { key: "orphan",    re: /covid|orphan|lost (both )?parents/,                                                                  en: "Children who lost a parent",       hi: "माता-पिता खो चुके बच्चे" },
   // Widow pensions / support — not combined pensions that also cover old age or disability.
   { key: "widow",     re: /^(?!.*(?:old.?age|vri?ddh|vridh|senior|disab|divyang|social security)).*(?:widow|vidh(?:wa|ava|va)\b|ganga swarupa|single wom|destitute wom|nirashrit mahila)/, en: "Widows & single women", hi: "विधवा व एकल महिलाएं" },
-  { key: "minority",  re: /minority|minorities|muslim|christian|\bsikh|buddhist|parsi|\bjain\b/,                               en: "Minority communities",             hi: "अल्पसंख्यक समुदाय" },
+  { key: "minority",  re: /minority|minorities|muslim|christian|\bsikhs?\b|buddhist|parsi|\bjain\b/,                               en: "Minority communities",             hi: "अल्पसंख्यक समुदाय" },
   { key: "trans",     re: /transgender/,                                                                                        en: "Transgender persons",              hi: "ट्रांसजेंडर व्यक्ति" },
   { key: "victim",    re: /acid attack|victim|survivor|atrocit/,                                                                en: "Survivors of crime or atrocities", hi: "अपराध / अत्याचार पीड़ित" },
 ];
