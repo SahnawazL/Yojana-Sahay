@@ -82,7 +82,7 @@ const FORCE_INDEX = new Set([
   "tn-chief-minister-health", "ts-micro-irrigation", "jk-widow-pension", "odisha-cm-kisan", "maha-ai-agriculture-policy",
   "wb-student-credit-card", "punjab-free-eye-checkup", "ts-t-fiber", "karnataka-sericulture", "inspire-she", "pmawas-rural",
   "assam-she-scholarship", "assam-jibika-sakhi", "maha-majhi-ladki-bahin", "mp-ladli-behna", "odisha-subhadra",
-  "jharkhand-maiya-samman", "cg-mahtari-vandan", "wb-lakshmir-bhandar", "karnataka-gruha-lakshmi", "assam-orunodoi",
+  "jharkhand-maiya-samman", "cg-mahtari-vandan", "wb-annapurna-bhandar", "karnataka-gruha-lakshmi", "assam-orunodoi",
 ]);
 function qualityScore(s) {
   const m = META[s.id] || {};

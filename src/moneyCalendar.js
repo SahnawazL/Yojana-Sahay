@@ -23,7 +23,7 @@ function monthlyAmount(s) {
   return m[2] ? `${inr(num(m[1]))}–${inr(num(m[2]))}` : inr(num(m[1]));
 }
 
-// Monthly cash to women (state DBT schemes like Ladli Behna, Lakshmir Bhandar).
+// Monthly cash to women (state DBT schemes like Ladli Behna, Annapurna Bhandar).
 const WOMEN_CASH = /women|woman|mahila|homemaker|housewife/i;
 const NOT_CASH = /hostel|stipend|scholar|training|pension|after|loan|insurance|widow|creche|nutrition|ration|grain|wage|unemploy/i;
 // Social-security pensions that are paid now (not "₹3,000/month after age 60").
