@@ -14,7 +14,7 @@
 // recently reported a problem (public summary: schemeFlags/{schemeId}).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db, auth } from "./firebase.js";
 import { sendReportConfirmation } from "./ReportIssueSheet.jsx";
 
@@ -26,6 +26,20 @@ const REASONS = [
   { v: "other",       icon: "✏️", en: "Something else",              hi: "कुछ और" },
 ];
 const DAY = 86400000;
+
+// This phone's own scheme reports (so a repeat visit shows the old report's
+// status instead of a blank form — also for people who aren't signed in).
+const LS_KEY = "ys_scheme_flags_v1";
+const readLocal = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}") || {}; } catch { return {}; } };
+const saveLocal = (schemeId, entry) => {
+  try {
+    const all = readLocal();
+    const list = (all[schemeId] || []).filter(x => x.reason !== entry.reason);
+    all[schemeId] = [entry, ...list].slice(0, 5);
+    localStorage.setItem(LS_KEY, JSON.stringify(all));
+  } catch { /* storage off — fine */ }
+};
+const toMs = (v) => (v?.toMillis ? v.toMillis() : typeof v === "number" ? v : Date.parse(v || "")) || Date.now();
 const recent = (iso, days) => { const t = Date.parse(iso || ""); return Number.isFinite(t) && Date.now() - t < days * DAY; };
 
 export function SchemeFlagNotice({ schemeId, lang, dark }) {
@@ -64,7 +78,43 @@ export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);   // server result
   const [err, setErr] = useState("");
+  const [mine, setMine] = useState([]);       // [{ reason, at, status, reply }] — newest first
   const txt = dark ? "#e5e5e5" : "#1a1a1a", sub = dark ? "#9a9a9a" : "#777", line = dark ? "#2c2c2e" : "#ececec";
+
+  // Load this person's earlier reports for this scheme + their current status.
+  useEffect(() => {
+    let alive = true;
+    const sid = scheme?.id;
+    if (!sid) return;
+    (async () => {
+      const local = readLocal()[sid] || [];
+      let list = [];
+      const u = auth.currentUser;
+      if (u) {
+        try {
+          const snap = await getDocs(query(collection(db, "reports"), where("uid", "==", u.uid)));
+          list = snap.docs.map(d => d.data()).filter(r => r.schemeId === sid && r.source === "scheme_flag")
+            .map(r => {
+              const hist = Array.isArray(r.replyHistory) ? r.replyHistory.filter(h => !h.isReopen) : [];
+              return { reason: r.flagReason, at: toMs(r.createdAt), status: r.status || "open", reply: hist.length ? hist[hist.length - 1].text : (r.adminReply || "") };
+            });
+        } catch { /* offline — fall back to this phone's copy */ }
+      }
+      if (!list.length && local.length) {
+        // Not signed in (or offline): status comes from the public summary —
+        // the admin resolving the report removes that reason from it.
+        let f = {};
+        try { const d = await getDoc(doc(db, "schemeFlags", sid)); f = d.exists() ? d.data() : {}; } catch { /* keep "open" */ }
+        list = local.map(x => ({ ...x, status: f[x.reason] ? "open" : (Date.now() - x.at > 60000 ? "resolved" : "open") }));
+      }
+      // newest report per reason
+      const seen = new Set();
+      list = list.sort((a, b) => b.at - a.at).filter(x => !seen.has(x.reason) && seen.add(x.reason));
+      if (alive) setMine(list);
+    })();
+    return () => { alive = false; };
+  }, [scheme?.id]);
+  const openReasons = new Set(mine.filter(m => m.status !== "resolved").map(m => m.reason));
 
   async function submit() {
     if (!reason || busy) return;
@@ -80,7 +130,10 @@ export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d.ok) throw new Error();
       setDone(d);
-      if (d.signedIn && u?.email && !d.duplicate) {
+      const entry = { reason, at: Date.now(), status: d.status || "open", reply: "" };
+      saveLocal(scheme.id, { reason, at: entry.at, linkAlive: d.linkAlive ?? null });
+      setMine(m => [entry, ...m.filter(x => x.reason !== reason)]);
+      if (d.signedIn && u?.email && !d.duplicate && !d.existing) {
         const R = REASONS.find(x => x.v === reason);
         sendReportConfirmation({ email: u.email, name: userName || u.displayName || "User", typeLabel: "Scheme problem",
           subject: `${scheme.name?.en || scheme.id} — ${R?.en}`, message: note.trim() || R?.en });
@@ -91,6 +144,40 @@ export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
   }
 
   const wrap = { marginTop: 14, borderTop: `1px dashed ${line}`, paddingTop: 12 };
+  const ST = {
+    open:        { c: "#D97706", t: L("🟡 Our team is checking", "🟡 हमारी टीम जांच रही है") },
+    in_progress: { c: "#2563EB", t: L("🔵 Being fixed", "🔵 ठीक किया जा रहा है") },
+    resolved:    { c: "#15803D", t: L("✅ Fixed — thank you!", "✅ ठीक हो गया — धन्यवाद!") },
+  };
+  const fmtDay = (ms) => new Date(ms).toLocaleDateString(isHindi ? "hi-IN" : "en-IN", { day: "numeric", month: "short" });
+  if (!open && !done && mine.length) {
+    const allFixed = mine.every(m => m.status === "resolved");
+    return (
+      <div style={wrap}>
+        <div style={{ padding: "11px 13px", borderRadius: 12, border: `1px solid ${line}`, background: dark ? "rgba(255,255,255,0.03)" : "#FAFAF9" }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: sub, letterSpacing: 0.3, marginBottom: 6 }}>⚑ {mine.length > 1 ? L("YOUR REPORTS", "आपकी रिपोर्ट") : L("YOUR REPORT", "आपकी रिपोर्ट")}</div>
+          {mine.slice(0, 3).map(m => {
+            const R = REASONS.find(x => x.v === m.reason);
+            const st = ST[m.status] || ST.open;
+            return (
+              <div key={m.reason} style={{ padding: "6px 0", borderTop: mine[0] === m ? "none" : `1px dashed ${line}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: txt }}>{R?.icon} {isHindi ? R?.hi : R?.en}</span>
+                  <span style={{ fontSize: 10.5, color: sub }}>· {L("sent", "भेजी")} {fmtDay(m.at)}</span>
+                </div>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: st.c, marginTop: 3 }}>{st.t}</div>
+                {m.reply && <div style={{ fontSize: 11.5, color: txt, marginTop: 4, lineHeight: 1.45, overflowWrap: "anywhere" }}>💬 {L("Team", "टीम")}: {m.reply.length > 160 ? m.reply.slice(0, 157) + "…" : m.reply}</div>}
+              </div>
+            );
+          })}
+          {auth.currentUser && <div style={{ fontSize: 10.5, color: sub, marginTop: 6 }}>{L("Full details: Profile → Report / Query → My Reports", "पूरी जानकारी: प्रोफाइल → रिपोर्ट / सवाल → मेरी रिपोर्ट")}</div>}
+        </div>
+        <div role="button" onClick={() => setOpen(true)} style={{ textAlign: "center", fontSize: 11.5, fontWeight: 600, color: sub, cursor: "pointer", padding: "9px 0 2px" }}>
+          {allFixed ? L("Still wrong? Report again", "अब भी गलत है? फिर से बताएं") : L("Report a different problem", "कोई दूसरी समस्या बताएं")}
+        </div>
+      </div>
+    );
+  }
   if (!open) {
     return (
       <div style={wrap}>
@@ -103,6 +190,7 @@ export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
 
   if (done) {
     const msg = done.duplicate ? L("You already reported this today — thank you!", "आप आज यह पहले ही बता चुके हैं — धन्यवाद!")
+      : done.existing ? L("You'd already reported this — we added your new details to that report. Our team is on it.", "आप यह पहले ही बता चुके थे — आपकी नई जानकारी उसी रिपोर्ट में जोड़ दी गई है। हमारी टीम इस पर काम कर रही है।")
       : reason === "link" && done.linkAlive === true ? L("Thanks! We just checked — the official website is answering right now. It may be slow; please try again in a few minutes, or use 'Find on Google'.", "धन्यवाद! हमने अभी जांचा — आधिकारिक वेबसाइट अभी चल रही है। यह धीमी हो सकती है; कुछ मिनट बाद फिर कोशिश करें, या 'गूगल पर खोजें' इस्तेमाल करें।")
       : reason === "link" && done.linkAlive === false ? L("Thanks! Our check couldn't reach the website either, so it's queued for an automatic fix — usually within a day. Meanwhile, use 'Find on Google'.", "धन्यवाद! हमारी जांच भी वेबसाइट तक नहीं पहुंच सकी, इसलिए इसे अपने आप ठीक करने की कतार में डाल दिया है — आमतौर पर एक दिन में। तब तक 'गूगल पर खोजें' इस्तेमाल करें।")
       : L("Thanks! Our team will check this scheme.", "धन्यवाद! हमारी टीम इस योजना की जांच करेगी।");
@@ -129,6 +217,11 @@ export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {REASONS.map(x => {
           const on = reason === x.v;
+          if (openReasons.has(x.v)) return (
+            <span key={x.v} style={{ fontSize: 11.5, fontWeight: 600, padding: "7px 11px", borderRadius: 99, border: `1.5px dashed ${line}`, color: sub, opacity: 0.8 }}>
+              {x.icon} {isHindi ? x.hi : x.en} · {L("already reported", "पहले ही बताया")}
+            </span>
+          );
           return (
             <span key={x.v} role="button" onClick={() => { setReason(x.v); setErr(""); }} style={{ fontSize: 11.5, fontWeight: on ? 800 : 600, padding: "7px 11px", borderRadius: 99, cursor: "pointer",
               border: `1.5px solid ${on ? "#FF9933" : line}`, color: on ? "#C2410C" : txt, background: on ? (dark ? "rgba(255,153,51,0.12)" : "#FFF7ED") : "transparent" }}>

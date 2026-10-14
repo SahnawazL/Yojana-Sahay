@@ -340,6 +340,18 @@ async function handleFlag(req, res, body, db, app) {
 
   let merged = false, flagCount = 1;
   if (user) {
+    // Same person, same scheme + problem, still open → add to that report.
+    const mineSnap = await db.collection("reports").where("uid", "==", user.uid).limit(200).get();
+    const prev = mineSnap.docs.find(d => { const x = d.data(); return x.source === "scheme_flag" && x.schemeId === sid && x.flagReason === reason && x.status !== "resolved"; });
+    if (prev) {
+      await prev.ref.update({
+        lastFlagAt: FieldValue.serverTimestamp(),
+        ...(linkCheck ? { linkCheck } : {}),
+        ...(note ? { notes: FieldValue.arrayUnion(note) } : {}),
+      });
+      res.status(200).json({ ok: true, existing: true, status: prev.data().status || "open", linkAlive: linkCheck ? linkCheck.alive : undefined, signedIn: true });
+      return;
+    }
     await db.collection("reports").add({
       ...base, uid: user.uid, userName: user.name || "User", userEmail: user.email, userPhone: user.phone,
       message: `${note || label}${checkLine}`, flagCount: 1, createdAt: FieldValue.serverTimestamp(),

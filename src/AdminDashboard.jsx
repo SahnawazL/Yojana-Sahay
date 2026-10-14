@@ -2349,9 +2349,9 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
                   <div style={{ fontSize:13, color:th.text, lineHeight:1.65, whiteSpace:"pre-wrap" }}>
                     {report.message || "—"}
                   </div>
-                  {Array.isArray(report.notes) && report.notes.length > 1 && (
+                  {Array.isArray(report.notes) && report.notes.length > (report.uid === "guest" ? 1 : 0) && (
                     <div style={{ marginTop:8, fontSize:12, color:th.text, lineHeight:1.55 }}>
-                      <div style={{ fontSize:10, fontWeight:700, color:th.textSub, letterSpacing:0.4, marginBottom:4 }}>NOTES FROM {report.notes.length} PEOPLE</div>
+                      <div style={{ fontSize:10, fontWeight:700, color:th.textSub, letterSpacing:0.4, marginBottom:4 }}>{report.uid === "guest" ? `NOTES FROM ${report.notes.length} PEOPLE` : "FOLLOW-UP NOTES FROM THE USER"}</div>
                       {report.notes.map((n, k) => <div key={k}>• {n}</div>)}
                     </div>
                   )}
