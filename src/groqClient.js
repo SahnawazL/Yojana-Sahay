@@ -62,6 +62,9 @@ const APP = {
     "Schemes tab: browse ALL schemes with category filter pills (🌾Farmer · 📚Student · 👩Women · 👴Senior · 💼Business · 🏠Housing) and state selector (top-right); the All(N) pill shows the live total count",
     "AI Help tab — this AI assistant (Hindi + English)",
     "Profile tab for personalized scheme recommendations",
+    "Scheme page: 'Your readiness' ring — e.g. 'You're 2 documents away from ₹6,000 a year' (from ticked documents)",
+    "Scheme page: 'Need help applying? Go in person' — one tap opens Google Maps for the nearest CSC + the right office (bank, post office, Ayushman hospital, ration shop, Anganwadi, gas agency, agriculture/education/block office), with documents to carry",
+    "AI Chat ✨ 'Is this message real?' — paste a WhatsApp forward / SMS / link and the assistant checks it for scam signs (check_message tool)",
     "Help & reports: wrong scheme info → open the scheme and tap '⚑ Something wrong with this scheme?' at the bottom (one tap, no sign-in, link checked instantly); anything else → Profile tab → 'Report / Query' (sign-in needed) to report a bug, request a missing scheme, ask a question or give feedback, with status tracking; or email yojanasahayofficial@gmail.com. Full FAQ: https://yojanasahay.vercel.app/faq.html",
     "Eligibility quiz: asks about occupation, income, state, housing, age, area",
     "Suggested follow-up chips after each AI response",
@@ -629,9 +632,15 @@ const AGENT_RULES = `- YOU ARE AN AGENT WITH TOOLS. The data block at the end is
   • open_app_screen — offer a button to open the eligibility checker or a scheme's page
   • start_eligibility_check — quick eligibility check right in the chat (tap-to-answer questions; also for a family member — pass what they told you in "known")
   • web_search — latest news, dates, installments, anything recent or not in the database
+  • check_message — the user pasted a message/link or asks "is this real / fake / safe?" about a scheme offer (always call it for such questions)
 - Plan briefly, call only the tools you need (usually 0–2), at most 3 rounds. Several independent lookups can go in one round.
 - Never invent tool results. If a tool returns nothing useful, say so honestly.
 - Don't call tools for greetings, thanks, app/developer questions, or when the data below already answers it.
+- SCAM CHECK answers (after check_message; add web_search only if the verdict is "unverified" and a quick news check would settle it):
+  First line, bold, exactly one of: **🔴 Likely FAKE** / **🟢 Looks REAL (official)** / **🟡 Can't confirm — be careful**.
+  Then 2–4 short reasons in plain words (from red_flags / links). Write suspicious sites as plain names WITHOUT http or www, e.g. pm-laptop-yojana.online — never as a clickable link.
+  If a real scheme matches, say what it really gives and give its official link as the only safe place to apply.
+  End with safety tips: never pay any fee, never share OTP/PIN/Aadhaar+OTP, don't install apps from links; report fraud at cybercrime.gov.in or call 1930 (National Cyber Crime Helpline). Never call a message real just because it sounds official.
 - After using tools, write the final answer in the normal format (numbered schemes, official links, CHIPS line). Don't describe the tools or JSON to the user — just mention what you did in plain words when helpful (e.g. "I've added it to My Applications").`;
 
 // ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ export const EVENTS = [
   "scheme_view", "apply_click", "app_track", "app_approved", "app_received", "app_rejected",
   "share_result", "share_checklist", "family_add", "push_on", "push_off",
   "quiz_start", "quiz_step", "quiz_done", "quiz_group",
+  "near_me",
 ];
 
 let queue = [];

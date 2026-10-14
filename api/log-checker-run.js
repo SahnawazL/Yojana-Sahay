@@ -71,6 +71,7 @@ const EVENT_NAMES = new Set([
   ...Object.keys(SCHEME_EVENT_FIELD),
   "share_result", "share_checklist", "family_add", "push_on", "push_off",
   "quiz_start", "quiz_step", "quiz_done", "quiz_group",
+  "near_me",
 ]);
 const cleanKey = (v, max) => (typeof v === "string" && new RegExp(`^[A-Za-z0-9_]{1,${max}}$`).test(v) ? v : null);
 function istDay(d = new Date()) {

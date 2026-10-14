@@ -13,6 +13,7 @@
 import { SCHEME_DB as ALL } from "./schemesData.js";
 import { scoreSchemes } from "./groqClient.js";
 import { findSchemesInText, officialSchemeLink } from "./schemeMatch.js";
+import { checkMessage } from "./scamCheck.js";
 import { explainEligibility, eligibilityLine, nearMisses } from "./eligibilityExplain.js";
 import { whoCanApply } from "./eligibilityText.js";
 import { benefitSummary } from "./benefitMath.js";
@@ -261,6 +262,19 @@ const TOOLS = {
     };
   },
 
+  // "Is this message / link real?" — scam signs + the real scheme it claims to be.
+  async check_message({ text = "" }, ctx) {
+    const r = checkMessage(text, ctx.lang);
+    const label = { likely_fake: ctx.lang === "hi" ? "धोखे के संकेत मिले" : "Scam signs found",
+      looks_real: ctx.lang === "hi" ? "आधिकारिक लगता है" : "Looks official",
+      unverified: ctx.lang === "hi" ? "पक्का नहीं" : "Couldn't confirm" }[r.verdict];
+    return {
+      result: r,
+      step: ctx.lang === "hi" ? `मैसेज जांचा — ${label}` : `Checked the message — ${label}`,
+      schemeIds: r.real_schemes_mentioned.map(s => s.id),
+    };
+  },
+
   async web_search({ query = "" }, ctx) {
     const q = String(query).slice(0, 200);
     try {
@@ -290,6 +304,7 @@ export const TOOL_META = {
   open_app_screen:     { icon: "📱", en: "Preparing a shortcut",         hi: "शॉर्टकट तैयार कर रहे हैं" },
   start_eligibility_check: { icon: "🧮", en: "Preparing quick questions", hi: "छोटे सवाल तैयार कर रहे हैं" },
   web_search:          { icon: "🌐", en: "Searching the web",            hi: "वेब पर खोज रहे हैं" },
+  check_message:       { icon: "🛡️", en: "Checking the message for scams", hi: "मैसेज में धोखे की जांच" },
 };
 
 export async function runTool(name, argsJson, ctx) {

@@ -252,7 +252,7 @@ const STRINGS = {
 
     whatsNewTitle: "What's New",
     whatsNew: [
-      { version:"v1.4", date:"Oct 2026",   note:"AI agent: eligibility check in chat, voice, application tracking · 1,100+ schemes · Scheme pages on Google" },
+      { version:"v1.4", date:"Oct 2026",   note:"AI agent: eligibility check in chat, voice, application tracking · Fake-message checker · Readiness score · Help near me · ⚑ Scheme reports · Scheme pages on Google" },
       { version:"v1.3", date:"May 2026",   note:"Email & Google sign-in · Dark mode · Vercel edge deployment" },
       { version:"v1.2", date:"Mar 2026",   note:"Report & Resolution Centre · Admin dashboard · Email alerts" },
       { version:"v1.1", date:"Jan 2026",   note:"AI Assistant (Groq) · Bilingual support · Profile-aware responses" },
@@ -427,7 +427,7 @@ const STRINGS = {
 
     whatsNewTitle: "नया क्या है",
     whatsNew: [
-      { version:"v1.4", date:"अक्टू 2026", note:"AI एजेंट: चैट में पात्रता जांच, आवाज़, आवेदन ट्रैकिंग · 1,100+ योजनाएं · Google पर योजना पेज" },
+      { version:"v1.4", date:"अक्टू 2026", note:"AI एजेंट: चैट में पात्रता जांच, आवाज़, आवेदन ट्रैकिंग · फर्जी मैसेज जांच · तैयारी स्कोर · नज़दीकी मदद · ⚑ योजना रिपोर्ट · Google पर योजना पेज" },
       { version:"v1.3", date:"मई 2026",    note:"ईमेल & Google साइन-इन · डार्क मोड · Vercel एज डिप्लॉयमेंट" },
       { version:"v1.2", date:"मार्च 2026", note:"रिपोर्ट & समाधान केंद्र · एडमिन डैशबोर्ड · ईमेल अलर्ट" },
       { version:"v1.1", date:"जनवरी 2026", note:"AI सहायक (Groq) · द्विभाषी समर्थन · प्रोफाइल-आधारित उत्तर" },

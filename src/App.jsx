@@ -2358,7 +2358,103 @@ function ApplicationTracker({scheme,lang,dark=false}){
   </>);
 }
 
-function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userName=""}){
+// ─── READINESS — "You're 2 documents away from ₹6,000 a year" ──────────────────
+// Combines what the app knows for THIS scheme: do you qualify (from your
+// eligibility result — only a positive match is claimed), how many documents
+// you've ticked, and whether you've applied. Turns browsing into applying.
+function ReadinessCard({scheme,lang,dark,eligible,docDone,docTotal}){
+  const app=useApplications()[scheme.id];
+  const isHindi=lang==="hi";
+  const bf=fontFamily(lang);
+  const L=(en,hi)=>isHindi?hi:en;
+  const left=Math.max(0,docTotal-docDone);
+  const kind=benefitKind(scheme);
+  const amt=scheme.annual>0?`₹${Number(scheme.annual).toLocaleString("en-IN")}`:"";
+  const money=amt?(kind==="oneTime"?amt:kind==="health"?L(`${amt} health cover`,`${amt} इलाज कवर`):L(`${amt} a year`,`${amt} सालाना`)):L("this benefit","यह लाभ");
+  // Readiness = documents ready (100% once applied).
+  const pct=app?100:docTotal?Math.round(100*docDone/docTotal):100;
+  const tone=app||(!left&&docTotal)?"#16a34a":pct>=50?"#D97706":"#2563EB";
+  const head=app
+    ?L("📌 You've applied — track it below","📌 आपने आवेदन कर दिया — नीचे ट्रैक करें")
+    :docTotal&&!left
+      ?L(`✅ All documents ready — apply for ${money}`,`✅ सभी दस्तावेज़ तैयार — ${money} के लिए आवेदन करें`)
+      :docTotal
+        ?L(`You're ${left} document${left>1?"s":""} away from ${money}`,`${money} से बस ${left} दस्तावेज़ दूर`)
+        :L(`Ready to apply for ${money}`,`${money} के लिए आवेदन करें`);
+  const sub=app
+    ?L("We'll remind you to check the status.","हम स्टेटस जांचने की याद दिलाएंगे।")
+    :[eligible?L("✓ You qualify","✓ आप पात्र हैं"):null,
+      docTotal?L(`${docDone}/${docTotal} documents ticked`,`${docDone}/${docTotal} दस्तावेज़ तैयार`):null,
+      docTotal&&left?L("tick them below as you collect them","मिलने पर नीचे टिक करें"):null].filter(Boolean).join(" · ");
+  const R=18,C=2*Math.PI*R;
+  return(
+    <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",marginBottom:14,borderRadius:16,
+      background:dark?"rgba(255,255,255,0.04)":"#fff",border:`1.5px solid ${tone}33`,boxShadow:dark?"none":"0 2px 10px rgba(0,0,0,0.04)"}}>
+      <div style={{position:"relative",width:46,height:46,flexShrink:0}} aria-label={L(`Readiness ${pct}%`,`तैयारी ${pct}%`)}>
+        <svg width="46" height="46" viewBox="0 0 46 46" style={{transform:"rotate(-90deg)"}}>
+          <circle cx="23" cy="23" r={R} fill="none" stroke={dark?"rgba(255,255,255,0.1)":"#eef0f3"} strokeWidth="5"/>
+          <circle cx="23" cy="23" r={R} fill="none" stroke={tone} strokeWidth="5" strokeLinecap="round"
+            strokeDasharray={C} strokeDashoffset={C*(1-pct/100)} style={{transition:"stroke-dashoffset 0.6s ease"}}/>
+        </svg>
+        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:tone}}>{pct}%</div>
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:10,fontWeight:800,letterSpacing:0.4,color:dark?"#9a9a9a":"#888",fontFamily:bf}}>{L("YOUR READINESS","आपकी तैयारी")}</div>
+        <div style={{fontSize:13.5,fontWeight:800,color:dark?"#f0f0f0":"#1a1a1a",lineHeight:1.35,marginTop:2,fontFamily:bf,overflowWrap:"anywhere"}}>{head}</div>
+        {sub&&<div style={{fontSize:11,color:dark?"#9a9a9a":"#777",marginTop:3,lineHeight:1.4,fontFamily:bf}}>{sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ─── HELP NEAR ME — one tap opens Google Maps with the nearest place to apply ──
+// CSC (Jan Seva Kendra) for every scheme, plus the place THIS scheme needs
+// (bank, post office, Ayushman hospital, ration shop, agriculture or block
+// office). The app never reads the user's location — Google Maps does that.
+function nearPlaceFor(s){
+  const t=`${s.id} ${s.name?.en||""} ${s.tag?.en||""} ${s.benefit?.en||""}`.toLowerCase();
+  if(/ujjwala|\blpg\b|gas connection|cylinder/.test(t)) return {q:"LPG gas distributor near me",icon:"🔥",en:"Nearest LPG gas agency",hi:"नज़दीकी गैस एजेंसी"};
+  if(/sukanya|post office|india post|\bkvp\b|\bnsc\b/.test(t)) return {q:"post office near me",icon:"📮",en:"Nearest post office",hi:"नज़दीकी डाकघर"};
+  if(/matru|maternity|pregnan|anganwadi|\bicds\b|poshan|nutrition/.test(t)) return {q:"Anganwadi centre near me",icon:"🤱",en:"Nearest Anganwadi centre",hi:"नज़दीकी आंगनवाड़ी केंद्र"};
+  if(/ayushman|pmjay|hospital|health card|arogya|aarogya|dialysis/.test(t)) return {q:"Ayushman Bharat empanelled hospital near me",icon:"🏥",en:"Nearest Ayushman hospital",hi:"नज़दीकी आयुष्मान अस्पताल"};
+  if(/ration|nfsa|\bpds\b|\banna\b|annapurna|anna bhagya|food security|gkay|free grain/.test(t)) return {q:"ration shop near me",icon:"🍚",en:"Nearest ration shop",hi:"नज़दीकी राशन दुकान"};
+  if(/jan dhan|pmjdy|bank account|\bloan\b|mudra|credit card|\bkcc\b|kisan credit|atal pension|\bapy\b|pmsby|pmjjby|jeevan jyoti|suraksha bima|svanidhi|stand.?up india|pmegp/.test(t)) return {q:"bank branch near me",icon:"🏦",en:"Nearest bank branch",hi:"नज़दीकी बैंक शाखा"};
+  if(/farmer|kisan|krishi|agri|crop|fasal|soil|irrigation|dairy|fisher|livestock|pashu|horticulture/.test(t)) return {q:"agriculture office near me",icon:"🌾",en:"Nearest agriculture office",hi:"नज़दीकी कृषि कार्यालय"};
+  if(/scholarship|student|school|college|education|fellowship|hostel|coaching/.test(t)) return {q:"district education office near me",icon:"🏫",en:"Nearest education office",hi:"नज़दीकी शिक्षा कार्यालय"};
+  return {q:"block development office near me",icon:"🏛️",en:"Nearest block / tehsil office",hi:"नज़दीकी ब्लॉक / तहसील कार्यालय"};
+}
+function HelpNearMe({scheme,lang,dark,docs=[]}){
+  const isHindi=lang==="hi";
+  const bf=fontFamily(lang);
+  const L=(en,hi)=>isHindi?hi:en;
+  const place=nearPlaceFor(scheme);
+  const open=(q)=>{haptic();track("near_me",{s:scheme.id,k:q.slice(0,20).replace(/\W+/g,"_")});
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`,"_blank","noopener");};
+  const Btn=({icon,label,q})=>(
+    <div role="button" onClick={()=>open(q)} style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:7,padding:"10px 11px",borderRadius:12,cursor:"pointer",
+      border:`1px solid ${dark?"rgba(255,255,255,0.12)":"#e5e7eb"}`,background:dark?"rgba(255,255,255,0.04)":"#fff"}}>
+      <span style={{fontSize:16,flexShrink:0}}>{icon}</span>
+      <span style={{fontSize:11.5,fontWeight:700,color:dark?"#e5e5e5":"#1f2937",lineHeight:1.3,fontFamily:bf,minWidth:0}}>{label}</span>
+    </div>
+  );
+  return(
+    <div style={{margin:"0 0 14px",padding:"12px 13px",borderRadius:16,background:dark?"rgba(37,99,235,0.08)":"#F5F9FF",border:`1px solid ${dark?"rgba(96,165,250,0.25)":"#DBEAFE"}`}}>
+      <div style={{fontSize:12.5,fontWeight:800,color:dark?"#93C5FD":"#1E40AF",fontFamily:bf}}>📍 {L("Need help applying? Go in person","आवेदन में मदद चाहिए? खुद जाकर करवाएं")}</div>
+      <div style={{fontSize:10.5,color:dark?"#9a9a9a":"#64748b",margin:"2px 0 9px",lineHeight:1.4,fontFamily:bf}}>{L("Opens Google Maps with the nearest places — the app itself never reads your location.","Google Maps में नज़दीकी जगहें खुलेंगी — ऐप खुद आपकी लोकेशन नहीं लेता।")}</div>
+      <div style={{display:"flex",gap:8}}>
+        <Btn icon="🏢" label={L("Nearest CSC (Jan Seva Kendra)","नज़दीकी CSC (जन सेवा केंद्र)")} q="Common Service Centre CSC near me"/>
+        <Btn icon={place.icon} label={isHindi?place.hi:place.en} q={place.q}/>
+      </div>
+      {docs.length>0&&(
+        <div style={{fontSize:10.5,color:dark?"#bdbdbd":"#475569",marginTop:9,lineHeight:1.45,fontFamily:bf,overflowWrap:"anywhere"}}>
+          🎒 <b>{L("Carry:","साथ ले जाएं:")}</b> {docs.slice(0,5).join(", ")}{docs.length>5?L(" + more (see list above)"," + और (ऊपर सूची देखें)"):""}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userName="",eligible=false}){
   const th=THEME[dark?"dark":"light"];
   // Looks up full scheme data from SCHEME_DB by id
   const scheme=useMemo(()=>SCHEME_DB.find(s=>s.id===schemeId),[schemeId]);
@@ -2454,6 +2550,8 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
         <div style={{padding:"0 16px 36px"}}>
           {/* ── Warning when other people recently reported a problem ── */}
           <SchemeFlagNotice schemeId={scheme.id} lang={lang} dark={dark}/>
+          {/* ── Readiness: "2 documents away from ₹6,000 a year" ── */}
+          <ReadinessCard scheme={scheme} lang={lang} dark={dark} eligible={eligible} docDone={docDone} docTotal={docTotal}/>
           {/* ── Application Checklist header + live progress ── */}
           <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:12}}>
             <div style={{width:36,height:36,borderRadius:11,flexShrink:0,background:`linear-gradient(135deg,${scheme.color}22,${scheme.color}0a)`,border:`1.5px solid ${scheme.color}35`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>📋</div>
@@ -2524,6 +2622,9 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
               </span>
             </div>
           )}
+
+          {/* ── Help near me — nearest CSC + the office this scheme needs ── */}
+          <HelpNearMe scheme={scheme} lang={lang} dark={dark} docs={docList}/>
 
           {/* ── STEP 3 — Track the application ── */}
           <ApplicationTracker scheme={scheme} lang={lang} dark={dark}/>
@@ -11636,7 +11737,8 @@ function YojanaSahayInner(){
       )}
       {selectedScheme&&(
         <SchemeDetailSheet schemeId={selectedScheme} lang={lang} onClose={()=>setSelectedScheme(null)} dark={dark}
-          userName={profile?.name||""} onSignIn={auth.currentUser?null:()=>{setSelectedScheme(null);setActiveTab("profile");}}/>
+          userName={profile?.name||""} onSignIn={auth.currentUser?null:()=>{setSelectedScheme(null);setActiveTab("profile");}}
+          eligible={!!allMatchedSchemes?.some(s=>s.id===selectedScheme)}/>
       )}
       {showFAQ&&(
         <div
