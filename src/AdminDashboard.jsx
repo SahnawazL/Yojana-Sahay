@@ -12,7 +12,7 @@
 // and Cleanup tab for purging old resolved reports.
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDoc, onSnapshot } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDoc, onSnapshot, deleteField } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
@@ -1867,7 +1867,8 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
       if (r.replyHistory?.some(h => h.isReopen)) return 2; // reopened
       return 0; // open, never reopened
     };
-    list.sort((a, b) => getPriority(a) - getPriority(b));
+    // Same priority → the problem affecting more people first (scheme ⚑ flags)
+    list.sort((a, b) => (getPriority(a) - getPriority(b)) || ((b.flagCount || 1) - (a.flagCount || 1)));
     return list;
   }, [reports, filter, typeFilter, searchQuery, dateFilter]);
 
@@ -2317,7 +2318,11 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
                 </div>
 
                 {/* User + time */}
-                <div style={{ fontSize:10, color:th.textSub, display:"flex", gap:8 }}>
+                <div style={{ fontSize:10, color:th.textSub, display:"flex", gap:8, flexWrap:"wrap" }}>
+                  {report.source === "scheme_flag" && <span style={{ color:"#C2410C", fontWeight:800 }}>⚑ Scheme report</span>}
+                  {(report.flagCount || 1) > 1 && <span style={{ color:"#DC2626", fontWeight:800 }}>👥 {report.flagCount} people</span>}
+                  {report.linkCheck && <span style={{ fontWeight:700, color: report.linkCheck.alive === false ? "#DC2626" : report.linkCheck.alive === true ? "#15803d" : th.textSub }}>
+                    {report.linkCheck.alive === false ? "🔴 link unreachable" : report.linkCheck.alive === true ? "🟢 link OK" : "⚪ link unchecked"}</span>}
                   <span>👤 {report.userName || "Anonymous"}</span>
                   <span>🕐 {timeAgo(report.createdAt)}</span>
                   {report.lang && <span>🌐 {report.lang === "hi" ? "Hindi" : "English"}</span>}
@@ -2344,6 +2349,17 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
                   <div style={{ fontSize:13, color:th.text, lineHeight:1.65, whiteSpace:"pre-wrap" }}>
                     {report.message || "—"}
                   </div>
+                  {Array.isArray(report.notes) && report.notes.length > 1 && (
+                    <div style={{ marginTop:8, fontSize:12, color:th.text, lineHeight:1.55 }}>
+                      <div style={{ fontSize:10, fontWeight:700, color:th.textSub, letterSpacing:0.4, marginBottom:4 }}>NOTES FROM {report.notes.length} PEOPLE</div>
+                      {report.notes.map((n, k) => <div key={k}>• {n}</div>)}
+                    </div>
+                  )}
+                  {report.source === "scheme_flag" && report.uid === "guest" && (
+                    <div style={{ marginTop:8, fontSize:11, color:th.textSub, lineHeight:1.5 }}>
+                      ℹ️ From people who weren't signed in — there's no one to email. Fix the scheme, then mark it Resolved (this also removes the warning shown on the scheme).
+                    </div>
+                  )}
                 </div>
 
                 {/* User contact info */}
@@ -9415,6 +9431,11 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           onRefresh={fetchReports}
           onLogActivity={logActivity}
           onStatusChange={async (reportId, newStatus, replyData) => {
+            // Resolving a scheme ⚑ report also removes the warning users see on that scheme.
+            const rep = reports.find(r => r.id === reportId);
+            if (newStatus === "resolved" && rep?.source === "scheme_flag" && rep.schemeId && rep.flagReason) {
+              updateDoc(doc(db, "schemeFlags", rep.schemeId), { [rep.flagReason]: deleteField() }).catch(() => {});
+            }
             if (replyData) {
               // Called after reply already saved to Firestore — just sync local state
               setReports(prev =>

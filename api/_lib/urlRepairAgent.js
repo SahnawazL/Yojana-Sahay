@@ -87,8 +87,14 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   const { text } = await readRepoFile("src/schemes-meta.json");
   const meta = text ? JSON.parse(text) : {};
 
+  // Per-scheme retry bookkeeping + links users reported as not working
+  // (scheme "⚑ Report a problem" → api/log-checker-run.js type:"flag").
+  let attempts = {}, reported = {};
+  const stateRef = db?.collection(STATE_DOC[0]).doc(STATE_DOC[1]);
+  try { const st = (await stateRef?.get())?.data() ?? {}; attempts = st.attempts ?? {}; reported = st.reported ?? {}; } catch { /* ignore */ }
+
   const dead = SCHEME_DB.filter(s =>
-    meta[s.id]?.linkAlive === false &&
+    (meta[s.id]?.linkAlive === false || reported[s.id]) &&
     s.applyType !== "offline" &&
     normalizeSchemeUrl(s.apply?.en)
   );
@@ -103,13 +109,8 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   if (unofficial.length) progress.step(`${unofficial.length} apply link(s) point to a non-government site — replacing with official pages when found`);
   if (dead.length === 0 && unofficial.length === 0) return out;
 
-  // Per-scheme retry bookkeeping (best effort — works without Firestore too).
-  let attempts = {};
-  const stateRef = db?.collection(STATE_DOC[0]).doc(STATE_DOC[1]);
-  try { attempts = (await stateRef?.get())?.data()?.attempts ?? {}; } catch { /* ignore */ }
-
-  // Oldest-attempted first, so every dead link gets its turn.
-  dead.sort((a, b) => (attempts[a.id] ?? 0) - (attempts[b.id] ?? 0));
+  // User-reported links first, then oldest-attempted, so every dead link gets its turn.
+  dead.sort((a, b) => ((reported[b.id] ? 1 : 0) - (reported[a.id] ? 1 : 0)) || ((attempts[a.id] ?? 0) - (attempts[b.id] ?? 0)));
 
   // ── 1. Re-ping (free) ─────────────────────────────────────────────────────
   const toPing = dead.slice(0, MAX_REPINGS_PER_RUN);
@@ -118,7 +119,8 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
     const chunk = toPing.slice(i, i + 8);
     const pings = await Promise.all(chunk.map(s => pingUrlServer(normalizeSchemeUrl(s.apply.en)).catch(() => ({ alive: null }))));
     chunk.forEach((s, j) => {
-      if (pings[j].alive === true) out.recovered.push({ id: s.id, name: s.name?.en ?? s.id, httpStatus: pings[j].httpStatus });
+      delete reported[s.id]; // a report is handled once its link has been re-checked
+      if (pings[j].alive === true) { if (meta[s.id]?.linkAlive === false) out.recovered.push({ id: s.id, name: s.name?.en ?? s.id, httpStatus: pings[j].httpStatus }); }
       else stillDead.push(s);
     });
   }
@@ -217,7 +219,7 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
     catch (err) { out.errors.push(`schemes-meta update failed: ${err.message}`); }
   }
 
-  try { await stateRef?.set({ attempts, updatedAt: new Date() }, { merge: true }); } catch { /* ignore */ }
+  try { await stateRef?.set({ attempts, reported, updatedAt: new Date() }, { mergeFields: ["attempts", "reported", "updatedAt"] }); } catch { /* ignore */ }
 
   log.log?.(
     `[url-repair] dead ${out.deadFound} · recovered ${out.recovered.length} · fixed ${out.fixed.length} · ` +

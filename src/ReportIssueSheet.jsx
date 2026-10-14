@@ -34,6 +34,14 @@ const EJS_SERVICE_ID  = "service_j0cvqgf";
 const EJS_CONFIRM_TID = "template_gju4z27";   // User confirmation email
 const EJS_PUBLIC_KEY  = "aV7SknFp6qPFayUkX";
 
+// Confirmation email for a report (also used by the scheme "⚑" flag).
+export function sendReportConfirmation({ email, name, typeLabel, subject, message }) {
+  if (!email) return;
+  emailjs.send(EJS_SERVICE_ID, EJS_CONFIRM_TID,
+    { email, user_name: name || "User", report_type: typeLabel || "Report", subject: subject || "(no subject)", user_message: message || "" },
+    { publicKey: EJS_PUBLIC_KEY }).catch(e => console.warn("Confirmation email failed:", e));
+}
+
 // ─── REPORT TYPES ────────────────────────────────────────────────────────────
 const REPORT_TYPES = {
   en: [

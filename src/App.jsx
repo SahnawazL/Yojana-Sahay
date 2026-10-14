@@ -37,6 +37,7 @@ import { officialSchemeLink } from "./schemeMatch.js";
 import AILockedScreen from "./AILockedScreen.jsx";
 const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 import ReportIssueSheet from "./ReportIssueSheet.jsx";
+import { SchemeFlagButton, SchemeFlagNotice } from "./SchemeFlag.jsx";
 import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
@@ -2357,7 +2358,7 @@ function ApplicationTracker({scheme,lang,dark=false}){
   </>);
 }
 
-function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
+function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userName=""}){
   const th=THEME[dark?"dark":"light"];
   // Looks up full scheme data from SCHEME_DB by id
   const scheme=useMemo(()=>SCHEME_DB.find(s=>s.id===schemeId),[schemeId]);
@@ -2451,6 +2452,8 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
           </div>
         )}
         <div style={{padding:"0 16px 36px"}}>
+          {/* ── Warning when other people recently reported a problem ── */}
+          <SchemeFlagNotice schemeId={scheme.id} lang={lang} dark={dark}/>
           {/* ── Application Checklist header + live progress ── */}
           <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:12}}>
             <div style={{width:36,height:36,borderRadius:11,flexShrink:0,background:`linear-gradient(135deg,${scheme.color}22,${scheme.color}0a)`,border:`1.5px solid ${scheme.color}35`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>📋</div>
@@ -2540,6 +2543,9 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false}){
             </div>
             <span style={{fontSize:15,color:"#25D366",opacity:0.8,flexShrink:0}}>›</span>
           </div>
+
+          {/* ── ⚑ Something wrong? — one-tap report (works without sign-in) ── */}
+          <SchemeFlagButton scheme={scheme} lang={lang} dark={dark} onSignIn={onSignIn} userName={userName}/>
         </div>
       </div>
     </div>
@@ -11627,7 +11633,8 @@ function YojanaSahayInner(){
         <CategorySheet category={selectedCategory} lang={lang} onClose={()=>setSelectedCategory(null)} dark={dark} onOpenDetail={setSelectedScheme}/>
       )}
       {selectedScheme&&(
-        <SchemeDetailSheet schemeId={selectedScheme} lang={lang} onClose={()=>setSelectedScheme(null)} dark={dark}/>
+        <SchemeDetailSheet schemeId={selectedScheme} lang={lang} onClose={()=>setSelectedScheme(null)} dark={dark}
+          userName={profile?.name||""} onSignIn={auth.currentUser?null:()=>{setSelectedScheme(null);setActiveTab("profile");}}/>
       )}
       {showFAQ&&(
         <div

@@ -33,6 +33,8 @@
 
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue, FieldPath } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
+import { createHash } from "crypto";
 
 function getAdminApp() {
   if (getApps().length) return getApps()[0];
@@ -120,13 +122,18 @@ export default async function handler(req, res) {
     // Unrecognized/missing type falls back to "checker" — this is what keeps
     // the original client call (which never sent a `type` field) working
     // completely unchanged.
-    const type = ["checker", "search", "state", "events"].includes(body.type) ? body.type : "checker";
+    const type = ["checker", "search", "state", "events", "flag"].includes(body.type) ? body.type : "checker";
 
     const app = getAdminApp();
     const db = getFirestore(app);
     const ref = db.collection("appStats").doc("usage");
 
     // ── Eligibility checker run ──────────────────────────────────────────
+    if (type === "flag") {
+      await handleFlag(req, res, body, getFirestore(getAdminApp()), getAdminApp());
+      return;
+    }
+
     if (type === "checker") {
       const runRecord = {};
       for (const key of ALLOWED_RUN_FIELDS) {
@@ -234,3 +241,138 @@ export default async function handler(req, res) {
     res.status(500).json({ ok: false, error: "log failed" });
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// type:"flag" — "⚑ Something wrong with this scheme?" on a scheme's detail sheet.
+// Works for guests (no sign-in) and signed-in users (send the Firebase ID token
+// as "Authorization: Bearer …" so the report shows in their My Reports).
+//
+//  • Saved in the same `reports` collection the admin Reports section uses
+//    (type "issue", source "scheme_flag", schemeId, flagReason) — no new inbox.
+//  • Guest flags on the same scheme + reason are merged into ONE open report
+//    (flagCount++) so the admin sees "5 people" instead of 5 copies.
+//  • "Link not working": the link is checked from the server right away. If
+//    it is really down, the scheme goes to the front of the daily auto-repair
+//    queue (appMeta/urlRepairState.reported → _lib/urlRepairAgent.js).
+//  • schemeFlags/{schemeId} — small public summary the app reads to warn other
+//    users ("Some people reported this link isn't working").
+//  • Abuse limits per network per day: guests 5 flags, signed-in 20; the same
+//    scheme + reason once a day.
+// ─────────────────────────────────────────────────────────────────────────────
+const FLAG_REASONS = {
+  link:        "Link not working",
+  amount:      "Amount / benefit is wrong",
+  closed:      "Scheme closed / date passed",
+  eligibility: "Eligibility is wrong",
+  other:       "Something else",
+};
+let SCHEMES_CACHE = null;
+async function findScheme(id) {
+  if (!SCHEMES_CACHE) SCHEMES_CACHE = (await import("../src/schemesData.js")).SCHEME_DB;
+  return SCHEMES_CACHE.find(s => s.id === id && !s.duplicateOf) || null;
+}
+
+async function handleFlag(req, res, body, db, app) {
+  const sid = cleanKey(body.schemeId, 80);
+  const reason = typeof body.reason === "string" && FLAG_REASONS[body.reason] ? body.reason : null;
+  const note = String(body.note || "").replace(/\s+/g, " ").trim().slice(0, 400);
+  const lang = body.lang === "hi" ? "hi" : "en";
+  if (!sid || !reason) { res.status(400).json({ error: "bad request" }); return; }
+  if (reason === "other" && note.length < 3) { res.status(400).json({ error: "note required" }); return; }
+  const scheme = await findScheme(sid);
+  if (!scheme) { res.status(404).json({ error: "unknown scheme" }); return; }
+
+  // Who is reporting (optional)
+  let user = null;
+  const token = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
+  if (token) {
+    try {
+      const d = await getAuth(app).verifyIdToken(token);
+      user = { uid: d.uid, name: String(body.userName || d.name || "").slice(0, 80), email: d.email || "", phone: d.phone_number || "" };
+    } catch { /* treat as guest */ }
+  }
+
+  // Rate limit — per network (hashed, never stored raw) per day
+  const ip = String(req.headers?.["x-forwarded-for"] || req.socket?.remoteAddress || "").split(",")[0].trim();
+  const day = istDay();
+  const who = createHash("sha256").update(`${ip}|${user?.uid || "guest"}|${day}`).digest("hex").slice(0, 24);
+  const limRef = db.collection("flagLimits").doc(`${day}_${who}`);
+  const key = `${sid}__${reason}`;
+  const verdict = await db.runTransaction(async (tx) => {
+    const d = (await tx.get(limRef)).data() || {};
+    if (d[key]) return "duplicate";
+    if ((d.count || 0) >= (user ? 20 : 5)) return "limit";
+    tx.set(limRef, { count: FieldValue.increment(1), [key]: true, day }, { merge: true });
+    return "ok";
+  });
+  if (verdict === "limit") { res.status(429).json({ error: "too many reports today" }); return; }
+  if (verdict === "duplicate") { res.status(200).json({ ok: true, duplicate: true }); return; }
+
+  // Link check (only for "link not working")
+  let linkCheck = null;
+  if (reason === "link" && scheme.applyType !== "offline") {
+    const { normalizeSchemeUrl } = await import("./_lib/urlTools.js");
+    const url = normalizeSchemeUrl(scheme.apply?.en);
+    if (url) {
+      const { pingUrlServer } = await import("./ping-url.js");
+      const r = await Promise.race([
+        pingUrlServer(url).catch(() => ({ alive: null, httpStatus: 0 })),
+        new Promise(ok => setTimeout(() => ok({ alive: null, httpStatus: 0, error: "timeout" }), 9000)),
+      ]);
+      linkCheck = { url, alive: r.alive ?? null, httpStatus: r.httpStatus || 0, at: new Date().toISOString() };
+      if (r.alive === false) {
+        await db.collection("appMeta").doc("urlRepairState").set({ reported: { [sid]: Date.now() } }, { merge: true }).catch(() => {});
+      }
+    }
+  }
+
+  const label = FLAG_REASONS[reason];
+  const checkLine = !linkCheck ? "" :
+    linkCheck.alive === true ? `\n\n[Auto-check] Link answered OK (HTTP ${linkCheck.httpStatus}) from our server — may be slow or blocked for this user.`
+    : linkCheck.alive === false ? `\n\n[Auto-check] Our server could not reach it (HTTP ${linkCheck.httpStatus || "no answer"}) — queued for the daily auto-repair (it re-checks before changing anything).`
+    : "\n\n[Auto-check] Could not confirm (government sites often block servers outside India).";
+  const base = {
+    type: "issue", source: "scheme_flag", status: "open", lang,
+    schemeId: sid, schemeName: scheme.name?.en || sid, flagReason: reason,
+    subject: `⚑ ${scheme.name?.en || sid} — ${label}`.slice(0, 140),
+    ...(linkCheck ? { linkCheck } : {}),
+  };
+
+  let merged = false, flagCount = 1;
+  if (user) {
+    await db.collection("reports").add({
+      ...base, uid: user.uid, userName: user.name || "User", userEmail: user.email, userPhone: user.phone,
+      message: `${note || label}${checkLine}`, flagCount: 1, createdAt: FieldValue.serverTimestamp(),
+    });
+  } else {
+    // Merge into the open guest report for the same scheme + reason
+    const snap = await db.collection("reports").where("schemeId", "==", sid).limit(30).get();
+    const open = snap.docs.find(d => { const x = d.data(); return x.source === "scheme_flag" && x.uid === "guest" && x.flagReason === reason && x.status !== "resolved"; });
+    if (open) {
+      merged = true;
+      flagCount = (open.data().flagCount || 1) + 1;
+      await open.ref.update({
+        flagCount: FieldValue.increment(1), lastFlagAt: FieldValue.serverTimestamp(),
+        ...(linkCheck ? { linkCheck } : {}),
+        ...(note ? { notes: FieldValue.arrayUnion(note) } : {}),
+      });
+    } else {
+      await db.collection("reports").add({
+        ...base, uid: "guest", userName: "Guest (no sign-in)", userEmail: "", userPhone: "",
+        message: `${note || label}${checkLine}`, flagCount: 1, createdAt: FieldValue.serverTimestamp(),
+        ...(note ? { notes: [note] } : {}),
+      });
+    }
+  }
+
+  // Public summary for the in-app warning
+  await db.collection("schemeFlags").doc(sid).set({
+    [reason]: {
+      count: FieldValue.increment(1), lastAt: new Date().toISOString(),
+      ...(linkCheck ? { alive: linkCheck.alive } : {}),
+    },
+  }, { merge: true }).catch(() => {});
+
+  res.status(200).json({ ok: true, merged, flagCount, linkAlive: linkCheck ? linkCheck.alive : undefined, signedIn: !!user });
+}
+

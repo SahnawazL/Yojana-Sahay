@@ -148,6 +148,13 @@ service cloud.firestore {
     // explicitly covered either way instead of relying only on the
     // deny-all catch-all below). Written via Admin SDK (bypasses rules);
     // this only governs any future direct client reads.
+    // Public summary of user reports per scheme (written by the server —
+    // api/log-checker-run.js type:"flag"); the app shows a gentle warning.
+    match /schemeFlags/{schemeId} {
+      allow read: if true;
+      allow write: if isAdmin() || isRestrictedAdmin();
+    }
+
     match /appMeta/{docId} {
       allow read, write: if isAdmin();
     }

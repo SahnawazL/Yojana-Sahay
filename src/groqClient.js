@@ -62,7 +62,7 @@ const APP = {
     "Schemes tab: browse ALL schemes with category filter pills (🌾Farmer · 📚Student · 👩Women · 👴Senior · 💼Business · 🏠Housing) and state selector (top-right); the All(N) pill shows the live total count",
     "AI Help tab — this AI assistant (Hindi + English)",
     "Profile tab for personalized scheme recommendations",
-    "Help & reports: Profile tab → 'Report / Query' (sign-in needed) to report a bug, request a missing scheme, ask a question or give feedback, with status tracking; or email yojanasahayofficial@gmail.com. Full FAQ: https://yojanasahay.vercel.app/faq.html",
+    "Help & reports: wrong scheme info → open the scheme and tap '⚑ Something wrong with this scheme?' at the bottom (one tap, no sign-in, link checked instantly); anything else → Profile tab → 'Report / Query' (sign-in needed) to report a bug, request a missing scheme, ask a question or give feedback, with status tracking; or email yojanasahayofficial@gmail.com. Full FAQ: https://yojanasahay.vercel.app/faq.html",
     "Eligibility quiz: asks about occupation, income, state, housing, age, area",
     "Suggested follow-up chips after each AI response",
     "Reading-time cooldown for rural users (10–15s after each reply)",

@@ -380,8 +380,9 @@ function renderTrust(kind) {
       body: `
   <h1>Contact & corrections</h1>
   <p class="lead">Tell us about wrong information, a missing scheme, a question, or a problem with the app.</p>
-  <h2>Two ways to reach us</h2>
+  <h2>Ways to reach us</h2>
   <ul>
+    <li><strong>Wrong scheme information?</strong> Open the scheme in the app and tap <strong>“⚑ Something wrong with this scheme?”</strong> at the bottom — one tap, no sign-in needed.</li>
     <li><strong>In the app</strong> — sign in, open the <strong>Profile</strong> tab and tap <strong>“Report / Query”</strong>. You can report a bug, request a scheme, ask a question or share feedback, and follow the status of your request there.</li>
     <li><strong>Email</strong> — ${MAIL}</li>
   </ul>
