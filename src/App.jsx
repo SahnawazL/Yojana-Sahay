@@ -37,7 +37,7 @@ import { officialSchemeLink } from "./schemeMatch.js";
 import AILockedScreen from "./AILockedScreen.jsx";
 const AdminDashboard = React.lazy(() => import("./AdminDashboard.jsx"));
 import ReportIssueSheet from "./ReportIssueSheet.jsx";
-import { SchemeFlagButton, SchemeFlagNotice } from "./SchemeFlag.jsx";
+import { SchemeFlagButton, SchemeFlagNotice, claimGuestReports } from "./SchemeFlag.jsx";
 import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
@@ -10025,6 +10025,8 @@ function YojanaSahayInner(){
       // kept in Firestore (its own doc, so profile saves never overwrite it).
       initApplications(user?.uid||null);
       initFamily(user?.uid||null);
+      // Scheme ⚑ reports sent from this phone before signing in → this account.
+      if(user) claimGuestReports(user);
       if(user){
         setRemoteWriter((uid,apps)=>setDoc(doc(db,"userApplications",uid),{apps,updatedAt:serverTimestamp()}).catch(()=>{}));
         getDoc(doc(db,"userApplications",user.uid)).then(snap=>mergeRemote(snap.exists()?snap.data()?.apps:{})).catch(()=>{});

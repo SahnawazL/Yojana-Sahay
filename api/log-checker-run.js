@@ -122,7 +122,7 @@ export default async function handler(req, res) {
     // Unrecognized/missing type falls back to "checker" — this is what keeps
     // the original client call (which never sent a `type` field) working
     // completely unchanged.
-    const type = ["checker", "search", "state", "events", "flag"].includes(body.type) ? body.type : "checker";
+    const type = ["checker", "search", "state", "events", "flag", "claim"].includes(body.type) ? body.type : "checker";
 
     const app = getAdminApp();
     const db = getFirestore(app);
@@ -131,6 +131,10 @@ export default async function handler(req, res) {
     // ── Eligibility checker run ──────────────────────────────────────────
     if (type === "flag") {
       await handleFlag(req, res, body, getFirestore(getAdminApp()), getAdminApp());
+      return;
+    }
+    if (type === "claim") {
+      await handleClaim(req, res, body, getFirestore(getAdminApp()), getAdminApp());
       return;
     }
 
@@ -338,7 +342,7 @@ async function handleFlag(req, res, body, db, app) {
     ...(linkCheck ? { linkCheck } : {}),
   };
 
-  let merged = false, flagCount = 1;
+  let merged = false, flagCount = 1, reportId = null;
   if (user) {
     // Same person, same scheme + problem, still open → add to that report.
     const mineSnap = await db.collection("reports").where("uid", "==", user.uid).limit(200).get();
@@ -362,6 +366,7 @@ async function handleFlag(req, res, body, db, app) {
     const open = snap.docs.find(d => { const x = d.data(); return x.source === "scheme_flag" && x.uid === "guest" && x.flagReason === reason && x.status !== "resolved"; });
     if (open) {
       merged = true;
+      reportId = open.id;
       flagCount = (open.data().flagCount || 1) + 1;
       await open.ref.update({
         flagCount: FieldValue.increment(1), lastFlagAt: FieldValue.serverTimestamp(),
@@ -369,11 +374,11 @@ async function handleFlag(req, res, body, db, app) {
         ...(note ? { notes: FieldValue.arrayUnion(note) } : {}),
       });
     } else {
-      await db.collection("reports").add({
+      reportId = (await db.collection("reports").add({
         ...base, uid: "guest", userName: "Guest (no sign-in)", userEmail: "", userPhone: "",
         message: `${note || label}${checkLine}`, flagCount: 1, createdAt: FieldValue.serverTimestamp(),
         ...(note ? { notes: [note] } : {}),
-      });
+      })).id;
     }
   }
 
@@ -394,6 +399,42 @@ async function handleFlag(req, res, body, db, app) {
     }, { merge: true });
   } catch { /* summary is best-effort */ }
 
-  res.status(200).json({ ok: true, merged, flagCount, linkAlive: linkCheck ? linkCheck.alive : undefined, signedIn: !!user });
+  res.status(200).json({ ok: true, merged, flagCount, reportId, linkAlive: linkCheck ? linkCheck.alive : undefined, signedIn: !!user });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// type:"claim" — someone who reported without signing in has now signed in on
+// the same phone. Their earlier reports (ids kept on the phone) move into their
+// account so they show in My Reports and replies reach them by email.
+//  • only they reported it → the report becomes theirs
+//  • merged with other people → they get their own copy (with replies so far),
+//    and the shared report counts one person less
+// ─────────────────────────────────────────────────────────────────────────────
+async function handleClaim(req, res, body, db, app) {
+  const token = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
+  let d;
+  try { d = await getAuth(app).verifyIdToken(token); } catch { res.status(401).json({ error: "sign-in required" }); return; }
+  let profileName = "";
+  try { profileName = (await db.collection("users").doc(d.uid).get()).data()?.name || ""; } catch { /* optional */ }
+  const user = { uid: d.uid, name: String(profileName || body.userName || d.name || "User").slice(0, 80), email: d.email || "", phone: d.phone_number || "" };
+  const items = (Array.isArray(body.items) ? body.items : []).slice(0, 10);
+  const claimed = [];
+  for (const it of items) {
+    const rid = cleanKey(it?.reportId, 40), sid = cleanKey(it?.schemeId, 80);
+    if (!rid || !sid) continue;
+    const ref = db.collection("reports").doc(rid);
+    const snap = await ref.get();
+    const x = snap.exists ? snap.data() : null;
+    if (!x || x.source !== "scheme_flag" || x.uid !== "guest" || x.schemeId !== sid || x.flagReason !== it.reason) continue;
+    const who = { uid: user.uid, userName: user.name, userEmail: user.email, userPhone: user.phone, claimedAt: FieldValue.serverTimestamp() };
+    if ((x.flagCount || 1) <= 1) {
+      await ref.update(who);
+    } else {
+      const { notes, flagCount, lastFlagAt, ...rest } = x;
+      await db.collection("reports").add({ ...rest, ...who, flagCount: 1, linkedGuestReport: rid, replyHistory: x.replyHistory || [] });
+      await ref.update({ flagCount: FieldValue.increment(-1) });
+    }
+    claimed.push(rid);
+  }
+  res.status(200).json({ ok: true, claimed });
+}

@@ -39,6 +39,27 @@ const saveLocal = (schemeId, entry) => {
     localStorage.setItem(LS_KEY, JSON.stringify(all));
   } catch { /* storage off — fine */ }
 };
+// After signing in on this phone: move the reports sent here without sign-in
+// into the account (→ My Reports + email replies). Safe to call on every sign-in.
+export async function claimGuestReports(user, userName = "") {
+  try {
+    if (!user) return;
+    const all = readLocal();
+    const items = [];
+    for (const [schemeId, list] of Object.entries(all))
+      for (const x of list) if (x.reportId && !x.claimed) items.push({ reportId: x.reportId, schemeId, reason: x.reason });
+    if (!items.length) return;
+    const r = await fetch("/api/log-checker-run", { method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${await user.getIdToken()}` },
+      body: JSON.stringify({ type: "claim", items: items.slice(0, 10), userName: userName || user.displayName || "" }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.ok) return;
+    // Mark every item we sent as done (claimed, or no longer claimable).
+    const sent = new Set(items.slice(0, 10).map(i => i.reportId));
+    for (const list of Object.values(all)) for (const x of list) if (sent.has(x.reportId)) x.claimed = true;
+    localStorage.setItem(LS_KEY, JSON.stringify(all));
+  } catch { /* try again next sign-in */ }
+}
 const toMs = (v) => (v?.toMillis ? v.toMillis() : typeof v === "number" ? v : Date.parse(v || "")) || Date.now();
 const recent = (iso, days) => { const t = Date.parse(iso || ""); return Number.isFinite(t) && Date.now() - t < days * DAY; };
 
@@ -138,7 +159,7 @@ export function SchemeFlagButton({ scheme, lang, dark, onSignIn, userName }) {
       if (!r.ok || !d.ok) throw new Error();
       setDone(d);
       const entry = { reason, at: Date.now(), status: d.status || "open", reply: "" };
-      saveLocal(scheme.id, { reason, at: entry.at, linkAlive: d.linkAlive ?? null });
+      saveLocal(scheme.id, { reason, at: entry.at, linkAlive: d.linkAlive ?? null, ...(d.reportId && !d.signedIn ? { reportId: d.reportId } : {}) });
       setMine(m => [entry, ...m.filter(x => x.reason !== reason)]);
       if (d.signedIn && u?.email && !d.duplicate && !d.existing) {
         const R = REASONS.find(x => x.v === reason);
