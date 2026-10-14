@@ -16,6 +16,7 @@ import { collection, getDocs, updateDoc, doc, serverTimestamp, arrayUnion, getDo
 import { db } from "./firebase.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
+import { schemeLink, isOfficialUrl, officialSchemeLink } from "./schemeMatch.js";
 import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
@@ -1502,11 +1503,45 @@ const TYPE_META = {
   query:          { icon:"❓", label:"Query",             color:IND_GREEN },
   feedback:       { icon:"💡", label:"Feedback",          color:SAFFRON   },
 };
+// Filter chips in Reports: the four report types + ⚑ reports sent from a scheme page.
+const FILTER_TYPES = { ...TYPE_META, scheme_flag: { icon:"⚑", label:"Scheme reports", color:"#C2410C" } };
 const STATUS_META = {
   open:        { label:"Open",        color:"#DC2626",  bg:"#FEF2F2",  emoji:"🔴" },
   in_progress: { label:"In Progress", color:"#D97706",  bg:"#FFFBEB",  emoji:"🟡" },
   resolved:    { label:"Resolved",    color:IND_GREEN,  bg:"#F0FDF4",  emoji:"✅" },
 };
+
+// ── For ⚑ scheme reports: the scheme as the app shows it today, and where to fix it ──
+const SCHEME_BY_ID_ADMIN = new Map(SCHEME_DB.map(s => [s.id, s]));
+const REPO = "https://github.com/SahnawazL/Yojana-Sahay";
+function schemeDataFile(s) {
+  if (!s || s.scope !== "state" || !s.state) return "src/schemesData.js";
+  return `src/states/${s.state.toLowerCase().replace(/&/g, "").replace(/[^a-z]+/g, "_").replace(/^_|_$/g, "")}.js`;
+}
+function SchemeFixPanel({ schemeId, th, dark }) {
+  const s = SCHEME_BY_ID_ADMIN.get(schemeId);
+  const box = { background: dark ? "rgba(194,65,12,0.08)" : "#FFF7ED", border: `1px solid ${dark ? "rgba(194,65,12,0.35)" : "#FED7AA"}`, borderRadius: 12, padding: "12px 14px" };
+  if (!s) return <div style={box}><div style={{ fontSize: 11, color: th.textSub }}>⚑ Scheme <b>{schemeId}</b> is no longer in the app data (removed or renamed).</div></div>;
+  const raw = schemeLink(s), off = officialSchemeLink(s);
+  const file = schemeDataFile(s);
+  const btn = { fontSize: 11, fontWeight: 800, padding: "6px 10px", borderRadius: 9, textDecoration: "none", display: "inline-block", border: `1px solid ${th.border}`, color: th.text, background: th.card };
+  return (
+    <div style={box}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: th.textSub, marginBottom: 6, letterSpacing: 0.4 }}>SCHEME IN THE APP NOW</div>
+      <div style={{ fontSize: 12.5, fontWeight: 800, color: th.text }}>{s.icon} {s.name?.en}{s.closed ? " · 🔒 marked closed" : ""}</div>
+      <div style={{ fontSize: 11.5, color: th.textMid, marginTop: 4, lineHeight: 1.5 }}>💰 {s.benefit?.en}</div>
+      <div style={{ fontSize: 11, color: th.textMid, marginTop: 4, lineHeight: 1.5, wordBreak: "break-all" }}>
+        🔗 {raw || "no link"} {raw && (isOfficialUrl(raw) ? <span style={{ color: "#15803d", fontWeight: 800 }}>· official</span> : <span style={{ color: "#DC2626", fontWeight: 800 }}>· NOT official{off ? ` — app shows ${off} instead` : " — app shows no Apply link"}</span>)}
+      </div>
+      <div style={{ fontSize: 10.5, color: th.textSub, marginTop: 6 }}>📄 Edit in <code style={{ fontSize: 10.5 }}>{file}</code> · id <code style={{ fontSize: 10.5 }}>{s.id}</code></div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+        <a href={`/?scheme=${encodeURIComponent(s.id)}`} target="_blank" rel="noopener noreferrer" style={btn}>👁 Open in app</a>
+        {raw && <a href={raw} target="_blank" rel="noopener noreferrer" style={btn}>🔗 Try the link</a>}
+        <a href={`${REPO}/blob/main/${file}`} target="_blank" rel="noopener noreferrer" style={btn}>✏️ Open data file</a>
+      </div>
+    </div>
+  );
+}
 
 // ── Conversation Thread component ──────────────────────────────────────────
 function ConversationThread({ report, dark }) {
@@ -1859,11 +1894,14 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
 
     const list = reports.filter(r => {
       const matchStatus = filter === "all" || r.status === filter;
-      const matchType   = typeFilter === "all" || r.type === typeFilter;
+      const matchType   = typeFilter === "all"
+        || (typeFilter === "scheme_flag" ? r.source === "scheme_flag" : r.type === typeFilter);
       const matchSearch = !q
         || r.id?.toLowerCase().includes(q)
         || r.message?.toLowerCase().includes(q)
-        || r.userName?.toLowerCase().includes(q);
+        || r.userName?.toLowerCase().includes(q)
+        || r.schemeName?.toLowerCase().includes(q)
+        || r.schemeId?.toLowerCase().includes(q);
       const matchDate   = !cutoff || (() => {
         const ts = r.createdAt?.seconds
           ? r.createdAt.seconds * 1000
@@ -1884,6 +1922,8 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
     list.sort((a, b) => (getPriority(a) - getPriority(b)) || ((b.flagCount || 1) - (a.flagCount || 1)));
     return list;
   }, [reports, filter, typeFilter, searchQuery, dateFilter]);
+
+  const openFlags = useMemo(() => reports.filter(r => r.source === "scheme_flag" && r.status !== "resolved").length, [reports]);
 
   // Reset to page 1 whenever filters or search changes
   useEffect(() => { setReportPage(1); }, [filter, typeFilter, searchQuery, dateFilter]);
@@ -2024,7 +2064,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
             color:      typeFilter === "all" ? "#fff"   : th.textMid,
             transition:"all 0.18s",
           }}>All Types</div>
-          {Object.entries(TYPE_META).map(([v, meta]) => (
+          {Object.entries(FILTER_TYPES).map(([v, meta]) => (
             <div key={v} onClick={() => setTypeFilter(v)} style={{
               padding:"5px 11px", borderRadius:20, fontSize:10, fontWeight:700,
               cursor:"pointer", flexShrink:0,
@@ -2032,7 +2072,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
               color:      typeFilter === v ? "#fff"     : th.textMid,
               transition:"all 0.18s",
             }}>
-              {meta.icon} {meta.label}
+              {meta.icon} {meta.label}{v === "scheme_flag" && openFlags ? ` (${openFlags} open)` : ""}
             </div>
           ))}
 
@@ -2097,7 +2137,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
               color:      typeFilter === "all" ? "#fff"   : th.textMid,
               transition:"all 0.18s",
             }}>All Types</div>
-            {Object.entries(TYPE_META).map(([v, meta]) => (
+            {Object.entries(FILTER_TYPES).map(([v, meta]) => (
               <div key={v} onClick={() => setTypeFilter(v)} style={{
                 padding:"5px 11px", borderRadius:20, fontSize:10, fontWeight:700,
                 cursor:"pointer",
@@ -2105,7 +2145,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
                 color:      typeFilter === v ? "#fff"     : th.textMid,
                 transition:"all 0.18s",
               }}>
-                {meta.icon} {meta.label}
+                {meta.icon} {meta.label}{v === "scheme_flag" && openFlags ? ` (${openFlags} open)` : ""}
               </div>
             ))}
           </div>
@@ -2142,7 +2182,7 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
           className="ys-input"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          placeholder="Search by Report ID, message, or user name…"
+          placeholder="Search by Report ID, message, user or scheme name…"
           style={{
             width:"100%", boxSizing:"border-box",
             padding:"9px 34px 9px 34px",
@@ -2379,6 +2419,9 @@ function ReportsSection({ reports, loading, dark, onRefresh, onStatusChange, onL
                     </div>
                   )}
                 </div>
+
+                {/* ⚑ Scheme report → what the app shows now + where to fix it */}
+                {report.source === "scheme_flag" && report.schemeId && <SchemeFixPanel schemeId={report.schemeId} th={th} dark={dark} />}
 
                 {/* User contact info */}
                 <div style={{
@@ -4966,7 +5009,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
     users:     { desc:"Browse, filter, search & inspect all user profiles",        badge: loading ? "…" : `${newWk} new this week`,                                        badge2Color:GOOGLE_B,  accentColor:GOOGLE_B,  glow:"rgba(66,133,244,0.35)",   icon:"users" },
     analytics: { desc:"Demographics, donuts, charts & cross-tab matrices",         badge:"8 dimensions",                                                                    badge2Color:VIOLET,    accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"analytics" },
     activity:  { desc:"Eligibility runs, logins & real-time usage feed",           badge: loading ? "…" : `${actDay} active today`,                                        badge2Color:SAFFRON,   accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"activity" },
-    usage:     { desc:"What people do — scheme views, Apply taps, applications, quiz drop-off & searches", badge: actionStats.hasData ? `${actionStats.applyToday} apply taps today` : "live metrics",                                                                    badge2Color:PINK,      accentColor:PINK,      glow:"rgba(236,72,153,0.35)",   icon:"usage" },
+    usage:     { desc:"What people do — scheme views, Apply taps, applications, quiz drop-off, searches & new features", badge: actionStats.hasData ? `${actionStats.applyToday} apply taps today` : "live metrics",                                                                    badge2Color:PINK,      accentColor:PINK,      glow:"rgba(236,72,153,0.35)",   icon:"usage" },
     schemes:   { desc:"State-wise scheme coverage, gaps & distribution map",       badge:"all India states",                                                                badge2Color:IND_GREEN, accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"schemes" },
     reports:   { desc:"User-reported issues, admin replies & status workflow",     badge: loading ? "…" : openR > 0 ? `${openR} open · ${inProg} in prog` : "all clear ✓", badge2Color: openR > 0 ? "#E53E3E" : IND_GREEN, accentColor:"#E53E3E", glow:"rgba(229,62,62,0.35)", icon:"reports" },
     cleanup:   { desc:"Purge resolved reports & flush stale usage data",           badge:"database hygiene",                                                                badge2Color:"#F59E0B", accentColor:"#F59E0B", glow:"rgba(245,158,11,0.35)",   icon:"cleanup" },
@@ -4982,12 +5025,23 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   const tabCards = TABS.filter(([id]) => TAB_META[id]);
   const engColor = engPct >= 20 ? IND_GREEN : engPct >= 5 ? SAFFRON : "#E53E3E";
 
+  // Open ⚑ scheme reports (sent from a scheme page) and how many people they affect.
+  const flagOpenList = (reports || []).filter(r => r.source === "scheme_flag" && r.status !== "resolved");
+  const flagOpen     = flagOpenList.length;
+  const flagPeople   = flagOpenList.reduce((n, r) => n + (r.flagCount || 1), 0);
+  const unrepliedOther = (reports || []).filter(r => r.source !== "scheme_flag" && r.status === "open" && !r.adminReply && !(r.replyHistory?.length > 0)).length;
+
   // ── Attention items for the priority feed ──
   const ALERTS = [
-    unreplied > 0 && {
+    unrepliedOther > 0 && {
       id:"unreplied", icon:"alert",
-      text: `${unreplied} open report${unreplied>1?"s":""} need a reply`,
+      text: `${unrepliedOther} open report${unrepliedOther>1?"s":""} need a reply`,
       color:"#E53E3E", action:"reports",
+    },
+    flagOpen > 0 && {
+      id:"schemeflags", icon:"alert",
+      text: `⚑ ${flagOpen} scheme problem${flagOpen>1?"s":""} reported from scheme pages${flagPeople>flagOpen?` (${flagPeople} people)`:""} — fix the data`,
+      color:"#C2410C", action:"reports",
     },
     inProg > 0 && {
       id:"inprog", icon:"refresh",

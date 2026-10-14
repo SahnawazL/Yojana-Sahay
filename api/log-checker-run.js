@@ -73,6 +73,7 @@ const EVENT_NAMES = new Set([
   "quiz_start", "quiz_step", "quiz_done", "quiz_group",
   "near_me", "life_event", "money_cal",
 ]);
+const FEATURE_EVENTS = new Set(["near_me", "life_event", "money_cal"]);
 const cleanKey = (v, max) => (typeof v === "string" && new RegExp(`^[A-Za-z0-9_]{1,${max}}$`).test(v) ? v : null);
 function istDay(d = new Date()) {
   return new Date(d.getTime() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
@@ -169,7 +170,7 @@ export default async function handler(req, res) {
       const upd = { totals: {}, days: { [day]: {} }, schemes: {}, quiz: {}, groups: {} };
       let n = 0;
       const bump = (obj, k) => { obj[k] = (obj[k] || 0) + 1; };
-      const counts = { totals: {}, day: {}, schemes: {}, quiz: {}, groups: {} };
+      const counts = { totals: {}, day: {}, schemes: {}, quiz: {}, groups: {}, features: {} };
       for (const ev of list) {
         const e = ev && typeof ev.e === "string" ? ev.e : "";
         if (!EVENT_NAMES.has(e)) continue;
@@ -184,6 +185,8 @@ export default async function handler(req, res) {
         if (e === "quiz_done") bump(counts.quiz, "done");
         if (e === "quiz_step" && k) bump(counts.quiz, `step_${k}`);
         if (e === "quiz_group" && k) bump(counts.groups, k);
+        // Which life event / calendar action / place — for the admin "New features" card.
+        if (FEATURE_EVENTS.has(e) && k) { counts.features[e] = counts.features[e] || {}; bump(counts.features[e], k); }
       }
       if (!n) { res.status(200).json({ ok: true, skipped: true }); return; }
       const asInc = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, FieldValue.increment(v)]));
@@ -192,8 +195,9 @@ export default async function handler(req, res) {
       upd.schemes = Object.fromEntries(Object.entries(counts.schemes).map(([sid, o]) => [sid, asInc(o)]));
       upd.quiz = asInc(counts.quiz);
       upd.groups = asInc(counts.groups);
+      upd.features = Object.fromEntries(Object.entries(counts.features).map(([fe, o]) => [fe, asInc(o)]));
       upd.updatedAt = new Date().toISOString();
-      for (const key of ["schemes", "quiz", "groups"]) if (!Object.keys(upd[key]).length) delete upd[key];
+      for (const key of ["schemes", "quiz", "groups", "features"]) if (!Object.keys(upd[key]).length) delete upd[key];
       const evRef = db.collection("appStats").doc("events");
       await evRef.set(upd, { merge: true });
 

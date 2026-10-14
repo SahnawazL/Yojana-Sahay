@@ -28,6 +28,15 @@ const GROUP_LABEL = {
   tea: "Tea garden workers", orphan: "Lost a parent", media: "Journalists & lawyers", merit: "Toppers", abroad: "Study abroad", graduate: "Fresh graduates",
 };
 
+const LIFE_LABEL = {
+  baby: "🤰 Pregnancy & new baby", girl_edu: "👧 Daughter's education", farming: "🌾 Farming", job: "💼 Lost job / need work",
+  senior: "👴 Parent turned 60", marriage: "💍 Getting married", house: "🏠 Building a house", loss: "🕊️ Death of earning member",
+  disability: "♿ Disability", college: "🎓 Going to college",
+};
+const CAL_LABEL = { open: "📅 Opened the calendar", reminder: "🔔 Added a Google Calendar reminder", not_received: "❗ Tapped “Didn't get it?”" };
+// near_me keys are the Maps search words with spaces → "_" (cut at 20 chars).
+const placeLabel = k => k.replace(/_/g, " ").replace(/\s*near( me)?\s*$/i, "").trim() || k;
+
 function istDay(offsetDays = 0) {
   return new Date(Date.now() + 5.5 * 3600 * 1000 - offsetDays * 86400000).toISOString().slice(0, 10);
 }
@@ -81,6 +90,11 @@ export default function ActionInsights({ events, usageData, th, dark, onRefresh,
   }, [quiz]);
 
   const groups = useMemo(() => Object.entries(events?.groups || {}).sort((a, b) => b[1] - a[1]), [events]);
+  const feat = useMemo(() => {
+    const f = events?.features || {};
+    const sorted = o => Object.entries(o || {}).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+    return { life: sorted(f.life_event), cal: f.money_cal || {}, near: sorted(f.near_me) };
+  }, [events]);
 
   const zeroSearches = useMemo(() => {
     const m = {};
@@ -104,8 +118,11 @@ export default function ActionInsights({ events, usageData, th, dark, onRefresh,
     if (zeroSearches[0]) t.push({ icon: "🔍", text: `People searched “${zeroSearches[0][0]}” ${zeroSearches[0][1]}× and found nothing — a scheme to add, or a search word to teach.` });
     const v = sumRange.scheme_view || 0, a = sumRange.apply_click || 0;
     if (v >= 20) t.push({ icon: "📈", text: `${pct(a, v)}% of scheme views lead to an Apply tap in this period.` });
+    const nr = feat.cal.not_received || 0;
+    if (nr >= 3) t.push({ icon: "❗", text: `${nr} people tapped “Didn't get it?” in My Money Calendar — late payments are a real worry. Keep the status guides and helplines up to date.` });
+    if (feat.life[0] && feat.life[0][1] >= 5) t.push({ icon: "🎯", text: `Most-opened life event: ${LIFE_LABEL[feat.life[0][0]] || feat.life[0][0]} (${feat.life[0][1]}×) — worth checking its schemes are complete for big states.` });
     return t;
-  }, [funnel, schemes, zeroSearches, sumRange]);
+  }, [funnel, schemes, zeroSearches, sumRange, feat]);
 
   const card = { background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: "13px 14px" };
   const h = (txt, extra) => (
@@ -234,6 +251,44 @@ export default function ActionInsights({ events, usageData, th, dark, onRefresh,
             </div>
           ))}
         </div>
+
+        {(sumRange.life_event || sumRange.money_cal || sumRange.near_me || feat.life.length || feat.near.length || Object.keys(feat.cal).length) ? (
+          <div style={card}>
+            {h("✨ NEW FEATURES — ARE PEOPLE USING THEM?", <span style={{ fontSize: 9.5, color: th.textSub }}>{range ? `taps · last ${range}d` : "taps · all time"}</span>)}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, marginBottom: 10 }}>
+              {[["🎯", "Life events", sumRange.life_event], ["📅", "Money calendar", sumRange.money_cal], ["📍", "Help near me", sumRange.near_me]].map(([i, l, n]) => (
+                <div key={l} style={{ textAlign: "center", padding: "8px 4px", borderRadius: 10, background: th.card2, border: `1px solid ${th.border}` }}>
+                  <div style={{ fontSize: 17, fontWeight: 900, color: th.text }}>{fmt(n || 0)}</div>
+                  <div style={{ fontSize: 9.5, color: th.textSub, fontWeight: 700, marginTop: 1 }}>{i} {l}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              {[["LIFE EVENTS OPENED", feat.life.map(([k, n]) => [LIFE_LABEL[k] || k, n]), VIOLET],
+                ["MONEY CALENDAR", Object.entries(CAL_LABEL).map(([k, l]) => [l, feat.cal[k] || 0]).filter(([, n]) => n > 0), TEAL],
+                ["PLACES SEARCHED (HELP NEAR ME)", feat.near.slice(0, 8).map(([k, n]) => [placeLabel(k), n]), SAFFRON]]
+                .filter(([, rows]) => rows.length).map(([title, rows, color]) => (
+                <div key={title} style={{ flex: "1 1 200px", minWidth: 0 }}>
+                  <div style={{ fontSize: 9.5, fontWeight: 800, color: th.textSub, letterSpacing: 0.3, marginBottom: 6 }}>{title} <span style={{ fontWeight: 600 }}>· all time</span></div>
+                  {rows.map(([l, n]) => (
+                    <div key={l} style={{ marginBottom: 5 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 6, fontSize: 10, marginBottom: 2 }}>
+                        <span style={{ color: th.textMid, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l}</span>
+                        <span style={{ color: th.text, fontWeight: 800, flexShrink: 0 }}>{n}</span>
+                      </div>
+                      <div style={{ height: 4, borderRadius: 2, background: th.border }}>
+                        <div style={{ height: "100%", width: `${pct(n, Math.max(...rows.map(r => r[1])))}%`, background: color, borderRadius: 2 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            {!feat.life.length && !feat.near.length && !Object.keys(feat.cal).length && (
+              <div style={{ fontSize: 10, color: th.textSub, marginTop: 4 }}>Per-item breakdown is recorded from now on.</div>
+            )}
+          </div>
+        ) : null}
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {groups.length > 0 && (
