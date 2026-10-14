@@ -36,6 +36,7 @@ const SCHEME_DB = ALL_SCHEMES.filter(s => !s.duplicateOf);
 const { FAQ_DATA, faqAnswerText } = await import("../src/faqData.js");
 const { whoCanApply } = await import("../src/eligibilityText.js");
 const { isOfficialUrl } = await import("../src/schemeMatch.js");
+const { benefitKind } = await import("../src/benefitMath.js");
 const { GUIDES, GUIDES_REVIEWED } = await import("./seo-guides.mjs");
 let META = {};
 try { META = JSON.parse(fs.readFileSync(path.join(ROOT, "src", "schemes-meta.json"), "utf8")); } catch { /* optional */ }
@@ -497,7 +498,15 @@ function renderPage(scheme, lang) {
   const about    = scheme.description?.[lang] || scheme.description?.en || "";
   const guide    = GUIDES[scheme.id]?.[lang] || null;
   const myCats   = catsOf(scheme);
-  const yearly   = scheme.annual > 0 ? `₹${Number(scheme.annual).toLocaleString("en-IN")}` : "";
+  // Amount by kind — a loan size or insurance cover is not "a year" (benefitMath.js).
+  const kind     = benefitKind(scheme);
+  const yearly   = scheme.annual > 0 && kind !== "other" ? `₹${Number(scheme.annual).toLocaleString("en-IN")}` : "";
+  const valueTh  = kind === "health" ? (isHindi ? "इलाज कवर (तक)" : "Health cover (up to)")
+                 : kind === "oneTime" ? (isHindi ? "एकमुश्त सहायता (लगभग)" : "One-time help (approx.)")
+                 : (isHindi ? "सालाना लाभ (लगभग)" : "Yearly value (approx.)");
+  const valueSfx = kind === "health" ? (isHindi ? ` (${yearly} तक इलाज कवर)` : ` (cover up to ${yearly})`)
+                 : kind === "oneTime" ? (isHindi ? ` (लगभग ${yearly} एकमुश्त)` : ` (about ${yearly} one-time)`)
+                 : (isHindi ? ` (लगभग ${yearly} सालाना)` : ` (about ${yearly} a year)`);
   const catKey   = category(scheme);
   // Similar schemes elsewhere: same category, other states/Central (Central first).
   // One per state, so it reads like a real comparison across India.
@@ -544,7 +553,7 @@ function renderPage(scheme, lang) {
   ]);
   faqs.push([
     isHindi ? `${name} में कितना लाभ मिलता है?` : `What is the benefit of ${name}?`,
-    benefit + (yearly ? (isHindi ? ` (लगभग ${yearly} सालाना)` : ` (about ${yearly} a year)`) : ""),
+    benefit + (yearly ? valueSfx : ""),
   ]);
   if (docs.length) faqs.push([
     isHindi ? `${name} के लिए कौन से दस्तावेज़ चाहिए?` : `What documents are needed for ${name}?`,
@@ -712,7 +721,7 @@ function renderPage(scheme, lang) {
       <tr><th>${isHindi ? "योजना" : "Scheme"}</th><td>${esc(name)}</td></tr>
       <tr><th>${isHindi ? "किसके लिए" : "For"}</th><td>${esc(tag)}</td></tr>
       <tr><th>${isHindi ? "कहां" : "Where"}</th><td>${esc(stateLabel)}</td></tr>
-      ${yearly ? `<tr><th>${isHindi ? "सालाना लाभ (लगभग)" : "Yearly value (approx.)"}</th><td>${yearly}</td></tr>` : ""}
+      ${yearly ? `<tr><th>${valueTh}</th><td>${yearly}</td></tr>` : ""}
       ${ministry ? `<tr><th>${isHindi ? "विभाग" : "Department"}</th><td>${esc(ministry)}</td></tr>` : ""}
       <tr><th>${isHindi ? "आवेदन" : "How to apply"}</th><td>${scheme.applyType === "online" && applyUrl ? (isHindi ? "ऑनलाइन" : "Online") : (isHindi ? "कार्यालय / CSC पर" : "At office / CSC")}</td></tr>
       ${checked ? `<tr><th>${isHindi ? "जानकारी जांची गई" : "Info checked"}</th><td>${checked}</td></tr>` : ""}
