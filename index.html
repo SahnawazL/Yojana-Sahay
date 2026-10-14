@@ -229,7 +229,6 @@
     }
     </script>
 
-  <link rel="preload" href="/sw.js" as="script">
 
   <!-- ─── HTML Splash Screen — Critical CSS (shows BEFORE React loads) ──── -->
   <style>
@@ -563,7 +562,7 @@
         window.addEventListener("load", function () {
           navigator.serviceWorker.register("/sw.js", { scope: "/" })
             .then(function (r) { ysLastCheck = Date.now(); r.update().catch(function () {}); })
-            .catch(function (e) { console.warn("SW failed:", e); });
+            .catch(function () { /* not supported here (e.g. search-engine crawlers) — the site works without it */ });
         });
       }
     </script>

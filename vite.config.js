@@ -19,6 +19,9 @@ export default defineConfig({
       // Silently updates the service worker in the background.
       // New version activates on next navigation — no "reload to update" prompt.
       registerType: "autoUpdate",
+      // index.html registers /sw.js itself (with the update + reload logic);
+      // a second auto-injected registerSW.js only duplicated it.
+      injectRegister: false,
 
       // ── Manifest ─────────────────────────────────────────────────────────────
       // false = don't generate a new manifest. Your existing public/manifest.json
