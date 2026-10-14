@@ -145,6 +145,104 @@ const SUGGESTED = {
   ],
 };
 
+// ─── WHAT THE ASSISTANT CAN DO ───────────────────────────────────────────────
+// Shown on the welcome screen, in the "✨ What can I do?" sheet, and in the
+// one-time "New" banner — so people discover the smart features.
+// action: "quiz" = start the in-chat check · "send" = ask it now ·
+//         "fill" = put a starter in the box for the user to finish.
+const CAPABILITIES = [
+  { id:"quiz",    icon:"✅", action:"quiz",
+    en:{ t:"Find schemes for me",        s:"A few taps — I ask only what I don't know" },
+    hi:{ t:"मेरे लिए योजनाएं खोजें",        s:"कुछ टैप — सिर्फ़ वही पूछूंगा जो नहीं पता" } },
+  { id:"family",  icon:"👨‍👩‍👧", action:"fill",
+    en:{ t:"Check for family",            s:"Mother, father, son, wife…", x:"Check schemes for my mother, she is " },
+    hi:{ t:"परिवार के लिए जांचें",           s:"मां, पिता, बेटा, पत्नी…",      x:"मेरी मां के लिए योजनाएं देखें, उनकी उम्र " } },
+  { id:"why",     icon:"❓", action:"fill",
+    en:{ t:"Why am I not eligible?",      s:"Exact reason + how to fix it", x:"Why am I not eligible for " },
+    hi:{ t:"मैं पात्र क्यों नहीं?",            s:"सही कारण + क्या करें",          x:"मैं इस योजना के लिए पात्र क्यों नहीं हूं: " } },
+  { id:"almost",  icon:"🎯", action:"send",
+    en:{ t:"Almost eligible",             s:"Schemes one step away",        x:"Which schemes am I almost eligible for?" },
+    hi:{ t:"लगभग पात्र",                   s:"बस एक कदम दूर वाली योजनाएं",     x:"मैं किन योजनाओं के लिए लगभग पात्र हूं?" } },
+  { id:"compare", icon:"⚖️", action:"fill",
+    en:{ t:"Compare schemes",             s:"Side by side, which is better", x:"Compare PM Kisan and " },
+    hi:{ t:"योजनाओं की तुलना",              s:"कौन सी बेहतर है",                x:"पीएम किसान और इस योजना की तुलना करें: " } },
+  { id:"docs",    icon:"📋", action:"fill",
+    en:{ t:"Documents checklist",         s:"One list for many schemes",    x:"What documents do I need for " },
+    hi:{ t:"दस्तावेज़ सूची",                 s:"कई योजनाओं की एक सूची",          x:"इन योजनाओं के लिए कौन से दस्तावेज़ चाहिए: " } },
+  { id:"track",   icon:"📌", action:"fill",
+    en:{ t:"Track my application",        s:"Tell me — I'll save & remind", x:"I applied for " },
+    hi:{ t:"मेरा आवेदन ट्रैक करें",           s:"बताइए — सेव करके याद दिलाऊंगा",   x:"मैंने इस योजना में आवेदन किया है: " } },
+  { id:"status",  icon:"🗂️", action:"send",
+    en:{ t:"My applications",             s:"What's pending, what to do",   x:"What's the status of my applications? What should I do next?" },
+    hi:{ t:"मेरे आवेदन",                    s:"क्या बाकी है, आगे क्या करें",       x:"मेरे आवेदनों की स्थिति क्या है? आगे क्या करूं?" } },
+  { id:"news",    icon:"🌐", action:"send",
+    en:{ t:"Latest news & deadlines",     s:"I search the web live",        x:"Any new schemes, installments or deadlines this month for me?" },
+    hi:{ t:"ताज़ा खबर और आखिरी तारीख",       s:"वेब पर लाइव खोज",                x:"इस महीने मेरे लिए कोई नई योजना, किस्त या आखिरी तारीख?" } },
+];
+const CAP_TIPS = {
+  en: ["🎙️ Tap the mic to speak — Hindi or English", "🔊 Tap Listen on any answer to hear it", "✍️ Type the way you talk — “budhape ki pension”, “kisan wala paisa”", "📄 Tap a scheme card to open its full page"],
+  hi: ["🎙️ माइक दबाकर बोलें — हिंदी या English", "🔊 किसी भी जवाब पर “सुनें” दबाएं", "✍️ जैसे बोलते हैं वैसे लिखें — “बुढ़ापे की पेंशन”", "📄 योजना कार्ड पर टैप करें — पूरी जानकारी खुलेगी"],
+};
+
+function CapabilityGrid({ items, lang, dark, onPick }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const bf = fontFamily(lang);
+  const L = lang === "hi" ? "hi" : "en";
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+      {items.map(c => (
+        <div key={c.id} role="button" className="ai-suggested" onClick={() => onPick(c)}
+          style={{ background:th.card, border:`1.5px solid ${dark ? "#3a3a3c" : "#F3E3D3"}`, borderRadius:14, padding:"10px 11px",
+            cursor:"pointer", fontFamily:bf, boxShadow: dark ? "0 1px 5px rgba(0,0,0,0.25)" : "0 1px 6px rgba(0,0,0,0.05)",
+            transition:"opacity 0.15s, transform 0.15s", minWidth:0 }}>
+          <div style={{ fontSize:19, lineHeight:1 }}>{c.icon}</div>
+          <div style={{ fontSize:12.5, fontWeight:800, color:th.text, marginTop:6, lineHeight:1.25 }}>{c[L].t}</div>
+          <div style={{ fontSize:10.5, color:th.textMid, marginTop:3, lineHeight:1.35 }}>{c[L].s}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// "✨ What can I do?" bottom sheet — every feature + quick tips.
+function CapabilitiesSheet({ lang, dark, onPick, onClose }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const bf = fontFamily(lang);
+  const isHindi = lang === "hi";
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", animation:"fade-in 0.2s ease-out" }}>
+      <div onClick={e => e.stopPropagation()} role="dialog" aria-label="What can I do"
+        style={{ width:"100%", maxWidth:560, maxHeight:"84vh", background: dark ? "#161618" : "#FAF8F5", borderRadius:"20px 20px 0 0", display:"flex", flexDirection:"column", fontFamily:bf, animation:"chips-reveal 0.25s ease-out", boxShadow:"0 -8px 30px rgba(0,0,0,0.25)" }}>
+        <div style={{ padding:"16px 18px 8px", display:"flex", alignItems:"flex-start", gap:8 }}>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:17, fontWeight:800, color:th.text }}>{isHindi ? "✨ मैं क्या कर सकता हूं" : "✨ What I can do for you"}</div>
+            <div style={{ fontSize:12, color:th.textMid, marginTop:3, lineHeight:1.45 }}>
+              {isHindi ? "मैं सिर्फ़ जवाब नहीं देता — आपकी पात्रता जांचता हूं, आवेदन ट्रैक करता हूं और काम पूरे करता हूं। कोई भी चुनें:" : "I don't just answer — I check your eligibility, track applications and get things done. Pick one:"}
+            </div>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" style={{ border:"none", background:"transparent", fontSize:20, color:th.textSub, cursor:"pointer", padding:4 }}>✕</button>
+        </div>
+        <div style={{ overflowY:"auto", padding:"6px 14px calc(16px + env(safe-area-inset-bottom))" }}>
+          <CapabilityGrid items={CAPABILITIES} lang={lang} dark={dark} onPick={(c) => { onClose(); onPick(c); }} />
+          <div style={{ fontSize:10.5, fontWeight:800, color:th.textSub, letterSpacing:0.7, textTransform:"uppercase", margin:"16px 2px 8px" }}>
+            {isHindi ? "टिप्स" : "Tips"}
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+            {CAP_TIPS[isHindi ? "hi" : "en"].map((t, i) => (
+              <div key={i} style={{ fontSize:12, color:th.text, background:th.card, border:`1px solid ${th.border2}`, borderRadius:10, padding:"8px 10px", lineHeight:1.4 }}>{t}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── READING TIME: dynamic cooldown based on reply length ─────────────────────
 // Slower rural readers → ~2.5 words/sec. Min 10s, Max 15s.
 function calcReadingTime(replyText) {
@@ -1738,7 +1836,7 @@ const INC_MAP = { below1:"below ₹1 Lakh/yr","1to3":"₹1–3 Lakh/yr","3to6":"
 const AGE_MAP = { below18:"below 18 yrs","18to35":"18–35 yrs","35to60":"35–60 yrs",above60:"above 60 yrs" };
 const AREA_MAP= { rural:"rural/village",urban:"urban/city",semi:"semi-urban town" };
 
-function WelcomeScreen({ lang, dark, onSuggest, profile, onQuiz }) {
+function WelcomeScreen({ lang, dark, onSuggest, profile, onPick, onShowAll }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
@@ -1790,21 +1888,6 @@ function WelcomeScreen({ lang, dark, onSuggest, profile, onQuiz }) {
         </div>
       </div>
 
-      {/* ── Quick eligibility check, right here in the chat ── */}
-      {onQuiz && (
-        <div role="button" onClick={onQuiz} className="ai-suggested"
-          style={{ marginLeft:40, marginBottom:12, display:"flex", alignItems:"center", gap:10, cursor:"pointer",
-            background:"linear-gradient(135deg,#FF9933,#F97316)", color:"#fff", borderRadius:14, padding:"11px 14px",
-            boxShadow:"0 4px 14px rgba(249,115,22,0.3)", fontFamily:bf, maxWidth:"82%" }}>
-          <span style={{ fontSize:20 }}>✅</span>
-          <span style={{ flex:1 }}>
-            <span style={{ display:"block", fontSize:13.5, fontWeight:800 }}>{isHindi ? "पता करें आपको कौन सी योजनाएं मिलेंगी" : "Find schemes you qualify for"}</span>
-            <span style={{ display:"block", fontSize:11, opacity:0.9, marginTop:2 }}>{isHindi ? "कुछ टैप — यहीं चैट में" : "A few taps — right here in the chat"}</span>
-          </span>
-          <span style={{ fontSize:16, fontWeight:800 }}>›</span>
-        </div>
-      )}
-
       {/* ── Profile active badge — only when logged in ── */}
       {profile && (
         <div style={{
@@ -1827,23 +1910,34 @@ function WelcomeScreen({ lang, dark, onSuggest, profile, onQuiz }) {
         </div>
       )}
 
-      {/* Suggested chips label */}
-      <div style={{ fontSize:10, fontWeight:700, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase", marginBottom:10, paddingLeft:40, fontFamily:bf }}>
-        {isHindi ? "यह पूछें" : "Try asking"}
+      {/* What I can do — tap to try */}
+      <div style={{ display:"flex", alignItems:"center", marginBottom:10, paddingLeft:40, fontFamily:bf }}>
+        <div style={{ flex:1, fontSize:10, fontWeight:800, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase" }}>
+          {isHindi ? "मैं यह कर सकता हूं — टैप करें" : "What I can do — tap to try"}
+        </div>
+        <span role="button" onClick={onShowAll} style={{ fontSize:11.5, fontWeight:700, color:"#EA580C", cursor:"pointer" }}>
+          {isHindi ? "सब देखें ›" : "See all ›"}
+        </span>
       </div>
-      <div style={{ display:"flex", flexDirection:"column", gap:8, paddingLeft:40 }}>
+      <div style={{ paddingLeft:40 }}>
+        <CapabilityGrid items={CAPABILITIES.slice(0, 6)} lang={lang} dark={dark} onPick={onPick} />
+      </div>
+
+      {/* Popular topics */}
+      <div style={{ fontSize:10, fontWeight:800, color:th.textSub, letterSpacing:0.8, textTransform:"uppercase", margin:"16px 0 8px", paddingLeft:40, fontFamily:bf }}>
+        {isHindi ? "या कोई विषय पूछें" : "Or ask about a topic"}
+      </div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:7, paddingLeft:40 }}>
         {SUGGESTED[lang].map((s, i) => (
           <div key={i} className="ai-suggested" onClick={() => onSuggest(s.text)}
             style={{
-              background:th.card, border:`1.5px solid ${th.border2}`, borderRadius:13,
-              padding:"10px 14px", fontSize:13, fontFamily:bf, color:th.text,
-              cursor:"pointer", display:"flex", alignItems:"center", gap:9,
-              boxShadow: dark ? "0 1px 5px rgba(0,0,0,0.2)" : "0 1px 5px rgba(0,0,0,0.05)",
+              background:th.card, border:`1.5px solid ${th.border2}`, borderRadius:20,
+              padding:"7px 12px", fontSize:12, fontFamily:bf, color:th.text,
+              cursor:"pointer", display:"inline-flex", alignItems:"center", gap:6,
               transition:"opacity 0.15s, transform 0.15s",
             }}>
-            <span style={{ fontSize:16 }}>{s.icon}</span>
+            <span style={{ fontSize:14 }}>{s.icon}</span>
             <span>{s.text}</span>
-            <span style={{ marginLeft:"auto", color:th.textSub, fontSize:14 }}>›</span>
           </div>
         ))}
       </div>
@@ -1874,6 +1968,10 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // `messages` so half-written text is never saved to history.
   const [live,         setLive]         = useState(null);
   const [checklist,    setChecklist]    = useState(null); // schemes for the documents sheet
+  const [showCaps,     setShowCaps]     = useState(false); // "✨ What can I do?" sheet
+  // One-time "New" banner for people who already have a chat history.
+  const [newsSeen, setNewsSeen] = useState(() => { try { return localStorage.getItem("ys_ai_features_v1") === "1"; } catch { return true; } });
+  const dismissNews = () => { setNewsSeen(true); try { localStorage.setItem("ys_ai_features_v1", "1"); } catch {} };
   // Answers from the in-chat eligibility check (newest wins over the profile).
   const chatAnsKey = `yojana_chat_answers_${uid || "guest"}`;
   const [chatAnswers, setChatAnswers] = useState(() => { try { return JSON.parse(localStorage.getItem(chatAnsKey) || "null"); } catch { return null; } });
@@ -2116,6 +2214,21 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // the AI kept personalising answers with the OLD state/occupation/income.
   }, [input, messages, loading, isHindi, lang, usedChips, startCooldown, profile, effMatched, trackedApps, effAnswers]);
 
+  // A feature card was tapped.
+  const pickCapability = useCallback((c) => {
+    dismissNews();
+    const L = isHindi ? "hi" : "en";
+    if (c.action === "quiz") { startQuiz(); return; }
+    // Typing is blocked during the reading pause — end it so the box is usable.
+    clearInterval(cooldownRef.current); setSecondsLeft(0); secondsLeftRef.current = 0;
+    if (c.action === "send") { handleSend(c[L].x); return; }
+    setInput(c[L].x);
+    setTimeout(() => {
+      const el = textareaRef.current;
+      if (el) { el.focus(); const n = el.value.length; try { el.setSelectionRange(n, n); } catch {} }
+    }, 60);
+  }, [isHindi, startQuiz, handleSend]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -2136,6 +2249,9 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       )}
       {checklist && (
         <ChecklistSheet schemes={checklist} lang={lang} dark={dark} onClose={() => setChecklist(null)} />
+      )}
+      {showCaps && (
+        <CapabilitiesSheet lang={lang} dark={dark} onPick={pickCapability} onClose={() => setShowCaps(false)} />
       )}
 
       {/* HEADER */}
@@ -2163,22 +2279,22 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           >
             <img src={aiAvatar} alt="AI" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
           </div>
-          <div style={{ flex:1 }}>
-            <div style={{ color:"#fff", fontSize:17, fontWeight:800, lineHeight:1.2 }}>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ color:"#fff", fontSize:17, fontWeight:800, lineHeight:1.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
               {isHindi ? "AI सहायक" : "AI Assistant"}
             </div>
-            <div style={{ color:"rgba(255,255,255,0.8)", fontSize:11, marginTop:3 }}>
+            <div style={{ color:"rgba(255,255,255,0.8)", fontSize:11, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
               🟢 {isHindi ? "ऑनलाइन · हिंदी / English" : "Online · Hindi / English"}
             </div>
             {profile?.name && (
               <div style={{
                 display:"inline-flex", alignItems:"center", gap:5, marginTop:5,
                 background:"rgba(255,255,255,0.16)", border:"1px solid rgba(255,255,255,0.28)",
-                borderRadius:20, padding:"3px 10px 3px 7px",
+                borderRadius:20, padding:"3px 10px 3px 7px", maxWidth:"100%", boxSizing:"border-box",
                 animation:"badge-pop 0.35s ease-out",
               }}>
                 <span style={{ fontSize:10 }}>🎯</span>
-                <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.95)", fontFamily:bf }}>
+                <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.95)", fontFamily:bf, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minWidth:0 }}>
                   {isHindi
                     ? `${(profile.name || "").split(" ")[0]} के लिए पर्सनल`
                     : `Personalized for ${(profile.name || "").split(" ")[0]}`}
@@ -2187,7 +2303,13 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             )}
           </div>
           {/* Ashok Chakra — between title and Clear button */}
-          <AshokChakra size={44} duration="10s" />
+          <AshokChakra size={typeof window !== "undefined" && window.innerWidth < 390 ? 34 : 44} duration="10s" />
+          <div role="button" aria-label={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"} title={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"}
+            onClick={() => { dismissNews(); setShowCaps(true); }}
+            style={{ width:32, height:32, borderRadius:10, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
+              background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.3)", fontSize:15, cursor:"pointer" }}>
+            ✨
+          </div>
           {messages.length > 0 && (
             <div onClick={() => {
                 try { abortRef.current?.abort(); } catch {}
@@ -2217,7 +2339,24 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       {/* MESSAGES AREA */}
       <div ref={scrollBoxRef} data-keep-nav="" style={{ flex:1, overflowY:"auto", overscrollBehavior:"contain", padding:"18px 10px 6px", WebkitOverflowScrolling:"touch" }}>
         {messages.length === 0 && !loading && (
-          <WelcomeScreen lang={lang} dark={dark} onSuggest={handleSend} profile={profile} onQuiz={() => startQuiz()} />
+          <WelcomeScreen lang={lang} dark={dark} onSuggest={handleSend} profile={profile} onPick={pickCapability} onShowAll={() => setShowCaps(true)} />
+        )}
+        {messages.length > 0 && !newsSeen && (
+          <div style={{ marginBottom:14, padding:"11px 12px", borderRadius:14, display:"flex", gap:10, alignItems:"flex-start",
+            background: dark ? "linear-gradient(135deg,rgba(255,153,51,0.16),rgba(99,102,241,0.14))" : "linear-gradient(135deg,#FFF3E6,#EEF0FF)",
+            border:`1px solid ${dark ? "rgba(255,153,51,0.35)" : "#FBD9B5"}`, fontFamily:bf, animation:"fade-in 0.3s ease-out" }}>
+            <span style={{ fontSize:20 }}>✨</span>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:13, fontWeight:800, color:th.text }}>{isHindi ? "नया: आपका AI सहायक अब काम भी करता है" : "New: your assistant can now do things for you"}</div>
+              <div style={{ fontSize:11.5, color:th.textMid, marginTop:3, lineHeight:1.45 }}>
+                {isHindi ? "पात्रता जांच, परिवार के लिए योजनाएं, आवेदन ट्रैक करना, तुलना, दस्तावेज़ सूची और ताज़ा खबर।" : "Eligibility checks, schemes for family, tracking applications, comparisons, document checklists and live news."}
+              </div>
+              <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                <ActionPill dark={dark} primary icon="✨" label={isHindi ? "देखें क्या नया है" : "See what's new"} onClick={() => { dismissNews(); setShowCaps(true); }} />
+                <ActionPill dark={dark} icon="" label={isHindi ? "बाद में" : "Later"} onClick={dismissNews} />
+              </div>
+            </div>
+          </div>
         )}
         {messages.map((msg, i) => (
           <ChatBubble
