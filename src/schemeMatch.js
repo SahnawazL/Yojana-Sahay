@@ -94,7 +94,7 @@ const EXTRA_OFFICIAL = [
   "cgmfpfed.org", "hptdc.in", "cgtourism.in", "karnatakatourism.org", "investkarnataka.co.in",
   "krishakbandhu.net", "cmchistn.com", "nikshay.in", "pmgdisha.in", "mavim.org.in", "mahabocw.in",
   "rajmahilanidhi.org", "dslsa.org", "ayushmanuttarakhand.org", "ibps.in", "chbonline.in", "sfacindia.com",
-  "sebexam.org", "orpgujarat.com", "pgrkam.com", "pwdc.co.in", "missionvatsalyaup.in", "wbmdfcscholar.org", "wbmdfc.org", "upbocw.in",
+  "sebexam.org", "orpgujarat.com", "pgrkam.com", "pwdc.co.in", "missionvatsalyaup.in", "wbmdfcscholar.org", "wbmdfc.org", "upbocw.in", "brlps.in",
   "bankofbaroda.in", "pnbindia.in", "canarabank.com", "unionbankofindia.co.in", "indiapost.gov.in",
   "mygov.in", "india.gov.in", "rbi.org.in", "npci.org.in", "nabard.org", "sidbi.in", "licindia.in",
   "sbi.co.in", "onlinesbi.sbi", "pfrda.org.in", "nsdcindia.org", "ncs.gov.in", "uidai.gov.in",
