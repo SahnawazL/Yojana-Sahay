@@ -1117,6 +1117,7 @@ export const SCHEME_DB = [
     benefit: { en: "₹20,000 one-time lump sum to BPL family on death of primary breadwinner (age 18–59)", hi: "BPL परिवार के मुखिया (18–59 वर्ष) की मृत्यु पर एकमुश्त ₹20,000" },
     tag:     { en: "Labour / General", hi: "श्रमिक / सामान्य" },
     annual: 0,
+    benefitKind: "other", // paid only after a death / crop loss / calamity — not money to count on
     apply:   { en: "nsap.nic.in / District Social Welfare Office", hi: "nsap.nic.in / जिला समाज कल्याण कार्यालय" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card","Death Certificate of Breadwinner","BPL Certificate","Age Proof of Deceased","Bank Account","Relationship Proof"],
                hi: ["आधार कार्ड","मुखिया का मृत्यु प्रमाण पत्र","BPL प्रमाण","मृतक का आयु प्रमाण","बैंक खाता","संबंध प्रमाण"] },

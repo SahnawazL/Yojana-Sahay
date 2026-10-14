@@ -122,6 +122,7 @@ export const UTTAR_PRADESH_SCHEMES = [
                hi: "मुख्य कमाने वाले (18–60 वर्ष) की मृत्यु पर BPL परिवारों को ₹30,000 एकमुश्त सहायता; विधवा/परिवार सदस्य के बैंक खाते में सीधे; मृत्यु के 1 वर्ष के भीतर आवेदन करना अनिवार्य; प्राकृतिक और दुर्घटना दोनों प्रकार की मृत्यु कवर" },
     tag:     { en: "BPL / Death of Bread-earner", hi: "BPL / मुखिया की मृत्यु" },
     annual: 30000,
+    benefitKind: "other", // paid only after a death / crop loss / calamity — not money to count on
     apply:   { en: "https://www.myscheme.gov.in/schemes/nfbsup", hi: "nfbs.upsdc.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card (deceased and applicant)", "Death Certificate of bread-earner", "BPL Ration Card or Income Certificate (annual income < ₹46,080 rural / ₹56,460 urban)", "Age Proof of deceased (18–60 years)", "Bank Account of widow/applicant (Aadhaar-linked)", "UP Residence Proof", "Relationship Proof (widow/son/daughter)", "Passport Photo (applicant)"],
                hi: ["आधार कार्ड (मृतक और आवेदक का)", "मुखिया का मृत्यु प्रमाण पत्र", "BPL राशन कार्ड या आय प्रमाण (वार्षिक ₹46,080 ग्रामीण/₹56,460 शहरी से कम)", "मृतक का आयु प्रमाण (18–60 वर्ष)", "विधवा/आवेदक का बैंक खाता (आधार-लिंक्ड)", "UP निवास प्रमाण", "संबंध प्रमाण (विधवा/पुत्र/पुत्री)", "पासपोर्ट फोटो (आवेदक)"] },

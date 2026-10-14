@@ -229,6 +229,7 @@ export const BIHAR_SCHEMES = [
                hi: "प्राकृतिक आपदा से फसल नुकसान पर कृषि इनपुट अनुदान: सिंचित भूमि पर ₹13,500/हेक्टेयर; वर्षाश्रित भूमि पर ₹6,800/हेक्टेयर; बारहमासी फसल नुकसान पर ₹12,000/हेक्टेयर; DBT से किसान के बैंक खाते में" },
     tag:     { en: "Farmer / Natural Calamity", hi: "किसान / प्राकृतिक आपदा" },
     annual: 13500,
+    benefitKind: "other", // paid only after a death / crop loss / calamity — not money to count on
     apply:   { en: "https://dbtagriculture.bihar.gov.in", hi: "dbtagriculture.bihar.gov.in" }, applyType: "online",
     docs:    { en: ["Aadhaar Card","Land Records (Khatian / Khesra number)","Bank Account (Aadhaar-linked)","Farmer Registration on DBT Agriculture Portal","Affidavit of crop loss (self-declaration)"],
                hi: ["आधार कार्ड","भूमि अभिलेख (खतियान / खेसरा नंबर)","बैंक खाता (आधार-लिंक्ड)","DBT कृषि पोर्टल पर किसान पंजीकरण","फसल नुकसान का स्व-घोषणा शपथ-पत्र"] },
@@ -299,6 +300,7 @@ export const BIHAR_SCHEMES = [
                hi: "BPL परिवारों को अंतिम संस्कार / अंत्येष्टि खर्च के लिए ₹3,000 एकमुश्त सहायता; बिहार में सभी जातियों और धर्मों के लिए; Block/Pंचायत कार्यालय से आवेदन के 48 घंटे के अंदर भुगतान" },
     tag:     { en: "BPL / Funeral Assistance", hi: "BPL / अंत्येष्टि सहायता" },
     annual: 3000,
+    benefitKind: "other", // paid only after a death / crop loss / calamity — not money to count on
     apply:   { en: "Apply at Block / Panchayat office (offline — within 7 days of death)",
                hi: "Block / Pंचायत कार्यालय पर आवेदन (ऑफलाइन — मृत्यु के 7 दिनों के भीतर)" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card (deceased and applicant)","BPL Ration Card","Death Certificate / Death report","Bank Account of applicant (Aadhaar-linked)","Residence Proof"],

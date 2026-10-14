@@ -317,6 +317,7 @@ export const TAMIL_NADU_SCHEMES = [
     benefit: { en: "₹6,800/acre relief for rain-fed crop loss + free seeds & fertilisers during declared drought", hi: "घोषित सूखे के दौरान वर्षा आधारित फसल हानि पर ₹6,800/एकड़ राहत + निःशुल्क बीज एवं उर्वरक" },
     tag:     { en: "Farmer Drought Relief", hi: "किसान सूखा राहत" },
     annual:  6800,
+    benefitKind: "other", // paid only after a death / crop loss / calamity — not money to count on
     apply:   { en: "tnrevenue.gov.in", hi: "tnrevenue.gov.in" }, applyType: "offline",
     docs:    { en: ["Aadhaar Card", "Patta / Chitta (Land Record)", "Bank Account", "Revenue Inspector Certificate for Crop Loss"],
                hi: ["आधार कार्ड", "पट्टा / चिट्टा (भूमि रिकॉर्ड)", "बैंक खाता", "फसल हानि के लिए राजस्व निरीक्षक प्रमाण पत्र"] },
