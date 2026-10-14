@@ -180,7 +180,7 @@ export const RAJASTHAN_SCHEMES = [
     benefit: { en: "₹5/litre bonus credited directly to dairy farmer selling milk via Saras cooperative", hi: "सरस डेयरी सहकारी को दूध बेचने पर ₹5/लीटर बोनस सीधे बैंक में" },
     tag:     { en: "Farmer / Dairy", hi: "किसान / डेयरी" },
     annual: 18250,
-    apply:   { en: "https://government.economictimes.indiatimes.com/news/economy/rajasthan-budget-2026-major-investments-in-dairy-and-animal-husbandry-to-benefit-livestock-owners/128211291", hi: "https://government.economictimes.indiatimes.com/news/economy/rajasthan-budget-2026-major-investments-in-dairy-and-animal-husbandry-to-benefit-livestock-owners/128211291" }, applyType: "online",
+    apply:   { en: "https://jansoochna.rajasthan.gov.in/Scheme", hi: "https://jansoochna.rajasthan.gov.in/Scheme" }, applyType: "online",
     docs:    { en: ["Aadhaar Card", "Jan Aadhaar Card", "Milk Society Membership Certificate", "Bank Account (Aadhaar-linked)"],
                hi: ["आधार कार्ड", "जन आधार कार्ड", "दुग्ध समिति सदस्यता प्रमाण", "बैंक खाता (आधार लिंक)"] },
     // Eligibility: Rajasthan farmer registered with Saras/RCDF milk cooperative
