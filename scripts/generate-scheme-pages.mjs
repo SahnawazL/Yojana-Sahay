@@ -728,9 +728,12 @@ function renderHub(hub, lang, allHubs) {
   const isHindi = lang === "hi";
   const langPath = isHindi ? "yojana" : "schemes";
   const place = hub.state ?? (isHindi ? "केंद्र सरकार" : "Central Government");
+  // "Central Government Schemes", not "Central Government Government Schemes".
+  const placeEn = hub.state ? `${hub.state} Government Schemes` : "Central Government Schemes";
+  const placeHi = hub.state ? `${hub.state} की सरकारी योजनाएं` : "केंद्र सरकार की योजनाएं";
   const title = isHindi
-    ? `${place} की सरकारी योजनाएं ${YEAR} – ${hub.schemes.length} योजनाओं की सूची | YojanaSahay`
-    : `${place} Government Schemes List ${YEAR} – ${hub.schemes.length} Yojanas | YojanaSahay`;
+    ? `${placeHi} ${YEAR} – ${hub.schemes.length} योजनाओं की सूची | YojanaSahay`
+    : `${placeEn} List ${YEAR} – ${hub.schemes.length} Yojanas | YojanaSahay`;
   const desc = isHindi
     ? `${place} की ${hub.schemes.length} सरकारी योजनाओं की सूची — लाभ, ज़रूरी दस्तावेज़ और आवेदन का तरीका। मुफ्त में पात्रता जांचें।`
     : `List of ${hub.schemes.length} ${place} government schemes — benefits, required documents and how to apply. Check your eligibility free.`;
@@ -749,7 +752,14 @@ function renderHub(hub, lang, allHubs) {
 <link rel="alternate" hreflang="en-IN" href="${SITE_URL}/schemes/${hub.key}.html" />
 <link rel="alternate" hreflang="hi-IN" href="${SITE_URL}/yojana/${hub.key}.html" />
 <link rel="alternate" hreflang="x-default" href="${SITE_URL}/schemes/${hub.key}.html" />
-<meta name="robots" content="index, follow" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="${esc(title)}" />
+<meta property="og:description" content="${esc(desc)}" />
+<meta property="og:url" content="${url}" />
+<meta property="og:image" content="${SITE_URL}/og-image.png" />
+<meta property="og:locale" content="${isHindi ? "hi_IN" : "en_IN"}" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" href="/favicon.ico" />
 <style>
   :root{color-scheme:light dark;} *{box-sizing:border-box;}
@@ -770,7 +780,7 @@ function renderHub(hub, lang, allHubs) {
 <body><div class="wrap">
   <nav class="crumbs"><a href="/">YojanaSahay</a> › ${esc(place)}</nav>
   ${NOTICE(isHindi)}
-  <h1>${esc(isHindi ? `${place} की सरकारी योजनाएं` : `${place} Government Schemes`)}</h1>
+  <h1>${esc(isHindi ? placeHi : placeEn)}</h1>
   <p class="lead">${esc(desc)}</p>
   <a class="cta" href="${SITE_URL}/">${isHindi ? "ऐप में अपनी पात्रता जांचें →" : "Check which ones you qualify for →"}</a>
   <ul>
