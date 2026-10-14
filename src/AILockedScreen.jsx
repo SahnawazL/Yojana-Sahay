@@ -970,7 +970,7 @@ export default function AILockedScreen({
             {[
               { v: formatCompactCount(schemeCount), l: isHindi ? "योजनाएं" : "Schemes",   accent: "#A78BFA" },
               { v: "24/7", l: isHindi ? "उपलब्ध"  : "Available", accent: "#38BDF8" },
-              { v: isHindi ? "10/दिन" : "10/day",   l: isHindi ? "मुफ़्त"   : "Free",   accent: "#34D399" },
+              { v: "100%",   l: isHindi ? "मुफ़्त"   : "Free",   accent: "#34D399" },
             ].map((s, i) => (
               <div key={i} style={{
                 flex: 1, textAlign: "center",
