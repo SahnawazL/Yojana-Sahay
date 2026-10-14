@@ -10,7 +10,9 @@
 const SITE = "https://yojanasahay.vercel.app";
 const KEY = "5d7f34a90e4ee3e853c9fb737b2ad158";
 
-const sm = await (await fetch(`${SITE}/sitemap.xml`)).text();
+const smRes = await fetch(`${SITE}/sitemap.xml`);
+if (!smRes.ok) { console.log(`::error::Could not read sitemap (HTTP ${smRes.status})`); process.exit(1); }
+const sm = await smRes.text();
 const urls = [...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]).slice(0, 10000);
 if (!urls.length) { console.error("No URLs found in sitemap"); process.exit(1); }
 
@@ -21,4 +23,10 @@ const res = await fetch("https://api.indexnow.org/indexnow", {
 });
 console.log(`IndexNow: submitted ${urls.length} URLs → HTTP ${res.status}`);
 // 200/202 = accepted. 422 usually means the key file isn't live yet.
-if (![200, 202].includes(res.status)) { console.error(await res.text().catch(() => "")); process.exit(1); }
+const body = (await res.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 300);
+if (![200, 202].includes(res.status)) {
+  // Shown as a GitHub annotation so the reason is visible without the full log.
+  console.log(`::error::IndexNow HTTP ${res.status}: ${body || "(no body)"}`);
+  process.exit(1);
+}
+console.log(`::notice::IndexNow accepted ${urls.length} URLs (HTTP ${res.status})`);
