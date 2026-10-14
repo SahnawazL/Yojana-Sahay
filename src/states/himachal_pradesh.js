@@ -677,4 +677,21 @@ export const HIMACHAL_PRADESH_SCHEMES = [
   //   match: (a) => a.state === "Himachal Pradesh",
   // },
 
+  // <auto-scheme id="hp_apna_parivar_sukhi"> added by Scheme Discovery agent on 2026-10-13 · source: https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html
+  {
+    id: "hp_apna_parivar_sukhi",
+    icon: "📋", color: "#334155", scope: "state", state: "Himachal Pradesh",
+    ministry: { en: "Rural Development Department", hi: "ग्रामीण विकास विभाग" },
+    name:    { en: "Mukhyamantri Apna Parivar Sukhi Parivar Yojana", hi: "मुख्यमंत्री अपना परिवार सुखी परिवार योजना" },
+    benefit: { en: "₹1,500/month + 300 units free electricity", hi: "₹1,500/माह + 300 यूनिट मुफ्त बिजली" },
+    tag:     { en: "Family Welfare", hi: "परिवार कल्याण" },
+    annual: 18000,
+    apply:   { en: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html", hi: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-13", source: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html",
+    match: (a) => a.state === "Himachal Pradesh" && ["general","women","senior"].includes(a.who) && a.income === "below1" && a.area === "rural" && (a.disability == null || a.disability !== "none"),
+  },
+  // </auto-scheme id="hp_apna_parivar_sukhi">
+
 ];
