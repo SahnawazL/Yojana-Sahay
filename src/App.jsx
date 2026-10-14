@@ -3786,6 +3786,62 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
   );
 }
 
+// ─── SCHEME DIRECTORY (real links for people AND Google) ─────────────────────
+// The app itself has no page links, so Google only knew the scheme pages from
+// the sitemap and left 2,000+ of them "discovered – not indexed". These plain
+// <a href> links from the home page (the site's strongest page) lead to every
+// state list page, and from there to every scheme page.
+const DIR_SLUG = st => "list-" + String(st || "india").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const DIR_HUBS = (() => {
+  const m = new Map();
+  for (const s of SCHEME_DB) {
+    if (s.duplicateOf || !s.id) continue;
+    const key = s.scope === "state" && s.state ? DIR_SLUG(s.state) : "list-central";
+    if (!m.has(key)) m.set(key, { key, state: s.scope === "state" ? s.state : null, n: 0 });
+    m.get(key).n++;
+  }
+  return [...m.values()].sort((a, b) => (a.state === null ? -1 : b.state === null ? 1 : a.state.localeCompare(b.state)));
+})();
+const DIR_POPULAR = ["pmkisan","ayushman","pmawas_rural","pmawas_urban","scholarship","mudra","ujjwala","kisancredit","vriddhapension","pmjdy","apy","pmjjby"];
+function SchemeDirectory({ lang, dark }) {
+  const isHindi = lang === "hi";
+  const base = isHindi ? "/yojana/" : "/schemes/";
+  const bf = isHindi ? "'Noto Sans Devanagari',sans-serif" : "'Noto Sans',sans-serif";
+  const chip = {
+    display:"inline-block", padding:"6px 11px", borderRadius:999, fontSize:12, fontWeight:600, textDecoration:"none",
+    color: dark ? "#e7e5e4" : "#44403c", background: dark ? "#1c1c1e" : "#fff",
+    border:`1px solid ${dark ? "#2c2c2e" : "#ece7e1"}`, fontFamily:bf,
+  };
+  const pop = DIR_POPULAR.map(id => SCHEME_DB.find(s => s.id === id)).filter(Boolean);
+  return (
+    <nav aria-label={isHindi ? "योजनाओं की सूची" : "Scheme directory"} style={{ margin:"6px 16px 22px", fontFamily:bf }}>
+      <div style={{ fontSize:14.5, fontWeight:800, color: dark ? "#f0f0f0" : "#1a1a1a", marginBottom:4 }}>
+        {isHindi ? "📍 राज्य के अनुसार योजनाएं देखें" : "📍 Browse schemes by state"}
+      </div>
+      <div style={{ fontSize:11.5, color: dark ? "#a8a29e" : "#78716c", marginBottom:10 }}>
+        {isHindi ? "हर राज्य की पूरी सूची — लाभ, दस्तावेज़ और आवेदन का तरीका" : "Full lists for every state — benefits, documents and how to apply"}
+      </div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+        {DIR_HUBS.map(h => (
+          <a key={h.key} href={`${base}${h.key}.html`} style={chip}>
+            {h.state ?? (isHindi ? "केंद्र सरकार" : "Central Govt")} <span style={{ opacity:0.55 }}>({h.n})</span>
+          </a>
+        ))}
+      </div>
+      <div style={{ fontSize:14.5, fontWeight:800, color: dark ? "#f0f0f0" : "#1a1a1a", margin:"18px 0 10px" }}>
+        {isHindi ? "⭐ लोकप्रिय योजनाएं" : "⭐ Popular schemes"}
+      </div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+        {pop.map(s => (
+          <a key={s.id} href={`${base}${String(s.id).toLowerCase().replace(/[^a-z0-9-]/g, "-")}.html`} style={chip}>
+            {s.icon} {s.name?.[lang] || s.name?.en}
+          </a>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 // ─── NEAR-MISS UTILITY ────────────────────────────────────────────────────────
 // For each unmatched scheme, figure out which criteria the user is failing.
 // Strategy: try every single-field substitution; if the scheme matches with that
@@ -10857,6 +10913,8 @@ function YojanaSahayInner(){
             </div>
 
             {/* FAQ pill — shown only when not logged in; moves to Profile → Settings post-login */}
+            <SchemeDirectory lang={lang} dark={dark}/>
+
             {!profile&&(
             <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
               <div

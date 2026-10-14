@@ -55,6 +55,18 @@ for (const s of SCHEME_DB) {
   HUBS.get(k).schemes.push(s);
 }
 
+// Category from the tag ("Farmer / Crop Loan" → "Farmer") — used to link
+// similar schemes in OTHER states (real, useful links between pages).
+const category = s => String(s?.tag?.en || "").split(/[\/·,]/)[0].trim().toLowerCase();
+const BY_CAT = new Map();
+for (const s of SCHEME_DB) {
+  const c = category(s);
+  if (!c) continue;
+  if (!BY_CAT.has(c)) BY_CAT.set(c, []);
+  BY_CAT.get(c).push(s);
+}
+const YEAR = new Date().getFullYear();
+
 // ── Slug helper ────────────────────────────────────────────────────────────────
 // Use the scheme's own `id` field — already unique, already URL-safe (lowercase,
 // no spaces) based on how schemesData.js is written (e.g. "pmkisan", "ayushman").
@@ -101,9 +113,10 @@ function renderPage(scheme, lang) {
   const deepLink = `${SITE_URL}/?scheme=${encodeURIComponent(scheme.id)}`;
   const stateLabel = scheme.scope === "state" ? scheme.state : (isHindi ? "संपूर्ण भारत" : "All India");
 
+  // The year in the title: people search "pm kisan 2026", and it tells them the page is current.
   const title = isHindi
-    ? `${name} – पात्रता, लाभ और आवेदन कैसे करें | YojanaSahay`
-    : `${name} – Eligibility, Benefits & How to Apply | YojanaSahay`;
+    ? `${name} ${YEAR} – पात्रता, लाभ, दस्तावेज़ और आवेदन | YojanaSahay`
+    : `${name} ${YEAR} – Eligibility, Benefits, Documents & How to Apply | YojanaSahay`;
 
   const description = isHindi
     ? `${name}: ${benefit}. ${ministry ? ministry + " द्वारा। " : ""}पात्रता जांचें और मुफ्त में आवेदन करने का तरीका जानें।`
@@ -117,6 +130,17 @@ function renderPage(scheme, lang) {
   const hubName  = hub?.state ? hub.state : (isHindi ? "केंद्र सरकार" : "Central Government");
   const hubHref  = `/${langPath}/${hubFile(scheme)}.html`;
   const related  = (hub?.schemes ?? []).filter(x => x.id !== scheme.id).slice(0, 8);
+  const about    = scheme.description?.[lang] || scheme.description?.en || "";
+  const yearly   = scheme.annual > 0 ? `₹${Number(scheme.annual).toLocaleString("en-IN")}` : "";
+  const catKey   = category(scheme);
+  // Similar schemes elsewhere: same category, other states/Central (Central first).
+  // One per state, so it reads like a real comparison across India.
+  const seenHub = new Set();
+  const similar  = (BY_CAT.get(catKey) ?? [])
+    .filter(x => x.id !== scheme.id && hubFile(x) !== hubFile(scheme))
+    .sort((a, b) => (a.scope === "national" ? 0 : 1) - (b.scope === "national" ? 0 : 1))
+    .filter(x => { const h = hubFile(x); if (h !== "list-central" && seenHub.has(h)) return false; seenHub.add(h); return true; })
+    .slice(0, 6);
   const applyText = scheme.applyType === "offline" || !applyUrl
     ? (scheme.apply?.[lang] || scheme.apply?.en || "")
     : (isHindi ? "आधिकारिक सरकारी वेबसाइट पर ऑनलाइन आवेदन करें (नीचे लिंक)।" : "Apply online on the official government website (link below).");
@@ -141,6 +165,45 @@ function renderPage(scheme, lang) {
     "inLanguage": isHindi ? "hi-IN" : "en-IN"
   }, null, 2);
 
+  // FAQ built only from the scheme's own data — nothing invented.
+  const faqs = [];
+  if (whoLines.length) faqs.push([
+    isHindi ? `${name} के लिए कौन आवेदन कर सकता है?` : `Who can apply for ${name}?`,
+    whoLines.join(isHindi ? "। " : ". ") + (isHindi ? "।" : "."),
+  ]);
+  faqs.push([
+    isHindi ? `${name} में कितना लाभ मिलता है?` : `What is the benefit of ${name}?`,
+    benefit + (yearly ? (isHindi ? ` (लगभग ${yearly} सालाना)` : ` (about ${yearly} a year)`) : ""),
+  ]);
+  if (docs.length) faqs.push([
+    isHindi ? `${name} के लिए कौन से दस्तावेज़ चाहिए?` : `What documents are needed for ${name}?`,
+    docs.join(", ") + (isHindi ? "।" : "."),
+  ]);
+  faqs.push([
+    isHindi ? `${name} के लिए आवेदन कैसे करें?` : `How do I apply for ${name}?`,
+    applyUrl
+      ? (isHindi ? `आधिकारिक वेबसाइट पर ऑनलाइन आवेदन करें: ${applyUrl}` : `Apply online on the official website: ${applyUrl}`)
+      : (applyText || (isHindi ? "नज़दीकी सरकारी कार्यालय या CSC पर आवेदन करें।" : "Apply at the nearest government office or Common Service Centre (CSC).")),
+  ]);
+  faqs.push([
+    isHindi ? `कैसे पता करें कि मैं ${name} के लिए पात्र हूं?` : `How can I check if I am eligible for ${name}?`,
+    isHindi
+      ? "YojanaSahay पर कुछ आसान सवालों के जवाब दें — यह मुफ्त में बताता है कि आप किन योजनाओं के लिए पात्र हैं, और हर योजना के दस्तावेज़ भी।"
+      : "Answer a few simple questions on YojanaSahay — it tells you free of cost which schemes you qualify for, with the documents for each.",
+  ]);
+  const faqLd = JSON.stringify({
+    "@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": faqs.map(([q, a]) => ({ "@type": "Question", "name": q, "acceptedAnswer": { "@type": "Answer", "text": a } })),
+  });
+  const crumbLd = JSON.stringify({
+    "@context": "https://schema.org", "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "YojanaSahay", "item": `${SITE_URL}/` },
+      { "@type": "ListItem", "position": 2, "name": hubName, "item": `${SITE_URL}${hubHref}` },
+      { "@type": "ListItem", "position": 3, "name": name, "item": pageUrl },
+    ],
+  });
+
   return `<!DOCTYPE html>
 <html lang="${isHindi ? "hi" : "en"}">
 <head>
@@ -163,6 +226,8 @@ function renderPage(scheme, lang) {
 
 <link rel="icon" href="/favicon.ico" />
 <script type="application/ld+json">${jsonLd}</script>
+<script type="application/ld+json">${faqLd}</script>
+<script type="application/ld+json">${crumbLd}</script>
 
 <style>
   :root{color-scheme:light dark;}
@@ -210,12 +275,22 @@ function renderPage(scheme, lang) {
   .note{ font-size:12px; color:#a8a29e; margin:6px 0 0; }
   .checked{ font-size:12px; color:#a8a29e; text-align:center; margin-top:18px; }
   footer{ margin-top:40px; font-size:12px; color:#a8a29e; text-align:center; }
+  .about{ font-size:15px; line-height:1.65; color:#44403c; margin:0 0 16px; }
+  table.facts{ width:100%; border-collapse:collapse; font-size:14px; margin:4px 0 6px; }
+  table.facts th{ text-align:left; font-weight:600; color:#78716c; padding:7px 10px 7px 0; vertical-align:top; width:38%; }
+  table.facts td{ padding:7px 0; color:#1c1917; border-bottom:1px solid #f0efed; }
+  table.facts th{ border-bottom:1px solid #f0efed; }
+  details{ border:1px solid #e7e5e4; border-radius:12px; padding:10px 14px; margin:8px 0; background:#fff; }
+  summary{ font-weight:700; font-size:14.5px; cursor:pointer; }
+  details p{ font-size:14px; line-height:1.6; color:#44403c; margin:8px 0 2px; }
   footer a{ color:#a8a29e; }
   @media (prefers-color-scheme: dark){
     body{ background:#111111; color:#f5f5f4; }
     .benefit-card{ background:#1c1917; border-color:#292524; }
     .benefit-card .value{ color:#f5f5f4; }
     li{ color:#d6d3d1; }
+    .about, details p{ color:#d6d3d1; } table.facts td{ color:#f5f5f4; border-color:#292524; } table.facts th{ border-color:#292524; }
+    details{ background:#1c1917; border-color:#292524; }
   }
 </style>
 </head>
@@ -230,6 +305,19 @@ function renderPage(scheme, lang) {
       <div class="label">${isHindi ? "लाभ" : "Benefit"}</div>
       <div class="value">${esc(benefit)}</div>
     </div>
+
+    ${about ? `<p class="about">${esc(about)}</p>` : ""}
+
+    <h2>${isHindi ? "एक नज़र में" : "At a glance"}</h2>
+    <table class="facts">
+      <tr><th>${isHindi ? "योजना" : "Scheme"}</th><td>${esc(name)}</td></tr>
+      <tr><th>${isHindi ? "किसके लिए" : "For"}</th><td>${esc(tag)}</td></tr>
+      <tr><th>${isHindi ? "कहां" : "Where"}</th><td>${esc(stateLabel)}</td></tr>
+      ${yearly ? `<tr><th>${isHindi ? "सालाना लाभ (लगभग)" : "Yearly value (approx.)"}</th><td>${yearly}</td></tr>` : ""}
+      ${ministry ? `<tr><th>${isHindi ? "विभाग" : "Department"}</th><td>${esc(ministry)}</td></tr>` : ""}
+      <tr><th>${isHindi ? "आवेदन" : "How to apply"}</th><td>${scheme.applyType === "online" && applyUrl ? (isHindi ? "ऑनलाइन" : "Online") : (isHindi ? "कार्यालय / CSC पर" : "At office / CSC")}</td></tr>
+      ${checked ? `<tr><th>${isHindi ? "जानकारी जांची गई" : "Info checked"}</th><td>${checked}</td></tr>` : ""}
+    </table>
 
     ${whoLines.length ? `
     <h2>${isHindi ? "कौन आवेदन कर सकता है" : "Who Can Apply"}</h2>
@@ -265,6 +353,15 @@ ${docsListItems}
 ${related.map(r => `      <li><a href="/${langPath}/${slugify(r.id)}.html">${esc(r.name[lang] || r.name.en)}</a></li>`).join("\n")}
     </ul>
     <a class="cta-sub" href="${hubHref}">${isHindi ? `सभी ${hub.schemes.length} योजनाएं देखें →` : `See all ${hub.schemes.length} schemes →`}</a>` : ""}
+
+    <h2>${isHindi ? "अक्सर पूछे जाने वाले सवाल" : "Frequently asked questions"}</h2>
+${faqs.map(([q, a]) => `    <details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("\n")}
+
+    ${similar.length ? `
+    <h2>${isHindi ? "दूसरे राज्यों / केंद्र की ऐसी ही योजनाएं" : "Similar schemes in other states & Central"}</h2>
+    <ul class="related">
+${similar.map(r => `      <li><a href="/${langPath}/${slugify(r.id)}.html">${esc(r.name[lang] || r.name.en)}</a> <span style="color:#a8a29e">· ${esc(r.scope === "state" ? r.state : (isHindi ? "केंद्र" : "Central"))}</span></li>`).join("\n")}
+    </ul>` : ""}
 
     ${checked ? `<p class="checked">${isHindi ? "आधिकारिक लिंक अंतिम बार जांचा गया" : "Official link last checked"}: ${checked}</p>` : ""}
 
