@@ -41,6 +41,7 @@ import ReportIssueSheet from "./ReportIssueSheet.jsx";
 import { SchemeFlagButton, SchemeFlagNotice, claimGuestReports } from "./SchemeFlag.jsx";
 import { GUIDES, GUIDES_REVIEWED } from "../scripts/seo-guides.mjs";
 import { LIFE_EVENTS, lifeEventPlan } from "./lifeEvents.js";
+import { buildProfileAnswers, safeMatch, safeMatchAny } from "./eligibility.js";
 import { moneyCalendar, googleCalendarUrl, NOT_RECEIVED_TIPS } from "./moneyCalendar.js";
 import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
@@ -392,27 +393,8 @@ function deadlineDaysLeft(d, now=Date.now()){
   return Math.round((end-todayEnd)/DAY_MS);
 }
 
-// ONE definition of "this profile as eligibility answers". The profile tab's
-// scheme count and the home "Matched for you" list each built their own
-// version (different caste default, ration rule and adaptive fields), so the
-// two numbers disagreed for the same user.
-function buildProfileAnswers(profile){
-  if(!profile) return null;
-  return {
-    who:profile.occupation, income:profile.income, house:profile.house,
-    age:profile.age, area:profile.area, state:profile.state,
-    caste:profile.caste||"general",
-    ...(profile.occupation==="farmer"&&profile.landHolding?{landHolding:profile.landHolding}:{}),
-    ...(profile.occupation==="farmer"&&profile.kisanCard?{kisanCard:profile.kisanCard}:{}),
-    ...(profile.occupation==="student"&&profile.educationLevel?{educationLevel:profile.educationLevel}:{}),
-    ...(profile.ration?{rationCard:profile.ration}:{}), // "none" too — they told us, so the quiz doesn't ask again
-    ...(profile.disability?{disability:profile.disability}:{}),
-    ...(profile.gender?{gender:profile.gender}:{}),
-    ...(profile.marital?{marital:profile.marital}:{}),
-    ...(Array.isArray(profile.groups)?{groups:profile.groups}:{}),
-    ...(Array.isArray(profile.groupsAsked)?{groupsAsked:profile.groupsAsked}:{}),
-  };
-}
+// buildProfileAnswers / safeMatch / safeMatchAny live in src/eligibility.js
+// (shared with the admin dashboard so its numbers match the app's).
 
 // A single malformed match() in a state data file must never blank the whole
 // results screen — treat a throwing matcher as "not eligible".
@@ -438,14 +420,6 @@ const STATE_COVERAGE=new Set(SCHEME_DB.filter(s=>s.scope==="state"&&s.state).map
 // Main results leave out schemes for special groups (govt employees, athletes,
 // construction workers…) — the quiz can't know those, so they're listed in
 // their own "if this applies to you" section instead of inflating the totals.
-function safeMatch(scheme,answers){
-  const aud=nicheAudience(scheme);
-  // A special-group scheme joins the main list once the person has told us the
-  // group applies to them: disability (quiz/profile), transgender (gender
-  // "other"), or a group ticked in "Does any of this apply to you?".
-  if(aud && !audienceApplies(aud.key,answers)) return false;
-  return safeMatchAny(scheme,answers);
-}
 function audienceApplies(key,answers){ return audienceAppliesShared(key,answers); }
 // The person explicitly said this group does NOT apply → don't list it under
 // "Also check" either. Groups we never asked about stay listed.
@@ -467,16 +441,6 @@ function groupKeysFor(ans){
     for(const s of SCHEME_DB){ const k=nicheAudience(s)?.key; if(k) (NICHE_BY_KEY[k]||(NICHE_BY_KEY[k]=[])).push(s); }
   }
   return GROUP_KEYS.filter(k=>(NICHE_BY_KEY[k]??[]).some(s=>safeMatchAny(s,ans)));
-}
-function safeMatchAny(scheme,answers){
-  if(scheme.closed) return false; // not taking applications — never "you qualify"
-  try{
-    if(scheme.duplicateOf){
-      const main=SCHEME_BY_ID.get(scheme.duplicateOf);
-      if(main&&main!==scheme){ try{ if(main.match(answers)) return false; }catch{} }
-    }
-    return !!scheme.match(answers);
-  }catch{ return false; }
 }
 
 function getGuestId(){
@@ -4364,8 +4328,19 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
   const [headerDragY,setHeaderDragY]=useState(0);
   const [headerDragActive,setHeaderDragActive]=useState(false); // disables the snap transition while actively dragging
 
+  // Did the person change anything compared with their profile? Bookkeeping
+  // (which groups were shown) and "nothing ticked" vs "never asked" don't
+  // count — they used to pop the "Update your profile?" sheet for no reason.
+  const sameAsProfile=()=>{
+    if(!prefilledAnswers) return false;
+    const norm=v=>Array.isArray(v)?[...v].sort().join(","):(v==null?"":String(v));
+    return Object.keys(answers).filter(k=>k!=="groupsAsked").every(k=>{
+      const a=norm(answers[k]), p=norm(prefilledAnswers[k]);
+      return a===p||(p===""&&(a===""||a==="none"));
+    });
+  };
   const closeChecker=()=>{
-    if(step===TOTAL){onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>JSON.stringify(answers[k])!==JSON.stringify(prefilledAnswers[k])));}
+    if(step===TOTAL){onExitFromResults?.(sameAsProfile());}
     onClose();
   };
 
@@ -5783,7 +5758,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
             )}
             <div style={{display:"flex",gap:10,marginTop:16}}>
               <div onClick={()=>{haptic();retake();}} style={{flex:1,padding:14,borderRadius:14,border:"1.5px solid #FF9933",background:th.card,textAlign:"center",fontSize:13,fontWeight:700,color:"#FF8C00",cursor:"pointer",fontFamily:bf}}>{t.retakeBtn}</div>
-              <div onClick={()=>{haptic();onExitFromResults?.(!!prefilledAnswers&&!Object.keys(answers).some(k=>JSON.stringify(answers[k])!==JSON.stringify(prefilledAnswers[k])));onClose();}} style={{flex:1,padding:14,borderRadius:14,background:"linear-gradient(135deg,#003580,#1a56db)",textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:bf}}>{t.doneBtn}</div>
+              <div onClick={()=>{haptic();onExitFromResults?.(sameAsProfile());onClose();}} style={{flex:1,padding:14,borderRadius:14,background:"linear-gradient(135deg,#003580,#1a56db)",textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:bf}}>{t.doneBtn}</div>
             </div>
           </div>
         )}

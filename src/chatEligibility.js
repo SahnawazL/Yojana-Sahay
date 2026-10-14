@@ -8,7 +8,7 @@
 // like state, income, caste and ration card are carried over from the user).
 // ─────────────────────────────────────────────────────────────────────────────
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
-import { nicheAudience, audienceApplies as audienceAppliesShared } from "./audience.js";
+import { safeMatch } from "./eligibility.js";
 import { benefitSummary, benefitKind } from "./benefitMath.js";
 
 const BY_ID = new Map(SCHEME_DB.map(s => [s.id, s]));
@@ -93,13 +93,12 @@ export function startingAnswers(own = null, known = {}, forSelf = true) {
   return { ...cleanAnswers(base), ...cleanAnswers(known) };
 }
 
-const audienceApplies = audienceAppliesShared;
+// Same rule as the app's Home / quiz (src/eligibility.js), so the chat and the
+// app never give two different counts for the same answers. The state check
+// stays as a safety net for loosely written state rules.
 function eligible(s, a) {
-  if (s.duplicateOf || s.closed) return false;
   if (s.scope === "state" && s.state && a.state && s.state !== a.state) return false;
-  const aud = nicheAudience(s);
-  if (aud && !audienceApplies(aud.key, a)) return false;
-  try { return !!s.match(a); } catch { return false; }
+  return safeMatch(s, a);
 }
 
 // The result card: count, money, best schemes first.

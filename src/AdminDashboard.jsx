@@ -17,6 +17,9 @@ import { db } from "./firebase.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { SCHEME_DB, INDIA_STATES } from "./schemesData.js";
 import { schemeLink, isOfficialUrl, officialSchemeLink } from "./schemeMatch.js";
+import { buildProfileAnswers, matchedSchemesFor } from "./eligibility.js";
+import { benefitSummary } from "./benefitMath.js";
+import { AUDIENCES } from "./audience.js";
 import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
@@ -514,6 +517,16 @@ function UserDrawer({ user, dark, onClose, isDesktop }) {
     { label:"🪪 Ration Card",value: RATION_LABELS[user.ration]  || user.ration     || "—" },
     // ── Welfare ──────────────────────────────────────────────────────────
     { label:"♿ Disability",  value: DISAB_LABELS[user.disability]  || user.disability  || "—" },
+    { label:"🧩 Special groups", value: Array.isArray(user.groups) && user.groups.length
+        ? user.groups.map(k => AUDIENCES.find(a => a.key === k)?.en || k).join(", ") : "—" },
+    // What the app shows this person — same rules as their Home screen.
+    { label:"🎯 Qualifies for", value: (() => {
+        if (!user.occupation || !user.state || !user.income) return "— (profile incomplete)";
+        const list = matchedSchemesFor(buildProfileAnswers(user));
+        if (!list.length) return "—";
+        const yr = benefitSummary(list).yearly;
+        return `${list.length} schemes${yr ? ` · ~₹${Number(yr).toLocaleString("en-IN")}/yr` : ""}`;
+      })(), highlight: true },
     // ── Family ───────────────────────────────────────────────────────────
     { label:"👨‍👩‍👧 Children",   value: CHILDREN_LABELS[user.numChildren] || user.numChildren || "—" },
     ...(user.numChildren && user.numChildren !== "0"
@@ -732,8 +745,9 @@ function UserRow({ user, dark, onTap }) {
           {user.name || "—"}
         </div>
         <div style={{ fontSize:10, color:th.textSub, marginTop:1 }}>
-          {OCC_EMOJI[user.occupation] || "👤"} {OCC_LABELS[user.occupation] || user.occupation || "—"}
-          {" · "}{user.state || "—"}
+          {(!user.occupation || !user.state || !user.income)
+            ? <span style={{ color:"#A78BFA", fontWeight:700 }}>⏳ Profile not finished</span>
+            : <>{OCC_EMOJI[user.occupation] || "👤"} {OCC_LABELS[user.occupation] || user.occupation}{" · "}{user.state}</>}
         </div>
       </div>
       <div style={{ textAlign:"right", flexShrink:0 }}>
@@ -1125,13 +1139,16 @@ function SchemeCoverageTab({ dark }) {
     let central = 0;
     const all = Array.isArray(SCHEME_DB) ? SCHEME_DB : Object.values(SCHEME_DB || {});
     all.forEach(scheme => {
+      // Count what users can actually get: open schemes, each once (state
+      // copies of a central scheme and closed schemes left out — same as the app).
+      if (scheme.duplicateOf || scheme.closed) return;
       if (scheme.scope === "national") {
         central++;
       } else if (scheme.scope === "state" && scheme.state) {
         counts[scheme.state] = (counts[scheme.state] || 0) + 1;
       }
     });
-    return { centralCount: central, stateCounts: counts, totalSchemes: all.length };
+    return { centralCount: central, stateCounts: counts, totalSchemes: all.filter(x => !x.duplicateOf && !x.closed).length };
   }, []);
 
   // Build full list: every state from INDIA_STATES gets a row (even if 0)
@@ -1503,6 +1520,9 @@ const TYPE_META = {
   query:          { icon:"❓", label:"Query",             color:IND_GREEN },
   feedback:       { icon:"💡", label:"Feedback",          color:SAFFRON   },
 };
+// Schemes people can actually get — open, each counted once (same as the app).
+const OPEN_SCHEME_COUNT = SCHEME_DB.filter(s => !s.duplicateOf && !s.closed).length;
+
 // Filter chips in Reports: the four report types + ⚑ reports sent from a scheme page.
 const FILTER_TYPES = { ...TYPE_META, scheme_flag: { icon:"⚑", label:"Scheme reports", color:"#C2410C" } };
 const STATUS_META = {
@@ -5029,6 +5049,8 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   const flagOpenList = (reports || []).filter(r => r.source === "scheme_flag" && r.status !== "resolved");
   const flagOpen     = flagOpenList.length;
   const flagPeople   = flagOpenList.reduce((n, r) => n + (r.flagCount || 1), 0);
+  // Signed in but no occupation / state / income → Home can't match schemes for them.
+  const incompleteCnt = (users || []).filter(u => !u.occupation || !u.state || !u.income).length;
   const unrepliedOther = (reports || []).filter(r => r.source !== "scheme_flag" && r.status === "open" && !r.adminReply && !(r.replyHistory?.length > 0)).length;
 
   // ── Attention items for the priority feed ──
@@ -5057,6 +5079,11 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
       id:"applydrop", icon:"alert",
       text: `Apply taps fell to ${actionStats.apply7} this week (was ${actionStats.applyPrev7})`,
       color:"#D97706", action:"usage",
+    },
+    incompleteCnt > 0 && {
+      id:"incomplete", icon:"users",
+      text: `${incompleteCnt} signed-in user${incompleteCnt>1?"s":""} never finished profile setup — they see no personal schemes`,
+      color:"#7C3AED", action:"users",
     },
     dormantCnt > 0 && {
       id:"dormant", icon:"moon",
@@ -5961,9 +5988,9 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
 
     const googleUsers  = users.filter(u => u.photo).length;
     const withPhone    = users.filter(u => u.phone && u.phone.length > 0).length;
-    const statesCount  = Object.keys(byState).length;
+    const statesCount  = Object.keys(byState).filter(k => k !== "Unknown").length; // no state yet ≠ a state
     const housedUsers  = users.filter(u => u.house === "yes").length;
-    const needHousing  = users.filter(u => u.house === "no").length;
+    const needHousing  = users.filter(u => u.house === "no" || u.house === "kutcha").length; // same rule as Home
 
     const byGender  = groupBy(withGuests, "gender");
     const byRation  = groupBy(withGuests, "ration");
@@ -5983,6 +6010,12 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       .map(([key, value]) => ({ label: MARITAL_LABELS[key]?.replace(/[💍🕊️]/gu,"").trim() || key, value }));
     const disabData = Object.entries(byDisab)
       .map(([key, value]) => ({ label: DISAB_LABELS[key]?.replace(/[✅🦽👁🦻🧠]/gu,"").trim() || key, value }));
+    // Special groups people ticked (widow, construction worker, minority…) —
+    // shows which special-group schemes matter most to your users.
+    const grpCount = {};
+    for (const u of users) for (const k of (Array.isArray(u.groups) ? u.groups : [])) grpCount[k] = (grpCount[k] || 0) + 1;
+    const groupsData = Object.entries(grpCount).sort((a, b) => b[1] - a[1])
+      .map(([key, value]) => ({ label: AUDIENCES.find(a => a.key === key)?.en || key, value }));
 
     // 7-day signup sparkline
     const spark = Array.from({ length:7 }, (_, i) => {
@@ -6004,7 +6037,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       occDonut, areaDonut,
       activeToday, activeWeek, newThisWeek, weekGrowth,
       googleUsers, withPhone, statesCount, housedUsers, needHousing, spark,
-      genderData, rationData, maritalData, disabData, casteData,
+      genderData, rationData, maritalData, disabData, casteData, groupsData,
       dormantCount,
       withGuests, guestCount: guestProfiles.length,
     };
@@ -7767,7 +7800,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     users:     exportFilteredData.users.length,
     activity:  exportFilteredData.users.length,
     usage:     usageData ? (Array.isArray(usageData.checkerRuns) ? usageData.checkerRuns.length : 0) : null, // null = not fetched this session yet
-    schemes:   Array.isArray(SCHEME_DB) ? SCHEME_DB.length : Object.keys(SCHEME_DB || {}).length,
+    schemes:   OPEN_SCHEME_COUNT,
     reports:   exportFilteredData.reports.length,
     agents:    humanAgents.length,
   }), [exportFilteredData, guestProfiles, usageData, humanAgents]);
@@ -8186,12 +8219,12 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
                 }}>v{ADMIN_BUILD_VERSION} · {ADMIN_BUILD_ENV}</span>
                 <span style={{ width:2, height:2, borderRadius:"50%", background:SAFFRON, opacity:0.4, flexShrink:0 }}/>
                 <span style={{ fontFamily:"'JetBrains Mono','SF Mono',monospace", fontSize:8, color:"rgba(255,255,255,0.38)" }}>
-                  {loading ? "SYNCING…" : `${users.length} USERS · ${SCHEME_DB.length} SCHEMES`}
+                  {loading ? "SYNCING…" : `${users.length} USERS · ${OPEN_SCHEME_COUNT} SCHEMES`}
                   {!loading && !usageLoading && guestProfiles.length > 0 && (
                     <span style={{ color:"rgba(255,255,255,0.24)" }}> · +{guestProfiles.length} guest{guestProfiles.length!==1?"s":""}</span>
                   )}
                 </span>
-                {!loading && latencyMs && (
+                {!loading && latencyMs != null && (
                   <>
                     <span style={{ width:2, height:2, borderRadius:"50%", background:"rgba(255,255,255,0.2)", flexShrink:0 }}/>
                     <span
@@ -8436,7 +8469,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
                       <span style={{ color:"rgba(255,255,255,0.24)" }}> · +{guestProfiles.length} guest{guestProfiles.length!==1?"s":""}</span>
                     )}
                   </span>
-                  {!loading && latencyMs && (
+                  {!loading && latencyMs != null && (
                     <>
                       <span style={{ width:2, height:2, borderRadius:"50%", background:"rgba(255,255,255,0.2)", flexShrink:0 }}/>
                       <span
@@ -9325,6 +9358,13 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
               </div>
             )}
           </div>
+
+          {stats.groupsData?.length > 0 && (
+            <div style={{ background:th.card, border:`1.5px solid ${th.border}`, borderRadius:16, padding:"14px 14px" }}>
+              <div style={{ fontSize:12, fontWeight:800, color:th.text, marginBottom:10 }}>🧩 Special groups ticked</div>
+              <BarChart data={stats.groupsData} color="#0EA5E9" dark={dark} />
+            </div>
+          )}
 
           {/* Occupation × Area cross-tab */}
           <div style={{
