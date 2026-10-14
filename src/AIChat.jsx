@@ -243,12 +243,33 @@ function CapabilitiesSheet({ lang, dark, onPick, onClose }) {
   );
 }
 
-// ─── READING TIME: dynamic cooldown based on reply length ─────────────────────
-// Slower rural readers → ~2.5 words/sec. Min 10s, Max 15s.
-function calcReadingTime(replyText) {
-  const words = replyText.trim().split(/\s+/).length;
-  const secs  = Math.round(words / 2.5);
-  return Math.max(10, Math.min(15, secs));
+// ─── SMART READING TIME ─────────────────────────────────────────────────────
+// How long a careful (often first-time, rural) reader needs for THIS reply:
+//  • counts only words people read — links, markdown and list markers removed
+//  • Hindi is read slower than English (≈2.2 vs 3 words/sec)
+//  • extra time for numbers/amounts, separate lines and scheme cards below
+//  • time already spent reading while the answer streamed in is counted
+//  • short replies ("Namaste! How can I help?") and tap-to-answer cards get
+//    no pause at all; nothing waits longer than 25s
+// Returns { secs, kind, words, schemes } — kind picks the bar's wording.
+function readingPlan(text, ctx = {}) {
+  const clean = String(text || "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/https?:\/\/\S+/g, " ")
+    .replace(/[*_#>`|~]/g, " ")
+    .replace(/^\s*(?:[-•]|\d+[.)])\s+/gm, "");
+  const tokens = clean.match(/[\p{L}\p{N}₹][\p{L}\p{M}\p{N}₹,.\/%-]*/gu) || [];
+  const words = tokens.length;
+  const hindiWords = tokens.filter(w => /[\u0900-\u097F]/.test(w)).length;
+  const wps = hindiWords > words * 0.3 ? 2.2 : 3;
+  const numbers = (clean.match(/₹\s?[\d,]+|\b\d[\d,]*(?:\.\d+)?\b/g) || []).length;
+  const lines = clean.split(/\n+/).filter(l => l.trim()).length;
+  const schemes = Math.min(ctx.schemes || 0, 6);
+  const kind = ctx.quiz ? "quiz" : ctx.checklist ? "docs" : schemes > 1 ? "schemes" : schemes === 1 ? "scheme" : words > 140 ? "long" : "answer";
+  if (ctx.quiz || (words <= 12 && !schemes)) return { secs: 0, kind, words, schemes };
+  let secs = words / wps + Math.min(numbers, 8) * 0.4 + Math.min(Math.max(lines - 1, 0), 10) * 0.3 + schemes;
+  secs -= (ctx.alreadyRead || 0) * 0.85;
+  return { secs: Math.round(Math.max(3, Math.min(25, secs))), kind, words, schemes };
 }
 
 // ─── MESSAGE TIMESTAMP FORMATTER ─────────────────────────────────────────────
@@ -656,7 +677,7 @@ function TypingIndicator({ dark, status, lang, steps }) {
 
 // ─── READING TIME BAR ─────────────────────────────────────────────────────────
 // Replaces the normal input UI while cooldown is active
-function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang, onSkip, queued, onCancelQueued }) {
+function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang, onSkip, queued, onCancelQueued, plan, listening, upNext = [], onPickNext }) {
   const th      = THEME[dark ? "dark" : "light"];
   const bf      = fontFamily(lang);
   const isHindi = lang === "hi";
@@ -668,9 +689,17 @@ function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang, onSkip, queued,
   const g  = Math.round(200 * (1 - pct / 100)) + 55;
   const barColor = `rgb(${r},${g},51)`;
 
-  const label = isHindi
-    ? `📖 जवाब पढ़ें — ${secondsLeft}s बाद टाइप कर सकते हैं`
-    : `📖 Read the answer — you can type in ${secondsLeft}s`;
+  const n = plan?.schemes || 0;
+  const K = {
+    schemes: [`📖 Read about the ${n} schemes`, `📖 ${n} योजनाओं के बारे में पढ़ें`],
+    scheme:  ["📖 Read about this scheme", "📖 इस योजना के बारे में पढ़ें"],
+    docs:    ["📋 Look over the documents", "📋 दस्तावेज़ देख लें"],
+    long:    ["📖 Detailed answer — take your time", "📖 विस्तृत जवाब — आराम से पढ़ें"],
+    answer:  ["📖 Read the answer", "📖 जवाब पढ़ें"],
+  }[plan?.kind] || ["📖 Read the answer", "📖 जवाब पढ़ें"];
+  const label = listening
+    ? (isHindi ? "🔊 सुन रहे हैं — टाइमर रुका है" : "🔊 Listening — timer paused")
+    : `${K[isHindi ? 1 : 0]} · ${isHindi ? `${secondsLeft}s में तैयार` : `ready in ${secondsLeft}s`}`;
 
   return (
     <div style={{
@@ -711,6 +740,18 @@ function ReadingTimeBar({ secondsLeft, totalSeconds, dark, lang, onSkip, queued,
           {secondsLeft}
         </div>
       </div>
+
+      {/* What comes next — tap to line it up (runs when the pause ends) */}
+      {!queued && upNext.length > 0 && (
+        <div style={{ display:"flex", alignItems:"center", gap:6, margin:"-2px 0 9px", overflow:"hidden" }}>
+          <span style={{ fontSize:10.5, fontWeight:700, color:th.textSub, fontFamily:bf, flexShrink:0 }}>{isHindi ? "आगे:" : "Up next:"}</span>
+          {upNext.slice(0, 2).map(c => (
+            <span key={c} role="button" onClick={() => onPickNext?.(c)} style={{ fontSize:11, fontWeight:600, color:"#C2410C", fontFamily:bf, cursor:"pointer",
+              padding:"4px 9px", borderRadius:99, border:`1px solid ${dark ? "rgba(255,153,51,0.3)" : "#FED7AA"}`, background: dark ? "rgba(255,153,51,0.08)" : "#FFF7ED",
+              minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{c}</span>
+          ))}
+        </div>
+      )}
 
       {/* Something tapped during the pause waits here and runs when it ends */}
       {queued && (
@@ -2039,6 +2080,8 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // re-check…) waits here instead of skipping the pause, and runs as soon as
   // the pause ends — or right away if the user taps "Type now".
   const [queued, setQueued]  = useState(null);   // { label, run }
+  const [readPlan, setReadPlan]   = useState(null); // readingPlan() of the last reply
+  const [listening, setListening] = useState(false); // "Listen" playing → timer waits
 
   // FIX Bug 3: store the justUnlocked setTimeout handle so it can be cleared on
   // unmount, preventing "setState on unmounted component" errors.
@@ -2119,23 +2162,29 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   }, [queued, loading, secondsLeft]);
 
   // ── Start reading-time cooldown ──────────────────────────────────────────────
-  const startCooldown = useCallback((replyText, incomingChips, alreadyReadSecs = 0) => {
+  const startCooldown = useCallback((replyText, incomingChips, alreadyReadSecs = 0, ctx = {}) => {
     clearInterval(cooldownRef.current);
-    // Pro: no reading pause — follow-up chips show straight away.
-    if (isProRef.current) {
+    const plan = readingPlan(replyText, { ...ctx, alreadyRead: alreadyReadSecs });
+    setReadPlan(plan);
+    // Pro, or nothing worth pausing for (short reply, tap-to-answer card):
+    // no reading pause — follow-up chips show straight away.
+    if (isProRef.current || plan.secs <= 0) {
       setSecondsLeft(0); setTotalSeconds(0); secondsLeftRef.current = 0;
       pendingChipsRef.current = [];
       setChips(incomingChips || []);
       return;
     }
-    // A streamed answer was being read while it arrived — count that time.
-    const secs = Math.max(alreadyReadSecs ? 4 : 10, calcReadingTime(replyText) - Math.round(alreadyReadSecs));
+    const secs = plan.secs;
     setTotalSeconds(secs);
     setSecondsLeft(secs);
     pendingChipsRef.current = incomingChips;  // FIX Bug 4: ref instead of state
     setChips([]);                             // hide any previous chips immediately
 
     cooldownRef.current = setInterval(() => {
+      // While the answer is being read aloud ("Listen"), the timer waits.
+      const talking = typeof window !== "undefined" && !!window.speechSynthesis?.speaking;
+      setListening(talking);
+      if (talking) return;
       setSecondsLeft(prev => {
         if (prev <= 1) {
           clearInterval(cooldownRef.current);
@@ -2236,7 +2285,11 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       setLive(null);
       playReceiveSound(); // 🔊 receive chime
       const freshChips = aiChips.filter(c => !nextUsedChips.has(c));
-      startCooldown(reply, freshChips, firstTextAt ? (Date.now() - firstTextAt) / 1000 : 0);
+      startCooldown(reply, freshChips, firstTextAt ? (Date.now() - firstTextAt) / 1000 : 0, {
+        schemes: findSchemesInText(reply).length,
+        quiz: !!ui?.quiz,
+        checklist: !!ui?.checklist,
+      });
     } catch (err) {
       if (err?.name === "AbortError") return;
       cancelAnimationFrame(liveFrameRef.current); liveFrameRef.current = 0;
@@ -2471,6 +2524,10 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           onSkip={() => { clearInterval(cooldownRef.current); setSecondsLeft(0); }}
           queued={queued?.label}
           onCancelQueued={() => setQueued(null)}
+          plan={readPlan}
+          listening={listening}
+          upNext={pendingChipsRef.current}
+          onPickNext={(c) => whenFree(c, () => handleSend(c))}
         />
       ) : (
         <InputBar
