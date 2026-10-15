@@ -18,6 +18,7 @@
 import { recordAiCall } from "./_lib/firebaseAdmin.js";
 import { getNextStartIdx } from "./_lib/groqRotation.js";
 import { noteGroqQuota } from "./_lib/groqSmart.js";
+import { noteGroqOrg } from "./_lib/keyMap.js";
 import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
 
 const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
@@ -206,6 +207,7 @@ async function callGroq(keys, bodyObject) {
         count429++;
         failedKeys.push(i);
         noteGroqQuota("chat", i, bodyObject.model, groqRes.headers, { limited: true }); // admin quota view only
+        noteGroqOrg(key, errData?.error?.message); // which Groq account this key is on (admin key map)
         console.warn(`[Yojana Sahay] Key #${i + 1} → 429 rate limited. Trying next key…`);
         continue;
       }

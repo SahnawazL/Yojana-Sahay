@@ -29,6 +29,7 @@ import { requireAdmin } from "./_lib/adminAuth.js";
 import { isPublicHttpUrl } from "./_lib/urlTools.js";
 import { checkTavilyBudget, noteTavilyCall } from "./_lib/tavilyBudget.js";
 import { smartGroq, AGENT_FALLBACK_MODELS, borrowedChatKey, noteGroqQuota } from "./_lib/groqSmart.js";
+import { noteGroqOrg } from "./_lib/keyMap.js";
 
 const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_EXTRACT = "https://api.tavily.com/extract";
@@ -134,6 +135,7 @@ export async function callGroq(keys, bodyObject, opts = null) {
         lastError = errData;
         count429++;
         failedKeys.push(i);
+        noteGroqOrg(key, errData?.error?.message);
         console.warn(`[verify-scheme] Key #${i + 1} → 429. Trying next key…`);
         continue;
       }
@@ -417,7 +419,9 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
 
   const budget = await checkTavilyBudget(getAdminDb(), budgetLimit);
   if (!budget.ok) {
-    return fail(`Monthly Tavily budget reached (${budget.used}/${budget.limit} extract calls this month). Tier 2 checks resume on the 1st.`, "budget");
+    return fail(budget.realLow
+      ? `Tavily account almost out of credits (${budget.real.used}/${budget.real.limit} used, shared with the chat's web search) — page checks pause so the chat keeps working.`
+      : `Monthly Tavily budget reached (${budget.used}/${budget.limit} extract calls this month). Tier 2 checks resume on the 1st.`, "budget");
   }
 
   console.log(`[verify-scheme] Checking: "${name}" (${state}) → ${url}`);

@@ -10,6 +10,8 @@
 // current IST calendar month — the same docs logApiCallToHistory() writes.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { tavilyUsage } from "./keyMap.js";
+
 // Hard ceiling for ANY Tavily verify call (manual or background). Override
 // with TAVILY_MONTHLY_LIMIT if the plan is upgraded.
 export const TAVILY_MONTHLY_HARD_LIMIT =
@@ -17,6 +19,19 @@ export const TAVILY_MONTHLY_HARD_LIMIT =
 
 // The background batch stops earlier, leaving headroom for manual checks.
 export const TAVILY_BACKGROUND_BUDGET = Math.max(1, Math.floor(TAVILY_MONTHLY_HARD_LIMIT * 0.9));
+
+// Tavily credits are per ACCOUNT. If the chat's web search uses the same
+// account, our own counter (agents only) under-counts — so every budget check
+// also asks Tavily for the real account usage (GET /usage, cached 10 min) and
+// keeps a small reserve so the chat's web search never runs dry.
+export const CHAT_RESERVE_CREDITS = 40;
+
+export async function realTavilyRemaining() {
+  const key = (process.env.TAVILY_VERIFY_KEY ?? process.env.TAVILY_API_KEY)?.trim();
+  const u = await tavilyUsage(key);
+  if (!u || u.accountLimit == null || u.accountUsed == null) return null;
+  return { remaining: u.accountLimit - u.accountUsed, used: u.accountUsed, limit: u.accountLimit, plan: u.plan };
+}
 
 export function getISTDateParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -61,7 +76,9 @@ export async function checkTavilyBudget(db, limit = TAVILY_MONTHLY_HARD_LIMIT) {
     return { ok: true, used: null, limit };
   }
   const used = cache.value + cache.localAdds;
-  return { ok: used < limit, used, limit };
+  const real = await realTavilyRemaining().catch(() => null);
+  const realOk = !real || real.remaining > CHAT_RESERVE_CREDITS;
+  return { ok: used < limit && realOk, used, limit, real, ...(realOk ? {} : { realLow: true }) };
 }
 
 export function noteTavilyCall() {

@@ -21,6 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getNextStartIdx } from "./groqRotation.js";
+import { noteGroqOrg, sameGroqAccount } from "./keyMap.js";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const KV_URL   = process.env.KV_REST_API_URL;
@@ -158,6 +159,7 @@ async function passOverPool(keys, body, pool, idxBase = 0) {
         r.count429++;
         r.failedKeys.push(i);
         if (isDailyLimit(errData)) r.daily = true;
+        noteGroqOrg(keys[i], errData?.error?.message); // learn which account this key is on
         const w = retryAfterMs(res, errData);
         if (w != null) r.retryMs = r.retryMs == null ? w : Math.min(r.retryMs, w);
         noteGroqQuota(pool, idxBase + i, body.model, res.headers, { limited: true });
@@ -230,8 +232,11 @@ export async function smartGroq(keys, body, opts = {}) {
     if (r.keyFailures === keys.length && keys.length > 0) break;
   }
 
-  // Last resort: borrowed key(s), preferred model first.
-  if (borrowKeys.length) {
+  // Last resort: borrowed key(s), preferred model first. A key on the SAME
+  // Groq account shares the same limit, so borrowing it would only add a
+  // pointless extra call (and eat the chat's quota) — skip it then.
+  const borrowUseful = borrowKeys.length > 0 && !(await sameGroqAccount(keys, borrowKeys).catch(() => false));
+  if (borrowUseful) {
     for (const model of models) {
       const r = await passOverPool(borrowKeys, bodyForModel(body, model), borrowPool, borrowIdxBase);
       count429 += r.count429; lastError = r.lastError ?? lastError;

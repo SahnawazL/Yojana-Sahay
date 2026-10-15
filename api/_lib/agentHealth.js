@@ -22,6 +22,7 @@
 
 import { getTavilyCallsThisMonth, TAVILY_MONTHLY_HARD_LIMIT } from "./tavilyBudget.js";
 import { readGroqQuota } from "./groqSmart.js";
+import { duplicateKeys, groqAccountGroups, tavilyPicture, labelOf } from "./keyMap.js";
 
 const HOUR = 3600 * 1000;
 const DAILY_GRACE_H = 30;      // daily jobs: > 30 h without a run = missed
@@ -204,10 +205,44 @@ async function judgeTavily(db) {
   if (!envKeys(["TAVILY_VERIFY_KEY", "TAVILY_API_KEY"]).length) return { ...base, status: "fail", detail: "TAVILY_VERIFY_KEY missing in Vercel." };
   let used = null;
   try { used = await getTavilyCallsThisMonth(db); } catch { /* ignore */ }
+  // Real numbers straight from Tavily (whole account, every job + chat).
+  const pic = await tavilyPicture().catch(() => null);
+  const a = pic?.agents;
+  if (a?.accountLimit) {
+    const pct = Math.round((a.accountUsed / a.accountLimit) * 100);
+    const sharedText = pic.shared === "same-key"
+      ? "The chat's web search uses this same key, so they share these credits."
+      : pic.shared === "same-account"
+        ? "The chat's key looks like it is on the same Tavily account, so they share these credits."
+        : "The chat's web search uses a separate account.";
+    const ours = used != null ? ` Agents' own count: ${used}.` : "";
+    const detail = `Tavily says ${a.accountUsed}/${a.accountLimit} credits used this billing cycle (${pct}%, plan: ${a.plan ?? "?"}). ${sharedText}${ours}`;
+    return { ...base, status: pct >= 95 ? "fail" : pct >= 85 ? "warn" : "ok", detail };
+  }
   if (used == null) return { ...base, status: "ok", detail: "Key configured." };
   const pct = Math.round((used / TAVILY_MONTHLY_HARD_LIMIT) * 100);
   if (pct >= 100) return { ...base, status: "warn", detail: `Monthly budget used up (${used}/${TAVILY_MONTHLY_HARD_LIMIT}).` };
   return { ...base, status: pct >= 85 ? "warn" : "ok", detail: `${used}/${TAVILY_MONTHLY_HARD_LIMIT} page reads used this month (${pct}%).` };
+}
+
+// Which env vars are really the same key / the same account — limits are
+// per account, so "5 keys" may still be one shared limit.
+async function judgeKeyMap() {
+  const base = { id: "keyMap", name: "Key sharing check", kind: "service", lastRunAt: null, rerun: null };
+  const dups = duplicateKeys();
+  const groups = await groqAccountGroups().catch(() => []);
+  const lines = [];
+  for (const g of dups) lines.push(`${g.map(labelOf).join(" and ")} are the SAME key — they share one limit.`);
+  for (const g of groups) if (g.names.length > 1) lines.push(`Groq: ${g.names.map(labelOf).join(", ")} are on the same Groq account — they share one limit.`);
+  const verifyChatOverlap = groups.some(g => g.names.some(n => n.startsWith("GROQ_VERIFY")) && g.names.some(n => n.startsWith("GROQ_API")));
+  if (!lines.length) {
+    return { ...base, status: "ok", detail: "No duplicate keys found. (Groq accounts are learned the first time a key hits a limit — nothing shared seen so far.)" };
+  }
+  return {
+    ...base,
+    status: verifyChatOverlap ? "warn" : "ok",
+    detail: lines.join(" ") + (verifyChatOverlap ? " The agents and the chat draw from one Groq limit — a free key from a second Groq account (as GROQ_VERIFY_KEY_1) would separate them." : ""),
+  };
 }
 
 function judgePresence(id, name, names, missingMsg) {
@@ -248,6 +283,7 @@ export async function getAgentHealth(db) {
   const items = [
     verify, alerts, autoFix, news, discover,
     groqVerify, groqChat, github, tavily,
+    await judgeKeyMap().catch(err => ({ id: "keyMap", name: "Key sharing check", kind: "service", status: "warn", detail: `Could not check: ${err.message}`, lastRunAt: null, rerun: null })),
     judgePresence("serper", "Serper (URL search)", ["SERPER_API_KEY"], "SERPER_API_KEY missing — dead links can't be repaired automatically."),
     judgePresence("gmail", "Gmail (alert sender)", ["GMAIL_APP_PASSWORD"], "GMAIL_USER / GMAIL_APP_PASSWORD missing — deadline e-mails can't be sent."),
   ];

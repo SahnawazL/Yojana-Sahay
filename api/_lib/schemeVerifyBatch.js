@@ -26,7 +26,7 @@ import { SCHEME_DB }         from "../../src/schemesData.js";
 import { verifySchemeCore, getVerifyKeyCount } from "../verify-scheme.js";
 import { commitSchemesMeta } from "../update-schemes-meta.js";
 import { normalizeSchemeUrl } from "./urlTools.js";
-import { getTavilyCallsThisMonth, TAVILY_BACKGROUND_BUDGET } from "./tavilyBudget.js";
+import { getTavilyCallsThisMonth, TAVILY_BACKGROUND_BUDGET, realTavilyRemaining, CHAT_RESERVE_CREDITS } from "./tavilyBudget.js";
 import { FieldValue }        from "firebase-admin/firestore";
 
 // ── Failure memory ───────────────────────────────────────────────────────────
@@ -201,7 +201,14 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
   const schemesPerRun = Math.max(1, Math.ceil(total / CYCLE_DAYS));
   // Extra ceiling so one run can never eat more than a comfortable slice of
   // whatever budget is left this month, even right after a cycle-size change.
-  const runCap = Math.max(1, Math.min(schemesPerRun, MONTHLY_TAVILY_BUDGET - tavilyUsedThisMonth));
+  let runCap = Math.max(1, Math.min(schemesPerRun, MONTHLY_TAVILY_BUDGET - tavilyUsedThisMonth));
+  // Real account credits (shared with the chat's web search) can be lower
+  // than our own count says — never dig into the chat's reserve.
+  const real = await realTavilyRemaining().catch(() => null);
+  if (real) {
+    progress.step(`Tavily account: ${real.used}/${real.limit} credits used (all jobs + chat)`);
+    runCap = Math.min(runCap, Math.max(0, Math.floor((real.remaining - CHAT_RESERVE_CREDITS) / 2))); // ÷2: a deeper read can cost 2
+  }
 
   const cursorRef   = db.collection("appMeta").doc("verifyCursor");
   const cursorSnap  = await cursorRef.get();
@@ -220,7 +227,9 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
   const gapMs = Math.max(MIN_GAP_MS, Math.ceil(PER_KEY_GAP_MS / Math.max(1, getVerifyKeyCount())));
   let errorCount = 0;
   let consecutiveServiceErrors = 0;
-  let stopReason = null;
+  let stopReason = runCap === 0
+    ? "budget: Tavily account nearly out of credits (shared with the chat's web search) — paused so the chat keeps working"
+    : null;
   const errorSamples = [];
   // How often the AI needed help: a backup model, a short wait, or a borrowed chat key.
   const aiAssist = { backupModel: 0, waited: 0, borrowed: 0 };
