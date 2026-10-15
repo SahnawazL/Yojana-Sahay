@@ -923,11 +923,11 @@
     "confidence": 0
   },
   "mp_mmvy": {
-    "lastVerified": "2026-10-14T21:36:26.113Z",
+    "lastVerified": "2026-10-15T21:34:23.190Z",
     "confidence": 0
   },
   "mp_sambal": {
-    "lastVerified": "2026-10-14T21:37:27.728Z",
+    "lastVerified": "2026-10-15T21:35:22.684Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -939,13 +939,13 @@
     "confidence": 0
   },
   "mp_vidhwa_pension": {
-    "lastVerified": "2026-10-08T08:19:11.611Z",
+    "lastVerified": "2026-10-15T21:37:21.679Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_sikho_kamao": {
-    "lastVerified": "2026-10-08T08:19:11.611Z",
+    "lastVerified": "2026-10-15T21:36:12.475Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -957,7 +957,7 @@
     "confidence": 0
   },
   "mp_swarojgar": {
-    "lastVerified": "2026-10-08T08:19:11.611Z",
+    "lastVerified": "2026-10-15T21:36:37.561Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -975,7 +975,7 @@
     "confidence": 0
   },
   "mp_viklang_pension": {
-    "lastVerified": "2026-10-08T08:20:20.425Z",
+    "lastVerified": "2026-10-15T21:37:34.364Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -987,7 +987,7 @@
     "confidence": 0
   },
   "mp_udyam_kranti": {
-    "lastVerified": "2026-10-08T08:20:20.425Z",
+    "lastVerified": "2026-10-15T21:37:09.084Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1505,7 +1505,7 @@
     "httpStatus": 200
   },
   "mp_nishakt_vivah": {
-    "lastVerified": "2026-10-14T21:36:37.737Z",
+    "lastVerified": "2026-10-15T21:34:32.582Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -2995,7 +2995,7 @@
     "confidence": 0.49
   },
   "mp_prasuti": {
-    "lastVerified": "2026-10-14T21:37:02.401Z",
+    "lastVerified": "2026-10-15T21:34:57.351Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3366,18 +3366,30 @@
     "confidence": 0
   },
   "mp_laptop": {
-    "lastVerified": "2026-10-14T21:36:17.951Z"
+    "lastVerified": "2026-10-15T21:34:18.275Z"
   },
   "mp_parityakta_pension": {
-    "lastVerified": "2026-10-14T21:36:50.083Z",
+    "lastVerified": "2026-10-15T21:34:44.908Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0.49
   },
   "mp_pratibha_kiran": {
-    "lastVerified": "2026-10-14T21:37:14.783Z"
+    "lastVerified": "2026-10-15T21:35:12.386Z"
   },
   "mp_sant_ravidas": {
-    "lastVerified": "2026-10-14T21:37:50.124Z"
+    "lastVerified": "2026-10-15T21:36:10.750Z"
+  },
+  "mp_solar_pump": {
+    "lastVerified": "2026-10-15T21:36:24.811Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "mp_tantya_mama": {
+    "lastVerified": "2026-10-15T21:37:07.627Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
   }
 }
