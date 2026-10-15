@@ -2716,6 +2716,35 @@ const FirebaseUsageCard = React.memo(function FirebaseUsageCard({ dark, isDeskto
   );
 });
 
+// Today's Groq quota per key (from the rate-limit headers the agents and the
+// chat saw last) — one thin bar per key + model: share of today's requests left.
+const QUOTA_MODEL_LABEL = { "openai/gpt-oss-20b": "main", "openai/gpt-oss-120b": "backup 1", "llama-3.3-70b-versatile": "backup 2" };
+function GroqQuotaBars({ quota, th, isDesktop }) {
+  const rows = quota
+    .filter(q => q.reqLimit > 0 && q.reqLeft != null)
+    .sort((a, b) => a.idx - b.idx || String(a.model).localeCompare(String(b.model)));
+  if (!rows.length) return null;
+  return (
+    <div style={{ marginTop:5, display:"grid", gap:4 }}>
+      {rows.map(q => {
+        const left = Math.max(0, Math.min(1, q.reqLeft / q.reqLimit));
+        const color = left < 0.1 ? "#EF4444" : left < 0.3 ? IDLE_AMBER : IND_GREEN;
+        return (
+          <div key={`${q.idx}-${q.model}`} title={`Seen ${new Date(q.at).toLocaleString()}`}>
+            <div style={{ display:"flex", justifyContent:"space-between", gap:6, fontSize:fs(8.5, isDesktop), color:th.textSub }}>
+              <span>Key {q.idx + 1} · {QUOTA_MODEL_LABEL[q.model] ?? q.model}</span>
+              <span>{q.reqLeft.toLocaleString("en-IN")} / {q.reqLimit.toLocaleString("en-IN")} left today</span>
+            </div>
+            <div style={{ height:4, borderRadius:3, background:th.border, overflow:"hidden" }}>
+              <div style={{ width:`${Math.round(left * 100)}%`, height:"100%", background:color }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const WatchdogCard = React.memo(function WatchdogCard({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const runner = useRunAgent();
@@ -2777,6 +2806,7 @@ const WatchdogCard = React.memo(function WatchdogCard({ dark, isDesktop }) {
       <div style={{ minWidth:0, flex:1 }}>
         <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:700, color:th.text }}>{item.name}</div>
         <div style={{ fontSize:fs(9.5, isDesktop), color: item.status === "ok" ? th.textSub : dot(item.status), lineHeight:1.4, wordBreak:"break-word" }}>{item.detail}</div>
+        {Array.isArray(item.quota) && item.quota.length > 0 && <GroqQuotaBars quota={item.quota} th={th} isDesktop={isDesktop} />}
       </div>
       {item.kind === "job" && WATCH_JOB_LABEL[item.id] && (
         <RunNowButton job={item.id} label={WATCH_JOB_LABEL[item.id]} runner={runner} dark={dark} isDesktop={isDesktop}

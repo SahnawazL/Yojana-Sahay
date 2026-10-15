@@ -29,6 +29,7 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore, Timestamp }       from "firebase-admin/firestore";
 import { createProgress }              from "./_lib/agentProgress.js";
+import { smartGroq, AGENT_FALLBACK_MODELS } from "./_lib/groqSmart.js";
 
 // ── Firebase Admin init (safe — reuses existing app across hot reloads) ───────
 // Initialised lazily inside the handler: a top-level cert() call throws at
@@ -204,16 +205,10 @@ async function groqFilterAndSummarise(items, groqKeys) {
   const userPrompt =
     `Evaluate these ${items.length} news headlines:\n\n${numbered}`;
 
-  // Try each key in order, skip on 429
-  for (const key of groqKeys) {
+  // Every key, then a short wait, then backup models (_lib/groqSmart.js).
+  {
     try {
-      const res = await fetch(GROQ_URL, {
-        method:  "POST",
-        headers: {
-          "Content-Type":  "application/json",
-          "Authorization": `Bearer ${key}`,
-        },
-        body: JSON.stringify({
+      const groq = await smartGroq(groqKeys, {
           model:       MODEL,
           // gpt-oss is a reasoning model — its hidden reasoning shares this
           // budget. 1300 tokens truncated the JSON for 8 bilingual items,
@@ -225,20 +220,15 @@ async function groqFilterAndSummarise(items, groqKeys) {
             { role: "system", content: systemPrompt },
             { role: "user",   content: userPrompt   },
           ],
-        }),
-      });
+      }, { pool: "chat", fallbackModels: AGENT_FALLBACK_MODELS, maxWaitMs: 15000 });
 
-      if (res.status === 429 || res.status === 401 || res.status === 403) {
-        console.warn(`[refresh-news] Groq ${res.status} — trying next key…`);
-        continue;
-      }
-
-      if (!res.ok) {
-        console.error(`[refresh-news] Groq error ${res.status}`);
+      if (groq.status !== 200) {
+        console.error(`[refresh-news] Groq error ${groq.status}: ${groq.data?.error?.message ?? ""}`);
         return null; // failed — NOT "nothing relevant"
       }
+      if (groq.fallbackModel) console.warn(`[refresh-news] Main model busy — used backup model ${groq.modelUsed}.`);
 
-      const data = await res.json();
+      const data = groq.data;
       const raw  = data?.choices?.[0]?.message?.content || "[]";
 
       // Model may return { items: [...] } or { results: [...] } or directly [...] — unwrap if needed
@@ -279,7 +269,6 @@ async function groqFilterAndSummarise(items, groqKeys) {
     }
   }
 
-  console.warn("[refresh-news] All Groq keys exhausted.");
   return null; // failed — NOT "nothing relevant"
 }
 

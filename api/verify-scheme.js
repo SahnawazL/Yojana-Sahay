@@ -28,6 +28,7 @@ import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
 import { requireAdmin } from "./_lib/adminAuth.js";
 import { isPublicHttpUrl } from "./_lib/urlTools.js";
 import { checkTavilyBudget, noteTavilyCall } from "./_lib/tavilyBudget.js";
+import { smartGroq, AGENT_FALLBACK_MODELS, borrowedChatKey, noteGroqQuota } from "./_lib/groqSmart.js";
 
 const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_EXTRACT = "https://api.tavily.com/extract";
@@ -105,7 +106,10 @@ function isKeyLevelFailure(status, errData) {
 
 // ── Groq caller with key rotation (now uses shared KV counter via getNextStartIdx) ──
 
-export async function callGroq(keys, bodyObject) {
+export async function callGroq(keys, bodyObject, opts = null) {
+  // Smart mode (background verifier): backup models, short waits and one
+  // borrowed chat key before giving up — see _lib/groqSmart.js.
+  if (opts?.smart) return smartGroq(keys, bodyObject, opts);
   let lastError = null;
   let count429  = 0; // how many keys 429'd before a success (or before exhaustion)
   const failedKeys = []; // REAL indices of the keys that 429'd — the old telemetry assumed 0..count429-1
@@ -146,6 +150,7 @@ export async function callGroq(keys, bodyObject) {
       }
 
       if (res.status === 200) {
+        noteGroqQuota("verify", i, bodyObject.model, res.headers);
         console.log(`[verify-scheme] ✓ Groq Key #${i + 1} succeeded.`);
       } else {
         console.error(
@@ -421,6 +426,17 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
   // ── Step 2: AI extraction ─────────────────────────────────────────────────
   const { systemPrompt, userPrompt } = buildPrompt(name, state, page.text);
 
+  // Rate-limited? Wait briefly, switch to a backup model, then borrow the
+  // last chat key — instead of stopping the whole batch for the day.
+  const smartOpts = {
+    smart: true,
+    pool: "verify",
+    fallbackModels: AGENT_FALLBACK_MODELS,
+    maxWaitMs: 20000,
+    borrowKeys: borrowedChatKey(groqKeys),
+    borrowPool: "chat",
+    borrowIdxBase: 4, // GROQ_API_KEY_5 = chat key #5
+  };
   const groq = await callGroq(groqKeys, {
     model:                 MODEL,
     max_completion_tokens: MAX_COMPLETION_TOKENS,
@@ -432,7 +448,8 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
       { role: "system", content: systemPrompt },
       { role: "user",   content: userPrompt   },
     ],
-  });
+  }, smartOpts);
+  const ai = { model: groq.modelUsed ?? null, fallbackModel: !!groq.fallbackModel, borrowed: !!groq.borrowed, waited: !!groq.waited };
 
   recordAiCall({
     service:   "groq-verify",
@@ -444,7 +461,7 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
   if (groq.status !== 200) {
     const msg = groq.data?.error?.message ?? `Groq error ${groq.status}`;
     console.error(`[verify-scheme] Groq failed for "${name}":`, msg);
-    return fail(msg, groq.rateLimited || groq.status === 429 ? "rate_limit" : "ai", page.httpStatus);
+    return { ...fail(msg, groq.rateLimited || groq.status === 429 ? "rate_limit" : "ai", page.httpStatus), ai };
   }
   logApiCallToHistory("groqVerifyCalls").catch(() => {});
 
@@ -457,7 +474,7 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
       ? "model ran out of tokens before answering"
       : `unreadable reply: ${raw.slice(0, 80) || "(empty)"}`;
     console.warn(`[verify-scheme] JSON parse failed for "${name}" — ${why}`);
-    return fail(`AI ${why}`, "ai", page.httpStatus);
+    return { ...fail(`AI ${why}`, "ai", page.httpStatus), ai };
   }
 
   // ── Step 4: Sanitize + return ─────────────────────────────────────────────
@@ -490,6 +507,7 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
     httpStatus: page.httpStatus,
     error:      null,
     errorKind:  null,
+    ai,
     ...(note ? { note } : {}),
   };
 

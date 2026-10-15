@@ -19,7 +19,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getAdminDb, recordAiCall } from "./firebaseAdmin.js";
-import { getNextStartIdx }          from "./groqRotation.js";
+import { smartGroq, AGENT_FALLBACK_MODELS } from "./groqSmart.js";
 import { logApiCallToHistory }      from "./apiCallHistory.js";
 import { FieldValue }  from "firebase-admin/firestore";
 import nodemailer      from "nodemailer";
@@ -136,32 +136,9 @@ function isKeyLevelFailure(status, errData) {
 }
 
 async function callGroq(keys, bodyObject) {
-  let lastError = null, count429 = 0;
-  const n = keys.length;
-  const startIdx = await getNextStartIdx(n);
-
-  for (let offset = 0; offset < n; offset++) {
-    const i = (startIdx + offset) % n;
-    const key = keys[i];
-    try {
-      const groqRes = await fetch(GROQ_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
-        body: JSON.stringify(bodyObject),
-      });
-      if (groqRes.status === 429) {
-        const errData = await groqRes.json().catch(() => ({}));
-        lastError = errData; count429++;
-        continue;
-      }
-      const data = await groqRes.json();
-      if (isKeyLevelFailure(groqRes.status, data)) { lastError = data; continue; }
-      return { status: groqRes.status, data, keyIdx: i, count429 };
-    } catch (err) {
-      lastError = { message: err.message };
-    }
-  }
-  return { status: 429, data: { error: { message: "All Groq keys exhausted", details: lastError } }, keyIdx: -1, count429 };
+  // Intro lines are optional (the e-mail has a default line), so no waiting
+  // and no borrowed key — just try the backup models (_lib/groqSmart.js).
+  return smartGroq(keys, bodyObject, { pool: "verify", fallbackModels: AGENT_FALLBACK_MODELS, maxWaitMs: 0 });
 }
 
 // ── Generate one warm, short personalized line for the email intro ────────────

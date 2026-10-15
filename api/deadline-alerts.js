@@ -30,7 +30,7 @@
 import { getAdminDb, getAdminAuth, recordAiCall }        from "./_lib/firebaseAdmin.js";
 import { runDeadlineAlerts, DAILY_EMAIL_LIMIT } from "./_lib/deadlineAlerts.js";
 import { runSchemeVerificationBatch }           from "./_lib/schemeVerifyBatch.js";
-import { getNextStartIdx }      from "./_lib/groqRotation.js";
+import { smartGroq, AGENT_FALLBACK_MODELS, borrowedChatKey } from "./_lib/groqSmart.js";
 import { logApiCallToHistory }  from "./_lib/apiCallHistory.js";
 import { FieldValue }           from "firebase-admin/firestore";
 import nodemailer               from "nodemailer";
@@ -91,32 +91,16 @@ function isKeyLevelFailure(status, errData) {
 }
 
 async function callGroq(keys, bodyObject) {
-  let lastError = null, count429 = 0;
-  const n = keys.length;
-  const startIdx = await getNextStartIdx(n);
-
-  for (let offset = 0; offset < n; offset++) {
-    const i = (startIdx + offset) % n;
-    const key = keys[i];
-    try {
-      const groqRes = await fetch(GROQ_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
-        body: JSON.stringify(bodyObject),
-      });
-      if (groqRes.status === 429) {
-        const errData = await groqRes.json().catch(() => ({}));
-        lastError = errData; count429++;
-        continue;
-      }
-      const data = await groqRes.json();
-      if (isKeyLevelFailure(groqRes.status, data)) { lastError = data; continue; }
-      return { status: groqRes.status, data, keyIdx: i, count429 };
-    } catch (err) {
-      lastError = { message: err.message };
-    }
-  }
-  return { status: 429, data: { error: { message: "All Groq keys exhausted", details: lastError } }, keyIdx: -1, count429 };
+  // Backup models + a short wait + the spare chat key before giving up
+  // (see _lib/groqSmart.js). Same return shape as before.
+  return smartGroq(keys, bodyObject, {
+    pool: "verify",
+    fallbackModels: AGENT_FALLBACK_MODELS,
+    maxWaitMs: 8000,
+    borrowKeys: borrowedChatKey(keys),
+    borrowPool: "chat",
+    borrowIdxBase: 4,
+  });
 }
 
 async function generateEmailDraft({ toName, notes, lang }) {
@@ -426,6 +410,7 @@ async function runAndLogVerifyBatch(trigger = "cron") {
         monthlyBudget:       result.monthlyBudget ?? null,
         errorCount:   result.errorCount ?? 0,
         errorSamples: result.errorSamples ?? [],
+        aiAssist:     result.aiAssist ?? null,
         datesFound:   Object.values(result.results || {}).filter(r => r?.lastDate).length,
       });
     } catch (logErr) {

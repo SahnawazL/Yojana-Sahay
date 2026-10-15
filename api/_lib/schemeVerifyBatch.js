@@ -170,6 +170,8 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
   let consecutiveServiceErrors = 0;
   let stopReason = null;
   const errorSamples = [];
+  // How often the AI needed help: a backup model, a short wait, or a borrowed chat key.
+  const aiAssist = { backupModel: 0, waited: 0, borrowed: 0 };
 
   while (Date.now() - startedAt < MAX_RUNTIME_MS) {
     if (checkedCount >= total) break;   // completed a full lap within a single run (small catalogs only)
@@ -236,6 +238,9 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     }
 
     tavilyCallsMade++; // the page fetch happened (Groq rate limits come after it)
+    if (outcome.ai?.fallbackModel) aiAssist.backupModel++;
+    if (outcome.ai?.waited)        aiAssist.waited++;
+    if (outcome.ai?.borrowed)      aiAssist.borrowed++;
     if (outcome.errorKind) {
       errorCount++;
       if (errorSamples.length < 10) errorSamples.push({ id, kind: outcome.errorKind, error: String(outcome.error).slice(0, 160) });
@@ -257,6 +262,9 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     { merge: true }
   );
 
+  if (aiAssist.backupModel || aiAssist.waited || aiAssist.borrowed) {
+    progress.step(`AI quota helpers used: backup model ×${aiAssist.backupModel}, short wait ×${aiAssist.waited}, borrowed chat key ×${aiAssist.borrowed}`);
+  }
   if (stopReason) progress.step(`Stopped early — ${stopReason}`, "warn");
   let commitResult = { success: true, updated: 0 };
   let commitError  = null;
@@ -281,6 +289,7 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     tavilyCallsMade,
     errorCount,
     errorSamples,
+    aiAssist,
     stopReason,
     skippedNoUrl,
     withResults:  Object.keys(results).length,

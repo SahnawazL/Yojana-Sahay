@@ -21,6 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getTavilyCallsThisMonth, TAVILY_MONTHLY_HARD_LIMIT } from "./tavilyBudget.js";
+import { readGroqQuota } from "./groqSmart.js";
 
 const HOUR = 3600 * 1000;
 const DAILY_GRACE_H = 30;      // daily jobs: > 30 h without a run = missed
@@ -54,10 +55,25 @@ export function judgeVerifyBatch(run) {
   if (/^config/i.test(stop)) return { ...r, status: "fail", detail: `Needs setup: ${stop.replace(/^config:\s*/, "")}`, rerun: null };
   if (run.commitSuccess === false) return { ...r, status: "fail", detail: `Results not saved to GitHub: ${run.commitError ?? "unknown error"}`, rerun: "verifyBatch" };
   if (run.skipped || /budget/i.test(stop)) return { ...r, status: "warn", detail: "Monthly Tavily budget used up — resumes on the 1st.", rerun: null };
-  if (/^rate_limit/i.test(stop)) return { ...r, status: "warn", detail: "Stopped early: Groq rate limit. Will be re-run.", rerun: "verifyBatch" };
+  if (/^rate_limit/i.test(stop)) return { ...r, status: "warn", detail: "Stopped early: the free AI quota ran out, even after waiting, trying backup models and the spare chat key. It will be re-run.", rerun: "verifyBatch" };
   const errRatio = run.withResults ? (run.errorCount ?? 0) / Math.max(1, run.withResults) : 0;
-  if (errRatio > 0.5) return { ...r, status: "warn", detail: `${run.errorCount} of ${run.withResults} checks failed (${(run.errorSamples ?? [])[0] ?? "see logs"}).`, rerun: null };
-  return { ...r, status: "ok", detail: `Checked ${run.checked ?? 0} schemes, ${run.datesFound ?? 0} deadlines found, ${fmtAge(at)}.`, rerun: null };
+  const sample = (run.errorSamples ?? [])[0];
+  const sampleText = typeof sample === "string" ? sample : sample?.error ?? "see logs";
+  if (errRatio > 0.5) return { ...r, status: "warn", detail: `${run.errorCount} of ${run.withResults} checks failed (${sampleText}).`, rerun: null };
+  return { ...r, status: "ok", detail: `Checked ${run.checked ?? 0} schemes, ${run.datesFound ?? 0} deadlines found, ${fmtAge(at)}.${aiAssistNote(run.aiAssist)}`, rerun: null };
+}
+
+// "AI quota ran low 3 times — used a backup model, so no checks were lost."
+function aiAssistNote(a) {
+  if (!a) return "";
+  const n = (a.backupModel ?? 0) + (a.borrowed ?? 0) + (a.waited ?? 0);
+  if (!n) return "";
+  const how = [
+    a.waited ? "waited a few seconds" : null,
+    a.backupModel ? "switched to a backup AI model" : null,
+    a.borrowed ? "borrowed the spare chat key" : null,
+  ].filter(Boolean).join(", ");
+  return ` AI quota ran low ${n} time${n === 1 ? "" : "s"} — ${how}, so no checks were lost.`;
 }
 
 export function judgeDeadlineAlerts(run) {
@@ -96,7 +112,7 @@ export function judgeDiscovery(run) {
   const stop = String(run.stopReason ?? "");
   if (/^config/i.test(stop)) return { ...r, status: "fail", detail: `Needs setup: ${stop.replace(/^config:\s*/, "")}`, rerun: null };
   if (/^budget/i.test(stop)) return { ...r, status: "warn", detail: "Monthly Tavily budget reached — discovery resumes on the 1st.", rerun: null };
-  if (/^rate_limit/i.test(stop)) return { ...r, status: "warn", detail: "Stopped early: Groq rate limit.", rerun: null };
+  if (/^rate_limit/i.test(stop)) return { ...r, status: "warn", detail: "Stopped early: the free AI quota ran out for today (all backup models were busy too). Continues tomorrow.", rerun: null };
   const p = run.published?.length ?? 0, d = run.drafted?.length ?? 0;
   return { ...r, status: "ok", detail: `Checked ${(run.regions ?? []).join(", ") || "—"}: ${p} added, ${d} awaiting approval, ${run.duplicates ?? 0} already known (${fmtAge(at)}).`, rerun: null };
 }
@@ -132,14 +148,34 @@ async function testGroqKey(key) {
   }
 }
 
-async function judgeGroqPool(id, name, keys, rerunHint) {
-  const base = { id, name, kind: "service", lastRunAt: null, rerun: null };
+// Today's quota per key, from the rate-limit headers the agents saw last.
+function quotaSummary(quota) {
+  if (!quota?.length) return { text: "", low: false };
+  // One line per key: its busiest model (fewest requests left).
+  const byKey = new Map();
+  for (const q of quota) {
+    if (q.reqLimit == null || q.reqLeft == null) continue;
+    const prev = byKey.get(q.idx);
+    if (!prev || q.reqLeft / q.reqLimit < prev.reqLeft / prev.reqLimit) byKey.set(q.idx, q);
+  }
+  const parts = [...byKey.values()].sort((a, b) => a.idx - b.idx)
+    .map(q => `key ${q.idx + 1}: ${q.reqLeft.toLocaleString("en-IN")} of ${q.reqLimit.toLocaleString("en-IN")} requests left today`);
+  // Warn only when a key is nearly out for the DAY — a brief per-minute 429
+  // is normal and handled by the backup models.
+  const low = [...byKey.values()].some(q => q.reqLeft / q.reqLimit < 0.1);
+  return { text: parts.length ? ` · ${parts.join(" · ")}` : "", low };
+}
+
+async function judgeGroqPool(id, name, keys, rerunHint, quota = []) {
+  const base = { id, name, kind: "service", lastRunAt: null, rerun: null, quota };
   if (keys.length === 0) return { ...base, status: "fail", detail: `No keys configured (${rerunHint}).` };
   const results = await Promise.all(keys.map(testGroqKey));
   const bad = results.map((r, i) => (r === "invalid" ? `#${i + 1}` : null)).filter(Boolean);
   if (bad.length === keys.length) return { ...base, status: "fail", detail: `All ${keys.length} key(s) rejected by Groq — replace them in Vercel.` };
   if (bad.length) return { ...base, status: "warn", detail: `Key ${bad.join(", ")} rejected by Groq — replace in Vercel (others still work).` };
-  return { ...base, status: "ok", detail: `${keys.length} key(s) valid.` };
+  const qs = quotaSummary(quota);
+  if (qs.low) return { ...base, status: "warn", detail: `${keys.length} key(s) valid, but today's free AI quota is almost used up — agents will use backup models${qs.text}.` };
+  return { ...base, status: "ok", detail: `${keys.length} key(s) valid${qs.text}.` };
 }
 
 async function judgeGitHub() {
@@ -194,16 +230,17 @@ export async function getAgentHealth(db) {
   const readFail = (id, name) => err => ({ id, name, kind: "job", status: "warn", detail: `Could not read run log: ${err.message}`, lastRunAt: null, rerun: null });
 
   let autoFixRun = null;
+  const verifyKeys = envKeys(["GROQ_VERIFY_KEY", "GROQ_VERIFY_KEY_1", "GROQ_VERIFY_KEY_2"]);
+  const chatKeys = envKeys(["GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "GROQ_API_KEY_4", "GROQ_API_KEY_5"]);
+  const quota = await readGroqQuota({ verify: verifyKeys.length || chatKeys.length, chat: chatKeys.length });
   const [verify, alerts, autoFix, news, discover, groqVerify, groqChat, github, tavily] = await Promise.all([
     safe(async () => judgeVerifyBatch(await latest(db, "schemeVerifyRuns", "runAt")), readFail("verifyBatch", "Background Verifier")),
     safe(async () => judgeDeadlineAlerts(await latest(db, "deadlineAlertRuns", "runAt")), readFail("deadlineAlerts", "Deadline Alert E-mails")),
     safe(async () => judgeAutoFix(autoFixRun = await latest(db, "agentRuns", "createdAt", d => !d.agent || d.agent === "agent-auto-fix")), readFail("autoFix", "Auto-Fix + URL Repair")),
     safe(async () => judgeNews((await db.collection("_config").doc("news").get()).data() ?? null), readFail("news", "Scheme News Refresh")),
     safe(async () => judgeDiscovery(await latest(db, "agentRuns", "createdAt", d => d.agent === "scheme-discovery")), readFail("discover", "Scheme Discovery")),
-    judgeGroqPool("groqVerify", "Groq verify keys", envKeys(["GROQ_VERIFY_KEY", "GROQ_VERIFY_KEY_1", "GROQ_VERIFY_KEY_2"]).length
-      ? envKeys(["GROQ_VERIFY_KEY", "GROQ_VERIFY_KEY_1", "GROQ_VERIFY_KEY_2"])
-      : envKeys(["GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "GROQ_API_KEY_4", "GROQ_API_KEY_5"]), "GROQ_VERIFY_KEY"),
-    judgeGroqPool("groqChat", "Groq chat keys", envKeys(["GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "GROQ_API_KEY_4", "GROQ_API_KEY_5"]), "GROQ_API_KEY"),
+    judgeGroqPool("groqVerify", "Groq verify keys", verifyKeys.length ? verifyKeys : chatKeys, "GROQ_VERIFY_KEY", quota.filter(q => q.pool === "verify")),
+    judgeGroqPool("groqChat", "Groq chat keys", chatKeys, "GROQ_API_KEY", quota.filter(q => q.pool === "chat")),
     judgeGitHub(),
     judgeTavily(db),
   ]);
