@@ -686,7 +686,7 @@ export const HIMACHAL_PRADESH_SCHEMES = [
     benefit: { en: "₹1,500/month + 300 units free electricity", hi: "₹1,500/माह + 300 यूनिट मुफ्त बिजली" },
     tag:     { en: "Family Welfare", hi: "परिवार कल्याण" },
     annual: 18000,
-    apply:   { en: "vikaspedia.in", hi: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html" }, applyType: "online",
+    apply:   { en: "https://vikaspedia.in", hi: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html" }, applyType: "online",
     docs:    { en: ["Aadhaar Card"],
                hi: ["आधार कार्ड"] },
     autoAdded: "2026-10-13", source: "https://www.hindustantimes.com/cities/chandigarh-news/mukhyamantri-apna-parivar-sukhi-parivar-yojana-hp-govt-defers-welfare-scheme-launch-over-scrutiny-delays-101790876836604.html",
