@@ -36,6 +36,8 @@ import { FieldValue }        from "firebase-admin/firestore";
 // appMeta/verifyFailures { schemes: { [id]: { count, lastError, lastAt, httpStatus, pausedUntil? } } };
 // admin "Skip" choices live in appMeta/verifySkip { ids: [] }.
 export const PAUSE_AFTER_FAILS = 3;
+// Minimum AI confidence before a scheme is shown as "Apply Closed".
+export const CLOSED_MIN_CONFIDENCE = 0.8;
 const PAUSE_DAYS = 30;
 
 // → null (forget: page read fine) · undefined (no change) · new memory entry
@@ -128,7 +130,10 @@ export function outcomeToMetaEntry(outcome, nowIso = new Date().toISOString()) {
 
   if (!outcome.errorKind) {
     entry.confidence = outcome.confidence ?? 0;
-    if (outcome.isActive != null) entry.isActive = outcome.isActive;
+    // "Closed" hides the Apply button on the site, so it needs strong evidence:
+    // high confidence. A weaker "closed" is not written at all.
+    if (outcome.isActive === true) entry.isActive = true;
+    else if (outcome.isActive === false && (outcome.confidence ?? 0) >= CLOSED_MIN_CONFIDENCE) entry.isActive = false;
     else if ((outcome.confidence ?? 0) >= 0.5) entry.isActive = null; // clears a stale "closed"
     if (outcome.lastDate) entry.lastDate = outcome.lastDate;
     else if ((outcome.confidence ?? 0) >= 0.5) entry.lastDate = null; // page clearly read, no deadline any more

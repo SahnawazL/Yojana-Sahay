@@ -515,6 +515,9 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
     // >= 0.5. An outdated page is not proof the deadline is gone, so report
     // it below that bar and the stored value is kept.
     effectiveConfidence = Math.min(confidence, MIN_DATE_CONFIDENCE - 0.01);
+    // The AI often calls such a page "closed" because the old date has passed.
+    // An outdated page proves nothing about the scheme — don't mark it closed.
+    isActive = null;
   }
 
   const result = {

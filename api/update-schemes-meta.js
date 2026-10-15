@@ -36,6 +36,9 @@ export function mergeSchemesMeta(currentData, results) {
     const entry = { ...(currentData[id] || {}) };
     for (const [k, v] of Object.entries(newEntry)) {
       if (!ALLOWED_FIELDS.has(k) || v === undefined) continue;
+      // "Closed" hides the Apply button on the site — only accept it with
+      // strong AI confidence (an outdated page often reads as "closed").
+      if (k === "isActive" && v === false && !((newEntry.confidence ?? 0) >= 0.8)) continue;
       if (k === "lastVerified") {
         if (typeof v === "string") entry[k] = v;
       } else if (CLEAR_ON_NULL.has(k) && v === null) {

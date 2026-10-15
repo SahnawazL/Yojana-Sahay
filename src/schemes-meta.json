@@ -139,8 +139,7 @@
     "lastVerified": "2026-10-10T12:20:51.901Z",
     "httpStatus": 200,
     "confidence": 0.49,
-    "linkAlive": true,
-    "isActive": false
+    "linkAlive": true
   },
   "assam_arohan": {
     "lastVerified": "2026-10-10T12:20:51.901Z",
@@ -152,8 +151,7 @@
     "lastVerified": "2026-10-10T12:20:51.901Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.49,
-    "isActive": false
+    "confidence": 0.49
   },
   "assam_disability_pension": {
     "lastVerified": "2026-10-10T12:20:51.901Z",
@@ -2994,8 +2992,7 @@
     "lastVerified": "2026-10-10T21:34:19.957Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.49,
-    "isActive": false
+    "confidence": 0.49
   },
   "mp_prasuti": {
     "lastVerified": "2026-10-14T21:37:02.401Z",
@@ -3333,8 +3330,7 @@
     "lastVerified": "2026-10-09T21:37:02.706Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.49,
-    "isActive": false
+    "confidence": 0.49
   },
   "ladakh_rewa_upsc_coaching": {
     "lastVerified": "2026-10-10T21:34:17.236Z"
@@ -3343,8 +3339,7 @@
     "lastVerified": "2026-10-10T21:34:50.779Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.49,
-    "isActive": false
+    "confidence": 0.49
   },
   "mp_aahar_anudan": {
     "lastVerified": "2026-10-14T21:33:48.603Z",
@@ -3356,8 +3351,7 @@
     "lastVerified": "2026-10-15T19:06:17.094Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.49,
-    "isActive": false
+    "confidence": 0.49
   },
   "mp_awas_sahayata": {
     "lastVerified": "2026-10-14T21:34:08.012Z"
@@ -3378,8 +3372,7 @@
     "lastVerified": "2026-10-14T21:36:50.083Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.49,
-    "isActive": false
+    "confidence": 0.49
   },
   "mp_pratibha_kiran": {
     "lastVerified": "2026-10-14T21:37:14.783Z"
