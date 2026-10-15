@@ -3353,7 +3353,11 @@
     "confidence": 0
   },
   "mp_avivahita_pension": {
-    "lastVerified": "2026-10-14T21:34:00.440Z"
+    "lastVerified": "2026-10-15T19:06:17.094Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0.49,
+    "isActive": false
   },
   "mp_awas_sahayata": {
     "lastVerified": "2026-10-14T21:34:08.012Z"
