@@ -623,7 +623,8 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
       if (!budget.ok) { out.stopReason = "budget: monthly Tavily budget reached"; break; }
       progress.step(`  ↳ reading ${sourceUrl}`);
       const page = await fetchPageText(sourceUrl, tavilyKey, { excerpt: draftExcerpt });
-      if (page.billed) { out.tavilyCalls++; noteTavilyCall(); recordAiCall({ service: "tavily-verify" }).catch(() => {}); logApiCallToHistory("tavilyVerifyCalls").catch(() => {}); }
+      // A deeper (advanced) read costs 2 credits — count each one.
+      for (let c2 = 0; c2 < (page.credits ?? (page.billed ? 1 : 0)); c2++) { out.tavilyCalls++; noteTavilyCall(); recordAiCall({ service: "tavily-verify" }).catch(() => {}); logApiCallToHistory("tavilyVerifyCalls").catch(() => {}); }
       if (!page.text) { out.errors.push(`${c.name}: page unreadable — ${page.error}`); seen[key] = { at: istToday(), outcome: "unreadable" }; continue; }
 
       progress.step("  ↳ AI is writing the entry in English + Hindi (benefit, documents, eligibility)…");

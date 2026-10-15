@@ -29,7 +29,8 @@
 
 import { getAdminDb, getAdminAuth, recordAiCall }        from "./_lib/firebaseAdmin.js";
 import { runDeadlineAlerts, DAILY_EMAIL_LIMIT } from "./_lib/deadlineAlerts.js";
-import { runSchemeVerificationBatch }           from "./_lib/schemeVerifyBatch.js";
+import { runSchemeVerificationBatch, verifyOneScheme, setVerifySkip, listVerifyAttention, getCheckableUrl } from "./_lib/schemeVerifyBatch.js";
+import { SCHEME_DB } from "../src/schemesData.js";
 import { smartGroq, AGENT_FALLBACK_MODELS, borrowedChatKey } from "./_lib/groqSmart.js";
 import { logApiCallToHistory }  from "./_lib/apiCallHistory.js";
 import { FieldValue }           from "firebase-admin/firestore";
@@ -411,6 +412,7 @@ async function runAndLogVerifyBatch(trigger = "cron") {
         errorCount:   result.errorCount ?? 0,
         errorSamples: result.errorSamples ?? [],
         aiAssist:     result.aiAssist ?? null,
+        skippedPaused: result.skippedPaused ?? 0,
         datesFound:   Object.values(result.results || {}).filter(r => r?.lastDate).length,
       });
     } catch (logErr) {
@@ -565,7 +567,10 @@ export default async function handler(req, res) {
             tavilyUsedThisMonth: data.tavilyUsedThisMonth ?? null,
             monthlyBudget:       data.monthlyBudget ?? null,
             errorCount:    data.errorCount ?? 0,
-            errorSamples:  data.errorSamples ?? [],
+            // Older runs didn't store the link — add it so "Open link" works.
+            errorSamples:  (data.errorSamples ?? []).map(e => (e && !e.url && e.id ? { ...e, url: getCheckableUrl(SCHEME_DB.find(s => s.id === e.id)) } : e)),
+            aiAssist:      data.aiAssist ?? null,
+            skippedPaused: data.skippedPaused ?? 0,
             datesFound:    data.datesFound ?? null,
           };
         });
@@ -635,7 +640,7 @@ export default async function handler(req, res) {
 
   // Not a cron request — everything below requires an authenticated admin
   // Actions: running agents needs the Agents tab; e-mail actions need Deadlines.
-  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
+  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage", "verifyOne", "verifySkip", "verifyAttention"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
   const auth = await verifyAdmin(req, tabsFor);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
@@ -669,6 +674,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: `Unknown job: ${String(job).slice(0, 40)}` });
     } catch (err) {
       console.error(`[deadline-alerts] runAgent ${job} failed:`, err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── Background Verifier — act on schemes it couldn't read ───────────────
+  //   verifyAttention → list paused / skipped schemes
+  //   verifyOne { id } → check one scheme now (saves the result)
+  //   verifySkip { id, skip } → skip it in future runs, or include it again
+  if (action === "verifyAttention") {
+    try { return res.status(200).json(await listVerifyAttention()); }
+    catch (err) { return res.status(500).json({ error: err.message }); }
+  }
+  if (action === "verifyOne" || action === "verifySkip") {
+    const id = String(req.body?.id ?? "").slice(0, 80);
+    if (!/^[a-z0-9_]+$/i.test(id)) return res.status(400).json({ error: "Valid scheme id is required" });
+    try {
+      if (action === "verifyOne") return res.status(200).json(await verifyOneScheme(id));
+      return res.status(200).json(await setVerifySkip(id, !!req.body?.skip));
+    } catch (err) {
+      console.error(`[deadline-alerts] ${action} failed:`, err.message);
       return res.status(500).json({ error: err.message });
     }
   }

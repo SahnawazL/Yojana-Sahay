@@ -280,9 +280,24 @@ export function isRealDate(ymd) {
 //   billed — true when Tavily actually extracted the page (failed URLs are
 //            not charged by Tavily, so they don't count against the budget).
 
-export async function fetchPageText(url, tavilyKey, { excerpt = buildPageExcerpt } = {}) {
+// Basic read first; if Tavily couldn't open the page (or got no text — common
+// on JavaScript-heavy state portals), try ONE "advanced" read. Failed reads
+// are free; a successful advanced read costs 2 Tavily credits (`credits`).
+export async function fetchPageText(url, tavilyKey, opts = {}) {
+  const first = await fetchPageTextOnce(url, tavilyKey, { ...opts, depth: "basic" });
+  if (first.text || first.serviceError) return { ...first, credits: first.billed ? 1 : 0 };
+  // A real 404 / 410 says the link is dead — a deeper read won't change that.
+  if (first.httpStatus === 404 || first.httpStatus === 410) return { ...first, credits: first.billed ? 1 : 0 };
+  const deep = await fetchPageTextOnce(url, tavilyKey, { ...opts, depth: "advanced" });
+  const credits = (first.billed ? 1 : 0) + (deep.billed ? 2 : 0);
+  if (deep.text) return { ...deep, billed: true, credits, deepRead: true };
+  return { ...first, billed: credits > 0, credits, deepRead: true,
+           error: `${first.error ?? "no page content"} (deeper read also failed${deep.error ? `: ${String(deep.error).slice(0, 80)}` : ""})` };
+}
+
+async function fetchPageTextOnce(url, tavilyKey, { excerpt = buildPageExcerpt, depth = "basic" } = {}) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+  const timer = setTimeout(() => controller.abort(), depth === "advanced" ? 35000 : FETCH_TIMEOUT);
 
   try {
     const res = await fetch(TAVILY_EXTRACT, {
@@ -291,7 +306,7 @@ export async function fetchPageText(url, tavilyKey, { excerpt = buildPageExcerpt
       // no longer documented and can be rejected with 401).
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${tavilyKey}` },
       signal:  controller.signal,
-      body: JSON.stringify({ urls: [url], extract_depth: "basic", format: "text", timeout: 15 }),
+      body: JSON.stringify({ urls: [url], extract_depth: depth, format: "text", timeout: depth === "advanced" ? 30 : 15 }),
     });
     clearTimeout(timer);
 
@@ -409,7 +424,9 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
 
   // ── Step 1: Fetch page via Tavily Extract ─────────────────────────────────
   const page = await fetchPageText(url, tavilyKey);
-  if (page.billed) {
+  // An advanced (deeper) read costs 2 credits — count every credit so the
+  // monthly budget guard stays honest.
+  for (let c = 0; c < (page.credits ?? (page.billed ? 1 : 0)); c++) {
     noteTavilyCall();
     recordAiCall({ service: "tavily-verify" }).catch(() => {});
     logApiCallToHistory("tavilyVerifyCalls").catch(() => {});

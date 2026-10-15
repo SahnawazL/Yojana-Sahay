@@ -2912,11 +2912,135 @@ const WatchdogCard = React.memo(function WatchdogCard({ dark, isDesktop }) {
 // completely invisible. This card shows the last run, what it found, why it
 // stopped, catalog progress and the month's Tavily budget.
 // ═════════════════════════════════════════════════════════════════════════════
+// ── Background Verifier: act on schemes it couldn't read ─────────────────────
+const VERIFY_KIND_HELP = {
+  page: "These pages couldn't be opened by the page reader — often a busy or blocked government portal, not a dead link.",
+};
+
+// Shared state for Retry / Skip buttons + the "needs a decision" list.
+function useVerifyFixes() {
+  const [busy, setBusy] = useState({});      // id → "retry" | "skip"
+  const [result, setResult] = useState({});  // id → { ok, text }
+  const [attention, setAttention] = useState(null);
+  const loadAttention = useCallback(async () => {
+    try { setAttention(await adminJson("/api/deadline-alerts", { action: "verifyAttention" })); }
+    catch (err) { setAttention({ items: [], error: err.message }); }
+  }, []);
+  useEffect(() => { loadAttention(); }, [loadAttention]);
+
+  const retry = useCallback(async (id) => {
+    setBusy(b => ({ ...b, [id]: "retry" }));
+    setResult(r => ({ ...r, [id]: null }));
+    try {
+      const d = await adminJson("/api/deadline-alerts", { action: "verifyOne", id });
+      const o = d.outcome ?? {};
+      let text;
+      if (d.ok) {
+        text = `✓ Read OK — ${o.lastDate ? `last date ${o.lastDate}` : "no deadline on the page"}${o.isActive === true ? " · open" : o.isActive === false ? " · closed" : ""}${d.saved ? " · saved (site updates in ~2 min)" : ""}`;
+      } else if (d.error) {
+        text = d.error;
+      } else if (o.httpStatus === 404 || o.httpStatus === 410) {
+        text = `Link is dead (HTTP ${o.httpStatus}) — the Auto-Fix agent will look for a new link tonight.`;
+      } else {
+        text = `Still can't read it: ${o.error ?? "unknown"}. Try Open to check it yourself, or Skip.`;
+      }
+      setResult(r => ({ ...r, [id]: { ok: !!d.ok, text } }));
+      if (d.ok) loadAttention();
+    } catch (err) {
+      setResult(r => ({ ...r, [id]: { ok: false, text: err.message } }));
+    } finally {
+      setBusy(b => ({ ...b, [id]: null }));
+    }
+  }, [loadAttention]);
+
+  const setSkip = useCallback(async (id, skip) => {
+    setBusy(b => ({ ...b, [id]: "skip" }));
+    try {
+      setAttention(await adminJson("/api/deadline-alerts", { action: "verifySkip", id, skip }));
+      setResult(r => ({ ...r, [id]: { ok: true, text: skip ? "Skipped — it won't be checked again until you include it." : "Included again — it will be checked on the next lap." } }));
+    } catch (err) {
+      setResult(r => ({ ...r, [id]: { ok: false, text: err.message } }));
+    } finally {
+      setBusy(b => ({ ...b, [id]: null }));
+    }
+  }, []);
+
+  return { busy, result, attention, retry, setSkip, loadAttention };
+}
+
+function FixButton({ children, onClick, disabled, th, isDesktop, tone }) {
+  return (
+    <button type="button" onClick={onClick} disabled={disabled}
+      style={{ fontSize:fs(9, isDesktop), fontWeight:700, padding:"3px 9px", borderRadius:7, cursor: disabled ? "default" : "pointer",
+        border:`1px solid ${tone ?? th.border}`, background:"transparent", color: tone ?? th.textMid, opacity: disabled ? 0.55 : 1 }}>
+      {children}
+    </button>
+  );
+}
+
+function VerifyFixActions({ id, url, fix, th, isDesktop, skipped = false }) {
+  const busy = fix.busy[id];
+  const res = fix.result[id];
+  return (
+    <div style={{ marginTop:5 }}>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+        <FixButton th={th} isDesktop={isDesktop} tone={CYAN} disabled={!!busy || skipped} onClick={() => fix.retry(id)}>
+          {busy === "retry" ? "Checking… (up to 1 min)" : "↻ Retry now"}
+        </FixButton>
+        {url && (
+          <FixButton th={th} isDesktop={isDesktop} onClick={() => window.open(/^https?:\/\//.test(url) ? url : `https://${url}`, "_blank", "noopener,noreferrer")}>
+            ↗ Open link
+          </FixButton>
+        )}
+        <FixButton th={th} isDesktop={isDesktop} tone={skipped ? IND_GREEN : IDLE_AMBER} disabled={!!busy} onClick={() => fix.setSkip(id, !skipped)}>
+          {busy === "skip" ? "Saving…" : skipped ? "Include again" : "Skip in future"}
+        </FixButton>
+      </div>
+      {res && <div style={{ marginTop:4, fontSize:fs(9, isDesktop), color: res.ok ? IND_GREEN : "#EF4444", lineHeight:1.4 }}>{res.text}</div>}
+    </div>
+  );
+}
+
+// Schemes the verifier paused (unreadable 3 runs in a row) or you skipped.
+function VerifyAttentionList({ fix, th, isDesktop }) {
+  const [open, setOpen] = useState(false);
+  const a = fix.attention;
+  if (!a || (!a.items?.length && !a.watching)) return null;
+  const paused = a.items.filter(x => !x.skipped);
+  const skipped = a.items.filter(x => x.skipped);
+  const fmt = iso => (iso ? new Date(iso).toLocaleDateString("en-IN", { day:"numeric", month:"short" }) : "");
+  return (
+    <div style={{ marginTop:9, border:`1px solid ${th.border}`, borderRadius:9, padding:"8px 9px" }}>
+      <div {...activatable(() => setOpen(v => !v), "Show schemes that need a decision")} onClick={() => setOpen(v => !v)}
+        style={{ display:"flex", alignItems:"center", gap:6, cursor:"pointer", fontSize:fs(10, isDesktop), fontWeight:700, color:th.text }}>
+        🧭 Needs your decision: {paused.length} paused · {skipped.length} skipped
+        <span style={{ marginLeft:"auto", transform: open ? "rotate(90deg)" : "none", transition:"transform 0.15s" }}>
+          <IconChevronRight size={11} color={th.textSub} />
+        </span>
+      </div>
+      <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:3, lineHeight:1.45 }}>
+        A page that can't be read {a.pauseAfter ?? 3} runs in a row is paused for {a.pauseDays ?? 30} days so it stops using the page-reader budget.
+        {a.watching ? ` ${a.watching} more scheme(s) failed once or twice and are being watched.` : ""}
+      </div>
+      {open && a.items.map(x => (
+        <div key={x.id} style={{ borderTop:`1px solid ${th.border}`, marginTop:7, paddingTop:7, fontSize:fs(9.5, isDesktop), color:th.textMid, lineHeight:1.45, wordBreak:"break-word" }}>
+          <strong style={{ color:th.text }}>{x.name}</strong>{x.state ? ` · ${x.state}` : ""}
+          <div style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>
+            {x.skipped ? "Skipped by you" : `Paused until ${fmt(x.pausedUntil)} after ${x.failCount} failed reads`}{x.lastError ? ` — ${x.lastError}` : ""}
+          </div>
+          <VerifyFixActions id={x.id} url={x.url} fix={fix} th={th} isDesktop={isDesktop} skipped={x.skipped} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const runner = useRunAgent();
   const [state, setState]     = useState({ loading: true, error: null, runs: [], cursor: null });
   const [showErrors, setShowErrors] = useState(false);
+  const fix = useVerifyFixes();
 
   const load = useCallback(async () => {
     setState(prev => ({ ...prev, loading: prev.runs.length === 0, error: null }));
@@ -3070,17 +3194,23 @@ const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, is
                   </span>
                 </div>
                 {showErrors && (
-                  <div style={{ marginTop:8, maxHeight:180, overflowY:"auto", border:`1px solid ${th.border}`, borderRadius:9 }}>
+                  <div style={{ marginTop:8, maxHeight:340, overflowY:"auto", border:`1px solid ${th.border}`, borderRadius:9 }}>
+                    <div style={{ padding:"7px 9px", fontSize:fs(9, isDesktop), color:th.textSub, lineHeight:1.5, borderBottom:`1px solid ${th.border}` }}>
+                      {VERIFY_KIND_HELP.page} <b>Retry</b> checks it now (with a deeper read), <b>Open</b> lets you look yourself, <b>Skip</b> stops future checks.
+                    </div>
                     {run.errorSamples.map((e, i) => (
                       <div key={e.id + i} style={{ padding:"7px 9px", borderBottom: i < run.errorSamples.length - 1 ? `1px solid ${th.border}` : "none", fontSize:fs(9.5, isDesktop), color:th.textMid, lineHeight:1.45, wordBreak:"break-word" }}>
                         <strong style={{ color:th.text }}>{e.id}</strong>
                         <span style={{ fontFamily:"monospace", color:th.textSub }}> [{e.kind}]</span> — {e.error}
+                        <VerifyFixActions id={e.id} url={e.url} fix={fix} th={th} isDesktop={isDesktop} />
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
+
+            <VerifyAttentionList fix={fix} th={th} isDesktop={isDesktop} />
           </>
         )}
       </div>

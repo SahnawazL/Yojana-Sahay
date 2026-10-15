@@ -27,6 +27,50 @@ import { verifySchemeCore, getVerifyKeyCount } from "../verify-scheme.js";
 import { commitSchemesMeta } from "../update-schemes-meta.js";
 import { normalizeSchemeUrl } from "./urlTools.js";
 import { getTavilyCallsThisMonth, TAVILY_BACKGROUND_BUDGET } from "./tavilyBudget.js";
+import { FieldValue }        from "firebase-admin/firestore";
+
+// ── Failure memory ───────────────────────────────────────────────────────────
+// A page that can't be read 3 runs in a row (blocked portal, JS-only site) is
+// paused for 30 days instead of wasting a Tavily call every lap. It shows up
+// in Admin → Agents with Retry / Open / Skip buttons. Stored in
+// appMeta/verifyFailures { schemes: { [id]: { count, lastError, lastAt, httpStatus, pausedUntil? } } };
+// admin "Skip" choices live in appMeta/verifySkip { ids: [] }.
+export const PAUSE_AFTER_FAILS = 3;
+const PAUSE_DAYS = 30;
+
+// → null (forget: page read fine) · undefined (no change) · new memory entry
+export function nextFailMemory(prev, outcome, nowMs = Date.now()) {
+  if (!outcome.errorKind) return null;
+  if (outcome.errorKind !== "page") return undefined; // AI / quota / config problems aren't the page's fault
+  const count = (prev?.count ?? 0) + 1;
+  const m = {
+    count,
+    lastError: String(outcome.error ?? "").slice(0, 160),
+    lastAt: new Date(nowMs).toISOString(),
+    httpStatus: outcome.httpStatus || 0,
+  };
+  if (count >= PAUSE_AFTER_FAILS) m.pausedUntil = new Date(nowMs + PAUSE_DAYS * 864e5).toISOString();
+  return m;
+}
+
+async function readVerifyMemory(db) {
+  const [memSnap, skipSnap] = await Promise.all([
+    db.collection("appMeta").doc("verifyFailures").get().catch(() => null),
+    db.collection("appMeta").doc("verifySkip").get().catch(() => null),
+  ]);
+  return {
+    failMem: memSnap?.exists ? (memSnap.data().schemes ?? {}) : {},
+    skipIds: new Set(skipSnap?.exists ? (skipSnap.data().ids ?? []) : []),
+  };
+}
+
+async function writeVerifyMemory(db, changes) {
+  const ids = Object.keys(changes);
+  if (!ids.length) return;
+  const schemes = {};
+  for (const id of ids) schemes[id] = changes[id] === null ? FieldValue.delete() : changes[id];
+  await db.collection("appMeta").doc("verifyFailures").set({ schemes, updatedAt: new Date().toISOString() }, { merge: true });
+}
 
 // Safety margin under whatever the real configured max duration turns out to
 // be. The Vercel dashboard shows 300s configured — this stops at 240s (60s of
@@ -159,6 +203,9 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
   const cursorBefore = cursorSnap.exists ? (cursorSnap.data().index || 0) : 0;
   let index = cursorBefore >= total ? 0 : cursorBefore; // catalog may have shrunk since last run
   progress.step(`Resuming the rotation at scheme ${index + 1} of ${total} · will check up to ${runCap} schemes`);
+  const { failMem, skipIds } = await readVerifyMemory(db);
+  const memChanges = {};
+  let skippedPaused = 0;
 
   const results = {};
   let checkedCount = 0;      // total iterations, including skipped no-URL entries
@@ -188,6 +235,12 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     if (!url) {
       skippedNoUrl++;
       continue; // offline / text-only scheme — nothing to check, don't spend a call
+    }
+    // Skipped by the admin, or paused after repeated unreadable pages — free skip.
+    const memo = failMem[id];
+    if (skipIds.has(id) || (memo?.pausedUntil && Date.parse(memo.pausedUntil) > Date.now())) {
+      skippedPaused++;
+      continue;
     }
 
     // Pace real checks only — skipping an offline scheme costs no API call.
@@ -243,7 +296,7 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     if (outcome.ai?.borrowed)      aiAssist.borrowed++;
     if (outcome.errorKind) {
       errorCount++;
-      if (errorSamples.length < 10) errorSamples.push({ id, kind: outcome.errorKind, error: String(outcome.error).slice(0, 160) });
+      if (errorSamples.length < 10) errorSamples.push({ id, kind: outcome.errorKind, error: String(outcome.error).slice(0, 160), url });
     }
     progress.step(
       outcome.errorKind
@@ -251,6 +304,9 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
         : `  ↳ ${outcome.lastDate ? `last date ${outcome.lastDate}` : "no deadline on the page"}${outcome.isActive === true ? " · applications open" : outcome.isActive === false ? " · closed" : ""}`,
       outcome.errorKind ? "warn" : "ok"
     );
+    const mem = nextFailMemory(failMem[id], outcome);
+    if (mem !== undefined && !(mem === null && !failMem[id])) memChanges[id] = mem;
+    if (mem?.pausedUntil) progress.step(`  ↳ unreadable ${mem.count} runs in a row — paused for ${PAUSE_DAYS} days (see Agents → Background Verifier)`, "warn");
     // A rate-limited AI call taught us nothing — don't stamp lastVerified.
     if (outcome.errorKind !== "rate_limit") results[id] = outcomeToMetaEntry(outcome);
   }
@@ -262,6 +318,9 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     { merge: true }
   );
 
+  try { await writeVerifyMemory(db, memChanges); }
+  catch (err) { console.warn("[schemeVerifyBatch] failure memory not saved:", err.message); }
+  if (skippedPaused) progress.step(`Skipped ${skippedPaused} paused / skipped scheme(s) — no Tavily calls spent on them`);
   if (aiAssist.backupModel || aiAssist.waited || aiAssist.borrowed) {
     progress.step(`AI quota helpers used: backup model ×${aiAssist.backupModel}, short wait ×${aiAssist.waited}, borrowed chat key ×${aiAssist.borrowed}`);
   }
@@ -292,6 +351,7 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     aiAssist,
     stopReason,
     skippedNoUrl,
+    skippedPaused,
     withResults:  Object.keys(results).length,
     cursorBefore,
     cursorAfter:  index,
@@ -306,4 +366,82 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     commitError,
     results, // scheme ids + what was found, for logging/debugging in the run history
   };
+}
+
+
+// ── Admin actions (Agents tab → Background Verifier) ─────────────────────────
+
+// Check one scheme now ("Retry"). Saves what was learned to schemes-meta.json.
+export async function verifyOneScheme(id) {
+  const db = getAdminDb();
+  const scheme = SCHEME_DB.find(s => s.id === id);
+  if (!scheme) return { ok: false, error: "Unknown scheme id." };
+  const url = getCheckableUrl(scheme);
+  if (!url) return { ok: false, error: "This scheme has no online link to check (offline / text-only)." };
+
+  let outcome;
+  try {
+    outcome = await verifySchemeCore({ url, name: scheme.name?.en || id, state: scheme.scope === "national" ? "national" : (scheme.state || "state") });
+  } catch (err) {
+    outcome = { errorKind: "ai", error: err.message, httpStatus: 0 };
+  }
+  let saved = false, commitError = null;
+  // Save only when we learned something: a reading, or a real HTTP status.
+  if (!outcome.errorKind || (outcome.errorKind === "page" && outcome.httpStatus > 0)) {
+    try { await commitSchemesMeta({ [id]: outcomeToMetaEntry(outcome) }); saved = true; }
+    catch (err) { commitError = err.message; }
+  }
+  // A good read clears the pause; a failed manual retry doesn't add to the count.
+  if (!outcome.errorKind && db) await writeVerifyMemory(db, { [id]: null }).catch(() => {});
+  return {
+    ok: !outcome.errorKind,
+    url,
+    saved,
+    commitError,
+    outcome: {
+      lastDate: outcome.lastDate ?? null, isActive: outcome.isActive ?? null, confidence: outcome.confidence ?? 0,
+      httpStatus: outcome.httpStatus ?? 0, error: outcome.error ?? null, errorKind: outcome.errorKind ?? null,
+      note: outcome.note ?? null, ai: outcome.ai ?? null,
+    },
+  };
+}
+
+// Admin "Skip" / "Include again".
+export async function setVerifySkip(id, skip) {
+  const db = getAdminDb();
+  if (!db) throw new Error("Firebase Admin is not configured.");
+  if (!SCHEME_DB.some(s => s.id === id)) throw new Error("Unknown scheme id.");
+  const ref = db.collection("appMeta").doc("verifySkip");
+  await ref.set({ ids: skip ? FieldValue.arrayUnion(id) : FieldValue.arrayRemove(id), updatedAt: new Date().toISOString() }, { merge: true });
+  // Including it again also lifts any automatic pause so the next lap checks it.
+  if (!skip) await writeVerifyMemory(db, { [id]: null });
+  return listVerifyAttention();
+}
+
+// Everything that needs a human look: paused (unreadable) + skipped schemes.
+export async function listVerifyAttention() {
+  const db = getAdminDb();
+  if (!db) return { items: [] };
+  const { failMem, skipIds } = await readVerifyMemory(db);
+  const byId = new Map(SCHEME_DB.map(s => [s.id, s]));
+  const ids = new Set([...skipIds, ...Object.keys(failMem).filter(id => failMem[id]?.pausedUntil && Date.parse(failMem[id].pausedUntil) > Date.now())]);
+  const items = [...ids].map(id => {
+    const s = byId.get(id);
+    const m = failMem[id] ?? null;
+    return {
+      id,
+      name: s?.name?.en ?? id,
+      state: s?.scope === "national" ? "Central" : (s?.state ?? null),
+      url: s ? getCheckableUrl(s) : null,
+      skipped: skipIds.has(id),
+      pausedUntil: m?.pausedUntil ?? null,
+      failCount: m?.count ?? 0,
+      lastError: m?.lastError ?? null,
+      lastAt: m?.lastAt ?? null,
+      gone: !s,
+    };
+  }).sort((a, b) => Number(a.skipped) - Number(b.skipped) || String(a.name).localeCompare(String(b.name)));
+  // Schemes failing but not yet paused (1–2 failures) — just a count.
+  const watching = Object.values(failMem).filter(m => m && !m.pausedUntil).length;
+  return { items, watching, pauseAfter: PAUSE_AFTER_FAILS, pauseDays: PAUSE_DAYS };
 }
