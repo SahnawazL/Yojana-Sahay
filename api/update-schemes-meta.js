@@ -39,6 +39,9 @@ export function mergeSchemesMeta(currentData, results) {
       // "Closed" hides the Apply button on the site — only accept it with
       // strong AI confidence (an outdated page often reads as "closed").
       if (k === "isActive" && v === false && !((newEntry.confidence ?? 0) >= 0.8)) continue;
+      // A server error (5xx) or rate limit (429) means "down right now", not
+      // "this link is gone" — don't mark the link dead for it.
+      if (k === "linkAlive" && v === false && (Number(newEntry.httpStatus) >= 500 || Number(newEntry.httpStatus) === 429)) continue;
       if (k === "lastVerified") {
         if (typeof v === "string") entry[k] = v;
       } else if (CLEAR_ON_NULL.has(k) && v === null) {

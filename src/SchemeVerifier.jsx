@@ -61,6 +61,9 @@ import {
   unqueueUrlFix,
   commitQueuedFixes,
   getKnownDeadLinks,
+  fetchLiveSchemesMeta,
+  commitMetaPayload,
+  pingOneUrl,
   deleteUrlFixes,
   pingUrl,
 } from "./verifySchemes.js";
@@ -1916,7 +1919,7 @@ function ApplyAllFixesBar({ queuedFixes, applyingFixes, applyResult, onApply, on
 
 
 // ─── RESULT ROW ───────────────────────────────────────────────────────────────
-function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueChange = null }) {
+function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueChange = null, deadActions = null }) {
   const th     = THEME[dark ? "dark" : "light"];
   const scheme = result.scheme;
   const [localExpanded, setLocalExpanded] = useState(false);
@@ -2009,10 +2012,11 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
   // Only shown for confirmed dead links (alive === false) with fix label
   // "Update URL" or "Check Domain" — i.e. the URL is genuinely gone.
   const fix = getFixSuggestion(result);
+  // In "Known Dead Links" every dead row can search for a new link — a site
+  // that has been down for days may simply have moved.
   const showFindNewUrl =
     result.alive === false &&
-    fix != null &&
-    (fix.label === "Update URL" || fix.label === "Check Domain");
+    (deadActions != null || (fix != null && (fix.label === "Update URL" || fix.label === "Check Domain")));
 
   const handleFindNewUrl = async (e) => {
     e.stopPropagation();
@@ -2301,6 +2305,29 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
         </div>
       </div>
 
+      {/* ── Known Dead Links: actions you can take without opening the row ── */}
+      {deadActions && (
+        <div onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}
+          style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 14px 10px 14px" }}>
+          {[
+            { key: "recheck", label: deadActions.busy === "recheck" ? "Checking…" : "↻ Re-check now", color: NAVY, onClick: () => deadActions.onRecheck(result) },
+            { key: "find", label: "🔍 Find new link", color: IND_GREEN, onClick: (e) => { setLocalExpanded(true); handleFindNewUrl(e); }, hide: !showFindNewUrl || urlSearch !== null },
+            { key: "dismiss", label: deadActions.busy === "dismiss" ? "Saving…" : "✓ It works — remove", color: th.textMid, onClick: () => deadActions.onDismiss(result) },
+          ].filter(b => !b.hide).map(b => (
+            <button key={b.key} type="button" disabled={!!deadActions.busy} onClick={b.onClick}
+              style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 700, cursor: deadActions.busy ? "default" : "pointer",
+                border: `1.5px solid ${b.color}`, background: `${b.color}10`, color: b.color, fontFamily: "inherit", opacity: deadActions.busy && deadActions.busy !== b.key ? 0.5 : 1 }}>
+              {b.label}
+            </button>
+          ))}
+          {deadActions.note && (
+            <div style={{ flexBasis: "100%", fontSize: 10, lineHeight: 1.45, color: deadActions.note.ok ? IND_GREEN : deadActions.note.warn ? AMBER : RED }}>
+              {deadActions.note.text}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Expanded detail ── */}
       {expanded && (
         <div
@@ -2319,13 +2346,13 @@ function ResultRow({ result, dark, expandAll = false, savedFix = null, onQueueCh
           {[
             ["Scheme ID",       scheme.id],
             ["Scope",           `${scheme.scope}${scheme.state ? ` · ${scheme.state}` : ""}`],
-            ["Check Tier",      `Tier ${result.tier}`],
+            ["Check Tier",      result.tier ? `Tier ${result.tier}` : "Saved scan"],
             ["HTTP Status",     result.httpStatus != null ? String(result.httpStatus) : "—"],
             ["AI lastDate",     result.lastDate || "—"],
             ["AI isActive",     result.isActive === true ? "Yes" : result.isActive === false ? "No" : "—"],
             ["Confidence",      result.confidence != null ? `${Math.round(result.confidence * 100)}%` : "—"],
             ["Scheme lastDate", scheme.lastDate || "—"],
-            ["Error",           result.error || "None"],
+            ["Error",           result.error || "—"],
             ["Note",            result.note || "—"],
           ].map(([k, v]) => (
             <div key={k} style={{ display: "flex", gap: 8, fontSize: 10, padding: "1px 0" }}>
@@ -4485,6 +4512,57 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // Kept as state (not memo) so a successful "Apply All Fixes" can remove a
   // scheme from this list immediately — it's no longer a known dead link.
   const [knownDeadLinks, setKnownDeadLinks] = useState(() => getKnownDeadLinks());
+  // Replace the bundled (deploy-time) snapshot with the newest one on GitHub,
+  // so links fixed or found dead minutes ago show correctly without a reload.
+  const refreshKnownDead = useCallback(async () => {
+    const live = await fetchLiveSchemesMeta();
+    if (live) setKnownDeadLinks(getKnownDeadLinks(live));
+  }, []);
+  useEffect(() => { refreshKnownDead(); }, [refreshKnownDead]);
+
+  // Per-row actions in Known Dead Links.
+  const [deadBusy, setDeadBusy] = useState({});   // id → "recheck" | "dismiss"
+  const [deadNote, setDeadNote] = useState({});   // id → { ok, warn, text }
+  const dropDead = useCallback((id) => setKnownDeadLinks(prev => prev.filter(r => r.scheme?.id !== id)), []);
+  const handleDeadRecheck = useCallback(async (r) => {
+    const id = r.scheme?.id; if (!id) return;
+    setDeadBusy(b => ({ ...b, [id]: "recheck" })); setDeadNote(n => ({ ...n, [id]: null }));
+    try {
+      const p = await pingOneUrl(r.scheme.apply?.en);
+      const now = new Date().toISOString();
+      if (p.alive === true) {
+        await commitMetaPayload({ [id]: { lastVerified: now, linkAlive: true, ...(p.httpStatus > 0 ? { httpStatus: p.httpStatus } : {}) } });
+        setDeadNote(n => ({ ...n, [id]: { ok: true, text: `✓ The link works again (HTTP ${p.httpStatus || 200}) — saved, it leaves this list.` } }));
+        setTimeout(() => dropDead(id), 1800);
+      } else if (p.httpStatus >= 500 || p.httpStatus === 429) {
+        setDeadNote(n => ({ ...n, [id]: { warn: true, text: `The site answered ${p.httpStatus} — it's down for now, not gone. Try again later, or Find new link if it stays down for days.` } }));
+        setKnownDeadLinks(prev => prev.map(x => x.scheme?.id === id ? { ...x, httpStatus: p.httpStatus, lastVerified: now } : x));
+      } else if (p.httpStatus === 404 || p.httpStatus === 410) {
+        setDeadNote(n => ({ ...n, [id]: { text: `Still dead (HTTP ${p.httpStatus}) — the page was removed. Use 🔍 Find new link.` } }));
+        setKnownDeadLinks(prev => prev.map(x => x.scheme?.id === id ? { ...x, httpStatus: p.httpStatus, lastVerified: now } : x));
+      } else {
+        setDeadNote(n => ({ ...n, [id]: { warn: true, text: `No clear answer (${p.error || `HTTP ${p.httpStatus || 0}`}). Many state sites block our server — tap Open URL to check it yourself.` } }));
+      }
+    } catch (err) {
+      setDeadNote(n => ({ ...n, [id]: { text: `Couldn't check: ${err.message}` } }));
+    } finally {
+      setDeadBusy(b => ({ ...b, [id]: null }));
+    }
+  }, [dropDead]);
+  const handleDeadDismiss = useCallback(async (r) => {
+    const id = r.scheme?.id; if (!id) return;
+    setDeadBusy(b => ({ ...b, [id]: "dismiss" }));
+    try {
+      // linkAlive:null clears the "dead" flag (the next scan decides again).
+      await commitMetaPayload({ [id]: { lastVerified: new Date().toISOString(), linkAlive: null } });
+      setDeadNote(n => ({ ...n, [id]: { ok: true, text: "Removed from the list — saved. The next scan checks it again." } }));
+      setTimeout(() => dropDead(id), 1500);
+    } catch (err) {
+      setDeadNote(n => ({ ...n, [id]: { text: `Couldn't save: ${err.message}` } }));
+    } finally {
+      setDeadBusy(b => ({ ...b, [id]: null }));
+    }
+  }, [dropDead]);
   const [deadSearch, setDeadSearch] = useState("");
   const [deadPage,   setDeadPage]   = useState(1);
 
@@ -5299,7 +5377,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
   // Sourced from schemes-meta.json (written by the last verification run
   //     and committed to the repo) — so "Find New URL" / "Queue Fix" stay
   //     available for dead schemes from a previous session at any time.
-  const knownDeadLinksEl = (!running && results.length === 0 && knownDeadLinks.length > 0) ? (
+  const knownDeadLinksEl = (!running && knownDeadLinks.length > 0) ? (
         <div style={{
           background:   th.card,
           border:       `1.5px solid ${th.border}`,
@@ -5438,6 +5516,12 @@ export default function SchemeVerifier({ dark, isDesktop }) {
                   expandAll={false}
                   savedFix={urlFixMap[r.scheme?.id] ?? null}
                   onQueueChange={handleQueueChange}
+                  deadActions={{
+                    busy: deadBusy[r.scheme?.id] ?? null,
+                    note: deadNote[r.scheme?.id] ?? null,
+                    onRecheck: handleDeadRecheck,
+                    onDismiss: handleDeadDismiss,
+                  }}
                 />
               ))
             )}
@@ -6559,7 +6643,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           {dbCoverageEl}
           {savedScansEl}
           {fixProgressIdleEl}
-          {knownDeadLinksEl}
+          {isIdleState ? knownDeadLinksEl : null}
           {urlIssuesEl}
           {configPanelEl}
         </>
@@ -6956,6 +7040,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
             {smartInsightsEl}
             {domainGroupEl}
             {resultsListEl}
+            {knownDeadLinksEl}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14, position: "sticky", top: 20 }}>
             {runSummaryEl}
@@ -6971,6 +7056,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
           {domainGroupEl}
           {runSummaryEl}
           {resultsListEl}
+          {!isIdleState ? knownDeadLinksEl : null}
         </>
       )}
 

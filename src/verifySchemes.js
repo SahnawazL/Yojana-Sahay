@@ -755,6 +755,34 @@ export async function writeSchemeResults(results) {
   return commitMetaPayload(payload);
 }
 
+// The newest schemes-meta.json straight from GitHub (the copy bundled into
+// the app is only as fresh as the last deploy — fixes and scans committed
+// minutes ago would otherwise be invisible until the next page reload).
+export async function fetchLiveSchemesMeta() {
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/SahnawazL/Yojana-Sahay/main/src/schemes-meta.json?t=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || typeof data !== "object") return null;
+    // GitHub's raw copy can lag a few minutes — per scheme keep whichever
+    // entry (bundled or live) was verified most recently.
+    const out = { ...schemesMeta };
+    for (const [id, e] of Object.entries(data)) {
+      const a = Date.parse(e?.lastVerified ?? "") || 0;
+      const b = Date.parse(out[id]?.lastVerified ?? "") || 0;
+      if (!out[id] || a >= b) out[id] = e;
+    }
+    return out;
+  } catch { return null; }
+}
+
+// Re-check ONE link right now (Tier 1 ping) — used by the Known Dead Links row.
+export async function pingOneUrl(url) {
+  const normalized = normalizeUrl(url);
+  if (!normalized) return { alive: null, httpStatus: 0, error: "No link to check" };
+  return adminJson("/api/ping-url", { url: normalized });
+}
+
 export async function commitMetaPayload(payload) {
   if (!payload || Object.keys(payload).length === 0) return { success: true, updated: 0 };
   return adminJson("/api/update-schemes-meta", { results: payload });  // { success, updated }
@@ -1109,11 +1137,11 @@ export async function loadUrlFixes() {
 // Sorted: national schemes first, then alphabetically by state, then by name —
 // so results from the same scan ("scan a state or central schemes") cluster
 // together.
-export function getKnownDeadLinks() {
+export function getKnownDeadLinks(metaSource = schemesMeta) {
   const out = [];
 
   for (const scheme of SCHEME_DB) {
-    const meta = schemesMeta[scheme.id];
+    const meta = metaSource?.[scheme.id];
     if (!meta || meta.linkAlive !== false) continue;
 
     // Skip India-bound domains — Vercel's US IPs can't reach these, so any
