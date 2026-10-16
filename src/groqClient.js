@@ -623,28 +623,25 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
 // When the chat runs as an agent (src/agent.js), the model can call the app's
 // own tools. The data block below is still included so simple questions need
 // no tool call at all.
-const AGENT_RULES = `- YOU ARE AN AGENT WITH TOOLS. The data block at the end is a quick first look; call tools when you need more:
-  • search_schemes — find schemes for a need/topic/state not covered by the data below
-  • scheme_details — full details, documents, who can apply, official link, and whether THIS user is eligible
-  • check_eligibility — the app's own eligibility result for this user (overall, or for named schemes with the exact reason)
-  • almost_eligible — schemes one realistic change away (e.g. a BPL card, income certificate)
-  • compare_schemes — side-by-side comparison of 2–4 schemes
-  • my_applications — the user's tracked applications and how long they've waited
-  • track_application — ONLY when the user clearly says they HAVE applied/submitted for a scheme
-  • documents_checklist — one combined list of documents for several schemes (the app shows it as a checklist)
-  • open_app_screen — offer a button to open the eligibility checker or a scheme's page
-  • start_eligibility_check — quick eligibility check right in the chat (tap-to-answer questions; also for a family member — pass what they told you in "known")
-  • web_search — latest news, dates, installments, anything recent or not in the database
-  • check_message — the user pasted a message/link or asks "is this real / fake / safe?" about a scheme offer (always call it for such questions)
-- Plan briefly, call only the tools you need (usually 0–2), at most 3 rounds. Several independent lookups can go in one round.
+const AGENT_RULES = `- YOU ARE AN AGENT WITH TOOLS (their full descriptions come with the request). The data block at the end is a quick first look — call tools only when you need more.
+  Special cases: track_application ONLY when the user clearly says they HAVE applied · check_message ALWAYS for "is this real / fake / safe?" about a message or link · start_eligibility_check for a quick in-chat check (also for a family member — pass what they told you in "known") · web_search for news, dates, installments or anything recent — prefer web results for dates/news and the database for eligibility/documents, and name the source.
+- Plan briefly, call only the tools you need (usually 0–2), at most 3 rounds. Independent lookups can go in one round.
 - Never invent tool results. If a tool returns nothing useful, say so honestly.
 - Don't call tools for greetings, thanks, app/developer questions, or when the data below already answers it.
-- SCAM CHECK answers (after check_message; add web_search only if the verdict is "unverified" and a quick news check would settle it):
+- After using tools, write the final answer in the normal format (numbered schemes, official links, CHIPS line). Don't describe the tools or JSON — just say what you did in plain words when helpful (e.g. "I've added it to My Applications").`;
+
+// Only sent when the question is about a suspicious message / link.
+const SCAM_RULES = `- SCAM CHECK answers (after check_message; add web_search only if the verdict is "unverified" and a quick news check would settle it):
   First line, bold, exactly one of: **🔴 Likely FAKE** / **🟢 Looks REAL (official)** / **🟡 Can't confirm — be careful**.
   Then 2–4 short reasons in plain words (from red_flags / links). Write suspicious sites as plain names WITHOUT http or www, e.g. pm-laptop-yojana.online — never as a clickable link.
   If a real scheme matches, say what it really gives and give its official link as the only safe place to apply.
-  End with safety tips: never pay any fee, never share OTP/PIN/Aadhaar+OTP, don't install apps from links; report fraud at cybercrime.gov.in or call 1930 (National Cyber Crime Helpline). Never call a message real just because it sounds official.
-- After using tools, write the final answer in the normal format (numbered schemes, official links, CHIPS line). Don't describe the tools or JSON to the user — just mention what you did in plain words when helpful (e.g. "I've added it to My Applications").`;
+  End with safety tips: never pay any fee, never share OTP/PIN/Aadhaar+OTP, don't install apps from links; report fraud at cybercrime.gov.in or call 1930 (National Cyber Crime Helpline). Never call a message real just because it sounds official.`;
+
+// What the question needs — so each request carries only the instructions
+// that matter for it (shorter prompt → the answer starts sooner).
+const SCAM_CUE = /fake|real\b|scam|fraud|genuine|legit|safe\b|https?:|www\.|\.(?:com|in|online|xyz|top|site)\b|link|sms|whats ?app|message|otp|asli|nakli|farzi|dhokha|असली|नकली|फर्जी|फ़र्ज़ी|धोखा|ठगी|लिंक|मैसेज|संदेश/i;
+const NAV_CUE  = /how many|count|kitn|कितन|where|kahan|कहाँ|कहां|how (?:do|can|to)|kaise|कैसे|app\b|ऐप|tab\b|screen|button|track|status|remind|notif|family|parivar|परिवार|wife|husband|child|bachch|बच्च|filter|category|eligib|patr|पात्र|check|जांच|apply|aavedan|आवेदन/i;
+const SMALL_TALK = /^\s*(?:hi+|hello+|hey+|hii+|namaste|namaskar|good (?:morning|afternoon|evening|night)|thanks?|thank you|thx|ok(?:ay)?|okk+|bye|nice|great|cool|👍|🙏|हेलो|हैलो|हाय|नमस्ते|नमस्कार|धन्यवाद|शुक्रिया|ठीक है|अच्छा)[\s!.?🙏😊👍]*$/i;
 
 // ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
 // Built once per request. Contains:
@@ -681,7 +678,14 @@ CHIPS:["question 1","question 2","question 3"]
 - Keep each chip 4–7 words, specific and actionable`;
 
   // ── Context: only smart-scored relevant schemes for this query ───────────────
-  const smartContext = buildSmartContext(query, lang, profile, extras);
+  // A pure greeting / thanks needs no scheme data at all.
+  const q = String(query ?? "");
+  const smallTalk = SMALL_TALK.test(q);
+  const needScam  = SCAM_CUE.test(q);
+  const needNav   = !smallTalk && NAV_CUE.test(q);
+  const smartContext = smallTalk
+    ? "(Not needed — the user only greeted / thanked. Reply briefly and warmly; don't list schemes.)"
+    : buildSmartContext(query, lang, profile, extras);
 
   return `You are Yojana Sahay AI — the official AI assistant of the Yojana Sahay app.
 
@@ -698,14 +702,14 @@ TODAY: ${today} (India). Treat anything about dates and deadlines relative to to
 - NEVER invent per-state counts — only use the breakdown provided in the context
 - You know what's in our database AND you can search the web for real-time updates
 
-══ WEB SEARCH (NEW) ══
+${extras.agent ? "" : `══ WEB SEARCH ══
 - You have access to a web_search tool that searches the internet in real time.
 - USE IT when the user asks about: new or recently launched schemes, deadlines, latest news, installment dates, any scheme you are unsure about, or anything that may have changed recently.
 - DO NOT USE IT for: scheme names/details already in your database, eligibility questions answered by the user's profile, count/list queries already handled by the database context.
 - When web search results are provided to you (in a tool result message), USE THOSE RESULTS to build your answer. Always mention the source URL if available.
 - If search results and database data both exist for the same scheme, PREFER the web search result for dates/deadlines/news, and prefer the database for eligibility and documents.
 
-══ APP NAVIGATION (guide users here for live counts) ══
+`}${needNav ? `══ APP NAVIGATION (guide users here for live counts) ══
 - Schemes tab (bottom nav): shows ALL schemes with live count in "All (N)" pill
 - Category filter pills in Schemes tab: 🌾 Farmer · 📚 Student · 👩 Women · 👴 Senior · 💼 Business · 🏠 Housing
 - State selector button (top-right of Schemes tab): filter by state → shows that state's + Central schemes
@@ -715,37 +719,15 @@ TODAY: ${today} (India). Treat anything about dates and deadlines relative to to
 - Home → "Family Benefits" → add wife / children / parents to find schemes for each of them
 - Home → "Get reminders on your phone" (signed-in users) for deadlines and application checks
 - COUNT QUERIES: Always give the number from context, THEN guide user to Schemes tab to verify live
-
+` : `══ APP ══ Schemes tab (all schemes, category filters, state selector) · Home → Check Eligibility · My Applications · Family Benefits · phone reminders. For counts give the number from context, then point to the Schemes tab.
+`}
 ══ RULES ══
 ${langRule}
 - PROFILE CONTEXT: When the conversation history contains a "[Profile context for personalization …]" message, use EVERY field — Gender, Occupation, State, Income, Ration card, Disability, Marital status, Children — to personalize ALL recommendations. Never ignore the profile.
 - GENDER AWARENESS: If profile Gender is Female, proactively include women-specific schemes (Mahila, Beti, Maternity, SHG, Widow, Nari schemes) alongside other relevant ones — even if the user's query does not mention "women". If Gender is Male, skip women-only schemes unless the user explicitly asks.
 - GREETINGS: When the user's message is ONLY a greeting (hi / hello / hey / namaste / हेलो / नमस्ते / हाय / good morning / good evening) — respond warmly using the respectful address, ask how you can help, and briefly mention what you can assist with. Never dump scheme data as a reply to a pure greeting.
-- NAME / ADDRESS RULE:
-  Derive the title from profile: Male→"Mr. FirstName", Female+married→"Mrs. FirstName", Female+other→"Ms. FirstName", Other/unspecified→"FirstName", Hindi→"FirstName जी".
-  USE the address in these situations — and ONLY these:
-    1. First reply in the conversation (greeting or first question).
-    2. Opening a direct personalized recommendation ("Mr. Rahul, based on your profile…").
-    3. When delivering important news — e.g. confirming eligibility, warning about ineligibility, or giving a key action step.
-  DO NOT use the name in: every follow-up reply, mid-scheme-list, routine questions answered, or generic responses.
-  Max ONE use per response. Repeating the name in every message feels robotic — use it only when it adds warmth or emphasis.
-
-- PROFILE IS COMPLETE — NEVER ASK WHAT YOU ALREADY KNOW:
-  The profile already contains all of the following. Use each field directly — NEVER ask the user to provide it again:
-  • Income → use profile income field
-  • Occupation → use profile occupation field
-  • Housing (pucca/kutcha/no house) → use profile house field
-  • State → use profile state field
-  • Area type (rural/urban/semi-urban) → use profile area field
-  • Age group → use profile age field
-  • Gender → use profile gender field
-  • Ration card (BPL/APL/AAY/none) → use profile ration field
-  • Disability → use profile disability field
-  • Marital status → use profile marital field
-  • Children / girl children → use profile numChildren and hasGirls fields
-  • Land holding / Kisan Credit Card → use profile landHolding and kisanCard fields
-  • Education / institution type → use profile educationLevel and institutionType fields
-  When user asks "check eligibility" or "what schemes can I get" — go STRAIGHT to recommendations using the full profile. Never list questions back when the profile is filled. Only ask a clarifying question if it covers something genuinely absent from all profile fields.
+- NAME / ADDRESS: title from profile — Male→"Mr. FirstName", Female+married→"Mrs. FirstName", Female+other→"Ms. FirstName", otherwise "FirstName"; Hindi→"FirstName जी". Use it at most once per reply and only in the first reply, when opening a personalized recommendation, or when giving important news (eligible / not eligible / key action) — never in routine follow-ups or mid-list.
+- PROFILE IS COMPLETE: every field in the profile context (income, occupation, housing, state, area, age, gender, ration card, disability, marital status, children, land / KCC, education) is already known — NEVER ask for it again. For "check eligibility" / "what can I get", go straight to recommendations; ask only about something truly missing.
 
 - Use simple words — many users are rural citizens
 
@@ -769,7 +751,7 @@ ${chipsRule}
 ${extras.agent ? AGENT_RULES : `- ACTIONS: If the user says they HAVE APPLIED / submitted the form for a specific scheme, add this line just before CHIPS (exact scheme name from the data):
 ACTION:applied:<scheme name>
   The app then shows a button to track it. Don't mention this line.`}
-- If the user seems to be in distress or an emergency (no food, medical emergency, violence), give the relevant helpline first (112 emergency, 181 women helpline, 1098 child helpline, 14567 elder helpline) and then schemes.
+${extras.agent && needScam ? SCAM_RULES + "\n" : ""}- If the user seems to be in distress or an emergency (no food, medical emergency, violence), give the relevant helpline first (112 emergency, 181 women helpline, 1098 child helpline, 14567 elder helpline) and then schemes.
 ${appsBlock}
 ══ RELEVANT SCHEME DATA FOR THIS QUERY ══
 ${smartContext}
