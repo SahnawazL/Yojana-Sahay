@@ -282,27 +282,18 @@ function readingPlan(text, ctx = {}) {
 // • Yesterday    → "Yesterday · 2:34 PM"
 // • This year    → "May 21 · 2:34 PM"
 // • Older        → "May 21, 2024 · 2:34 PM"
-function formatMsgTime(ts, lang) {
-  if (!ts) return null;
-  const d   = new Date(ts);
-  const now = new Date();
-  const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const msgDay    = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const diffDays  = Math.round((today - msgDay) / 86400000);
 
-  const locale  = lang === "hi" ? "hi-IN" : "en-IN";
-  const timeStr = d.toLocaleTimeString(locale, { hour:"2-digit", minute:"2-digit", hour12:true });
-
-  if (diffDays === 0) return timeStr;
-  if (diffDays === 1) return lang === "hi" ? `कल · ${timeStr}` : `Yesterday · ${timeStr}`;
-
-  const isThisYear = d.getFullYear() === now.getFullYear();
-  const dateStr = d.toLocaleDateString(locale, {
-    day:"numeric", month:"short",
-    ...(isThisYear ? {} : { year:"numeric" }),
-  });
-  return `${dateStr} · ${timeStr}`;
+// Day separators ("Today", "Yesterday", "14 Oct") + time-only labels, so each
+// bubble doesn't repeat the date.
+const dayKeyOf = (ts) => { const d = new Date(ts); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; };
+function dayLabelOf(ts, lang) {
+  const d = new Date(ts), now = new Date();
+  const diff = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+  if (diff === 0) return lang === "hi" ? "आज" : "Today";
+  if (diff === 1) return lang === "hi" ? "कल" : "Yesterday";
+  return d.toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { day:"numeric", month:"short", ...(d.getFullYear() === now.getFullYear() ? {} : { year:"numeric" }) });
 }
+const clockOf = (ts, lang) => (ts ? new Date(ts).toLocaleTimeString(lang === "hi" ? "hi-IN" : "en-IN", { hour:"numeric", minute:"2-digit", hour12:true }) : null);
 
 const GLOBAL_CSS = `
 @keyframes bubble-in {
@@ -1696,7 +1687,7 @@ function tidyPartial(t) {
   return t;
 }
 
-function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligibleIds, trackedApps, onChecklist, onOpenChecker, onQuizDone, onAsk, onQuizRestart, onRecheck }) {
+function ChatBubble({ msg, lang, dark, isNew, live = false, showAvatar = true, showTime = true, dayLabel = null, isLatest = false, onOpenDetail, eligibleIds, trackedApps, onChecklist, onOpenChecker, onQuizDone, onAsk, onQuizRestart, onRecheck }) {
   const th     = THEME[dark ? "dark" : "light"];
   const bf     = fontFamily(lang);
   const isUser = msg.role === "user";
@@ -1756,86 +1747,54 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
     .replace(/\*\*/g, "")
     .replace(/^\* /gm, "• ");
 
-  // ── Feature 1 + 6: Gradient border + Glassmorphism on AI bubbles ─────────
-  const glassCard = dark
-    ? "rgba(28,28,30,0.68)"
-    : "rgba(255,255,255,0.68)";
+  // ── Calm, readable bubbles ───────────────────────────────────────────────
+  // Answers sit on a plain card with a hairline border (no glow, no blur —
+  // blur on every bubble also slowed scrolling on phones). Colour lives on
+  // the user's own messages.
   const aiBubbleStyle = !isUser ? {
-    border: "1.5px solid transparent",
-    background: `linear-gradient(${glassCard}, ${glassCard}) padding-box,
-                 linear-gradient(135deg, #FF9933 0%, #6366f1 50%, #003580 100%) border-box`,
-    backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)",
-    boxShadow: dark
-      ? "0 4px 20px rgba(255,153,51,0.14), 0 1px 8px rgba(0,0,0,0.45)"
-      : "0 4px 20px rgba(255,153,51,0.11), 0 1px 8px rgba(0,0,0,0.09)",
+    background: dark ? "#1A1B1F" : "#FFFFFF",
+    border: `1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}`,
+    boxShadow: dark ? "none" : "0 1px 2px rgba(15,23,42,0.05)",
   } : {};
-
-  const userGlass = dark ? "rgba(30,58,138,0.65)" : "rgba(219,234,254,0.82)";
   const userBubbleStyle = isUser ? {
-    border: "1.5px solid transparent",
-    background: `linear-gradient(${userGlass}, ${userGlass}) padding-box,
-                 linear-gradient(135deg,#FF9933 0%,#6366f1 50%,#003580 100%) border-box`,
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    boxShadow: dark
-      ? "0 4px 20px rgba(255,153,51,0.18), 0 2px 8px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.1)"
-      : "0 4px 16px rgba(255,153,51,0.15), 0 2px 6px rgba(0,53,128,0.13), inset 0 1px 0 rgba(255,255,255,0.65)",
+    background: "linear-gradient(135deg, #2F4BB8 0%, #4F46E5 100%)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    boxShadow: dark ? "0 2px 10px -4px rgba(79,70,229,0.55)" : "0 2px 10px -4px rgba(47,75,184,0.45)",
   } : {};
 
   // ── Formatted timestamp — null when no ts stored (legacy msgs) ────────────
-  const timeLabel = formatMsgTime(msg.timestamp, lang);
+  const timeLabel = showTime ? clockOf(msg.timestamp, lang) : null;
 
   return (
-    <div style={{ marginBottom:14 }}>
+    <div style={{ marginBottom: showAvatar ? 14 : 4 }}>
+      {dayLabel && (
+        <div style={{ display:"flex", alignItems:"center", gap:10, margin:"4px 6px 14px", fontFamily:bf }}>
+          <span style={{ flex:1, height:1, background: dark ? "rgba(255,255,255,0.07)" : "rgba(15,23,42,0.08)" }} />
+          <span style={{ fontSize:10.5, fontWeight:600, letterSpacing:0.3, color: dark ? "rgba(200,200,210,0.55)" : "rgba(71,85,105,0.7)" }}>{dayLabel}</span>
+          <span style={{ flex:1, height:1, background: dark ? "rgba(255,255,255,0.07)" : "rgba(15,23,42,0.08)" }} />
+        </div>
+      )}
       {/* ── Bubble row (avatar + bubble) ─────────────────────────────────── */}
       <div className={isUser ? "ai-msg-bubble-user" : (msg.streamed && isNew ? "" : "ai-msg-bubble-ai")}
         style={{ display:"flex", flexDirection:isUser?"row-reverse":"row", alignItems:"flex-end", gap:6 }}>
-        {!isUser && (
+        {!isUser && (showAvatar ? (
           <div style={{
             width:28, height:28, borderRadius:"50%", flexShrink:0,
             overflow:"hidden",
           }}>
             <img src={aiAvatar} alt="AI" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
           </div>
-        )}
+        ) : <div style={{ width:28, flexShrink:0 }} />)}
         <div style={{
           maxWidth:"88%",
-          background: isUser ? undefined : th.card,
-          color: isUser ? (dark ? "#dde8ff" : "#1e3a8a") : th.text,
-          borderRadius: isUser ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-          padding:"11px 15px", fontSize:13.5, lineHeight:1.65, fontFamily:bf,
+          color: isUser ? "#FFFFFF" : th.text,
+          borderRadius: isUser ? (showAvatar ? "18px 18px 5px 18px" : "18px") : (showAvatar ? "18px 18px 18px 5px" : "18px"),
+          padding: isUser ? "9px 14px" : "11px 15px", fontSize:13.5, lineHeight:1.62, fontFamily:bf,
           whiteSpace:"pre-wrap", wordBreak:"break-word",
           transition:"box-shadow 0.3s",
           ...aiBubbleStyle,
           ...userBubbleStyle,
         }}>
-          {/* ── Feature 5: AI bubble sender header ───────────────────────── */}
-          {!isUser && (
-            <div style={{
-              display:"flex", alignItems:"center", gap:5, marginBottom:7,
-              animation: msg.streamed && isNew ? "none" : "header-fade 0.22s ease-out",
-            }}>
-              <span style={{
-                fontSize:9.5, fontWeight:800, letterSpacing:0.55,
-                textTransform:"uppercase",
-                color: dark ? "rgba(255,153,51,0.9)" : "#FF8000",
-                fontFamily:"'Noto Sans',sans-serif",
-              }}>
-                Yojana Sahay AI
-              </span>
-              {/* Verified checkmark badge */}
-              <div style={{
-                display:"flex", alignItems:"center", justifyContent:"center",
-                width:14, height:14, borderRadius:"50%",
-                background:"#22c55e",
-                flexShrink:0,
-              }}>
-                <span style={{ fontSize:8, color:"#fff", fontWeight:900, lineHeight:1 }}>✓</span>
-              </div>
-            </div>
-          )}
-
           {!isUser && msg.steps?.length > 0 && isDone && !live && <StepsSummary steps={msg.steps} dark={dark} lang={lang} />}
           {live ? (
               <>
@@ -1867,7 +1826,7 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
                The brand name is already in the header, so the footer carries
                the "official" note instead of repeating it. Solid colours so it
                stays readable on the tinted glass bubble. */}
-          {!isUser && isDone && !live && (
+          {!isUser && isDone && !live && isLatest && (
             <div style={{
               display:"flex", alignItems:"center", gap:8,
               justifyContent: schemes.length ? "flex-start" : "flex-end",
@@ -1931,35 +1890,35 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, onOpenDetail, eligib
         <AnswerActions msg={msg} schemes={schemes} lang={lang} dark={dark} trackedApps={trackedApps} onChecklist={onChecklist} onOpenChecker={msg.ui?.open?.length ? onOpenChecker : null} onRecheck={isNew ? onRecheck : null} onOpenDetail={onOpenDetail} />
       )}
 
-      {/* ── Timestamp row — below bubble, matches side alignment ─────────── */}
-      {timeLabel && !live && (
+      {/* ── Time + (older answers) a quiet listen button ─────────────────── */}
+      {!live && (timeLabel || (!isUser && isDone && !isLatest && canSpeak())) && (
         <div style={{
-          display:"flex",
+          display:"flex", alignItems:"center", gap:8,
           justifyContent: isUser ? "flex-end" : "flex-start",
-          paddingLeft: isUser ? 0 : 36,   // align with bubble (avatar 28px + gap 6px + 2px)
-          paddingRight: isUser ? 2 : 0,
+          paddingLeft: isUser ? 0 : 36,
+          paddingRight: isUser ? 4 : 0,
           marginTop: 4,
-          animation: "fade-in 0.4s ease-out",
         }}>
-          <span style={{
-            fontSize: 9.5,
-            fontFamily: "'Noto Sans', sans-serif",
-            color: dark ? "rgba(160,160,170,0.6)" : "rgba(100,100,120,0.52)",
-            fontWeight: 500,
-            letterSpacing: 0.15,
-            userSelect: "none",
-            // Subtle frosted pill so it sits cleanly on any bg
-            background: dark
-              ? "rgba(255,255,255,0.05)"
-              : "rgba(0,0,0,0.03)",
-            borderRadius: 10,
-            padding: "2px 7px",
-            // Tiny left/right border accent matching the bubble's gradient edges
-            borderLeft: isUser ? "none" : `1.5px solid rgba(255,153,51,0.22)`,
-            borderRight: isUser ? `1.5px solid rgba(0,53,128,0.18)` : "none",
-          }}>
-            {timeLabel}
-          </span>
+          {timeLabel && (
+            <span style={{
+              fontSize: 10, fontFamily: "'Noto Sans', sans-serif", fontWeight: 500, letterSpacing: 0.15,
+              color: dark ? "rgba(170,170,180,0.55)" : "rgba(100,116,139,0.75)", userSelect: "none",
+            }}>{timeLabel}</span>
+          )}
+          {!isUser && isDone && !isLatest && canSpeak() && (
+            <span role="button" tabIndex={0} onClick={toggleSpeak}
+              onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSpeak(); } }}
+              aria-label={speaking ? (lang === "hi" ? "रोकें" : "Stop") : (lang === "hi" ? "सुनें" : "Listen")}
+              title={speaking ? (lang === "hi" ? "रोकें" : "Stop") : (lang === "hi" ? "सुनें" : "Listen")}
+              style={{
+                display:"inline-flex", alignItems:"center", justifyContent:"center", width:24, height:22, borderRadius:7, cursor:"pointer",
+                fontSize:11, color: speaking ? "#fff" : (dark ? "rgba(255,179,102,0.85)" : "#C2410C"),
+                background: speaking ? "#dc2626" : "transparent",
+                border:`1px solid ${speaking ? "#dc2626" : (dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)")}`,
+              }}>
+              {speaking ? "■" : "🔊"}
+            </span>
+          )}
         </div>
       )}
     </div>
@@ -2186,6 +2145,9 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // yanks you down — a "Latest" button appears instead (with a count of new
   // replies). Sending a message always brings you back down.
   const isCoolingDown = secondsLeft > 0;
+  // Extras (official seal, Listen pill) only on the newest answer.
+  let lastAiIdx = -1;
+  for (let k = messages.length - 1; k >= 0; k--) if (messages[k].role === "assistant") { lastAiIdx = k; break; }
   const stickRef      = useRef(true);              // user is at (or near) the bottom
   const lastLenRef    = useRef(messages.length);
   const [jump, setJump] = useState({ show: false, unseen: 0 });
@@ -2635,6 +2597,12 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             lang={lang}
             dark={dark}
             isNew={msg.role === "assistant" && i === messages.length - 1}
+            isLatest={msg.role === "assistant" && i === lastAiIdx}
+            showAvatar={messages[i + 1]?.role !== msg.role}
+            showTime={!messages[i + 1]?.timestamp || !msg.timestamp
+              || messages[i + 1].timestamp - msg.timestamp > 5 * 60000
+              || dayKeyOf(messages[i + 1].timestamp) !== dayKeyOf(msg.timestamp)}
+            dayLabel={msg.timestamp && (!messages[i - 1]?.timestamp || dayKeyOf(messages[i - 1].timestamp) !== dayKeyOf(msg.timestamp)) ? dayLabelOf(msg.timestamp, lang) : null}
             onOpenDetail={onOpenDetail}
             eligibleIds={eligibleIds}
             trackedApps={trackedApps}
