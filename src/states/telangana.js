@@ -644,4 +644,21 @@ export const TELANGANA_SCHEMES = [
   },
   // </auto-scheme id="ts_sewing_machines_distribution">
 
+  // <auto-scheme id="ts_indiramma_bheema_life"> added by Scheme Discovery agent on 2026-10-16 · source: https://www.cnbctv18.com/personal-finance/indiramma-bheema-life-insurance-scheme-to-be-launched-on-june-2-telangana-dy-cm-vikramarka-ws-el-19912227.htm
+  {
+    id: "ts_indiramma_bheema_life",
+    icon: "🛡️", color: "#DC2626", scope: "state", state: "Telangana",
+    ministry: { en: "Government of Telangana", hi: "तेलंगाना सरकार" },
+    name:    { en: "Indiramma Bheema Life Insurance Scheme", hi: "इंदिरम्मा बेहमा जीवन बीमा योजना" },
+    benefit: { en: "₹5 lakh life insurance cover to every family", hi: "हर परिवार को ₹5 लाख जीवन बीमा कवरेज" },
+    tag:     { en: "Life Insurance", hi: "जीवन बीमा" },
+    annual: 500000,
+    apply:   { en: "https://www.cnbctv18.com/personal-finance/indiramma-bheema-life-insurance-scheme-to-be-launched-on-june-2-telangana-dy-cm-vikramarka-ws-el-19912227.htm", hi: "https://www.cnbctv18.com/personal-finance/indiramma-bheema-life-insurance-scheme-to-be-launched-on-june-2-telangana-dy-cm-vikramarka-ws-el-19912227.htm" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-16", source: "https://www.cnbctv18.com/personal-finance/indiramma-bheema-life-insurance-scheme-to-be-launched-on-june-2-telangana-dy-cm-vikramarka-ws-el-19912227.htm",
+    match: (a) => a.state === "Telangana" && a.who === "general",
+  },
+  // </auto-scheme id="ts_indiramma_bheema_life">
+
 ];
