@@ -441,7 +441,7 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
     // A 404/5xx page says the LINK is broken, not that the scheme closed —
     // so isActive stays null (the old code returned isActive:false, which
     // made the public site show "Apply Closed" for every broken link).
-    return fail(page.error ?? "no page content", page.serviceError ? "config" : "page", page.httpStatus);
+    return { ...fail(page.error ?? "no page content", page.serviceError ? "config" : "page", page.httpStatus), tavilyCredits: page.credits ?? 0 };
   }
 
   // ── Step 2: AI extraction ─────────────────────────────────────────────────

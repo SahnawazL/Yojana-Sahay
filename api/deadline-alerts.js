@@ -29,7 +29,7 @@
 
 import { getAdminDb, getAdminAuth, recordAiCall }        from "./_lib/firebaseAdmin.js";
 import { runDeadlineAlerts, DAILY_EMAIL_LIMIT } from "./_lib/deadlineAlerts.js";
-import { runSchemeVerificationBatch, verifyOneScheme, setVerifySkip, listVerifyAttention, getCheckableUrl } from "./_lib/schemeVerifyBatch.js";
+import { runSchemeVerificationBatch, verifyOneScheme, setVerifySkip, listVerifyAttention, getCheckableUrl, clearSitePause } from "./_lib/schemeVerifyBatch.js";
 import { SCHEME_DB } from "../src/schemesData.js";
 import { smartGroq, AGENT_FALLBACK_MODELS, borrowedChatKey } from "./_lib/groqSmart.js";
 import { logApiCallToHistory }  from "./_lib/apiCallHistory.js";
@@ -413,6 +413,8 @@ async function runAndLogVerifyBatch(trigger = "cron") {
         errorSamples: result.errorSamples ?? [],
         aiAssist:     result.aiAssist ?? null,
         skippedPaused: result.skippedPaused ?? 0,
+        skippedBlockedSite: result.skippedBlockedSite ?? 0,
+        budgetSource: result.budgetSource ?? null,
         datesFound:   Object.values(result.results || {}).filter(r => r?.lastDate).length,
       });
     } catch (logErr) {
@@ -571,6 +573,8 @@ export default async function handler(req, res) {
             errorSamples:  (data.errorSamples ?? []).map(e => (e && !e.url && e.id ? { ...e, url: getCheckableUrl(SCHEME_DB.find(s => s.id === e.id)) } : e)),
             aiAssist:      data.aiAssist ?? null,
             skippedPaused: data.skippedPaused ?? 0,
+            skippedBlockedSite: data.skippedBlockedSite ?? 0,
+            budgetSource:  data.budgetSource ?? null,
             datesFound:    data.datesFound ?? null,
           };
         });
@@ -640,7 +644,7 @@ export default async function handler(req, res) {
 
   // Not a cron request — everything below requires an authenticated admin
   // Actions: running agents needs the Agents tab; e-mail actions need Deadlines.
-  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage", "verifyOne", "verifySkip", "verifyAttention"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
+  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage", "verifyOne", "verifySkip", "verifyAttention", "verifySite"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
   const auth = await verifyAdmin(req, tabsFor);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
@@ -684,6 +688,12 @@ export default async function handler(req, res) {
   //   verifySkip { id, skip } → skip it in future runs, or include it again
   if (action === "verifyAttention") {
     try { return res.status(200).json(await listVerifyAttention()); }
+    catch (err) { return res.status(500).json({ error: err.message }); }
+  }
+  if (action === "verifySite") {
+    const host = String(req.body?.host ?? "").toLowerCase().slice(0, 120);
+    if (!/^[a-z0-9.-]+$/.test(host)) return res.status(400).json({ error: "Valid website name is required" });
+    try { return res.status(200).json(await clearSitePause(host)); }
     catch (err) { return res.status(500).json({ error: err.message }); }
   }
   if (action === "verifyOne" || action === "verifySkip") {

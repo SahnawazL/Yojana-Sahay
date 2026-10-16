@@ -26,7 +26,7 @@ import { SCHEME_DB }         from "../../src/schemesData.js";
 import { verifySchemeCore, getVerifyKeyCount } from "../verify-scheme.js";
 import { commitSchemesMeta } from "../update-schemes-meta.js";
 import { normalizeSchemeUrl } from "./urlTools.js";
-import { getTavilyCallsThisMonth, TAVILY_BACKGROUND_BUDGET, realTavilyRemaining, CHAT_RESERVE_CREDITS } from "./tavilyBudget.js";
+import { getTavilyCallsThisMonth, TAVILY_BACKGROUND_BUDGET, realTavilyRemaining, budgetFromReal } from "./tavilyBudget.js";
 import { FieldValue }        from "firebase-admin/firestore";
 
 // ── Failure memory ───────────────────────────────────────────────────────────
@@ -55,6 +55,28 @@ export function nextFailMemory(prev, outcome, nowMs = Date.now()) {
   return m;
 }
 
+// ── Website memory ───────────────────────────────────────────────────────────
+// Each scheme is visited only once per ~60-day lap, so "3 failures of the same
+// scheme" takes months. Many schemes share one government portal, though — if
+// that WEBSITE can't be opened 3 times in a row (any of its schemes), all its
+// schemes are skipped for 30 days. One good read resets it.
+export const SITE_PAUSE_AFTER = 3;
+export function hostOf(url) {
+  try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).hostname.toLowerCase().replace(/^www\./, ""); }
+  catch { return null; }
+}
+// Only "couldn't open the site at all" counts — a 404 is a dead PAGE, not a blocking site.
+const siteBlocked = o => o.errorKind === "page" && !(o.httpStatus > 0);
+export function nextSiteMemory(prev, outcome, nowMs = Date.now()) {
+  if (!outcome.errorKind) return prev ? null : undefined;           // site readable → forget
+  if (!siteBlocked(outcome)) return undefined;
+  const fails = (prev?.fails ?? 0) + 1;
+  const m = { fails, lastAt: new Date(nowMs).toISOString(), lastError: String(outcome.error ?? "").slice(0, 120) };
+  if (fails >= SITE_PAUSE_AFTER) m.pausedUntil = new Date(nowMs + PAUSE_DAYS * 864e5).toISOString();
+  return m;
+}
+const sitePaused = m => !!(m?.pausedUntil && Date.parse(m.pausedUntil) > Date.now());
+
 async function readVerifyMemory(db) {
   const [memSnap, skipSnap] = await Promise.all([
     db.collection("appMeta").doc("verifyFailures").get().catch(() => null),
@@ -62,17 +84,23 @@ async function readVerifyMemory(db) {
   ]);
   return {
     failMem: memSnap?.exists ? (memSnap.data().schemes ?? {}) : {},
+    siteMem: memSnap?.exists ? (memSnap.data().sites ?? {}) : {},
     skipIds: new Set(skipSnap?.exists ? (skipSnap.data().ids ?? []) : []),
   };
 }
 
-async function writeVerifyMemory(db, changes) {
+async function writeVerifyMemory(db, changes, siteChanges = {}) {
   const ids = Object.keys(changes);
-  if (!ids.length) return;
-  const schemes = {};
-  for (const id of ids) schemes[id] = changes[id] === null ? FieldValue.delete() : changes[id];
-  await db.collection("appMeta").doc("verifyFailures").set({ schemes, updatedAt: new Date().toISOString() }, { merge: true });
+  const hosts = Object.keys(siteChanges);
+  if (!ids.length && !hosts.length) return;
+  const del = v => (v === null ? FieldValue.delete() : v);
+  const doc = { updatedAt: new Date().toISOString() };
+  if (ids.length) doc.schemes = Object.fromEntries(ids.map(id => [id, del(changes[id])]));
+  // Firestore map keys can't contain "." — store hosts with "|" instead.
+  if (hosts.length) doc.sites = Object.fromEntries(hosts.map(h => [h.replace(/\./g, "|"), del(siteChanges[h])]));
+  await db.collection("appMeta").doc("verifyFailures").set(doc, { merge: true });
 }
+const siteKey = h => String(h).replace(/\./g, "|");
 
 // Safety margin under whatever the real configured max duration turns out to
 // be. The Vercel dashboard shows 300s configured — this stops at 240s (60s of
@@ -151,9 +179,18 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
   if (!db) throw new Error("Firebase Admin is not configured (FIREBASE_* env vars) — cannot run the verify batch.");
 
   // ── Hard budget guard — checked first, before touching the cursor ─────────
-  const tavilyUsedThisMonth = await getTavilyCallsThisMonth(db);
-  progress.step(`Tavily budget: ${tavilyUsedThisMonth}/${MONTHLY_TAVILY_BUDGET} page reads used this month`);
-  if (tavilyUsedThisMonth >= MONTHLY_TAVILY_BUDGET) {
+  // Tavily's own account numbers win (its billing cycle ≠ calendar month,
+  // and it includes the chat's searches); our own counter is the fallback.
+  const real = await realTavilyRemaining().catch(() => null);
+  const ownUsed = real ? null : await getTavilyCallsThisMonth(db);
+  const budget = real
+    ? budgetFromReal(real, MONTHLY_TAVILY_BUDGET / 1000)
+    : { used: ownUsed, limit: MONTHLY_TAVILY_BUDGET, left: MONTHLY_TAVILY_BUDGET - ownUsed, source: "own" };
+  const tavilyUsedThisMonth = budget.used;
+  progress.step(real
+    ? `Tavily account (Tavily's own count, all jobs + chat): ${real.used}/${real.limit} credits used — agents may use up to ${budget.limit}`
+    : `Tavily budget (own count): ${budget.used}/${budget.limit} page reads used this month`);
+  if (budget.left <= 0) {
     progress.step("Monthly budget reached — skipping this run", "warn");
     console.warn(
       `[schemeVerifyBatch] Skipping run — ${tavilyUsedThisMonth} Tavily calls already used this month ` +
@@ -169,7 +206,8 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
       skipped: true,
       reason: "monthly_tavily_budget_reached",
       tavilyUsedThisMonth,
-      monthlyBudget: MONTHLY_TAVILY_BUDGET,
+      monthlyBudget: budget.limit,
+      budgetSource: budget.source,
       checked: 0,
       tavilyCallsMade: 0,
       errorCount: 0,
@@ -201,23 +239,20 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
   const schemesPerRun = Math.max(1, Math.ceil(total / CYCLE_DAYS));
   // Extra ceiling so one run can never eat more than a comfortable slice of
   // whatever budget is left this month, even right after a cycle-size change.
-  let runCap = Math.max(1, Math.min(schemesPerRun, MONTHLY_TAVILY_BUDGET - tavilyUsedThisMonth));
-  // Real account credits (shared with the chat's web search) can be lower
-  // than our own count says — never dig into the chat's reserve.
-  const real = await realTavilyRemaining().catch(() => null);
-  if (real) {
-    progress.step(`Tavily account: ${real.used}/${real.limit} credits used (all jobs + chat)`);
-    runCap = Math.min(runCap, Math.max(0, Math.floor((real.remaining - CHAT_RESERVE_CREDITS) / 2))); // ÷2: a deeper read can cost 2
-  }
+  // ÷2 near the end of the budget: a deeper read can cost 2 credits.
+  let runCap = Math.max(0, Math.min(schemesPerRun, budget.left >= 2 * schemesPerRun ? schemesPerRun : Math.floor(budget.left / 2)));
 
   const cursorRef   = db.collection("appMeta").doc("verifyCursor");
   const cursorSnap  = await cursorRef.get();
   const cursorBefore = cursorSnap.exists ? (cursorSnap.data().index || 0) : 0;
   let index = cursorBefore >= total ? 0 : cursorBefore; // catalog may have shrunk since last run
   progress.step(`Resuming the rotation at scheme ${index + 1} of ${total} · will check up to ${runCap} schemes`);
-  const { failMem, skipIds } = await readVerifyMemory(db);
+  const { failMem, skipIds, siteMem } = await readVerifyMemory(db);
   const memChanges = {};
+  const siteChanges = {};
+  const siteNow = h => (h in siteChanges ? siteChanges[h] : siteMem[siteKey(h)]);
   let skippedPaused = 0;
+  let skippedBlockedSite = 0;
 
   const results = {};
   let checkedCount = 0;      // total iterations, including skipped no-URL entries
@@ -228,7 +263,7 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
   let errorCount = 0;
   let consecutiveServiceErrors = 0;
   let stopReason = runCap === 0
-    ? "budget: Tavily account nearly out of credits (shared with the chat's web search) — paused so the chat keeps working"
+    ? "budget: Tavily credits nearly used up for this billing cycle — paused so the chat's web search keeps working"
     : null;
   const errorSamples = [];
   // How often the AI needed help: a backup model, a short wait, or a borrowed chat key.
@@ -254,6 +289,12 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     const memo = failMem[id];
     if (skipIds.has(id) || (memo?.pausedUntil && Date.parse(memo.pausedUntil) > Date.now())) {
       skippedPaused++;
+      continue;
+    }
+    // Its website keeps refusing automatic readers — free skip, no wait.
+    const host = hostOf(url);
+    if (host && sitePaused(siteNow(host))) {
+      skippedBlockedSite++;
       continue;
     }
 
@@ -304,7 +345,9 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
       consecutiveServiceErrors = 0;
     }
 
-    tavilyCallsMade++; // the page fetch happened (Groq rate limits come after it)
+    // Only reads Tavily actually charged count toward today's slots — a site
+    // that refuses the reader costs nothing, so it shouldn't crowd others out.
+    if (!(siteBlocked(outcome) && outcome.tavilyCredits === 0)) tavilyCallsMade++;
     if (outcome.ai?.fallbackModel) aiAssist.backupModel++;
     if (outcome.ai?.waited)        aiAssist.waited++;
     if (outcome.ai?.borrowed)      aiAssist.borrowed++;
@@ -318,6 +361,11 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
         : `  ↳ ${outcome.lastDate ? `last date ${outcome.lastDate}` : "no deadline on the page"}${outcome.isActive === true ? " · applications open" : outcome.isActive === false ? " · closed" : ""}`,
       outcome.errorKind ? "warn" : "ok"
     );
+    if (host) {
+      const sm = nextSiteMemory(siteNow(host), outcome);
+      if (sm !== undefined) siteChanges[host] = sm;
+      if (sm?.pausedUntil) progress.step(`  ↳ the website ${host} refused the reader ${sm.fails} times in a row — its schemes are skipped for ${PAUSE_DAYS} days`, "warn");
+    }
     const mem = nextFailMemory(failMem[id], outcome);
     if (mem !== undefined && !(mem === null && !failMem[id])) memChanges[id] = mem;
     if (mem?.pausedUntil) progress.step(`  ↳ unreadable ${mem.count} runs in a row — paused for ${PAUSE_DAYS} days (see Agents → Background Verifier)`, "warn");
@@ -332,9 +380,10 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     { merge: true }
   );
 
-  try { await writeVerifyMemory(db, memChanges); }
+  try { await writeVerifyMemory(db, memChanges, siteChanges); }
   catch (err) { console.warn("[schemeVerifyBatch] failure memory not saved:", err.message); }
   if (skippedPaused) progress.step(`Skipped ${skippedPaused} paused / skipped scheme(s) — no Tavily calls spent on them`);
+  if (skippedBlockedSite) progress.step(`Skipped ${skippedBlockedSite} scheme(s) on websites that block automatic readers`);
   if (aiAssist.backupModel || aiAssist.waited || aiAssist.borrowed) {
     progress.step(`AI quota helpers used: backup model ×${aiAssist.backupModel}, short wait ×${aiAssist.waited}, borrowed chat key ×${aiAssist.borrowed}`);
   }
@@ -366,6 +415,7 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     stopReason,
     skippedNoUrl,
     skippedPaused,
+    skippedBlockedSite,
     withResults:  Object.keys(results).length,
     cursorBefore,
     cursorAfter:  index,
@@ -374,7 +424,8 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     runCap,
     cycleDays:    CYCLE_DAYS,
     tavilyUsedThisMonth: tavilyUsedThisMonth + tavilyCallsMade,
-    monthlyBudget: MONTHLY_TAVILY_BUDGET,
+    monthlyBudget: budget.limit,
+    budgetSource: budget.source,
     durationMs:   Date.now() - startedAt,
     commitResult,
     commitError,
@@ -405,8 +456,14 @@ export async function verifyOneScheme(id) {
     try { await commitSchemesMeta({ [id]: outcomeToMetaEntry(outcome) }); saved = true; }
     catch (err) { commitError = err.message; }
   }
-  // A good read clears the pause; a failed manual retry doesn't add to the count.
-  if (!outcome.errorKind && db) await writeVerifyMemory(db, { [id]: null }).catch(() => {});
+  // A good read clears the scheme's pause and its website's; a failed manual
+  // retry doesn't add to the scheme's count but is evidence about the website.
+  if (db) {
+    const { siteMem } = await readVerifyMemory(db).catch(() => ({ siteMem: {} }));
+    const host = hostOf(url);
+    const sm = host ? nextSiteMemory(siteMem[siteKey(host)], outcome) : undefined;
+    await writeVerifyMemory(db, outcome.errorKind ? {} : { [id]: null }, sm !== undefined ? { [host]: sm } : {}).catch(() => {});
+  }
   return {
     ok: !outcome.errorKind,
     url,
@@ -436,8 +493,15 @@ export async function setVerifySkip(id, skip) {
 export async function listVerifyAttention() {
   const db = getAdminDb();
   if (!db) return { items: [] };
-  const { failMem, skipIds } = await readVerifyMemory(db);
+  const { failMem, skipIds, siteMem } = await readVerifyMemory(db);
   const byId = new Map(SCHEME_DB.map(s => [s.id, s]));
+  // Websites that refuse automatic readers, with how many schemes they hold.
+  const sites = Object.entries(siteMem).filter(([, m]) => sitePaused(m)).map(([k, m]) => {
+    const host = k.replace(/\|/g, ".");
+    const schemes = SCHEME_DB.filter(s => { const u = getCheckableUrl(s); return u && hostOf(u) === host; });
+    return { host, pausedUntil: m.pausedUntil, fails: m.fails, lastError: m.lastError ?? null, schemeCount: schemes.length,
+             sample: schemes.slice(0, 4).map(s => s.name?.en ?? s.id) };
+  });
   const ids = new Set([...skipIds, ...Object.keys(failMem).filter(id => failMem[id]?.pausedUntil && Date.parse(failMem[id].pausedUntil) > Date.now())]);
   const items = [...ids].map(id => {
     const s = byId.get(id);
@@ -457,5 +521,13 @@ export async function listVerifyAttention() {
   }).sort((a, b) => Number(a.skipped) - Number(b.skipped) || String(a.name).localeCompare(String(b.name)));
   // Schemes failing but not yet paused (1–2 failures) — just a count.
   const watching = Object.values(failMem).filter(m => m && !m.pausedUntil).length;
-  return { items, watching, pauseAfter: PAUSE_AFTER_FAILS, pauseDays: PAUSE_DAYS };
+  return { items, sites, watching, pauseAfter: PAUSE_AFTER_FAILS, sitePauseAfter: SITE_PAUSE_AFTER, pauseDays: PAUSE_DAYS };
+}
+
+// Admin "Try this website again" — lifts a website pause.
+export async function clearSitePause(host) {
+  const db = getAdminDb();
+  if (!db) throw new Error("Firebase Admin is not configured.");
+  await writeVerifyMemory(db, {}, { [String(host).toLowerCase()]: null });
+  return listVerifyAttention();
 }

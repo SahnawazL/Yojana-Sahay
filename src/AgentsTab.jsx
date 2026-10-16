@@ -2914,7 +2914,7 @@ const WatchdogCard = React.memo(function WatchdogCard({ dark, isDesktop }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // ── Background Verifier: act on schemes it couldn't read ─────────────────────
 const VERIFY_KIND_HELP = {
-  page: "These pages couldn't be opened by the page reader — often a busy or blocked government portal, not a dead link.",
+  page: "\"Failed to fetch url\" means the government website refused the automatic reader (many state portals block it) — usually not a broken link. If the same website refuses 3 times, its schemes are skipped automatically.",
 };
 
 // Shared state for Retry / Skip buttons + the "needs a decision" list.
@@ -2965,7 +2965,14 @@ function useVerifyFixes() {
     }
   }, []);
 
-  return { busy, result, attention, retry, setSkip, loadAttention };
+  const retrySite = useCallback(async (host) => {
+    setBusy(b => ({ ...b, [host]: "site" }));
+    try { setAttention(await adminJson("/api/deadline-alerts", { action: "verifySite", host })); }
+    catch (err) { setResult(r => ({ ...r, [host]: { ok: false, text: err.message } })); }
+    finally { setBusy(b => ({ ...b, [host]: null })); }
+  }, []);
+
+  return { busy, result, attention, retry, setSkip, retrySite, loadAttention };
 }
 
 function FixButton({ children, onClick, disabled, th, isDesktop, tone }) {
@@ -3005,7 +3012,8 @@ function VerifyFixActions({ id, url, fix, th, isDesktop, skipped = false }) {
 function VerifyAttentionList({ fix, th, isDesktop }) {
   const [open, setOpen] = useState(false);
   const a = fix.attention;
-  if (!a || (!a.items?.length && !a.watching)) return null;
+  if (!a || (!a.items?.length && !a.watching && !a.sites?.length)) return null;
+  const sites = a.sites ?? [];
   const paused = a.items.filter(x => !x.skipped);
   const skipped = a.items.filter(x => x.skipped);
   const fmt = iso => (iso ? new Date(iso).toLocaleDateString("en-IN", { day:"numeric", month:"short" }) : "");
@@ -3013,15 +3021,31 @@ function VerifyAttentionList({ fix, th, isDesktop }) {
     <div style={{ marginTop:9, border:`1px solid ${th.border}`, borderRadius:9, padding:"8px 9px" }}>
       <div {...activatable(() => setOpen(v => !v), "Show schemes that need a decision")} onClick={() => setOpen(v => !v)}
         style={{ display:"flex", alignItems:"center", gap:6, cursor:"pointer", fontSize:fs(10, isDesktop), fontWeight:700, color:th.text }}>
-        🧭 Needs your decision: {paused.length} paused · {skipped.length} skipped
+        🧭 Needs your decision: {sites.length ? `${sites.length} blocked website${sites.length === 1 ? "" : "s"} · ` : ""}{paused.length} paused · {skipped.length} skipped
         <span style={{ marginLeft:"auto", transform: open ? "rotate(90deg)" : "none", transition:"transform 0.15s" }}>
           <IconChevronRight size={11} color={th.textSub} />
         </span>
       </div>
       <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:3, lineHeight:1.45 }}>
-        A page that can't be read {a.pauseAfter ?? 3} runs in a row is paused for {a.pauseDays ?? 30} days so it stops using the page-reader budget.
+        A website that refuses the reader {a.sitePauseAfter ?? 3} times in a row (or one scheme's page {a.pauseAfter ?? 3} times) is skipped for {a.pauseDays ?? 30} days, so the daily check spends its time on pages it can read.
         {a.watching ? ` ${a.watching} more scheme(s) failed once or twice and are being watched.` : ""}
       </div>
+      {open && sites.map(st => (
+        <div key={st.host} style={{ borderTop:`1px solid ${th.border}`, marginTop:7, paddingTop:7, fontSize:fs(9.5, isDesktop), color:th.textMid, lineHeight:1.45, wordBreak:"break-word" }}>
+          🌐 <strong style={{ color:th.text }}>{st.host}</strong> · {st.schemeCount} scheme{st.schemeCount === 1 ? "" : "s"}
+          <div style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>
+            This government website refused the automatic reader {st.fails} times in a row, so its schemes are skipped until {fmt(st.pausedUntil)}.
+            It is usually a blocked or slow site — not a broken link. {st.sample?.length ? `e.g. ${st.sample.join(", ")}` : ""}
+          </div>
+          <div style={{ marginTop:5, display:"flex", gap:6, flexWrap:"wrap" }}>
+            <FixButton th={th} isDesktop={isDesktop} tone={CYAN} disabled={!!fix.busy[st.host]} onClick={() => fix.retrySite(st.host)}>
+              {fix.busy[st.host] ? "Saving…" : "Try this website again"}
+            </FixButton>
+            <FixButton th={th} isDesktop={isDesktop} onClick={() => window.open(`https://${st.host}`, "_blank", "noopener,noreferrer")}>↗ Open website</FixButton>
+          </div>
+          {fix.result[st.host] && <div style={{ marginTop:4, fontSize:fs(9, isDesktop), color:"#EF4444" }}>{fix.result[st.host].text}</div>}
+        </div>
+      ))}
       {open && a.items.map(x => (
         <div key={x.id} style={{ borderTop:`1px solid ${th.border}`, marginTop:7, paddingTop:7, fontSize:fs(9.5, isDesktop), color:th.textMid, lineHeight:1.45, wordBreak:"break-word" }}>
           <strong style={{ color:th.text }}>{x.name}</strong>{x.state ? ` · ${x.state}` : ""}
@@ -3175,7 +3199,7 @@ const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, is
               <span>Last run: <strong style={{ color:th.textMid }}>{timeAgo(run.runAt)}</strong></span>
               {run.durationMs != null && <span>Took: <strong style={{ color:th.textMid }}>{Math.round(run.durationMs / 1000)}s</strong></span>}
               {run.tavilyUsedThisMonth != null && run.monthlyBudget != null && (
-                <span>Tavily this month: <strong style={{ color:th.textMid }}>{run.tavilyUsedThisMonth}/{run.monthlyBudget}</strong></span>
+                <span>{run.budgetSource === "tavily" ? "Tavily credits (Tavily's own count)" : "Tavily this month"}: <strong style={{ color:th.textMid }}>{run.tavilyUsedThisMonth}/{run.monthlyBudget}</strong></span>
               )}
               {state.cursor && <span>Position: <strong style={{ color:th.textMid }}>{state.cursor.index}/{state.cursor.totalSchemes}</strong></span>}
             </div>

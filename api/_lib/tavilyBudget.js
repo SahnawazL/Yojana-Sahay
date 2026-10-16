@@ -63,7 +63,23 @@ export async function getTavilyCallsThisMonth(db) {
 let cache = { month: null, value: 0, at: 0, localAdds: 0 };
 const CACHE_MS = 60_000;
 
+// Tavily's OWN numbers are the truth: its billing cycle doesn't start on the
+// 1st, and it counts the chat's searches too. Our calendar-month counter is
+// only the fallback when Tavily's /usage can't be reached.
+//   share = this caller's slice of the plan (background 0.9, manual 0.98)
+export function budgetFromReal(real, share) {
+  const cap = Math.floor(real.limit * share);
+  const left = Math.min(cap - real.used, real.remaining - CHAT_RESERVE_CREDITS);
+  return { used: real.used, limit: cap, left, source: "tavily" };
+}
+
 export async function checkTavilyBudget(db, limit = TAVILY_MONTHLY_HARD_LIMIT) {
+  const real = await realTavilyRemaining().catch(() => null);
+  if (real) {
+    const b = budgetFromReal(real, Math.min(0.98, limit / 1000));
+    const realLow = real.remaining <= CHAT_RESERVE_CREDITS;
+    return { ok: b.left > 0, used: b.used, limit: b.limit, real, source: "tavily", ...(realLow ? { realLow: true } : {}) };
+  }
   const { year, month } = getISTDateParts();
   const key = `${year}-${month}`;
   try {
@@ -76,9 +92,7 @@ export async function checkTavilyBudget(db, limit = TAVILY_MONTHLY_HARD_LIMIT) {
     return { ok: true, used: null, limit };
   }
   const used = cache.value + cache.localAdds;
-  const real = await realTavilyRemaining().catch(() => null);
-  const realOk = !real || real.remaining > CHAT_RESERVE_CREDITS;
-  return { ok: used < limit && realOk, used, limit, real, ...(realOk ? {} : { realLow: true }) };
+  return { ok: used < limit, used, limit, real: null, source: "own" };
 }
 
 export function noteTavilyCall() {
