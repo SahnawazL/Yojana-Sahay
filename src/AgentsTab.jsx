@@ -1929,8 +1929,55 @@ function fmtDur(ms) {
   return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`;
 }
 
+// ── Cinematic log reveal ─────────────────────────────────────────────────────
+// Lines type themselves in one by one and the box glides upward to follow
+// them — like a terminal in a film. Scrolling up pauses the follow (a
+// "Follow" pill brings it back); "Show all" skips the animation. Finished
+// logs replay faster. Reduced-motion users see everything at once.
+const LOG_KEYFRAMES = `
+@keyframes ys-log-in { from { opacity:0; transform:translateY(7px); filter:blur(2px) } to { opacity:1; transform:none; filter:none } }
+@keyframes ys-caret  { 0%,49% { opacity:1 } 50%,100% { opacity:0 } }
+`;
+const prefersReducedMotion = () => {
+  try { return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches; } catch { return false; }
+};
+
+function useLogReveal(steps, { fast }) {
+  const total = steps.length;
+  const reduce = useRef(prefersReducedMotion()).current;
+  // shown = fully visible lines; chars = typed characters of line `shown`
+  const [state, setState] = useState(() => (reduce ? { shown: total, chars: 0 } : { shown: 0, chars: 0 }));
+  const [skipped, setSkipped] = useState(false);
+  const all = reduce || skipped;
+
+  useEffect(() => {
+    if (all) return;
+    if (state.shown >= total) return;
+    const text = String(steps[state.shown]?.text ?? "");
+    // Speed: long lines type faster so each line takes ~0.25–0.7 s.
+    const perChar = fast ? 4 : Math.max(6, Math.min(22, 650 / Math.max(1, text.length)));
+    if (state.chars < text.length) {
+      const step = Math.max(1, Math.ceil(text.length / 90)); // several chars per frame on long lines
+      const t = setTimeout(() => setState(s => ({ ...s, chars: Math.min(text.length, s.chars + step) })), perChar * step);
+      return () => clearTimeout(t);
+    }
+    const pause = fast ? 40 : 160;
+    const t = setTimeout(() => setState(s => ({ shown: s.shown + 1, chars: 0 })), pause);
+    return () => clearTimeout(t);
+  }, [state, total, steps, fast, all]);
+
+  if (all) return { shown: total, chars: 0, typing: false, skip: () => {}, done: true };
+  return {
+    shown: Math.min(state.shown, total),
+    chars: state.chars,
+    typing: state.shown < total,
+    skip: () => setSkipped(true),
+    done: state.shown >= total,
+  };
+}
+
 // Live log of one job (steps stream in while it runs; stays visible ~15 min after).
-function LiveJobLog({ job, live, dark, isDesktop }) {
+export function LiveJobLog({ job, live, dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const [, tick] = useState(0);
   const running = liveIsRunning(live);
@@ -1941,31 +1988,78 @@ function LiveJobLog({ job, live, dark, isDesktop }) {
   }, [running]);
   const boxRef = useRef(null);
   const steps = live?.steps ?? [];
-  useEffect(() => { if (boxRef.current) boxRef.current.scrollTop = boxRef.current.scrollHeight; }, [steps.length]);
+  // A log that was already finished when it was opened replays quickly.
+  const fastRef = useRef(!running);
+  const reveal = useLogReveal(steps, { fast: fastRef.current });
+
+  // Follow the newest line with a smooth glide — unless the reader scrolled up.
+  const [follow, setFollow] = useState(true);
+  const programmatic = useRef(false);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || !follow) return;
+    programmatic.current = true;
+    el.scrollTo({ top: el.scrollHeight, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    const t = setTimeout(() => { programmatic.current = false; }, 400);
+    return () => clearTimeout(t);
+  }, [reveal.shown, reveal.chars, follow]);
+  const onScroll = () => {
+    const el = boxRef.current;
+    if (!el || programmatic.current) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 28;
+    setFollow(atBottom);
+  };
+
   if (!live) return null;
   const started = live.startedAt ? new Date(live.startedAt).getTime() : null;
   const ended = live.finishedAt ? new Date(live.finishedAt).getTime() : null;
   const color = running ? CYAN : live.error ? "#EF4444" : IND_GREEN;
   const kindColor = { ok: IND_GREEN, warn: IDLE_AMBER, error: "#EF4444", done: IND_GREEN };
   const who = { manual: "started by you", cron: "scheduled run", watchdog: "started by the watchdog" }[live.trigger] ?? live.trigger;
+  const visible = steps.slice(0, reveal.shown + (reveal.typing ? 1 : 0));
+  const pill = { fontSize:fs(8.5, isDesktop), fontWeight:700, padding:"2px 8px", borderRadius:20, border:`1px solid ${color}66`, background: th.card, color, cursor:"pointer" };
   return (
-    <div style={{ border:`1px solid ${color}55`, background:`${color}0d`, borderRadius:10, padding:"8px 10px", marginBottom:10 }}>
+    <div style={{ border:`1px solid ${color}55`, background:`${color}0d`, borderRadius:10, padding:"8px 10px", marginBottom:10, position:"relative" }}>
+      <style>{LOG_KEYFRAMES}</style>
       <div style={{ display:"flex", alignItems:"center", gap:7, fontSize:fs(10, isDesktop), fontWeight:800, color }}>
         {running
           ? <span style={{ width:9, height:9, borderRadius:"50%", border:`2px solid ${color}40`, borderTopColor:color, animation:"ys-spin 0.9s linear infinite", flexShrink:0 }} />
           : <span style={{ flexShrink:0 }}>{live.error ? "✗" : "✓"}</span>}
         <span>{running ? "Running now" : live.error ? "Last run failed" : "Last run finished"}</span>
-        <span style={{ fontWeight:600, color:th.textSub }}>· {who}{started ? ` · ${running ? fmtDur(Date.now() - started) : `took ${fmtDur((ended ?? started) - started)} · ${timeAgo(live.finishedAt)}`}` : ""}</span>
+        <span style={{ fontWeight:600, color:th.textSub, flex:1, minWidth:0 }}>· {who}{started ? ` · ${running ? fmtDur(Date.now() - started) : `took ${fmtDur((ended ?? started) - started)} · ${timeAgo(live.finishedAt)}`}` : ""}</span>
+        {!reveal.done && steps.length > 2 && (
+          <button type="button" onClick={reveal.skip} style={pill} aria-label="Show the whole log now">Show all</button>
+        )}
       </div>
-      <div ref={boxRef} style={{ marginTop:6, maxHeight:170, overflowY:"auto", fontFamily:"'SF Mono','Fira Code',monospace", fontSize:fs(9.5, isDesktop), lineHeight:1.55 }}>
+      <div ref={boxRef} onScroll={onScroll}
+        style={{ marginTop:6, maxHeight:170, overflowY:"auto", fontFamily:"'SF Mono','Fira Code',monospace", fontSize:fs(9.5, isDesktop), lineHeight:1.55,
+          WebkitMaskImage:"linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 6px), transparent 100%)",
+          maskImage:"linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 6px), transparent 100%)",
+          paddingTop:10, paddingBottom:4, overscrollBehavior:"contain" }}
+        aria-live="polite">
         {steps.length === 0 && <div style={{ color:th.textSub }}>Starting…</div>}
-        {steps.map((st, i) => (
-          <div key={i} style={{ display:"flex", gap:8, color: kindColor[st.kind] ?? th.textMid }}>
-            <span style={{ color:th.textSub, flexShrink:0 }}>{fmtStepTime(st.t)}</span>
-            <span style={{ whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{st.text}</span>
-          </div>
-        ))}
+        {visible.map((st, i) => {
+          const isTyping = reveal.typing && i === reveal.shown;
+          const text = isTyping ? String(st.text ?? "").slice(0, reveal.chars) : st.text;
+          return (
+            <div key={i} style={{ display:"flex", gap:8, color: kindColor[st.kind] ?? th.textMid, animation:"ys-log-in 0.35s cubic-bezier(.2,.7,.2,1) both" }}>
+              <span style={{ color:th.textSub, flexShrink:0 }}>{fmtStepTime(st.t)}</span>
+              <span style={{ whiteSpace:"pre-wrap", wordBreak:"break-word" }}>
+                {text}
+                {(isTyping || (running && reveal.done && i === visible.length - 1)) && (
+                  <span style={{ display:"inline-block", width:"0.55em", height:"1.05em", marginLeft:2, verticalAlign:"text-bottom", background:color, animation:"ys-caret 1s steps(1) infinite" }} />
+                )}
+              </span>
+            </div>
+          );
+        })}
       </div>
+      {!follow && (
+        <button type="button" onClick={() => setFollow(true)} aria-label="Follow the newest line"
+          style={{ ...pill, position:"absolute", right:12, bottom:10, boxShadow:"0 2px 8px rgba(0,0,0,.15)" }}>
+          ↓ Follow
+        </button>
+      )}
     </div>
   );
 }
