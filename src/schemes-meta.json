@@ -2643,9 +2643,8 @@
     "confidence": 0
   },
   "gujarat_rte_reimburse": {
-    "lastVerified": "2026-10-16T11:29:58.633Z",
+    "lastVerified": "2026-10-16T11:30:26.682Z",
     "confidence": 0,
-    "linkAlive": true,
     "httpStatus": 503
   },
   "gujarat_free_crop_insurance": {
