@@ -28,6 +28,7 @@ import { commitSchemesMeta } from "../update-schemes-meta.js";
 import { normalizeSchemeUrl } from "./urlTools.js";
 import { getTavilyCallsThisMonth, TAVILY_BACKGROUND_BUDGET, realTavilyRemaining, budgetFromReal } from "./tavilyBudget.js";
 import { FieldValue }        from "firebase-admin/firestore";
+import { postNote, openNotesFor, closeNote } from "./teamBoard.js";
 
 // ── Failure memory ───────────────────────────────────────────────────────────
 // A page that can't be read 3 runs in a row (blocked portal, JS-only site) is
@@ -269,14 +270,43 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
   // How often the AI needed help: a backup model, a short wait, or a borrowed chat key.
   const aiAssist = { backupModel: 0, waited: 0, borrowed: 0 };
 
-  while (Date.now() - startedAt < MAX_RUNTIME_MS) {
-    if (checkedCount >= total) break;   // completed a full lap within a single run (small catalogs only)
-    if (tavilyCallsMade >= runCap) break; // hit today's slice of the cycle — stop here, resume tomorrow
+  // ── Team board: schemes teammates asked us to check first ──────────────
+  // (new ones from Scheme Discovery, re-linked ones from Auto-Fix). Up to 5
+  // per run, inside today's normal budget — they don't move the rotation.
+  const asks = await openNotesFor(db, "verifyBatch", { type: "verify", limit: 8 });
+  const askById = new Map();
+  for (const n of asks) {
+    const sc = schemeById.get(n.schemeId);
+    if (!sc) {
+      // A brand-new scheme reaches this function only after the next deploy —
+      // give it 3 days, then drop the note.
+      const ageDays = (Date.now() - (n.createdAt?.toMillis?.() ?? Date.now())) / 864e5;
+      if (ageDays > 3) await closeNote(db, n.id, "Couldn't find this scheme in the app any more.", "dropped");
+      continue;
+    }
+    if (!getCheckableUrl(sc)) { await closeNote(db, n.id, "It has no online link to check (offline scheme) — nothing to verify."); continue; }
+    if (!askById.has(n.schemeId)) askById.set(n.schemeId, n);
+  }
+  const priority = [...askById.keys()].slice(0, 5);
+  if (priority.length) progress.step(`Team board: ${priority.length} scheme(s) teammates asked me to check first`);
+  let pIdx = 0;
 
-    const id     = allIds[index];
+  while (Date.now() - startedAt < MAX_RUNTIME_MS) {
+    if (tavilyCallsMade >= runCap) break; // hit today's slice of the cycle — stop here, resume tomorrow
+    let id, fromPriority = false;
+    if (pIdx < priority.length) {
+      id = priority[pIdx++];
+      fromPriority = true;
+    } else {
+      if (checkedCount >= total) break;   // completed a full lap within a single run (small catalogs only)
+      id = allIds[index];
+      index = (index + 1) % total;
+      checkedCount++;
+      if (priority.includes(id)) continue; // already checked first this run (team request)
+    }
     const scheme = schemeById.get(id);
-    index = (index + 1) % total;
-    checkedCount++;
+    // Put this scheme back so it's checked first next time (it wasn't checked).
+    const undo = () => { if (fromPriority) pIdx--; else { index = (index - 1 + total) % total; checkedCount--; } };
 
     if (!scheme) continue; // shouldn't happen, but never let one bad id crash the whole run
 
@@ -289,12 +319,14 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     const memo = failMem[id];
     if (skipIds.has(id) || (memo?.pausedUntil && Date.parse(memo.pausedUntil) > Date.now())) {
       skippedPaused++;
+      if (fromPriority && askById.get(id)) await closeNote(db, askById.get(id).id, "This scheme is paused / skipped in my checks — see Needs your decision.");
       continue;
     }
     // Its website keeps refusing automatic readers — free skip, no wait.
     const host = hostOf(url);
     if (host && sitePaused(siteNow(host))) {
       skippedBlockedSite++;
+      if (fromPriority && askById.get(id)) await closeNote(db, askById.get(id).id, `Its website (${host}) blocks automatic readers — couldn't verify.`);
       continue;
     }
 
@@ -302,8 +334,7 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     const wait = lastCallAt ? gapMs - (Date.now() - lastCallAt) : 0;
     if (wait > 0) {
       if (Date.now() - startedAt + wait > MAX_RUNTIME_MS) {
-        index = (index - 1 + total) % total; // not checked — retry it first next run
-        checkedCount--;
+        undo(); // not checked — retry it first next run
         break;
       }
       await sleep(wait);
@@ -328,16 +359,14 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     // Config / budget problems affect every scheme equally — stop the run
     // and DON'T advance past this scheme, so nothing is silently skipped.
     if (outcome.errorKind === "config" || outcome.errorKind === "budget") {
-      index = (index - 1 + total) % total;
-      checkedCount--;
+      undo();
       stopReason = `${outcome.errorKind}: ${outcome.error}`;
       break;
     }
     if (outcome.errorKind === "rate_limit") {
       consecutiveServiceErrors++;
       if (consecutiveServiceErrors >= MAX_CONSECUTIVE_SERVICE_ERRORS) {
-        index = (index - 1 + total) % total;
-        checkedCount--;
+        undo();
         stopReason = `rate_limit: ${outcome.error}`;
         break;
       }
@@ -361,6 +390,21 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
         : `  ↳ ${outcome.lastDate ? `last date ${outcome.lastDate}` : "no deadline on the page"}${outcome.isActive === true ? " · applications open" : outcome.isActive === false ? " · closed" : ""}`,
       outcome.errorKind ? "warn" : "ok"
     );
+    // ── Team board replies / hand-offs ──
+    const note = askById.get(id);
+    if (fromPriority && note) {
+      const reply = !outcome.errorKind
+        ? `Checked: ${outcome.lastDate ? `last date ${outcome.lastDate}` : "no deadline on the page"}${outcome.isActive === true ? ", applications open" : ""} — link works.`
+        : outcome.errorKind === "page"
+          ? (outcome.httpStatus === 404 || outcome.httpStatus === 410 ? `The link is dead (HTTP ${outcome.httpStatus}) — passed to Auto-Fix.` : "Its website refused my reader — couldn't verify, will retry on the normal lap.")
+          : `Couldn't finish (${outcome.errorKind}) — will retry.`;
+      if (outcome.errorKind === "rate_limit") { /* keep the note open for next run */ }
+      else await closeNote(db, note.id, reply);
+    }
+    if (outcome.errorKind === "page" && (outcome.httpStatus === 404 || outcome.httpStatus === 410)) {
+      await postNote(db, { from: "verifyBatch", to: "autoFix", type: "repair", schemeId: id, schemeName: scheme.name?.en ?? id,
+        text: `The apply link of "${scheme.name?.en ?? id}" is dead (HTTP ${outcome.httpStatus}). Please find the new official page.` });
+    }
     if (host) {
       const sm = nextSiteMemory(siteNow(host), outcome);
       if (sm !== undefined) siteChanges[host] = sm;

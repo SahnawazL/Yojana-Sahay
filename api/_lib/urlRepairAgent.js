@@ -28,6 +28,7 @@ import { normalizeSchemeUrl, isPublicHttpUrl } from "./urlTools.js";
 import { getUrlIssueFilePath } from "./urlIssues.js";
 import { findUrlCandidates, registrableDomain, domainScore, isNonOfficialUrl } from "./urlFinder.js";
 import { pingUrlServer } from "../ping-url.js";
+import { openNotesFor, closeNote, postNote } from "./teamBoard.js";
 
 const MAX_SEARCHES_PER_RUN = Math.max(0, Number(process.env.URL_REPAIR_PER_RUN ?? 3) || 0);
 const MAX_REPINGS_PER_RUN  = 40;
@@ -93,8 +94,25 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   const stateRef = db?.collection(STATE_DOC[0]).doc(STATE_DOC[1]);
   try { const st = (await stateRef?.get())?.data() ?? {}; attempts = st.attempts ?? {}; reported = st.reported ?? {}; } catch { /* ignore */ }
 
+  // Team board: links the Background Verifier found dead (404/410) and asked us to fix.
+  const asks = new Map();
+  for (const n of await openNotesFor(db, "autoFix", { type: "repair", limit: 20 })) if (n.schemeId && !asks.has(n.schemeId)) asks.set(n.schemeId, n);
+  if (asks.size) progress.step(`Team board: the Background Verifier asked me to fix ${asks.size} link(s)`);
+  const answers = new Map(); // schemeId → reply for the teammate's note
+  const answerTeam = async () => {
+    for (const [id, n] of asks) {
+      if (answers.has(id)) { await closeNote(db, n.id, answers.get(id)); continue; }
+      if (!SCHEME_DB.some(s => s.id === id)) await closeNote(db, n.id, "This scheme is no longer in the app.", "dropped");
+      // otherwise: not reached this run (search budget) — the note stays open for next time
+    }
+    for (const f of out.fixed) {
+      await postNote(db, { from: "autoFix", to: "verifyBatch", type: "verify", schemeId: f.id, schemeName: f.name,
+        text: `I replaced the apply link of "${f.name}" with ${f.newUrl}. Please re-check its details from the new page.` });
+    }
+  };
+
   const dead = SCHEME_DB.filter(s =>
-    (meta[s.id]?.linkAlive === false || reported[s.id]) &&
+    (meta[s.id]?.linkAlive === false || reported[s.id] || asks.has(s.id)) &&
     s.applyType !== "offline" &&
     normalizeSchemeUrl(s.apply?.en)
   );
@@ -107,10 +125,11 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   );
   out.unofficialFound = unofficial.length;
   if (unofficial.length) progress.step(`${unofficial.length} apply link(s) point to a non-government site — replacing with official pages when found`);
-  if (dead.length === 0 && unofficial.length === 0) return out;
+  if (dead.length === 0 && unofficial.length === 0) { await answerTeam(); return out; }
 
   // User-reported links first, then oldest-attempted, so every dead link gets its turn.
-  dead.sort((a, b) => ((reported[b.id] ? 1 : 0) - (reported[a.id] ? 1 : 0)) || ((attempts[a.id] ?? 0) - (attempts[b.id] ?? 0)));
+  const urgent = id => (reported[id] || asks.has(id) ? 1 : 0);
+  dead.sort((a, b) => (urgent(b.id) - urgent(a.id)) || ((attempts[a.id] ?? 0) - (attempts[b.id] ?? 0)));
 
   // ── 1. Re-ping (free) ─────────────────────────────────────────────────────
   const toPing = dead.slice(0, MAX_REPINGS_PER_RUN);
@@ -120,7 +139,10 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
     const pings = await Promise.all(chunk.map(s => pingUrlServer(normalizeSchemeUrl(s.apply.en)).catch(() => ({ alive: null }))));
     chunk.forEach((s, j) => {
       delete reported[s.id]; // a report is handled once its link has been re-checked
-      if (pings[j].alive === true) { if (meta[s.id]?.linkAlive === false) out.recovered.push({ id: s.id, name: s.name?.en ?? s.id, httpStatus: pings[j].httpStatus }); }
+      if (pings[j].alive === true) {
+        if (meta[s.id]?.linkAlive === false) out.recovered.push({ id: s.id, name: s.name?.en ?? s.id, httpStatus: pings[j].httpStatus });
+        answers.set(s.id, `The link opens fine again for me (HTTP ${pings[j].httpStatus ?? 200}) — no change needed.`);
+      }
       else stillDead.push(s);
     });
   }
@@ -131,7 +153,11 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   const patches = [];
   for (const s of stillDead) {
     if (out.searchesUsed >= MAX_SEARCHES_PER_RUN) break;
-    if (attempts[s.id] && daysAgo(attempts[s.id]) < RETRY_AFTER_DAYS) { out.skippedCooldown++; continue; }
+    if (attempts[s.id] && daysAgo(attempts[s.id]) < RETRY_AFTER_DAYS) {
+      out.skippedCooldown++;
+      answers.set(s.id, `I searched for this one recently and found nothing certain — I'll try again after ${RETRY_AFTER_DAYS} days (see Review).`);
+      continue;
+    }
 
     const oldUrl = normalizeSchemeUrl(s.apply.en);
     progress.step(`Searching for a new official page: ${s.name?.en ?? s.id}`);
@@ -155,6 +181,7 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
     if (pick && isPublicHttpUrl(pick.url)) {
       patches.push({ id: s.id, oldUrl: s.apply.en, newUrl: pick.url, file: getUrlIssueFilePath(s), _pick: pick, _name: s.name?.en ?? s.id });
     } else {
+      answers.set(s.id, candidates.length ? `Found ${candidates.length} possible page(s) but none certain — sent to the admin to pick (Review).` : "Couldn't find a new official page — sent to the admin (Review).");
       out.needsReview.push({
         id: s.id, name: s.name?.en ?? s.id, scope: s.scope, state: s.state ?? null,
         type: "DEAD_LINK", rawUrl: s.apply.en,
@@ -203,6 +230,7 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
       const r = results.find(x => x.id === p.id);
       if (r?.success) {
         out.fixed.push({ id: p.id, name: p._name, oldUrl: p.oldUrl, newUrl: p.newUrl, reason: p._pick.reason, commitUrl: r.commitUrl ?? null });
+        answers.set(p.id, `Fixed — replaced the link with ${p.newUrl}. Asked the Background Verifier to re-check it.`);
       } else {
         out.errors.push(`${p.id}: commit failed — ${r?.error ?? "unknown"}`);
       }
@@ -220,6 +248,7 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   }
 
   try { await stateRef?.set({ attempts, reported, updatedAt: new Date() }, { mergeFields: ["attempts", "reported", "updatedAt"] }); } catch { /* ignore */ }
+  await answerTeam();
 
   log.log?.(
     `[url-repair] dead ${out.deadFound} · recovered ${out.recovered.length} · fixed ${out.fixed.length} · ` +

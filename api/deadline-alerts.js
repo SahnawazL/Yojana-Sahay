@@ -29,6 +29,7 @@
 
 import { getAdminDb, getAdminAuth, recordAiCall }        from "./_lib/firebaseAdmin.js";
 import { runDeadlineAlerts, DAILY_EMAIL_LIMIT } from "./_lib/deadlineAlerts.js";
+import { teamFeed } from "./_lib/teamBoard.js";
 import { runSchemeVerificationBatch, verifyOneScheme, setVerifySkip, listVerifyAttention, getCheckableUrl, clearSitePause } from "./_lib/schemeVerifyBatch.js";
 import { SCHEME_DB } from "../src/schemesData.js";
 import { smartGroq, AGENT_FALLBACK_MODELS, borrowedChatKey } from "./_lib/groqSmart.js";
@@ -644,7 +645,7 @@ export default async function handler(req, res) {
 
   // Not a cron request — everything below requires an authenticated admin
   // Actions: running agents needs the Agents tab; e-mail actions need Deadlines.
-  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage", "verifyOne", "verifySkip", "verifyAttention", "verifySite"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
+  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage", "verifyOne", "verifySkip", "verifyAttention", "verifySite", "teamFeed"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
   const auth = await verifyAdmin(req, tabsFor);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
@@ -686,6 +687,11 @@ export default async function handler(req, res) {
   //   verifyAttention → list paused / skipped schemes
   //   verifyOne { id } → check one scheme now (saves the result)
   //   verifySkip { id, skip } → skip it in future runs, or include it again
+  // Team room — the notes the agents leave for each other (api/_lib/teamBoard.js)
+  if (action === "teamFeed") {
+    try { return res.status(200).json(await teamFeed(auth.db, 30)); }
+    catch (err) { return res.status(500).json({ error: err.message }); }
+  }
   if (action === "verifyAttention") {
     try { return res.status(200).json(await listVerifyAttention()); }
     catch (err) { return res.status(500).json({ error: err.message }); }

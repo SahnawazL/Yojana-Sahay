@@ -44,6 +44,7 @@ import { readRepoFile, updateRepoFile } from "./githubCommit.js";
 import { getUrlIssueFilePath } from "./urlIssues.js";
 import { isPublicHttpUrl } from "./urlTools.js";
 import { checkTavilyBudget, noteTavilyCall } from "./tavilyBudget.js";
+import { postNote } from "./teamBoard.js";
 import { recordAiCall } from "./firebaseAdmin.js";
 import { logApiCallToHistory } from "./apiCallHistory.js";
 import { createProgress } from "./agentProgress.js";
@@ -688,6 +689,8 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
       const it = toPublish.find(t => t.scheme.id === r.id);
       if (r.ok) {
         out.published.push({ id: r.id, name: it.scheme.name.en, region: it.scheme.state ?? "national", commitUrl: r.commitUrl });
+        await postNote(db, { from: "discover", to: "verifyBatch", type: "verify", schemeId: r.id, schemeName: it.scheme.name.en,
+          text: `I just added "${it.scheme.name.en}" (${it.scheme.state ?? "Central"}). Please check its deadline and link first.` });
         await db?.collection("schemeDrafts").doc(r.id).set({ status: "published", publishedAt: new Date(), publishedBy: "agent", commitUrl: r.commitUrl ?? null }, { merge: true }).catch(() => {});
       } else {
         out.errors.push(`${it.scheme.name.en}: publish failed — ${r.error}`);
@@ -748,6 +751,8 @@ export async function reviewSchemeDraft(db, { id, op, by }) {
     const [r] = await publishSchemes([{ scheme: d.scheme, matchSrc: d.matchSrc, file: d.file }]);
     if (!r?.ok) throw new Error(r?.error ?? "publish failed");
     await ref.set({ status: "published", publishedAt: new Date(), publishedBy: by ?? "admin", commitUrl: r.commitUrl ?? null }, { merge: true });
+    await postNote(db, { from: "discover", to: "verifyBatch", type: "verify", schemeId: d.scheme.id, schemeName: sc.name?.en ?? d.scheme.id,
+      text: `The admin approved "${sc.name?.en ?? d.scheme.id}" — it's live now. Please check its deadline and link first.` });
     return { ok: true, commitUrl: r.commitUrl ?? null };
   }
   if (op === "reject") {

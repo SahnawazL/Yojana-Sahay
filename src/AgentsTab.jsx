@@ -3240,6 +3240,109 @@ function VerifyAttentionList({ fix, th, isDesktop }) {
   );
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ── Team room — the notes the agents leave for each other ───────────────────
+// (api/_lib/teamBoard.js). Discovery asks the Verifier to check new schemes,
+// the Verifier asks Auto-Fix to repair dead links, Auto-Fix asks the Verifier
+// to re-check the links it replaced — and each one replies when done.
+const TEAM_AGENTS = {
+  discover:    { name: "Scheme Discovery",    icon: "🔭" },
+  verifyBatch: { name: "Background Verifier", icon: "🔎" },
+  autoFix:     { name: "Auto-Fix",            icon: "🛠️" },
+  news:        { name: "News Refresh",        icon: "📰" },
+  deadlineAlerts: { name: "Deadline E-mails", icon: "✉️" },
+  watchdog:    { name: "Watchdog",            icon: "🐕" },
+};
+const teamAgent = k => TEAM_AGENTS[k] ?? { name: k, icon: "🤖" };
+
+function teamAgo(iso) {
+  if (!iso) return "";
+  const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} h ago`;
+  return `${Math.round(h / 24)} d ago`;
+}
+
+const TeamRoomCard = React.memo(function TeamRoomCard({ dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await adminJson("/api/deadline-alerts", { action: "teamFeed" })); }
+    catch (err) { setData({ notes: [], open: 0, error: err.message }); }
+    finally { setLoading(false); }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const notes = data?.notes ?? [];
+  const shown = showAll ? notes : notes.slice(0, 5);
+  const chip = st => st === "open"
+    ? { t: "waiting", c: "#F59E0B" }
+    : st === "dropped" ? { t: "dropped", c: th.textSub } : { t: "done", c: "#10B981" };
+
+  return (
+    <div style={{ gridColumn: "1 / -1", background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, overflow: "hidden" }}>
+      <div style={{ padding: "10px 14px", borderBottom: `1px solid ${th.border}`, background: dark ? "#252527" : "#f8f9fa",
+        display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: fs(12, isDesktop), fontWeight: 700, color: th.text }}>🤝 Team room</div>
+          <div style={{ fontSize: fs(9, isDesktop), color: th.textSub, marginTop: 1, lineHeight: 1.4 }}>
+            The agents leave notes for each other and reply when the job is done
+            {data ? ` · ${data.open ?? 0} waiting` : ""}
+          </div>
+        </div>
+        <button onClick={load} disabled={loading} aria-label="Refresh team room"
+          style={{ ...navBtnStyle(th), cursor: loading ? "default" : "pointer", opacity: loading ? 0.5 : 1, fontSize: fs(10, isDesktop), color: th.text, padding: "3px 8px", width: "auto" }}>
+          {loading ? "…" : "↻"}
+        </button>
+      </div>
+      <div style={{ padding: "8px 14px 12px" }}>
+        <div style={{ fontSize: fs(9, isDesktop), color: th.textMid, lineHeight: 1.6, marginBottom: 6 }}>
+          🔭 Discovery adds a scheme → asks 🔎 Verifier to check it first ·
+          🔎 Verifier finds a dead link → asks 🛠️ Auto-Fix to repair it ·
+          🛠️ Auto-Fix replaces a link → asks 🔎 Verifier to re-check it
+        </div>
+        {data?.error && <div style={{ fontSize: fs(9.5, isDesktop), color: "#EF4444" }}>Couldn't load: {data.error}</div>}
+        {data && !data.error && notes.length === 0 && (
+          <div style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, padding: "6px 0" }}>
+            No notes yet — the first ones appear after the next Discovery or Verifier run.
+          </div>
+        )}
+        {shown.map(n => {
+          const f = teamAgent(n.from), t = teamAgent(n.to), c = chip(n.status);
+          return (
+            <div key={n.id} style={{ borderTop: `1px solid ${th.border}`, padding: "7px 0", fontSize: fs(9.5, isDesktop), color: th.textMid, lineHeight: 1.45, wordBreak: "break-word" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <strong style={{ color: th.text }}>{f.icon} {f.name}</strong>
+                <span style={{ color: th.textSub }}>→</span>
+                <strong style={{ color: th.text }}>{t.icon} {t.name}</strong>
+                <span style={{ fontSize: fs(8.5, isDesktop), fontWeight: 700, color: c.c, border: `1px solid ${c.c}55`, borderRadius: 99, padding: "0 6px" }}>{c.t}</span>
+                <span style={{ marginLeft: "auto", fontSize: fs(8.5, isDesktop), color: th.textSub }}>{teamAgo(n.createdAt)}</span>
+              </div>
+              <div style={{ marginTop: 2 }}>“{n.text}”</div>
+              {n.reply && (
+                <div style={{ marginTop: 3, paddingLeft: 9, borderLeft: `2px solid ${c.c}`, color: th.textSub }}>
+                  {t.icon} {n.reply}{n.doneAt ? ` · ${teamAgo(n.doneAt)}` : ""}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {notes.length > 5 && (
+          <div {...activatable(() => setShowAll(v => !v), "Show all team notes")} onClick={() => setShowAll(v => !v)}
+            style={{ borderTop: `1px solid ${th.border}`, paddingTop: 7, fontSize: fs(9.5, isDesktop), fontWeight: 700, color: CYAN, cursor: "pointer" }}>
+            {showAll ? "Show less" : `Show all ${notes.length}`}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
 const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const runner = useRunAgent();
@@ -7326,6 +7429,7 @@ export default function AgentsTab({
         isDesktop={isDesktop}
       >
         <div style={{ display:"grid", gap:12, gridTemplateColumns: isDesktop ? "repeat(auto-fit, minmax(320px, 1fr))" : "1fr" }}>
+          <TeamRoomCard dark={dark} isDesktop={isDesktop} />
           <WatchdogCard dark={dark} isDesktop={isDesktop} />
           <FirebaseUsageCard dark={dark} isDesktop={isDesktop} />
           <SchemeDiscoveryCard dark={dark} isDesktop={isDesktop} />
