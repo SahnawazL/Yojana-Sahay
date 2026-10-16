@@ -268,4 +268,21 @@ export const TRIPURA_SCHEMES = [
   },
   // </auto-scheme id="tripura_swavalamban_self_employment">
 
+  // <auto-scheme id="tripura_yuva_yogayog_special"> added by Scheme Discovery agent on 2026-10-16 · source: https://web.umang.gov.in/landing/scheme/detail/mukhyamantri-yuba-yogajog-yojana-in-tripura_myyyt.html
+  {
+    id: "tripura_yuva_yogayog_special",
+    icon: "📚", color: "#003580", scope: "state", state: "Tripura",
+    ministry: { en: "Directorate of Information Technology, Government of Tripura", hi: "सूचना प्रौद्योगिकी निदेशालय, सरकार त्रिपुरा" },
+    name:    { en: "Mukhyamantri Yuva Yogayog Yojana-Special", hi: "मुख्यमंत्री युवा योगयोग योजना-विशेष" },
+    benefit: { en: "Grant of ₹5,000/- or phone cost, whichever is lower, for a smartphone", hi: "₹5,000/- या फ़ोन की लागत, जो भी कम हो, के लिए स्मार्टफोन अनुदान" },
+    tag:     { en: "Digital Empowerment", hi: "डिजिटल सशक्तिकरण" },
+    annual: 5000,
+    apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/mukhyamantri-yuba-yogajog-yojana-in-tripura_myyyt.html", hi: "https://web.umang.gov.in/landing/scheme/detail/mukhyamantri-yuba-yogajog-yojana-in-tripura_myyyt.html" }, applyType: "online",
+    docs:    { en: ["Applicant Photograph","Valid GST Invoice of the Mobile Phone","Final Year/Semester Marksheet","Applicant Bank Details"],
+               hi: ["आवेदक का फ़ोटोग्राफ़","मोबाइल फ़ोन का वैध GST चालान","अंतिम वर्ष/सत्र के अंकपत्र","आवेदक के बैंक विवरण"] },
+    autoAdded: "2026-10-16", source: "https://web.umang.gov.in/landing/scheme/detail/mukhyamantri-yuba-yogajog-yojana-in-tripura_myyyt.html",
+    match: (a) => a.state === "Tripura" && a.who === "student" && a.educationLevel === "undergrad" && ["bpl","aay","apl"].includes(a.rationCard),
+  },
+  // </auto-scheme id="tripura_yuva_yogayog_special">
+
 ];
