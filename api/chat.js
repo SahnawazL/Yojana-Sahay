@@ -15,11 +15,15 @@
 //            so the AgentsTab AI Health Panel can show live data.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { recordAiCall } from "./_lib/firebaseAdmin.js";
+// Telemetry (Firestore) is loaded lazily: firebase-admin is a big library and
+// importing it up-front added ~1–2 s to every cold start BEFORE the AI was
+// even called. The chat never waits for these writes.
+let _fa = null, _ah = null;
+const recordAiCall = (...a) => (_fa ??= import("./_lib/firebaseAdmin.js")).then(m => m.recordAiCall(...a));
+const logApiCallToHistory = (...a) => (_ah ??= import("./_lib/apiCallHistory.js")).then(m => m.logApiCallToHistory(...a));
 import { getNextStartIdx } from "./_lib/groqRotation.js";
-import { noteGroqQuota } from "./_lib/groqSmart.js";
+import { noteGroqQuota, bodyForModel } from "./_lib/groqSmart.js";
 import { noteGroqOrg } from "./_lib/keyMap.js";
-import { logApiCallToHistory } from "./_lib/apiCallHistory.js";
 
 const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_URL = "https://api.tavily.com/search";
@@ -375,39 +379,120 @@ function cleanAssistantMessage(msg) {
 //   {"t":"done"}           — finished
 // Same key rotation, web-search tool and telemetry as the normal path.
 
+// ── Key cool-down memory ─────────────────────────────────────────────────────
+// A key that just hit its limit (429) is tried LAST until Groq's "try again
+// in …" time has passed, so a message doesn't waste a round trip on keys we
+// already know are busy. Shared across server instances through KV, with an
+// in-memory copy for the same instance.
+const coolMem = new Map(); // `${idx}:${model}` → until (ms)
+const coolKey = (i, model) => `groq_cool:chat:${i}:${model}`;
+function retryMsFrom(res, errData) {
+  const h = Number(res?.headers?.get?.("retry-after"));
+  if (Number.isFinite(h) && h > 0) return h * 1000;
+  const m = /try again in\s+(?:(\d+)h)?\s*(?:(\d+)m(?!s))?\s*([\d.]+)?\s*(ms|s)?/i.exec(String(errData?.error?.message ?? ""));
+  if (!m) return 60_000;
+  const v = Number(m[3] || 0);
+  return (Number(m[1] || 0) * 3600 + Number(m[2] || 0) * 60) * 1000 + (m[4]?.toLowerCase() === "ms" ? v : v * 1000) || 60_000;
+}
+async function kvCmd(args, timeoutMs = 700) {
+  const url = process.env.KV_REST_API_URL, token = process.env.KV_REST_API_TOKEN;
+  if (!url || !token) return null;
+  try {
+    const r = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(args), signal: AbortSignal.timeout(timeoutMs) });
+    return r.ok ? (await r.json())?.result ?? null : null;
+  } catch { return null; }
+}
+async function coolingSet(n, model) {
+  const now = Date.now();
+  const out = new Set();
+  for (let i = 0; i < n; i++) if ((coolMem.get(`${i}:${model}`) ?? 0) > now) out.add(i);
+  const vals = await kvCmd(["MGET", ...Array.from({ length: n }, (_, i) => coolKey(i, model))]);
+  if (Array.isArray(vals)) vals.forEach((v, i) => { if (v && Number(v) > now) { out.add(i); coolMem.set(`${i}:${model}`, Number(v)); } });
+  return out;
+}
+function markCooling(i, model, ms) {
+  const wait = Math.min(Math.max(ms, 5_000), 6 * 3600_000);
+  const until = Date.now() + wait;
+  coolMem.set(`${i}:${model}`, until);
+  kvCmd(["SET", coolKey(i, model), String(until), "PX", String(wait)]).catch(() => {});
+}
+
 // Opens a streaming Groq request, rotating keys on 429 / dead keys.
-async function openGroqStream(keys, bodyObject) {
-  let lastError = null, count429 = 0;
+// Keys known to be busy go last; if every key is busy on the main model,
+// the lighter gpt-oss-20b (its own, separate quota — and faster) answers.
+const CHAT_FALLBACK_MODEL = "openai/gpt-oss-20b";
+// pass "fresh" → only keys not known to be busy; "busy" → only the busy ones.
+async function openGroqStreamOnce(keys, bodyObject, pass = "fresh") {
+  let lastError = null, count429 = 0, tried = 0;
   const failedKeys = [];
   const n = keys.length;
-  const startIdx = await getNextStartIdx(n);
-  for (let offset = 0; offset < n; offset++) {
-    const i = (startIdx + offset) % n;
+  const model = bodyObject.model;
+  const [startIdx, cooling] = await Promise.all([getNextStartIdx(n), coolingSet(n, model)]);
+  const order = Array.from({ length: n }, (_, o) => (startIdx + o) % n)
+    .filter(i => (pass === "busy") === cooling.has(i));
+  for (const i of order) {
+    tried++;
     try {
       const r = await fetch(GROQ_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${keys[i]}` },
         body: JSON.stringify({ ...bodyObject, stream: true }),
       });
-      if (r.status === 429) { count429++; failedKeys.push(i); lastError = await r.json().catch(() => ({})); continue; }
+      if (r.status === 429) {
+        count429++; failedKeys.push(i);
+        lastError = await r.json().catch(() => ({}));
+        markCooling(i, model, retryMsFrom(r, lastError));
+        noteGroqQuota("chat", i, model, r.headers, { limited: true });
+        noteGroqOrg(keys[i], lastError?.error?.message);
+        continue;
+      }
       if (r.status !== 200) {
         const data = await r.json().catch(() => ({}));
         if (isKeyLevelFailure(r.status, data)) { lastError = data; continue; }
-        return { ok: false, status: r.status, data, keyIdx: i, count429, failedKeys };
+        return { ok: false, status: r.status, data, keyIdx: i, count429, failedKeys, tried, model, cooled: cooling.size };
       }
-      return { ok: true, res: r, keyIdx: i, count429, failedKeys };
+      noteGroqQuota("chat", i, model, r.headers);
+      return { ok: true, res: r, keyIdx: i, count429, failedKeys, tried, model, cooled: cooling.size };
     } catch (err) {
       lastError = { message: err.message };
     }
   }
-  return { ok: false, status: 429, data: { error: { message: "All AI keys are busy right now. Please try again in a minute.", details: lastError } }, keyIdx: -1, count429, failedKeys };
+  return { ok: false, status: 429, data: { error: { message: "All AI keys are busy right now. Please try again in a minute.", details: lastError } }, keyIdx: -1, count429, failedKeys, tried, model, cooled: cooling.size };
+}
+// Order: main model on free keys → backup model on free keys → main model
+// on busy keys (their limit may have cleared early) → backup on busy keys.
+async function openGroqStream(keys, bodyObject) {
+  const backup = bodyObject.model === CHAT_FALLBACK_MODEL ? null : bodyForModel(bodyObject, CHAT_FALLBACK_MODEL);
+  const plan = [[bodyObject, "fresh"], ...(backup ? [[backup, "fresh"]] : []), [bodyObject, "busy"], ...(backup ? [[backup, "busy"]] : [])];
+  let total = { count429: 0, failedKeys: [], tried: 0, cooled: 0 }, last = null;
+  for (const [body, pass] of plan) {
+    const r = await openGroqStreamOnce(keys, body, pass);
+    total = { count429: total.count429 + r.count429, failedKeys: [...total.failedKeys, ...r.failedKeys],
+      tried: total.tried + r.tried, cooled: Math.max(total.cooled, r.cooled) };
+    last = r;
+    if (r.ok || (r.status !== 429 && r.tried > 0)) {
+      return { ...r, ...total, fallback: r.ok && body !== bodyObject };
+    }
+  }
+  return { ...last, ...total, status: 429, ok: false, fallback: false };
+}
+
+// One log line per chat answer, so slow answers can be explained from the
+// Vercel logs: cold start? busy keys? Groq's own queue? long thinking?
+let warmInstance = false;
+function logTiming(req, extra) {
+  try {
+    const t0 = req._t0 ?? Date.now();
+    console.log("[chat-timing] " + JSON.stringify({ cold: req._cold, totalMs: Date.now() - t0, ...extra }));
+  } catch { /* never break the chat for a log line */ }
 }
 
 // Reads Groq's SSE stream; calls onText for answer text, collects tool calls.
 async function pumpGroqStream(r, onText) {
   const reader = r.body.getReader();
   const dec = new TextDecoder();
-  let buf = "", finish = null, error = null;
+  let buf = "", finish = null, error = null, usage = null, firstAt = null;
   const tools = {}; // index → {id, name, args}
   for (;;) {
     const { value, done } = await reader.read();
@@ -422,10 +507,11 @@ async function pumpGroqStream(r, onText) {
       if (payload === "[DONE]") continue;
       let j; try { j = JSON.parse(payload); } catch { continue; }
       if (j.error) { error = j.error; continue; } // e.g. tool_use_failed arrives inside the stream
+      if (j.x_groq?.usage) usage = j.x_groq.usage;
       const ch = j.choices?.[0];
       if (!ch) continue;
       const d = ch.delta || {};
-      if (d.content) onText(d.content);
+      if (d.content) { if (firstAt == null) firstAt = Date.now(); onText(d.content); }
       for (const tc of d.tool_calls || []) {
         const k = tc.index ?? 0;
         tools[k] = tools[k] || { id: "", name: "", args: "" };
@@ -437,7 +523,7 @@ async function pumpGroqStream(r, onText) {
     }
   }
   const toolCalls = Object.keys(tools).sort((a, b) => a - b).map(k => tools[k]).filter(t => t.name);
-  return { finish, error, toolCall: tools[0] || null, toolCalls };
+  return { finish, error, toolCall: tools[0] || null, toolCalls, usage, firstAt };
 }
 
 async function handleStream(req, res, keys, requestBody) {
@@ -458,7 +544,12 @@ async function handleStream(req, res, keys, requestBody) {
       send({ t: "e", m: first.data?.error?.message || "The AI is busy. Please try again." });
       return res.end();
     }
+    const openedAt = Date.now();
     let out = await pumpGroqStream(first.res, onText);
+    logTiming(req, { mode: "chat", openMs: openedAt - req._t0, firstTextMs: out.firstAt ? out.firstAt - req._t0 : null,
+      model: first.model, fallback: !!first.fallback, tried: first.tried, n429: first.count429, cooled: first.cooled,
+      queueMs: out.usage?.queue_time != null ? Math.round(out.usage.queue_time * 1000) : null,
+      promptTok: out.usage?.prompt_tokens ?? null, outTok: out.usage?.completion_tokens ?? null });
     recordAiCall({ service: "groq", keyIdx: first.keyIdx, count429: first.count429, failedKeys: first.failedKeys }).catch(() => {});
     logApiCallToHistory("groqCalls").catch(() => {});
     // Tool-call formatting failed mid-stream before any text → answer once more without the tool.
@@ -522,11 +613,18 @@ async function handleAgentStream(req, res, keys, requestBody, final) {
       r = await openGroqStream(keys, requestBody); // answer without tools
     }
     if (!r.ok) {
+      logTiming(req, { mode: "agent", failed: r.status, tried: r.tried, n429: r.count429, cooled: r.cooled });
       recordAiCall({ service: "groq", keyIdx: -1, count429: r.count429, failedKeys: r.failedKeys }).catch(() => {});
       send({ t: "e", m: r.data?.error?.message || "The AI is busy. Please try again." });
       return res.end();
     }
+    const openedAt = Date.now();
     let out = await pumpGroqStream(r.res, onText);
+    logTiming(req, { mode: "agent", final, openMs: openedAt - req._t0, firstTextMs: out.firstAt ? out.firstAt - req._t0 : null,
+      tools: (out.toolCalls || []).length, model: r.model, fallback: !!r.fallback, tried: r.tried, n429: r.count429, cooled: r.cooled,
+      queueMs: out.usage?.queue_time != null ? Math.round(out.usage.queue_time * 1000) : null,
+      promptTok: out.usage?.prompt_tokens ?? null, outTok: out.usage?.completion_tokens ?? null,
+      groqMs: out.usage?.total_time != null ? Math.round(out.usage.total_time * 1000) : null });
     recordAiCall({ service: "groq", keyIdx: r.keyIdx, count429: r.count429, failedKeys: r.failedKeys }).catch(() => {});
     logApiCallToHistory("groqCalls").catch(() => {});
     if (out.error && !sentText && !out.toolCalls.length) {
@@ -553,6 +651,9 @@ async function handleAgentStream(req, res, keys, requestBody, final) {
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
+  req._t0 = Date.now();
+  req._cold = !warmInstance;
+  warmInstance = true;
   if (req.method !== "POST") {
     return res.status(405).json({ error: { message: "Method not allowed" } });
   }
