@@ -627,4 +627,21 @@ export const TELANGANA_SCHEMES = [
     match: (a) => a.state === "Telangana" && ["below1", "1to3"].includes(a.income) && ["general", "farmer", "women"].includes(a.who) && (a.who !== "farmer" || a.landHolding == null) && a.age !== "below18",
   },
 
+  // <auto-scheme id="ts_sewing_machines_distribution"> added by Scheme Discovery agent on 2026-10-16 · source: https://www.deccanchronicle.com/southern-states/telangana/telangana-govt-launches-sewing-machines-distribution-scheme-for-bc-women-1978967
+  {
+    id: "ts_sewing_machines_distribution",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Telangana",
+    ministry: { en: "BC Welfare Ministry", hi: "पीछड़े वर्ग कल्याण मंत्रालय" },
+    name:    { en: "Sewing Machines Distribution Scheme for BC Women", hi: "सीवन मशीन वितरण योजना (BC महिलाओं के लिए)" },
+    benefit: { en: "Free sewing machine worth ₹12,000", hi: "₹12,000 मूल्य की मुफ्त सीवन मशीन" },
+    tag:     { en: "BC Women", hi: "पीछड़े वर्ग महिलाएँ" },
+    annual: 12000,
+    apply:   { en: "https://www.deccanchronicle.com/southern-states/telangana/telangana-govt-launches-sewing-machines-distribution-scheme-for-bc-women-1978967", hi: "https://www.deccanchronicle.com/southern-states/telangana/telangana-govt-launches-sewing-machines-distribution-scheme-for-bc-women-1978967" }, applyType: "online",
+    docs:    { en: ["Application Form"],
+               hi: ["आवेदन पत्र"] },
+    autoAdded: "2026-10-16", source: "https://www.deccanchronicle.com/southern-states/telangana/telangana-govt-launches-sewing-machines-distribution-scheme-for-bc-women-1978967",
+    match: (a) => a.state === "Telangana" && a.who === "women" && (a.disability == null || a.disability !== "none"),
+  },
+  // </auto-scheme id="ts_sewing_machines_distribution">
+
 ];
