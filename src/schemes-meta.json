@@ -376,8 +376,10 @@
     "linkAlive": true
   },
   "nfsa_pds": {
-    "lastVerified": "2026-10-16T09:12:38.940Z",
-    "confidence": 0
+    "lastVerified": "2026-10-16T09:44:42.291Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "sbm_gramin": {
     "lastVerified": "2026-09-20T22:50:06.561Z",
