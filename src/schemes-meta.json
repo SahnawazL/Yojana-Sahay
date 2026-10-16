@@ -3378,7 +3378,10 @@
     "lastVerified": "2026-10-15T21:35:12.386Z"
   },
   "mp_sant_ravidas": {
-    "lastVerified": "2026-10-15T21:36:10.750Z"
+    "lastVerified": "2026-10-16T06:47:00.260Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
   },
   "mp_solar_pump": {
     "lastVerified": "2026-10-15T21:36:24.811Z",
