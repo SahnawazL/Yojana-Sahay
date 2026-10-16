@@ -44,7 +44,7 @@ import { readRepoFile, updateRepoFile } from "./githubCommit.js";
 import { getUrlIssueFilePath } from "./urlIssues.js";
 import { isPublicHttpUrl } from "./urlTools.js";
 import { checkTavilyBudget, noteTavilyCall } from "./tavilyBudget.js";
-import { postNote } from "./teamBoard.js";
+import { postNote, teamBrief, briefLine } from "./teamBoard.js";
 import { recordAiCall } from "./firebaseAdmin.js";
 import { logApiCallToHistory } from "./apiCallHistory.js";
 import { createProgress } from "./agentProgress.js";
@@ -545,6 +545,23 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
   if (!tavilyKey) { out.stopReason = "config: TAVILY_VERIFY_KEY missing"; return out; }
   if (!loadGroqKeys().length) { out.stopReason = "config: no Groq keys"; return out; }
   if (maxNew <= 0) { out.stopReason = "disabled (DISCOVERY_PER_RUN=0)"; return out; }
+
+  // Team brief — every scheme I add becomes work for the Background Verifier,
+  // so I slow down when it is behind or unwell (nothing goes unchecked).
+  try {
+    const brief = await teamBrief(db);
+    progress.step(briefLine(brief, "discover"));
+    const vInbox = brief.inbox.verifyBatch ?? 0;
+    const vHealth = brief.health.verifyBatch?.status;
+    if (vHealth === "fail" && maxNew > 1) {
+      maxNew = 1;
+      progress.step("The Background Verifier is having trouble — adding at most 1 scheme today so nothing goes unchecked", "warn");
+    } else if (vInbox >= 10 && maxNew > 2) {
+      maxNew = 2;
+      progress.step(`The Background Verifier already has ${vInbox} schemes waiting — adding at most 2 today`, "warn");
+    }
+    out.teamLimited = maxNew;
+  } catch { /* the brief is advice, never a blocker */ }
 
   const stateRef = db?.collection("appMeta").doc("discoveryState");
   let st = {};

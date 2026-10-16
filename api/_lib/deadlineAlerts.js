@@ -24,6 +24,7 @@ import { logApiCallToHistory }      from "./apiCallHistory.js";
 import { FieldValue }  from "firebase-admin/firestore";
 import nodemailer      from "nodemailer";
 import { SCHEME_DB }   from "../../src/schemesData.js";
+import { postNote, teamBrief, briefLine } from "./teamBoard.js";
 import { runPushReminders } from "./push.js";
 import { nicheAudience, audienceApplies } from "../../src/audience.js";
 // Special-group schemes (athletes, widows, construction workers…) only when the group applies — same as the app.
@@ -342,7 +343,54 @@ function buildNewSchemeEmailHtml(schemes, isHindi = false) {
 // ── Main runner — used by both the cron endpoint and the admin trigger ────────
 // trigger: "cron" | "manual"
 // triggeredBy: admin email string when trigger === "manual", else null
-export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null } = {}) {
+// ── Teamwork before e-mailing ────────────────────────────────────────────────
+// A wrong deadline in an e-mail is worse than no e-mail, so before writing:
+//   • deadlines in the next 10 days not confirmed in 5 days → ask the
+//     Background Verifier (urgent) to re-read the official page tonight
+//   • a dead link on a scheme that closes soon → ask Auto-Fix (urgent)
+//   • a scheme the Verifier found CLOSED on its official page → no e-mail
+const TEAM_CHECK_WINDOW_DAYS = 10;
+const TEAM_STALE_DAYS        = 5;
+const TEAM_MAX_ASKS          = 8;
+const TEAM_MAX_REPAIRS       = 4;
+
+async function teamworkBeforeAlerts(db, schemes, progress) {
+  const out = { asked: 0, repairAsked: 0, heldBack: [] };
+  try {
+    const brief = await teamBrief(db);
+    progress.step(briefLine(brief, "deadlineAlerts"));
+    const soon = schemes
+      .map(s => ({ s, d: daysUntil(s.lastDate) }))
+      .filter(x => x.d !== null && x.d <= TEAM_CHECK_WINDOW_DAYS && !x.s.closed)
+      .sort((a, b) => a.d - b.d);
+    for (const { s, d } of soon) {
+      const name = s.name?.en ?? s.id;
+      if (s.isActive === false) { out.heldBack.push(s.id); continue; }
+      if (s.linkAlive === false) {
+        if (out.repairAsked < TEAM_MAX_REPAIRS && !brief.awaitingRepair.has(s.id)) {
+          const r = await postNote(db, { from: "deadlineAlerts", to: "autoFix", type: "repair", priority: "high", schemeId: s.id, schemeName: name,
+            text: `"${name}" closes in ${d} day(s) but its apply link is dead. Users will need a working link — please fix it first.` });
+          if (r.status === "posted" || r.status === "merged") out.repairAsked++;
+        }
+        continue;
+      }
+      if (s.applyType === "offline") continue;
+      const age = s.lastVerified ? (Date.now() - Date.parse(s.lastVerified)) / 864e5 : Infinity;
+      if (age > TEAM_STALE_DAYS && out.asked < TEAM_MAX_ASKS) {
+        const r = await postNote(db, { from: "deadlineAlerts", to: "verifyBatch", type: "verify", priority: "high", schemeId: s.id, schemeName: name,
+          text: `"${name}" closes in ${d} day(s) (${s.lastDate}); last confirmed ${Number.isFinite(age) ? `${Math.round(age)} days ago` : "never"}. Please confirm it before I e-mail users.` });
+        if (r.status === "posted" || r.status === "merged") out.asked++;
+      }
+    }
+    if (out.asked || out.repairAsked) progress.step(`Asked teammates: ${out.asked} deadline check(s) for the Verifier, ${out.repairAsked} urgent link fix(es) for Auto-Fix`, "ok");
+    if (out.heldBack.length) progress.step(`Holding back e-mails for ${out.heldBack.length} scheme(s) the Verifier found closed on the official page`, "warn");
+  } catch (err) {
+    progress.step(`Team check skipped: ${err.message}`, "warn");
+  }
+  return out;
+}
+
+export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null, progress = { step() {} } } = {}) {
   const db          = getAdminDb();
   const transporter = getTransporter(); // throws early if env vars missing
   const groqKeys    = loadGroqKeys();   // empty array → generatePersonalizedIntro no-ops, template falls back automatically
@@ -353,6 +401,8 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
   // why this is a live fetch rather than a static bundled import.
   const schemesMeta   = await fetchSchemesMetaFromGitHub();
   const mergedSchemes = mergeSchemeDbWithMeta(schemesMeta);
+  const team = await teamworkBeforeAlerts(db, mergedSchemes, progress);
+  const heldBack = new Set(team.heldBack);
 
   // ── Daily quota check-in ────────────────────────────────────────────────────
   const dateKey     = getTodayDateKey();
@@ -404,7 +454,7 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
     const alreadyUrgentAlerted   = new Set(profile.urgentAlertedSchemeIds || []);
 
     const matched = mergedSchemes.filter(s => {
-      try { return !s.closed && audienceOk(s, profileAnswers) && s.match(profileAnswers); } catch { return false; }
+      try { return !s.closed && !heldBack.has(s.id) && audienceOk(s, profileAnswers) && s.match(profileAnswers); } catch { return false; }
     });
 
     const urgent = matched
@@ -556,7 +606,7 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
 
   // ── Phone notifications (Web Push) — at most one per subscribed user ──────
   // Self-contained and never throws, so it can't break the e-mail alerts.
-  const push = await runPushReminders({ db, schemes: mergedSchemes, newSchemes, buildProfileAnswers, daysUntil });
+  const push = await runPushReminders({ db, schemes: mergedSchemes.filter(s => !heldBack.has(s.id)), newSchemes, buildProfileAnswers, daysUntil });
 
   // ── Log this run to Firestore so the Admin Dashboard can show history ───────
   const runDoc = {
@@ -570,6 +620,7 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
     newSchemeIds,          // which ids were treated as new this run (debugging aid)
     isFirstRegistryRun,
     quotaUsed, quotaLimit: DAILY_EMAIL_LIMIT, quotaHit,
+    team: { asked: team.asked, repairAsked: team.repairAsked, heldBack: team.heldBack.slice(0, 20) },
   };
   const runRef = await db.collection("deadlineAlertRuns").add(runDoc);
 
@@ -590,6 +641,6 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null }
   return {
     runId: runRef.id, trigger, triggeredBy, checked, sent, announced, skipped,
     recipients, announcementRecipients, newSchemeIds, isFirstRegistryRun,
-    quotaUsed, quotaLimit: DAILY_EMAIL_LIMIT, quotaHit, push,
+    quotaUsed, quotaLimit: DAILY_EMAIL_LIMIT, quotaHit, push, team,
   };
 }

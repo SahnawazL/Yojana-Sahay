@@ -29,7 +29,7 @@
 
 import { getAdminDb, getAdminAuth, recordAiCall }        from "./_lib/firebaseAdmin.js";
 import { runDeadlineAlerts, DAILY_EMAIL_LIMIT } from "./_lib/deadlineAlerts.js";
-import { teamFeed } from "./_lib/teamBoard.js";
+import { teamFeed, adminNoteAction } from "./_lib/teamBoard.js";
 import { runSchemeVerificationBatch, verifyOneScheme, setVerifySkip, listVerifyAttention, getCheckableUrl, clearSitePause } from "./_lib/schemeVerifyBatch.js";
 import { SCHEME_DB } from "../src/schemesData.js";
 import { smartGroq, AGENT_FALLBACK_MODELS, borrowedChatKey } from "./_lib/groqSmart.js";
@@ -415,6 +415,9 @@ async function runAndLogVerifyBatch(trigger = "cron") {
         aiAssist:     result.aiAssist ?? null,
         skippedPaused: result.skippedPaused ?? 0,
         skippedBlockedSite: result.skippedBlockedSite ?? 0,
+        skippedAwaitingRepair: result.skippedAwaitingRepair ?? 0,
+        teamAsked: result.teamAsked ?? 0,
+        teamAnswered: result.teamAnswered ?? 0,
         budgetSource: result.budgetSource ?? null,
         datesFound:   Object.values(result.results || {}).filter(r => r?.lastDate).length,
       });
@@ -444,7 +447,7 @@ async function runDeadlineAlertsLogged(opts) {
   const progress = createProgress(getAdminDb(), "deadlineAlerts", { trigger: opts.trigger });
   progress.step("Reading users and their saved schemes, checking upcoming deadlines (7 / 3 / 1 days)…");
   try {
-    const result = await runDeadlineAlerts(opts);
+    const result = await runDeadlineAlerts({ ...opts, progress });
     progress.step(`Checked ${result?.checked ?? "?"} user(s) · sent ${result?.sent ?? 0} e-mail(s)${result?.quotaHit ? " · daily e-mail quota reached" : ""}`, "ok");
     await progress.done({ sent: result?.sent ?? 0, checked: result?.checked ?? null });
     return result;
@@ -575,6 +578,9 @@ export default async function handler(req, res) {
             aiAssist:      data.aiAssist ?? null,
             skippedPaused: data.skippedPaused ?? 0,
             skippedBlockedSite: data.skippedBlockedSite ?? 0,
+            skippedAwaitingRepair: data.skippedAwaitingRepair ?? 0,
+            teamAsked: data.teamAsked ?? 0,
+            teamAnswered: data.teamAnswered ?? 0,
             budgetSource:  data.budgetSource ?? null,
             datesFound:    data.datesFound ?? null,
           };
@@ -645,7 +651,7 @@ export default async function handler(req, res) {
 
   // Not a cron request — everything below requires an authenticated admin
   // Actions: running agents needs the Agents tab; e-mail actions need Deadlines.
-  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage", "verifyOne", "verifySkip", "verifyAttention", "verifySite", "teamFeed"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
+  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage", "verifyOne", "verifySkip", "verifyAttention", "verifySite", "teamFeed", "teamNote"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
   const auth = await verifyAdmin(req, tabsFor);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
@@ -689,8 +695,15 @@ export default async function handler(req, res) {
   //   verifySkip { id, skip } → skip it in future runs, or include it again
   // Team room — the notes the agents leave for each other (api/_lib/teamBoard.js)
   if (action === "teamFeed") {
-    try { return res.status(200).json(await teamFeed(auth.db, 30)); }
+    try { return res.status(200).json(await teamFeed(auth.db, 40)); }
     catch (err) { return res.status(500).json({ error: err.message }); }
+  }
+  if (action === "teamNote") {
+    const id = String(req.body?.id ?? "").slice(0, 60);
+    const op = String(req.body?.op ?? "");
+    if (!id || !["reopen", "dismiss"].includes(op)) return res.status(400).json({ error: "id and op (reopen | dismiss) are required" });
+    try { return res.status(200).json(await adminNoteAction(auth.db, id, op)); }
+    catch (err) { return res.status(400).json({ error: err.message }); }
   }
   if (action === "verifyAttention") {
     try { return res.status(200).json(await listVerifyAttention()); }

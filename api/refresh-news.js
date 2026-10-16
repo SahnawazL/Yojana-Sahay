@@ -30,6 +30,42 @@ import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore, Timestamp }       from "firebase-admin/firestore";
 import { createProgress }              from "./_lib/agentProgress.js";
 import { smartGroq, AGENT_FALLBACK_MODELS } from "./_lib/groqSmart.js";
+import { postNote } from "./_lib/teamBoard.js";
+
+// ── Teamwork: news that changes a date → ask the Verifier ─────────────────────
+// "Last date extended", "registration opens"… — if a headline clearly names
+// ONE scheme in our catalog, the Background Verifier re-reads its official
+// page tonight (urgent), so the app never shows an outdated deadline.
+const DATE_NEWS = /deadline|last date|extend|extension|closing|closes|apply (?:by|before|till|until)|registration|window|reopen|portal (?:open|live)|applications? (?:open|invited)/i;
+const normName = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+
+async function askVerifierAboutNews(db, results, step) {
+  let asked = 0;
+  try {
+    const { SCHEME_DB } = await import("../src/schemesData.js");
+    const index = SCHEME_DB.map(s => ({ s, n: normName(s.name?.en) })).filter(x => x.n.length >= 6);
+    for (const r of results) {
+      if (asked >= 5) break;
+      const text = `${r.text_en ?? ""} ${r.desc_en ?? ""}`;
+      if (!DATE_NEWS.test(text)) continue;
+      const hay = normName(text);
+      const key = normName(r.schemeKey);
+      // Strict: the full scheme name appears in the news, or the news' scheme
+      // key matches exactly one scheme — never guess between several.
+      let hits = index.filter(x => x.n.length >= 12 && hay.includes(x.n));
+      if (!hits.length && key.length >= 6) hits = index.filter(x => x.n === key || (x.n.includes(key) && key.split(" ").length >= 2));
+      if (hits.length !== 1) continue;
+      const s = hits[0].s;
+      const res = await postNote(db, { from: "news", to: "verifyBatch", type: "verify", priority: "high", schemeId: s.id, schemeName: s.name?.en ?? s.id,
+        text: `News: "${String(r.text_en ?? "").slice(0, 110)}" — the date for "${s.name?.en ?? s.id}" may have changed. Please re-read its official page.` });
+      if (res.status === "posted" || res.status === "merged") asked++;
+    }
+    if (asked) step?.(`Asked the Background Verifier to re-check ${asked} scheme(s) whose dates are in the news`, "ok");
+  } catch (err) {
+    console.warn("[refresh-news] team hand-off skipped:", err.message);
+  }
+  return asked;
+}
 
 // ── Firebase Admin init (safe — reuses existing app across hot reloads) ───────
 // Initialised lazily inside the handler: a top-level cert() call throws at
@@ -508,6 +544,7 @@ async function refreshNewsCore(req, res) {
   await batch.commit();
   console.log(`[refresh-news] ✓ Wrote ${addCount} new items to schemeNews`);
   step(`Added ${addCount} news item(s) to the ticker`, "ok");
+  await askVerifierAboutNews(db, filteredResults, step);
 
   // Record this run's timestamp so the rate-limit guard works on next call
   try {

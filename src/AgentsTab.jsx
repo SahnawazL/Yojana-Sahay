@@ -3241,101 +3241,280 @@ function VerifyAttentionList({ fix, th, isDesktop }) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// ── Team room — the notes the agents leave for each other ───────────────────
-// (api/_lib/teamBoard.js). Discovery asks the Verifier to check new schemes,
-// the Verifier asks Auto-Fix to repair dead links, Auto-Fix asks the Verifier
-// to re-check the links it replaced — and each one replies when done.
-const TEAM_AGENTS = {
-  discover:    { name: "Scheme Discovery",    icon: "🔭" },
-  verifyBatch: { name: "Background Verifier", icon: "🔎" },
-  autoFix:     { name: "Auto-Fix",            icon: "🛠️" },
-  news:        { name: "News Refresh",        icon: "📰" },
-  deadlineAlerts: { name: "Deadline E-mails", icon: "✉️" },
-  watchdog:    { name: "Watchdog",            icon: "🐕" },
+// ── Team room — how the agents work together (api/_lib/teamBoard.js) ────────
+// A dark "ops room": the crew with their health, inbox and schedule, the
+// team's numbers for the week, and every hand-off as a short conversation
+// (request → reply). Anything the agents couldn't settle lands in "Needs you"
+// with Ask again / Dismiss buttons.
+const CREW_LOOK = {
+  discover:       { icon: "🔭", tint: "#A78BFA", short: "Discovery" },
+  verifyBatch:    { icon: "🔎", tint: "#22D3EE", short: "Verifier" },
+  autoFix:        { icon: "🛠️", tint: "#FBBF24", short: "Auto-Fix" },
+  deadlineAlerts: { icon: "✉️", tint: "#F472B6", short: "E-mails" },
+  news:           { icon: "📰", tint: "#34D399", short: "News" },
+  watchdog:       { icon: "🐕", tint: "#60A5FA", short: "Watchdog" },
 };
-const teamAgent = k => TEAM_AGENTS[k] ?? { name: k, icon: "🤖" };
+const crewLook = id => CREW_LOOK[id] ?? { icon: "🤖", tint: "#94A3B8", short: id };
+const TEAM_STATUS = { ok: "#34D399", warn: "#FBBF24", fail: "#F87171" };
+const TEAM_KEYFRAMES = `
+@keyframes ys-team-in { from { opacity:0; transform: translateY(6px) } to { opacity:1; transform:none } }
+@keyframes ys-team-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(251,191,36,.45) } 50% { box-shadow: 0 0 0 5px rgba(251,191,36,0) } }
+`;
 
 function teamAgo(iso) {
-  if (!iso) return "";
+  if (!iso) return "—";
   const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
   if (m < 1) return "just now";
   if (m < 60) return `${m} min ago`;
   const h = Math.round(m / 60);
-  if (h < 24) return `${h} h ago`;
+  if (h < 48) return `${h} h ago`;
   return `${Math.round(h / 24)} d ago`;
 }
+function teamIn(iso) {
+  if (!iso) return "";
+  const h = (Date.parse(iso) - Date.now()) / 3600e3;
+  if (h <= 0) return "due now";
+  return h < 48 ? `${Math.ceil(h)} h left` : `${Math.round(h / 24)} d left`;
+}
 
-const TeamRoomCard = React.memo(function TeamRoomCard({ dark, isDesktop }) {
-  const th = THEME[dark ? "dark" : "light"];
+function CrewAvatar({ id, size = 30, status }) {
+  const L = crewLook(id);
+  return (
+    <span style={{
+      width: size, height: size, borderRadius: "50%", flexShrink: 0, position: "relative",
+      display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.48,
+      background: `radial-gradient(circle at 30% 25%, ${L.tint}55, ${L.tint}14 70%)`,
+      boxShadow: `inset 0 0 0 1px ${L.tint}66`,
+    }}>
+      {L.icon}
+      {status !== undefined && (
+        <span style={{ position: "absolute", right: -1, bottom: -1, width: size * 0.3, height: size * 0.3, borderRadius: "50%",
+          background: TEAM_STATUS[status] ?? "#64748B", border: `2px solid ${TERM.bg}` }} />
+      )}
+    </span>
+  );
+}
+
+function TeamKpi({ label, value, tone, isDesktop, wide = false }) {
+  return (
+    <div style={{ gridColumn: isDesktop ? "auto" : `span ${wide ? 3 : 2}`, minWidth: 0, padding: "8px 10px", borderRadius: 10, background: TERM.bg2, border: `1px solid ${TERM.line}` }}>
+      <div style={{ fontFamily: TERM_FONT, fontSize: fs(15, isDesktop), fontWeight: 700, color: tone ?? TERM.text, lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: fs(8.5, isDesktop), color: TERM.dim, marginTop: 3, letterSpacing: 0.3, textTransform: "uppercase", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</div>
+    </div>
+  );
+}
+
+function TeamThread({ n, isDesktop, onAct, busy, idx }) {
+  const f = crewLook(n.from), t = crewLook(n.to);
+  const st = n.status === "open"
+    ? { t: n.tries ? `waiting · try ${n.tries + 1}/3` : "waiting", c: TERM.amber }
+    : n.status === "escalated" ? { t: "needs you", c: TERM.red }
+    : n.status === "dropped" ? { t: "dropped", c: TERM.dim } : { t: "done", c: TERM.green };
+  return (
+    <div style={{ display: "flex", gap: 9, padding: "10px 0", borderTop: `1px solid ${TERM.line}`,
+      animation: `ys-team-in .35s ease ${Math.min(idx, 10) * 0.035}s both` }}>
+      <CrewAvatar id={n.from} size={28} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", fontSize: fs(9.5, isDesktop) }}>
+          <strong style={{ color: f.tint }}>{f.short}</strong>
+          <span style={{ color: TERM.dim }}>→</span>
+          <strong style={{ color: t.tint }}>{t.short}</strong>
+          {n.priority === "high" && (
+            <span style={{ fontSize: fs(8, isDesktop), fontWeight: 800, letterSpacing: 0.6, color: "#FCA5A5", background: "rgba(248,113,113,.12)", border: "1px solid rgba(248,113,113,.35)", borderRadius: 5, padding: "0 5px" }}>URGENT</span>
+          )}
+          <span style={{ fontSize: fs(8.5, isDesktop), fontWeight: 700, color: st.c, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: st.c, animation: n.status === "open" ? "ys-team-pulse 2s infinite" : "none" }} />
+            {st.t}
+          </span>
+          <span style={{ marginLeft: "auto", fontFamily: TERM_FONT, fontSize: fs(8.5, isDesktop), color: TERM.dim }}>{teamAgo(n.createdAt)}</span>
+        </div>
+        <div style={{ marginTop: 4, padding: "7px 9px", borderRadius: "3px 10px 10px 10px", background: TERM.bg2, border: `1px solid ${TERM.line}`,
+          fontSize: fs(9.5, isDesktop), color: TERM.text, lineHeight: 1.5, wordBreak: "break-word" }}>
+          <TermText text={n.text} />
+          {n.status === "open" && n.expiresAt && <span style={{ color: TERM.dim }}> · {teamIn(n.expiresAt)}</span>}
+        </div>
+        {n.reply && (
+          <div style={{ display: "flex", gap: 7, marginTop: 6, marginLeft: isDesktop ? 18 : 8 }}>
+            <CrewAvatar id={n.status === "escalated" && /admin|Stopped|needs a look/i.test(n.reply) ? "watchdog" : n.to} size={20} />
+            <div style={{ flex: 1, minWidth: 0, padding: "6px 9px", borderRadius: "3px 10px 10px 10px",
+              background: n.status === "escalated" ? "rgba(248,113,113,.07)" : "rgba(52,211,153,.06)",
+              border: `1px solid ${n.status === "escalated" ? "rgba(248,113,113,.25)" : "rgba(52,211,153,.2)"}`,
+              fontSize: fs(9.5, isDesktop), color: TERM.sub, lineHeight: 1.5, wordBreak: "break-word" }}>
+              <TermText text={n.reply} />
+              {n.doneAt && <span style={{ color: TERM.dim, fontFamily: TERM_FONT }}> · {teamAgo(n.doneAt)}</span>}
+            </div>
+          </div>
+        )}
+        {n.status === "escalated" && (
+          <div style={{ display: "flex", gap: 6, marginTop: 7, marginLeft: isDesktop ? 18 : 8, flexWrap: "wrap" }}>
+            {[["reopen", `↻ Ask ${t.short} again`, TERM.cyan], ["dismiss", "✕ Dismiss", TERM.sub]].map(([op, label, c]) => (
+              <button key={op} disabled={!!busy} onClick={() => onAct(n.id, op)}
+                style={{ fontSize: fs(9, isDesktop), fontWeight: 700, color: c, background: "transparent", border: `1px solid ${c}55`,
+                  borderRadius: 7, padding: "4px 10px", cursor: busy ? "default" : "pointer", opacity: busy ? 0.5 : 1 }}>
+                {busy === op ? "…" : label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export const TeamRoomCard = React.memo(function TeamRoomCard({ isDesktop }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState("all");
   const [showAll, setShowAll] = useState(false);
+  const [showRules, setShowRules] = useState(false);
+  const [busy, setBusy] = useState({});
+  const [flash, setFlash] = useState(null);
   const load = useCallback(async () => {
     setLoading(true);
     try { setData(await adminJson("/api/deadline-alerts", { action: "teamFeed" })); }
-    catch (err) { setData({ notes: [], open: 0, error: err.message }); }
+    catch (err) { setData(d => ({ ...(d ?? { notes: [], crew: [] }), error: err.message })); }
     finally { setLoading(false); }
   }, []);
   useEffect(() => { load(); }, [load]);
 
+  const act = useCallback(async (id, op) => {
+    setBusy(b => ({ ...b, [id]: op }));
+    try { const r = await adminJson("/api/deadline-alerts", { action: "teamNote", id, op }); setFlash(r.text ?? "Done."); await load(); }
+    catch (err) { setFlash(err.message); }
+    finally { setBusy(b => ({ ...b, [id]: null })); }
+  }, [load]);
+
   const notes = data?.notes ?? [];
-  const shown = showAll ? notes : notes.slice(0, 5);
-  const chip = st => st === "open"
-    ? { t: "waiting", c: "#F59E0B" }
-    : st === "dropped" ? { t: "dropped", c: th.textSub } : { t: "done", c: "#10B981" };
+  const counts = {
+    all: notes.length,
+    open: notes.filter(n => n.status === "open").length,
+    escalated: notes.filter(n => n.status === "escalated").length,
+    done: notes.filter(n => n.status === "done" || n.status === "dropped").length,
+  };
+  const filtered = notes.filter(n => filter === "all" ? true : filter === "done" ? (n.status === "done" || n.status === "dropped") : n.status === filter);
+  const shown = showAll ? filtered : filtered.slice(0, 6);
+  const urgent = (data?.crew ?? []).reduce((a, c) => a + (c.urgent ?? 0), 0);
+  const s = data?.stats;
+  const rules = data?.rules;
 
   return (
-    <div style={{ gridColumn: "1 / -1", background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, overflow: "hidden" }}>
-      <div style={{ padding: "10px 14px", borderBottom: `1px solid ${th.border}`, background: dark ? "#252527" : "#f8f9fa",
-        display: "flex", alignItems: "center", gap: 8 }}>
+    <div style={{ gridColumn: "1 / -1", borderRadius: 16, overflow: "hidden", color: TERM.text,
+      background: `radial-gradient(120% 80% at 0% 0%, rgba(34,211,238,.08), transparent 55%), radial-gradient(90% 70% at 100% 0%, rgba(167,139,250,.08), transparent 60%), ${TERM.bg}`,
+      border: `1px solid ${TERM.line}`, boxShadow: "0 18px 40px -24px rgba(2,6,23,.8)" }}>
+      <style>{TERM_KEYFRAMES + TEAM_KEYFRAMES}</style>
+
+      {/* Header */}
+      <div style={{ padding: "13px 15px 10px", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex" }}>
+          {["discover", "verifyBatch", "autoFix"].map((id, i) => (
+            <span key={id} style={{ marginLeft: i ? -8 : 0, borderRadius: "50%", boxShadow: `0 0 0 2px ${TERM.bg}` }}><CrewAvatar id={id} size={24} /></span>
+          ))}
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: fs(12, isDesktop), fontWeight: 700, color: th.text }}>🤝 Team room</div>
-          <div style={{ fontSize: fs(9, isDesktop), color: th.textSub, marginTop: 1, lineHeight: 1.4 }}>
-            The agents leave notes for each other and reply when the job is done
-            {data ? ` · ${data.open ?? 0} waiting` : ""}
+          <div style={{ fontSize: fs(13, isDesktop), fontWeight: 800, letterSpacing: 0.2, display: "flex", alignItems: "center", gap: 7 }}>
+            Team room
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: TERM.green, animation: "ys-term-dot 2.4s infinite" }} />
+          </div>
+          <div style={{ fontSize: fs(9, isDesktop), color: TERM.sub, marginTop: 2, lineHeight: 1.4 }}>
+            Six agents, one shared board — each reads the team brief before it works, hands jobs over and replies when done
           </div>
         </div>
         <button onClick={load} disabled={loading} aria-label="Refresh team room"
-          style={{ ...navBtnStyle(th), cursor: loading ? "default" : "pointer", opacity: loading ? 0.5 : 1, fontSize: fs(10, isDesktop), color: th.text, padding: "3px 8px", width: "auto" }}>
-          {loading ? "…" : "↻"}
+          style={{ fontFamily: TERM_FONT, fontSize: fs(10, isDesktop), color: TERM.cyan, background: "rgba(34,211,238,.08)",
+            border: "1px solid rgba(34,211,238,.3)", borderRadius: 8, padding: "5px 10px", cursor: loading ? "default" : "pointer" }}>
+          {loading ? "syncing…" : "↻ sync"}
         </button>
       </div>
-      <div style={{ padding: "8px 14px 12px" }}>
-        <div style={{ fontSize: fs(9, isDesktop), color: th.textMid, lineHeight: 1.6, marginBottom: 6 }}>
-          🔭 Discovery adds a scheme → asks 🔎 Verifier to check it first ·
-          🔎 Verifier finds a dead link → asks 🛠️ Auto-Fix to repair it ·
-          🛠️ Auto-Fix replaces a link → asks 🔎 Verifier to re-check it
-        </div>
-        {data?.error && <div style={{ fontSize: fs(9.5, isDesktop), color: "#EF4444" }}>Couldn't load: {data.error}</div>}
-        {data && !data.error && notes.length === 0 && (
-          <div style={{ fontSize: fs(9.5, isDesktop), color: th.textSub, padding: "6px 0" }}>
-            No notes yet — the first ones appear after the next Discovery or Verifier run.
-          </div>
-        )}
-        {shown.map(n => {
-          const f = teamAgent(n.from), t = teamAgent(n.to), c = chip(n.status);
+
+      {/* KPIs */}
+      <div style={{ display: "grid", gap: 7, padding: "0 15px 12px", gridTemplateColumns: isDesktop ? "repeat(5, minmax(0,1fr))" : "repeat(6, minmax(0,1fr))" }}>
+        <TeamKpi isDesktop={isDesktop} label="Waiting" value={data?.open ?? "—"} tone={data?.open ? TERM.amber : undefined} />
+        <TeamKpi isDesktop={isDesktop} label="Urgent" value={data ? urgent : "—"} tone={urgent ? "#FCA5A5" : undefined} />
+        <TeamKpi isDesktop={isDesktop} label="Needs you" value={data?.escalated ?? "—"} tone={data?.escalated ? TERM.red : undefined} />
+        <TeamKpi isDesktop={isDesktop} wide label="Done · 7 days" value={s ? `${s.done}/${s.handoffs}` : "—"} tone={TERM.green} />
+        <TeamKpi isDesktop={isDesktop} wide label="Avg reply" value={s?.avgReplyH != null ? (s.avgReplyH < 1 ? `${Math.round(s.avgReplyH * 60)}m` : `${s.avgReplyH}h`) : "—"} />
+      </div>
+
+      {/* Crew */}
+      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "repeat(3, minmax(0,1fr))" : "repeat(2, minmax(0,1fr))", gap: 7, padding: "0 15px 12px" }}>
+        {(data?.crew ?? Object.keys(CREW_LOOK).map(id => ({ id, name: crewLook(id).short }))).map(c => {
+          const L = crewLook(c.id);
           return (
-            <div key={n.id} style={{ borderTop: `1px solid ${th.border}`, padding: "7px 0", fontSize: fs(9.5, isDesktop), color: th.textMid, lineHeight: 1.45, wordBreak: "break-word" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <strong style={{ color: th.text }}>{f.icon} {f.name}</strong>
-                <span style={{ color: th.textSub }}>→</span>
-                <strong style={{ color: th.text }}>{t.icon} {t.name}</strong>
-                <span style={{ fontSize: fs(8.5, isDesktop), fontWeight: 700, color: c.c, border: `1px solid ${c.c}55`, borderRadius: 99, padding: "0 6px" }}>{c.t}</span>
-                <span style={{ marginLeft: "auto", fontSize: fs(8.5, isDesktop), color: th.textSub }}>{teamAgo(n.createdAt)}</span>
-              </div>
-              <div style={{ marginTop: 2 }}>“{n.text}”</div>
-              {n.reply && (
-                <div style={{ marginTop: 3, paddingLeft: 9, borderLeft: `2px solid ${c.c}`, color: th.textSub }}>
-                  {t.icon} {n.reply}{n.doneAt ? ` · ${teamAgo(n.doneAt)}` : ""}
+            <div key={c.id} title={c.detail ?? ""} style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 9px", borderRadius: 11,
+              background: `linear-gradient(135deg, ${L.tint}10, transparent 70%), ${TERM.bg2}`, border: `1px solid ${TERM.line}`, minWidth: 0 }}>
+              <CrewAvatar id={c.id} size={30} status={c.status ?? null} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ fontSize: fs(10, isDesktop), fontWeight: 700, color: TERM.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</span>
+                  {c.inbox > 0 && (
+                    <span style={{ marginLeft: "auto", fontFamily: TERM_FONT, fontSize: fs(8.5, isDesktop), fontWeight: 700, color: c.urgent ? "#FCA5A5" : TERM.amber,
+                      background: c.urgent ? "rgba(248,113,113,.12)" : "rgba(251,191,36,.1)", borderRadius: 99, padding: "0 6px", flexShrink: 0 }}>{c.inbox}</span>
+                  )}
                 </div>
-              )}
+                {isDesktop && c.role && <div style={{ fontSize: fs(8.5, isDesktop), color: TERM.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.role}</div>}
+                <div style={{ fontFamily: TERM_FONT, fontSize: fs(8, isDesktop), color: TERM.dim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {c.lastRunAt ? `worked ${teamAgo(c.lastRunAt)}` : "—"}{isDesktop && c.schedule ? ` · ${c.schedule}` : ""}
+                </div>
+                {!isDesktop && c.schedule && <div style={{ fontFamily: TERM_FONT, fontSize: fs(8, isDesktop), color: TERM.dim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.schedule}</div>}
+              </div>
             </div>
           );
         })}
-        {notes.length > 5 && (
-          <div {...activatable(() => setShowAll(v => !v), "Show all team notes")} onClick={() => setShowAll(v => !v)}
-            style={{ borderTop: `1px solid ${th.border}`, paddingTop: 7, fontSize: fs(9.5, isDesktop), fontWeight: 700, color: CYAN, cursor: "pointer" }}>
-            {showAll ? "Show less" : `Show all ${notes.length}`}
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: 6, padding: "0 15px 4px", flexWrap: "wrap", alignItems: "center" }}>
+        {[["all", "All"], ["open", "Waiting"], ["escalated", "Needs you"], ["done", "Done"]].map(([k, label]) => {
+          const on = filter === k;
+          return (
+            <button key={k} onClick={() => { setFilter(k); setShowAll(false); }}
+              style={{ fontSize: fs(9, isDesktop), fontWeight: 700, borderRadius: 99, padding: "4px 10px", cursor: "pointer",
+                color: on ? TERM.bg : k === "escalated" && counts.escalated ? "#FCA5A5" : TERM.sub,
+                background: on ? TERM.cyan : "transparent", border: `1px solid ${on ? TERM.cyan : TERM.line}` }}>
+              {label}{counts[k] ? ` · ${counts[k]}` : ""}
+            </button>
+          );
+        })}
+        <span {...activatable(() => setShowRules(v => !v), "How the team works")} onClick={() => setShowRules(v => !v)}
+          style={{ marginLeft: "auto", fontSize: fs(9, isDesktop), color: TERM.cyan, cursor: "pointer" }}>
+          {showRules ? "Hide rules" : "How they work ›"}
+        </span>
+      </div>
+
+      {showRules && (
+        <div style={{ margin: "6px 15px 4px", padding: "9px 11px", borderRadius: 10, background: TERM.bg2, border: `1px solid ${TERM.line}`,
+          fontSize: fs(9, isDesktop), color: TERM.sub, lineHeight: 1.65, animation: "ys-team-in .3s ease both" }}>
+          <div style={{ color: TERM.text, fontWeight: 700, marginBottom: 3 }}>Who asks whom</div>
+          🔭 Discovery adds a scheme → 🔎 Verifier checks it first<br />
+          ✉️ E-mails sees a deadline within 10 days → 🔎 Verifier confirms it (urgent) · a dead link → 🛠️ Auto-Fix (urgent)<br />
+          📰 News reads "last date extended" → 🔎 Verifier re-reads that scheme (urgent)<br />
+          🔎 Verifier finds a dead link (404) → 🛠️ Auto-Fix · 🛠️ Auto-Fix replaces it → 🔎 Verifier re-checks<br />
+          🐕 Watchdog flags hand-offs that get stuck
+          <div style={{ color: TERM.text, fontWeight: 700, margin: "7px 0 3px" }}>Strict rules</div>
+          One open request per scheme (repeats only raise the priority) · an inbox takes at most {rules?.maxOpenPerInbox ?? 25} normal requests ·
+          urgent requests expire in {rules?.ttlDays?.high ?? 3} days, normal in {rules?.ttlDays?.normal ?? 7} · {rules?.maxTries ?? 3} failed tries →
+          Needs you · a scheme passed back and forth {rules?.pingPongMax ?? 4}× in {rules?.pingPongWindowDays ?? 14} days → Needs you ·
+          E-mails are never sent for a scheme the Verifier found closed on its official page.
+        </div>
+      )}
+
+      {/* Threads */}
+      <div style={{ padding: "4px 15px 13px" }}>
+        {flash && <div style={{ fontSize: fs(9.5, isDesktop), color: TERM.cyan, padding: "6px 0" }}>{flash}</div>}
+        {data?.error && <div style={{ fontSize: fs(9.5, isDesktop), color: TERM.red, padding: "6px 0" }}>Couldn't sync: {data.error}</div>}
+        {!data && <div style={{ fontFamily: TERM_FONT, fontSize: fs(9.5, isDesktop), color: TERM.dim, padding: "10px 0" }}>connecting to the team board…</div>}
+        {data && !data.error && filtered.length === 0 && (
+          <div style={{ fontSize: fs(9.5, isDesktop), color: TERM.dim, padding: "12px 0", borderTop: `1px solid ${TERM.line}` }}>
+            {filter === "escalated" ? "Nothing needs you — the team settled everything itself." :
+             filter === "open" ? "No one is waiting on anyone." :
+             "No hand-offs yet — the first ones appear after the next agent run."}
+          </div>
+        )}
+        {shown.map((n, i) => <TeamThread key={n.id} n={n} idx={i} isDesktop={isDesktop} onAct={act} busy={busy[n.id]} />)}
+        {filtered.length > 6 && (
+          <div {...activatable(() => setShowAll(v => !v), "Show all hand-offs")} onClick={() => setShowAll(v => !v)}
+            style={{ borderTop: `1px solid ${TERM.line}`, paddingTop: 9, fontSize: fs(9.5, isDesktop), fontWeight: 700, color: TERM.cyan, cursor: "pointer" }}>
+            {showAll ? "Show less" : `Show all ${filtered.length}`}
           </div>
         )}
       </div>
@@ -7429,7 +7608,7 @@ export default function AgentsTab({
         isDesktop={isDesktop}
       >
         <div style={{ display:"grid", gap:12, gridTemplateColumns: isDesktop ? "repeat(auto-fit, minmax(320px, 1fr))" : "1fr" }}>
-          <TeamRoomCard dark={dark} isDesktop={isDesktop} />
+          <TeamRoomCard isDesktop={isDesktop} />
           <WatchdogCard dark={dark} isDesktop={isDesktop} />
           <FirebaseUsageCard dark={dark} isDesktop={isDesktop} />
           <SchemeDiscoveryCard dark={dark} isDesktop={isDesktop} />

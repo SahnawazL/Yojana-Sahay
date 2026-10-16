@@ -28,7 +28,7 @@ import { commitSchemesMeta } from "../update-schemes-meta.js";
 import { normalizeSchemeUrl } from "./urlTools.js";
 import { getTavilyCallsThisMonth, TAVILY_BACKGROUND_BUDGET, realTavilyRemaining, budgetFromReal } from "./tavilyBudget.js";
 import { FieldValue }        from "firebase-admin/firestore";
-import { postNote, openNotesFor, closeNote } from "./teamBoard.js";
+import { postNote, openNotesFor, closeNote, bumpTry, teamBrief, briefLine } from "./teamBoard.js";
 
 // ── Failure memory ───────────────────────────────────────────────────────────
 // A page that can't be read 3 runs in a row (blocked portal, JS-only site) is
@@ -273,7 +273,11 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
   // ── Team board: schemes teammates asked us to check first ──────────────
   // (new ones from Scheme Discovery, re-linked ones from Auto-Fix). Up to 5
   // per run, inside today's normal budget — they don't move the rotation.
-  const asks = await openNotesFor(db, "verifyBatch", { type: "verify", limit: 8 });
+  const brief = await teamBrief(db).catch(() => null);
+  if (brief) progress.step(briefLine(brief, "verifyBatch"));
+  const awaitingRepair = brief?.awaitingRepair ?? new Set(); // dead links Auto-Fix is already on
+  let skippedAwaitingRepair = 0, teamAnswered = 0;
+  const asks = await openNotesFor(db, "verifyBatch", { type: "verify", limit: 10 });
   const askById = new Map();
   for (const n of asks) {
     const sc = schemeById.get(n.schemeId);
@@ -287,8 +291,11 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     if (!getCheckableUrl(sc)) { await closeNote(db, n.id, "It has no online link to check (offline scheme) — nothing to verify."); continue; }
     if (!askById.has(n.schemeId)) askById.set(n.schemeId, n);
   }
-  const priority = [...askById.keys()].slice(0, 5);
-  if (priority.length) progress.step(`Team board: ${priority.length} scheme(s) teammates asked me to check first`);
+  const priority = [...askById.keys()].slice(0, 6);
+  if (priority.length) {
+    const urgentN = priority.filter(id => askById.get(id)?.priority === "high").length;
+    progress.step(`Team board: checking ${priority.length} scheme(s) teammates asked for first${urgentN ? ` (${urgentN} urgent)` : ""}`);
+  }
   let pIdx = 0;
 
   while (Date.now() - startedAt < MAX_RUNTIME_MS) {
@@ -303,6 +310,9 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
       index = (index + 1) % total;
       checkedCount++;
       if (priority.includes(id)) continue; // already checked first this run (team request)
+      // Its link is dead and Auto-Fix is already looking for a new one —
+      // reading the dead page again would only waste a credit.
+      if (awaitingRepair.has(id)) { skippedAwaitingRepair++; continue; }
     }
     const scheme = schemeById.get(id);
     // Put this scheme back so it's checked first next time (it wasn't checked).
@@ -394,15 +404,16 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     const note = askById.get(id);
     if (fromPriority && note) {
       const reply = !outcome.errorKind
-        ? `Checked: ${outcome.lastDate ? `last date ${outcome.lastDate}` : "no deadline on the page"}${outcome.isActive === true ? ", applications open" : ""} — link works.`
+        ? `Checked the official page: ${outcome.lastDate ? `last date ${outcome.lastDate}` : "no deadline on the page"}${outcome.isActive === true ? ", applications open" : outcome.isActive === false && (outcome.confidence ?? 0) >= CLOSED_MIN_CONFIDENCE ? ", applications CLOSED" : ""} — link works.`
         : outcome.errorKind === "page"
           ? (outcome.httpStatus === 404 || outcome.httpStatus === 410 ? `The link is dead (HTTP ${outcome.httpStatus}) — passed to Auto-Fix.` : "Its website refused my reader — couldn't verify, will retry on the normal lap.")
           : `Couldn't finish (${outcome.errorKind}) — will retry.`;
-      if (outcome.errorKind === "rate_limit") { /* keep the note open for next run */ }
-      else await closeNote(db, note.id, reply);
+      if (outcome.errorKind === "rate_limit" || outcome.errorKind === "budget" || outcome.errorKind === "config") await bumpTry(db, note, outcome.errorKind);
+      else { await closeNote(db, note.id, reply); teamAnswered++; }
     }
     if (outcome.errorKind === "page" && (outcome.httpStatus === 404 || outcome.httpStatus === 410)) {
       await postNote(db, { from: "verifyBatch", to: "autoFix", type: "repair", schemeId: id, schemeName: scheme.name?.en ?? id,
+        priority: note?.priority === "high" ? "high" : "normal",
         text: `The apply link of "${scheme.name?.en ?? id}" is dead (HTTP ${outcome.httpStatus}). Please find the new official page.` });
     }
     if (host) {
@@ -460,6 +471,9 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
     skippedNoUrl,
     skippedPaused,
     skippedBlockedSite,
+    skippedAwaitingRepair,
+    teamAnswered,
+    teamAsked: priority.length,
     withResults:  Object.keys(results).length,
     cursorBefore,
     cursorAfter:  index,

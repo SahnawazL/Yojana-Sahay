@@ -23,6 +23,19 @@
 import { getTavilyCallsThisMonth, TAVILY_MONTHLY_HARD_LIMIT } from "./tavilyBudget.js";
 import { readGroqQuota } from "./groqSmart.js";
 import { duplicateKeys, groqAccountGroups, tavilyPicture, labelOf } from "./keyMap.js";
+import { teamHealth } from "./teamBoard.js";
+
+// Are the agents' hand-offs flowing? (api/_lib/teamBoard.js)
+async function judgeTeam(db) {
+  const t = await teamHealth(db);
+  const base = { id: "team", name: "Team hand-offs", kind: "service", lastRunAt: null, rerun: null };
+  if (!t) return { ...base, status: "ok", detail: "No team board yet." };
+  const bits = [`${t.open} request(s) waiting`];
+  if (t.stuck) bits.push(`${t.stuck} waiting over 3 days`);
+  if (t.escalated) bits.push(`${t.escalated} need your decision (Team room → Needs you)`);
+  const status = t.escalated >= 5 || t.stuck >= 10 ? "warn" : "ok";
+  return { ...base, status, detail: `${bits.join(" · ")}.${status === "warn" ? " Open the Team room to clear them." : ""}` };
+}
 
 const HOUR = 3600 * 1000;
 const DAILY_GRACE_H = 30;      // daily jobs: > 30 h without a run = missed
@@ -284,6 +297,7 @@ export async function getAgentHealth(db) {
     verify, alerts, autoFix, news, discover,
     groqVerify, groqChat, github, tavily,
     await judgeKeyMap().catch(err => ({ id: "keyMap", name: "Key sharing check", kind: "service", status: "warn", detail: `Could not check: ${err.message}`, lastRunAt: null, rerun: null })),
+    await judgeTeam(db).catch(err => ({ id: "team", name: "Team hand-offs", kind: "service", status: "warn", detail: `Could not check: ${err.message}`, lastRunAt: null, rerun: null })),
     judgePresence("serper", "Serper (URL search)", ["SERPER_API_KEY"], "SERPER_API_KEY missing — dead links can't be repaired automatically."),
     judgePresence("gmail", "Gmail (alert sender)", ["GMAIL_APP_PASSWORD"], "GMAIL_USER / GMAIL_APP_PASSWORD missing — deadline e-mails can't be sent."),
   ];

@@ -28,7 +28,7 @@ import { normalizeSchemeUrl, isPublicHttpUrl } from "./urlTools.js";
 import { getUrlIssueFilePath } from "./urlIssues.js";
 import { findUrlCandidates, registrableDomain, domainScore, isNonOfficialUrl } from "./urlFinder.js";
 import { pingUrlServer } from "../ping-url.js";
-import { openNotesFor, closeNote, postNote } from "./teamBoard.js";
+import { openNotesFor, closeNote, postNote, bumpTry, teamBrief, briefLine } from "./teamBoard.js";
 
 const MAX_SEARCHES_PER_RUN = Math.max(0, Number(process.env.URL_REPAIR_PER_RUN ?? 3) || 0);
 const MAX_REPINGS_PER_RUN  = 40;
@@ -95,15 +95,21 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   try { const st = (await stateRef?.get())?.data() ?? {}; attempts = st.attempts ?? {}; reported = st.reported ?? {}; } catch { /* ignore */ }
 
   // Team board: links the Background Verifier found dead (404/410) and asked us to fix.
+  try { progress.step(briefLine(await teamBrief(db), "autoFix")); } catch { /* advice only */ }
   const asks = new Map();
   for (const n of await openNotesFor(db, "autoFix", { type: "repair", limit: 20 })) if (n.schemeId && !asks.has(n.schemeId)) asks.set(n.schemeId, n);
-  if (asks.size) progress.step(`Team board: the Background Verifier asked me to fix ${asks.size} link(s)`);
+  if (asks.size) {
+    const urgentN = [...asks.values()].filter(n => n.priority === "high").length;
+    progress.step(`Team board: ${asks.size} link repair request(s) from teammates${urgentN ? ` — ${urgentN} urgent (deadline soon), doing those first` : ""}`);
+  }
   const answers = new Map(); // schemeId → reply for the teammate's note
   const answerTeam = async () => {
     for (const [id, n] of asks) {
       if (answers.has(id)) { await closeNote(db, n.id, answers.get(id)); continue; }
       if (!SCHEME_DB.some(s => s.id === id)) await closeNote(db, n.id, "This scheme is no longer in the app.", "dropped");
-      // otherwise: not reached this run (search budget) — the note stays open for next time
+      // Not reached: a search outage counts as a failed try (3 → admin);
+      // simply running out of today's searches leaves it open for tomorrow.
+      else if (out.stopReason) await bumpTry(db, n, out.stopReason);
     }
     for (const f of out.fixed) {
       await postNote(db, { from: "autoFix", to: "verifyBatch", type: "verify", schemeId: f.id, schemeName: f.name,
@@ -128,7 +134,7 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   if (dead.length === 0 && unofficial.length === 0) { await answerTeam(); return out; }
 
   // User-reported links first, then oldest-attempted, so every dead link gets its turn.
-  const urgent = id => (reported[id] || asks.has(id) ? 1 : 0);
+  const urgent = id => (asks.get(id)?.priority === "high" ? 2 : reported[id] || asks.has(id) ? 1 : 0);
   dead.sort((a, b) => (urgent(b.id) - urgent(a.id)) || ((attempts[a.id] ?? 0) - (attempts[b.id] ?? 0)));
 
   // ── 1. Re-ping (free) ─────────────────────────────────────────────────────
@@ -153,7 +159,9 @@ export async function runUrlRepair({ db, log = console, progress = { step() {} }
   const patches = [];
   for (const s of stillDead) {
     if (out.searchesUsed >= MAX_SEARCHES_PER_RUN) break;
-    if (attempts[s.id] && daysAgo(attempts[s.id]) < RETRY_AFTER_DAYS) {
+    // Urgent requests (deadline closing soon) skip the cool-down once.
+    const urgentAsk = asks.get(s.id)?.priority === "high" && !(asks.get(s.id)?.tries > 0);
+    if (attempts[s.id] && daysAgo(attempts[s.id]) < RETRY_AFTER_DAYS && !urgentAsk) {
       out.skippedCooldown++;
       answers.set(s.id, `I searched for this one recently and found nothing certain — I'll try again after ${RETRY_AFTER_DAYS} days (see Review).`);
       continue;
