@@ -355,7 +355,20 @@ export function buildScheme(ai, { candidate, region, sourceUrl, pageText, scheme
   if (!benefit.hi) benefit.hi = benefit.en;
   if (!tag.hi) tag.hi = tag.en;
 
-  const annual = Number.isFinite(Number(ai.annual)) ? Math.max(0, Math.min(10_000_000, Math.round(Number(ai.annual)))) : 0;
+  let annual = Number.isFinite(Number(ai.annual)) ? Math.max(0, Math.min(10_000_000, Math.round(Number(ai.annual)))) : 0;
+  // "₹3,000 per month" means ₹36,000 a year — the AI sometimes gives the monthly figure.
+  const monthly = /₹\s?([\d,]+)\s*(?:\/|per|a|every)\s*month/i.exec(benefit.en);
+  if (monthly) {
+    const perYear = Number(monthly[1].replace(/,/g, "")) * 12;
+    if (perYear > 0 && annual < perYear * 0.9) annual = perYear;
+  }
+  // A benefit nobody can picture ("financial assistance", "variable support")
+  // needs a human look before it goes live.
+  const concrete = /₹|\d|free\b|waiver|loan|subsid|insurance|pension|scholarship of|kit|cylinder|house|seat|reimburse/i.test(benefit.en);
+  if (!concrete || /^(variable|various|financial assistance|assistance|support|benefits?)\b/i.test(benefit.en.trim())) {
+    problems.push("benefit is vague — no amount or concrete item, check before publishing");
+  }
+  if (docsEn.length && docsEn.length < 2) problems.push("only one document listed — check the documents");
   const applyUrlAi = typeof ai.applyUrl === "string" && isPublicHttpUrl(ai.applyUrl.trim()) ? ai.applyUrl.trim() : null;
   const applyUrl = applyUrlAi && domainScore(applyUrlAi) >= 0.9 ? applyUrlAi : sourceUrl;
   const applyType = ai.applyType === "offline" ? "offline" : "online";
