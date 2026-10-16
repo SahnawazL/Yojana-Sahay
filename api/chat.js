@@ -489,7 +489,11 @@ function logTiming(req, extra) {
 }
 
 // Reads Groq's SSE stream; calls onText for answer text, collects tool calls.
-async function pumpGroqStream(r, onText) {
+// onSig(phase, name?) reports what the model is doing before any text:
+//   "think" — it started reasoning · "plan", toolName — it is calling a tool
+async function pumpGroqStream(r, onText, onSig) {
+  let thinking = false;
+  const planned = new Set();
   const reader = r.body.getReader();
   const dec = new TextDecoder();
   let buf = "", finish = null, error = null, usage = null, firstAt = null;
@@ -511,12 +515,16 @@ async function pumpGroqStream(r, onText) {
       const ch = j.choices?.[0];
       if (!ch) continue;
       const d = ch.delta || {};
+      if (d.reasoning && !thinking && firstAt == null) { thinking = true; try { onSig?.("think"); } catch {} }
       if (d.content) { if (firstAt == null) firstAt = Date.now(); onText(d.content); }
       for (const tc of d.tool_calls || []) {
         const k = tc.index ?? 0;
         tools[k] = tools[k] || { id: "", name: "", args: "" };
         if (tc.id) tools[k].id = tc.id;
-        if (tc.function?.name) tools[k].name += tc.function.name;
+        if (tc.function?.name) {
+          tools[k].name += tc.function.name;
+          if (!planned.has(tools[k].name)) { planned.add(tools[k].name); try { onSig?.("plan", tools[k].name); } catch {} }
+        }
         if (tc.function?.arguments) tools[k].args += tc.function.arguments;
       }
       if (ch.finish_reason) finish = ch.finish_reason;
@@ -545,7 +553,8 @@ async function handleStream(req, res, keys, requestBody) {
       return res.end();
     }
     const openedAt = Date.now();
-    let out = await pumpGroqStream(first.res, onText);
+    if (first.fallback) send({ t: "ph", p: "backup" });
+    let out = await pumpGroqStream(first.res, onText, (p, n) => send(n ? { t: "ph", p, n: String(n).slice(0, 40) } : { t: "ph", p }));
     logTiming(req, { mode: "chat", openMs: openedAt - req._t0, firstTextMs: out.firstAt ? out.firstAt - req._t0 : null,
       model: first.model, fallback: !!first.fallback, tried: first.tried, n429: first.count429, cooled: first.cooled,
       queueMs: out.usage?.queue_time != null ? Math.round(out.usage.queue_time * 1000) : null,
@@ -619,7 +628,9 @@ async function handleAgentStream(req, res, keys, requestBody, final) {
       return res.end();
     }
     const openedAt = Date.now();
-    let out = await pumpGroqStream(r.res, onText);
+    if (r.fallback) send({ t: "ph", p: "backup" });
+    const onSig = (p, n) => send(n ? { t: "ph", p, n: String(n).slice(0, 40) } : { t: "ph", p });
+    let out = await pumpGroqStream(r.res, onText, onSig);
     logTiming(req, { mode: "agent", final, openMs: openedAt - req._t0, firstTextMs: out.firstAt ? out.firstAt - req._t0 : null,
       tools: (out.toolCalls || []).length, model: r.model, fallback: !!r.fallback, tried: r.tried, n429: r.count429, cooled: r.cooled,
       queueMs: out.usage?.queue_time != null ? Math.round(out.usage.queue_time * 1000) : null,
@@ -631,7 +642,7 @@ async function handleAgentStream(req, res, keys, requestBody, final) {
       // The model fumbled a tool call → answer without tools.
       const again = await openGroqStream(keys, requestBody);
       if (!again.ok) { send({ t: "e", m: again.data?.error?.message || "The AI is busy. Please try again." }); return res.end(); }
-      out = await pumpGroqStream(again.res, onText);
+      out = await pumpGroqStream(again.res, onText, onSig);
       recordAiCall({ service: "groq", keyIdx: again.keyIdx, count429: again.count429, failedKeys: again.failedKeys }).catch(() => {});
       logApiCallToHistory("groqCalls").catch(() => {});
     }

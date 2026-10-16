@@ -12,7 +12,7 @@ import { runTool, TOOL_META } from "./agentTools.js";
 const MAX_ROUNDS = 4;
 
 // One streamed call. Returns { text, calls, error }.
-async function streamRound(body, { onText, signal }) {
+async function streamRound(body, { onText, onPhase, signal }) {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -36,6 +36,7 @@ async function streamRound(body, { onText, signal }) {
     let ev; try { ev = JSON.parse(line); } catch { return; }
     if (ev.t === "d" && typeof ev.c === "string") { text += ev.c; onText?.(text); }
     else if (ev.t === "tc" && Array.isArray(ev.calls)) calls = ev.calls;
+    else if (ev.t === "ph" && ev.p) onPhase?.({ p: ev.p, n: ev.n });
     else if (ev.t === "e") error = ev.m || "AI error";
   };
   for (;;) {
@@ -57,7 +58,7 @@ async function streamRound(body, { onText, signal }) {
  * Resolves to { reply, followUps, actions, steps, ui, schemeIds }.
  */
 export async function runAgent(history, query, lang = "en", profile = null, extras = {}, hooks = {}) {
-  const { onDelta, onStep, signal } = hooks;
+  const { onDelta, onStep, onPhase, signal } = hooks;
   const ctx = { lang, profile, answers: extras.answers || null, matched: extras.matched || [], signal };
   const base = buildChatBody(history, query, lang, profile, { ...extras, agent: true });
   const messages = [...base.messages];
@@ -70,10 +71,14 @@ export async function runAgent(history, query, lang = "en", profile = null, extr
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const final = round === MAX_ROUNDS - 1;
       let shown = false;
+      // Live activity: first round = reading the question; later rounds =
+      // reviewing what the tools found.
+      onPhase?.({ p: round === 0 ? "send" : "review" });
       const { text, calls, error } = await streamRound(
         { ...base, messages, stream: true, agent: true, final },
         {
           signal,
+          onPhase,
           // Shown live; if this round ends in tool calls instead, it was the
           // model "thinking out loud" and is cleared below.
           onText: (t) => { shown = true; onDelta?.(visibleStreamText(t)); },
@@ -91,6 +96,7 @@ export async function runAgent(history, query, lang = "en", profile = null, extr
         content: text || "",
         tool_calls: calls.map(c => ({ id: c.id, type: "function", function: { name: c.name, arguments: c.args || "{}" } })),
       });
+      onPhase?.({ p: "tools", n: calls.length });
       // Independent lookups run together.
       const results = await Promise.all(calls.map(async (c) => {
         const meta = TOOL_META[c.name] || { icon: "⚙️", en: c.name, hi: c.name };

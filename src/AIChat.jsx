@@ -19,6 +19,7 @@ import { useApplications, daysSince, trackApplication } from "./applications.js"
 import { track } from "./track.js";
 import { SCHEME_DB } from "./schemesData.js";
 import aiAvatar from "./ai-avatar.webp";
+import { TOOL_META } from "./agentTools.js";
 
 // ─── SOUND EFFECTS (Web Audio API — no files, no loading) ────────────────────
 // Each function creates a one-shot AudioContext, plays a tone, then closes it.
@@ -339,6 +340,10 @@ const GLOBAL_CSS = `
   0%   { background-position: -300% center; }
   100% { background-position:  300% center; }
 }
+@keyframes ys-activity-sweep {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(290%); }
+}
 @keyframes focus-glow {
   0%,100% { box-shadow: 0 0 0 3px rgba(255,153,51,0.15); }
   50%      { box-shadow: 0 0 0 4px rgba(255,153,51,0.28); }
@@ -635,16 +640,58 @@ function StepsSummary({ steps, dark, lang }) {
   );
 }
 
-function TypingIndicator({ dark, status, lang, steps }) {
+// ─── LIVE ACTIVITY — what the assistant is really doing right now ──────────
+// Built from real events: the app sending the question, the server saying
+// the model started reasoning / picked a tool / switched to the backup
+// model, the app running each tool (with its actual result), and the model
+// reviewing those results. Finished stages stay listed with how long they
+// took; a timer shows the total wait.
+const PHASE_TEXT = {
+  send:    { icon: "📨", en: "Reading your question",              hi: "आपका सवाल पढ़ रहे हैं" },
+  think:   { icon: "🧠", en: "Thinking it through",                hi: "सोच-विचार कर रहे हैं" },
+  plan:    { icon: "🧭", en: "Choosing what to check",             hi: "तय कर रहे हैं क्या जांचना है" },
+  tools:   { icon: "⚙️", en: "Looking it up in the app",           hi: "ऐप में जानकारी देख रहे हैं" },
+  review:  { icon: "🔎", en: "Reviewing what I found",             hi: "मिली जानकारी जांच रहे हैं" },
+  backup:  { icon: "⚡", en: "Main AI is busy — using the fast backup", hi: "मुख्य AI व्यस्त — तेज़ बैकअप से जवाब" },
+  search:  { icon: "🌐", en: "Checking the web for the latest",    hi: "वेब पर ताज़ा जानकारी खोज रहे हैं" },
+};
+function phaseLabel(ph, lang) {
+  if (!ph) return "";
+  const hi = lang === "hi";
+  if (ph.p === "plan" && ph.n) {
+    const m = TOOL_META[ph.n];
+    if (m) return hi ? `अगला कदम: ${m.hi}` : `Next: ${m.en.charAt(0).toLowerCase()}${m.en.slice(1)}`;
+  }
+  if (ph.p === "search" && ph.n) return hi ? `वेब पर खोज: “${ph.n}”` : `Searching the web: “${ph.n}”`;
+  const t = PHASE_TEXT[ph.p];
+  return t ? (hi ? t.hi : t.en) : "";
+}
+const phaseIcon = (ph) => (ph?.p === "plan" && TOOL_META[ph.n]?.icon) || PHASE_TEXT[ph?.p]?.icon || "✨";
+const fmtSecs = (ms) => (ms < 10000 ? (ms / 1000).toFixed(1) : Math.round(ms / 1000)) + "s";
+
+function LiveClock({ since }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 100);
+    return () => clearInterval(t);
+  }, []);
+  return <>{fmtSecs(Math.max(0, now - (since || now)))}</>;
+}
+
+function TypingIndicator({ dark, status, lang, steps, phase, trail, startedAt }) {
   const th = THEME[dark ? "dark" : "light"];
-  const shimmerBg = dark
-    ? "linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%)"
-    : "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)";
-  const shimmerBase = {
-    backgroundSize: "300% 100%",
-    animation: "shimmer 1.6s ease-in-out infinite",
-    borderRadius: 6,
-  };
+  const bf = fontFamily(lang);
+  const isHindi = lang === "hi";
+  const [slow, setSlow] = useState(false);
+  // "Taking longer than usual" only when the CURRENT stage is genuinely slow.
+  useEffect(() => {
+    setSlow(false);
+    const t = setTimeout(() => setSlow(true), 7000);
+    return () => clearTimeout(t);
+  }, [phase?.p, phase?.n, steps?.length]);
+  const current = phase ? phaseLabel(phase, lang) : (status || (isHindi ? "जवाब तैयार कर रहे हैं" : "Preparing your answer"));
+  const accent = "#FF9933";
+  const done = (trail || []).slice(-5);
   return (
     <div className="ai-msg-bubble"
       style={{ display:"flex", alignItems:"flex-end", gap:8, marginBottom:14 }}>
@@ -655,24 +702,51 @@ function TypingIndicator({ dark, status, lang, steps }) {
       }}>
         <img src={aiAvatar} alt="AI" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
       </div>
-      <div style={{
+      <div role="status" aria-live="polite" style={{
         background: th.card,
-        border:`1.5px solid ${th.border2}`,
-        borderRadius:"18px 18px 18px 4px",
-        padding:"14px 18px",
+        border:`1px solid ${th.border2}`,
+        borderRadius:"16px 16px 16px 4px",
+        padding:"11px 14px 12px",
         boxShadow: dark ? "0 2px 10px rgba(0,0,0,0.3)" : "0 2px 10px rgba(0,0,0,0.07)",
-        display:"flex", flexDirection:"column", gap:9,
-        minWidth:160,
+        display:"flex", flexDirection:"column", gap:7,
+        minWidth:210, maxWidth:"min(300px, 78vw)", fontFamily:bf, position:"relative", overflow:"hidden",
       }}>
-        {status && (
-          <div style={{ fontSize:11.5, fontWeight:600, color:th.textMid, fontFamily:fontFamily(lang), animation:"fade-in 0.25s ease-out", maxWidth:230 }}>
-            {status}
+        {/* Finished stages (tool stages show their real results) */}
+        {done.map((d, i) => d.p === "tools" ? (
+          steps?.slice(d.from ?? 0, d.to).length > 0 && (
+            <div key={`tools-${i}`} style={{ maxWidth:280 }}><AgentSteps steps={steps.slice(d.from ?? 0, d.to)} dark={dark} lang={lang} compact /></div>
+          )
+        ) : (
+          <div key={`${d.p}-${d.n ?? ""}-${i}`} style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:th.textMid, animation:"fade-in 0.25s ease-out" }}>
+            <span style={{ width:16, textAlign:"center", color:"#16a34a", fontWeight:800 }}>✓</span>
+            <span style={{ flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{phaseLabel(d, lang)}</span>
+            {d.ms >= 100 && <span style={{ fontSize:10, color:th.textSub, fontVariantNumeric:"tabular-nums" }}>{fmtSecs(d.ms)}</span>}
+          </div>
+        ))}
+        {/* Tools running right now */}
+        {phase?.p === "tools" && steps?.slice(phase.from ?? 0).length > 0 && (
+          <div style={{ maxWidth:280 }}><AgentSteps steps={steps.slice(phase.from ?? 0)} dark={dark} lang={lang} compact /></div>
+        )}
+        {/* Old servers send no stages — still show the tool steps */}
+        {!phase && steps?.length > 0 && <div style={{ maxWidth:280 }}><AgentSteps steps={steps} dark={dark} lang={lang} compact /></div>}
+        {/* Current stage */}
+        <div key={`${phase?.p}-${phase?.n ?? ""}`} style={{ display:"flex", alignItems:"center", gap:7, animation:"fade-in 0.25s ease-out" }}>
+          <span style={{ width:16, height:16, flexShrink:0, display:"inline-flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
+            <span style={{ position:"absolute", inset:0, borderRadius:"50%", border:`2px solid ${accent}`, borderTopColor:"transparent", animation:"spin 0.9s linear infinite" }} />
+            <span style={{ fontSize:8.5 }}>{phaseIcon(phase)}</span>
+          </span>
+          <span style={{ flex:1, minWidth:0, fontSize:12, fontWeight:700, color:th.text, lineHeight:1.35 }}>{current}…</span>
+          <span style={{ fontSize:10.5, fontWeight:600, color:th.textSub, fontVariantNumeric:"tabular-nums" }}><LiveClock since={startedAt} /></span>
+        </div>
+        {slow && (
+          <div style={{ fontSize:10.5, color:th.textSub, paddingLeft:23, animation:"fade-in 0.3s ease-out" }}>
+            {isHindi ? "सामान्य से थोड़ा ज़्यादा समय लग रहा है — बस कुछ पल" : "Taking a little longer than usual — almost there"}
           </div>
         )}
-        {steps?.length > 0 && <div style={{ maxWidth:260 }}><AgentSteps steps={steps} dark={dark} lang={lang} /></div>}
-        <div style={{ height:11, width:"72%", background:shimmerBg, ...shimmerBase }} />
-        <div style={{ height:11, width:"45%", background:shimmerBg, ...shimmerBase,
-          animationDelay:"0.2s" }} />
+        {/* Progress sheen */}
+        <div style={{ height:2, borderRadius:2, background: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", overflow:"hidden", marginTop:1 }}>
+          <div style={{ height:"100%", width:"38%", borderRadius:2, background:`linear-gradient(90deg, transparent, ${accent}, #6366F1, transparent)`, animation:"ys-activity-sweep 1.4s ease-in-out infinite" }} />
+        </div>
       </div>
     </div>
   );
@@ -2296,7 +2370,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
     setMessages(nextMessages);
     playSendSound();   // 🔊 send whoosh
     setLoading(true);
-    setLive({ text:"", status:"" });
+    setLive({ text:"", status:"", phase:null, trail:[], startedAt: Date.now() });
     liveTextRef.current = "";
     try { abortRef.current?.abort(); } catch {}
     const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -2346,8 +2420,26 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             }
           },
           onStep: (st) => setLive(l => l && { ...l, steps: st }),
+          // Real progress from the app + server → the live activity panel.
+          onPhase: (ph) => setLive(l => {
+            if (!l || !ph?.p || l.text) return l;
+            const now = Date.now();
+            if (l.phase && l.phase.p === ph.p && l.phase.n === ph.n) return l;
+            // A "tools" stage remembers which tool steps belong to it, so the
+            // panel stays in true time order across several rounds.
+            const nSteps = l.steps?.length || 0;
+            const trail = l.phase
+              ? [...(l.trail || []), { p: l.phase.p, n: l.phase.n, ms: now - l.phase.at, ...(l.phase.p === "tools" ? { from: l.phase.from, to: nSteps } : {}) }]
+              : (l.trail || []);
+            return { ...l, trail, phase: { p: ph.p, n: ph.n, at: now, ...(ph.p === "tools" ? { from: nSteps } : {}) } };
+          }),
           onStatus: (kind, q) => {
-            if (kind === "search") setLive(l => l && { ...l, status: isHindi ? "🔍 वेब पर ताज़ा जानकारी खोज रहे हैं…" : `🔍 Checking the web for the latest${q ? `: “${q.slice(0, 60)}”` : "…"}` });
+            if (kind === "search") setLive(l => {
+              if (!l) return l;
+              const now = Date.now();
+              const trail = l.phase ? [...(l.trail || []), { p: l.phase.p, n: l.phase.n, ms: now - l.phase.at }] : (l.trail || []);
+              return { ...l, trail, phase: { p: "search", n: q ? q.slice(0, 50) : undefined, at: now } };
+            });
           },
         },
       );
@@ -2580,7 +2672,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           <FollowUpChips chips={chips} onTap={handleSend} lang={lang} dark={dark} />
         )}
 
-        {loading && !live?.text && <TypingIndicator dark={dark} lang={lang} status={live?.status} steps={live?.steps} />}
+        {loading && !live?.text && <TypingIndicator dark={dark} lang={lang} status={live?.status} steps={live?.steps} phase={live?.phase} trail={live?.trail} startedAt={live?.startedAt} />}
         {error && (
           <div style={{
             textAlign:"center", marginBottom:12,

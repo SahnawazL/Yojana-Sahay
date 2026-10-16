@@ -963,7 +963,7 @@ function stripActions(t) { return String(t).replace(/^\s*ACTION:.*$\n?/gim, "");
 // onDelta(visibleTextSoFar) is called as text arrives; onStatus("search", q)
 // when the AI looks something up on the web. Resolves to { reply, followUps }.
 // If the server answers with plain JSON (older deploy), falls back cleanly.
-export async function sendMessageStream(conversationHistory, userQuery, lang = "en", profile = null, extras = {}, { onDelta, onStatus, signal } = {}) {
+export async function sendMessageStream(conversationHistory, userQuery, lang = "en", profile = null, extras = {}, { onDelta, onStatus, onPhase, signal } = {}) {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -997,6 +997,8 @@ export async function sendMessageStream(conversationHistory, userQuery, lang = "
       full += ev.c;
       const vis = visibleStreamText(full);
       if (vis !== lastShown) { lastShown = vis; onDelta?.(vis); }
+    } else if (ev.t === "ph") {
+      onPhase?.({ p: ev.p, n: ev.n });
     } else if (ev.t === "s") {
       onStatus?.("search", ev.q || "");
     } else if (ev.t === "e") {
