@@ -283,4 +283,21 @@ export const UTTARAKHAND_SCHEMES = [
   },
   // </auto-scheme id="uk_teelu_rauteli_pension">
 
+  // <auto-scheme id="uk_yuva_bhavishya_nirman"> added by Scheme Discovery agent on 2026-10-16 · source: https://thenewsmill.com/2026/09/uttarakhand-cm-dhami-launches-scheme-for-free-online-coaching-of-youth/
+  {
+    id: "uk_yuva_bhavishya_nirman",
+    icon: "🎯", color: "#D97706", scope: "state", state: "Uttarakhand",
+    ministry: { en: "Ministry of Youth Affairs and Sports", hi: "युवा एवं खेल विभाग" },
+    name:    { en: "Mukhyamantri Yuva Bhavishya Nirman Yojana", hi: "मुख्यमंत्री युवा भविष्य निर्माण योजना" },
+    benefit: { en: "Free online coaching & study materials for competitive exams", hi: "प्रतिस्पर्धी परीक्षाओं के लिए मुफ्त ऑनलाइन कोचिंग एवं अध्ययन सामग्री" },
+    tag:     { en: "Online Coaching", hi: "ऑनलाइन कोचिंग" },
+    annual: 0,
+    apply:   { en: "https://thenewsmill.com/2026/09/uttarakhand-cm-dhami-launches-scheme-for-free-online-coaching-of-youth/", hi: "https://thenewsmill.com/2026/09/uttarakhand-cm-dhami-launches-scheme-for-free-online-coaching-of-youth/" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-16", source: "https://thenewsmill.com/2026/09/uttarakhand-cm-dhami-launches-scheme-for-free-online-coaching-of-youth/",
+    match: (a) => a.state === "Uttarakhand" && a.who === "student" && a.educationLevel === "undergrad",
+  },
+  // </auto-scheme id="uk_yuva_bhavishya_nirman">
+
 ];
