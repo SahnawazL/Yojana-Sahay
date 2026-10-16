@@ -1809,9 +1809,11 @@ function useRunAgent() {
   return { running, message, run };
 }
 
-function RunNowButton({ job, label, runner, dark, isDesktop, onDone, title, onOpen, running: runningProp }) {
+function RunNowButton({ job, label, runner, dark, isDesktop, onDone, title, onOpen, running: runningProp, hideWhenBusy = false }) {
   const th = THEME[dark ? "dark" : "light"];
   const busy = runningProp ?? runner.running === job;
+  // On cards that already show "Running…" + the live terminal, don't repeat it.
+  if (busy && hideWhenBusy) return null;
   const disabled = !onOpen && !!runner.running;
   const click = () => {
     if (onOpen) { onOpen(); return; }          // show "what will this do?" first
@@ -1977,8 +1979,43 @@ function useLogReveal(steps, { fast }) {
 }
 
 // Live log of one job (steps stream in while it runs; stays visible ~15 min after).
+// ── Terminal palette (always dark — reads like a real console in both themes)
+const TERM = {
+  bg: "#070B14", bg2: "#0C1322", line: "rgba(148,163,184,.14)", text: "#D7E3F4", dim: "#5E708C",
+  sub: "#93A4BF", cyan: "#22D3EE", green: "#34D399", amber: "#FBBF24", red: "#F87171",
+  url: "#7DD3FC", quote: "#F5D0FE",
+};
+const TERM_FONT = "'JetBrains Mono','SF Mono','Fira Code','Cascadia Code',ui-monospace,Menlo,Consolas,monospace";
+const TERM_KEYFRAMES = `
+@keyframes ys-term-glow { 0%,100% { box-shadow: 0 0 0 1px rgba(34,211,238,.25), 0 10px 30px -12px rgba(34,211,238,.35) } 50% { box-shadow: 0 0 0 1px rgba(34,211,238,.45), 0 10px 34px -10px rgba(34,211,238,.55) } }
+@keyframes ys-term-sweep { from { transform: translateX(-100%) } to { transform: translateX(250%) } }
+@keyframes ys-term-dot { 0%,100% { opacity:1; transform:scale(1) } 50% { opacity:.35; transform:scale(.8) } }
+`;
+const JOB_PATH = { discover: "discover", verifyBatch: "verify-batch", autoFix: "auto-fix", news: "news", deadlineAlerts: "deadline-mail", health: "watchdog" };
+
+function fmtTermClock(iso) {
+  try { return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" }); } catch { return ""; }
+}
+
+// Light syntax colouring: links and "quoted names" stand out.
+function TermText({ text }) {
+  const parts = String(text).split(/(https?:\/\/\S+|"[^"]{1,90}")/g);
+  return parts.map((p, i) =>
+    /^https?:\/\//.test(p) ? <span key={i} style={{ color: TERM.url, wordBreak: "break-all" }}>{p}</span>
+    : /^"[^"]+"$/.test(p) ? <span key={i} style={{ color: TERM.quote }}>{p}</span>
+    : <React.Fragment key={i}>{p}</React.Fragment>);
+}
+
+// "Checking 7/20: …" → 0.35 (determinate progress); null when unknown.
+function progressFrom(steps) {
+  for (let i = steps.length - 1; i >= 0; i--) {
+    const m = /\b(\d{1,4})\s*\/\s*(\d{1,4})\b/.exec(String(steps[i]?.text ?? ""));
+    if (m && /check|scheme|scann|link|item|user/i.test(steps[i].text) && +m[2] > 0 && +m[1] <= +m[2]) return +m[1] / +m[2];
+  }
+  return null;
+}
+
 export function LiveJobLog({ job, live, dark, isDesktop }) {
-  const th = THEME[dark ? "dark" : "light"];
   const [, tick] = useState(0);
   const running = liveIsRunning(live);
   useEffect(() => {
@@ -1988,11 +2025,9 @@ export function LiveJobLog({ job, live, dark, isDesktop }) {
   }, [running]);
   const boxRef = useRef(null);
   const steps = live?.steps ?? [];
-  // A log that was already finished when it was opened replays quickly.
   const fastRef = useRef(!running);
   const reveal = useLogReveal(steps, { fast: fastRef.current });
 
-  // Follow the newest line with a smooth glide — unless the reader scrolled up.
   const [follow, setFollow] = useState(true);
   const programmatic = useRef(false);
   useEffect(() => {
@@ -2006,60 +2041,112 @@ export function LiveJobLog({ job, live, dark, isDesktop }) {
   const onScroll = () => {
     const el = boxRef.current;
     if (!el || programmatic.current) return;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 28;
-    setFollow(atBottom);
+    setFollow(el.scrollHeight - el.scrollTop - el.clientHeight < 28);
   };
 
   if (!live) return null;
   const started = live.startedAt ? new Date(live.startedAt).getTime() : null;
   const ended = live.finishedAt ? new Date(live.finishedAt).getTime() : null;
-  const color = running ? CYAN : live.error ? "#EF4444" : IND_GREEN;
-  const kindColor = { ok: IND_GREEN, warn: IDLE_AMBER, error: "#EF4444", done: IND_GREEN };
-  const who = { manual: "started by you", cron: "scheduled run", watchdog: "started by the watchdog" }[live.trigger] ?? live.trigger;
+  const failed = !running && !!live.error;
+  const accent = running ? TERM.cyan : failed ? TERM.red : TERM.green;
+  const who = { manual: "you", cron: "schedule", watchdog: "watchdog" }[live.trigger] ?? live.trigger ?? "—";
+  const elapsed = started ? fmtDur((running ? Date.now() : (ended ?? started)) - started) : "";
   const visible = steps.slice(0, reveal.shown + (reveal.typing ? 1 : 0));
-  const pill = { fontSize:fs(8.5, isDesktop), fontWeight:700, padding:"2px 8px", borderRadius:20, border:`1px solid ${color}66`, background: th.card, color, cursor:"pointer" };
+  const progress = progressFrom(steps.slice(0, Math.max(1, reveal.shown + 1)));
+  const glyph = { ok: ["✓", TERM.green], warn: ["!", TERM.amber], error: ["✗", TERM.red], done: ["✓", TERM.green] };
+  const btn = { fontFamily: TERM_FONT, fontSize: fs(8.5, isDesktop), fontWeight: 600, color: TERM.sub, background: "rgba(148,163,184,.08)",
+    border: `1px solid ${TERM.line}`, borderRadius: 6, padding: "2px 8px", cursor: "pointer", lineHeight: 1.5 };
+
   return (
-    <div style={{ border:`1px solid ${color}55`, background:`${color}0d`, borderRadius:10, padding:"8px 10px", marginBottom:10, position:"relative" }}>
-      <style>{LOG_KEYFRAMES}</style>
-      <div style={{ display:"flex", alignItems:"center", gap:7, fontSize:fs(10, isDesktop), fontWeight:800, color }}>
-        {running
-          ? <span style={{ width:9, height:9, borderRadius:"50%", border:`2px solid ${color}40`, borderTopColor:color, animation:"ys-spin 0.9s linear infinite", flexShrink:0 }} />
-          : <span style={{ flexShrink:0 }}>{live.error ? "✗" : "✓"}</span>}
-        <span>{running ? "Running now" : live.error ? "Last run failed" : "Last run finished"}</span>
-        <span style={{ fontWeight:600, color:th.textSub, flex:1, minWidth:0 }}>· {who}{started ? ` · ${running ? fmtDur(Date.now() - started) : `took ${fmtDur((ended ?? started) - started)} · ${timeAgo(live.finishedAt)}`}` : ""}</span>
-        {!reveal.done && steps.length > 2 && (
-          <button type="button" onClick={reveal.skip} style={pill} aria-label="Show the whole log now">Show all</button>
+    <div style={{
+      position: "relative", marginBottom: 10, borderRadius: 12, overflow: "hidden",
+      background: `radial-gradient(120% 80% at 100% 0%, ${accent}14 0%, transparent 55%), linear-gradient(180deg, ${TERM.bg2}, ${TERM.bg})`,
+      border: `1px solid ${running ? "rgba(34,211,238,.35)" : TERM.line}`,
+      boxShadow: running ? undefined : "0 8px 24px -14px rgba(0,0,0,.6)",
+      animation: running && !prefersReducedMotion() ? "ys-term-glow 2.4s ease-in-out infinite" : "none",
+      fontFamily: TERM_FONT, colorScheme: "dark",
+    }}>
+      <style>{LOG_KEYFRAMES + TERM_KEYFRAMES}</style>
+
+      {/* ── title bar ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderBottom: `1px solid ${TERM.line}`, background: "rgba(255,255,255,.02)" }}>
+        <span style={{ display: "flex", gap: 5, flexShrink: 0 }} aria-hidden="true">
+          {["#FF5F57", "#FEBC2E", "#28C840"].map(c => <span key={c} style={{ width: 8, height: 8, borderRadius: "50%", background: c, opacity: .9 }} />)}
+        </span>
+        <span style={{ flex: 1, minWidth: 0, textAlign: "center", fontSize: fs(9, isDesktop), color: TERM.dim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          agents@yojanasahay <span style={{ color: TERM.sub }}>~/{JOB_PATH[job] ?? job}</span>
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0, fontSize: fs(8.5, isDesktop), fontWeight: 700, letterSpacing: ".06em", color: accent }}>
+          {running && <span style={{ width: 6, height: 6, borderRadius: "50%", background: accent, animation: "ys-term-dot 1.2s ease-in-out infinite" }} />}
+          {running ? "LIVE" : failed ? "FAILED" : "DONE"}
+          <span style={{ color: TERM.dim, fontWeight: 500, letterSpacing: 0 }}>{elapsed}</span>
+        </span>
+      </div>
+
+      {/* ── progress rail ── */}
+      <div style={{ height: 2, background: "rgba(148,163,184,.08)", position: "relative", overflow: "hidden" }} aria-hidden="true">
+        {running && progress == null && !prefersReducedMotion() && (
+          <span style={{ position: "absolute", inset: 0, width: "40%", background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, animation: "ys-term-sweep 1.6s ease-in-out infinite" }} />
+        )}
+        {(progress != null || !running) && (
+          <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${Math.round((running ? progress : 1) * 100)}%`, background: accent, transition: "width .6s cubic-bezier(.2,.7,.2,1)" }} />
         )}
       </div>
-      <div ref={boxRef} onScroll={onScroll}
-        style={{ marginTop:6, maxHeight:170, overflowY:"auto", fontFamily:"'SF Mono','Fira Code',monospace", fontSize:fs(9.5, isDesktop), lineHeight:1.55,
-          WebkitMaskImage:"linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 6px), transparent 100%)",
-          maskImage:"linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 6px), transparent 100%)",
-          paddingTop:10, paddingBottom:4, overscrollBehavior:"contain" }}
-        aria-live="polite">
-        {steps.length === 0 && <div style={{ color:th.textSub }}>Starting…</div>}
+
+      {/* ── output ── */}
+      <div ref={boxRef} onScroll={onScroll} aria-live="polite"
+        style={{
+          maxHeight: isDesktop ? 230 : 200, overflowY: "auto", padding: "10px 12px 8px", fontSize: fs(9.5, isDesktop), lineHeight: 1.6,
+          color: TERM.text, overscrollBehavior: "contain", scrollbarWidth: "thin", scrollbarColor: `${TERM.line} transparent`,
+          WebkitMaskImage: "linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 4px), transparent 100%)",
+          maskImage: "linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 4px), transparent 100%)",
+          backgroundImage: "repeating-linear-gradient(180deg, rgba(255,255,255,.018) 0 1px, transparent 1px 3px)",
+        }}>
+        {steps.length === 0 && (
+          <div style={{ color: TERM.sub }}>
+            <span style={{ color: accent }}>›</span> booting agent…
+            <span style={{ display: "inline-block", width: "0.55em", height: "1.05em", marginLeft: 3, verticalAlign: "text-bottom", background: accent, animation: "ys-caret 1s steps(1) infinite" }} />
+          </div>
+        )}
         {visible.map((st, i) => {
           const isTyping = reveal.typing && i === reveal.shown;
-          const text = isTyping ? String(st.text ?? "").slice(0, reveal.chars) : st.text;
+          const raw = String(st.text ?? "");
+          const sub = /^\s*\u21B3/.test(raw);
+          const text = (isTyping ? raw.slice(0, reveal.chars) : raw).replace(/^\s*\u21B3\s*/, "");
+          const [g, gc] = glyph[st.kind] ?? (sub ? ["↳", TERM.dim] : ["›", TERM.cyan]);
+          const color = st.kind === "warn" ? TERM.amber : st.kind === "error" ? TERM.red : st.kind === "ok" || st.kind === "done" ? TERM.green : sub ? TERM.sub : TERM.text;
+          const isLast = i === visible.length - 1;
           return (
-            <div key={i} style={{ display:"flex", gap:8, color: kindColor[st.kind] ?? th.textMid, animation:"ys-log-in 0.35s cubic-bezier(.2,.7,.2,1) both" }}>
-              <span style={{ color:th.textSub, flexShrink:0 }}>{fmtStepTime(st.t)}</span>
-              <span style={{ whiteSpace:"pre-wrap", wordBreak:"break-word" }}>
-                {text}
-                {(isTyping || (running && reveal.done && i === visible.length - 1)) && (
-                  <span style={{ display:"inline-block", width:"0.55em", height:"1.05em", marginLeft:2, verticalAlign:"text-bottom", background:color, animation:"ys-caret 1s steps(1) infinite" }} />
+            <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1.1em 1fr", columnGap: 8, alignItems: "baseline",
+              animation: "ys-log-in .38s cubic-bezier(.2,.7,.2,1) both" }}>
+              <span style={{ color: TERM.dim, fontSize: "0.92em", fontVariantNumeric: "tabular-nums" }}>{fmtTermClock(st.t)}</span>
+              <span style={{ color: gc, fontWeight: 700, textAlign: "center", transform: sub ? "translateX(12px)" : "none" }}>{g}</span>
+              <span style={{ color, whiteSpace: "pre-wrap", wordBreak: "break-word", paddingLeft: sub ? 12 : 0 }}>
+                <TermText text={text} />
+                {(isTyping || (running && reveal.done && isLast)) && (
+                  <span style={{ display: "inline-block", width: "0.55em", height: "1.05em", marginLeft: 2, verticalAlign: "text-bottom", background: accent, boxShadow: `0 0 8px ${accent}`, animation: "ys-caret 1s steps(1) infinite" }} />
                 )}
               </span>
             </div>
           );
         })}
+        {!running && reveal.done && steps.length > 0 && (
+          <div style={{ marginTop: 6, paddingTop: 6, borderTop: `1px dashed ${TERM.line}`, color: failed ? TERM.red : TERM.green, fontSize: "0.92em", animation: "ys-log-in .38s ease both" }}>
+            {failed ? `✗ exited with an error · ${String(live.error).slice(0, 140)}` : `✓ finished · ${steps.length} step${steps.length === 1 ? "" : "s"} · took ${elapsed}`}
+            <span style={{ color: TERM.dim }}> · by {who}{live.finishedAt ? ` · ${timeAgo(live.finishedAt)}` : ""}</span>
+          </div>
+        )}
       </div>
-      {!follow && (
-        <button type="button" onClick={() => setFollow(true)} aria-label="Follow the newest line"
-          style={{ ...pill, position:"absolute", right:12, bottom:10, boxShadow:"0 2px 8px rgba(0,0,0,.15)" }}>
-          ↓ Follow
-        </button>
-      )}
+
+      {/* ── status bar ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 10px", borderTop: `1px solid ${TERM.line}`, background: "rgba(255,255,255,.02)", fontSize: fs(8.5, isDesktop), color: TERM.dim }}>
+        <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {running ? `run by ${who} · ${steps.length} step${steps.length === 1 ? "" : "s"}` : `${steps.length} lines`}
+          {progress != null && running ? ` · ${Math.round(progress * 100)}%` : ""}
+        </span>
+        {!follow && <button type="button" style={{ ...btn, color: TERM.cyan, borderColor: "rgba(34,211,238,.4)" }} onClick={() => setFollow(true)} aria-label="Follow the newest line">↓ follow</button>}
+        {!reveal.done && steps.length > 2 && <button type="button" style={btn} onClick={reveal.skip} aria-label="Show the whole log now">skip ▸</button>}
+      </div>
     </div>
   );
 }
@@ -2164,7 +2251,7 @@ const AutoFixAgentCard = React.memo(function AutoFixAgentCard({ run, loading, da
             </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-          <RunNowButton job="autoFix" label="Auto-Fix" runner={runner} dark={dark} isDesktop={isDesktop} onOpen={ctl.open} running={ctl.running} />
+          <RunNowButton job="autoFix" label="Auto-Fix" runner={runner} hideWhenBusy dark={dark} isDesktop={isDesktop} onOpen={ctl.open} running={ctl.running} />
           <div style={{
             display:"flex", alignItems:"center", gap:5,
             padding:"3px 9px", borderRadius:20,
@@ -2468,7 +2555,7 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
             </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-            <RunNowButton job="discover" label="Scheme Discovery" runner={runner} dark={dark} isDesktop={isDesktop} onDone={load}
+            <RunNowButton job="discover" label="Scheme Discovery" runner={runner} hideWhenBusy dark={dark} isDesktop={isDesktop} onDone={load}
               title="Search 2 more regions for new schemes now (~1–3 min)" onOpen={ctl.open} running={ctl.running} />
             <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:20, background:`${statusColor}18`, border:`1px solid ${statusColor}40` }}>
               <span style={{ width:6, height:6, borderRadius:"50%", background:statusColor }} />
@@ -3227,7 +3314,7 @@ const VerifyBatchAgentCard = React.memo(function VerifyBatchAgentCard({ dark, is
             </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-            <RunNowButton job="verifyBatch" label="Background verify batch" runner={runner} dark={dark} isDesktop={isDesktop} onDone={load}
+            <RunNowButton job="verifyBatch" label="Background verify batch" runner={runner} hideWhenBusy dark={dark} isDesktop={isDesktop} onDone={load}
               title="Run the next verify batch now (up to ~4 min, uses Tavily budget)" onOpen={vctl.open} running={vctl.running} />
             <div
               {...activatable(load, "Refresh background verifier status")}
