@@ -719,4 +719,21 @@ export const RAJASTHAN_SCHEMES = [
     match: (a) => a.state === "Rajasthan" && (["bpl", "aay"].includes(a.rationCard) || a.income === "below1"),
   },
 
+  // <auto-scheme id="raj_swami_vivekananda_scholarship"> added by Scheme Discovery agent on 2026-10-16 · source: https://hte.rajasthan.gov.in/Website/DepartmentOfCollegeEducation/Images/3b11c0d3-d172-42b6-b101-c579562b4a03.pdf
+  {
+    id: "raj_swami_vivekananda_scholarship",
+    icon: "📚", color: "#003580", scope: "state", state: "Rajasthan",
+    ministry: { en: "Department of College Education, Rajasthan", hi: "राजस्थान राज्य कॉलेज शिक्षा विभाग" },
+    name:    { en: "Swami Vivekananda Scholarship for Academic Excellence", hi: "स्वामी विवेकानंद शैक्षणिक उत्कृष्टता छात्रवृत्ति" },
+    benefit: { en: "Financial assistance for foreign/Indian university studies", hi: "विदेशी/भारतीय विश्वविद्यालय अध्ययन के लिए वित्तीय सहायता" },
+    tag:     { en: "Scholarship", hi: "छात्रवृत्ति" },
+    annual: 0,
+    apply:   { en: "https://hte.rajasthan.gov.in/Website/DepartmentOfCollegeEducation/Images/3b11c0d3-d172-42b6-b101-c579562b4a03.pdf", hi: "https://hte.rajasthan.gov.in/Website/DepartmentOfCollegeEducation/Images/3b11c0d3-d172-42b6-b101-c579562b4a03.pdf" }, applyType: "online",
+    docs:    { en: ["Jan Aadhar Card Number","Valid offer letter","Bonafide/Domicile certificate","Gross family Income affidavit","ITRs of last 3 years"],
+               hi: ["जन अडहर कार्ड नंबर","वैध ऑफर लेटर","बोनाफाइड/डॉमिसाइल सर्टिफिकेट","कुल पारिवारिक आय शपथपत्र","पिछले 3 वर्षों के ITRs"] },
+    autoAdded: "2026-10-16", source: "https://hte.rajasthan.gov.in/Website/DepartmentOfCollegeEducation/Images/3b11c0d3-d172-42b6-b101-c579562b4a03.pdf",
+    match: (a) => a.state === "Rajasthan" && a.who === "student" && ["undergrad","postgrad"].includes(a.educationLevel),
+  },
+  // </auto-scheme id="raj_swami_vivekananda_scholarship">
+
 ];
