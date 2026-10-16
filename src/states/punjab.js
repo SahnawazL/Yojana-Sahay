@@ -952,4 +952,21 @@ export const PUNJAB_SCHEMES = [
   },
   // </auto-scheme id="punjab_mawan_dhiyan_satkar">
 
+  // <auto-scheme id="punjab_meri_rasoi"> added by Scheme Discovery agent on 2026-10-16 · source: https://timesofindia.indiatimes.com/city/chandigarh/free-food-kits-for-40l-needy-families-as-cm-launches-meri-rasoi/articleshow/130988137.cms
+  {
+    id: "punjab_meri_rasoi",
+    icon: "📋", color: "#334155", scope: "state", state: "Punjab",
+    ministry: { en: "Chief Minister's Office", hi: "मुख्यमंत्री कार्यालय" },
+    name:    { en: "Meri Rasoi Yojna", hi: "मेरी रसोई योजना" },
+    benefit: { en: "Free food kits for 40 lakh needy families", hi: "40 लाख जरूरतमंद परिवारों के लिए मुफ्त खाद्य किट" },
+    tag:     { en: "Food", hi: "भोजन" },
+    annual: 0,
+    apply:   { en: "https://timesofindia.indiatimes.com/city/chandigarh/free-food-kits-for-40l-needy-families-as-cm-launches-meri-rasoi/articleshow/130988137.cms", hi: "https://timesofindia.indiatimes.com/city/chandigarh/free-food-kits-for-40l-needy-families-as-cm-launches-meri-rasoi/articleshow/130988137.cms" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-16", source: "https://timesofindia.indiatimes.com/city/chandigarh/free-food-kits-for-40l-needy-families-as-cm-launches-meri-rasoi/articleshow/130988137.cms",
+    match: (a) => a.state === "Punjab",
+  },
+  // </auto-scheme id="punjab_meri_rasoi">
+
 ];
