@@ -724,4 +724,21 @@ export const TAMIL_NADU_SCHEMES = [
     match: (a) => a.state === "Tamil Nadu" && a.who === "women",
   },
 
+  // <auto-scheme id="tn_evr_nagammai_scholarship"> added by Scheme Discovery agent on 2026-10-16 · source: https://tndce.tn.gov.in/Home/scholarship
+  {
+    id: "tn_evr_nagammai_scholarship",
+    icon: "📚", color: "#003580", scope: "state", state: "Tamil Nadu",
+    ministry: { en: "Directorate of Collegiate Education, Government of Tamil Nadu", hi: "डायरेक्टरेट ऑफ कॉलेजिएट एजुकेशन, सरकार ऑफ तमिलनाडु" },
+    name:    { en: "EVR Nagammai Scholarship", hi: "ईवीआर नागम्माई छात्रवृत्ति" },
+    benefit: { en: "Variable financial assistance", hi: "विविध वित्तीय सहायता" },
+    tag:     { en: "Postgraduate", hi: "स्नातकोत्तर" },
+    annual: 0,
+    apply:   { en: "https://tndce.tn.gov.in/Home/scholarship", hi: "https://tndce.tn.gov.in/Home/scholarship" }, applyType: "offline",
+    docs:    { en: ["Application form"],
+               hi: ["आवेदन पत्र"] },
+    autoAdded: "2026-10-16", source: "https://tndce.tn.gov.in/Home/scholarship",
+    match: (a) => a.state === "Tamil Nadu" && a.who === "student" && a.educationLevel === "undergrad",
+  },
+  // </auto-scheme id="tn_evr_nagammai_scholarship">
+
 ];
