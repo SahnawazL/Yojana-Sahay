@@ -1011,6 +1011,34 @@ function InputBar({ input, setInput, onSend, onKeyDown, loading, dark, lang, tex
 
 // ─── Feature 10: Markdown renderer ───────────────────────────────────────────
 // renderInline handles bold (**text**) and clickable links within a single line.
+// Answer links as clean one-line chips: just the site name (full address in
+// the tooltip and the tap), with a 🏛 mark for official government sites.
+const isGovHost = (h) => /(?:^|\.)(?:gov\.in|nic\.in|gov)$/i.test(h);
+function linkHost(href) {
+  try { return new URL(href).hostname.replace(/^www\./i, ""); } catch { return href.replace(/^https?:\/\//i, "").split(/[/?#]/)[0]; }
+}
+function LinkChip({ href, dark, block = false }) {
+  const host = linkHost(href);
+  const gov = isGovHost(host);
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" title={href}
+      style={{
+        display: block ? "flex" : "inline-flex", alignItems:"center", gap:6, maxWidth:"100%", boxSizing:"border-box",
+        width: block ? "fit-content" : undefined,
+        background: dark ? "rgba(100,160,255,0.10)" : "rgba(0,53,128,0.06)",
+        border:`1px solid ${dark ? "rgba(100,160,255,0.28)" : "rgba(0,53,128,0.18)"}`,
+        borderRadius:8, padding: block ? "4px 10px" : "1px 8px",
+        color: dark ? "#8EC1FF" : "#003580", textDecoration:"none",
+        fontWeight:600, fontSize:"0.86em", lineHeight:1.5, verticalAlign:"middle",
+        margin: block ? "4px 0 2px" : 0,
+      }}>
+      <span aria-hidden="true" style={{ fontSize:"0.95em", flexShrink:0 }}>{gov ? "🏛" : "🌐"}</span>
+      <span style={{ minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{host}</span>
+      <span aria-hidden="true" style={{ fontSize:9, opacity:0.65, flexShrink:0 }}>↗</span>
+    </a>
+  );
+}
+
 function renderInline(line, lineIdx, isUser, th, dark) {
   const parts = [];
   // Group 1: **bold**
@@ -1089,34 +1117,8 @@ function renderInline(line, lineIdx, isUser, th, dark) {
             style={{ color:"#ffe0a0", textDecoration:"underline", wordBreak:"break-all" }}>
             {raw}
           </a>
-        ) : dark ? (
-          <a key={`l-${lineIdx}-${match.index}`} href={href} target="_blank" rel="noopener noreferrer"
-            style={{
-              display:"inline-flex", alignItems:"center", gap:3,
-              background:"rgba(100,160,255,0.15)",
-              border:"1px solid rgba(100,160,255,0.35)",
-              borderRadius:5, padding:"1px 7px",
-              color:"#7bb8ff", textDecoration:"none",
-              fontWeight:600, fontSize:"0.88em",
-              wordBreak:"break-all", verticalAlign:"middle", lineHeight:1.5,
-            }}>
-            {raw}
-            <span style={{ fontSize:9, opacity:0.7, flexShrink:0 }}>↗</span>
-          </a>
         ) : (
-          <a key={`l-${lineIdx}-${match.index}`} href={href} target="_blank" rel="noopener noreferrer"
-            style={{
-              display:"inline-flex", alignItems:"center", gap:3,
-              background:"rgba(0,53,128,0.08)",
-              border:"1px solid rgba(0,53,128,0.22)",
-              borderRadius:5, padding:"1px 7px",
-              color:"#003580", textDecoration:"none",
-              fontWeight:600, fontSize:"0.88em",
-              wordBreak:"break-all", verticalAlign:"middle", lineHeight:1.5,
-            }}>
-            {raw}
-            <span style={{ fontSize:9, opacity:0.55, flexShrink:0 }}>↗</span>
-          </a>
+          <LinkChip key={`l-${lineIdx}-${match.index}`} href={href} dark={dark} />
         )
       );
     }
@@ -1145,6 +1147,12 @@ function renderContent(text, isUser, th, dark) {
       result.push(<div key={`line-${li}`} style={{ fontWeight:800, marginTop: li === 0 ? 0 : 6 }}>{renderInline(headMatch[1].replace(/\*\*/g, ""), li, isUser, th, dark)}</div>);
       return;
     }
+    // "🔗 https://…" line → one clean link row (the chip carries its own icon)
+    const linkLine = !isUser && line.match(/^\s*🔗\s*(https?:\/\/\S+?)[.,;)]*\s*$/u);
+    if (linkLine) {
+      result.push(<div key={`line-${li}`}><LinkChip href={linkLine[1]} dark={dark} block /></div>);
+      return;
+    }
     const numberedMatch = line.match(/^(\d+)\.\s+([\s\S]*)/);
     const bulletMatch   = line.match(/^(\s*)[-•*]\s+([\s\S]*)/);
     const isLast        = li === lines.length - 1;
@@ -1161,9 +1169,8 @@ function renderContent(text, isUser, th, dark) {
           {/* Circle number badge */}
           <span style={{
             minWidth:20, height:20, borderRadius:"50%", flexShrink:0,
-            background: isUser ? "rgba(255,255,255,0.22)" : "linear-gradient(135deg,#FF9933 0%,#F97316 100%)",
+            background: isUser ? "rgba(255,255,255,0.22)" : "#F97316",
             color:"#fff",
-            boxShadow: isUser ? "none" : "0 1px 3px rgba(234,88,12,0.35)",
             fontSize:10.5, fontWeight:800, lineHeight:1,
             display:"flex", alignItems:"center", justifyContent:"center",
             marginTop:3,
@@ -1206,7 +1213,7 @@ function renderContent(text, isUser, th, dark) {
 
     // ── Empty line → small spacer ──────────────────────────────────────────
     if (line.trim() === "") {
-      result.push(<div key={`line-${li}`} style={{ height:5 }} />);
+      result.push(<div key={`line-${li}`} style={{ height:8 }} />);
       return;
     }
 
@@ -2144,6 +2151,9 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // the bottom. If you scroll up to read an older answer, new content never
   // yanks you down — a "Latest" button appears instead (with a count of new
   // replies). Sending a message always brings you back down.
+  const [confirmClear, setConfirmClear] = useState(false);
+  const confirmClearTimer = useRef(null);
+  useEffect(() => () => clearTimeout(confirmClearTimer.current), []);
   const isCoolingDown = secondsLeft > 0;
   // Extras (official seal, Listen pill) only on the newest answer.
   let lastAiIdx = -1;
@@ -2486,24 +2496,21 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
         <CapabilitiesSheet lang={lang} dark={dark} onPick={pickCapability} onClose={() => setShowCaps(false)} />
       )}
 
-      {/* HEADER */}
+      {/* HEADER — slim, calm bar; brand accent line at the bottom */}
       <div style={{
-        background:"linear-gradient(135deg,rgba(255,153,51,0.82) 0%,rgba(255,128,0,0.78) 35%,rgba(0,53,128,0.85) 100%)",
-        backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
-        padding:"18px 20px 22px", flexShrink:0,
-        boxShadow:"0 4px 24px rgba(0,53,128,0.22)",
-        borderBottom:"1px solid rgba(255,255,255,0.12)",
+        position:"relative", flexShrink:0,
+        background: dark ? "#141519" : "#FFFFFF",
+        borderBottom:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(15,23,42,0.08)"}`,
+        padding:"9px 12px 10px",
       }}>
-        <div style={{ display:"flex", alignItems:"center", gap:13 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <div
+            role="button" aria-label={isHindi ? "AI सहायक की तस्वीर" : "AI assistant picture"}
             onClick={() => setAvatarPreview(true)}
             style={{
-              width:46, height:46, borderRadius:14, flexShrink:0,
-              overflow:"hidden",
-              border:"1.5px solid rgba(255,255,255,0.35)",
-              boxShadow:"0 4px 12px rgba(0,0,0,0.15)",
-              cursor:"pointer",
-              transition:"transform 0.15s, box-shadow 0.15s",
+              width:36, height:36, borderRadius:11, flexShrink:0, overflow:"hidden", position:"relative",
+              boxShadow: dark ? "0 0 0 1px rgba(255,255,255,0.1)" : "0 0 0 1px rgba(15,23,42,0.08)",
+              cursor:"pointer", transition:"transform 0.15s",
             }}
             onPointerDown={e => e.currentTarget.style.transform="scale(0.93)"}
             onPointerUp={e => e.currentTarget.style.transform="scale(1)"}
@@ -2512,38 +2519,38 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             <img src={aiAvatar} alt="AI" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
           </div>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ color:"#fff", fontSize:17, fontWeight:800, lineHeight:1.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+            <div style={{ color:th.text, fontSize:15, fontWeight:800, lineHeight:1.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", fontFamily:bf }}>
               {isHindi ? "AI सहायक" : "AI Assistant"}
             </div>
-            <div style={{ color:"rgba(255,255,255,0.8)", fontSize:11, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-              🟢 {isHindi ? "ऑनलाइन · हिंदी / English" : "Online · Hindi / English"}
+            <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:2, fontSize:11, color:th.textSub, whiteSpace:"nowrap", overflow:"hidden", fontFamily:bf }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background: loading ? "#F59E0B" : "#22C55E", flexShrink:0,
+                boxShadow:`0 0 0 3px ${loading ? "rgba(245,158,11,0.18)" : "rgba(34,197,94,0.16)"}`, transition:"background .3s" }} />
+              <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
+                {loading ? (isHindi ? "जवाब तैयार कर रहा है…" : "Working on your answer…") : (isHindi ? "ऑनलाइन" : "Online")}
+                {!loading && profile?.name ? (isHindi ? ` · ${(profile.name || "").split(" ")[0]} के लिए पर्सनल` : ` · Personalized for ${(profile.name || "").split(" ")[0]}`) : ""}
+              </span>
             </div>
-            {profile?.name && (
-              <div style={{
-                display:"inline-flex", alignItems:"center", gap:5, marginTop:5,
-                background:"rgba(255,255,255,0.16)", border:"1px solid rgba(255,255,255,0.28)",
-                borderRadius:20, padding:"3px 10px 3px 7px", maxWidth:"100%", boxSizing:"border-box",
-                animation:"badge-pop 0.35s ease-out",
-              }}>
-                <span style={{ fontSize:10 }}>🎯</span>
-                <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.95)", fontFamily:bf, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minWidth:0 }}>
-                  {isHindi
-                    ? `${(profile.name || "").split(" ")[0]} के लिए पर्सनल`
-                    : `Personalized for ${(profile.name || "").split(" ")[0]}`}
-                </span>
-              </div>
-            )}
           </div>
-          {/* Ashok Chakra — between title and Clear button */}
-          <AshokChakra size={typeof window !== "undefined" && window.innerWidth < 390 ? 34 : 44} duration="10s" />
-          <div role="button" aria-label={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"} title={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"}
+          <AshokChakra size={26} duration="14s" />
+          <div role="button" tabIndex={0} aria-label={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"} title={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"}
             onClick={() => { dismissNews(); setShowCaps(true); }}
+            onKeyDown={e => { if (e.key === "Enter") { dismissNews(); setShowCaps(true); } }}
             style={{ width:32, height:32, borderRadius:10, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
-              background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.3)", fontSize:15, cursor:"pointer" }}>
+              background: dark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.04)",
+              border:`1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}`, fontSize:14, cursor:"pointer" }}>
             ✨
           </div>
           {messages.length > 0 && (
-            <div onClick={() => {
+            <div role="button" tabIndex={0}
+              onClick={() => {
+                // Two taps: the first asks "Sure?", so a mis-tap never wipes the chat.
+                if (!confirmClear) {
+                  setConfirmClear(true);
+                  clearTimeout(confirmClearTimer.current);
+                  confirmClearTimer.current = setTimeout(() => setConfirmClear(false), 3000);
+                  return;
+                }
+                clearTimeout(confirmClearTimer.current); setConfirmClear(false);
                 try { abortRef.current?.abort(); } catch {}
                 abortRef.current = null;
                 cancelAnimationFrame(liveFrameRef.current); liveFrameRef.current = 0;
@@ -2558,14 +2565,18 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
                 try { localStorage.removeItem(chatKey); } catch {}
               }}
               style={{
-                background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.3)",
-                borderRadius:10, padding:"5px 11px",
-                color:"rgba(255,255,255,0.9)", fontSize:11, fontWeight:600, cursor:"pointer",
+                height:32, display:"flex", alignItems:"center", borderRadius:10, padding:"0 11px", flexShrink:0,
+                background: confirmClear ? "#DC2626" : (dark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.04)"),
+                border:`1px solid ${confirmClear ? "#DC2626" : (dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)")}`,
+                color: confirmClear ? "#fff" : th.textMid, fontSize:11.5, fontWeight:700, cursor:"pointer", fontFamily:bf,
+                transition:"background .2s, color .2s, border-color .2s",
               }}>
-              {isHindi ? "साफ करें" : "Clear"}
+              {confirmClear ? (isHindi ? "पक्का?" : "Sure?") : (isHindi ? "साफ करें" : "Clear")}
             </div>
           )}
         </div>
+        <div aria-hidden="true" style={{ position:"absolute", left:0, right:0, bottom:-1, height:2,
+          background:"linear-gradient(90deg, #FF9933 0%, #FF9933 30%, rgba(255,255,255,0.6) 50%, #138808 70%, #138808 100%)", opacity: dark ? 0.55 : 0.7 }} />
       </div>
 
       {/* MESSAGES AREA */}
