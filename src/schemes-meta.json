@@ -566,7 +566,7 @@
     "confidence": 0
   },
   "pm_daksh": {
-    "lastVerified": "2026-09-15T23:21:03.184Z",
+    "lastVerified": "2026-10-16T13:36:10.775Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -841,31 +841,32 @@
     "confidence": 0
   },
   "odisha_cm_kisan": {
-    "lastVerified": "2026-10-09T09:32:32.990Z",
+    "lastVerified": "2026-10-16T13:33:33.622Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 1,
+    "isActive": true
   },
   "odisha_kalia": {
-    "lastVerified": "2026-10-09T09:33:36.921Z",
+    "lastVerified": "2026-10-16T13:34:31.777Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_subhadra": {
-    "lastVerified": "2026-10-09T09:33:36.921Z",
+    "lastVerified": "2026-10-16T13:35:56.354Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
   },
   "odisha_mission_shakti": {
-    "lastVerified": "2026-10-09T09:33:36.921Z",
+    "lastVerified": "2026-10-16T13:35:32.694Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
   },
   "odisha_godabarisha_laptop": {
-    "lastVerified": "2026-10-09T09:34:16.570Z",
+    "lastVerified": "2026-10-16T13:34:18.836Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1569,13 +1570,13 @@
     "httpStatus": 403
   },
   "odisha_samrudha_krushak": {
-    "lastVerified": "2026-10-09T09:33:36.921Z",
+    "lastVerified": "2026-10-16T13:35:51.363Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
   },
   "odisha_gjay": {
-    "lastVerified": "2026-10-09T09:34:16.570Z",
+    "lastVerified": "2026-10-16T13:34:17.264Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
@@ -3406,6 +3407,42 @@
   },
   "nagaland_nagaland_skill_entrepreneurship": {
     "lastVerified": "2026-10-16T09:11:11.594Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "uk_yuva_bhavishya_nirman": {
+    "lastVerified": "2026-10-16T13:32:08.305Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "odisha_banishree": {
+    "lastVerified": "2026-10-16T13:32:39.100Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "odisha_bocw_death": {
+    "lastVerified": "2026-10-16T13:33:07.007Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "odisha_bocw_marriage": {
+    "lastVerified": "2026-10-16T13:33:08.693Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "odisha_bocw_maternity": {
+    "lastVerified": "2026-10-16T13:33:21.006Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "odisha_kssy": {
+    "lastVerified": "2026-10-16T13:34:43.762Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
