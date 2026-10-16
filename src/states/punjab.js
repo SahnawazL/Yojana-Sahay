@@ -935,4 +935,21 @@ export const PUNJAB_SCHEMES = [
   //   match: (a) => a.state === "Punjab",
   // },
 
+  // <auto-scheme id="punjab_mawan_dhiyan_satkar"> added by Scheme Discovery agent on 2026-10-16 · source: https://www.tribuneindia.com/news/punjab/cm-bhagwant-mann-to-release-second-instalment-under-mawan-dhiyan-satkar-yojana-today/
+  {
+    id: "punjab_mawan_dhiyan_satkar",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Punjab",
+    ministry: { en: "Punjab Ministry of Women and Child Development", hi: "पंजाब महिला एवं बाल विकास मंत्रालय" },
+    name:    { en: "Mawan Dhiyan Satkar Yojana", hi: "मावन धियान सम्मान योजना" },
+    benefit: { en: "₹3,000 per month for general women, ₹4,500 for SC women", hi: "सामान्य महिलाओं को ₹3,000/माह, SC महिलाओं को ₹4,500/माह" },
+    tag:     { en: "Direct Cash Transfer", hi: "प्रत्यक्ष नकद हस्तांतरण" },
+    annual: 3000,
+    apply:   { en: "https://www.tribuneindia.com/news/punjab/cm-bhagwant-mann-to-release-second-instalment-under-mawan-dhiyan-satkar-yojana-today/", hi: "https://www.tribuneindia.com/news/punjab/cm-bhagwant-mann-to-release-second-instalment-under-mawan-dhiyan-satkar-yojana-today/" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-16", source: "https://www.tribuneindia.com/news/punjab/cm-bhagwant-mann-to-release-second-instalment-under-mawan-dhiyan-satkar-yojana-today/",
+    match: (a) => a.state === "Punjab" && a.who === "women" && ["general","sc"].includes(a.caste),
+  },
+  // </auto-scheme id="punjab_mawan_dhiyan_satkar">
+
 ];
