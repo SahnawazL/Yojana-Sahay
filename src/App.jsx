@@ -10174,9 +10174,16 @@ function YojanaSahayInner(){
     }
     return null;
   };
-  const scrollTabToTop = useCallback((tab) => {
+  const scrollTabToTop = useCallback((tab, { wasActive = true } = {}) => {
     const wrap = tabWrapRefs.current[tab];
     if (!wrap) return;
+    // AI assistant is a conversation: its "home" is the LATEST message, not
+    // the first one. Switching in lands there instantly; re-tapping while
+    // already in the chat glides there smoothly.
+    if (tab === "ai") {
+      window.dispatchEvent(new CustomEvent("ys-chat-latest", { detail: { instant: !wasActive } }));
+      return;
+    }
     // The real scrollable element sometimes lives right on the wrapper
     // (Home) and sometimes one or more levels deep inside a child
     // component (Search/Schemes/Profile/AI). Walk down and grab the
@@ -11672,7 +11679,7 @@ function YojanaSahayInner(){
                 // and lay out before measuring/scrolling, so this works
                 // whether you're re-tapping the active tab or switching in.
                 requestAnimationFrame(()=>{
-                  requestAnimationFrame(()=>scrollTabToTop(item.tab));
+                  requestAnimationFrame(()=>scrollTabToTop(item.tab, { wasActive: active }));
                 });
               }}>
 

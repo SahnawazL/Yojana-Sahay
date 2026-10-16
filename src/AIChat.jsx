@@ -2107,18 +2107,87 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
   // ── Scroll to bottom ─────────────────────────────────────────────────────────
   // Scrolls only the chat box — scrollIntoView also nudged the whole page,
   // and ran on every countdown tick, which made the screen jump each second.
+  // Smart follow: the chat stays pinned to the latest message while you're at
+  // the bottom. If you scroll up to read an older answer, new content never
+  // yanks you down — a "Latest" button appears instead (with a count of new
+  // replies). Sending a message always brings you back down.
   const isCoolingDown = secondsLeft > 0;
+  const stickRef      = useRef(true);              // user is at (or near) the bottom
+  const lastLenRef    = useRef(messages.length);
+  const [jump, setJump] = useState({ show: false, unseen: 0 });
+  const distFromBottom = (box) => box.scrollHeight - box.scrollTop - box.clientHeight;
+  const scrollToLatest = useCallback((behavior = "smooth") => {
+    const box = scrollBoxRef.current;
+    if (!box) return;
+    stickRef.current = true;
+    setJump(j => (j.show || j.unseen ? { show: false, unseen: 0 } : j));
+    box.scrollTo({ top: box.scrollHeight, behavior });
+  }, []);
+  const onChatScroll = useCallback(() => {
+    const box = scrollBoxRef.current;
+    if (!box) return;
+    if (box.clientHeight === 0) return; // tab just got hidden — not a real scroll
+    savedTopRef.current = box.scrollTop;
+    const d = distFromBottom(box);
+    stickRef.current = d < 160;
+    const show = d > Math.max(320, box.clientHeight * 0.6);
+    setJump(j => {
+      const unseen = stickRef.current ? 0 : j.unseen;
+      return j.show === show && j.unseen === unseen ? j : { show, unseen };
+    });
+  }, []);
+  const firstFollowRef = useRef(true);
   useEffect(() => {
     const box = scrollBoxRef.current;
-    if (box) box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
+    if (!box) return;
+    if (firstFollowRef.current) { // opening the chat: land on the latest message, no long glide
+      firstFollowRef.current = false;
+      box.scrollTop = box.scrollHeight;
+      return;
+    }
+    const grew = messages.length > lastLenRef.current;
+    lastLenRef.current = messages.length;
+    const last = messages[messages.length - 1];
+    if (stickRef.current || (grew && last?.role === "user")) {
+      box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
+      stickRef.current = true;
+    } else if (grew && last?.role === "assistant") {
+      setJump(j => ({ show: true, unseen: j.unseen + 1 }));
+    }
   }, [messages, loading, chips, isCoolingDown]);
   // While an answer streams in, follow it — unless the user scrolled up to read.
   useEffect(() => {
     if (!live?.text) return;
     const box = scrollBoxRef.current;
     if (!box) return;
-    if (box.scrollHeight - box.scrollTop - box.clientHeight < 140) box.scrollTop = box.scrollHeight;
+    if (stickRef.current || distFromBottom(box) < 140) box.scrollTop = box.scrollHeight;
   }, [live?.text]);
+  // The tab is hidden with display:none when you switch away, and browsers
+  // reset its scroll position then. When it shows again (from any button,
+  // not only the nav), put you back where you were: on the latest message,
+  // or on the older answer you were reading.
+  const savedTopRef = useRef(null);
+  useEffect(() => {
+    const box = scrollBoxRef.current;
+    if (!box || typeof ResizeObserver === "undefined") return;
+    let lastH = box.clientHeight;
+    const ro = new ResizeObserver(() => {
+      const h = box.clientHeight;
+      if (lastH === 0 && h > 0) {
+        if (stickRef.current || savedTopRef.current == null) box.scrollTop = box.scrollHeight;
+        else box.scrollTop = savedTopRef.current;
+      }
+      lastH = h;
+    });
+    ro.observe(box);
+    return () => ro.disconnect();
+  }, []);
+  // The bottom nav's AI button asks for the latest message (App.jsx).
+  useEffect(() => {
+    const onLatest = (e) => scrollToLatest(e.detail?.instant ? "auto" : "smooth");
+    window.addEventListener("ys-chat-latest", onLatest);
+    return () => window.removeEventListener("ys-chat-latest", onLatest);
+  }, [scrollToLatest]);
 
   // ── Auto-resize textarea ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -2446,7 +2515,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       </div>
 
       {/* MESSAGES AREA */}
-      <div ref={scrollBoxRef} data-keep-nav="" style={{ flex:1, overflowY:"auto", overscrollBehavior:"contain", padding:"18px 10px 6px", WebkitOverflowScrolling:"touch" }}>
+      <div ref={scrollBoxRef} data-keep-nav="" data-chat-scroll="" onScroll={onChatScroll} style={{ flex:1, overflowY:"auto", overscrollBehavior:"contain", padding:"18px 10px 6px", WebkitOverflowScrolling:"touch" }}>
         {messages.length === 0 && !loading && (
           <WelcomeScreen lang={lang} dark={dark} onSuggest={handleSend} profile={profile} onPick={pickCapability} onShowAll={() => setShowCaps(true)} />
         )}
@@ -2524,6 +2593,36 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
           </div>
         )}
         <div ref={bottomRef} style={{ height:4 }} />
+      </div>
+
+      {/* JUMP TO LATEST — appears only when scrolled up; anchored just above the input */}
+      <div style={{ position:"relative", height:0, zIndex:5 }}>
+        <button
+          type="button"
+          onClick={() => scrollToLatest("smooth")}
+          aria-label={isHindi ? "नवीनतम संदेश पर जाएं" : "Jump to latest message"}
+          tabIndex={jump.show ? 0 : -1}
+          style={{
+            position:"absolute", left:"50%", bottom:12,
+            transform:`translate(-50%, ${jump.show ? "0" : "14px"}) scale(${jump.show ? 1 : 0.92})`,
+            opacity: jump.show ? 1 : 0, pointerEvents: jump.show ? "auto" : "none",
+            transition:"opacity .22s ease, transform .28s cubic-bezier(.2,.9,.3,1.2)",
+            display:"flex", alignItems:"center", gap:7, padding:"7px 14px 7px 9px", borderRadius:999, cursor:"pointer",
+            fontFamily:bf, fontSize:12, fontWeight:700, whiteSpace:"nowrap",
+            color: dark ? "#F8FAFC" : "#1B2A4A",
+            background: dark ? "rgba(23,28,48,0.82)" : "rgba(255,255,255,0.9)",
+            border:`1px solid ${jump.unseen ? "rgba(255,153,51,0.7)" : dark ? "rgba(148,163,184,0.28)" : "rgba(27,42,74,0.14)"}`,
+            boxShadow: jump.unseen
+              ? "0 8px 24px -8px rgba(255,153,51,0.55), 0 0 0 3px rgba(255,153,51,0.12)"
+              : dark ? "0 8px 24px -10px rgba(0,0,0,0.7)" : "0 8px 22px -10px rgba(27,42,74,0.35)",
+            backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
+          }}>
+          <span style={{ width:22, height:22, borderRadius:"50%", display:"inline-flex", alignItems:"center", justifyContent:"center",
+            background:"linear-gradient(135deg,#FF9933,#6366F1)", color:"#fff", fontSize:13, lineHeight:1 }}>↓</span>
+          {jump.unseen
+            ? (isHindi ? `${jump.unseen} नया जवाब` : `${jump.unseen} new ${jump.unseen === 1 ? "reply" : "replies"}`)
+            : (isHindi ? "नवीनतम संदेश" : "Latest message")}
+        </button>
       </div>
 
       {/* BOTTOM BAR — swaps between reading-time and normal input */}
