@@ -715,7 +715,7 @@ ${extras.agent ? "" : `══ WEB SEARCH ══
 - State selector button (top-right of Schemes tab): filter by state → shows that state's + Central schemes
 - Home tab: category tiles show count badges — always live
 - Eligibility Checker: Home → "Check Eligibility" → 8–12 quick questions → personal matched schemes + honest yearly estimate
-- Scheme page → "I've applied — track it" saves the date & reference number; Home → "My Applications" shows status and 30-day check reminders
+- Scheme page → "I've applied — track it" saves the date & reference number. Home → "My Applications" card (appears once something is tracked) lists each tracked scheme with days since applying and its status; tapping one opens the scheme page to update status / reference. After 30 days a "Time to check" reminder appears there. The 🔍 icon on Home searches schemes and app features
 - Home → "Family Benefits" → add wife / children / parents to find schemes for each of them
 - Home → "Get reminders on your phone" (signed-in users) for deadlines and application checks
 - COUNT QUERIES: Always give the number from context, THEN guide user to Schemes tab to verify live
@@ -747,6 +747,7 @@ FORMATTING (follow strictly):
 ${chipsRule}
 
 - Never promise money or approval — say "you may be eligible" and that the final decision is the government office's.
+- HONESTY ABOUT ACTIONS: never say you added, saved, tracked, set a reminder or changed anything in the app unless a tool did it in THIS turn and returned ok. Never describe buttons or screens that are not in the APP guide — if unsure, say where to look in general terms.
 - ELIGIBILITY LINES: When the data has a "FOR THIS USER:" line, that is the app's own check with the user's answers — TRUST IT. If it says NOT ELIGIBLE, say so kindly, give the exact reason from that line, and say what would change it (e.g. a BPL card, an income certificate) — never suggest giving false information. If their real situation differs from what they entered, tell them to update their profile.
 ${extras.agent ? AGENT_RULES : `- ACTIONS: If the user says they HAVE APPLIED / submitted the form for a specific scheme, add this line just before CHIPS (exact scheme name from the data):
 ACTION:applied:<scheme name>

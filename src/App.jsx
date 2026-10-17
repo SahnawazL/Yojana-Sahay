@@ -51,6 +51,7 @@ import SchemeNewsTicker from "./SchemeNewsTicker.jsx";
 import { useOfflineStatus } from "./useOfflineStatus.js";
 import { idbSet, idbDelete, idbGet, OFFLINE_KEYS, migrateLocalStorageToIDB } from "./offlineStorage.js";
 const HomeFAQSection = React.lazy(() => import("./HomeFAQSection.jsx"));
+const GlobalSearch = React.lazy(() => import("./GlobalSearch.jsx"));
 
 // ─── ENRICH SCHEME_DB WITH VERIFICATION METADATA ─────────────────────────────
 // Merges lastDate, lastVerified, linkAlive, isActive, httpStatus, confidence
@@ -2808,6 +2809,14 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
 
   const inputRef=useRef(null);
   const sentinelRef=useRef(null); // IntersectionObserver target at bottom of list
+
+  // Home search → "See all results" / "All schemes in <state>" fills this box.
+  useEffect(()=>{
+    const take=()=>{ const q=window.__ysPendingSearch; if(typeof q==="string"){ window.__ysPendingSearch=undefined; setQuery(q); } };
+    take();
+    window.addEventListener("ys-search-set",take);
+    return()=>window.removeEventListener("ys-search-set",take);
+  },[]);
 
   // Defer the heavy filter to a low-priority render — typing stays instant
   const deferredQuery=useDeferredValue(query);
@@ -10082,6 +10091,7 @@ function YojanaSahayInner(){
   const [loaded,setLoaded]=useState(false);
   const [langAnim,setLangAnim]=useState(false);
   const [showChecker,setShowChecker]=useState(false);
+  const [showHomeSearch,setShowHomeSearch]=useState(false);
   const [checkerAnswers,setCheckerAnswers]=useState(null); // answers from latest eligibility recheck (raw, pre-decision)
   // Bumped when the AI chat finishes an eligibility check, so Home re-reads it.
   const [quizSavedTick,setQuizSavedTick]=useState(0);
@@ -10626,6 +10636,45 @@ function YojanaSahayInner(){
   const isHindi=lang==="hi";
   const bf=fontFamily(lang);
   const toggleLang=useCallback(()=>{setLangAnim(true);setTimeout(()=>{setLang(l=>l==="en"?"hi":"en");setLangAnim(false);},120);},[]);
+  // ── Home search (🔍) — performs whatever the user picked ─────────────────
+  const homeAppsCount=Object.keys(useApplications()||{}).length;
+  const spotlight=useCallback((el)=>{
+    const card=el.firstElementChild||el;
+    try{ card.animate([{boxShadow:"0 0 0 0 rgba(255,153,51,0)"},{boxShadow:"0 0 0 4px rgba(255,153,51,0.55)"},{boxShadow:"0 0 0 0 rgba(255,153,51,0)"}],{duration:1500,delay:450,easing:"ease-out"}); }catch{}
+  },[]);
+  const handleSearchAction=useCallback(function act(a){
+    if(!a) return;
+    switch(a.kind){
+      case "scheme": setSelectedScheme(a.id); break;
+      case "checker": setShowChecker(true); break;
+      case "faq": setShowFAQ(true); break;
+      case "toggleDark": toggleDark(); break;
+      case "toggleLang": toggleLang(); break;
+      case "tab": setActiveTab(a.tab); if(a.tab!=="ai") requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTabToTop(a.tab))); break;
+      case "myapps": act({kind:"scroll",target:"home-myapps",fallback:{kind:"tab",tab:"schemes"}}); break;
+      case "scroll": {
+        setActiveTab("home");
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          const el=document.getElementById(a.target);
+          if(el&&el.offsetHeight>0){ el.scrollIntoView({behavior:"smooth",block:"start"}); spotlight(el); }
+          else if(a.fallback) act(a.fallback);
+        }));
+        break;
+      }
+      case "search":
+        window.__ysPendingSearch=a.q;
+        setActiveTab("search");
+        requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent("ys-search-set",{detail:{q:a.q}})));
+        break;
+      case "ai": case "ai-draft":
+        window.__ysPendingChat={kind:a.kind,text:a.q??a.text??"",at:Date.now()};
+        setActiveTab("ai");
+        requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent("ys-chat-pending")));
+        break;
+      default: break;
+    }
+  },[toggleDark,toggleLang,scrollTabToTop,spotlight]);
+
   // Stable callbacks for ProfileTabMemo — inline arrows would break memoisation
   const handleViewChecker=useCallback(()=>setShowChecker(true),[]);
   const handleAdminOpen  =useCallback(()=>setShowAdmin(true),[]);
@@ -10987,6 +11036,9 @@ function YojanaSahayInner(){
               {/* LEFT: Greeting pill + Headline stack */}
               <div style={{flex:1,minWidth:0}}>
 
+                {/* Greeting chip + 🔍 search (right end — fits every phone width) */}
+                <div style={{display:"flex",alignItems:"flex-start",gap:8}}>
+                <div style={{flex:"0 1 auto",minWidth:0}}>
                 {/* Smart greeting chip — time-aware */}
                 {(()=>{
                   const hr=new Date().getHours();
@@ -11029,6 +11081,15 @@ function YojanaSahayInner(){
                     </div>
                   );
                 })()}
+                </div>
+                <button type="button" aria-label={isHindi?"खोजें":"Search"} title={isHindi?"योजना, सुविधा या सवाल खोजें":"Search schemes, features or ask"}
+                  onClick={()=>{haptic(20);setShowHomeSearch(true);}}
+                  style={{marginLeft:"auto",marginTop:-6,width:36,height:36,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",
+                    background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.22)",padding:0,WebkitTapHighlightColor:"transparent",
+                    boxShadow:"inset 0 1px 0 rgba(255,255,255,0.14)"}}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                </button>
+                </div>
 
                 {/* Hero headline — one line */}
                 <div style={{display:"flex",alignItems:"baseline",flexWrap:"wrap",columnGap:5,rowGap:0,marginBottom:6,fontFamily:bf}}>
@@ -11171,7 +11232,7 @@ function YojanaSahayInner(){
           )}
 
           {/* ── SCHEME NEWS TICKER ── */}
-          <SchemeNewsTicker lang={lang} dark={dark} />
+          <div id="home-news"><SchemeNewsTicker lang={lang} dark={dark} /></div>
 
           <div style={{padding:"14px 16px 100px"}}>
             {/* Eligibility CTA */}
@@ -11199,29 +11260,29 @@ function YojanaSahayInner(){
             </div>
 
             {/* My Applications — only once something has been marked "applied" */}
-            <MyApplicationsCard lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
+            <div id="home-myapps"><MyApplicationsCard lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/></div>
 
             {/* My Money Calendar — when scheme money usually comes; hidden until there's something */}
-            <MoneyCalendarCard lang={lang} dark={dark} eligible={allMatchedSchemes} onSchemeOpen={openSchemeWithFocus}/>
+            <div id="home-calendar"><MoneyCalendarCard lang={lang} dark={dark} eligible={allMatchedSchemes} onSchemeOpen={openSchemeWithFocus}/></div>
 
             {/* Phone notifications — signed-in users only */}
-            {profile&&auth.currentUser&&<PushNotifyCard uid={auth.currentUser.uid} lang={lang} dark={dark}/>}
+            {profile&&auth.currentUser&&<div id="home-push"><PushNotifyCard uid={auth.currentUser.uid} lang={lang} dark={dark}/></div>}
 
             {/* Benefit Calculator — shown when profile OR committed checker answers exist with annual benefits */}
             {allMatchedSchemes.length>0&&(
-              <BenefitCalculatorCard key={checkerRunId} allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/>
+              <div id="home-benefits"><BenefitCalculatorCard key={checkerRunId} allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/></div>
             )}
 
             {/* Life events — "What's happening in your life?" */}
-            <LifeEventsCard lang={lang} dark={dark} state={familyBase?.state||profile?.state||""}
-              eligibleIds={eligibleIdSet} onSchemeOpen={setSelectedScheme} onStartChecker={()=>setShowChecker(true)}/>
+            <div id="home-life"><LifeEventsCard lang={lang} dark={dark} state={familyBase?.state||profile?.state||""}
+              eligibleIds={eligibleIdSet} onSchemeOpen={setSelectedScheme} onStartChecker={()=>setShowChecker(true)}/></div>
 
             {/* Family mode — schemes for everyone in the household */}
-            <FamilyCard baseAnswers={familyBase} selfSchemes={familySelf} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme} onStartChecker={()=>setShowChecker(true)}/>
+            <div id="home-family"><FamilyCard baseAnswers={familyBase} selfSchemes={familySelf} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme} onStartChecker={()=>setShowChecker(true)}/></div>
 
             {/* Document Vault — auto-generated checklist from matched schemes */}
             {allMatchedSchemes.length>0&&(
-              <DocumentVaultCard allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} uid={auth.currentUser?.uid||null}/>
+              <div id="home-docs"><DocumentVaultCard allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} uid={auth.currentUser?.uid||null}/></div>
             )}
 
             {/* How It Works — only pre-login */}
@@ -11269,7 +11330,7 @@ function YojanaSahayInner(){
             )}
 
             {/* Categories — now CLICKABLE, opens CategorySheet */}
-            <div style={{marginBottom:14}}>
+            <div id="home-categories" style={{marginBottom:14}}>
               <div className={`fu s2 ${loaded?"show":""}`} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <div>
                   <div style={{fontSize:15,fontWeight:800,color:th.text,fontFamily:bf}}>{t.categoriesTitle}</div>
@@ -11360,7 +11421,7 @@ function YojanaSahayInner(){
             </div>
 
             {/* Matched for You — personalised if profile exists, setup prompt if not */}
-            <div className={`fu s3 ${loaded?"show":""}`} style={{marginBottom:14}}>
+            <div id="home-matched" className={`fu s3 ${loaded?"show":""}`} style={{marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <div>
                   <div style={{fontSize:15,fontWeight:800,color:th.text,fontFamily:bf}}>{t.matchedTitle}</div>
@@ -12146,6 +12207,13 @@ function YojanaSahayInner(){
         <SchemeDetailSheet schemeId={selectedScheme} lang={lang} onClose={()=>{setSelectedScheme(null);setSchemeFocus(null);}} dark={dark}
           userName={profile?.name||""} onSignIn={auth.currentUser?null:()=>{setSelectedScheme(null);setSchemeFocus(null);setActiveTab("profile");}}
           eligible={!!allMatchedSchemes?.some(s=>s.id===selectedScheme)} focus={schemeFocus}/>
+      )}
+      {/* Home search (🔍) — schemes + app features + Ask AI; loaded only when opened */}
+      {showHomeSearch&&(
+        <Suspense fallback={null}>
+          <GlobalSearch lang={lang} dark={dark} theme={THEME[dark?"dark":"light"]} expandTags={expandSearchTags}
+            appsCount={homeAppsCount} onClose={()=>setShowHomeSearch(false)} onAction={handleSearchAction}/>
+        </Suspense>
       )}
       {showFAQ&&(
         <div

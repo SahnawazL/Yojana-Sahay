@@ -32,6 +32,7 @@ export async function getNextStartIdx(n) {
   try {
     const res = await fetch(`${KV_URL}/incr/groq_rr_counter`, {
       headers: { Authorization: `Bearer ${KV_TOKEN}` },
+      signal: AbortSignal.timeout(1500), // a slow KV never delays an answer
     });
 
     if (!res.ok) {

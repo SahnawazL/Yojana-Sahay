@@ -645,6 +645,7 @@ const PHASE_TEXT = {
   review:  { icon: "🔎", en: "Reviewing what I found",             hi: "मिली जानकारी जांच रहे हैं" },
   backup:  { icon: "⚡", en: "Main AI is busy — using the fast backup", hi: "मुख्य AI व्यस्त — तेज़ बैकअप से जवाब" },
   search:  { icon: "🌐", en: "Checking the web for the latest",    hi: "वेब पर ताज़ा जानकारी खोज रहे हैं" },
+  retry:   { icon: "🔄", en: "Slow connection — trying again",     hi: "कनेक्शन धीमा — दोबारा कोशिश कर रहे हैं" },
 };
 function phaseLabel(ph, lang) {
   if (!ph) return "";
@@ -2227,6 +2228,27 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
     });
     ro.observe(box);
     return () => ro.disconnect();
+  }, []);
+  // Home search → "Ask AI: …" sends the question; "Is this message real?"
+  // puts a starter in the box for the user to finish. Works even if the chat
+  // wasn't open yet (the request waits in window.__ysPendingChat).
+  const pendingRunRef = useRef(null);
+  pendingRunRef.current = (p) => {
+    if (!p) return;
+    if (p.kind === "ai" && p.text) whenFree(p.text, () => handleSend(p.text));
+    else if (p.kind === "ai-draft") { setInput(p.text || ""); setTimeout(() => { try { textareaRef.current?.focus(); } catch {} }, 250); }
+  };
+  useEffect(() => {
+    const take = () => {
+      const p = window.__ysPendingChat;
+      if (!p) return;
+      window.__ysPendingChat = undefined;
+      if (p.at && Date.now() - p.at > 120000) return; // stale (e.g. had to sign in first) — don't surprise them
+      setTimeout(() => pendingRunRef.current?.(p), 120);
+    };
+    take();
+    window.addEventListener("ys-chat-pending", take);
+    return () => window.removeEventListener("ys-chat-pending", take);
   }, []);
   // The bottom nav's AI button asks for the latest message (App.jsx).
   useEffect(() => {

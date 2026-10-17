@@ -77,7 +77,7 @@ const AGENT_TOOLS = [
   fn("compare_schemes", "Compare 2–4 schemes side by side: benefit, yearly value, who can apply, documents, how to apply, and the user's eligibility.",
     { schemes: LIST("2–4 scheme names") }, ["schemes"]),
   fn("my_applications", "The user's tracked applications ('I've applied' in the app): scheme, date, reference number, status, days waiting."),
-  fn("track_application", "Add a scheme to the user's My Applications tracker (the app then reminds them to check the status). Use ONLY when the user clearly says they have already applied/submitted.",
+  fn("track_application", "Add a scheme to the user's My Applications tracker (the app then reminds them to check the status). Use when the user says they have applied/submitted, OR explicitly asks you to add / track / save a scheme in My Applications. This is the ONLY way something gets added — never say it was added unless this tool returned ok.",
     { scheme: S("Scheme name"), reference: S("Optional application/reference number the user gave"), applied_on: S("Optional date YYYY-MM-DD") }, ["scheme"]),
   fn("documents_checklist", "One combined documents checklist for one or more schemes (documents needed by several schemes are listed once). The app shows it to the user as a checklist they can tick and share.",
     { schemes: LIST("Scheme names") }, ["schemes"]),
@@ -348,6 +348,7 @@ async function isRateLimited(req) {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify([["INCR", key], ["EXPIRE", key, "90"]]),
+      signal: AbortSignal.timeout(1500), // never hold a message up for the limiter
     });
     if (!r.ok) return false;
     const out = await r.json();
@@ -433,12 +434,18 @@ async function openGroqStreamOnce(keys, bodyObject, pass = "fresh") {
     .filter(i => (pass === "busy") === cooling.has(i));
   for (const i of order) {
     tried++;
+    // A key whose connection hangs is skipped after 20 s (only until the
+    // answer starts — the stream itself is not cut).
+    const connect = new AbortController();
+    const connectTimer = setTimeout(() => connect.abort(), 20000);
     try {
       const r = await fetch(GROQ_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${keys[i]}` },
         body: JSON.stringify({ ...bodyObject, stream: true }),
+        signal: connect.signal,
       });
+      clearTimeout(connectTimer);
       if (r.status === 429) {
         count429++; failedKeys.push(i);
         lastError = await r.json().catch(() => ({}));
@@ -455,7 +462,8 @@ async function openGroqStreamOnce(keys, bodyObject, pass = "fresh") {
       noteGroqQuota("chat", i, model, r.headers);
       return { ok: true, res: r, keyIdx: i, count429, failedKeys, tried, model, cooled: cooling.size };
     } catch (err) {
-      lastError = { message: err.message };
+      clearTimeout(connectTimer);
+      lastError = { message: err.name === "AbortError" ? "Groq did not respond in time" : err.message };
     }
   }
   return { ok: false, status: 429, data: { error: { message: "All AI keys are busy right now. Please try again in a minute.", details: lastError } }, keyIdx: -1, count429, failedKeys, tried, model, cooled: cooling.size };
@@ -543,6 +551,7 @@ async function handleStream(req, res, keys, requestBody) {
   let sentText = false;
   const onText = c => { sentText = true; send({ t: "d", c }); };
 
+  send({ t: "ph", p: "ack" });
   try {
     let first = await openGroqStream(keys, { ...requestBody, tools: [WEB_SEARCH_TOOL], tool_choice: "auto" });
     // The model couldn't format a tool call for this prompt → answer without the tool.
@@ -615,6 +624,7 @@ async function handleAgentStream(req, res, keys, requestBody, final) {
   const send = obj => { try { res.write(JSON.stringify(obj) + "\n"); } catch {} };
   let sentText = false;
   const onText = c => { sentText = true; send({ t: "d", c }); };
+  send({ t: "ph", p: "ack" }); // tells the app the connection is alive (it retries a stalled one)
   try {
     const withTools = final ? requestBody : { ...requestBody, tools: AGENT_TOOLS, tool_choice: "auto" };
     let r = await openGroqStream(keys, withTools);
