@@ -508,16 +508,18 @@ function AvatarPreviewModal({ onClose }) {
 // Real 24-spoke Dharma Chakra — navy blue on white, exactly like the Indian flag.
 // Outer ring uses a conic gradient cycling through India's tricolor (saffron →
 // white → green) so the border colours change smoothly as the wheel spins.
-function AshokChakra({ size = 44, duration = "10s" }) {
+// compact: for small sizes (header) — same 24 spokes, drawn bolder with a
+// cleaner rim and a lighter glow, so it stays crisp instead of a blur.
+function AshokChakra({ size = 44, duration = "10s", compact = false }) {
   const n     = 24;
   const cx    = 50, cy = 50;
   const toRad = d => (d * Math.PI) / 180;
   const navy  = "#003580"; // exact Indian-flag chakra navy
 
   // Geometry (SVG viewBox 100×100)
-  const rimOuter  = 46;
-  const rimInner  = 37;
-  const hubR      = 7;
+  const rimOuter  = compact ? 47 : 46;
+  const rimInner  = compact ? 40 : 37;
+  const hubR      = compact ? 9 : 7;
   const spokeFrom = hubR + 2.5;
 
   // 24 spokes
@@ -543,7 +545,7 @@ function AshokChakra({ size = 44, duration = "10s" }) {
     };
   });
 
-  const border    = 3.5;           // tricolor ring thickness in px
+  const border    = compact ? 2.5 : 3.5; // tricolor ring thickness in px
   const innerSize = size - border * 2; // SVG fits inside the white disc
 
   return (
@@ -554,7 +556,9 @@ function AshokChakra({ size = 44, duration = "10s" }) {
       width: size, height: size, borderRadius: "50%", flexShrink: 0,
       background: "conic-gradient(from 0deg, #FF9933 0deg, #FFFFFF 120deg, #138808 240deg, #FF9933 360deg)",
       padding: border,
-      boxShadow: "0 0 16px rgba(255,153,51,0.6), 0 0 32px rgba(19,136,8,0.3), 0 2px 8px rgba(0,0,0,0.25)",
+      boxShadow: compact
+        ? "0 0 0 1px rgba(0,53,128,0.10), 0 2px 6px rgba(255,153,51,0.35)"
+        : "0 0 16px rgba(255,153,51,0.6), 0 0 32px rgba(19,136,8,0.3), 0 2px 8px rgba(0,0,0,0.25)",
       animation: `spin ${duration} linear infinite`,
     }}>
       {/* ── White disc — chakra sits on white, exactly like the Indian flag ── */}
@@ -567,21 +571,21 @@ function AshokChakra({ size = 44, duration = "10s" }) {
         <svg width={innerSize} height={innerSize} viewBox="0 0 100 100">
           {/* Outer rim */}
           <circle cx={cx} cy={cy} r={rimOuter}
-            fill="none" stroke={navy} strokeWidth="7" />
+            fill="none" stroke={navy} strokeWidth={compact ? 6 : 7} />
           {/* Inner rim line */}
-          <circle cx={cx} cy={cy} r={rimInner}
-            fill="none" stroke={navy} strokeWidth="1.8" />
+          {!compact && <circle cx={cx} cy={cy} r={rimInner}
+            fill="none" stroke={navy} strokeWidth="1.8" />}
           {/* Solid hub */}
           <circle cx={cx} cy={cy} r={hubR} fill={navy} />
           {/* 24 spokes */}
           {spokes.map((s, i) => (
             <line key={i}
               x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
-              stroke={navy} strokeWidth="2.4" strokeLinecap="round"
+              stroke={navy} strokeWidth={compact ? 3.6 : 2.4} strokeLinecap="round"
             />
           ))}
           {/* 24 lens-shaped arrowheads between spokes */}
-          {leaves.map((l, i) => (
+          {!compact && leaves.map((l, i) => (
             <g key={i} transform={`translate(${l.cx},${l.cy}) rotate(${l.rot})`}>
               <path d="M 0,-5.5 Q 4,0 0,5.5 Q -4,0 0,-5.5 Z" fill={navy} />
             </g>
@@ -2545,7 +2549,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
               {isHindi ? "AI सहायक" : "AI Assistant"}
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:2, fontSize:11, color:th.textSub, whiteSpace:"nowrap", overflow:"hidden", fontFamily:bf }}>
-              <span style={{ width:6, height:6, borderRadius:"50%", background: loading ? "#F59E0B" : "#22C55E", flexShrink:0,
+              <span style={{ width:6, height:6, borderRadius:"50%", background: loading ? "#F59E0B" : "#22C55E", flexShrink:0, marginLeft:3,
                 boxShadow:`0 0 0 3px ${loading ? "rgba(245,158,11,0.18)" : "rgba(34,197,94,0.16)"}`, transition:"background .3s" }} />
               <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
                 {loading ? (isHindi ? "जवाब तैयार कर रहा है…" : "Working on your answer…") : (isHindi ? "ऑनलाइन" : "Online")}
@@ -2553,7 +2557,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
               </span>
             </div>
           </div>
-          <AshokChakra size={26} duration="14s" />
+          <AshokChakra size={34} duration="9s" compact />
           <div role="button" tabIndex={0} aria-label={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"} title={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"}
             onClick={() => { dismissNews(); setShowCaps(true); }}
             onKeyDown={e => { if (e.key === "Enter") { dismissNews(); setShowCaps(true); } }}
