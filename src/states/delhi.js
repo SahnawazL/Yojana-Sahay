@@ -1825,4 +1825,21 @@ export const DELHI_SCHEMES = [
   //   match: (a) => a.state === "Delhi",
   // },
 
+  // <auto-scheme id="delhi_lakshmi"> added by Scheme Discovery agent on 2026-10-17 · source: https://ddnews.gov.in/en/delhi-govt-to-launch-lakshmi-yojana-today-eligible-women-to-receive-rs-2500-monthly/
+  {
+    id: "delhi_lakshmi",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Delhi",
+    ministry: { en: "Delhi Government", hi: "दिल्ली सरकार" },
+    name:    { en: "Delhi Lakshmi Yojana", hi: "दिल्ली लक्ष्मी योजना" },
+    benefit: { en: "₹2,500 monthly financial assistance", hi: "₹2,500 मासिक आर्थिक सहायता" },
+    tag:     { en: "Financial Assistance", hi: "आर्थिक सहायता" },
+    annual: 30000,
+    apply:   { en: "https://ddnews.gov.in/en/delhi-govt-to-launch-lakshmi-yojana-today-eligible-women-to-receive-rs-2500-monthly/", hi: "https://ddnews.gov.in/en/delhi-govt-to-launch-lakshmi-yojana-today-eligible-women-to-receive-rs-2500-monthly/" }, applyType: "online",
+    docs:    { en: ["Application Form","Eligibility Criteria"],
+               hi: ["आवेदन फॉर्म","पात्रता मानदंड"] },
+    autoAdded: "2026-10-17", source: "https://ddnews.gov.in/en/delhi-govt-to-launch-lakshmi-yojana-today-eligible-women-to-receive-rs-2500-monthly/",
+    match: (a) => a.state === "Delhi" && a.who === "women" && a.income === "below1" && ["18to35","35to60"].includes(a.age),
+  },
+  // </auto-scheme id="delhi_lakshmi">
+
 ];
