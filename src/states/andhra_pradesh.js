@@ -368,4 +368,21 @@ export const ANDHRA_PRADESH_SCHEMES = [
     match: (a) => a.state === "Andhra Pradesh" && a.income !== "above6" && (a.area == null || ["urban", "semi"].includes(a.area)),
   },
 
+  // <auto-scheme id="ap_housing_all_subsidised"> added by Scheme Discovery agent on 2026-10-18 · source: https://housing.ap.gov.in/
+  {
+    id: "ap_housing_all_subsidised",
+    icon: "🏠", color: "#0F766E", scope: "state", state: "Andhra Pradesh",
+    ministry: { en: "Government of Andhra Pradesh Housing Department", hi: "राज्य सरकार, आवास विभाग" },
+    name:    { en: "AP Housing for All – Subsidised Housing Scheme", hi: "एपी हाउसिंग फॉर ऑल – सब्सिडाइज्ड हाउसिंग स्कीम" },
+    benefit: { en: "Free or subsidised pucca houses for BPL/EWS families", hi: "बीपीएल/ईडब्ल्यूएस परिवारों के लिए मुफ्त या सब्सिडी वाली पक्का घर" },
+    tag:     { en: "Subsidised Housing", hi: "सब्सिडी वाली आवास" },
+    annual: 150000,
+    apply:   { en: "https://housing.ap.gov.in/", hi: "https://housing.ap.gov.in/" }, applyType: "online",
+    docs:    { en: ["Eligibility Criteria","Application Form"],
+               hi: ["पात्रता मानदंड","आवेदन पत्र"] },
+    autoAdded: "2026-10-18", source: "https://housing.ap.gov.in/",
+    match: (a) => a.state === "Andhra Pradesh" && a.who === "general" && a.income === "below1",
+  },
+  // </auto-scheme id="ap_housing_all_subsidised">
+
 ];
