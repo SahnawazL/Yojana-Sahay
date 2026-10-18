@@ -334,13 +334,13 @@
     "linkAlive": true
   },
   "pmvishwakarma": {
-    "lastVerified": "2026-09-16T23:29:57.186Z",
+    "lastVerified": "2026-10-18T08:46:57.937Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "pmsvanidhi": {
-    "lastVerified": "2026-09-16T23:29:51.754Z",
+    "lastVerified": "2026-10-18T08:46:55.843Z",
     "confidence": 0
   },
   "sukanya": {
@@ -524,7 +524,7 @@
     "linkAlive": true
   },
   "pmvvy": {
-    "lastVerified": "2026-09-16T23:30:06.439Z",
+    "lastVerified": "2026-10-18T08:47:26.311Z",
     "confidence": 0
   },
   "pmmsy": {
@@ -564,7 +564,7 @@
     "linkAlive": true
   },
   "premat_st_scholarship": {
-    "lastVerified": "2026-09-17T23:17:48.881Z",
+    "lastVerified": "2026-10-18T08:47:40.535Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -610,10 +610,12 @@
     "linkAlive": true
   },
   "premat_sc": {
-    "lastVerified": "2026-09-17T23:17:40.044Z",
+    "lastVerified": "2026-10-18T08:47:27.923Z",
     "httpStatus": 200,
-    "confidence": 0,
-    "linkAlive": true
+    "confidence": 1,
+    "linkAlive": true,
+    "isActive": true,
+    "lastDate": "2026-10-31"
   },
   "pms_obc": {
     "lastVerified": "2026-10-17T21:37:14.532Z",
@@ -3069,19 +3071,19 @@
     "confidence": 0
   },
   "punjab_ashirwad": {
-    "lastVerified": "2026-10-09T09:34:16.570Z",
+    "lastVerified": "2026-10-18T08:48:05.406Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_atta_dal": {
-    "lastVerified": "2026-10-09T09:34:16.570Z",
+    "lastVerified": "2026-10-18T08:48:20.901Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_crop_insurance": {
-    "lastVerified": "2026-10-10T11:49:31.867Z",
+    "lastVerified": "2026-10-18T08:48:55.065Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
@@ -3099,19 +3101,19 @@
     "confidence": 0
   },
   "punjab_gharkari_yojana": {
-    "lastVerified": "2026-10-10T11:49:31.867Z",
+    "lastVerified": "2026-10-18T08:50:02.922Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "punjab_budhapa_pension": {
-    "lastVerified": "2026-10-10T11:49:31.867Z",
+    "lastVerified": "2026-10-18T08:48:42.915Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_divyang_pension": {
-    "lastVerified": "2026-10-10T11:49:31.867Z",
+    "lastVerified": "2026-10-18T08:49:20.980Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3153,13 +3155,13 @@
     "httpStatus": 200
   },
   "punjab_khel_khilaadi": {
-    "lastVerified": "2026-10-10T11:50:55.098Z",
+    "lastVerified": "2026-10-18T08:50:17.029Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_bocw_welfare": {
-    "lastVerified": "2026-10-10T11:50:55.098Z",
+    "lastVerified": "2026-10-18T08:48:30.603Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3171,13 +3173,13 @@
     "confidence": 0
   },
   "punjab_disability_scholarship": {
-    "lastVerified": "2026-10-10T11:50:55.098Z",
+    "lastVerified": "2026-10-18T08:49:07.963Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "punjab_himmat_scheme": {
-    "lastVerified": "2026-10-10T11:51:24.984Z",
+    "lastVerified": "2026-10-18T08:50:05.476Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3195,7 +3197,7 @@
     "confidence": 0
   },
   "puducherry_cm_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-18T08:47:52.902Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3245,7 +3247,7 @@
     "confidence": 0
   },
   "pmss_defence": {
-    "lastVerified": "2026-09-16T23:29:41.920Z",
+    "lastVerified": "2026-10-18T08:46:26.163Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
