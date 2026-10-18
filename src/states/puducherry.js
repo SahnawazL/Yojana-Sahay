@@ -215,4 +215,21 @@ export const PUDUCHERRY_SCHEMES = [
   //   match: (a) => a.state === "Puducherry",
   // },
 
+  // <auto-scheme id="puducherry_grant_monthly_financial"> added by Scheme Discovery agent on 2026-10-18 · source: https://wcd.py.gov.in/grant-monthly-financial-assistance-women-who-are-heads-families-living-below-poverty-line-bpl
+  {
+    id: "puducherry_grant_monthly_financial",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Puducherry",
+    ministry: { en: "Department of Women and Child Development, Puducherry", hi: "पुदुचेरी के महिला एवं बाल विकास विभाग" },
+    name:    { en: "Grant of Monthly Financial Assistance to Women Heads of Families Living Below Poverty Line", hi: "बेरोज़गारी रेखा के नीचे रहने वाली परिवारों की महिला प्रमुखों को मासिक वित्तीय सहायता का अनुदान" },
+    benefit: { en: "₹1,000 per month", hi: "प्रति माह ₹1,000" },
+    tag:     { en: "Financial Assistance", hi: "वित्तीय सहायता" },
+    annual: 12000,
+    apply:   { en: "https://wcd.py.gov.in/grant-monthly-financial-assistance-women-who-are-heads-families-living-below-poverty-line-bpl", hi: "https://wcd.py.gov.in/grant-monthly-financial-assistance-women-who-are-heads-families-living-below-poverty-line-bpl" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-18", source: "https://wcd.py.gov.in/grant-monthly-financial-assistance-women-who-are-heads-families-living-below-poverty-line-bpl",
+    match: (a) => a.state === "Puducherry" && a.who === "women" && ["18to35","35to60"].includes(a.age) && a.rationCard === "bpl",
+  },
+  // </auto-scheme id="puducherry_grant_monthly_financial">
+
 ];
