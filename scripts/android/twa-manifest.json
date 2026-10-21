@@ -14,8 +14,8 @@
   "backgroundColor": "#003580",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://yojanasahay.vercel.app/icons/logo512.png",
-  "maskableIconUrl": "https://yojanasahay.vercel.app/icons/maskable512.png",
+  "iconUrl": "https://yojanasahay.vercel.app/icons/app-icon-512.png",
+  "maskableIconUrl": "https://yojanasahay.vercel.app/icons/app-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./upload.p12",
@@ -28,19 +28,19 @@
       "name": "Find schemes",
       "shortName": "Search",
       "url": "https://yojanasahay.vercel.app/?go=search",
-      "chosenIconUrl": "https://yojanasahay.vercel.app/icons/logo192.png"
+      "chosenIconUrl": "https://yojanasahay.vercel.app/icons/app-icon-192.png"
     },
     {
       "name": "Check my eligibility",
       "shortName": "Eligibility",
       "url": "https://yojanasahay.vercel.app/?go=checker",
-      "chosenIconUrl": "https://yojanasahay.vercel.app/icons/logo192.png"
+      "chosenIconUrl": "https://yojanasahay.vercel.app/icons/app-icon-192.png"
     },
     {
       "name": "Ask AI assistant",
       "shortName": "Ask AI",
       "url": "https://yojanasahay.vercel.app/?go=ai",
-      "chosenIconUrl": "https://yojanasahay.vercel.app/icons/logo192.png"
+      "chosenIconUrl": "https://yojanasahay.vercel.app/icons/app-icon-192.png"
     }
   ],
   "generatorApp": "bubblewrap-cli",

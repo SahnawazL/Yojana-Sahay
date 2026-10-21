@@ -11314,8 +11314,8 @@ function YojanaSahayInner(){
                     fontFamily:"'Noto Sans',sans-serif",lineHeight:1.45,
                   }}>
                     {isHindi
-                      ?"स्वतंत्र पाइपलाइन द्वारा जाँचे गए सरकारी पोर्टल लिंक"
-                      :"Govt. portal links verified · No paid promotions · Independent platform"
+                      ?"आधिकारिक पोर्टल लिंक जांचे गए · कोई पेड प्रमोशन नहीं · सरकारी ऐप नहीं"
+                      :"Official portal links checked · No paid promotions · Not a government app"
                     }
                   </div>
                 </div>
