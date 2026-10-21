@@ -7478,7 +7478,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           <AshokaChakra size={160} color="#ffffff"/>
         </div>
 
-        {/* Verified Citizen badge */}
+        {/* Signed-in member badge (not a government verification) */}
         <div style={{
           display:"inline-flex",alignItems:"center",gap:7,
           background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.22)",
@@ -7486,7 +7486,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         }}>
           <AshokaChakra size={13} color="#FF9933"/>
           <span style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.9)",letterSpacing:0.9,textTransform:"uppercase"}}>
-            {isHindi?"सत्यापित नागरिक":"Verified Citizen"}
+            {isHindi?"साइन-इन सदस्य":"Signed-in member"}
           </span>
           <span style={{fontSize:11,color:"#4ade80",fontWeight:800}}>✓</span>
         </div>
