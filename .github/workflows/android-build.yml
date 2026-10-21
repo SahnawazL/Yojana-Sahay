@@ -81,6 +81,19 @@ jobs:
           echo "::notice title=Version::$VERSION_NAME (code $VERSION_CODE)"
           echo "::notice title=Upload key SHA-256::${{ steps.key.outputs.fingerprint }}"
 
+      - name: Wait until the website serves the app icons
+        run: |
+          for i in $(seq 1 40); do
+            ok=1
+            for u in /icons/logo512.png /icons/maskable512.png /icons/logo192.png /manifest.json; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" "https://yojanasahay.vercel.app$u")
+              [ "$code" = "200" ] || ok=0
+            done
+            [ $ok = 1 ] && { echo "Website ready"; exit 0; }
+            echo "Waiting for the latest deploy… ($i)"; sleep 15
+          done
+          echo "::error::The website did not serve the icons in time"; exit 1
+
       - name: Generate Android project
         working-directory: ${{ runner.temp }}/twa
         run: |

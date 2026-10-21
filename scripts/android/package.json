@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Tools for the Android (TWA) build — see .github/workflows/android-build.yml"
+}
