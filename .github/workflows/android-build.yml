@@ -124,7 +124,9 @@ jobs:
             [ -f "$p" ] || continue
             node -e '
               const fs = require("fs");
-              const tail = fs.readFileSync(process.argv[1], "utf8").split("\n").filter(l => l.trim()).slice(-45).join("\n");
+              const lines = fs.readFileSync(process.argv[1], "utf8").split("\n").filter(l => l.trim() && !/^\s+at /.test(l));
+              const w = lines.findIndex(l => /What went wrong|FAILURE:|ERROR|error:/.test(l));
+              const tail = (w >= 0 ? lines.slice(Math.max(0, w - 5), w + 40) : lines.slice(-45)).join("\n");
               const esc = s => s.replace(/%/g, "%25").replace(/\r/g, "").replace(/\n/g, "%0A");
               console.log(`::error title=${process.argv[2]}::${esc(tail)}`);
             ' "$p" "$f"
