@@ -24,6 +24,7 @@ import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
 import DeleteUserTool from "./DeleteUserTool.jsx";
+import AiReportsPanel from "./AiReportsPanel.jsx";
 import SchemeVerifier from "./SchemeVerifier.jsx";
 import AgentsTab, {
   useAgentPresence, useDailyTimeTracking, logAdminActivity,
@@ -9545,6 +9546,9 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       {/* ══ REPORTS / QUERIES ══ */}
       {keepTab("reports") && (
         <TabPane active={activeSection === "reports"}>
+        <div style={isDesktop ? { maxWidth:1400, margin:"0 auto", width:"100%", padding:"0 6px", boxSizing:"border-box" } : {}}>
+          <AiReportsPanel dark={dark} />
+        </div>
         {(
         <ReportsSection
           reports={reports}

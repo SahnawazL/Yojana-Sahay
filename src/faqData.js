@@ -47,7 +47,7 @@ export const FAQ_DATA = {
       a: { text: "Government websites are sometimes slow or down for a while — try again later, or tap 'Find on Google' to search for the official page. If the link is really wrong, tap '⚑ Something wrong with this scheme?' at the bottom of the scheme — no sign-in needed; we check the link straight away.",
            note: "Some government websites (.nic.in) block visitors from outside India. They usually work fine on an Indian mobile network or Wi-Fi." } },
     { cat: "schemes", id: "schemes_011", q: "What happens after I report a problem with a scheme?",
-      a: { text: "Open the scheme, scroll to the bottom and tap '⚑ Something wrong with this scheme?'. Choose what's wrong — link not working, amount wrong, scheme closed, eligibility wrong or something else — and tap Send. No sign-in is needed. If you chose 'Link not working', we check the link straight away and tell you the result; links that really don't open are fixed automatically, usually within a day. Our team checks every other report. When several people report the same problem, other users see a short warning on that scheme until it's fixed.",
+      a: { text: "Open the scheme, scroll to the bottom and tap '⚑ Something wrong with this scheme?'. Choose what's wrong — link not working, amount wrong, scheme closed, eligibility wrong or something else — and tap Send. No sign-in is needed. If you chose 'Link not working', we check the link straight away and tell you the result; links that really don't open are fixed automatically, usually within a day. Every other report is checked by hand. When several people report the same problem, other users see a short warning on that scheme until it's fixed.",
            note: "To see the status later, just open the same scheme again — your report, its status (checking, being fixed or fixed) and our reply are shown right there, even if you're not signed in. Signed-in users also see it in Profile → Report / Query → My Reports and get an email when we reply — and if you sign in later on the same phone, your earlier reports move there automatically." } },
     { cat: "schemes", id: "schemes_012", q: "What is 'Your readiness' on a scheme?",
       a: "It shows how close you are to applying — for example \"You're 2 documents away from ₹6,000 a year\". Tick each document in the list as you collect it; when all are ticked it says you're ready to apply, and once you tap \"I've applied — track it\" it shows 100%." },
@@ -99,7 +99,7 @@ export const FAQ_DATA = {
       a: { text: "The AI is a helper, not an official authority. It is usually right, but it can sometimes be incomplete or out of date.",
            note: "Before you apply or decide anything, confirm eligibility, dates and amounts on the official government website." } },
     { cat: "ai", id: "ai_009", q: "How do I report a wrong or harmful AI answer?",
-      a: "Tap 'Report' under the answer, choose what was wrong — wrong or outdated information, harmful advice, offensive content or something else — add a note if you like, and send. Every report is reviewed and used to improve the assistant. No sign-in is needed to report." },
+      a: "Press and hold the answer (or tap ⋯ below it), choose 'Report a problem', pick what was wrong — wrong or outdated information, harmful advice, offensive content or something else — add a note if you like, and send. Every report is reviewed and used to improve the assistant. No sign-in is needed to report." },
 
     // ── Account & support ────────────────────────────────────────────────────
     { cat: "account", id: "account_001", q: "Do I need an account?",
@@ -154,7 +154,7 @@ export const FAQ_DATA = {
       a: { text: "सरकारी वेबसाइटें कभी-कभी धीमी या कुछ समय के लिए बंद रहती हैं — बाद में फिर कोशिश करें, या 'गूगल पर खोजें' दबाकर आधिकारिक पेज ढूंढें। अगर लिंक सच में गलत है तो योजना के नीचे '⚑ इस योजना में कुछ गलत है?' दबाएं — साइन-इन ज़रूरी नहीं; हम लिंक तुरंत जांचते हैं।",
            note: "कुछ सरकारी वेबसाइटें (.nic.in) भारत के बाहर से आने वालों को रोकती हैं। भारतीय मोबाइल नेटवर्क या Wi-Fi पर ये आमतौर पर ठीक खुलती हैं।" } },
     { cat: "schemes", id: "schemes_011", q: "योजना में समस्या बताने के बाद क्या होता है?",
-      a: { text: "योजना खोलें, नीचे तक जाएं और '⚑ इस योजना में कुछ गलत है?' दबाएं। चुनें क्या गलत है — लिंक नहीं खुल रहा, राशि गलत, योजना बंद, पात्रता गलत या कुछ और — और भेजें दबाएं। साइन-इन ज़रूरी नहीं। अगर आपने 'लिंक काम नहीं कर रहा' चुना, तो हम लिंक तुरंत जांचकर नतीजा बताते हैं; जो लिंक सच में नहीं खुलते वे अपने आप ठीक किए जाते हैं, आमतौर पर एक दिन में। बाकी हर रिपोर्ट हमारी टीम जांचती है। जब कई लोग एक ही समस्या बताते हैं, तो ठीक होने तक उस योजना पर दूसरों को एक छोटी चेतावनी दिखती है।",
+      a: { text: "योजना खोलें, नीचे तक जाएं और '⚑ इस योजना में कुछ गलत है?' दबाएं। चुनें क्या गलत है — लिंक नहीं खुल रहा, राशि गलत, योजना बंद, पात्रता गलत या कुछ और — और भेजें दबाएं। साइन-इन ज़रूरी नहीं। अगर आपने 'लिंक काम नहीं कर रहा' चुना, तो हम लिंक तुरंत जांचकर नतीजा बताते हैं; जो लिंक सच में नहीं खुलते वे अपने आप ठीक किए जाते हैं, आमतौर पर एक दिन में। बाकी हर रिपोर्ट हम खुद जांचते हैं। जब कई लोग एक ही समस्या बताते हैं, तो ठीक होने तक उस योजना पर दूसरों को एक छोटी चेतावनी दिखती है।",
            note: "बाद में स्थिति देखने के लिए वही योजना फिर से खोलें — आपकी रिपोर्ट, उसकी स्थिति (जांच हो रही है, ठीक किया जा रहा है या ठीक हो गया) और हमारा जवाब वहीं दिखेगा, साइन-इन न हो तब भी। साइन-इन किए लोग इसे प्रोफाइल → रिपोर्ट / सवाल → मेरी रिपोर्ट में भी देख सकते हैं और जवाब आने पर ईमेल पाते हैं — और अगर आप बाद में उसी फ़ोन पर साइन इन करते हैं, तो आपकी पिछली रिपोर्ट अपने आप वहां आ जाती हैं।" } },
     { cat: "schemes", id: "schemes_012", q: "योजना पर 'आपकी तैयारी' क्या है?",
       a: "यह बताती है कि आप आवेदन से कितना दूर हैं — जैसे \"₹6,000 सालाना से बस 2 दस्तावेज़ दूर\"। दस्तावेज़ मिलते ही सूची में टिक करें; सब टिक होने पर यह बताएगी कि आप आवेदन के लिए तैयार हैं, और 'मैंने आवेदन कर दिया — ट्रैक करें' दबाने पर 100% दिखेगी।" },
@@ -206,7 +206,7 @@ export const FAQ_DATA = {
       a: { text: "AI एक सहायक है, कोई सरकारी अधिकारी नहीं। यह ज़्यादातर सही होता है, लेकिन कभी-कभी जानकारी अधूरी या पुरानी हो सकती है।",
            note: "आवेदन या कोई फैसला लेने से पहले पात्रता, तारीखें और राशि आधिकारिक सरकारी वेबसाइट पर ज़रूर जांच लें।" } },
     { cat: "ai", id: "ai_009", q: "गलत या नुकसानदेह AI जवाब की रिपोर्ट कैसे करूं?",
-      a: "जवाब के नीचे 'रिपोर्ट' दबाएं, बताएं क्या गलत था — गलत या पुरानी जानकारी, नुकसानदेह सलाह, आपत्तिजनक बात या कुछ और — चाहें तो नोट लिखें और भेजें। हर रिपोर्ट की समीक्षा होती है और इससे सहायक बेहतर बनता है। रिपोर्ट के लिए साइन-इन ज़रूरी नहीं।" },
+      a: "जवाब को दबाकर रखें (या उसके नीचे ⋯ दबाएं), 'समस्या बताएं' चुनें और बताएं क्या गलत था — गलत या पुरानी जानकारी, नुकसानदेह सलाह, आपत्तिजनक बात या कुछ और — चाहें तो नोट लिखें और भेजें। हर रिपोर्ट की समीक्षा होती है और इससे सहायक बेहतर बनता है। रिपोर्ट के लिए साइन-इन ज़रूरी नहीं।" },
 
     // ── अकाउंट और सहायता ─────────────────────────────────────────────────────────
     { cat: "account", id: "account_001", q: "क्या अकाउंट बनाना ज़रूरी है?",

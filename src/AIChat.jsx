@@ -448,6 +448,11 @@ const GLOBAL_CSS = `
   70%  { transform: scale(0.93); }
   100% { transform: scale(1); }
 }
+/* Long-press opens the answer menu (Copy is in it), so phones don't start a
+   text selection or show the browser's own callout on the answer. */
+@media (pointer: coarse) {
+  .ai-answer-press { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+}
 @keyframes typing-cursor {
   0%,100% { opacity: 1; }
   50%      { opacity: 0; }
@@ -1870,12 +1875,119 @@ function AiReportSheet({ answer, question, lang, dark, onClose, onDone }) {
   );
 }
 
+// ─── Answer menu — long-press an AI answer (or tap ⋯ under it) ───────────────
+// Copy · Listen · Share · Report a problem. Report lives here instead of a
+// visible button on every answer (Play's AI policy only needs it reachable
+// in-app; a "Report" label on each answer made every reply look doubtful).
+const menuPlain = (t) => String(t || "")
+  .replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*\*/g, "")
+  .replace(/^\s*[*-] /gm, "• ").replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)").trim();
+
+function MenuIcon({ name }) {
+  const p = { width:18, height:18, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", strokeWidth:1.9, strokeLinecap:"round", strokeLinejoin:"round", "aria-hidden":true };
+  if (name === "copy")   return <svg {...p}><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>;
+  if (name === "listen") return <svg {...p}><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>;
+  if (name === "stop")   return <svg {...p}><rect x="6" y="6" width="12" height="12" rx="2"/></svg>;
+  if (name === "share")  return <svg {...p}><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>;
+  if (name === "flag")   return <svg {...p}><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>;
+  if (name === "check")  return <svg {...p}><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>;
+  return null;
+}
+
+function AnswerMenu({ text, lang, dark, speaking, onListen, reported, onReport, onClose, fromPress = false }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const bf = fontFamily(lang);
+  const hi = lang === "hi";
+  const [copied, setCopied] = useState(false);
+  // Opened by a long-press: the finger is still down, and lifting it fires a
+  // click on whatever now sits under it (the backdrop or a row). Ignore taps
+  // until shortly after the finger lifts.
+  const armed = useRef(!fromPress);
+  useEffect(() => {
+    if (!fromPress) return;
+    let t1 = null;
+    const arm = () => { clearTimeout(t1); t1 = setTimeout(() => { armed.current = true; }, 350); };
+    const fallback = setTimeout(() => { armed.current = true; }, 1500);
+    const evs = ["pointerup", "pointercancel", "touchend"];
+    evs.forEach(e => window.addEventListener(e, arm, true));
+    return () => { clearTimeout(t1); clearTimeout(fallback); evs.forEach(e => window.removeEventListener(e, arm, true)); };
+  }, [fromPress]);
+  const guard = (fn) => (e) => { if (!armed.current) { e?.preventDefault?.(); return; } fn(e); };
+  const line = dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  const copy = async () => {
+    const t = menuPlain(text);
+    try { await navigator.clipboard.writeText(t); }
+    catch {
+      try { const ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); } catch {}
+    }
+    setCopied(true); setTimeout(onClose, 650);
+  };
+  const share = async () => {
+    try { await navigator.share({ text: menuPlain(text) + "\n\n— Yojana Sahay · yojanasahay.vercel.app" }); } catch {}
+    onClose();
+  };
+  const rows = [
+    { id:"copy",   icon: copied ? "check" : "copy", label: copied ? (hi ? "कॉपी हो गया" : "Copied") : (hi ? "जवाब कॉपी करें" : "Copy answer"), run: copy },
+    canSpeak() && { id:"listen", icon: speaking ? "stop" : "listen", label: speaking ? (hi ? "सुनना रोकें" : "Stop listening") : (hi ? "सुनें" : "Listen"), run: () => { onListen(); onClose(); } },
+    typeof navigator !== "undefined" && navigator.share && { id:"share", icon:"share", label: hi ? "शेयर करें" : "Share", run: share },
+    { id:"report", icon: reported ? "check" : "flag", label: reported ? (hi ? "रिपोर्ट भेजी जा चुकी है" : "Problem reported") : (hi ? "समस्या बताएं" : "Report a problem"), run: () => { if (!reported) onReport(); else onClose(); }, muted: true },
+  ].filter(Boolean);
+  return (
+    <div onClick={guard(onClose)} style={{ position:"fixed", inset:0, zIndex:9090, background:"rgba(2,6,23,0.42)", display:"flex", alignItems:"flex-end", justifyContent:"center", animation:"fade-in 0.15s ease-out" }}>
+      <div role="menu" aria-label={hi ? "जवाब के विकल्प" : "Answer options"} onClick={e => e.stopPropagation()}
+        style={{ width:"100%", maxWidth:520, background: dark ? "#111214" : "#F6F7F9", borderRadius:"20px 20px 0 0", padding:"8px 12px calc(12px + env(safe-area-inset-bottom))", fontFamily:bf, animation:"chips-reveal 0.2s ease-out" }}>
+        <div style={{ width:36, height:4, borderRadius:2, background: dark ? "#3a3b40" : "#d4d7dd", margin:"2px auto 10px" }} />
+        <div style={{ background: dark ? "#1A1B1F" : "#fff", border:`1px solid ${line}`, borderRadius:14, overflow:"hidden" }}>
+          {rows.map((r, i) => (
+            <div key={r.id} role="menuitem" tabIndex={0} onClick={guard(r.run)}
+              onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); r.run(); } }}
+              style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 14px", cursor:"pointer", borderTop: i ? `1px solid ${line}` : "none",
+                color: r.muted ? th.textSub : th.text, fontSize:14, fontWeight:600 }}>
+              <span style={{ display:"inline-flex", color: r.id === "copy" && copied ? "#16a34a" : (r.muted ? th.textSub : (dark ? "#FFB366" : "#C2410C")) }}><MenuIcon name={r.icon} /></span>
+              {r.label}
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={guard(onClose)}
+          style={{ width:"100%", marginTop:8, padding:12, borderRadius:14, border:`1px solid ${line}`, background: dark ? "#1A1B1F" : "#fff", color:th.text, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:bf }}>
+          {hi ? "बंद करें" : "Close"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Long-press (touch) / right-click (mouse) → onOpen. A small move or scroll
+// cancels it so normal scrolling never opens the menu.
+function useLongPress(onOpen, enabled) {
+  const t = useRef(null); const start = useRef(null); const fired = useRef(false);
+  const clear = () => { if (t.current) { clearTimeout(t.current); t.current = null; } };
+  if (!enabled) return {};
+  return {
+    onPointerDown: (e) => {
+      if (e.pointerType === "mouse") return;
+      fired.current = false; start.current = { x:e.clientX, y:e.clientY };
+      clear(); t.current = setTimeout(() => { fired.current = true; onOpen(); }, 480);
+    },
+    onPointerMove: (e) => { if (start.current && Math.hypot(e.clientX - start.current.x, e.clientY - start.current.y) > 10) clear(); },
+    onPointerUp: clear, onPointerCancel: clear, onPointerLeave: clear,
+    onContextMenu: (e) => { e.preventDefault(); clear(); if (!fired.current) onOpen(); fired.current = false; },
+    onClickCapture: (e) => { if (fired.current) { e.preventDefault(); e.stopPropagation(); fired.current = false; } },
+  };
+}
+
 function ChatBubble({ msg, lang, dark, isNew, live = false, question = "", showAvatar = true, showTime = true, dayLabel = null, isLatest = false, onOpenDetail, eligibleIds, trackedApps, onChecklist, onOpenChecker, onQuizDone, onAsk, onQuizRestart, onRecheck }) {
   const th     = THEME[dark ? "dark" : "light"];
   const bf     = fontFamily(lang);
   const isUser = msg.role === "user";
   const [reportOpen, setReportOpen] = useState(false);
   const [reported, setReported] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Read-aloud
   const [speaking, setSpeaking] = useState(false);
@@ -1932,6 +2044,8 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, question = "", showA
     .replace(/\*\*/g, "")
     .replace(/^\* /gm, "• ");
 
+  const pressProps = useLongPress(() => setMenuOpen("press"), !isUser && isDone && !live);
+
   // ── Calm, readable bubbles ───────────────────────────────────────────────
   // Answers sit on a plain card with a hairline border (no glow, no blur —
   // blur on every bubble also slowed scrolling on phones). Colour lives on
@@ -1970,7 +2084,7 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, question = "", showA
             <img src={aiAvatar} alt="AI" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
           </div>
         ) : <div style={{ width:28, flexShrink:0 }} />)}
-        <div style={{
+        <div {...pressProps} className={!isUser ? "ai-answer-press" : undefined} style={{
           maxWidth:"88%",
           color: isUser ? "#FFFFFF" : th.text,
           borderRadius: isUser ? (showAvatar ? "18px 18px 5px 18px" : "18px") : (showAvatar ? "18px 18px 18px 5px" : "18px"),
@@ -2105,21 +2219,21 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, question = "", showA
             </span>
           )}
           {!isUser && isDone && (
-            <span role="button" tabIndex={0} onClick={() => !reported && setReportOpen(true)}
-              onKeyDown={e => { if ((e.key === "Enter" || e.key === " ") && !reported) { e.preventDefault(); setReportOpen(true); } }}
-              aria-label={lang === "hi" ? "इस जवाब की रिपोर्ट करें" : "Report this answer"}
-              title={lang === "hi" ? "इस जवाब की रिपोर्ट करें" : "Report this answer"}
+            <span role="button" tabIndex={0} onClick={() => setMenuOpen(true)}
+              onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setMenuOpen(true); } }}
+              aria-label={lang === "hi" ? "और विकल्प" : "More options"}
+              title={lang === "hi" ? "और विकल्प (या जवाब को दबाकर रखें)" : "More options (or long-press the answer)"}
               style={{
-                display:"inline-flex", alignItems:"center", gap:4, height:22, padding:"0 7px", borderRadius:7, cursor: reported ? "default" : "pointer",
-                fontSize:10.5, fontWeight:600, color: reported ? (dark ? "#4ade80" : "#16a34a") : (dark ? "rgba(170,170,180,0.7)" : "rgba(100,116,139,0.85)"),
-                border:`1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}`, userSelect:"none",
+                display:"inline-flex", alignItems:"center", justifyContent:"center", width:26, height:22, borderRadius:7, cursor:"pointer",
+                color: dark ? "rgba(170,170,180,0.6)" : "rgba(100,116,139,0.7)", userSelect:"none",
               }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>
-              {reported ? (lang === "hi" ? "रिपोर्ट भेजी" : "Reported") : (lang === "hi" ? "रिपोर्ट" : "Report")}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
             </span>
           )}
         </div>
       )}
+      {menuOpen && <AnswerMenu fromPress={menuOpen === "press"} text={msg.content} lang={lang} dark={dark} speaking={speaking} onListen={toggleSpeak} reported={reported}
+        onReport={() => { setMenuOpen(false); setReportOpen(true); }} onClose={() => setMenuOpen(false)} />}
       {reportOpen && <AiReportSheet answer={msg.content} question={question} lang={lang} dark={dark} onClose={() => setReportOpen(false)} onDone={() => setReported(true)} />}
     </div>
   );

@@ -124,7 +124,7 @@ export default async function handler(req, res) {
     // Unrecognized/missing type falls back to "checker" — this is what keeps
     // the original client call (which never sent a `type` field) working
     // completely unchanged.
-    const type = ["checker", "search", "state", "events", "flag", "claim", "ai_report", "delete_account", "email_prefs", "admin_delete_user"].includes(body.type) ? body.type : "checker";
+    const type = ["checker", "search", "state", "events", "flag", "claim", "ai_report", "delete_account", "email_prefs", "admin_delete_user", "admin_ai_reports"].includes(body.type) ? body.type : "checker";
 
     const app = getAdminApp();
     const db = getFirestore(app);
@@ -141,6 +141,10 @@ export default async function handler(req, res) {
     }
     if (type === "delete_account") {
       await handleDeleteAccount(req, res, getFirestore(getAdminApp()), getAdminApp());
+      return;
+    }
+    if (type === "admin_ai_reports") {
+      await handleAdminAiReports(req, res, body, getFirestore(getAdminApp()));
       return;
     }
     if (type === "admin_delete_user") {
@@ -427,6 +431,35 @@ async function handleAdminDeleteUser(req, res, body, db, app) {
     throw e;
   }
   res.status(200).json({ found: true, user: await describe(u) });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// type:"admin_ai_reports" — admin dashboard review of "Report this answer".
+//   { op:"list", status?:"new"|"all" }   → latest 100
+//   { op:"set", id, status:"resolved"|"dismissed"|"new", note? }
+// ─────────────────────────────────────────────────────────────────────────────
+async function handleAdminAiReports(req, res, body, db) {
+  const { verifyAdminRequest } = await import("./_lib/adminAuth.js");
+  const who = await verifyAdminRequest(req, "reports");
+  if (!who.ok) { res.status(who.status).json({ error: who.error }); return; }
+  const col = db.collection("aiReports");
+  const clip = (v, n) => String(v || "").trim().slice(0, n);
+  if (body.op === "set") {
+    const id = cleanKey(body.id, 64);
+    const status = ["resolved", "dismissed", "new"].includes(body.status) ? body.status : null;
+    if (!id || !status) { res.status(400).json({ error: "bad request" }); return; }
+    await col.doc(id).set({ status, adminNote: clip(body.note, 400), reviewedBy: who.email, reviewedAt: FieldValue.serverTimestamp() }, { merge: true });
+    res.status(200).json({ ok: true });
+    return;
+  }
+  const snap = await col.orderBy("createdAt", "desc").limit(100).get();
+  const all = snap.docs.map(d => {
+    const x = d.data() || {};
+    return { id: d.id, reason: x.reason, note: x.note || "", question: x.question || "", answer: x.answer || "", lang: x.lang, status: x.status || "new",
+      adminNote: x.adminNote || "", createdAt: x.createdAt?.toMillis?.() || null, reviewedAt: x.reviewedAt?.toMillis?.() || null };
+  });
+  const items = body.status === "all" ? all : all.filter(r => r.status === "new");
+  res.status(200).json({ ok: true, items, openCount: all.filter(r => r.status === "new").length });
 }
 
 async function handleFlag(req, res, body, db, app) {
