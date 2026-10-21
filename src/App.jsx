@@ -6169,6 +6169,13 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     // ⚠️ signInWithPopup MUST be called synchronously here — before any
     // setState call — so the browser recognises it as a direct user gesture.
     const provider=new GoogleAuthProvider();
+    // Inside the Android app: same-site full-page redirect (reliable there).
+    let inApp=false; try{inApp=sessionStorage.getItem("ys_twa")==="1";}catch{}
+    if(inApp){
+      setGoogleLoading(true);setAuthError("");
+      signInWithRedirect(auth,provider).catch(e=>{setAuthError(e.message||"Google sign-in failed. Please try again.");setGoogleLoading(false);});
+      return;
+    }
     const popupPromise=signInWithPopup(auth,provider);
     setGoogleLoading(true);setAuthError("");
     popupPromise.then(async result=>{

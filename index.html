@@ -101,7 +101,7 @@
       "alternateName": ["Yojana Sahay", "Yojana Sahay App", "YojanaSahay Scheme Finder", "Free Scheme Finder", "Sarkari Yojana Finder", "Government Scheme Finder India", "Scheme Eligibility Checker", "YojanaSetu", "योजना सहाय", "सरकारी योजना खोजें"],
       "url": "https://yojanasahay.vercel.app/",
       "description": "YojanaSahay is India's free government scheme discovery and assistance platform. Citizens can search 1,100+ Central and State welfare schemes, check eligibility with a few simple questions, and get AI-powered guidance in Hindi and English — completely free.",
-      "applicationCategory": "GovernmentApplication",
+      "applicationCategory": "ReferenceApplication",
       "applicationSubCategory": "Welfare Scheme Discovery",
       "operatingSystem": "Any — Web, Android, iOS (browser)",
       "browserRequirements": "Requires a modern browser with JavaScript enabled",
@@ -150,7 +150,7 @@
       },
       "copyrightYear": "2026",
       "license": "https://opensource.org/licenses/MIT",
-      "softwareVersion": "Beta",
+      "softwareVersion": "1.6",
       "audience": {
         "@type": "Audience",
         "audienceType": "Indian Citizens, Government Scheme Beneficiaries, Rural Citizens, Urban Citizens"
@@ -525,6 +525,11 @@
 
     <!-- Skip HTML splash if React already ran this session -->
     <script>
+      // Opened from the Play Store app (Trusted Web Activity)? Android passes
+      // android-app://<package> as the referrer on launch; remember it for this
+      // session (Google sign-in uses a full-page redirect there — popups open
+      // in a separate Chrome tab inside the app and can get lost).
+      try { if (document.referrer.indexOf('android-app://com.yojanasahay.app') === 0) sessionStorage.setItem('ys_twa', '1'); } catch (e) {}
       // /admin has its own loading screen and never dismisses the splash —
       // without this, the splash covered the admin sign-in forever.
       if (sessionStorage.getItem('ys_splashed') === '1' || location.pathname.indexOf('/admin') === 0) {
