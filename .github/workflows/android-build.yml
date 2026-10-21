@@ -97,14 +97,16 @@ jobs:
       - name: Generate Android project
         working-directory: ${{ runner.temp }}/twa
         run: |
-          set -o pipefail
+          # `yes` answers any prompt; judge success by bubblewrap's own exit code
+          # (yes itself always ends with SIGPIPE once bubblewrap is done).
           yes | bubblewrap update --skipVersionUpgrade 2>&1 | tee "$RUNNER_TEMP/update.log"
+          code=${PIPESTATUS[1]}; exit $code
 
       - name: Build and sign (AAB + APK)
         working-directory: ${{ runner.temp }}/twa
         run: |
-          set -o pipefail
           yes | bubblewrap build --skipPwaValidation 2>&1 | tee "$RUNNER_TEMP/build.log"
+          code=${PIPESTATUS[1]}; [ $code = 0 ] || exit $code
           ls -la *.aab *.apk
 
       - name: Report errors (readable from the run's annotations)
