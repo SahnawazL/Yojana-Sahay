@@ -16,26 +16,23 @@
   "theme_color": "#FF9933",
   "lang": "en-IN",
   "dir": "ltr",
-  "related_applications": [],
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.yojanasahay.app",
+      "url": "https://play.google.com/store/apps/details?id=com.yojanasahay.app"
+    }
+  ],
   "prefer_related_applications": false,
   "launch_handler": {
     "client_mode": "focus-existing"
   },
   "icons": [
     {
-      "src": "/icons/favicon-16x16.png",
+      "src": "/icons/logo512.png",
       "type": "image/png",
-      "sizes": "16x16"
-    },
-    {
-      "src": "/icons/favicon-32x32.png",
-      "type": "image/png",
-      "sizes": "32x32"
-    },
-    {
-      "src": "/icons/apple-touch-icon.png",
-      "type": "image/png",
-      "sizes": "180x180"
+      "sizes": "512x512",
+      "purpose": "any"
     },
     {
       "src": "/icons/logo192.png",
@@ -44,10 +41,10 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/logo512.png",
+      "src": "/icons/maskable512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any"
+      "purpose": "maskable"
     },
     {
       "src": "/icons/maskable192.png",
@@ -56,10 +53,19 @@
       "purpose": "maskable"
     },
     {
-      "src": "/icons/maskable512.png",
+      "src": "/icons/apple-touch-icon.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
+      "sizes": "180x180"
+    },
+    {
+      "src": "/icons/favicon-32x32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "/icons/favicon-16x16.png",
+      "type": "image/png",
+      "sizes": "16x16"
     }
   ],
   "screenshots": [
@@ -83,6 +89,13 @@
       "type": "image/webp",
       "form_factor": "narrow",
       "label": "Ask the AI assistant in Hindi or English"
+    },
+    {
+      "src": "/screenshots/wide.webp",
+      "sizes": "1280x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Home, eligibility check and AI assistant"
     }
   ],
   "categories": [
