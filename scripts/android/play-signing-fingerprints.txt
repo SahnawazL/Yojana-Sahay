@@ -1,0 +1,4 @@
+# Google Play App Signing — SHA-256 certificate fingerprint(s).
+# After creating the app in Play Console: Setup → App signing → "App signing key
+# certificate" → copy the SHA-256 value and paste it on its own line below.
+# (It is public information, safe to commit.) Then run the Android workflow once.

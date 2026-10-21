@@ -16,7 +16,6 @@
   "theme_color": "#FF9933",
   "lang": "en-IN",
   "dir": "ltr",
-  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   "related_applications": [],
   "prefer_related_applications": false,
   "launch_handler": {
@@ -45,19 +44,19 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/logo192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "maskable"
-    },
-    {
       "src": "/icons/logo512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "/icons/logo512.png",
+      "src": "/icons/maskable192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/maskable512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
@@ -65,49 +64,70 @@
   ],
   "screenshots": [
     {
-      "src": "/icons/logo512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "/screenshots/home.webp",
+      "sizes": "540x960",
+      "type": "image/webp",
       "form_factor": "narrow",
-      "label": "Yojana Sahay — Home Screen"
+      "label": "Find the government schemes you qualify for"
     },
     {
-      "src": "/icons/logo512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Yojana Sahay — Government Scheme Finder"
+      "src": "/screenshots/eligibility.webp",
+      "sizes": "540x960",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Check your eligibility in a minute"
+    },
+    {
+      "src": "/screenshots/assistant.webp",
+      "sizes": "540x960",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Ask the AI assistant in Hindi or English"
     }
   ],
   "categories": [
-    "government",
     "utilities",
-    "finance",
     "education",
-    "productivity"
+    "productivity",
+    "lifestyle"
   ],
   "shortcuts": [
     {
-      "name": "Find Schemes",
-      "short_name": "Schemes",
-      "description": "Search government schemes",
-      "url": "/",
+      "name": "Find schemes",
+      "short_name": "Search",
+      "description": "Search schemes and app features",
+      "url": "/?go=search",
       "icons": [
         {
           "src": "/icons/logo192.png",
-          "sizes": "192x192"
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
     {
-      "name": "Check Eligibility",
+      "name": "Check my eligibility",
       "short_name": "Eligibility",
-      "description": "Check your scheme eligibility",
-      "url": "/",
+      "description": "See the schemes you qualify for",
+      "url": "/?go=checker",
       "icons": [
         {
           "src": "/icons/logo192.png",
-          "sizes": "192x192"
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Ask AI assistant",
+      "short_name": "Ask AI",
+      "description": "Ask about any scheme in Hindi or English",
+      "url": "/?go=ai",
+      "icons": [
+        {
+          "src": "/icons/logo192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }

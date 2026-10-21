@@ -10214,6 +10214,13 @@ function YojanaSahayInner(){
         setSelectedScheme(schemeId);
         window.history.replaceState({}, "", window.location.pathname);
       }
+      // App-icon shortcuts (manifest "shortcuts", long-press on Android): ?go=…
+      const go = params.get("go");
+      if(go){
+        if(go==="checker") setShowChecker(true);
+        else if(["ai","search","schemes","profile"].includes(go)) setActiveTab(go);
+        window.history.replaceState({}, "", window.location.pathname);
+      }
     }catch{}
   },[]);
 
