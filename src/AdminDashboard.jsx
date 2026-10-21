@@ -25,6 +25,7 @@ import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
 import DeleteUserTool from "./DeleteUserTool.jsx";
 import AiReportsPanel from "./AiReportsPanel.jsx";
+import AudiencePanel from "./AudiencePanel.jsx";
 import SchemeVerifier from "./SchemeVerifier.jsx";
 import AgentsTab, {
   useAgentPresence, useDailyTimeTracking, logAdminActivity,
@@ -8906,10 +8907,12 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
             maxWidth:1400, margin:"0 auto", width:"100%", boxSizing:"border-box",
           }}>
 
+            <AudiencePanel events={eventsData} dark={dark} />
+
             {/* ── Stat Cards: 6 cards, 3-per-row ── */}
             <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
               {[
-                { icon:"👥", label:"Total Users",       value:users.length,        color:NAVY,      sparkline:stats.spark },
+                { icon:"👥", label:"Profiles",          value:users.length,        color:NAVY,      sparkline:stats.spark },
                 { icon:"🆕", label:"New This Week",     value:stats.newThisWeek,   color:IND_GREEN, trend:stats.weekGrowth },
                 { icon:"🟢", label:"Active Today",      value:stats.activeToday,   color:SAFFRON,
                   sub:`${users.length ? Math.round(stats.activeToday/users.length*100) : 0}% of users` },
@@ -9030,9 +9033,11 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
              ───────────────────────────────────────────────────────────────── */
           <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
 
+            <AudiencePanel events={eventsData} dark={dark} />
+
             {/* Row 1 */}
             <div style={{ display:"flex", gap:10 }}>
-              <StatCard icon="👥" label="Total Users" value={users.length}
+              <StatCard icon="👥" label="Profiles" value={users.length}
                 color={NAVY} dark={dark} sparkline={stats.spark} />
               <StatCard icon="🆕" label="New This Week" value={stats.newThisWeek}
                 color={IND_GREEN} dark={dark} trend={stats.weekGrowth} />

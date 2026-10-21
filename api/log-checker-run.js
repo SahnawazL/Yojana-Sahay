@@ -72,8 +72,10 @@ const EVENT_NAMES = new Set([
   "share_result", "share_checklist", "family_add", "push_on", "push_off",
   "quiz_start", "quiz_step", "quiz_done", "quiz_group",
   "near_me", "life_event", "money_cal",
+  "visit", "visit_new",
 ]);
-const FEATURE_EVENTS = new Set(["near_me", "life_event", "money_cal"]);
+// visit = one per device per day (k = where it was opened: app / installed / web)
+const FEATURE_EVENTS = new Set(["near_me", "life_event", "money_cal", "visit"]);
 const cleanKey = (v, max) => (typeof v === "string" && new RegExp(`^[A-Za-z0-9_]{1,${max}}$`).test(v) ? v : null);
 function istDay(d = new Date()) {
   return new Date(d.getTime() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
@@ -124,7 +126,7 @@ export default async function handler(req, res) {
     // Unrecognized/missing type falls back to "checker" — this is what keeps
     // the original client call (which never sent a `type` field) working
     // completely unchanged.
-    const type = ["checker", "search", "state", "events", "flag", "claim", "ai_report", "delete_account", "email_prefs", "admin_delete_user", "admin_ai_reports"].includes(body.type) ? body.type : "checker";
+    const type = ["checker", "search", "state", "events", "flag", "claim", "ai_report", "delete_account", "email_prefs", "admin_delete_user", "admin_ai_reports", "admin_audience"].includes(body.type) ? body.type : "checker";
 
     const app = getAdminApp();
     const db = getFirestore(app);
@@ -141,6 +143,10 @@ export default async function handler(req, res) {
     }
     if (type === "delete_account") {
       await handleDeleteAccount(req, res, getFirestore(getAdminApp()), getAdminApp());
+      return;
+    }
+    if (type === "admin_audience") {
+      await handleAdminAudience(req, res, getFirestore(getAdminApp()), getAdminApp());
       return;
     }
     if (type === "admin_ai_reports") {
@@ -460,6 +466,39 @@ async function handleAdminAiReports(req, res, body, db) {
   });
   const items = body.status === "all" ? all : all.filter(r => r.status === "new");
   res.status(200).json({ ok: true, items, openCount: all.filter(r => r.status === "new").length });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// type:"admin_audience" — real people numbers for the admin Overview:
+// sign-in accounts (Firebase Auth) vs. finished profiles (users docs).
+// Counts only — no names, e-mails or numbers leave the server.
+// ─────────────────────────────────────────────────────────────────────────────
+async function handleAdminAudience(req, res, db, app) {
+  const { verifyAdminRequest } = await import("./_lib/adminAuth.js");
+  const who = await verifyAdminRequest(req, "overview");
+  if (!who.ok) { res.status(who.status).json({ error: who.error }); return; }
+  const now = Date.now(), D = 86400000;
+  const a = { total: 0, new7: 0, new30: 0, active7: 0, active30: 0, google: 0, phone: 0, email: 0, anonymous: 0, byWeek: {} };
+  let token, pages = 0;
+  do {
+    const r = await getAuth(app).listUsers(1000, token);
+    for (const u of r.users) {
+      a.total++;
+      const created = Date.parse(u.metadata?.creationTime || "") || 0;
+      const seen = Date.parse(u.metadata?.lastRefreshTime || u.metadata?.lastSignInTime || "") || created;
+      if (now - created < 7 * D) a.new7++;
+      if (now - created < 30 * D) a.new30++;
+      if (now - seen < 7 * D) a.active7++;
+      if (now - seen < 30 * D) a.active30++;
+      const p = (u.providerData || []).map(x => x.providerId);
+      if (p.includes("google.com")) a.google++; else if (p.includes("phone") || u.phoneNumber) a.phone++; else if (p.includes("password")) a.email++; else a.anonymous++;
+      if (created) { const wk = new Date(created - ((new Date(created).getUTCDay() + 6) % 7) * D).toISOString().slice(0, 10); a.byWeek[wk] = (a.byWeek[wk] || 0) + 1; }
+    }
+    token = r.pageToken; pages++;
+  } while (token && pages < 20);
+  let profiles = null;
+  try { profiles = (await db.collection("users").count().get()).data().count; } catch { /* older SDK */ }
+  res.status(200).json({ ok: true, accounts: a, profiles });
 }
 
 async function handleFlag(req, res, body, db, app) {

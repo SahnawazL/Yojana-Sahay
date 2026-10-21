@@ -1,0 +1,22 @@
+name: Audience check (counts only)
+# One-off diagnostic: prints sign-in account and profile COUNTS (no names,
+# e-mails or numbers) as run annotations. Safe to delete.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/audience-check.yml"]
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Wait for the latest deploy
+        run: sleep 150
+      - name: Read counts
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          r=$(curl -s -X POST https://yojanasahay.vercel.app/api/log-checker-run -H "Content-Type: application/json" -H "Authorization: Bearer $CRON_SECRET" -d '{"type":"admin_audience"}')
+          echo "::notice title=Audience::$(echo "$r" | head -c 1500)"
+          s=$(curl -s https://yojanasahay.vercel.app/api/stats)
+          echo "::notice title=Stats::$s"
