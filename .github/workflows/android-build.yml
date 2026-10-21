@@ -107,7 +107,11 @@ jobs:
           # `yes` answers any prompt; judge success by bubblewrap's own exit code
           # (yes itself always ends with SIGPIPE once bubblewrap is done).
           yes | bubblewrap update --skipVersionUpgrade 2>&1 | tee "$RUNNER_TEMP/update.log"
-          code=${PIPESTATUS[1]}; exit $code
+          code=${PIPESTATUS[1]}; [ $code = 0 ] || exit $code
+          # Branded launch screen: the logo card on navy, matching the website's
+          # own splash, instead of Bubblewrap's plain stretched icon.
+          cp -r "$GITHUB_WORKSPACE"/scripts/android/splash/drawable-* app/src/main/res/
+          ls app/src/main/res/drawable-*/splash.png
 
       - name: Build and sign (AAB + APK)
         working-directory: ${{ runner.temp }}/twa

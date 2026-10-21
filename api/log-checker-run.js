@@ -124,7 +124,7 @@ export default async function handler(req, res) {
     // Unrecognized/missing type falls back to "checker" — this is what keeps
     // the original client call (which never sent a `type` field) working
     // completely unchanged.
-    const type = ["checker", "search", "state", "events", "flag", "claim", "ai_report", "delete_account", "email_prefs"].includes(body.type) ? body.type : "checker";
+    const type = ["checker", "search", "state", "events", "flag", "claim", "ai_report", "delete_account", "email_prefs", "admin_delete_user"].includes(body.type) ? body.type : "checker";
 
     const app = getAdminApp();
     const db = getFirestore(app);
@@ -141,6 +141,10 @@ export default async function handler(req, res) {
     }
     if (type === "delete_account") {
       await handleDeleteAccount(req, res, getFirestore(getAdminApp()), getAdminApp());
+      return;
+    }
+    if (type === "admin_delete_user") {
+      await handleAdminDeleteUser(req, res, body, getFirestore(getAdminApp()), getAdminApp());
       return;
     }
     if (type === "email_prefs") {
@@ -337,7 +341,15 @@ async function handleDeleteAccount(req, res, db, app) {
   const token = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
   let d;
   try { d = await getAuth(app).verifyIdToken(token); } catch { res.status(401).json({ error: "Please sign in again, then try deleting." }); return; }
-  const uid = d.uid;
+  const r = await wipeUser(db, app, d.uid);
+  if (!r.ok) { res.status(500).json({ error: "Could not delete the sign-in account. Please try again or e-mail yojanasahayofficial@gmail.com.", steps: r.steps }); return; }
+  res.status(200).json({ ok: true });
+}
+
+// Deletes one user's saved data + sign-in account; keeps their problem
+// reports but strips name / e-mail / phone. Shared by the in-app button and
+// the admin "Delete a user" tool (e-mailed deletion requests).
+async function wipeUser(db, app, uid) {
   const steps = [];
   for (const coll of ["users", "userApplications", "pushSubs"]) {
     try { await db.collection(coll).doc(uid).delete(); steps.push(coll); } catch (e) { steps.push(`${coll}:fail`); }
@@ -350,9 +362,71 @@ async function handleDeleteAccount(req, res, db, app) {
     steps.push(`reports:${mine.size}`);
   } catch { steps.push("reports:fail"); }
   try { await getAuth(app).deleteUser(uid); steps.push("auth"); }
-  catch (e) { if (e?.code !== "auth/user-not-found") { res.status(500).json({ error: "Could not delete the sign-in account. Please try again or e-mail yojanasahayofficial@gmail.com.", steps }); return; } }
+  catch (e) { if (e?.code !== "auth/user-not-found") return { ok: false, steps }; }
   await db.collection("appStats").doc("usage").set({ accountsDeleted: FieldValue.increment(1) }, { merge: true }).catch(() => {});
-  res.status(200).json({ ok: true });
+  return { ok: true, steps };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// type:"admin_delete_user" — admin dashboard tool for e-mailed "Data Deletion
+// Request"s. Step 1 { query } looks the person up by e-mail, phone or uid and
+// returns what would be deleted; step 2 { uid, confirm:true } deletes it.
+// ─────────────────────────────────────────────────────────────────────────────
+async function handleAdminDeleteUser(req, res, body, db, app) {
+  const { verifyAdminRequest } = await import("./_lib/adminAuth.js");
+  const who = await verifyAdminRequest(req);
+  if (!who.ok) { res.status(who.status).json({ error: who.error }); return; }
+  const auth = getAuth(app);
+
+  const describe = async (u) => {
+    const [prof, apps, push, reps] = await Promise.all([
+      db.collection("users").doc(u.uid).get().catch(() => null),
+      db.collection("userApplications").doc(u.uid).get().catch(() => null),
+      db.collection("pushSubs").doc(u.uid).get().catch(() => null),
+      db.collection("reports").where("uid", "==", u.uid).limit(200).get().catch(() => null),
+    ]);
+    const p = prof?.exists ? (prof.data() || {}) : {};
+    const appsData = apps?.exists ? (apps.data() || {}) : null;
+    const appCount = appsData?.apps && typeof appsData.apps === "object" ? Object.keys(appsData.apps).length : 0;
+    return {
+      uid: u.uid, email: u.email || null, phone: u.phoneNumber || null, name: u.displayName || p.name || null,
+      created: u.metadata?.creationTime || null, lastSignIn: u.metadata?.lastSignInTime || null,
+      isAdmin: p.isAdmin === true || p.role === "admin",
+      has: { profile: !!prof?.exists, applications: appCount, notifications: !!push?.exists, reports: reps?.size || 0 },
+    };
+  };
+
+  if (body.confirm === true) {
+    const uid = String(body.uid || "").trim();
+    if (!/^[A-Za-z0-9_-]{6,128}$/.test(uid)) { res.status(400).json({ error: "Look the user up first." }); return; }
+    if (uid === who.uid) { res.status(400).json({ error: "You can't delete your own admin account here." }); return; }
+    let u; try { u = await auth.getUser(uid); } catch { res.status(404).json({ error: "This user no longer exists — already deleted." }); return; }
+    const info = await describe(u);
+    if (info.isAdmin) { res.status(400).json({ error: "This account is an admin. Remove admin access first." }); return; }
+    const r = await wipeUser(db, app, uid);
+    await db.collection("adminAudit").add({ action: "delete_user", by: who.email, uid, steps: r.steps, ok: r.ok, at: FieldValue.serverTimestamp() }).catch(() => {});
+    if (!r.ok) { res.status(500).json({ error: "Data was removed but the sign-in account could not be deleted. Try again.", steps: r.steps }); return; }
+    res.status(200).json({ ok: true, deleted: { email: info.email, phone: info.phone } });
+    return;
+  }
+
+  const q = String(body.query || "").trim().slice(0, 200);
+  if (!q) { res.status(400).json({ error: "Enter an e-mail, phone number or user ID." }); return; }
+  let u = null;
+  try {
+    if (q.includes("@")) u = await auth.getUserByEmail(q.toLowerCase());
+    else if (/^\+?[\d\s-]{10,16}$/.test(q)) {
+      const digits = q.replace(/\D/g, "");
+      const phone = q.trim().startsWith("+") ? `+${digits}` : digits.length === 10 ? `+91${digits}` : `+${digits}`;
+      u = await auth.getUserByPhoneNumber(phone);
+    } else u = await auth.getUser(q);
+  } catch (e) {
+    if (e?.code === "auth/user-not-found" || e?.code === "auth/invalid-uid" || e?.code === "auth/invalid-email" || e?.code === "auth/invalid-phone-number") {
+      res.status(200).json({ found: false }); return;
+    }
+    throw e;
+  }
+  res.status(200).json({ found: true, user: await describe(u) });
 }
 
 async function handleFlag(req, res, body, db, app) {

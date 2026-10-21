@@ -23,6 +23,7 @@ import { AUDIENCES } from "./audience.js";
 import emailjs from "@emailjs/browser";
 import ResolvedReportsCleaner from "./ResolvedReportsCleaner.jsx";
 import UsageDataCleaner from "./UsageDataCleaner.jsx";
+import DeleteUserTool from "./DeleteUserTool.jsx";
 import SchemeVerifier from "./SchemeVerifier.jsx";
 import AgentsTab, {
   useAgentPresence, useDailyTimeTracking, logAdminActivity,
@@ -9522,6 +9523,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
               dark={dark}
               onDeleteDone={fetchUsage}
             />
+            <DeleteUserTool dark={dark} />
           </div>
           <div style={{ height: 20 }} />
         </div>
