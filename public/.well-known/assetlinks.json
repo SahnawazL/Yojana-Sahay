@@ -1,8 +1,14 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.yojanasahay.app",
-        "sha256_cert_fingerprints": ["9C:47:6D:82:28:A5:B2:ED:50:66:BE:F1:7F:A5:06:D0:E6:ED:B8:DF:5D:B6:39:97:3C:4D:8B:25:AA:E5:62:B3"]
-      }
-    }]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.yojanasahay.app",
+      "sha256_cert_fingerprints": [
+        "20:7A:E7:E9:35:6D:8E:2D:76:9B:41:90:26:6C:74:74:D9:82:A8:76:90:DA:63:A0:BA:12:09:FC:7A:D2:41:75"
+      ]
+    }
+  }
+]
