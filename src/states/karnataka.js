@@ -1480,4 +1480,21 @@ export const KARNATAKA_SCHEMES = [
   },
   // </auto-scheme id="karnataka_backward_classes_welfare">
 
+  // <auto-scheme id="karnataka_gruhalakshmi"> added by Scheme Discovery agent on 2026-10-22 · source: https://wcd.karnataka.gov.in/26/gruhalakshmi-scheme/en
+  {
+    id: "karnataka_gruhalakshmi",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Karnataka",
+    ministry: { en: "Department of Women and Child Development", hi: "महिला एवं बाल विकास विभाग" },
+    name:    { en: "Gruhalakshmi Scheme", hi: "ग्रुहलक्ष्मी योजना" },
+    benefit: { en: "₹2,000/month to female head of family", hi: "महिला मुखिया को ₹2,000/माह" },
+    tag:     { en: "Economic empowerment", hi: "आर्थिक सशक्तिकरण" },
+    annual: 24000,
+    apply:   { en: "https://wcd.karnataka.gov.in/26/gruhalakshmi-scheme/en", hi: "https://wcd.karnataka.gov.in/26/gruhalakshmi-scheme/en" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-22", source: "https://wcd.karnataka.gov.in/26/gruhalakshmi-scheme/en",
+    match: (a) => a.state === "Karnataka" && a.who === "women" && ["bpl","apl"].includes(a.rationCard),
+  },
+  // </auto-scheme id="karnataka_gruhalakshmi">
+
 ];
