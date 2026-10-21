@@ -522,7 +522,7 @@ export const MAHARASHTRA_SCHEMES = [
     icon: "🧱", color: "#78350F", scope: "state", state: "Maharashtra",
     ministry: { en: "Maharashtra Building & Other Construction Workers Welfare Board (MAHABOCW)", hi: "महाराष्ट्र इमारत व इतर बांधकाम कामगार कल्याण मंडळ (MAHABOCW)" },
     name:    { en: "Bandhkam Kamgar Yojana – Construction Worker Welfare",      hi: "बांधकाम कामगार योजना – निर्माण कामगार कल्याण" },
-    benefit: { en: "Bundle: ₹5L accidental death, ₹2L natural death, ₹15,000 maternity, ₹1L critical illness, ₹51,000 daughter marriage grant, ₹2,500–₹25,000/yr children scholarship, ₹10,000 tool grant, ₹2L housing aid", hi: "₹5L दुर्घटना मृत्यु, ₹2L स्वाभाविक मृत्यु, ₹15,000 मातृत्व, ₹1L गंभीर बीमारी, ₹51,000 बेटी विवाह, बच्चों की छात्रवृत्ति ₹2,500–₹25,000/वर्ष, ₹10,000 टूल अनुदान, ₹2L आवास सहायता" },
+    benefit: { en: "Children's scholarship ₹2,500–₹25,000/yr, ₹5L accidental death cover, ₹2L natural death, ₹15,000 maternity, ₹1L critical illness, ₹51,000 daughter's marriage grant, ₹10,000 tool grant and ₹2L housing aid", hi: "बच्चों की छात्रवृत्ति ₹2,500–₹25,000/वर्ष, ₹5L दुर्घटना मृत्यु, ₹2L स्वाभाविक मृत्यु, ₹15,000 मातृत्व, ₹1L गंभीर बीमारी, ₹51,000 बेटी विवाह, ₹10,000 टूल अनुदान, ₹2L आवास सहायता" },
     tag:     { en: "Labour / Construction Worker", hi: "श्रमिक / बांधकाम कामगार" },
     annual: 15000,
     apply:   { en: "https://mahabocw.in", hi: "mahabocw.in" }, applyType: "online",

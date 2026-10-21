@@ -950,6 +950,24 @@ function main() {
     count++;
   }
 
+  // ── Old pages of merged duplicates → forward to the main scheme ───────────
+  // A scheme later marked duplicateOf lost its page, and Google reported the
+  // old address as "Not found (404)". A tiny forwarding page (instant
+  // redirect + canonical to the main page) passes visitors and Google on.
+  let forwarded = 0;
+  const liveSlugs = new Set(SCHEME_DB.map(x => slugify(x.id ?? "")));
+  for (const dup of ALL_SCHEMES) {
+    if (!dup?.duplicateOf || !dup.id) continue;
+    const from = slugify(dup.id), to = slugify(dup.duplicateOf);
+    if (liveSlugs.has(from) || !liveSlugs.has(to)) continue;
+    for (const [dir, base] of [[schemesDir, "schemes"], [yojanaDir, "yojana"]]) {
+      const url = `${SITE_URL}/${base}/${to}.html`;
+      fs.writeFileSync(path.join(dir, `${from}.html`), `<!doctype html><html><head><meta charset="utf-8"><title>Moved</title><link rel="canonical" href="${url}"><meta name="robots" content="noindex, follow"><meta http-equiv="refresh" content="0; url=${url}"><script>location.replace(${JSON.stringify(url)})</script></head><body><p>This scheme has moved: <a href="${url}">${url}</a></p></body></html>\n`, "utf8");
+    }
+    forwarded++;
+  }
+  if (forwarded) console.log(`✓ ${forwarded} merged-duplicate addresses forward to their main scheme page`);
+
   // ── Write sitemap.xml ──────────────────────────────────────────────────────
   // Only real dates: a page's lastmod is when its official link was last
   // checked. The homepage gets none (Google works it out itself).
