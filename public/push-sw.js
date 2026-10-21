@@ -8,7 +8,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(title, {
     body: data.body || "",
     icon: "/icons/logo192.png",
-    badge: "/icons/logo192.png",
+    badge: "/icons/badge-96.png",
     tag: data.tag || "yojana",
     data: { url: data.url || "/" },
   }));

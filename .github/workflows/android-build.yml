@@ -92,7 +92,7 @@ jobs:
         run: |
           for i in $(seq 1 40); do
             ok=1
-            for u in /icons/app-icon-512.png /icons/app-maskable-512.png /icons/app-icon-192.png /manifest.json; do
+            for u in /icons/app-icon-512.png /icons/app-maskable-512.png /icons/app-icon-192.png /icons/app-monochrome-512.png /manifest.json; do
               code=$(curl -s -o /dev/null -w "%{http_code}" "https://yojanasahay.vercel.app$u")
               [ "$code" = "200" ] || ok=0
             done

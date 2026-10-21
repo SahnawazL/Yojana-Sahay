@@ -53,6 +53,12 @@
       "purpose": "maskable"
     },
     {
+      "src": "/icons/app-monochrome-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "monochrome"
+    },
+    {
       "src": "/icons/apple-touch-icon.png",
       "type": "image/png",
       "sizes": "180x180"

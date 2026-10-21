@@ -58,5 +58,6 @@
   "fingerprints": [],
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
-  "appVersion": "1.0.0"
+  "appVersion": "1.0.0",
+  "monochromeIconUrl": "https://yojanasahay.vercel.app/icons/app-monochrome-512.png"
 }
