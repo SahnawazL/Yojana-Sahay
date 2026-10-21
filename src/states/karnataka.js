@@ -1497,4 +1497,21 @@ export const KARNATAKA_SCHEMES = [
   },
   // </auto-scheme id="karnataka_gruhalakshmi">
 
+  // <auto-scheme id="karnataka_prasoothi_araike"> added by Scheme Discovery agent on 2026-10-22 · source: https://currentaffairs.adda247.com/karnataka-prasoothi-araike-scheme-2026-eligibility-financial-assistance-benefits-and-application-process/
+  {
+    id: "karnataka_prasoothi_araike",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Karnataka",
+    ministry: { en: "Department of Women and Child Development", hi: "महिला एवं बाल विकास विभाग" },
+    name:    { en: "Karnataka Prasoothi Araike Scheme", hi: "कर्नाटक प्रसूति आरैके योजना" },
+    benefit: { en: "Cash assistance up to ₹3,000 in two instalments for BPL and SC/ST pregnant women", hi: "बीपीएल और सीएस/एसटी गर्भवती महिलाओं को दो किस्तों में ₹3,000 तक नकद सहायता" },
+    tag:     { en: "Postnatal Care", hi: "पोस्टनैटल देखभाल" },
+    annual: 3000,
+    apply:   { en: "https://currentaffairs.adda247.com/karnataka-prasoothi-araike-scheme-2026-eligibility-financial-assistance-benefits-and-application-process/", hi: "https://currentaffairs.adda247.com/karnataka-prasoothi-araike-scheme-2026-eligibility-financial-assistance-benefits-and-application-process/" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-22", source: "https://currentaffairs.adda247.com/karnataka-prasoothi-araike-scheme-2026-eligibility-financial-assistance-benefits-and-application-process/",
+    match: (a) => a.state === "Karnataka" && a.who === "women" && ["sc","st"].includes(a.caste),
+  },
+  // </auto-scheme id="karnataka_prasoothi_araike">
+
 ];
