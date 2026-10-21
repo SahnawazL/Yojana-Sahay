@@ -184,9 +184,57 @@ const CAPABILITIES = [
     hi:{ t:"ताज़ा खबर और आखिरी तारीख",       s:"वेब पर लाइव खोज",                x:"इस महीने मेरे लिए कोई नई योजना, किस्त या आखिरी तारीख?" } },
 ];
 const CAP_TIPS = {
-  en: ["🎙️ Tap the mic to speak — Hindi or English", "🔊 Tap Listen on any answer to hear it", "✍️ Type the way you talk — “budhape ki pension”, “kisan wala paisa”", "📄 Tap a scheme card to open its full page"],
-  hi: ["🎙️ माइक दबाकर बोलें — हिंदी या English", "🔊 किसी भी जवाब पर “सुनें” दबाएं", "✍️ जैसे बोलते हैं वैसे लिखें — “बुढ़ापे की पेंशन”", "📄 योजना कार्ड पर टैप करें — पूरी जानकारी खुलेगी"],
+  en: [["mic", "Speak — Hindi or English"], ["volume", "Tap Listen to hear any answer"], ["pen", "Type the way you talk — “budhape ki pension”"], ["file", "Tap a scheme card for its full page"]],
+  hi: [["mic", "बोलकर पूछें — हिंदी या English"], ["volume", "किसी भी जवाब पर “सुनें” दबाएं"], ["pen", "जैसे बोलते हैं वैसे लिखें — “बुढ़ापे की पेंशन”"], ["file", "योजना कार्ड पर टैप करें — पूरी जानकारी"]],
 };
+
+// Clean line icons (24×24, stroke) — one visual language instead of emoji.
+const CAP_ICON_PATHS = {
+  quiz:    ["M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z", "m20 20-4-4", "m8.5 11 2 2 3.5-3.5"],
+  family:  ["M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z", "M2.5 20c.6-3.4 3.2-5.5 6.5-5.5s5.9 2.1 6.5 5.5", "M16 4.3a3.5 3.5 0 0 1 0 6.4", "M18 14.8c2 .7 3.2 2.5 3.5 5.2"],
+  scam:    ["M12 3 4.5 6v5.5c0 4.6 3.1 8.4 7.5 9.5 4.4-1.1 7.5-4.9 7.5-9.5V6L12 3Z", "m9 12 2 2 4-4"],
+  why:     ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M9.6 9.2a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.3-2.4 3.9", "M12 17h.01"],
+  almost:  ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M12 16.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z", "M12 12h.01"],
+  compare: ["M12 4v16", "M7 20h10", "M5 8h14", "m5 8-2.5 6a3 3 0 0 0 5 0L5 8Z", "m19 8-2.5 6a3 3 0 0 0 5 0L19 8Z"],
+  docs:    ["M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1Z", "M16 5h1.5A1.5 1.5 0 0 1 19 6.5v13A1.5 1.5 0 0 1 17.5 21h-11A1.5 1.5 0 0 1 5 19.5v-13A1.5 1.5 0 0 1 6.5 5H8", "M9 11h6", "M9 15h4"],
+  track:   ["M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z", "M12 7v6", "M9 10h6"],
+  status:  ["M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z", "M8 14h3", "M8 11h8"],
+  news:    ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M3 12h18", "M12 3c2.5 2.5 3.7 5.5 3.7 9s-1.2 6.5-3.7 9c-2.5-2.5-3.7-5.5-3.7-9S9.5 5.5 12 3Z"],
+  mic:     ["M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z", "M5.5 11a6.5 6.5 0 0 0 13 0", "M12 17.5V21"],
+  volume:  ["M4 9.5h3.5L12 6v12l-4.5-3.5H4v-5Z", "M15.5 9a4 4 0 0 1 0 6", "M18 6.5a7.5 7.5 0 0 1 0 11"],
+  pen:     ["m15 5 4 4", "M4 20l1-4.5L16 4.5a2.1 2.1 0 0 1 3 3L8 18.5 4 20Z"],
+  file:    ["M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z", "M14 3v5h5", "M9 13h6", "M9 17h6"],
+  spark:   ["M12 3.5 13.8 9a2 2 0 0 0 1.2 1.2l5.5 1.8-5.5 1.8a2 2 0 0 0-1.2 1.2L12 20.5 10.2 15A2 2 0 0 0 9 13.8L3.5 12 9 10.2A2 2 0 0 0 10.2 9L12 3.5Z", "M19 3v3", "M17.5 4.5h3"],
+};
+function CapIcon({ name, size = 18, color = "currentColor", stroke = 1.9 }) {
+  const paths = CAP_ICON_PATHS[name] || CAP_ICON_PATHS.spark;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink:0, display:"block" }}>
+      {paths.map((d, i) => <path key={i} d={d} />)}
+    </svg>
+  );
+}
+// Each capability: a calm tint for its icon tile (light / dark).
+const CAP_TINT = {
+  quiz:    ["#2563EB", "#93C5FD"], family: ["#7C3AED", "#C4B5FD"], scam:  ["#059669", "#6EE7B7"],
+  why:     ["#D97706", "#FCD34D"], almost: ["#DB2777", "#F9A8D4"], compare: ["#0891B2", "#67E8F9"],
+  docs:    ["#4F46E5", "#A5B4FC"], track:  ["#EA580C", "#FDBA74"], status: ["#0D9488", "#5EEAD4"], news: ["#2563EB", "#93C5FD"],
+};
+const capTint = (id, dark) => (CAP_TINT[id] || ["#475569", "#CBD5E1"])[dark ? 1 : 0];
+function CapTile({ id, dark, size = 36 }) {
+  const c = capTint(id, dark);
+  return (
+    <span style={{ width:size, height:size, borderRadius:size * 0.3, flexShrink:0, display:"inline-flex", alignItems:"center", justifyContent:"center",
+      background: dark ? `${c}1F` : `${c}14`, boxShadow:`inset 0 0 0 1px ${c}${dark ? "33" : "22"}` }}>
+      <CapIcon name={id} size={Math.round(size * 0.5)} color={c} />
+    </span>
+  );
+}
+const CAP_GROUPS = [
+  { en:"Find schemes",          hi:"योजनाएं खोजें",         ids:["quiz", "almost", "why", "family"] },
+  { en:"Check & compare",       hi:"जांचें और तुलना करें",    ids:["scam", "compare", "docs"] },
+  { en:"Track & stay updated",  hi:"ट्रैक करें, अपडेट रहें",   ids:["track", "status", "news"] },
+];
 
 function CapabilityGrid({ items, lang, dark, onPick }) {
   const th = THEME[dark ? "dark" : "light"];
@@ -195,12 +243,13 @@ function CapabilityGrid({ items, lang, dark, onPick }) {
   return (
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
       {items.map(c => (
-        <div key={c.id} role="button" className="ai-suggested" onClick={() => onPick(c)}
-          style={{ background:th.card, border:`1.5px solid ${dark ? "#3a3a3c" : "#F3E3D3"}`, borderRadius:14, padding:"10px 11px",
-            cursor:"pointer", fontFamily:bf, boxShadow: dark ? "0 1px 5px rgba(0,0,0,0.25)" : "0 1px 6px rgba(0,0,0,0.05)",
+        <div key={c.id} role="button" tabIndex={0} className="ai-suggested" onClick={() => onPick(c)}
+          onKeyDown={e => { if (e.key === "Enter") onPick(c); }}
+          style={{ background: dark ? "#1A1B1F" : "#FFFFFF", border:`1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}`, borderRadius:14, padding:"11px 12px",
+            cursor:"pointer", fontFamily:bf, boxShadow: dark ? "none" : "0 1px 2px rgba(15,23,42,0.05)",
             transition:"opacity 0.15s, transform 0.15s", minWidth:0 }}>
-          <div style={{ fontSize:19, lineHeight:1 }}>{c.icon}</div>
-          <div style={{ fontSize:12.5, fontWeight:800, color:th.text, marginTop:6, lineHeight:1.25 }}>{c[L].t}</div>
+          <CapTile id={c.id} dark={dark} size={30} />
+          <div style={{ fontSize:12.5, fontWeight:700, color:th.text, marginTop:8, lineHeight:1.25 }}>{c[L].t}</div>
           <div style={{ fontSize:10.5, color:th.textMid, marginTop:3, lineHeight:1.35 }}>{c[L].s}</div>
         </div>
       ))}
@@ -208,37 +257,82 @@ function CapabilityGrid({ items, lang, dark, onPick }) {
   );
 }
 
-// "✨ What can I do?" bottom sheet — every feature + quick tips.
+// "What can I do?" bottom sheet — grouped actions + quick tips.
 function CapabilitiesSheet({ lang, dark, onPick, onClose }) {
   const th = THEME[dark ? "dark" : "light"];
   const bf = fontFamily(lang);
   const isHindi = lang === "hi";
+  const L = isHindi ? "hi" : "en";
+  const byId = Object.fromEntries(CAPABILITIES.map(c => [c.id, c]));
+  const line = dark ? "rgba(255,255,255,0.07)" : "rgba(15,23,42,0.07)";
+  const card = dark ? "#1A1B1F" : "#FFFFFF";
+  const sub = dark ? "rgba(203,213,225,0.6)" : "#64748B";
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+  const pick = (c) => { onClose(); onPick(c); };
   return (
-    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", animation:"fade-in 0.2s ease-out" }}>
-      <div onClick={e => e.stopPropagation()} role="dialog" aria-label="What can I do"
-        style={{ width:"100%", maxWidth:560, maxHeight:"84vh", background: dark ? "#161618" : "#FAF8F5", borderRadius:"20px 20px 0 0", display:"flex", flexDirection:"column", fontFamily:bf, animation:"chips-reveal 0.25s ease-out", boxShadow:"0 -8px 30px rgba(0,0,0,0.25)" }}>
-        <div style={{ padding:"16px 18px 8px", display:"flex", alignItems:"flex-start", gap:8 }}>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:17, fontWeight:800, color:th.text }}>{isHindi ? "✨ मैं क्या कर सकता हूं" : "✨ What I can do for you"}</div>
-            <div style={{ fontSize:12, color:th.textMid, marginTop:3, lineHeight:1.45 }}>
-              {isHindi ? "मैं सिर्फ़ जवाब नहीं देता — आपकी पात्रता जांचता हूं, आवेदन ट्रैक करता हूं और काम पूरे करता हूं। कोई भी चुनें:" : "I don't just answer — I check your eligibility, track applications and get things done. Pick one:"}
+    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(2,6,23,0.5)", display:"flex", alignItems:"flex-end", justifyContent:"center", animation:"fade-in 0.2s ease-out" }}>
+      <div onClick={e => e.stopPropagation()} role="dialog" aria-label={isHindi ? "मैं क्या कर सकता हूं" : "What I can do"}
+        style={{ width:"100%", maxWidth:560, maxHeight:"86vh", background: dark ? "#111214" : "#F6F7F9", borderRadius:"22px 22px 0 0", display:"flex", flexDirection:"column", fontFamily:bf,
+          animation:"chips-reveal 0.25s ease-out", boxShadow:"0 -10px 40px rgba(2,6,23,0.3)" }}>
+        {/* grab handle */}
+        <div style={{ display:"flex", justifyContent:"center", paddingTop:8 }}>
+          <span style={{ width:38, height:4, borderRadius:4, background: dark ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.15)" }} />
+        </div>
+        {/* header */}
+        <div style={{ padding:"12px 16px 10px", display:"flex", alignItems:"center", gap:12 }}>
+          <span style={{ width:40, height:40, borderRadius:12, flexShrink:0, display:"inline-flex", alignItems:"center", justifyContent:"center",
+            background:"linear-gradient(135deg,#FF9933 0%,#6366F1 100%)", boxShadow:"0 6px 16px -6px rgba(99,102,241,0.55)" }}>
+            <CapIcon name="spark" size={21} color="#FFFFFF" stroke={2} />
+          </span>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:16.5, fontWeight:800, color:th.text, letterSpacing:-0.2 }}>{isHindi ? "मैं क्या कर सकता हूं" : "What I can do"}</div>
+            <div style={{ fontSize:12, color:sub, marginTop:2, lineHeight:1.4 }}>
+              {isHindi ? "पात्रता जांच, आवेदन ट्रैक करना और काम पूरे करना" : "Check eligibility, track applications and get things done"}
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" style={{ border:"none", background:"transparent", fontSize:20, color:th.textSub, cursor:"pointer", padding:4 }}>✕</button>
+          <button type="button" onClick={onClose} aria-label={isHindi ? "बंद करें" : "Close"}
+            style={{ width:32, height:32, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+              background: dark ? "rgba(255,255,255,0.07)" : "rgba(15,23,42,0.06)", color:th.textMid }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
         </div>
-        <div style={{ overflowY:"auto", padding:"6px 14px calc(16px + env(safe-area-inset-bottom))" }}>
-          <CapabilityGrid items={CAPABILITIES} lang={lang} dark={dark} onPick={(c) => { onClose(); onPick(c); }} />
-          <div style={{ fontSize:10.5, fontWeight:800, color:th.textSub, letterSpacing:0.7, textTransform:"uppercase", margin:"16px 2px 8px" }}>
+
+        <div style={{ overflowY:"auto", padding:"2px 14px calc(18px + env(safe-area-inset-bottom))" }}>
+          {CAP_GROUPS.map(g => (
+            <div key={g.en} style={{ marginTop:12 }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:sub, letterSpacing:0.8, textTransform:"uppercase", margin:"0 4px 7px" }}>{g[L]}</div>
+              <div style={{ background:card, border:`1px solid ${line}`, borderRadius:16, overflow:"hidden" }}>
+                {g.ids.map((id, i) => {
+                  const c = byId[id]; if (!c) return null;
+                  return (
+                    <div key={id} role="button" tabIndex={0} onClick={() => pick(c)} onKeyDown={e => { if (e.key === "Enter") pick(c); }}
+                      style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 12px", cursor:"pointer", borderTop: i ? `1px solid ${line}` : "none", WebkitTapHighlightColor:"transparent" }}>
+                      <CapTile id={id} dark={dark} size={36} />
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:13.5, fontWeight:700, color:th.text, lineHeight:1.3 }}>{c[L].t}</div>
+                        <div style={{ fontSize:11.5, color:sub, marginTop:2, lineHeight:1.35 }}>{c[L].s}</div>
+                      </div>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={sub} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink:0 }}><path d="m9 6 6 6-6 6" /></svg>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          <div style={{ fontSize:10.5, fontWeight:800, color:sub, letterSpacing:0.8, textTransform:"uppercase", margin:"18px 4px 7px" }}>
             {isHindi ? "टिप्स" : "Tips"}
           </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-            {CAP_TIPS[isHindi ? "hi" : "en"].map((t, i) => (
-              <div key={i} style={{ fontSize:12, color:th.text, background:th.card, border:`1px solid ${th.border2}`, borderRadius:10, padding:"8px 10px", lineHeight:1.4 }}>{t}</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7 }}>
+            {CAP_TIPS[L].map(([ic, t]) => (
+              <div key={t} style={{ display:"flex", alignItems:"flex-start", gap:8, background:card, border:`1px solid ${line}`, borderRadius:12, padding:"9px 10px" }}>
+                <span style={{ marginTop:1, color: dark ? "#FDBA74" : "#C2410C" }}><CapIcon name={ic} size={15} /></span>
+                <span style={{ fontSize:11.5, color:th.textMid, lineHeight:1.4 }}>{t}</span>
+              </div>
             ))}
           </div>
         </div>
@@ -2563,8 +2657,8 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             onKeyDown={e => { if (e.key === "Enter") { dismissNews(); setShowCaps(true); } }}
             style={{ width:32, height:32, borderRadius:10, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
               background: dark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.04)",
-              border:`1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}`, fontSize:14, cursor:"pointer" }}>
-            ✨
+              border:`1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}`, cursor:"pointer", color: dark ? "#FDBA74" : "#EA580C" }}>
+            <CapIcon name="spark" size={17} stroke={2} />
           </div>
           {messages.length > 0 && (
             <div role="button" tabIndex={0}
