@@ -76,8 +76,15 @@ jobs:
             m.appVersion = process.argv[2];
             fs.writeFileSync(process.argv[3] + "/twa-manifest.json", JSON.stringify(m, null, 2));
           ' "$VERSION_CODE" "$VERSION_NAME" "$RUNNER_TEMP/twa"
+          # Bubblewrap expects the classic SDK layout (<sdk>/tools/bin/sdkmanager);
+          # the runner ships cmdline-tools/latest — link it in, and make the SDK
+          # writable so Bubblewrap can add the build-tools version it needs.
+          SDK="$ANDROID_HOME"
+          sudo ln -sfn "$SDK/cmdline-tools/latest" "$SDK/tools"
+          sudo chown -R "$(id -u):$(id -g)" "$SDK" || true
+          echo "::notice title=Android SDK::$(ls "$SDK" | tr '\n' ' ') | build-tools: $(ls "$SDK/build-tools" | tr '\n' ' ')"
           mkdir -p ~/.bubblewrap
-          printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$SDK" > ~/.bubblewrap/config.json
           echo "::notice title=Version::$VERSION_NAME (code $VERSION_CODE)"
           echo "::notice title=Upload key SHA-256::${{ steps.key.outputs.fingerprint }}"
 
