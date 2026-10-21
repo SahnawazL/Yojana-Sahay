@@ -29,9 +29,9 @@ export const FAQ_DATA = {
 
     // ── Privacy & data ───────────────────────────────────────────────────────
     { cat: "privacy", id: "privacy_001", q: "Is my data safe?",
-      a: "Yes. Your data is stored securely on Google's Firebase cloud and is encrypted. Only your own account can see your profile and chats. We never sell or share your personal data, and we never use it for advertising." },
+      a: "Yes. Your profile and tracked applications are stored on Google's Firebase cloud, encrypted, and only your own account can see them. Your AI chat history is saved only on your phone. To answer a question, it is sent to our AI service (Groq) just to create the reply. We never sell or share your personal data, and we never use it for advertising. Full details: yojanasahay.vercel.app/privacy.html" },
     { cat: "privacy", id: "privacy_002", q: "What personal data does the app keep?",
-      a: "Only what is needed to show you the right schemes: your profile answers (state, age, income range, occupation, category and similar) and your sign-in details (name, email or mobile number, depending on how you sign in). We never ask for Aadhaar numbers, bank details, card details or biometrics." },
+      a: "Only what is needed to show you the right schemes: your profile answers (state, age group, income range, occupation, category and similar), your sign-in details (name, email or mobile number, depending on how you sign in) and the schemes you mark as applied. Family members you add and your chat history stay on your phone. We never ask for Aadhaar numbers, bank details, card details or biometrics." },
     { cat: "privacy", id: "privacy_003", q: "Does the app use my camera, microphone or location?",
       a: "The app never uses your camera, location or contacts. The microphone is used only if you tap the 🎤 mic button in AI Chat to speak your question — your phone asks your permission first, and you can always type instead." },
     { cat: "privacy", id: "privacy_004", q: "How do I delete my account and data?",
@@ -98,10 +98,12 @@ export const FAQ_DATA = {
     { cat: "ai", id: "ai_005", q: "Can I fully trust the AI's answers?",
       a: { text: "The AI is a helper, not an official authority. It is usually right, but it can sometimes be incomplete or out of date.",
            note: "Before you apply or decide anything, confirm eligibility, dates and amounts on the official government website." } },
+    { cat: "ai", id: "ai_009", q: "How do I report a wrong or harmful AI answer?",
+      a: "Tap 'Report' under the answer, choose what was wrong — wrong or outdated information, harmful advice, offensive content or something else — add a note if you like, and send. Every report is reviewed and used to improve the assistant. No sign-in is needed to report." },
 
     // ── Account & support ────────────────────────────────────────────────────
     { cat: "account", id: "account_001", q: "Do I need an account?",
-      a: "No. You can browse schemes and use the Eligibility Checker without signing in. Signing in is free — with your mobile number (OTP), Google or email — and lets you save your profile, use the AI assistant, track applications and send reports." },
+      a: "No. You can browse schemes, use the Eligibility Checker, search and track applications on this phone without signing in. Signing in is free — with your mobile number (OTP), Google or email — and lets you use the AI assistant, keep your profile and applications safe across phones, get reminders and follow your reports." },
     { cat: "account", id: "account_002", q: "Which languages are supported?",
       a: "English and Hindi (हिंदी). Switch any time with the EN / हिं button. The AI assistant also understands Hinglish. More Indian languages are planned." },
     { cat: "account", id: "account_003", q: "Is there a Pro version?",
@@ -112,6 +114,10 @@ export const FAQ_DATA = {
       a: "Yes — free. Open yojanasahay.vercel.app/add-widget.html, choose the language (and a state if you like), copy the code and paste it into your page. Your visitors get a small Scheme Finder with Central and State schemes, always up to date. Great for blogs, CSC centres, NGOs, panchayats, schools and colleges." },
     { cat: "account", id: "account_005", q: "Where are the Terms, Privacy Policy and Grievance Officer details?",
       a: "Open 'About YojanaSahay' in the app — it has the Terms of Service, the Privacy Policy and the Grievance Officer's details. For a formal complaint, email yojanasahayofficial@gmail.com; it is acknowledged within 24 hours." },
+    { cat: "account", id: "account_007", q: "Can I stop the reminder e-mails?",
+      a: "Yes. Open Profile and turn off 'E-mail reminders'. Phone notifications can be turned off in the app or in your phone settings." },
+    { cat: "account", id: "account_008", q: "How do I search the whole app?",
+      a: "Tap the search icon on the Home screen, next to the greeting. Type a scheme, a need (like 'loan for shop') or anything in the app (like 'my applications' or 'documents') — in English, Hindi or Hinglish. Questions can be sent straight to the AI assistant." },
   ],
 
   hi: [
@@ -130,9 +136,9 @@ export const FAQ_DATA = {
 
     // ── गोपनीयता ────────────────────────────────────────────────────────────────
     { cat: "privacy", id: "privacy_001", q: "क्या मेरा डेटा सुरक्षित है?",
-      a: "हां। आपका डेटा Google के Firebase क्लाउड पर सुरक्षित और एन्क्रिप्टेड रहता है। आपकी प्रोफाइल और चैट केवल आपका अपना अकाउंट देख सकता है। हम आपका डेटा कभी बेचते या साझा नहीं करते, और विज्ञापन के लिए इस्तेमाल नहीं करते।" },
+      a: "हां। आपकी प्रोफ़ाइल और ट्रैक किए आवेदन Google के Firebase क्लाउड पर एन्क्रिप्टेड रूप में सेव होते हैं और सिर्फ़ आपका खाता उन्हें देख सकता है। AI चैट इतिहास सिर्फ़ आपके फ़ोन पर रहता है। जवाब देने के लिए आपका सवाल हमारी AI सेवा (Groq) को सिर्फ़ जवाब बनाने के लिए भेजा जाता है। हम आपका डेटा कभी बेचते या साझा नहीं करते और विज्ञापन के लिए उपयोग नहीं करते। पूरी जानकारी: yojanasahay.vercel.app/privacy.html" },
     { cat: "privacy", id: "privacy_002", q: "ऐप कौन सा व्यक्तिगत डेटा रखता है?",
-      a: "केवल वही जो सही योजनाएं दिखाने के लिए ज़रूरी है: आपकी प्रोफाइल के जवाब (राज्य, उम्र, आय, व्यवसाय, वर्ग आदि) और साइन-इन की जानकारी (नाम, ईमेल या मोबाइल नंबर — आप कैसे साइन इन करते हैं उसके अनुसार)। हम कभी आधार नंबर, बैंक या कार्ड की जानकारी या बायोमेट्रिक नहीं मांगते।" },
+      a: "सिर्फ़ वही जो सही योजनाएं दिखाने के लिए ज़रूरी है: आपकी प्रोफ़ाइल के जवाब (राज्य, आयु वर्ग, आय सीमा, व्यवसाय, वर्ग आदि), साइन-इन जानकारी (नाम, ईमेल या मोबाइल नंबर — आप कैसे साइन इन करते हैं उसके अनुसार) और जिन योजनाओं में आपने आवेदन किया है। परिवार के सदस्य और चैट इतिहास सिर्फ़ आपके फ़ोन पर रहते हैं। हम कभी आधार नंबर, बैंक, कार्ड या बायोमेट्रिक जानकारी नहीं मांगते।" },
     { cat: "privacy", id: "privacy_003", q: "क्या ऐप मेरा कैमरा, माइक या लोकेशन इस्तेमाल करता है?",
       a: "ऐप कभी कैमरा, लोकेशन या कॉन्टैक्ट्स का इस्तेमाल नहीं करता। माइक का इस्तेमाल तभी होता है जब आप AI चैट में 🎤 माइक बटन दबाकर बोलकर सवाल पूछते हैं — पहले आपका फ़ोन अनुमति मांगता है, और आप हमेशा टाइप भी कर सकते हैं।" },
     { cat: "privacy", id: "privacy_004", q: "मैं अपना अकाउंट और डेटा कैसे हटाऊं?",
@@ -199,10 +205,12 @@ export const FAQ_DATA = {
     { cat: "ai", id: "ai_005", q: "क्या मैं AI के जवाबों पर पूरा भरोसा कर सकता हूं?",
       a: { text: "AI एक सहायक है, कोई सरकारी अधिकारी नहीं। यह ज़्यादातर सही होता है, लेकिन कभी-कभी जानकारी अधूरी या पुरानी हो सकती है।",
            note: "आवेदन या कोई फैसला लेने से पहले पात्रता, तारीखें और राशि आधिकारिक सरकारी वेबसाइट पर ज़रूर जांच लें।" } },
+    { cat: "ai", id: "ai_009", q: "गलत या नुकसानदेह AI जवाब की रिपोर्ट कैसे करूं?",
+      a: "जवाब के नीचे 'रिपोर्ट' दबाएं, बताएं क्या गलत था — गलत या पुरानी जानकारी, नुकसानदेह सलाह, आपत्तिजनक बात या कुछ और — चाहें तो नोट लिखें और भेजें। हर रिपोर्ट की समीक्षा होती है और इससे सहायक बेहतर बनता है। रिपोर्ट के लिए साइन-इन ज़रूरी नहीं।" },
 
     // ── अकाउंट और सहायता ─────────────────────────────────────────────────────────
     { cat: "account", id: "account_001", q: "क्या अकाउंट बनाना ज़रूरी है?",
-      a: "नहीं। बिना साइन इन के भी आप योजनाएं देख सकते हैं और पात्रता जांच सकते हैं। साइन इन मुफ़्त है — मोबाइल नंबर (OTP), Google या ईमेल से — और इससे आप प्रोफाइल सेव कर सकते हैं, AI सहायक इस्तेमाल कर सकते हैं, आवेदन ट्रैक कर सकते हैं और रिपोर्ट भेज सकते हैं।" },
+      a: "नहीं। बिना साइन-इन किए आप योजनाएं देख सकते हैं, पात्रता जांच कर सकते हैं, खोज सकते हैं और इसी फ़ोन पर आवेदन ट्रैक कर सकते हैं। साइन-इन मुफ़्त है — मोबाइल नंबर (OTP), Google या ईमेल से — और इससे AI सहायक, सभी फ़ोन पर सुरक्षित प्रोफ़ाइल व आवेदन, रिमाइंडर और आपकी रिपोर्ट की जानकारी मिलती है।" },
     { cat: "account", id: "account_002", q: "कौन सी भाषाएं उपलब्ध हैं?",
       a: "English और हिंदी। EN / हिं बटन से कभी भी भाषा बदलें। AI सहायक Hinglish भी समझता है। और भारतीय भाषाएं जोड़ने की योजना है।" },
     { cat: "account", id: "account_003", q: "क्या Pro संस्करण है?",
@@ -213,6 +221,10 @@ export const FAQ_DATA = {
       a: "हां — मुफ्त में। yojanasahay.vercel.app/add-widget.html खोलें, भाषा (और चाहें तो राज्य) चुनें, कोड कॉपी करें और अपने पेज में पेस्ट करें। आपके पाठकों को केंद्र और राज्य की योजनाओं वाला एक छोटा योजना खोजक मिलेगा, हमेशा अपडेट। ब्लॉग, CSC केंद्र, NGO, पंचायत, स्कूल और कॉलेज के लिए बढ़िया।" },
     { cat: "account", id: "account_005", q: "सेवा की शर्तें, गोपनीयता नीति और शिकायत अधिकारी की जानकारी कहां है?",
       a: "ऐप में 'योजना सहाय के बारे में' खोलें — वहां सेवा की शर्तें, गोपनीयता नीति और शिकायत अधिकारी (Grievance Officer) की जानकारी है। औपचारिक शिकायत के लिए yojanasahayofficial@gmail.com पर ईमेल करें; इसे 24 घंटे में स्वीकार किया जाता है।" },
+    { cat: "account", id: "account_007", q: "क्या मैं रिमाइंडर ई-मेल बंद कर सकता हूं?",
+      a: "हां। प्रोफ़ाइल खोलें और 'ई-मेल रिमाइंडर' बंद करें। फ़ोन सूचनाएं ऐप में या फ़ोन की सेटिंग में बंद की जा सकती हैं।" },
+    { cat: "account", id: "account_008", q: "पूरे ऐप में कैसे खोजूं?",
+      a: "होम स्क्रीन पर नमस्कार वाली पंक्ति के पास खोज आइकन दबाएं। कोई योजना, ज़रूरत (जैसे 'दुकान के लिए लोन') या ऐप की कोई सुविधा (जैसे 'मेरे आवेदन' या 'दस्तावेज़') लिखें — हिंदी, English या Hinglish में। सवाल सीधे AI सहायक को भेजे जा सकते हैं।" },
   ],
 };
 

@@ -6677,8 +6677,8 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
               width:38,height:38,borderRadius:11,flexShrink:0,
               background:dark?"rgba(0,53,128,0.24)":"rgba(0,53,128,0.09)",
               border:`1.5px solid ${dark?"rgba(0,53,128,0.40)":"rgba(0,53,128,0.18)"}`,
-              display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,
-            }}>📞</div>
+              display:"flex",alignItems:"center",justifyContent:"center",
+            }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={dark?"#93B4FF":"#003580"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
             {/* Text */}
             <div style={{flex:1}}>
               <div style={{fontSize:13.5,fontWeight:700,color:th.text,fontFamily:bf,lineHeight:1.2}}>
@@ -6749,7 +6749,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
               color:THEME[dark?"dark":"light"].text,
             }}>←</div>
             <div style={{fontSize:16,fontWeight:800,color:THEME[dark?"dark":"light"].text}}>
-              {lang==="hi"?"📞 सरकारी हेल्पलाइन":"📞 Government Helplines"}
+              {lang==="hi"?"सरकारी हेल्पलाइन":"Government Helplines"}
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
@@ -7839,7 +7839,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
               <div style={{width:38,height:38,borderRadius:11,
                 background:dark?"rgba(255,153,51,0.12)":"rgba(255,153,51,0.08)",
                 border:`1.5px solid ${dark?"rgba(255,153,51,0.28)":"rgba(255,153,51,0.22)"}`,
-                display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>📞</div>
+                display:"flex",alignItems:"center",justifyContent:"center"}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF9933" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
               <div>
                 <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>
                   {isHindi?"सरकारी हेल्पलाइन":"Government Helplines"}
@@ -8286,7 +8286,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
               color:THEME[dark?"dark":"light"].text,
             }}>←</div>
             <div style={{fontSize:16,fontWeight:800,color:THEME[dark?"dark":"light"].text}}>
-              {lang==="hi"?"📞 सरकारी हेल्पलाइन":"📞 Government Helplines"}
+              {lang==="hi"?"सरकारी हेल्पलाइन":"Government Helplines"}
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>

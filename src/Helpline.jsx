@@ -117,7 +117,7 @@ const HELPLINES = [
     id: 4, number: "108", dialNumber: "108",
     name: "Emergency Ambulance", nameHi: "आपातकालीन एम्बुलेंस",
     category: "emergency", national: false, tollFree: true,
-    ministry: "State Health Departments (GVK EMRI)",
+    ministry: "State Health Departments",
     ministryHi: "राज्य स्वास्थ्य विभाग (GVK EMRI)",
     purpose: "Free emergency ambulance available in most Indian states, operated 24×7.",
     purposeHi: "अधिकांश भारतीय राज्यों में 24×7 उपलब्ध मुफ्त आपातकालीन एम्बुलेंस सेवा।",
@@ -191,16 +191,16 @@ const HELPLINES = [
     ],
     doNotCall: "Fresh card enrollment — visit Common Service Centre (CSC) or Ayushman Mitra",
     doNotCallHi: "नया कार्ड बनवाना — कॉमन सर्विस सेंटर (CSC) या आयुष्मान मित्र के पास जाएं",
-    availability: "Working Hours · Mon–Sat",
-    availabilityHi: "कार्यालय समय · सोमवार–शनिवार",
+    availability: "Toll-free call centre",
+    availabilityHi: "टोल-फ्री कॉल सेंटर",
     note: "Verify this number at pmjay.gov.in if in doubt, as government helplines may be updated",
     noteHi: "संदेह होने पर pmjay.gov.in पर यह नंबर सत्यापित करें, सरकारी हेल्पलाइन नंबर बदल सकते हैं",
   },
   {
-    id: 22, number: "1800-111-255", dialNumber: "1800111255",
+    id: 22, number: "1800-180-8080", dialNumber: "18001808080",
     name: "Jan Aushadhi Helpline", nameHi: "जन औषधि हेल्पलाइन",
     category: "health", national: true, tollFree: true,
-    ministry: "Bureau of Pharma PSUs of India (BPPI) / Ministry of Chemicals & Fertilizers",
+    ministry: "Pharmaceuticals & Medical Devices Bureau of India (PMBI) / Department of Pharmaceuticals",
     ministryHi: "भारत के फार्मा PSU ब्यूरो (BPPI) / रसायन एवं उर्वरक मंत्रालय",
     purpose: "Jan Aushadhi Kendra locations, generic medicine availability, quality complaints, and new Kendra franchise queries.",
     purposeHi: "जन औषधि केंद्र की जानकारी, जेनेरिक दवाओं की उपलब्धता, गुणवत्ता शिकायत और नया केंद्र खोलने की जानकारी।",
@@ -220,21 +220,21 @@ const HELPLINES = [
     ],
     doNotCall: "Ayushman Bharat card issues — call 14555; medicine emergencies — call 108",
     doNotCallHi: "आयुष्मान भारत कार्ड समस्या — 14555 कॉल करें; दवाई आपातकाल — 108 कॉल करें",
-    availability: "Working Hours · Mon–Fri · 9 AM – 5:30 PM",
-    availabilityHi: "कार्यालय समय · सोमवार–शुक्रवार · सुबह 9 बजे – शाम 5:30 बजे",
+    availability: "Working Hours",
+    availabilityHi: "कार्यालय समय",
     note: "Jan Aushadhi medicines are 50–90% cheaper than branded equivalents; over 2,000 medicines covered",
     noteHi: "जन औषधि दवाएं ब्रांडेड दवाओं से 50–90% सस्ती हैं; 2,000 से अधिक दवाएं शामिल हैं",
   },
 
   // ── AGRICULTURE ────────────────────────────────────────────
   {
-    id: 7, number: "14422", dialNumber: "14422",
+    id: 7, number: "155261", dialNumber: "155261",
     name: "PM-KISAN Helpline", nameHi: "पीएम-किसान हेल्पलाइन",
     category: "agriculture", national: true, tollFree: true,
     ministry: "Ministry of Agriculture & Farmers' Welfare",
     ministryHi: "कृषि एवं किसान कल्याण मंत्रालय",
-    purpose: "PM-KISAN installment issues, registration corrections, and beneficiary status.",
-    purposeHi: "PM-KISAN किस्त समस्याएं, पंजीकरण सुधार और लाभार्थी स्थिति की जानकारी।",
+    purpose: "PM-KISAN installment issues, registration corrections, and beneficiary status. Toll-free: 1800-115-526 · Also 011-24300606.",
+    purposeHi: "PM-KISAN किस्त समस्याएं, पंजीकरण सुधार और लाभार्थी स्थिति की जानकारी। टोल-फ्री: 1800-115-526 · साथ ही 011-24300606।",
     whenToCall: [
       "PM-KISAN installment not credited to your bank account",
       "Wrong name, bank account, or Aadhaar in PM-KISAN records",
@@ -247,13 +247,13 @@ const HELPLINES = [
       "पंजीकरण आवेदन अस्वीकार या लंबित हो",
       "भुगतान स्थिति या अगली किस्त की तारीख जाननी हो",
     ],
-    doNotCall: "General farming advice — call Kisan Call Center 1800-180-1111 instead",
-    doNotCallHi: "सामान्य खेती की सलाह — किसान कॉल सेंटर 1800-180-1111 पर कॉल करें",
+    doNotCall: "General farming advice — call Kisan Call Center 1800-180-1551 instead",
+    doNotCallHi: "सामान्य खेती की सलाह — किसान कॉल सेंटर 1800-180-1551 पर कॉल करें",
     availability: "Working Hours · Mon–Sat",
     availabilityHi: "कार्यालय समय · सोमवार–शनिवार",
   },
   {
-    id: 8, number: "1800-180-1111", dialNumber: "18001801111",
+    id: 8, number: "1800-180-1551", dialNumber: "18001801551",
     name: "Kisan Call Center (KCC)", nameHi: "किसान कॉल सेंटर",
     category: "agriculture", national: true, tollFree: true,
     ministry: "Ministry of Agriculture & Farmers' Welfare",
@@ -272,10 +272,10 @@ const HELPLINES = [
       "किसी केंद्रीय या राज्य कृषि योजना की जानकारी",
       "मिट्टी की सेहत, जैविक खेती या मौसम से जुड़े प्रश्न",
     ],
-    doNotCall: "PM-KISAN payment problems — call dedicated helpline 14422",
-    doNotCallHi: "PM-KISAN भुगतान समस्या — समर्पित हेल्पलाइन 14422 पर कॉल करें",
-    availability: "24×7 · All Days · 22 Languages",
-    availabilityHi: "24×7 · सभी दिन · 22 भाषाओं में",
+    doNotCall: "PM-KISAN payment problems — call the PM-KISAN helpline 155261",
+    doNotCallHi: "PM-KISAN भुगतान समस्या — समर्पित हेल्पलाइन 155261 पर कॉल करें",
+    availability: "6 AM – 10 PM · All Days · 22 Languages",
+    availabilityHi: "सुबह 6 – रात 10 बजे · सभी दिन · 22 भाषाओं में",
     note: "Answered by agriculture graduates & experts; available in all major Indian languages",
     noteHi: "कृषि स्नातक और विशेषज्ञों द्वारा उत्तर; सभी प्रमुख भारतीय भाषाओं में उपलब्ध",
   },
@@ -301,8 +301,8 @@ const HELPLINES = [
       "जानना हो कि इस सीजन में आपकी फसल PMFBY में शामिल है या नहीं",
       "प्राकृतिक आपदा के बाद सर्वेक्षण के लिए फसल नुकसान की सूचना देनी हो",
     ],
-    doNotCall: "PM-KISAN installment problems — call 14422 instead",
-    doNotCallHi: "PM-KISAN किस्त समस्या — इसके बजाय 14422 पर कॉल करें",
+    doNotCall: "PM-KISAN installment problems — call 155261 instead",
+    doNotCallHi: "PM-KISAN किस्त समस्या — इसके बजाय 155261 पर कॉल करें",
     availability: "Working Hours · Mon–Sat",
     availabilityHi: "कार्यालय समय · सोमवार–शनिवार",
     note: "State agriculture departments handle actual claims; use 14447 to escalate if state is unresponsive",
@@ -425,7 +425,7 @@ const HELPLINES = [
 
   // ── CONSUMER ──────────────────────────────────────────────
   {
-    id: 13, number: "1800-11-0001", dialNumber: "18001100001",
+    id: 13, number: "1915", dialNumber: "1915",
     name: "National Consumer Helpline", nameHi: "राष्ट्रीय उपभोक्ता हेल्पलाइन",
     category: "consumer", national: true, tollFree: true,
     ministry: "Ministry of Consumer Affairs, Food & Public Distribution",
@@ -448,13 +448,13 @@ const HELPLINES = [
     ],
     doNotCall: "Consumer complaint needing immediate police action — file FIR at police station directly",
     doNotCallHi: "तत्काल पुलिस कार्रवाई वाली शिकायत — सीधे थाने में FIR दर्ज करें",
-    availability: "24×7 · All Days",
-    availabilityHi: "24×7 · सभी दिन",
+    availability: "8 AM – 8 PM · All Days (except national holidays) · Also 1800-11-4000",
+    availabilityHi: "सुबह 8 – रात 8 बजे · सभी दिन (राष्ट्रीय छुट्टी छोड़कर) · साथ ही 1800-11-4000",
   },
 
   // ── LABOUR ────────────────────────────────────────────────
   {
-    id: 14, number: "14566", dialNumber: "14566",
+    id: 14, number: "14434", dialNumber: "14434",
     name: "e-Shram Helpline", nameHi: "ई-श्रम हेल्पलाइन",
     category: "labour", national: true, tollFree: true,
     ministry: "Ministry of Labour & Employment",
@@ -475,8 +475,8 @@ const HELPLINES = [
     ],
     doNotCall: "EPFO / organized sector (PF, pension) queries — call EPFO helpline 1800-118-005",
     doNotCallHi: "EPFO / संगठित क्षेत्र (PF, पेंशन) प्रश्न — EPFO हेल्पलाइन 1800-118-005 पर कॉल करें",
-    availability: "Working Hours · Mon–Sat · 8 AM – 8 PM",
-    availabilityHi: "कार्यालय समय · सोमवार–शनिवार · सुबह 8 बजे – रात 8 बजे",
+    availability: "9 AM – 6 PM · All Days",
+    availabilityHi: "सुबह 9 – शाम 6 बजे · सभी दिन",
   },
   {
     id: 15, number: "1800-118-005", dialNumber: "1800118005",
@@ -500,8 +500,8 @@ const HELPLINES = [
       "नौकरी बदलने के बाद PF खाता ट्रांसफर अटका हो",
       "नियोक्ता आपका PF योगदान जमा नहीं कर रहा हो",
     ],
-    doNotCall: "Unorganized workers' e-Shram queries — call 14566 instead",
-    doNotCallHi: "असंगठित श्रमिकों की ई-श्रम जानकारी — इसके बजाय 14566 पर कॉल करें",
+    doNotCall: "Unorganized workers' e-Shram queries — call 14434 instead",
+    doNotCallHi: "असंगठित श्रमिकों की ई-श्रम जानकारी — इसके बजाय 14434 पर कॉल करें",
     availability: "Working Hours · Mon–Sat · 9:15 AM – 5:45 PM",
     availabilityHi: "कार्यालय समय · सोमवार–शनिवार · सुबह 9:15 बजे – शाम 5:45 बजे",
   },
@@ -562,6 +562,29 @@ const HELPLINES = [
 
   // ── MENTAL HEALTH ─────────────────────────────────────────
   {
+    id: 28, number: "14416", dialNumber: "14416",
+    name: "Tele-MANAS Mental Health Helpline", nameHi: "टेली-मानस मानसिक स्वास्थ्य हेल्पलाइन",
+    category: "mental", national: true, tollFree: true,
+    ministry: "Ministry of Health & Family Welfare",
+    ministryHi: "स्वास्थ्य एवं परिवार कल्याण मंत्रालय",
+    purpose: "Free, confidential support from trained counsellors for stress, anxiety, low mood or a mental health crisis — in many Indian languages. Also 1800-891-4416.",
+    purposeHi: "तनाव, चिंता, उदासी या मानसिक संकट में प्रशिक्षित काउंसलर से मुफ्त और गोपनीय सहायता — कई भारतीय भाषाओं में। साथ ही 1800-891-4416।",
+    whenToCall: [
+      "Feeling very stressed, anxious or low for many days",
+      "Worried about a family member's mental health",
+      "Need to talk to someone confidentially, any time",
+    ],
+    whenToCallHi: [
+      "कई दिनों से बहुत तनाव, चिंता या उदासी हो",
+      "परिवार के किसी सदस्य के मानसिक स्वास्थ्य की चिंता हो",
+      "किसी से गोपनीय रूप से बात करनी हो, कभी भी",
+    ],
+    doNotCall: "Immediate danger to life — call 112 first",
+    doNotCallHi: "जान को तुरंत खतरा हो — पहले 112 पर कॉल करें",
+    availability: "24×7 · All Days · Free",
+    availabilityHi: "24×7 · सभी दिन · मुफ्त",
+  },
+  {
     id: 18, number: "9152987821", dialNumber: "9152987821",
     name: "iCall Mental Health Helpline", nameHi: "iCall मानसिक स्वास्थ्य",
     category: "mental", national: true, tollFree: false,
@@ -583,13 +606,13 @@ const HELPLINES = [
     ],
     doNotCall: "Psychiatric medication or diagnosis — visit a psychiatrist for those needs",
     doNotCallHi: "मनोचिकित्सा दवाएं या निदान — उन जरूरतों के लिए मनोचिकित्सक के पास जाएं",
-    availability: "Mon–Sat · 8 AM – 10 PM",
-    availabilityHi: "सोमवार–शनिवार · सुबह 8 बजे – रात 10 बजे",
+    availability: "Mon–Sat · 10 AM – 8 PM",
+    availabilityHi: "सोमवार–शनिवार · सुबह 10 बजे – रात 8 बजे",
     note: "Counselling in English, Hindi, and some regional languages. Confidential.",
     noteHi: "अंग्रेजी, हिंदी और कुछ क्षेत्रीय भाषाओं में परामर्श। पूरी तरह गोपनीय।",
   },
   {
-    id: 19, number: "1860-2662-345", dialNumber: "18602662345",
+    id: 19, number: "9999-666-555", dialNumber: "9999666555",
     name: "Vandrevala Foundation", nameHi: "वंद्रेवाला फाउंडेशन",
     category: "mental", national: true, tollFree: false,
     ministry: "Vandrevala Foundation (NGO – Mental Health)",
@@ -810,7 +833,7 @@ const UI = {
     responsibleDesc: "These are real emergency and public service lines. Call only when you genuinely need assistance. Tap any card to see exactly when to call and when not to.",
     publicLabel: "Public Helplines",
     publicDesc: "Emergency, Health, Women, Transport…",
-    schemeLabel: "Gov Schemes",
+    schemeLabel: "Scheme Helplines",
     schemeDesc: "PM-KISAN, PMAY, NPS, GST…",
     helplines: "Helplines",
     tollFree: "Toll Free",
@@ -838,7 +861,7 @@ const UI = {
     responsibleDesc: "ये वास्तविक आपातकालीन और सार्वजनिक सेवा लाइनें हैं। केवल तभी कॉल करें जब आपको वास्तव में सहायता की आवश्यकता हो। किसी भी कार्ड पर टैप करके देखें कब कॉल करें और कब नहीं।",
     publicLabel: "सार्वजनिक हेल्पलाइन",
     publicDesc: "आपातकाल, स्वास्थ्य, महिला, परिवहन…",
-    schemeLabel: "सरकारी योजनाएं",
+    schemeLabel: "योजना हेल्पलाइन",
     schemeDesc: "पीएम-किसान, पीएमएवाई, एनपीएस, जीएसटी…",
     helplines: "हेल्पलाइन",
     tollFree: "टोल फ्री",
@@ -905,29 +928,6 @@ function HelplineCard({ h, isEmergency, lang = "en", ui, dark = true }) {
     >
       {/* ── Top Row ── */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 14 }}>
-        {/* Category Abbrev */}
-        <div style={{
-          width: 42, height: 42, borderRadius: 10, flexShrink: 0,
-          background: cat.bg, display: "flex", alignItems: "center",
-          justifyContent: "center", fontSize: 11, fontWeight: 800,
-          letterSpacing: 0.8, color: cat.color, textTransform: "uppercase",
-          border: `1px solid ${cat.color}28`, marginTop: 2, fontFamily: "'Segoe UI', system-ui, sans-serif",
-        }}>
-          {h.category === "emergency" ? "ER"
-            : h.category === "health" ? "HE"
-            : h.category === "agriculture" ? "AG"
-            : h.category === "senior" ? "SR"
-            : h.category === "identity" ? "ID"
-            : h.category === "women" ? "WC"
-            : h.category === "consumer" ? "CS"
-            : h.category === "labour" ? "LB"
-            : h.category === "energy" ? "LG"
-            : h.category === "transport" ? "TR"
-            : h.category === "mental" ? "MH"
-            : h.category === "education" ? "ED"
-            : "GS"}
-        </div>
-
         {/* Name + Ministry */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", fontWeight: 700,
@@ -977,11 +977,6 @@ function HelplineCard({ h, isEmergency, lang = "en", ui, dark = true }) {
           : C.saffronDim}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke={isEmergency ? C.red : C.saffron} strokeWidth="2.2"
-            strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
-          </svg>
           <span style={{
             fontFamily: "'Courier New', monospace", fontWeight: 800,
             fontSize: 22, color: isEmergency ? C.red : C.saffron, letterSpacing: 1,
@@ -1154,40 +1149,12 @@ export default function Helpline({ lang = "en", dark = true }) {
         borderBottom: `1px solid ${C.border}`,
         padding: "24px 20px 0 20px",
       }}>
-        {/* Title Row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: 14,
-            background: "linear-gradient(135deg, #FF9933, #FF6600)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 16px rgba(255,153,51,0.35)",
-          }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: C.white, lineHeight: 1.2,
-              letterSpacing: -0.5 }}>
-              {ui.title}
-            </div>
-            <div style={{ fontSize: 13, color: C.muted, fontWeight: 500 }}>
-              {ui.subtitle}
-            </div>
-          </div>
-        </div>
-
         {/* Responsible Use Banner */}
         <div style={{
           background: "rgba(148,163,184,0.06)", border: "1px solid rgba(148,163,184,0.14)",
-          borderRadius: 10, padding: "7px 12px", margin: "10px 0",
+          borderRadius: 10, padding: "8px 12px", margin: "0 0 12px",
           display: "flex", gap: 8, alignItems: "center",
         }}>
-          <span style={{ flexShrink: 0, opacity: 0.5, display: "flex" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.mutedLight} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-          </span>
           <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
             <strong style={{ color: C.mutedLight, fontWeight: 600 }}>{ui.responsibleUse}</strong>
             {" "}{ui.responsibleDesc}
@@ -1205,12 +1172,6 @@ export default function Helpline({ lang = "en", dark = true }) {
             color: "#FF9933",
             bg: "rgba(255,153,51,0.10)",
             border: "rgba(255,153,51,0.30)",
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="currentColor" opacity="0.85"/>
-                <circle cx="12" cy="9" r="2.5" fill="white"/>
-              </svg>
-            ),
           },
           {
             key: "scheme",
@@ -1220,14 +1181,6 @@ export default function Helpline({ lang = "en", dark = true }) {
             color: "#38bdf8",
             bg: "rgba(56,189,248,0.10)",
             border: "rgba(56,189,248,0.30)",
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor" opacity="0.9"/>
-                <rect x="13" y="3" width="8" height="8" rx="2" fill="currentColor" opacity="0.6"/>
-                <rect x="3" y="13" width="8" height="8" rx="2" fill="currentColor" opacity="0.6"/>
-                <rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor" opacity="0.9"/>
-              </svg>
-            ),
           },
         ].map(t => {
           const isActive = activeType === t.key;
@@ -1261,7 +1214,6 @@ export default function Helpline({ lang = "en", dark = true }) {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                <span style={{ color: isActive ? t.color : C.muted, lineHeight: 1 }}>{t.icon}</span>
                 <span style={{
                   fontSize: 13, fontWeight: 800,
                   color: isActive ? t.color : C.mutedLight,
@@ -1273,9 +1225,6 @@ export default function Helpline({ lang = "en", dark = true }) {
                   fontSize: 11, fontWeight: 700, padding: "2px 7px",
                   borderRadius: 20,
                 }}>{count}</span>
-              </div>
-              <div style={{ fontSize: 10.5, color: isActive ? t.color : C.muted, opacity: 0.85, fontWeight: 500 }}>
-                {t.labelHi}
               </div>
               <div style={{ fontSize: 10.5, color: C.muted, marginTop: 2 }}>
                 {t.desc}
@@ -1310,11 +1259,6 @@ export default function Helpline({ lang = "en", dark = true }) {
           onFocus={e => e.currentTarget.style.borderColor = "rgba(255,153,51,0.4)"}
           onBlur={e => e.currentTarget.style.borderColor = C.border}
         >
-          <span style={{ display: "flex", flexShrink: 0 }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </span>
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -1417,11 +1361,6 @@ export default function Helpline({ lang = "en", dark = true }) {
         {/* Cards */}
         {filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "48px 20px", color: C.muted }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 12, opacity: 0.3 }}>
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-            </div>
             <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>{ui.noResultsTitle}</div>
             <div style={{ fontSize: 13 }}>{ui.noResultsDesc}</div>
           </div>

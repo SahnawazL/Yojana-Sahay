@@ -91,9 +91,9 @@ function formatCompactCount(n) {
 const STRINGS = {
   en: {
     appName:      "YojanaSahay",
-    tagline:      "Know India's Free Scheme Discovery App",
+    tagline:      "India's free scheme discovery app",
     madeInIndia:  "Made in India 🇮🇳",
-    version:      "Current Release · Beta",
+    version:      "Version 1.6",
 
     missionTitle: "Our Mission",
     missionBody:
@@ -109,7 +109,7 @@ const STRINGS = {
 
     dbTitle: "Comprehensive Scheme Database",
     dbBody:
-      "YojanaSahay indexes an extensive and continuously expanding catalogue of Central Government and State Government welfare schemes spanning across every state and union territory of India. Our dedicated team actively curates and updates scheme data to ensure accuracy, coverage, and relevance for citizens nationwide.",
+      "YojanaSahay indexes a large and growing catalogue of Central and State Government welfare schemes across every state and union territory of India. Scheme data is curated by the developer from official government portals, and automated checks re-verify deadlines and official links every day.",
 
     featuresTitle: "Core Capabilities",
     features: [
@@ -131,7 +131,7 @@ const STRINGS = {
       {
         icon:"📬", color:IND_GREEN,
         title:"Report & Resolution Centre",
-        desc:"An in-app support system for submitting bugs, scheme requests, general queries, and feedback. Every submission is reviewed by the YojanaSahay team with status tracking and direct team response.",
+        desc:"An in-app support system for submitting bugs, scheme requests, general queries, and feedback. Every submission is personally reviewed, with status tracking and a direct reply.",
       },
     ],
 
@@ -142,8 +142,8 @@ const STRINGS = {
       { icon:"🎯", text:"Personalised responses based on your saved profile and state" },
       { icon:"💡", text:"Smart follow-up suggestions to guide deeper discovery" },
       { icon:"📖", text:"Designed for reading-friendly pacing for all users" },
-      { icon:"🔒", text:"Per-account conversation history — private and isolated" },
-      { icon:"⚡", text:"Powered by Groq AI for high-speed, accurate responses" },
+      { icon:"🔒", text:"Your chat history stays on your phone — private to you" },
+      { icon:"⚡", text:"Powered by Groq AI for fast answers — AI can make mistakes, so always confirm on the official link (use Report under any wrong answer)" },
       { icon:"📊", text:"Get AI-powered guidance on your eligibility checker results — understand why you qualify and what to do next" },
       { icon:"✅", text:"Checks your eligibility right in the chat — for you or a family member — asking only what it doesn't already know" },
       { icon:"🎤", text:"Speak your question with the mic, and tap Listen to hear any answer read aloud" },
@@ -152,16 +152,16 @@ const STRINGS = {
 
     proTitle:    "YojanaSahay Pro",
     proEyebrow:  "COMING SOON",
-    proSubtitle: "Launching with Play Store & App Store",
+    proSubtitle: "Planned for the future · not available yet",
     proBody:
-      "Everything in YojanaSahay today is free — and it stays free. Pro is planned for people who use the app every day, adding extras on top: unlimited AI, PDF reports, email reminders, document guidance and priority support.",
+      "Everything in YojanaSahay today is free — and it stays free. Pro is planned for people who use the app every day, adding extras on top: unlimited AI, PDF reports, document guidance and priority support.",
     proFeatures: [
       { icon:"🤖", title:"AI Assistant",            desc:"Ask anything in Hindi, English or Hinglish — by typing or by voice. Free for every signed-in user today.",            free:"✓",       pro:"Unlimited" },
       { icon:"🎯", title:"Full Eligibility Check",  desc:"Every condition — state, income, category, ration card, land, disability and special groups like workers or fishermen.", free:"✓",       pro:"✓" },
       { icon:"👨‍👩‍👧‍👦", title:"Family Benefits",         desc:"Add your family on the Home screen and see the schemes each person can get.",                                      free:"Up to 8", pro:"Unlimited" },
       { icon:"📋", title:"Application Tracker",     desc:"Tap \"I've applied — track it\", update the status, and get a reminder to check it after 30 days.",                   free:"✓",       pro:"✓" },
       { icon:"📦", title:"Document Checklist",      desc:"One combined list for all your schemes — tick documents off as you collect them. Pro adds where to get each one.", free:"✓",       pro:"+ Guidance" },
-      { icon:"🔔", title:"Reminders",               desc:"Phone reminders for closing dates, application checks and new schemes for you (sign-in needed). Pro adds email.", free:"✓",       pro:"+ Email" },
+      { icon:"🔔", title:"Reminders",               desc:"Phone and e-mail reminders for closing dates, application checks and new schemes for you (sign-in needed).", free:"✓",       pro:"✓" },
       { icon:"📄", title:"Result as PDF",           desc:"Free: share your result as an image on WhatsApp. Pro: download a full PDF report to carry to a CSC or office.",   free:"Image",   pro:"PDF" },
       { icon:"⏱️", title:"No Reading Pause",        desc:"Free: a short pause after each AI answer so you can read it (tap \"Type now\" to skip). Pro: ask your next question straight away.", free:"Short", pro:"None" },
       { icon:"⭐", title:"Priority Support",        desc:"Pro reports get a Priority badge and are answered first.",                                                          free:"Standard", pro:"Priority" },
@@ -170,7 +170,7 @@ const STRINGS = {
     proMonthly:      "₹49 / month",
     proYearly:       "₹399 / year",
     proSaveLabel:    "Save 32%",
-    proPricingNote:  "Final pricing will be confirmed at launch. Nothing is charged today. Payments will be via UPI, cards and net banking.",
+    proPricingNote:  "Final pricing will be confirmed before launch. Nothing is charged today.",
     proLoginTitle:   "Login Required for AI Chat",
     proLoginNotice:
       "Signing in (mobile OTP, Google or email) is required to use the AI Chat tab. When YojanaSahay Pro launches, this also links your daily usage and Pro benefits to your account — ensuring fair access for free users and full access for Pro.",
@@ -181,8 +181,8 @@ const STRINGS = {
       { icon:"🎯", title:"Personalised Scheme Matching",    desc:"The eligibility checker and AI use your profile to surface schemes most relevant to you." },
       { icon:"🤖", title:"Profile-Aware AI Responses",      desc:"The AI assistant tailors every recommendation based on your age, income, state, and occupation." },
       { icon:"📬", title:"Report Tracking & Admin Replies", desc:"Track the status of your submissions — Open, In Progress, or Resolved — with full conversation threads." },
-      { icon:"✅", title:"Verified Identity Submissions",   desc:"Your reports carry a verified badge, ensuring priority handling by the support team." },
-      { icon:"📩", title:"Email Confirmation & Alerts",     desc:"Receive automatic email confirmation on submission and be notified when the team responds." },
+      { icon:"✅", title:"Verified Identity Submissions",   desc:"Reports from signed-in users show who sent them, so we can reply to you directly." },
+      { icon:"📩", title:"Email Confirmation & Alerts",     desc:"Receive automatic email confirmation on submission and be notified when we reply." },
     ],
 
     reportTitle:    "Report, Query & Resolution",
@@ -196,7 +196,7 @@ const STRINGS = {
       { icon:"💡", color:SAFFRON,   label:"Feedback & Suggestions",  desc:"Share suggestions to improve the platform for citizens across India." },
     ],
     reportFlow:
-      "All submissions are stored securely and reviewed by the YojanaSahay priority support team. Logged-in users receive automatic email confirmation upon submission and are notified when the team provides a full response. Status transitions — Open → In Progress → Resolved — are visible in real time within the app.",
+      "All submissions are stored securely and personally reviewed by the developer. Signed-in users receive an automatic e-mail confirmation and are notified when a reply is posted. Status changes — Open → In Progress → Resolved — show in real time in the app.",
 
     termsTitle:  "Terms of Service",
     termsPoints: [
@@ -205,7 +205,7 @@ const STRINGS = {
       "All scheme data is sourced from publicly available official government portals and communications. While we strive for accuracy, users are advised to verify scheme details directly from the respective government sources before applying.",
       "YojanaSahay does not facilitate direct scheme applications, financial transactions, or document processing. The platform serves solely as an informational and discovery service.",
       "Service Provided 'As-Is' — YojanaSahay is provided without warranties of any kind. We do not guarantee uninterrupted access, error-free operation, or that scheme information or AI-generated responses are complete, current, or accurate at all times.",
-      "Limitation of Liability — YojanaSahay, its developer, and team shall not be held liable for any loss, damage, rejected application, missed deadline, or financial harm arising from reliance on information, eligibility results, or AI-generated guidance on the platform. Users are solely responsible for verifying all details with official government sources before applying.",
+      "Limitation of Liability — YojanaSahay and its developer shall not be held liable for any loss, damage, rejected application, missed deadline, or financial harm arising from reliance on information, eligibility results, or AI-generated guidance on the platform. Users are solely responsible for verifying all details with official government sources before applying.",
       "Acceptable Use — Users must not misuse the platform, including submitting false reports, attempting to scrape or reverse-engineer the platform, interfering with its operation, or impersonating another person or entity.",
       "Account Suspension — We reserve the right to suspend or terminate any account found to be in violation of these terms, without prior notice, to protect the platform and its users.",
       "Eligibility to Use — YojanaSahay is intended for individuals aged 18 and above. If you are a minor, please use the platform only under the supervision of a parent or guardian.",
@@ -252,6 +252,7 @@ const STRINGS = {
 
     whatsNewTitle: "What's New",
     whatsNew: [
+      { version:"v1.6", date:"Oct 2026",   note:"Search anything from Home · Clearer, faster AI chat with live progress · Report wrong AI answers · E-mail reminder switch · Delete account in Profile · Android app" },
       { version:"v1.5", date:"Oct 2026",   note:"Life events — schemes for what's happening in your life · My Money Calendar with reminders · Status check & 'money not received' guides" },
       { version:"v1.4", date:"Oct 2026",   note:"AI agent: eligibility check in chat, voice, application tracking · Fake-message checker · Readiness score · Help near me · ⚑ Scheme reports · Scheme pages on Google" },
       { version:"v1.3", date:"May 2026",   note:"Email & Google sign-in · Dark mode · Vercel edge deployment" },
@@ -286,7 +287,7 @@ const STRINGS = {
     appName:      "योजना सहाय",
     tagline:      "निःशुल्क योजना सहायक",
     madeInIndia:  "मेड इन इंडिया 🇮🇳",
-    version:      "वर्तमान संस्करण · Beta",
+    version:      "संस्करण 1.6",
 
     missionTitle: "हमारा उद्देश्य",
     missionBody:
@@ -302,14 +303,14 @@ const STRINGS = {
 
     dbTitle: "विस्तृत योजना डेटाबेस",
     dbBody:
-      "योजना सहाय केंद्र सरकार और सभी राज्य सरकारों की कल्याण योजनाओं का एक व्यापक और निरंतर विस्तारित होता डेटाबेस बनाए रखता है। हमारी टीम नागरिकों के लिए सटीक, प्रासंगिक और अद्यतन जानकारी सुनिश्चित करने हेतु लगातार कार्यरत रहती है।",
+      "योजना सहाय भारत के हर राज्य और केंद्र शासित प्रदेश की केंद्र व राज्य सरकार की कल्याण योजनाओं की एक बड़ी और लगातार बढ़ती सूची रखता है। योजना डेटा डेवलपर द्वारा आधिकारिक सरकारी पोर्टलों से तैयार किया जाता है, और स्वचालित जांच हर दिन आखिरी तारीख और आधिकारिक लिंक दोबारा सत्यापित करती है।",
 
     featuresTitle: "मुख्य क्षमताएं",
     features: [
       { icon:"🔍", color:NAVY,      title:"स्मार्ट योजना खोज",       desc:"केंद्र और राज्य सरकार की योजनाओं को श्रेणी, राज्य और लाभार्थी प्रकार के अनुसार खोजें। पात्रता, लाभ और आवेदन मार्गदर्शन सहित तत्काल परिणाम।" },
       { icon:"🎯", color:SAFFRON,   title:"पात्रता जांचक",            desc:"एक स्मार्ट अनुकूलित प्रश्नावली जो आपके व्यवसाय, आय और राज्य को समझकर तुरंत आपकी सभी पात्र योजनाएं सामने रख देती है — बिना अनुमान लगाए। AI मार्गदर्शन के साथ ताकि आगे का हर कदम बिल्कुल स्पष्ट हो।" },
       { icon:"🤖", color:"#8B5CF6", title:"AI सहायक",                 desc:"हिंदी और अंग्रेजी में योजना संबंधी प्रश्नों के लिए वास्तविक समय AI सहायक। व्यक्तिगत मार्गदर्शन, योजना तुलना और अगले कदमों की जानकारी।" },
-      { icon:"📬", color:IND_GREEN, title:"रिपोर्ट और समाधान केंद्र", desc:"बग, योजना अनुरोध, सामान्य प्रश्न और सुझाव सबमिट करने की इन-ऐप सुविधा। टीम द्वारा हर सबमिशन की समीक्षा और सीधा उत्तर।" },
+      { icon:"📬", color:IND_GREEN, title:"रिपोर्ट और समाधान केंद्र", desc:"बग, योजना अनुरोध, सामान्य प्रश्न और सुझाव सबमिट करने की इन-ऐप सुविधा। हर सबमिशन की स्वयं समीक्षा, स्थिति ट्रैकिंग और सीधा जवाब।" },
     ],
 
     aiTitle:    "AI सहायक — Groq द्वारा संचालित",
@@ -319,8 +320,8 @@ const STRINGS = {
       { icon:"🎯", text:"आपकी प्रोफाइल और राज्य के आधार पर व्यक्तिगत सुझाव" },
       { icon:"💡", text:"गहरी जानकारी के लिए स्मार्ट फॉलो-अप सुझाव" },
       { icon:"📖", text:"सभी उपयोगकर्ताओं के लिए पठन-अनुकूल गति से डिज़ाइन" },
-      { icon:"🔒", text:"प्रति-खाता चैट इतिहास — निजी और सुरक्षित" },
-      { icon:"⚡", text:"Groq AI द्वारा संचालित — तेज़ और सटीक उत्तर" },
+      { icon:"🔒", text:"आपका चैट इतिहास आपके फ़ोन पर ही रहता है — सिर्फ़ आपके लिए" },
+      { icon:"⚡", text:"Groq AI द्वारा संचालित तेज़ जवाब — AI गलती कर सकता है, इसलिए आधिकारिक लिंक पर पुष्टि करें (गलत जवाब पर \"रिपोर्ट\" दबाएं)" },
       { icon:"📊", text:"पात्रता जांच के परिणामों पर AI मार्गदर्शन पाएं — जानें आप क्यों पात्र हैं और आगे क्या करें" },
       { icon:"✅", text:"चैट में ही पात्रता जांचें — अपने लिए या परिवार के किसी सदस्य के लिए, केवल वही सवाल जो पहले से पता नहीं" },
       { icon:"🎤", text:"माइक से बोलकर सवाल पूछें, और किसी भी जवाब को सुनने के लिए 'सुनें' दबाएं" },
@@ -329,16 +330,16 @@ const STRINGS = {
 
     proTitle:    "योजनासहाय Pro",
     proEyebrow:  "जल्द आ रहा है",
-    proSubtitle: "Play Store और App Store पर लॉन्च होगा",
+    proSubtitle: "भविष्य की योजना · अभी उपलब्ध नहीं",
     proBody:
-      "योजना सहाय में आज की हर सुविधा मुफ़्त है — और मुफ़्त ही रहेगी। Pro उन लोगों के लिए आएगा जो रोज़ ऐप इस्तेमाल करते हैं — ऊपर से अतिरिक्त सुविधाएं: असीमित AI, PDF रिपोर्ट, ईमेल रिमाइंडर, दस्तावेज़ मार्गदर्शन और प्राथमिकता सपोर्ट।",
+      "योजना सहाय में आज की हर सुविधा मुफ़्त है — और मुफ़्त ही रहेगी। Pro उन लोगों के लिए योजना में है जो रोज़ ऐप इस्तेमाल करते हैं — ऊपर से अतिरिक्त सुविधाएं: असीमित AI, PDF रिपोर्ट, दस्तावेज़ मार्गदर्शन और प्राथमिकता सपोर्ट।",
     proFeatures: [
       { icon:"🤖", title:"AI सहायक",                desc:"हिंदी, English या Hinglish में कुछ भी पूछें — टाइप करके या बोलकर। साइन इन करने वाले हर उपयोगकर्ता के लिए अभी मुफ़्त।",   free:"✓",         pro:"असीमित" },
       { icon:"🎯", title:"पूरी पात्रता जांच",          desc:"हर शर्त — राज्य, आय, वर्ग, राशन कार्ड, ज़मीन, दिव्यांगता और श्रमिक या मछुआरे जैसे विशेष समूह।",                        free:"✓",         pro:"✓" },
       { icon:"👨‍👩‍👧‍👦", title:"परिवार के लाभ",            desc:"होम स्क्रीन पर परिवार के सदस्य जोड़ें और देखें हर व्यक्ति को कौन सी योजनाएं मिल सकती हैं।",                           free:"8 तक",      pro:"असीमित" },
       { icon:"📋", title:"आवेदन ट्रैकर",              desc:"'मैंने आवेदन कर दिया — ट्रैक करें' दबाएं, स्थिति अपडेट करें, और 30 दिन बाद जांचने का रिमाइंडर पाएं।",               free:"✓",         pro:"✓" },
       { icon:"📦", title:"दस्तावेज़ चेकलिस्ट",         desc:"आपकी सभी योजनाओं के लिए एक साझा सूची — दस्तावेज़ मिलने पर टिक करें। Pro में हर दस्तावेज़ कहां से बनवाएं, यह भी।",   free:"✓",         pro:"+ मार्गदर्शन" },
-      { icon:"🔔", title:"रिमाइंडर",                 desc:"आखिरी तारीख, आवेदन जांच और आपके लिए नई योजनाओं के फ़ोन रिमाइंडर (साइन-इन ज़रूरी)। Pro में ईमेल भी।",               free:"✓",         pro:"+ ईमेल" },
+      { icon:"🔔", title:"रिमाइंडर",                 desc:"आखिरी तारीख, आवेदन जांच और आपके लिए नई योजनाओं के फ़ोन और ई-मेल रिमाइंडर (साइन-इन ज़रूरी)।", free:"✓",       pro:"✓" },
       { icon:"📄", title:"परिणाम PDF में",            desc:"मुफ़्त: अपना परिणाम WhatsApp पर इमेज के रूप में शेयर करें। Pro: CSC या दफ़्तर ले जाने के लिए पूरी PDF रिपोर्ट।",     free:"इमेज",      pro:"PDF" },
       { icon:"⏱️", title:"पढ़ने का विराम नहीं",         desc:"मुफ़्त: हर AI जवाब के बाद पढ़ने के लिए छोटा विराम ('अभी टाइप करें' से छोड़ सकते हैं)। Pro: अगला सवाल तुरंत पूछें।", free:"छोटा", pro:"नहीं" },
       { icon:"⭐", title:"प्राथमिकता सपोर्ट",          desc:"Pro रिपोर्ट को Priority बैज मिलता है और पहले जवाब दिया जाता है।",                                                    free:"सामान्य",    pro:"प्राथमिकता" },
@@ -347,7 +348,7 @@ const STRINGS = {
     proMonthly:      "₹49 / माह",
     proYearly:       "₹399 / वर्ष",
     proSaveLabel:    "32% बचत",
-    proPricingNote:  "अंतिम मूल्य लॉन्च पर तय होगा। आज कुछ भी शुल्क नहीं लिया जाता। भुगतान UPI, कार्ड और नेट बैंकिंग से होगा।",
+    proPricingNote:  "अंतिम मूल्य लॉन्च से पहले तय होगा। आज कुछ भी शुल्क नहीं लिया जाता।",
     proLoginTitle:   "AI Chat के लिए लॉगिन आवश्यक",
     proLoginNotice:
       "AI Chat टैब इस्तेमाल करने के लिए साइन इन (मोबाइल OTP, Google या ईमेल) ज़रूरी है। YojanaSahay Pro लॉन्च होने पर इससे आपकी दैनिक उपयोग सीमा और Pro सुविधाएं भी सीधे आपके खाते से जुड़ी रहेंगी।",
@@ -358,8 +359,8 @@ const STRINGS = {
       { icon:"🎯", title:"व्यक्तिगत योजना मिलान",       desc:"पात्रता जांचक और AI आपकी प्रोफाइल के अनुसार सर्वाधिक प्रासंगिक योजनाएं दिखाते हैं।" },
       { icon:"🤖", title:"प्रोफाइल-आधारित AI उत्तर",    desc:"AI सहायक आपकी आयु, आय, राज्य और व्यवसाय के अनुसार हर सुझाव तैयार करता है।" },
       { icon:"📬", title:"रिपोर्ट ट्रैकिंग और उत्तर",   desc:"अपनी सबमिशन की स्थिति — Open, In Progress, Resolved — पूर्ण बातचीत थ्रेड के साथ देखें।" },
-      { icon:"✅", title:"सत्यापित पहचान सबमिशन",       desc:"आपकी रिपोर्ट पर Verified बैज लगता है जिससे सपोर्ट टीम प्राथमिकता से कार्य करती है।" },
-      { icon:"📩", title:"ईमेल पुष्टि और सूचनाएं",      desc:"सबमिशन पर स्वचालित ईमेल पुष्टि और टीम के उत्तर पर अधिसूचना प्राप्त करें।" },
+      { icon:"✅", title:"सत्यापित पहचान सबमिशन",       desc:"साइन-इन करके भेजी गई रिपोर्ट में भेजने वाले की जानकारी होती है, ताकि हम सीधे आपको जवाब दे सकें।" },
+      { icon:"📩", title:"ईमेल पुष्टि और सूचनाएं",      desc:"सबमिशन पर स्वचालित ईमेल पुष्टि और जवाब आने पर अधिसूचना प्राप्त करें।" },
     ],
 
     reportTitle:    "रिपोर्ट, प्रश्न और समाधान",
@@ -372,7 +373,7 @@ const STRINGS = {
       { icon:"💡", color:SAFFRON,   label:"सुझाव और प्रतिक्रिया",   desc:"देशभर के नागरिकों के लिए प्लेटफ़ॉर्म सुधार के सुझाव साझा करें।" },
     ],
     reportFlow:
-      "सभी सबमिशन सुरक्षित रूप से संग्रहीत होते हैं और योजना सहाय की प्राथमिक सपोर्ट टीम द्वारा समीक्षा की जाती है। लॉगिन उपयोगकर्ताओं को सबमिशन पर स्वचालित ईमेल पुष्टि और टीम के उत्तर पर सूचना मिलती है। स्थिति — Open → In Progress → Resolved — ऐप में वास्तविक समय में दिखाई देती है।",
+      "सभी सबमिशन सुरक्षित रूप से संग्रहीत होते हैं और डेवलपर स्वयं उनकी समीक्षा करते हैं। साइन-इन उपयोगकर्ताओं को स्वचालित ई-मेल पुष्टि मिलती है और जवाब आने पर सूचना मिलती है। स्थिति — Open → In Progress → Resolved — ऐप में तुरंत दिखती है।",
 
     termsTitle:  "सेवा की शर्तें",
     termsPoints: [
@@ -381,7 +382,7 @@ const STRINGS = {
       "सभी योजना डेटा सार्वजनिक रूप से उपलब्ध आधिकारिक सरकारी पोर्टलों से प्राप्त किया गया है। सटीकता के प्रयास के बावजूद, उपयोगकर्ताओं को आवेदन से पूर्व संबंधित सरकारी स्रोतों से विवरण सत्यापित करने की सलाह दी जाती है।",
       "योजना सहाय सीधे आवेदन, वित्तीय लेनदेन या दस्तावेज़ प्रसंस्करण की सुविधा नहीं देता। यह प्लेटफ़ॉर्म केवल सूचना और खोज सेवा के रूप में कार्य करता है।",
       "सेवा 'जैसी है' प्रदान की जाती है — योजना सहाय किसी भी प्रकार की वारंटी के बिना प्रदान किया जाता है। हम निर्बाध पहुंच, त्रुटि-मुक्त संचालन, या योजना जानकारी व AI-जनित उत्तरों के हर समय पूर्ण, अद्यतन और सटीक होने की गारंटी नहीं देते।",
-      "देयता की सीमा — योजना सहाय, इसके डेवलपर और टीम किसी भी हानि, क्षति, आवेदन अस्वीकृति, छूटी हुई समय-सीमा, या वित्तीय नुकसान के लिए उत्तरदायी नहीं होंगे जो प्लेटफ़ॉर्म पर दी गई जानकारी, पात्रता परिणामों या AI-जनित सुझावों पर निर्भर रहने से उत्पन्न हो। आवेदन से पूर्व आधिकारिक सरकारी स्रोतों से विवरण सत्यापित करने की पूरी ज़िम्मेदारी उपयोगकर्ता की है।",
+      "देयता की सीमा — योजना सहाय, और इसके डेवलपर किसी भी हानि, क्षति, आवेदन अस्वीकृति, छूटी हुई समय-सीमा, या वित्तीय नुकसान के लिए उत्तरदायी नहीं होंगे जो प्लेटफ़ॉर्म पर दी गई जानकारी, पात्रता परिणामों या AI-जनित सुझावों पर निर्भर रहने से उत्पन्न हो। आवेदन से पूर्व आधिकारिक सरकारी स्रोतों से विवरण सत्यापित करने की पूरी ज़िम्मेदारी उपयोगकर्ता की है।",
       "उचित उपयोग — उपयोगकर्ताओं को प्लेटफ़ॉर्म का दुरुपयोग नहीं करना चाहिए, जिसमें झूठी रिपोर्ट सबमिट करना, प्लेटफ़ॉर्म को स्क्रैप या रिवर्स-इंजीनियर करने का प्रयास, इसके संचालन में हस्तक्षेप, या किसी अन्य व्यक्ति या संस्था का प्रतिरूपण शामिल है।",
       "खाता निलंबन — हम इन शर्तों का उल्लंघन करने वाले किसी भी खाते को बिना पूर्व सूचना के निलंबित या समाप्त करने का अधिकार सुरक्षित रखते हैं, ताकि प्लेटफ़ॉर्म और इसके उपयोगकर्ताओं की सुरक्षा की जा सके।",
       "उपयोग की पात्रता — योजना सहाय 18 वर्ष या उससे अधिक आयु के व्यक्तियों के लिए है। यदि आप नाबालिग हैं, तो कृपया माता-पिता या अभिभावक की देखरेख में ही प्लेटफ़ॉर्म का उपयोग करें।",
@@ -428,6 +429,7 @@ const STRINGS = {
 
     whatsNewTitle: "नया क्या है",
     whatsNew: [
+      { version:"v1.6", date:"अक्टू 2026", note:"होम से कुछ भी खोजें · लाइव प्रगति के साथ साफ़ और तेज़ AI चैट · गलत AI जवाब की रिपोर्ट · ई-मेल रिमाइंडर स्विच · प्रोफ़ाइल में खाता हटाएं · Android ऐप" },
       { version:"v1.5", date:"अक्टू 2026", note:"जीवन की घटनाएं — आपके हालात के लिए योजनाएं · मेरा पैसा कैलेंडर और रिमाइंडर · स्टेटस जांच और 'पैसा नहीं आया' गाइड" },
       { version:"v1.4", date:"अक्टू 2026", note:"AI एजेंट: चैट में पात्रता जांच, आवाज़, आवेदन ट्रैकिंग · फर्जी मैसेज जांच · तैयारी स्कोर · नज़दीकी मदद · ⚑ योजना रिपोर्ट · Google पर योजना पेज" },
       { version:"v1.3", date:"मई 2026",    note:"ईमेल & Google साइन-इन · डार्क मोड · Vercel एज डिप्लॉयमेंट" },
@@ -1496,8 +1498,8 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
               <div style={{ fontSize: 15 }}>🔄</div>
               <div style={{ fontSize: 11, color: IND_GREEN, fontWeight: 700, fontFamily: bf, lineHeight: 1.4 }}>
                 {isHindi
-                  ? "डेटाबेस सक्रिय रूप से विस्तारित हो रहा है · टीम नियमित रूप से अपडेट करती है"
-                  : "Database actively expanding · Team regularly curates & updates"}
+                  ? "डेटाबेस लगातार बढ़ रहा है · हर दिन स्वचालित जांच"
+                  : "Database growing · Checked automatically every day"}
               </div>
             </div>
           </Card>
