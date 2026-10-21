@@ -346,7 +346,7 @@
     "confidence": 0
   },
   "sukanya": {
-    "lastVerified": "2026-09-20T22:52:11.638Z",
+    "lastVerified": "2026-10-21T21:34:34.175Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -380,7 +380,7 @@
     "linkAlive": true
   },
   "standup_india": {
-    "lastVerified": "2026-10-20T21:37:31.560Z",
+    "lastVerified": "2026-10-21T21:34:09.419Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -452,7 +452,7 @@
     "linkAlive": true
   },
   "soil_health_card": {
-    "lastVerified": "2026-10-20T21:37:29.690Z",
+    "lastVerified": "2026-10-21T21:34:00.887Z",
     "confidence": 0
   },
   "e_shram": {
@@ -486,7 +486,7 @@
     "lastDate": "2026-03-31"
   },
   "surya_ghar": {
-    "lastVerified": "2026-09-20T22:52:20.473Z",
+    "lastVerified": "2026-10-21T21:35:09.542Z",
     "confidence": 0
   },
   "nikshay_poshan": {
@@ -536,7 +536,7 @@
     "linkAlive": true
   },
   "startup_india": {
-    "lastVerified": "2026-09-20T22:52:03.449Z",
+    "lastVerified": "2026-10-21T21:34:22.282Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -628,25 +628,25 @@
     "linkAlive": true
   },
   "tn_pudhumai_penn": {
-    "lastVerified": "2026-10-08T07:44:05.062Z",
+    "lastVerified": "2026-10-21T21:37:34.034Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "tn_magalir_urimai": {
-    "lastVerified": "2026-10-08T07:44:05.062Z",
+    "lastVerified": "2026-10-21T21:36:25.724Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "tn_chief_minister_health": {
-    "lastVerified": "2026-10-08T07:44:05.062Z",
+    "lastVerified": "2026-10-21T21:35:20.074Z",
     "confidence": 0,
     "linkAlive": true,
-    "httpStatus": 403
+    "httpStatus": 200
   },
   "tn_moovalur_scholarship": {
-    "lastVerified": "2026-10-08T07:44:05.062Z",
+    "lastVerified": "2026-10-21T21:36:37.987Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -658,7 +658,7 @@
     "linkAlive": true
   },
   "tn_housing_board_ews": {
-    "lastVerified": "2026-10-08T07:44:05.062Z",
+    "lastVerified": "2026-10-21T21:36:09.628Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -670,7 +670,7 @@
     "linkAlive": true
   },
   "tn_needs_entrepreneur": {
-    "lastVerified": "2026-10-08T07:45:25.002Z",
+    "lastVerified": "2026-10-21T21:37:21.462Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -682,13 +682,13 @@
     "linkAlive": true
   },
   "tn_gig_worker_insurance": {
-    "lastVerified": "2026-10-08T07:45:25.002Z",
+    "lastVerified": "2026-10-21T21:35:26.219Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "tn_kakkum_karangal": {
-    "lastVerified": "2026-10-08T07:45:25.002Z",
+    "lastVerified": "2026-10-21T21:36:11.473Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1758,7 +1758,7 @@
     "confidence": 0
   },
   "tn_mudhalvar_marundhagam": {
-    "lastVerified": "2026-10-08T07:45:25.002Z",
+    "lastVerified": "2026-10-21T21:37:16.146Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0.5
@@ -3494,6 +3494,12 @@
   },
   "raj_swami_vivekananda_scholarship": {
     "lastVerified": "2026-10-20T21:34:09.443Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "karnataka_gruhalakshmi": {
+    "lastVerified": "2026-10-21T21:33:44.188Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
