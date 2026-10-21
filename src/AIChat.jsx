@@ -20,6 +20,7 @@ import { track } from "./track.js";
 import { SCHEME_DB } from "./schemesData.js";
 import aiAvatar from "./ai-avatar.webp";
 import { TOOL_META } from "./agentTools.js";
+import { auth } from "./firebase.js";
 
 // ─── SOUND EFFECTS (Web Audio API — no files, no loading) ────────────────────
 // Each function creates a one-shot AudioContext, plays a tone, then closes it.
@@ -1793,10 +1794,88 @@ function tidyPartial(t) {
   return t;
 }
 
-function ChatBubble({ msg, lang, dark, isNew, live = false, showAvatar = true, showTime = true, dayLabel = null, isLatest = false, onOpenDetail, eligibleIds, trackedApps, onChecklist, onOpenChecker, onQuizDone, onAsk, onQuizRestart, onRecheck }) {
+// ─── REPORT AN AI ANSWER ───────────────────────────────────────────────────────
+// Google Play (generative AI policy): people must be able to flag wrong,
+// harmful or offensive AI answers without leaving the app.
+const AI_REPORT_REASONS = [
+  { id:"wrong",     en:"Wrong or outdated information", hi:"गलत या पुरानी जानकारी" },
+  { id:"harmful",   en:"Harmful or unsafe advice",       hi:"नुकसानदेह या असुरक्षित सलाह" },
+  { id:"offensive", en:"Offensive or inappropriate",     hi:"आपत्तिजनक या अनुचित" },
+  { id:"other",     en:"Something else",                 hi:"कुछ और" },
+];
+function AiReportSheet({ answer, question, lang, dark, onClose, onDone }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const bf = fontFamily(lang);
+  const hi = lang === "hi";
+  const [reason, setReason] = useState(null);
+  const [note, setNote] = useState("");
+  const [state, setState] = useState({ busy:false, done:false, error:"" });
+  const send = async () => {
+    if (!reason || state.busy) return;
+    setState({ busy:true, done:false, error:"" });
+    try {
+      const token = await auth?.currentUser?.getIdToken?.().catch(() => null);
+      const r = await fetch("/api/log-checker-run", { method:"POST",
+        headers:{ "Content-Type":"application/json", ...(token ? { Authorization:`Bearer ${token}` } : {}) },
+        body: JSON.stringify({ type:"ai_report", reason, note, answer:String(answer || "").slice(0, 2000), question:String(question || "").slice(0, 500), lang }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || (hi ? "भेजा नहीं जा सका। दोबारा कोशिश करें।" : "Couldn't send. Please try again."));
+      setState({ busy:false, done:true, error:"" });
+      onDone?.();
+      setTimeout(onClose, 1400);
+    } catch (e) { setState({ busy:false, done:false, error:e.message }); }
+  };
+  const line = dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
+  return (
+    <div onClick={() => !state.busy && onClose()} style={{ position:"fixed", inset:0, zIndex:9100, background:"rgba(2,6,23,0.5)", display:"flex", alignItems:"flex-end", justifyContent:"center", animation:"fade-in 0.2s ease-out" }}>
+      <div role="dialog" aria-modal="true" aria-label={hi ? "जवाब की रिपोर्ट करें" : "Report this answer"} onClick={e => e.stopPropagation()}
+        style={{ width:"100%", maxWidth:520, background: dark ? "#111214" : "#F6F7F9", borderRadius:"20px 20px 0 0", padding:"16px 16px calc(16px + env(safe-area-inset-bottom))", fontFamily:bf, animation:"chips-reveal 0.25s ease-out" }}>
+        {state.done ? (
+          <div style={{ textAlign:"center", padding:"18px 8px" }}>
+            <div style={{ fontSize:28 }}>✓</div>
+            <div style={{ fontSize:15, fontWeight:800, color:th.text, marginTop:4 }}>{hi ? "धन्यवाद — हम इसे जांचेंगे" : "Thank you — we'll review it"}</div>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize:16, fontWeight:800, color:th.text }}>{hi ? "इस जवाब की रिपोर्ट करें" : "Report this answer"}</div>
+            <div style={{ fontSize:12, color:th.textSub, marginTop:3 }}>{hi ? "क्या गलत था? आपकी रिपोर्ट AI को बेहतर बनाती है।" : "What was wrong? Your report helps improve the assistant."}</div>
+            <div style={{ marginTop:12, background: dark ? "#1A1B1F" : "#fff", border:`1px solid ${line}`, borderRadius:14, overflow:"hidden" }}>
+              {AI_REPORT_REASONS.map((r, i) => (
+                <div key={r.id} role="radio" aria-checked={reason === r.id} tabIndex={0} onClick={() => setReason(r.id)}
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setReason(r.id); } }}
+                  style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 13px", cursor:"pointer", borderTop: i ? `1px solid ${line}` : "none" }}>
+                  <span style={{ width:18, height:18, borderRadius:"50%", flexShrink:0, border:`2px solid ${reason === r.id ? "#EA580C" : (dark ? "#555" : "#cbd5e1")}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    {reason === r.id && <span style={{ width:8, height:8, borderRadius:"50%", background:"#EA580C" }} />}
+                  </span>
+                  <span style={{ fontSize:13.5, color:th.text, fontWeight: reason === r.id ? 700 : 500 }}>{hi ? r.hi : r.en}</span>
+                </div>
+              ))}
+            </div>
+            <textarea value={note} onChange={e => setNote(e.target.value.slice(0, 400))} rows={2}
+              placeholder={hi ? "चाहें तो बताएं क्या गलत था (वैकल्पिक)" : "Tell us more (optional)"}
+              style={{ width:"100%", boxSizing:"border-box", marginTop:10, borderRadius:12, border:`1px solid ${line}`, background: dark ? "#1A1B1F" : "#fff", color:th.text, padding:"10px 12px", fontSize:13, fontFamily:bf, resize:"none", outline:"none" }} />
+            {state.error && <div style={{ fontSize:12, color:"#DC2626", marginTop:6 }}>{state.error}</div>}
+            <div style={{ display:"flex", gap:10, marginTop:12 }}>
+              <button type="button" onClick={onClose} disabled={state.busy}
+                style={{ flex:1, padding:12, borderRadius:12, border:`1px solid ${line}`, background:"transparent", color:th.text, fontWeight:700, fontSize:13.5, cursor:"pointer", fontFamily:bf }}>{hi ? "रद्द करें" : "Cancel"}</button>
+              <button type="button" onClick={send} disabled={!reason || state.busy}
+                style={{ flex:1, padding:12, borderRadius:12, border:"none", background: reason ? "#EA580C" : (dark ? "#333" : "#e2e8f0"), color: reason ? "#fff" : th.textSub, fontWeight:800, fontSize:13.5, cursor: reason ? "pointer" : "default", fontFamily:bf }}>
+                {state.busy ? (hi ? "भेज रहे हैं…" : "Sending…") : (hi ? "रिपोर्ट भेजें" : "Send report")}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ChatBubble({ msg, lang, dark, isNew, live = false, question = "", showAvatar = true, showTime = true, dayLabel = null, isLatest = false, onOpenDetail, eligibleIds, trackedApps, onChecklist, onOpenChecker, onQuizDone, onAsk, onQuizRestart, onRecheck }) {
   const th     = THEME[dark ? "dark" : "light"];
   const bf     = fontFamily(lang);
   const isUser = msg.role === "user";
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reported, setReported] = useState(false);
 
   // Read-aloud
   const [speaking, setSpeaking] = useState(false);
@@ -1997,7 +2076,7 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, showAvatar = true, s
       )}
 
       {/* ── Time + (older answers) a quiet listen button ─────────────────── */}
-      {!live && (timeLabel || (!isUser && isDone && !isLatest && canSpeak())) && (
+      {!live && (timeLabel || (!isUser && isDone)) && (
         <div style={{
           display:"flex", alignItems:"center", gap:8,
           justifyContent: isUser ? "flex-end" : "flex-start",
@@ -2025,8 +2104,23 @@ function ChatBubble({ msg, lang, dark, isNew, live = false, showAvatar = true, s
               {speaking ? "■" : "🔊"}
             </span>
           )}
+          {!isUser && isDone && (
+            <span role="button" tabIndex={0} onClick={() => !reported && setReportOpen(true)}
+              onKeyDown={e => { if ((e.key === "Enter" || e.key === " ") && !reported) { e.preventDefault(); setReportOpen(true); } }}
+              aria-label={lang === "hi" ? "इस जवाब की रिपोर्ट करें" : "Report this answer"}
+              title={lang === "hi" ? "इस जवाब की रिपोर्ट करें" : "Report this answer"}
+              style={{
+                display:"inline-flex", alignItems:"center", gap:4, height:22, padding:"0 7px", borderRadius:7, cursor: reported ? "default" : "pointer",
+                fontSize:10.5, fontWeight:600, color: reported ? (dark ? "#4ade80" : "#16a34a") : (dark ? "rgba(170,170,180,0.7)" : "rgba(100,116,139,0.85)"),
+                border:`1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}`, userSelect:"none",
+              }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>
+              {reported ? (lang === "hi" ? "रिपोर्ट भेजी" : "Reported") : (lang === "hi" ? "रिपोर्ट" : "Report")}
+            </span>
+          )}
         </div>
       )}
+      {reportOpen && <AiReportSheet answer={msg.content} question={question} lang={lang} dark={dark} onClose={() => setReportOpen(false)} onDone={() => setReported(true)} />}
     </div>
   );
 }
@@ -2729,6 +2823,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
             dark={dark}
             isNew={msg.role === "assistant" && i === messages.length - 1}
             isLatest={msg.role === "assistant" && i === lastAiIdx}
+            question={msg.role === "assistant" && messages[i - 1]?.role === "user" ? messages[i - 1].content : ""}
             showAvatar={messages[i + 1]?.role !== msg.role}
             showTime={!messages[i + 1]?.timestamp || !msg.timestamp
               || messages[i + 1].timestamp - msg.timestamp > 5 * 60000

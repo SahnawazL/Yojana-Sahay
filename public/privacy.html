@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy – YojanaSahay</title>
+<meta name="description" content="How the YojanaSahay app and website collect, use, store and delete your data. Free, ad-free, and you can delete your account at any time." />
+<link rel="canonical" href="https://yojanasahay.vercel.app/privacy.html" />
+<meta name="robots" content="index, follow" />
+<link rel="icon" href="/favicon.ico" />
+<style>:root{color-scheme:light dark;} *{box-sizing:border-box;}
+  body{margin:0;font-family:'Noto Sans',-apple-system,system-ui,sans-serif;background:#fafaf9;color:#1c1917;}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 20px 60px;}
+  h1{font-size:24px;line-height:1.3;margin:0 0 6px;font-weight:800;} h2{font-size:16.5px;margin:28px 0 8px;}
+  p, li, td, th{font-size:14.5px;line-height:1.65;color:#44403c;} .meta{font-size:13px;color:#78716c;margin:0 0 18px;}
+  ul{padding-left:20px;} li{margin:5px 0;} a{color:#c2410c;}
+  table{width:100%;border-collapse:collapse;margin:8px 0;} th,td{border:1px solid #e7e5e4;padding:8px 10px;text-align:left;vertical-align:top;} th{background:#f5f5f4;font-weight:700;}
+  .notice{font-size:13.5px;line-height:1.55;color:#57534e;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 12px;margin:14px 0;}
+  .crumbs{font-size:12.5px;color:#78716c;margin-bottom:12px;} .crumbs a{color:#c2410c;text-decoration:none;}
+  footer{margin-top:40px;font-size:12px;color:#a8a29e;text-align:center;line-height:1.8;} footer a{color:#a8a29e;}
+  @media (prefers-color-scheme: dark){ body{background:#111;color:#f5f5f4;} p,li,td,th{color:#d6d3d1;} th{background:#1c1917;} th,td{border-color:#292524;} .notice{background:#1c1917;border-color:#7c2d12;color:#e7e5e4;} }
+</style>
+</head>
+<body><div class="wrap">
+  <nav class="crumbs"><a href="/">YojanaSahay</a> › Privacy Policy</nav>
+  <h1>Privacy Policy</h1>
+  <p class="meta">Effective date: 21 October 2026 · Applies to the YojanaSahay Android app and the website yojanasahay.vercel.app</p>
+
+  <p>YojanaSahay ("we", "the app") is a free, independent guide that helps people in India find government welfare schemes. It is built and run by Sahnawaz Ahmed Laskar, an independent developer in India. This policy explains, in plain words, what data the app uses, why, who processes it, and how you can delete it.</p>
+  <div class="notice"><strong>Not a government app.</strong> YojanaSahay is not affiliated with, endorsed by, or representing the Government of India or any State Government. Scheme information is compiled from official government portals (for example india.gov.in, myscheme.gov.in and the official websites of ministries and state departments), and each scheme links to its official source.</div>
+
+  <h2>1. Summary</h2>
+  <ul>
+    <li>No ads, and we never sell your data.</li>
+    <li>You can use most of the app without an account. An account is needed only for the AI assistant and to save your profile across devices.</li>
+    <li>You can delete your account and data from inside the app at any time: <strong>Profile → Delete account</strong>. See also <a href="/delete-account.html">Delete your account</a>.</li>
+  </ul>
+
+  <h2>2. Data we collect and why</h2>
+  <table>
+    <tr><th>Data</th><th>Why we use it</th><th>Where it is kept</th></tr>
+    <tr><td><strong>Account details</strong> — your name, email address and profile photo (if you sign in with Google), or your mobile number (if you sign in with OTP)</td><td>To create your account and sign you in; to send the reminders and replies described below</td><td>Google Firebase Authentication</td></tr>
+    <tr><td><strong>Eligibility profile</strong> — answers you choose to give, such as state, age group, gender, occupation, income range, area (rural/urban), housing, ration card type, social category, disability, marital status, children, land / Kisan Credit Card and education level</td><td>Only to show the schemes you may be eligible for and to personalise answers</td><td>Google Firebase (Cloud Firestore) for signed-in users; on your device for guests</td></tr>
+    <tr><td><strong>My Applications</strong> — schemes you mark as applied, the date, an optional reference number and status</td><td>To remind you to check your application status</td><td>Firestore (signed-in) or your device</td></tr>
+    <tr><td><strong>Family members</strong> you add (relation, age group and similar answers)</td><td>To find schemes for each member</td><td>On your device only</td></tr>
+    <tr><td><strong>AI assistant chats</strong></td><td>Your chat history is saved on your device so you can continue it. To answer a question, the question and the relevant scheme information are sent to our AI service provider; for live news a short search query may be sent to a web search provider</td><td>History: your device only. Processing: see section 3</td></tr>
+    <tr><td><strong>Reports you send</strong> (for example "this link is broken" or "this AI answer is wrong")</td><td>To fix mistakes and reply to you</td><td>Firestore</td></tr>
+    <tr><td><strong>Phone notification token</strong> (only if you turn on reminders on your phone)</td><td>To send scheme deadline and application reminders</td><td>Firestore</td></tr>
+    <tr><td><strong>Anonymous usage counts</strong> (for example "a scheme page was opened", searches typed)</td><td>To understand which features help people. These counts contain no name, email, phone number or account id</td><td>Firestore (aggregated counters)</td></tr>
+    <tr><td><strong>IP address</strong></td><td>Used briefly to prevent abuse (rate limiting). For reports it is stored only as a one-way hash</td><td>Short-lived server memory</td></tr>
+  </table>
+  <p>The microphone is used only when you tap the mic button to speak a question, after your phone asks your permission. We never use your camera, location or contacts. We never ask for Aadhaar, PAN, bank account numbers or OTPs — please never share them in the app.</p>
+
+  <h2>3. Service providers who process data for us</h2>
+  <ul>
+    <li><strong>Google Firebase</strong> (Authentication, Cloud Firestore) — accounts and saved data.</li>
+    <li><strong>Web Push</strong> — phone notifications are delivered through your browser's push service (for Chrome on Android, Google).</li>
+    <li><strong>Vercel</strong> — hosts the app and its servers.</li>
+    <li><strong>Groq</strong> — AI language models that generate the assistant's answers. Questions are sent to generate a reply only; we do not allow them to be used for advertising.</li>
+    <li><strong>Tavily</strong> and <strong>Serper</strong> — web search, used for live news, deadlines and checking official scheme pages.</li>
+    <li><strong>Upstash</strong> — short-lived counters for rate limiting.</li>
+    <li><strong>Gmail (Google)</strong> — sends deadline reminder and reply e-mails.</li>
+  </ul>
+  <p>These providers process data only to provide their service to us. We do not share your personal data with anyone else, except if required by law.</p>
+
+  <h2>4. E-mails and notifications</h2>
+  <p>If you have an account with an e-mail address and a saved profile, the app may e-mail you a reminder when a scheme that matches your profile is close to its last date, or when a new scheme for you is added. We do not send marketing or newsletters. You can turn e-mail reminders off in <strong>Profile → E-mail reminders</strong>, and phone notifications off in the app or in your phone settings.</p>
+
+  <h2>5. AI-generated answers</h2>
+  <p>The AI assistant can make mistakes. Always confirm details on the official government website linked in each answer. You can report any wrong, harmful or offensive AI answer from inside the app with the <strong>Report</strong> button under the answer; reports are reviewed and used to improve the assistant.</p>
+
+  <h2>6. Security</h2>
+  <p>Data is sent over encrypted connections (HTTPS) and stored with Google Firebase, which encrypts data at rest. Access to personal data is limited to the developer, only to handle your support requests and reports.</p>
+
+  <h2>7. How long we keep data</h2>
+  <p>We keep your account data until you delete your account. Data saved only on your device stays there until you clear it, sign out or uninstall the app. Reports may be kept in anonymised form after account deletion so fixes are not lost.</p>
+
+  <h2>8. Delete your account and data</h2>
+  <ul>
+    <li><strong>In the app:</strong> Profile → Delete account. Your account, profile, tracked applications and notification settings are deleted immediately and permanently.</li>
+    <li><strong>Without the app:</strong> follow the steps on <a href="/delete-account.html">yojanasahay.vercel.app/delete-account.html</a>, or e-mail <a href="mailto:yojanasahayofficial@gmail.com?subject=Data%20Deletion%20Request">yojanasahayofficial@gmail.com</a> from your registered e-mail with the subject "Data Deletion Request". We complete such requests within 7 working days.</li>
+  </ul>
+
+  <h2>9. Your rights</h2>
+  <p>Under India's Digital Personal Data Protection Act, 2023 you can ask to access, correct or erase your personal data, and withdraw consent. Most of this you can do yourself in the app (edit or delete your profile, delete your account). For anything else, e-mail us.</p>
+
+  <h2>10. Children</h2>
+  <p>The app is meant for general audiences and is not directed at children under 13. Students may use it to find scholarships with a parent or guardian.</p>
+
+  <h2>11. Changes</h2>
+  <p>If this policy changes, we will update this page and the effective date, and mention important changes in the app.</p>
+
+  <h2>12. Contact</h2>
+  <p>Sahnawaz Ahmed Laskar (developer, YojanaSahay) · <a href="mailto:yojanasahayofficial@gmail.com">yojanasahayofficial@gmail.com</a></p>
+
+  <footer><a href="/">YojanaSahay</a> · <a href="/about.html">About</a> · <a href="/delete-account.html">Delete account</a> · <a href="/contact.html">Contact</a><br/>YojanaSahay is a free, independent guide — not a government website.</footer>
+</div></body>
+</html>

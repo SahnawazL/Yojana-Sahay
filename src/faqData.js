@@ -35,7 +35,7 @@ export const FAQ_DATA = {
     { cat: "privacy", id: "privacy_003", q: "Does the app use my camera, microphone or location?",
       a: "The app never uses your camera, location or contacts. The microphone is used only if you tap the 🎤 mic button in AI Chat to speak your question — your phone asks your permission first, and you can always type instead." },
     { cat: "privacy", id: "privacy_004", q: "How do I delete my account and data?",
-      a: "Email yojanasahayofficial@gmail.com from your registered email with the subject 'Data Deletion Request'. Your account, saved profile and chat history are permanently deleted within 7 working days, and you get a confirmation email." },
+      a: "Open Profile → Delete account and confirm — your account, saved profile and tracked applications are deleted immediately. Without the app, email yojanasahayofficial@gmail.com from your registered email with the subject 'Data Deletion Request' (done within 7 working days), or see yojanasahay.vercel.app/delete-account.html." },
 
     // ── Schemes & eligibility ────────────────────────────────────────────────
     { cat: "schemes", id: "schemes_001", q: "How correct is the scheme information?",
@@ -136,7 +136,7 @@ export const FAQ_DATA = {
     { cat: "privacy", id: "privacy_003", q: "क्या ऐप मेरा कैमरा, माइक या लोकेशन इस्तेमाल करता है?",
       a: "ऐप कभी कैमरा, लोकेशन या कॉन्टैक्ट्स का इस्तेमाल नहीं करता। माइक का इस्तेमाल तभी होता है जब आप AI चैट में 🎤 माइक बटन दबाकर बोलकर सवाल पूछते हैं — पहले आपका फ़ोन अनुमति मांगता है, और आप हमेशा टाइप भी कर सकते हैं।" },
     { cat: "privacy", id: "privacy_004", q: "मैं अपना अकाउंट और डेटा कैसे हटाऊं?",
-      a: "अपने रजिस्टर्ड ईमेल से yojanasahayofficial@gmail.com पर 'Data Deletion Request' विषय के साथ ईमेल करें। 7 कार्य दिवसों में आपका अकाउंट, सेव की गई प्रोफाइल और चैट हिस्ट्री हमेशा के लिए हटा दी जाती है, और आपको पुष्टि ईमेल मिलता है।" },
+      a: "प्रोफ़ाइल → खाता हटाएं खोलें और पुष्टि करें — आपका खाता, सेव की गई प्रोफ़ाइल और ट्रैक किए आवेदन तुरंत हट जाते हैं। ऐप के बिना: अपने रजिस्टर्ड ईमेल से yojanasahayofficial@gmail.com पर 'Data Deletion Request' विषय के साथ ईमेल करें (7 कार्य दिवस में), या yojanasahay.vercel.app/delete-account.html देखें।" },
 
     // ── योजनाएं ──────────────────────────────────────────────────────────────────
     { cat: "schemes", id: "schemes_001", q: "योजनाओं की जानकारी कितनी सही है?",

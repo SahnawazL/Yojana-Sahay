@@ -4061,6 +4061,7 @@ function SchemeDirectory({ lang, dark }) {
         {" · "}<a href="/how-we-verify.html" style={{ color:"inherit" }}>{isHindi ? "जानकारी कैसे जांचते हैं" : "How we verify"}</a>
         {" · "}<a href="/faq.html" style={{ color:"inherit" }}>FAQ</a>
         {" · "}<a href="/contact.html" style={{ color:"inherit" }}>{isHindi ? "संपर्क" : "Contact"}</a>
+        {" · "}<a href="/privacy.html" style={{ color:"inherit" }}>{isHindi ? "गोपनीयता नीति" : "Privacy"}</a>
       </div>
     </nav>
   );
@@ -6113,6 +6114,42 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     setStage("phone");
   };
 
+  // ── E-mail reminders on/off + Delete account (Google Play requirements) ──
+  const [emailBusy,setEmailBusy]=useState(false);
+  const emailAlertsOn=profile?.emailAlerts!==false;
+  const toggleEmailAlerts=async()=>{
+    if(emailBusy) return;
+    const on=!emailAlertsOn;
+    setEmailBusy(true);
+    try{
+      const token=await auth.currentUser?.getIdToken();
+      const r=await fetch("/api/log-checker-run",{method:"POST",headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify({type:"email_prefs",on})});
+      if(r.ok) setProfile(p=>p?{...p,emailAlerts:on}:p);
+    }catch{}
+    setEmailBusy(false);
+  };
+  const [showDeleteModal,setShowDeleteModal]=useState(false);
+  const [deleteState,setDeleteState]=useState({busy:false,error:""});
+  const handleDeleteAccount=async()=>{
+    if(deleteState.busy) return;
+    setDeleteState({busy:true,error:""});
+    try{
+      const uid=auth.currentUser?.uid;
+      const token=await auth.currentUser?.getIdToken(true);
+      const r=await fetch("/api/log-checker-run",{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`},body:JSON.stringify({type:"delete_account"})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok||!d.ok) throw new Error(d.error||"Could not delete the account. Please try again.");
+      // Remove this account's data saved on the phone too.
+      if(uid){ for(const k of [`yojana_chat_${uid}`,`yojana_applications_${uid}`,`yojana_doc_vault_${uid}`,`yojana_family_${uid}`]){ try{ localStorage.removeItem(k); }catch{} } }
+      setShowDeleteModal(false);
+      try{ await handleSignOut(); }catch{ try{ await signOut(auth); }catch{} setProfile(null); setStage("phone"); }
+      setDeleteState({busy:false,error:""});
+      try{ alert(isHindi?"आपका खाता और डेटा हटा दिया गया है।":"Your account and data have been deleted."); }catch{}
+    }catch(e){
+      setDeleteState({busy:false,error:e.message||String(e)});
+    }
+  };
+
   // ── On mount: if user is already authenticated but has no profile yet
   //    (returning from Google redirect, or auth restored from cache),
   //    pre-fill from Google account and jump straight to setup. ─────────────────
@@ -7838,9 +7875,29 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
           </div>
 
+          {/* E-mail reminders — only for accounts with an e-mail address */}
+          {auth.currentUser?.email&&(
+            <div role="switch" aria-checked={emailAlertsOn} tabIndex={0} onClick={()=>{haptic();toggleEmailAlerts();}}
+              onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleEmailAlerts();}}}
+              style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",opacity:emailBusy?0.6:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,minWidth:0}}>
+                <div style={{width:38,height:38,borderRadius:11,flexShrink:0,background:dark?"rgba(34,197,94,0.12)":"rgba(22,163,74,0.07)",border:`1.5px solid ${dark?"rgba(34,197,94,0.28)":"rgba(22,163,74,0.2)"}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={dark?"#4ade80":"#16a34a"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                </div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>{isHindi?"ई-मेल रिमाइंडर":"E-mail reminders"}</div>
+                  <div style={{fontSize:11,color:th.textSub,marginTop:1}}>{isHindi?"आखिरी तारीख और नई योजनाओं की ई-मेल":"Deadline and new-scheme e-mails"}</div>
+                </div>
+              </div>
+              <span aria-hidden="true" style={{width:42,height:24,borderRadius:99,flexShrink:0,position:"relative",transition:"background .2s",background:emailAlertsOn?"#16a34a":(dark?"#3a3a3c":"#d1d5db")}}>
+                <span style={{position:"absolute",top:3,left:emailAlertsOn?21:3,width:18,height:18,borderRadius:"50%",background:"#fff",transition:"left .2s",boxShadow:"0 1px 3px rgba(0,0,0,0.25)"}}/>
+              </span>
+            </div>
+          )}
+
           {/* Sign Out */}
           <div onClick={()=>{haptic([50,60,50]);setShowSignOutModal(true);}}
-            style={{padding:"14px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
+            style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",gap:12}}>
               <div style={{width:38,height:38,borderRadius:11,background:dark?"rgba(220,38,38,0.14)":"#FEF2F2",border:`1.5px solid ${dark?"rgba(220,38,38,0.28)":"#FECACA"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>🚪</div>
               <div>
@@ -7852,6 +7909,45 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           </div>
         </div>
       </div>
+
+      {/* Delete account — below Sign out (Google Play: in-app account deletion) */}
+      {auth.currentUser&&<div style={{textAlign:"center",margin:"-4px 0 18px"}}>
+        <span role="button" tabIndex={0} onClick={()=>{setDeleteState({busy:false,error:""});setShowDeleteModal(true);}}
+          onKeyDown={e=>{if(e.key==="Enter"){setDeleteState({busy:false,error:""});setShowDeleteModal(true);}}}
+          style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:12.5,fontWeight:600,color:dark?"#f87171":"#b91c1c",cursor:"pointer",padding:"8px 12px",fontFamily:bf}}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+          {isHindi?"खाता हटाएं":"Delete account"}
+        </span>
+      </div>}
+
+      {showDeleteModal&&(
+        <div onClick={()=>{if(!deleteState.busy)setShowDeleteModal(false);}}
+          style={{position:"fixed",inset:0,zIndex:1000,background:dark?"rgba(0,0,0,0.8)":"rgba(8,14,36,0.6)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,animation:"so_bd 0.25s ease both"}}>
+          <div role="dialog" aria-modal="true" aria-label={isHindi?"खाता हटाएं":"Delete account"} onClick={e=>e.stopPropagation()}
+            style={{width:"100%",maxWidth:380,background:th.card,borderRadius:20,padding:"22px 20px 18px",border:`1px solid ${th.border}`,boxShadow:"0 20px 60px rgba(0,0,0,0.35)",fontFamily:bf}}>
+            <div style={{width:46,height:46,borderRadius:14,margin:"0 auto 12px",display:"flex",alignItems:"center",justifyContent:"center",background:dark?"rgba(220,38,38,0.15)":"#FEF2F2",border:`1.5px solid ${dark?"rgba(220,38,38,0.3)":"#FECACA"}`}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+            </div>
+            <div style={{fontSize:17,fontWeight:800,color:th.text,textAlign:"center"}}>{isHindi?"खाता स्थायी रूप से हटाएं?":"Delete your account permanently?"}</div>
+            <div style={{fontSize:12.5,color:th.textMid,lineHeight:1.55,marginTop:8}}>
+              {isHindi
+                ?"ये हमेशा के लिए हट जाएंगे: आपका खाता, सेव की गई प्रोफ़ाइल और पात्रता जवाब, ट्रैक किए आवेदन, रिमाइंडर और इस फ़ोन पर चैट इतिहास। यह वापस नहीं हो सकता।"
+                :"This permanently removes your sign-in account, saved profile and eligibility answers, tracked applications, reminders and the chat history on this phone. This can't be undone."}
+            </div>
+            {deleteState.error&&<div style={{marginTop:10,fontSize:12,color:"#DC2626",lineHeight:1.45}}>{deleteState.error}</div>}
+            <div style={{display:"flex",gap:10,marginTop:16}}>
+              <button type="button" disabled={deleteState.busy} onClick={()=>setShowDeleteModal(false)}
+                style={{flex:1,padding:"12px",borderRadius:12,border:`1.5px solid ${th.border2}`,background:"transparent",color:th.text,fontWeight:700,fontSize:13.5,cursor:"pointer",fontFamily:bf}}>
+                {isHindi?"रद्द करें":"Cancel"}
+              </button>
+              <button type="button" disabled={deleteState.busy} onClick={handleDeleteAccount}
+                style={{flex:1,padding:"12px",borderRadius:12,border:"none",background:"#DC2626",color:"#fff",fontWeight:800,fontSize:13.5,cursor:deleteState.busy?"default":"pointer",opacity:deleteState.busy?0.7:1,fontFamily:bf}}>
+                {deleteState.busy?(isHindi?"हटा रहे हैं…":"Deleting…"):(isHindi?"हाँ, हटाएं":"Yes, delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Sign Out Confirmation Modal ── */}
       {showSignOutModal&&(

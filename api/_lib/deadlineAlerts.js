@@ -440,6 +440,7 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null, 
     const profile = userDoc.data();
     const email   = profile.email;
     if (!email) { skipped++; continue; }
+    if (profile.emailAlerts === false) { skipped++; continue; } // turned off in Profile → E-mail reminders
 
     const profileAnswers = buildProfileAnswers(profile);
     if (!profileAnswers) { skipped++; continue; }

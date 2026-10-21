@@ -124,7 +124,7 @@ export default async function handler(req, res) {
     // Unrecognized/missing type falls back to "checker" — this is what keeps
     // the original client call (which never sent a `type` field) working
     // completely unchanged.
-    const type = ["checker", "search", "state", "events", "flag", "claim"].includes(body.type) ? body.type : "checker";
+    const type = ["checker", "search", "state", "events", "flag", "claim", "ai_report", "delete_account", "email_prefs"].includes(body.type) ? body.type : "checker";
 
     const app = getAdminApp();
     const db = getFirestore(app);
@@ -133,6 +133,21 @@ export default async function handler(req, res) {
     // ── Eligibility checker run ──────────────────────────────────────────
     if (type === "flag") {
       await handleFlag(req, res, body, getFirestore(getAdminApp()), getAdminApp());
+      return;
+    }
+    if (type === "ai_report") {
+      await handleAiReport(req, res, body, getFirestore(getAdminApp()), getAdminApp());
+      return;
+    }
+    if (type === "delete_account") {
+      await handleDeleteAccount(req, res, getFirestore(getAdminApp()), getAdminApp());
+      return;
+    }
+    if (type === "email_prefs") {
+      const token = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
+      let d; try { d = await getAuth(getAdminApp()).verifyIdToken(token); } catch { res.status(401).json({ error: "sign-in required" }); return; }
+      await getFirestore(getAdminApp()).collection("users").doc(d.uid).set({ emailAlerts: body.on !== false }, { merge: true });
+      res.status(200).json({ ok: true, emailAlerts: body.on !== false });
       return;
     }
     if (type === "claim") {
@@ -279,6 +294,65 @@ let SCHEMES_CACHE = null;
 async function findScheme(id) {
   if (!SCHEMES_CACHE) SCHEMES_CACHE = (await import("../src/schemesData.js")).SCHEME_DB;
   return SCHEMES_CACHE.find(s => s.id === id && !s.duplicateOf) || null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// type:"ai_report" — "Report this answer" under an AI reply (Google Play's
+// generative-AI policy: users must be able to flag offensive / harmful AI
+// content in the app). Stored in aiReports (server-only collection).
+// ─────────────────────────────────────────────────────────────────────────────
+const AI_REPORT_REASONS = { wrong: 1, harmful: 1, offensive: 1, other: 1 };
+async function handleAiReport(req, res, body, db, app) {
+  const reason = AI_REPORT_REASONS[body.reason] ? body.reason : null;
+  if (!reason) { res.status(400).json({ error: "bad request" }); return; }
+  const clip = (v, n) => String(v || "").replace(/\s+\n/g, "\n").trim().slice(0, n);
+  let uid = null;
+  const token = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
+  if (token) { try { uid = (await getAuth(app).verifyIdToken(token)).uid; } catch { /* guest */ } }
+  const ip = String(req.headers?.["x-forwarded-for"] || req.socket?.remoteAddress || "").split(",")[0].trim();
+  const day = istDay();
+  const who = createHash("sha256").update(`${ip}|${uid || "guest"}|${day}`).digest("hex").slice(0, 24);
+  const limRef = db.collection("flagLimits").doc(`ai_${day}_${who}`);
+  const ok = await db.runTransaction(async (tx) => {
+    const n = (await tx.get(limRef)).data()?.n || 0;
+    if (n >= 20) return false;
+    tx.set(limRef, { n: n + 1, at: FieldValue.serverTimestamp() }, { merge: true });
+    return true;
+  });
+  if (!ok) { res.status(429).json({ error: "Too many reports today — thank you, we have them." }); return; }
+  await db.collection("aiReports").add({
+    reason, note: clip(body.note, 400), answer: clip(body.answer, 2000), question: clip(body.question, 500),
+    lang: body.lang === "hi" ? "hi" : "en", uid, status: "new", createdAt: FieldValue.serverTimestamp(),
+  });
+  await db.collection("appStats").doc("usage").set({ aiReports: FieldValue.increment(1) }, { merge: true }).catch(() => {});
+  res.status(200).json({ ok: true });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// type:"delete_account" — Profile → Delete account (Google Play requires
+// in-app account deletion). Deletes the user's saved data and their sign-in
+// account; their problem reports are kept but anonymised.
+// ─────────────────────────────────────────────────────────────────────────────
+async function handleDeleteAccount(req, res, db, app) {
+  const token = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
+  let d;
+  try { d = await getAuth(app).verifyIdToken(token); } catch { res.status(401).json({ error: "Please sign in again, then try deleting." }); return; }
+  const uid = d.uid;
+  const steps = [];
+  for (const coll of ["users", "userApplications", "pushSubs"]) {
+    try { await db.collection(coll).doc(uid).delete(); steps.push(coll); } catch (e) { steps.push(`${coll}:fail`); }
+  }
+  try {
+    const mine = await db.collection("reports").where("uid", "==", uid).limit(200).get();
+    const batch = db.batch();
+    mine.docs.forEach(doc => batch.update(doc.ref, { uid: "deleted", userName: "Deleted user", userEmail: FieldValue.delete(), userPhone: FieldValue.delete(), anonymisedAt: FieldValue.serverTimestamp() }));
+    if (!mine.empty) await batch.commit();
+    steps.push(`reports:${mine.size}`);
+  } catch { steps.push("reports:fail"); }
+  try { await getAuth(app).deleteUser(uid); steps.push("auth"); }
+  catch (e) { if (e?.code !== "auth/user-not-found") { res.status(500).json({ error: "Could not delete the sign-in account. Please try again or e-mail yojanasahayofficial@gmail.com.", steps }); return; } }
+  await db.collection("appStats").doc("usage").set({ accountsDeleted: FieldValue.increment(1) }, { merge: true }).catch(() => {});
+  res.status(200).json({ ok: true });
 }
 
 async function handleFlag(req, res, body, db, app) {
