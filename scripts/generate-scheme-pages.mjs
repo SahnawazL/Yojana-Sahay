@@ -950,6 +950,35 @@ function main() {
     count++;
   }
 
+  // ── Crawlable links on the homepage ───────────────────────────────────────
+  // The app's home screen is drawn by JavaScript, so Google's first look at
+  // yojanasahay.vercel.app saw an empty page with no links. This plain-HTML
+  // directory sits inside #root (React replaces it as the app starts — the
+  // same links the app shows) so Google finds every state list, category and
+  // popular scheme page straight from the homepage.
+  {
+    const idxPath = path.join(ROOT, "index.html");
+    const idx = fs.readFileSync(idxPath, "utf8");
+    const li = (href, text) => `<li><a href="${href}">${esc(text)}</a></li>`;
+    const stateHubs = hubs.map(h => li(`/schemes/${h.key}.html`, `${h.state || "Central Government"} schemes (${h.schemes.length})`)).join("");
+    const catHubs = CAT_HUBS.filter(h => !h.state).map(h => li(`/schemes/${h.file}.html`, `Schemes for ${h.cat.en} (${h.schemes.length})`)).join("");
+    const popular = SCHEME_DB.filter(x => isIndexable(x) && (x.scope === "national" || FORCE_INDEX.has(slugify(x.id))))
+      .sort((a, b) => (Number(b.annual) || 0) - (Number(a.annual) || 0)).slice(0, 80)
+      .map(x => li(`/schemes/${slugify(x.id)}.html`, x.name.en)).join("");
+    const block = `<!--SEO-LINKS:START--><main class="seo-fallback" style="max-width:860px;margin:0 auto;padding:24px 16px;font-family:system-ui,sans-serif;color:#1c1917;background:#fff">`
+      + `<h1>YojanaSahay – Free Government Scheme Finder for India</h1>`
+      + `<p>Find the Central and State government welfare schemes you qualify for: over ${(Math.floor(SCHEME_DB.length / 100) * 100).toLocaleString("en-IN")} schemes for farmers, women, students, workers, senior citizens and persons with disabilities, with eligibility, documents and the official link to apply. Free, in Hindi and English. YojanaSahay is an independent guide, not a government website.</p>`
+      + `<p><a href="/faq.html">FAQ</a> · <a href="/about.html">About</a> · <a href="/how-we-verify.html">How we verify</a> · <a href="/privacy.html">Privacy</a></p>`
+      + `<h2>Government schemes by state</h2><ul>${stateHubs}</ul>`
+      + `<h2>Schemes by category</h2><ul>${catHubs}</ul>`
+      + `<h2>Popular schemes</h2><ul>${popular}</ul></main><!--SEO-LINKS:END-->`;
+    const next = /<!--SEO-LINKS:START-->[\s\S]*?<!--SEO-LINKS:END-->/.test(idx)
+      ? idx.replace(/<!--SEO-LINKS:START-->[\s\S]*?<!--SEO-LINKS:END-->/, block)
+      : idx.replace('<div id="root"></div>', `<div id="root">${block}</div>`);
+    if (next !== idx) fs.writeFileSync(idxPath, next, "utf8");
+    console.log(`✓ homepage directory: ${hubs.length} state lists, ${CAT_HUBS.filter(h => !h.state).length} categories, popular schemes`);
+  }
+
   // ── Old pages of merged duplicates → forward to the main scheme ───────────
   // A scheme later marked duplicateOf lost its page, and Google reported the
   // old address as "Not found (404)". A tiny forwarding page (instant
