@@ -39,7 +39,7 @@ import nodemailer               from "nodemailer";
 import { runAutoFixAgent }      from "./_lib/autoFixAgent.js";
 import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import refreshNewsHandler       from "./refresh-news.js";
-import { runAndLogDiscovery, listSchemeDrafts, reviewSchemeDraft } from "./_lib/schemeDiscovery.js";
+import { runAndLogDiscovery, listSchemeDrafts, reviewSchemeDraft, discoveryPlan, REGIONS as DISCOVERY_REGIONS, FOCUS as DISCOVERY_FOCUS, MAX_NEW_PER_RUN as DISCOVERY_MAX } from "./_lib/schemeDiscovery.js";
 import { createProgress, isJobRunning, readAgentLive } from "./_lib/agentProgress.js";
 import { getFirebaseUsage }    from "./_lib/firebaseUsage.js";
 
@@ -680,7 +680,16 @@ export default async function handler(req, res) {
       if (job === "autoFix")        return res.status(200).json({ ok: true, result: await runAutoFixAgent({ trigger: "manual" }) });
       if (job === "verifyBatch")    return res.status(200).json({ ok: true, result: await runAndLogVerifyBatch("manual") });
       if (job === "news")           return res.status(200).json({ ok: true, result: await runNewsRefresh("manual") });
-      if (job === "discover")       return res.status(200).json({ ok: true, result: await runAndLogDiscovery({ db: auth.db, trigger: "manual" }) });
+      if (job === "discover") {
+        // Options from the "Find new schemes" panel — only known values pass.
+        const o = req.body?.options && typeof req.body.options === "object" ? req.body.options : {};
+        const regions = Array.isArray(o.regions) ? [...new Set(o.regions.filter(r => typeof r === "string" && DISCOVERY_REGIONS.includes(r)))].slice(0, 3) : [];
+        const focus = typeof o.focus === "string" && Object.hasOwn(DISCOVERY_FOCUS, o.focus) ? o.focus : null;
+        const want = Math.floor(Number(o.maxNew));
+        const maxNew = Math.min(DISCOVERY_MAX, Number.isFinite(want) && want >= 1 ? want : DISCOVERY_MAX);
+        const options = { regions, focus, maxNew, draftOnly: o.draftOnly === true };
+        return res.status(200).json({ ok: true, result: await runAndLogDiscovery({ db: auth.db, trigger: "manual", options }) });
+      }
       if (job === "deadlineAlerts") return res.status(200).json({ ok: true, result: await runDeadlineAlertsLogged({ trigger: "manual", triggeredBy: auth.email ?? null }) });
       return res.status(400).json({ error: `Unknown job: ${String(job).slice(0, 40)}` });
     } catch (err) {
@@ -739,7 +748,9 @@ export default async function handler(req, res) {
           const doc = runs.docs.map(d => d.data()).find(d => d.agent === "scheme-discovery");
           if (doc) lastRun = { ...doc, createdAt: doc.createdAt?.toDate?.().toISOString?.() ?? null };
         } catch { /* ignore */ }
-        return res.status(200).json({ drafts: await listSchemeDrafts(auth.db), lastRun, canPublish: !!auth.full });
+        let plan = null;
+        try { plan = await discoveryPlan(auth.db); } catch { /* the panel falls back to smart pick only */ }
+        return res.status(200).json({ drafts: await listSchemeDrafts(auth.db), lastRun, canPublish: !!auth.full, plan });
       }
       // Changing what's published on the site is for full admins only.
       if (!auth.full) return res.status(403).json({ error: "Only a full admin can approve, reject or remove schemes." });

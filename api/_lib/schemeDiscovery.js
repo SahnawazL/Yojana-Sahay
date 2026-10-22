@@ -60,6 +60,74 @@ const MAX_RUNTIME_MS          = 240_000;
 
 export const REGIONS = ["national", ...INDIA_STATES];
 
+// ── Coverage planner ─────────────────────────────────────────────────────────
+// Where are schemes thinnest for the people who live there? Approx. population
+// in lakh (Census 2011; Ladakh split from J&K) — used only for this ranking.
+export const POPULATION_LAKH = {
+  "Uttar Pradesh": 1998, "Maharashtra": 1124, "Bihar": 1041, "West Bengal": 913, "Madhya Pradesh": 726,
+  "Tamil Nadu": 721, "Rajasthan": 685, "Karnataka": 611, "Gujarat": 604, "Andhra Pradesh": 494,
+  "Odisha": 420, "Telangana": 351, "Kerala": 334, "Jharkhand": 330, "Assam": 312, "Punjab": 277,
+  "Chhattisgarh": 255, "Haryana": 254, "Delhi": 168, "Jammu & Kashmir": 122, "Uttarakhand": 101,
+  "Himachal Pradesh": 69, "Tripura": 37, "Meghalaya": 30, "Manipur": 29, "Nagaland": 20, "Goa": 15,
+  "Arunachal Pradesh": 14, "Puducherry": 12, "Mizoram": 11, "Chandigarh": 11, "Sikkim": 6,
+  "Andaman & Nicobar": 4, "Ladakh": 3,
+};
+// Optional focus for a run started by the admin. `q` goes into the searches,
+// `hint` into the AI's instructions. Keys are the only values the server accepts.
+export const FOCUS = {
+  women:      { label: "Women",            q: "women mahila girl",                    hint: "women, girls, mothers, widows" },
+  farmers:    { label: "Farmers",          q: "farmer kisan agriculture",             hint: "farmers, fishers, livestock and agriculture" },
+  students:   { label: "Students",         q: "students scholarship education",       hint: "students, scholarships, education support" },
+  senior:     { label: "Senior citizens",  q: "senior citizen old age pension",       hint: "senior citizens and old-age pensions" },
+  health:     { label: "Health",           q: "health insurance free treatment",      hint: "health insurance, treatment, medicines" },
+  housing:    { label: "Housing",          q: "housing awas house",                   hint: "housing and house construction" },
+  workers:    { label: "Workers & jobs",   q: "labour workers shramik employment",    hint: "workers, labourers, employment, skills" },
+  disability: { label: "Disability",       q: "divyang disability",                   hint: "persons with disabilities" },
+  business:   { label: "Business",         q: "self employment business subsidy entrepreneur", hint: "self-employment, small business, entrepreneurs" },
+};
+const DAY_MS = 86_400_000;
+export function regionCounts(schemes = SCHEME_DB) {
+  const c = Object.fromEntries(REGIONS.map(r => [r, 0]));
+  for (const s of schemes) {
+    if (!s || s.duplicateOf) continue;
+    const r = s.scope === "state" ? s.state : "national";
+    if (r in c) c[r]++;
+  }
+  return c;
+}
+// Rank every region: fewer schemes per person → higher; searched in the last
+// days → much lower; repeated "nothing new" → lower; long unsearched → higher
+// (so every state still gets its turn).
+export function planRegions(counts, regionLog = {}, now = Date.now()) {
+  return REGIONS.map(r => {
+    const n = counts[r] ?? 0;
+    const log = regionLog?.[r] ?? {};
+    const lastMs = log.at ? Date.parse(log.at) || 0 : 0;
+    const days = lastMs ? Math.max(0, (now - lastMs) / DAY_MS) : 60;
+    const need = r === "national" ? 0.8 : Math.sqrt(POPULATION_LAKH[r] ?? 10) / (n + 1);
+    const recent = days < 2 ? 0.1 : days < 7 ? 0.35 : 1;
+    const empty = Math.max(0.2, 1 - 0.3 * (Number(log.empty) || 0));
+    const stale = 1 + Math.min(days, 90) / 45;
+    return {
+      region: r, count: n, population: POPULATION_LAKH[r] ?? null,
+      lastSearched: log.at ?? null, lastFound: Number.isFinite(log.found) ? log.found : null, emptyStreak: Number(log.empty) || 0,
+      lowCoverage: r !== "national" && need >= 0.7,
+      score: Math.round(need * recent * empty * stale * 1000) / 1000,
+    };
+  }).sort((a, b) => b.score - a.score);
+}
+export async function discoveryPlan(db) {
+  let st = {};
+  try { st = (await db?.collection("appMeta").doc("discoveryState").get())?.data() ?? {}; } catch { /* ignore */ }
+  const regions = planRegions(regionCounts(), st.regionLog ?? {});
+  return {
+    regions,
+    suggestions: regions.filter(r => r.region !== "national").slice(0, 5).map(r => r.region),
+    focus: Object.fromEntries(Object.entries(FOCUS).map(([k, v]) => [k, v.label])),
+    maxPerRun: MAX_NEW_PER_RUN,
+  };
+}
+
 // ── The app's own profile vocabulary (App.jsx questions + adaptive questions) ──
 export const VOCAB = {
   who:            ["farmer", "student", "women", "senior", "business", "general"],
@@ -235,8 +303,9 @@ async function groqJsonOnce(model, system, user, maxTokens) {
   return parsed ? { data: parsed } : { error: "AI reply was not valid JSON" };
 }
 
-function pickPrompt(region, existingNames, results) {
+function pickPrompt(region, existingNames, results, focus = null) {
   const where = region === "national" ? "the Central Government of India (national schemes)" : `the state/UT of ${region}`;
+  const f = focus && FOCUS[focus] ? FOCUS[focus] : null;
   const system =
     "You find Indian government welfare schemes in web search results. " +
     'Respond ONLY with JSON: {"candidates":[{"name":"official scheme name in English","region":"national" or exact state name,"url":"result url","reason":"short"}]}.\n' +
@@ -245,6 +314,7 @@ function pickPrompt(region, existingNames, results) {
     "(cash, subsidy, scholarship, pension, insurance, loan, free service, training). " +
     "Exclude: infrastructure projects, policies, missions without an individual benefit, events, exams, recruitment / job notices, " +
     "schemes of other states, discontinued schemes, and anything in the 'Already in the app' list (even if spelled differently). " +
+    (f ? `Focus: only schemes mainly for ${f.hint}. ` : "") +
     "At most 5 candidates. Empty list if none.";
   const user =
     `Already in the app (${existingNames.length}):\n${existingNames.slice(0, 220).join("; ")}\n\n` +
@@ -532,12 +602,15 @@ async function liveSchemeNames(files) {
 }
 
 // ── Main run ─────────────────────────────────────────────────────────────────
-export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions: forcedRegions = null, log = console, progress = { step() {} } } = {}) {
+export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions: forcedRegions = null, focus = null, draftOnly = false, log = console, progress = { step() {} } } = {}) {
+  if (!Array.isArray(forcedRegions) || !forcedRegions.length) forcedRegions = null;
+  if (focus && !FOCUS[focus]) focus = null;
   const startedAt = Date.now();
   const out = {
     regions: [], searched: 0, candidates: 0, duplicates: 0, researched: 0,
     published: [], drafted: [], rejected: [], errors: [], stopReason: null,
     serperCalls: 0, tavilyCalls: 0,
+    mode: { regions: forcedRegions ? "chosen" : "smart", focus, draftOnly: !!draftOnly, maxNew },
   };
   const serperKey = process.env.SERPER_API_KEY?.trim();
   const tavilyKey = (process.env.TAVILY_VERIFY_KEY ?? process.env.TAVILY_API_KEY)?.trim();
@@ -567,10 +640,17 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
   let st = {};
   try { st = (await stateRef?.get())?.data() ?? {}; } catch { /* ignore */ }
   const cursor = Number.isInteger(st.cursor) ? st.cursor : 0;
-  const regions = forcedRegions ?? Array.from({ length: MAX_REGIONS_PER_RUN }, (_, i) => REGIONS[(cursor + i) % REGIONS.length]);
+  const regionLog = typeof st.regionLog === "object" && st.regionLog ? { ...st.regionLog } : {};
+  // Smart order: thinnest coverage per person first, skipping regions searched
+  // in the last days and those that keep turning up nothing (see planRegions).
+  const regions = forcedRegions ?? planRegions(regionCounts(), regionLog).slice(0, MAX_REGIONS_PER_RUN).map(r => r.region);
   let regionsSearched = 0;
   out.regions = regions;
-  progress.step(`Searching for new schemes, starting with ${regions[0] === "national" ? "Central government" : regions[0]} (moves on to more regions if nothing new turns up)`);
+  const nice = r => r === "national" ? "Central government" : r;
+  progress.step(forcedRegions
+    ? `Searching the region${regions.length > 1 ? "s" : ""} you chose: ${regions.map(nice).join(", ")}${focus ? ` · focus: ${FOCUS[focus].label}` : ""}`
+    : `Smart pick — starting with ${nice(regions[0])} (fewest schemes for its population, not searched recently)${focus ? ` · focus: ${FOCUS[focus].label}` : ""}`);
+  if (draftOnly) progress.step("Draft-only run: nothing is published without your approval");
   const seen = typeof st.seen === "object" && st.seen ? st.seen : {}; // normName → { at, outcome }
 
   // Existing drafts count as "known" too.
@@ -594,11 +674,12 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
     if (Date.now() - startedAt > MAX_RUNTIME_MS / 2) break; // leave time for research
     regionsSearched++;
     const where = region === "national" ? "India central government" : `${region} government`;
+    const fq = focus ? ` ${FOCUS[focus].q}` : "";
     progress.step(`Searching news + government sites for ${region === "national" ? "Central" : region} schemes…`);
     // 1. Search (news = newly launched; web = established but missing)
     const [news, web] = await Promise.all([
-      serperSearch(`${where} new welfare scheme yojana ${year} launched apply`, serperKey, 10, { type: "news" }),
-      serperSearch(`${where} yojana scheme ${year} eligibility apply online site:gov.in`, serperKey, 10),
+      serperSearch(`${where}${fq} new welfare scheme yojana ${year} launched apply`, serperKey, 10, { type: "news" }),
+      serperSearch(`${where}${fq} yojana scheme ${year} eligibility apply online site:gov.in`, serperKey, 10),
     ]);
     out.serperCalls += 2; out.searched += 2;
     const results = [...(news.results ?? []), ...(web.results ?? [])].filter(r => r.title).slice(0, 18);
@@ -613,7 +694,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
 
     // 2. Pick candidates
     const existingNames = regionSchemes(region, known).map(s => s.name?.en).filter(Boolean);
-    const { system, user } = pickPrompt(region, existingNames, results);
+    const { system, user } = pickPrompt(region, existingNames, results, focus);
     const pick = await groqJson(PICK_MODEL, system, user, 900);
     if (pick.error) {
       out.errors.push(`${region}: candidate pick failed — ${pick.error}`);
@@ -627,6 +708,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
     progress.step(cands.length ? `AI found ${cands.length} named scheme(s): ${cands.map(c => c.name).join(", ").slice(0, 160)}` : "AI found no specific schemes in these results");
 
     // 3. Dedupe
+    const before = toResearch.length;
     for (const c of cands) {
       if (toResearch.length >= maxNew) break;
       const key = seenKey(region, c.name);
@@ -638,6 +720,9 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
       progress.step(`  ↳ "${c.name}" — new! will research it`, "ok");
       toResearch.push(c);
     }
+    // Remember how this region went, so the smart pick can plan the next runs.
+    const found = toResearch.length - before;
+    regionLog[region] = { at: new Date().toISOString(), found, empty: found ? 0 : (Number(regionLog[region]?.empty) || 0) + 1 };
   }
 
   // 4. Research + draft
@@ -669,6 +754,10 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
       out.researched++;
       const built = buildScheme(d.data, { candidate: c, region: c.region, sourceUrl, pageText: page.text, schemes: known, takenIds });
       takenIds.add(built.scheme.id);
+      if (draftOnly && built.autoPublish && !built.hardReject) {
+        built.autoPublish = false;
+        built.problems = [...(built.problems ?? []), "draft-only run — passed every check, waiting for your approval"];
+      }
 
       progress.step(
         built.hardReject ? `  ↳ dropped: ${built.hardReject.join("; ")}`
@@ -720,7 +809,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
   // 6. Save rotation + seen list (keep the newest 600)
   const seenTrim = Object.fromEntries(Object.entries(seen).sort((a, b) => String(b[1].at).localeCompare(String(a[1].at))).slice(0, 600));
   try {
-    await stateRef?.set({ cursor: forcedRegions ? cursor : (cursor + regionsSearched) % REGIONS.length, seen: seenTrim, updatedAt: new Date() }, { merge: false });
+    await stateRef?.set({ cursor: forcedRegions ? cursor : (cursor + regionsSearched) % REGIONS.length, seen: seenTrim, regionLog, updatedAt: new Date() }, { merge: false });
   } catch { /* ignore */ }
 
   if (!forcedRegions) out.regions = regions.slice(0, regionsSearched);
@@ -786,12 +875,18 @@ export async function reviewSchemeDraft(db, { id, op, by }) {
 }
 
 // ── Run + log (cron, watchdog, admin "Run") ──────────────────────────────────
-export async function runAndLogDiscovery({ db, trigger = "cron" } = {}) {
+export async function runAndLogDiscovery({ db, trigger = "cron", options = {} } = {}) {
   const startedAt = new Date().toISOString();
   const progress = createProgress(db, "discover", { trigger });
   let result;
   try {
-    result = await runSchemeDiscovery({ db, progress });
+    result = await runSchemeDiscovery({
+      db, progress,
+      ...(Array.isArray(options.regions) && options.regions.length ? { regions: options.regions } : {}),
+      ...(options.focus ? { focus: options.focus } : {}),
+      ...(Number.isInteger(options.maxNew) ? { maxNew: options.maxNew } : {}),
+      ...(options.draftOnly ? { draftOnly: true } : {}),
+    });
     if (result.stopReason) progress.step(`Stopped: ${result.stopReason}`, "warn");
     progress.step(`Done: ${result.published?.length ?? 0} added · ${result.drafted?.length ?? 0} waiting for approval · ${result.duplicates ?? 0} already known`, "ok");
     await progress.done({ added: result.published?.length ?? 0, drafts: result.drafted?.length ?? 0 });

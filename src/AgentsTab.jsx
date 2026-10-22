@@ -1791,12 +1791,12 @@ const StatCard = React.memo(function StatCard({ label, value, color, Icon, toolt
 function useRunAgent() {
   const [running, setRunning] = useState(null);   // job id while running
   const [message, setMessage] = useState(null);   // { ok, text }
-  const run = useCallback(async (job, label, onDone) => {
+  const run = useCallback(async (job, label, onDone, options) => {
     setRunning(job); setMessage(null);
     const taskId = `agent-${job}`;
     setAdminTask(taskId, { tab: "agents", label: job === "health" ? "Watchdog health check" : `Running ${label}` });
     try {
-      const data = await adminJson("/api/deadline-alerts", { action: "runAgent", job });
+      const data = await adminJson("/api/deadline-alerts", { action: "runAgent", job, ...(options ? { options } : {}) });
       setMessage({ ok: true, text: `${label} finished.` });
       onDone?.(data);
     } catch (err) {
@@ -1905,7 +1905,7 @@ const JOB_INFO = {
   },
   discover: {
     title: "Scheme Discovery",
-    what: "Looks for government schemes that are NOT in the app yet, in the next 2 regions of its rotation (Central government + every state). Researches up to 3 new ones on their official pages and writes them in English and Hindi. Confident ones are added to the app; the rest wait on this card for your approval.",
+    what: "Looks for government schemes that are NOT in the app yet. The daily run picks the states with the fewest schemes for their population (skipping ones searched in the last days); when you run it yourself you can choose Central, up to 3 states and a focus. Researches up to 3 new ones on their official pages and writes them in English and Hindi. Confident ones are added automatically, the rest wait for your approval.",
     time: "1–3 minutes", uses: "Up to 5 Serper searches, 3 Tavily page reads, 4 Groq calls",
     changes: "New schemes are added to the state files on GitHub — the site updates about 2 minutes later.",
   },
@@ -2191,7 +2191,7 @@ function useJobControl(job, runner, onDone) {
     showLog: running || recent,
     open: () => setExplaining(true),
     cancel: () => setExplaining(false),
-    start: () => { setExplaining(false); runner.run(job, JOB_INFO[job]?.title ?? job, onDone); },
+    start: (options) => { setExplaining(false); runner.run(job, JOB_INFO[job]?.title ?? job, onDone, options && typeof options === "object" && !options.nativeEvent ? options : undefined); },
   };
 }
 
@@ -2434,10 +2434,168 @@ function eligibilitySummary(e = {}) {
   return bits.length ? bits.join(" · ") : "Everyone in the region";
 }
 
+
+// ═════════════════════════════════════════════════════════════════════
+// COMPONENT: Discovery Planner — "Find new schemes" (before a manual run)
+// Where to look (smart pick · Central · up to 3 states, with coverage gaps
+// suggested), optional focus, how many, and publish-vs-draft. The server
+// re-checks every value (api/deadline-alerts.js → runAgent "discover").
+// ═════════════════════════════════════════════════════════════════════
+const PLAN_PREF_KEY = "ys_discovery_plan_v1";
+export function DiscoveryPlanner({ plan, onStart, onCancel, busy, dark, isDesktop }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const saved = useMemo(() => { try { return JSON.parse(localStorage.getItem(PLAN_PREF_KEY) || "{}") || {}; } catch { return {}; } }, []);
+  const maxPer = Math.max(1, Number(plan?.maxPerRun) || 3);
+  const [where, setWhere] = useState(["smart", "central", "states"].includes(saved.where) ? saved.where : "smart");
+  const [picked, setPicked] = useState([]);
+  const [focus, setFocus] = useState(saved.focus && plan?.focus?.[saved.focus] ? saved.focus : "");
+  const [count, setCount] = useState(Math.min(maxPer, Number(saved.count) || maxPer));
+  const [draftOnly, setDraftOnly] = useState(saved.draftOnly === true);
+  const [q, setQ] = useState("");
+
+  const regions = plan?.regions ?? [];
+  const byName = useMemo(() => Object.fromEntries(regions.map(r => [r.region, r])), [regions]);
+  const states = useMemo(() => regions.filter(r => r.region !== "national").slice().sort((a, b) => a.region.localeCompare(b.region)), [regions]);
+  const suggestions = (plan?.suggestions ?? []).filter(r => byName[r]);
+  const smartPreview = regions.slice(0, 3).map(r => r.region === "national" ? "Central" : r.region);
+  const shown = q.trim() ? states.filter(r => r.region.toLowerCase().includes(q.trim().toLowerCase())) : states;
+
+  const toggle = (r) => setPicked(p => p.includes(r) ? p.filter(x => x !== r) : p.length >= 3 ? p : [...p, r]);
+  const ago = (iso) => {
+    if (!iso) return "never searched";
+    const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    return d <= 0 ? "searched today" : d === 1 ? "searched yesterday" : `searched ${d} days ago`;
+  };
+  const lastNote = (r) => !r.lastSearched ? "never searched" : `${ago(r.lastSearched)}${r.lastFound ? ` · found ${r.lastFound}` : " · nothing new"}${r.emptyStreak >= 2 ? ` (${r.emptyStreak}× in a row)` : ""}`;
+
+  const chosen = where === "central" ? ["national"] : where === "states" ? picked : [];
+  const nRegions = where === "smart" ? "2–6" : String(chosen.length || 0);
+  const canStart = !busy && (where !== "states" || picked.length > 0);
+  const start = () => {
+    if (!canStart) return;
+    try { localStorage.setItem(PLAN_PREF_KEY, JSON.stringify({ where, focus, count, draftOnly })); } catch {}
+    onStart({ regions: chosen, focus: focus || null, maxNew: count, draftOnly });
+  };
+
+  const seg = (active) => ({
+    cursor:"pointer", padding:"6px 10px", borderRadius:8, fontSize:fs(10, isDesktop), fontWeight:800, userSelect:"none",
+    border:`1px solid ${active ? VIOLET : th.border}`, background: active ? `${VIOLET}1f` : "transparent", color: active ? VIOLET : th.textMid,
+  });
+  const chip = (active) => ({
+    cursor:"pointer", padding:"4px 9px", borderRadius:20, fontSize:fs(9.5, isDesktop), fontWeight:700, userSelect:"none", whiteSpace:"nowrap",
+    border:`1px solid ${active ? VIOLET : th.border}`, background: active ? VIOLET : "transparent", color: active ? "#fff" : th.textMid,
+  });
+  const label = (t) => <div style={{ fontSize:fs(8.5, isDesktop), fontWeight:800, color:th.textSub, textTransform:"uppercase", letterSpacing:0.4, margin:"10px 0 5px" }}>{t}</div>;
+  const LowTag = () => <span style={{ fontSize:fs(8, isDesktop), fontWeight:800, color:SAFFRON, border:`1px solid ${SAFFRON}66`, borderRadius:5, padding:"0 4px", marginLeft:5 }}>LOW</span>;
+
+  return (
+    <div style={{ border:`1px solid ${th.border}`, background: th.card2, borderRadius:10, padding:"11px 12px", marginBottom:10 }}>
+      <div style={{ fontSize:fs(11.5, isDesktop), fontWeight:800, color:th.text }}>Find new schemes</div>
+      <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginTop:2, lineHeight:1.5 }}>Choose where to look. Every scheme still goes through the same checks before it is added.</div>
+
+      {label("Where to look")}
+      <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+        {[["smart", "Smart pick"], ["central", "Central govt"], ["states", "Choose states"]].map(([k, t]) => (
+          <div key={k} {...activatable(() => setWhere(k), t)} onClick={() => setWhere(k)} style={seg(where === k)}>{t}{k === "smart" ? " ★" : ""}</div>
+        ))}
+      </div>
+      {where === "smart" && (
+        <div style={{ fontSize:fs(9.5, isDesktop), color:th.textMid, marginTop:6, lineHeight:1.5 }}>
+          {smartPreview.length ? <>Starts with <strong>{smartPreview.join(", ")}</strong> — fewest schemes for their population and not searched recently. Moves on to more regions only if nothing new turns up.</> : "Picks the regions with the thinnest coverage first."}
+        </div>
+      )}
+      {where === "central" && byName.national && (
+        <div style={{ fontSize:fs(9.5, isDesktop), color:th.textMid, marginTop:6 }}>Central government · {byName.national.count} schemes in the app · {lastNote(byName.national)}</div>
+      )}
+      {where === "states" && (
+        <>
+          {suggestions.length > 0 && (
+            <>
+              <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, margin:"7px 0 4px" }}>Suggested now — fewest schemes for their population:</div>
+              <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                {suggestions.map(r => (
+                  <div key={r} {...activatable(() => toggle(r), `Pick ${r}`)} onClick={() => toggle(r)} style={chip(picked.includes(r))}>
+                    {picked.includes(r) ? "✓ " : "+ "}{r} · {byName[r].count}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search a state or UT" aria-label="Search a state or UT"
+            style={{ width:"100%", boxSizing:"border-box", marginTop:8, padding:"7px 9px", borderRadius:8, border:`1px solid ${th.border}`, background: th.inputBg, color: th.text, fontSize:fs(10.5, isDesktop), outline:"none" }} />
+          <div style={{ maxHeight:190, overflowY:"auto", marginTop:6, border:`1px solid ${th.border}`, borderRadius:8 }}>
+            {shown.map((r, i) => {
+              const on = picked.includes(r.region);
+              const full = !on && picked.length >= 3;
+              return (
+                <div key={r.region} {...activatable(() => !full && toggle(r.region), r.region)} onClick={() => !full && toggle(r.region)}
+                  style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 9px", cursor: full ? "default" : "pointer", opacity: full ? 0.45 : 1, borderTop: i ? `1px solid ${th.border}` : "none", background: on ? `${VIOLET}14` : "transparent" }}>
+                  <span style={{ width:14, height:14, borderRadius:4, flexShrink:0, border:`1.5px solid ${on ? VIOLET : th.textSub}`, background: on ? VIOLET : "transparent", color:"#fff", fontSize:10, lineHeight:"12px", textAlign:"center" }}>{on ? "✓" : ""}</span>
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:700, color:th.text }}>{r.region}{r.lowCoverage && <LowTag />}</div>
+                    <div style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>{r.count} schemes · {lastNote(r)}</div>
+                  </div>
+                </div>
+              );
+            })}
+            {!shown.length && <div style={{ padding:9, fontSize:fs(10, isDesktop), color:th.textSub }}>No state matches “{q}”.</div>}
+          </div>
+          <div style={{ fontSize:fs(9, isDesktop), color: picked.length ? th.textMid : IDLE_AMBER, marginTop:4 }}>
+            {picked.length ? `Selected (${picked.length}/3): ${picked.join(", ")}` : "Pick up to 3 states"}
+          </div>
+        </>
+      )}
+
+      {label("Focus (optional)")}
+      <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+        <div {...activatable(() => setFocus(""), "Any kind of scheme")} onClick={() => setFocus("")} style={chip(!focus)}>Any</div>
+        {Object.entries(plan?.focus ?? {}).map(([k, t]) => (
+          <div key={k} {...activatable(() => setFocus(k), t)} onClick={() => setFocus(k)} style={chip(focus === k)}>{t}</div>
+        ))}
+      </div>
+
+      {label("How many new schemes")}
+      <div style={{ display:"flex", gap:6 }}>
+        {Array.from({ length: maxPer }, (_, i) => i + 1).map(n => (
+          <div key={n} {...activatable(() => setCount(n), `Up to ${n}`)} onClick={() => setCount(n)} style={{ ...seg(count === n), minWidth:28, textAlign:"center" }}>{n}</div>
+        ))}
+      </div>
+
+      {label("When a scheme passes every check")}
+      {[[false, "Add it to the app automatically", "Same as the daily run — anything uncertain still waits for you."], [true, "Only make drafts — I'll approve each one", "Nothing goes live until you tap Approve."]].map(([v, t, sub]) => (
+        <div key={String(v)} {...activatable(() => setDraftOnly(v), t)} onClick={() => setDraftOnly(v)}
+          style={{ display:"flex", gap:8, alignItems:"flex-start", padding:"5px 0", cursor:"pointer" }}>
+          <span style={{ width:14, height:14, borderRadius:"50%", flexShrink:0, marginTop:1, border:`1.5px solid ${draftOnly === v ? VIOLET : th.textSub}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            {draftOnly === v && <span style={{ width:7, height:7, borderRadius:"50%", background:VIOLET }} />}
+          </span>
+          <div>
+            <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:700, color:th.text }}>{t}</div>
+            <div style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>{sub}</div>
+          </div>
+        </div>
+      ))}
+
+      <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, lineHeight:1.55, marginTop:8 }}>
+        Uses about {where === "smart" ? "4–12" : chosen.length * 2} web searches ({nRegions} region{nRegions === "1" ? "" : "s"}), up to {count} official page read{count === 1 ? "" : "s"} and {where === "smart" ? "a few" : chosen.length + count} AI calls · 1–3 minutes · runs on the server, progress shows here live.
+      </div>
+      <div style={{ display:"flex", gap:8, marginTop:9 }}>
+        <div {...activatable(start, "Start the search")} onClick={start} aria-disabled={!canStart}
+          style={{ cursor: canStart ? "pointer" : "default", opacity: canStart ? 1 : 0.5, padding:"6px 14px", borderRadius:8, background: IND_GREEN, color:"#fff", fontSize:fs(10, isDesktop), fontWeight:800 }}>
+          ▶ Start search
+        </div>
+        <div {...activatable(onCancel, "Cancel")} onClick={onCancel}
+          style={{ cursor:"pointer", padding:"6px 14px", borderRadius:8, border:`1px solid ${th.border}`, color:th.textMid, fontSize:fs(10, isDesktop), fontWeight:700 }}>
+          Cancel
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const runner = useRunAgent();
-  const [state, setState] = useState({ loading: true, error: null, drafts: [], lastRun: null, canPublish: false });
+  const [state, setState] = useState({ loading: true, error: null, drafts: [], lastRun: null, canPublish: false, plan: null });
   const [busyId, setBusyId] = useState(null);
   const [msg, setMsg] = useState(null);
   const [openId, setOpenId] = useState(null);
@@ -2446,7 +2604,7 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
   const load = useCallback(async () => {
     try {
       const data = await adminJson("/api/deadline-alerts", { action: "schemeDrafts", op: "list" });
-      setState({ loading: false, error: null, drafts: data.drafts ?? [], lastRun: data.lastRun ?? null, canPublish: !!data.canPublish });
+      setState({ loading: false, error: null, drafts: data.drafts ?? [], lastRun: data.lastRun ?? null, canPublish: !!data.canPublish, plan: data.plan ?? null });
     } catch (err) {
       setState(prev => ({ ...prev, loading: false, error: err.message }));
     }
@@ -2551,12 +2709,12 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
               <div style={{ fontSize:fs(13, isDesktop), fontWeight:800, color:th.text }}>Scheme Discovery</div>
             </div>
             <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginTop:3, marginLeft:31 }}>
-              Finds new schemes daily · Serper + Tavily + Groq · auto-adds confident ones
+              Finds new schemes daily · thinnest-coverage states first · auto-adds confident ones
             </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
             <RunNowButton job="discover" label="Scheme Discovery" runner={runner} hideWhenBusy dark={dark} isDesktop={isDesktop} onDone={load}
-              title="Search 2 more regions for new schemes now (~1–3 min)" onOpen={ctl.open} running={ctl.running} />
+              title="Find new schemes — choose where to look (~1–3 min)" onOpen={ctl.open} running={ctl.running} />
             <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:20, background:`${statusColor}18`, border:`1px solid ${statusColor}40` }}>
               <span style={{ width:6, height:6, borderRadius:"50%", background:statusColor }} />
               <span style={{ fontSize:fs(9, isDesktop), fontWeight:700, color:statusColor }}>{statusLabel}</span>
@@ -2564,7 +2722,7 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
           </div>
         </div>
 
-        {ctl.explaining && <RunExplainer job="discover" onStart={ctl.start} onCancel={ctl.cancel} dark={dark} isDesktop={isDesktop} busy={ctl.running} />}
+        {ctl.explaining && <DiscoveryPlanner plan={state.plan} onStart={ctl.start} onCancel={ctl.cancel} dark={dark} isDesktop={isDesktop} busy={ctl.running} />}
         {ctl.showLog && <LiveJobLog job="discover" live={ctl.live} dark={dark} isDesktop={isDesktop} />}
         <RunMessage runner={runner} isDesktop={isDesktop} />
         {msg && <div role="status" style={{ fontSize:fs(9.5, isDesktop), color: msg.ok ? IND_GREEN : "#EF4444", marginBottom:8, lineHeight:1.45 }}>{msg.text}</div>}
@@ -2589,9 +2747,17 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
                 </div>
               ))}
             </div>
+            {state.plan?.suggestions?.length > 0 && (
+              <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginBottom:6, lineHeight:1.5 }}>
+                Thinnest coverage now: {state.plan.suggestions.slice(0, 4).map(r => {
+                  const x = state.plan.regions.find(y => y.region === r);
+                  return `${r} ${x?.count ?? "?"}`;
+                }).join(" · ")} schemes — the daily run looks there first.
+              </div>
+            )}
             <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, marginBottom:6, lineHeight:1.5 }}>
               {run
-                ? <>Last run <strong style={{ color:th.textMid }}>{timeAgo(lastAt)}</strong> · {(run.regions ?? []).map(r => r === "national" ? "Central" : r).join(", ")} · {run.candidates ?? 0} found, {run.duplicates ?? 0} already in app{run.stopReason ? ` · stopped: ${run.stopReason}` : ""}</>
+                ? <>Last run <strong style={{ color:th.textMid }}>{timeAgo(lastAt)}</strong> · {(run.regions ?? []).map(r => r === "national" ? "Central" : r).join(", ")}{run.mode?.focus ? ` · focus: ${state.plan?.focus?.[run.mode.focus] ?? run.mode.focus}` : ""}{run.mode?.draftOnly ? " · drafts only" : ""}{run.trigger === "manual" ? " · started by you" : ""} · {run.candidates ?? 0} found, {run.duplicates ?? 0} already in app{run.stopReason ? ` · stopped: ${run.stopReason}` : ""}</>
                 : "First run happens with the nightly schedule — or tap ▶ Run."}
               {!state.canPublish && <div style={{ color:IDLE_AMBER }}>Only a full admin can approve or remove schemes.</div>}
             </div>
