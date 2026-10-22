@@ -585,4 +585,21 @@ export const UTTAR_PRADESH_SCHEMES = [
     match: (a) => a.state === "Uttar Pradesh" && a.who === "business",
   },
 
+  // <auto-scheme id="up_mahila_samarthya"> added by Scheme Discovery agent on 2026-10-22 · source: https://currentaffairs.adda247.com/up-mahila-samarthya-yojana-2026-objective-benefits-eligibility-how-to-apply-and-required-documents/
+  {
+    id: "up_mahila_samarthya",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Uttar Pradesh",
+    ministry: { en: "Women Welfare Department", hi: "महिला कल्याण विभाग" },
+    name:    { en: "UP Mahila Samarthya Yojana", hi: "उप महिला समर्थ्या योजना" },
+    benefit: { en: "Skill training, financial support, and market linkages for women SHGs", hi: "महिला स्वयं सहायता समूहों के लिए कौशल प्रशिक्षण, वित्तीय सहायता और बाजार लिंक" },
+    tag:     { en: "Skill Training", hi: "कौशल प्रशिक्षण" },
+    annual: 0,
+    apply:   { en: "https://currentaffairs.adda247.com/up-mahila-samarthya-yojana-2026-objective-benefits-eligibility-how-to-apply-and-required-documents/", hi: "https://currentaffairs.adda247.com/up-mahila-samarthya-yojana-2026-objective-benefits-eligibility-how-to-apply-and-required-documents/" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-22", source: "https://currentaffairs.adda247.com/up-mahila-samarthya-yojana-2026-objective-benefits-eligibility-how-to-apply-and-required-documents/",
+    match: (a) => a.state === "Uttar Pradesh" && a.who === "women" && ["sc","st"].includes(a.caste) && a.rationCard === "bpl" && (a.disability == null || a.disability !== "none"),
+  },
+  // </auto-scheme id="up_mahila_samarthya">
+
 ];
