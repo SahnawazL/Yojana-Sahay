@@ -86,6 +86,8 @@ export default async function handler(req, res) {
   if (req.body?.action === "discover" || req.query?.action === "discover") {
     if (await isJobRunning(getAdminDb(), "discover")) return res.status(409).json({ success: false, error: "Scheme Discovery is already running" });
     try {
+      // Refresh "what people looked for" first (1 small AI call, at most once a day).
+      try { const { refreshDemandIfStale } = await import("./_lib/discoveryInsights.js"); await refreshDemandIfStale(getAdminDb()); } catch { /* optional */ }
       const result = await runAndLogDiscovery({ db: getAdminDb(), trigger: req.body?.trigger === "watchdog" ? "watchdog" : "cron" });
       return res.status(200).json({ success: true, result });
     } catch (err) {

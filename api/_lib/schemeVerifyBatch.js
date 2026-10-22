@@ -29,6 +29,7 @@ import { normalizeSchemeUrl } from "./urlTools.js";
 import { getTavilyCallsThisMonth, TAVILY_BACKGROUND_BUDGET, realTavilyRemaining, budgetFromReal } from "./tavilyBudget.js";
 import { FieldValue }        from "firebase-admin/firestore";
 import { postNote, openNotesFor, closeNote, bumpTry, teamBrief, briefLine } from "./teamBoard.js";
+import { suggestBenefitUpdate } from "./discoveryInsights.js";
 
 // ── Failure memory ───────────────────────────────────────────────────────────
 // A page that can't be read 3 runs in a row (blocked portal, JS-only site) is
@@ -360,6 +361,7 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
         name:  scheme.name?.en || scheme.id,
         state: scheme.scope === "national" ? "national" : (scheme.state || "state"),
         budgetLimit: MONTHLY_TAVILY_BUDGET,
+        benefit: scheme.benefit?.en || null, // also notice a changed benefit amount (suggestion only)
       });
     } catch (err) {
       console.error(`[schemeVerifyBatch] verifySchemeCore threw for "${id}":`, err.message);
@@ -400,6 +402,14 @@ export async function runSchemeVerificationBatch({ progress = NOOP_PROGRESS } = 
         : `  ↳ ${outcome.lastDate ? `last date ${outcome.lastDate}` : "no deadline on the page"}${outcome.isActive === true ? " · applications open" : outcome.isActive === false ? " · closed" : ""}`,
       outcome.errorKind ? "warn" : "ok"
     );
+    // Benefit amount changed on the official page → suggestion for the admin.
+    if (outcome.benefitCheck?.changed) {
+      try {
+        if (await suggestBenefitUpdate(db, scheme, outcome.benefitCheck, url)) {
+          progress.step(`  ↳ the page now says: "${outcome.benefitCheck.now.slice(0, 120)}" — sent to the admin to review`, "warn");
+        }
+      } catch (err) { console.warn(`[schemeVerifyBatch] benefit suggestion failed for ${id}:`, err.message); }
+    }
     // ── Team board replies / hand-offs ──
     const note = askById.get(id);
     if (fromPriority && note) {

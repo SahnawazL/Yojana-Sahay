@@ -349,12 +349,15 @@ async function fetchPageTextOnce(url, tavilyKey, { excerpt = buildPageExcerpt, d
 
 // ── Groq prompt builder ───────────────────────────────────────────────────────
 
-function buildPrompt(schemeName, state, pageText) {
+function buildPrompt(schemeName, state, pageText, storedBenefit = null) {
   const today = istToday();
+  const withBenefit = typeof storedBenefit === "string" && storedBenefit.trim().length > 0;
   const systemPrompt =
     "You extract facts about Indian government welfare schemes from webpage text. " +
     "Respond ONLY with a JSON object: " +
-    '{"lastDate":"YYYY-MM-DD" or null,"isActive":true|false|null,"confidence":0.0-1.0}\n' +
+    (withBenefit
+      ? '{"lastDate":"YYYY-MM-DD" or null,"isActive":true|false|null,"confidence":0.0-1.0,"benefitChanged":true|false|null,"benefitNow":"..." or null,"benefitNowHi":"..." or null,"benefitConfidence":0.0-1.0}\n'
+      : '{"lastDate":"YYYY-MM-DD" or null,"isActive":true|false|null,"confidence":0.0-1.0}\n') +
     `Today is ${today}.\n` +
     "lastDate — the CURRENT application closing / last date to apply for THIS scheme, as YYYY-MM-DD. " +
     "Indian pages write numeric dates DAY first: 05/06/2026 or 05-06-2026 means 5 June 2026, never May 6. " +
@@ -367,12 +370,23 @@ function buildPrompt(schemeName, state, pageText) {
     "false ONLY if it clearly says the scheme or its applications are closed, discontinued or expired; " +
     "otherwise null. Do NOT return false just because the page does not say 'open'.\n" +
     "confidence — 1.0 if the date/status is stated explicitly, 0.5 if inferred, 0.0 if nothing relevant " +
-    "(then isActive MUST be null).";
+    "(then isActive MUST be null)." +
+    (withBenefit
+      ? "\nbenefitChanged — compare the 'Stored benefit' given below with what the page says about THIS scheme's benefit today. " +
+        "true ONLY if the page clearly states a DIFFERENT amount or main benefit now (e.g. ₹1,000/month raised to ₹1,250/month); " +
+        "false if the page states the same; null if the page does not state the benefit clearly or talks about another scheme. " +
+        "Do not treat wording differences, extra details or rounding as a change.\n" +
+        "benefitNow — only when benefitChanged is true: one short English line (max 160 characters) with the benefit as the page states it now, " +
+        "in the same style as the stored text (amounts in ₹ with Indian commas). Otherwise null.\n" +
+        "benefitNowHi — the same line in simple Hindi (Devanagari), only when benefitChanged is true. Otherwise null.\n" +
+        "benefitConfidence — 1.0 if the new amount is stated explicitly for this scheme, lower if unsure."
+      : "");
 
   const userPrompt =
     `Scheme: ${schemeName}\n` +
-    `State / Scope: ${state}\n\n` +
-    `Webpage text:\n${pageText}`;
+    `State / Scope: ${state}\n` +
+    (withBenefit ? `Stored benefit: ${storedBenefit.trim().slice(0, 400)}\n` : "") +
+    `\nWebpage text:\n${pageText}`;
 
   return { systemPrompt, userPrompt };
 }
@@ -400,7 +414,7 @@ export function parseModelJson(raw) {
 //     "ai"           Groq replied but the reply was unusable
 //   Callers must treat lastDate/isActive as "no new information" whenever
 //   errorKind is set — never as "the deadline was removed".
-export async function verifySchemeCore({ url, name, state = "national", budgetLimit } = {}) {
+export async function verifySchemeCore({ url, name, state = "national", budgetLimit, benefit = null } = {}) {
   const fail = (error, errorKind, httpStatus = 0) =>
     ({ lastDate: null, isActive: null, confidence: 0, httpStatus, error, errorKind });
 
@@ -445,7 +459,7 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
   }
 
   // ── Step 2: AI extraction ─────────────────────────────────────────────────
-  const { systemPrompt, userPrompt } = buildPrompt(name, state, page.text);
+  const { systemPrompt, userPrompt } = buildPrompt(name, state, page.text, benefit);
 
   // Rate-limited? Wait briefly, switch to a backup model, then borrow the
   // last chat key — instead of stopping the whole batch for the day.
@@ -460,7 +474,7 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
   };
   const groq = await callGroq(groqKeys, {
     model:                 MODEL,
-    max_completion_tokens: MAX_COMPLETION_TOKENS,
+    max_completion_tokens: benefit ? MAX_COMPLETION_TOKENS + 300 : MAX_COMPLETION_TOKENS,
     reasoning_effort:      "low",
     include_reasoning:     false,
     temperature:           0.1,
@@ -524,10 +538,22 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
     isActive = null;
   }
 
+  // Benefit change check (Background Verifier only): a suggestion for the
+  // admin to review — never applied automatically.
+  let benefitCheck = null;
+  if (benefit) {
+    const bc = typeof parsed.benefitConfidence === "number" && Number.isFinite(parsed.benefitConfidence) ? Math.min(1, Math.max(0, parsed.benefitConfidence)) : 0;
+    const clean = (v, n) => typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, n) : "";
+    const now = clean(parsed.benefitNow, 200), nowHi = clean(parsed.benefitNowHi, 260);
+    if (parsed.benefitChanged === true && now.length >= 8 && /\d/.test(now)) benefitCheck = { changed: true, now, nowHi: /[\u0900-\u097F]/.test(nowHi) ? nowHi : "", confidence: bc };
+    else if (parsed.benefitChanged === false) benefitCheck = { changed: false, confidence: bc };
+  }
+
   const result = {
     lastDate,
     isActive,
     confidence: effectiveConfidence,
+    ...(benefitCheck ? { benefitCheck } : {}),
     httpStatus: page.httpStatus,
     error:      null,
     errorKind:  null,

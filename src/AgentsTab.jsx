@@ -2592,6 +2592,198 @@ export function DiscoveryPlanner({ plan, onStart, onCancel, busy, dark, isDeskto
   );
 }
 
+
+// ═════════════════════════════════════════════════════════════════════
+// COMPONENT: Discovery Insights — what people want · official-list gaps ·
+// benefit updates (api/_lib/discoveryInsights.js via deadline-alerts
+// action "discoveryInsights"). Research buttons start a named run.
+// ═════════════════════════════════════════════════════════════════════
+const REGION_LABEL = r => r === "national" ? "Central" : r;
+export function DiscoveryInsights({ plan, canPublish, busy, onRun, dark, isDesktop, reloadKey }) {
+  const th = THEME[dark ? "dark" : "light"];
+  const [data, setData] = useState({ loading: true, error: null, demand: null, gaps: [], updates: [] });
+  const [open, setOpen] = useState(null);           // "demand" | "gaps" | "updates"
+  const [working, setWorking] = useState(null);
+  const [msg, setMsg] = useState(null);
+  const [regionFor, setRegionFor] = useState({});   // demand item name → chosen region
+  const [gapPick, setGapPick] = useState([]);       // states to check
+  const [missPick, setMissPick] = useState([]);     // [{name,url,region}]
+  const draftPref = () => { try { return JSON.parse(localStorage.getItem(PLAN_PREF_KEY) || "{}").draftOnly === true; } catch { return false; } };
+
+  const load = useCallback(async () => {
+    try {
+      const d = await adminJson("/api/deadline-alerts", { action: "discoveryInsights", op: "load" });
+      setData({ loading: false, error: null, demand: d.demand ?? null, gaps: d.gaps ?? [], updates: d.updates ?? [] });
+    } catch (err) { setData(p => ({ ...p, loading: false, error: err.message })); }
+  }, []);
+  useEffect(() => { load(); }, [load, reloadKey]);
+
+  const call = async (key, body, okText) => {
+    setWorking(key); setMsg(null);
+    try {
+      const r = await adminJson("/api/deadline-alerts", { action: "discoveryInsights", ...body });
+      setMsg({ ok: true, text: typeof okText === "function" ? okText(r) : okText });
+      await load();
+      return r;
+    } catch (err) { setMsg({ ok: false, text: err.message }); return null; }
+    finally { setWorking(null); }
+  };
+
+  const items = data.demand?.items ?? [];
+  const updates = data.updates ?? [];
+  const regionNames = (plan?.regions ?? []).map(r => r.region);
+  const stateList = regionNames.filter(r => r !== "national").slice().sort();
+  const suggestions = plan?.suggestions ?? [];
+  const ago = iso => { if (!iso) return ""; const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000); return m < 60 ? `${Math.max(1, m)} min ago` : m < 1440 ? `${Math.floor(m / 60)} h ago` : `${Math.floor(m / 1440)} days ago`; };
+
+  const head = (key, title, count, sub) => (
+    <div {...activatable(() => setOpen(open === key ? null : key), title)} onClick={() => setOpen(open === key ? null : key)}
+      style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 0", cursor:"pointer", borderTop:`1px solid ${th.border}` }}>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:800, color:th.text }}>{title}{count != null && <span style={{ marginLeft:6, fontSize:fs(9, isDesktop), fontWeight:800, color: count ? "#fff" : th.textSub, background: count ? VIOLET : "transparent", border: count ? "none" : `1px solid ${th.border}`, borderRadius:10, padding:"0 6px" }}>{count}</span>}</div>
+        <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, marginTop:1 }}>{sub}</div>
+      </div>
+      <span style={{ color:th.textSub, fontSize:12, transform: open === key ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+    </div>
+  );
+  const small = (label, onClick, color, disabled, title) => (
+    <div {...activatable(() => { if (!disabled) onClick(); }, title || label)} onClick={() => { if (!disabled) onClick(); }} aria-disabled={disabled}
+      style={{ cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1, padding:"3px 9px", borderRadius:7, fontSize:fs(9.5, isDesktop), fontWeight:800, color: color ? "#fff" : th.textMid, background: color || "transparent", border: color ? "none" : `1px solid ${th.border}`, whiteSpace:"nowrap", userSelect:"none" }}>{label}</div>
+  );
+  const sel = { padding:"3px 6px", borderRadius:7, border:`1px solid ${th.border}`, background: th.inputBg, color: th.text, fontSize:fs(9.5, isDesktop), maxWidth:150 };
+
+  if (data.loading) return null;
+  return (
+    <div style={{ marginBottom:6 }}>
+      {msg && <div role="status" style={{ fontSize:fs(9.5, isDesktop), color: msg.ok ? IND_GREEN : "#EF4444", margin:"4px 0", lineHeight:1.45 }}>{msg.text}</div>}
+      {data.error && <div style={{ fontSize:fs(9.5, isDesktop), color:"#EF4444", margin:"4px 0" }}>Insights: {data.error}</div>}
+
+      {/* 1 · What people looked for */}
+      {head("demand", "People are looking for", items.length,
+        data.demand?.at ? `From searches with no result and "Request a scheme" reports · updated ${ago(data.demand.at)}` : "Not scanned yet — tap Refresh")}
+      {open === "demand" && (
+        <div style={{ paddingBottom:6 }}>
+          <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:6 }}>
+            {small(working === "scanDemand" ? "Scanning…" : "↻ Refresh", () => call("scanDemand", { op: "scanDemand" }, r => `Found ${r?.demand?.items?.length ?? 0} scheme name(s) people looked for.`), null, !!working)}
+            <span style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>Uses 1 small AI call. The daily run researches the top request on its own.</span>
+          </div>
+          {!items.length && <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, padding:"4px 0" }}>Nothing yet — when people search for a scheme the app doesn't have, or request one, it shows up here.</div>}
+          {items.map(it => {
+            const region = regionFor[it.name] ?? it.region ?? "";
+            return (
+              <div key={it.name} style={{ padding:"6px 0", borderTop:`1px dashed ${th.border}` }}>
+                <div style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:700, color:th.text }}>{it.name}</div>
+                    <div style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>
+                      {[it.searches ? `${it.searches} search${it.searches > 1 ? "es" : ""}` : null, it.requests ? `${it.requests} request${it.requests > 1 ? "s" : ""} (they'll get a reply when it's added)` : null].filter(Boolean).join(" · ")}
+                    </div>
+                    {it.examples?.length > 0 && <div style={{ fontSize:fs(9, isDesktop), color:th.textSub, fontStyle:"italic", marginTop:1, wordBreak:"break-word" }}>“{it.examples[0]}”</div>}
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:4, flexWrap:"wrap" }}>
+                  <select value={region} onChange={e => setRegionFor(p => ({ ...p, [it.name]: e.target.value }))} style={sel} aria-label="Which government runs it">
+                    <option value="">Which government?</option>
+                    <option value="national">Central</option>
+                    {stateList.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  {small("Research", () => onRun({ names: [{ name: it.name, region, reportIds: it.reportIds ?? [], from: "demand" }], maxNew: 1, draftOnly: draftPref() }), VIOLET, busy || !region, region ? "Research this scheme now" : "Choose the government first")}
+                  {canPublish && small(working === `dd-${it.name}` ? "…" : "Not a scheme", () => call(`dd-${it.name}`, { op: "dismissDemand", name: it.name }, `"${it.name}" removed from the list.`), null, !!working)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 2 · Official list check */}
+      {head("gaps", "Official list check", data.gaps.reduce((n, g) => n + (g.missing?.length ?? 0), 0) || null,
+        "Read a state's own schemes list and see what the app is missing — per state: 2 searches, 1 page read, 1 AI call")}
+      {open === "gaps" && (
+        <div style={{ paddingBottom:6 }}>
+          <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:6 }}>
+            {suggestions.map(r => (
+              <div key={r} {...activatable(() => setGapPick(p => p.includes(r) ? p.filter(x => x !== r) : p.length >= 3 ? p : [...p, r]), r)}
+                onClick={() => setGapPick(p => p.includes(r) ? p.filter(x => x !== r) : p.length >= 3 ? p : [...p, r])}
+                style={{ cursor:"pointer", padding:"3px 8px", borderRadius:20, fontSize:fs(9.5, isDesktop), fontWeight:700, border:`1px solid ${gapPick.includes(r) ? VIOLET : th.border}`, background: gapPick.includes(r) ? VIOLET : "transparent", color: gapPick.includes(r) ? "#fff" : th.textMid }}>
+                {gapPick.includes(r) ? "✓ " : "+ "}{r}
+              </div>
+            ))}
+            <select value="" onChange={e => { const r = e.target.value; if (r) setGapPick(p => p.includes(r) || p.length >= 3 ? p : [...p, r]); }} style={sel} aria-label="Add a state">
+              <option value="">+ Other state…</option>
+              {stateList.filter(r => !gapPick.includes(r)).map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:6 }}>
+            {small(working === "scanGaps" ? "Checking…" : `Check ${gapPick.length || ""} state${gapPick.length === 1 ? "" : "s"}`, () => call("scanGaps", { op: "scanGaps", regions: gapPick }, r => (r?.gaps ?? []).map(g => `${g.region}: ${g.missing?.length ?? 0} missing`).join(" · ") || "Done."), VIOLET, !gapPick.length || !!working)}
+            {gapPick.length > 0 && <span style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>{gapPick.join(", ")}</span>}
+          </div>
+          {data.gaps.map(g => (
+            <div key={g.region} style={{ padding:"6px 0", borderTop:`1px dashed ${th.border}` }}>
+              <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:800, color:th.text }}>{g.region}</div>
+              <div style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>
+                Checked {ago(g.at)} · list shows {g.officialSeen} · {g.inApp} already in the app · <strong style={{ color: g.missing?.length ? SAFFRON : IND_GREEN }}>{g.missing?.length ?? 0} missing</strong> · app has {g.appCount}
+                {g.listUrl && <> · <a href={g.listUrl} target="_blank" rel="noopener noreferrer" style={{ color:CYAN }}>{g.listSource ?? "list"} ↗</a></>}
+              </div>
+              {g.error && <div style={{ fontSize:fs(9, isDesktop), color:IDLE_AMBER }}>{g.error}</div>}
+              {(g.missing ?? []).map(m => {
+                const on = missPick.some(x => x.name === m.name);
+                return (
+                  <div key={m.name} {...activatable(() => setMissPick(p => on ? p.filter(x => x.name !== m.name) : p.length >= 3 ? p : [...p, { ...m, region: g.region }]), m.name)}
+                    onClick={() => setMissPick(p => on ? p.filter(x => x.name !== m.name) : p.length >= 3 ? p : [...p, { ...m, region: g.region }])}
+                    style={{ display:"flex", gap:7, alignItems:"center", padding:"3px 0", cursor:"pointer" }}>
+                    <span style={{ width:13, height:13, borderRadius:3, border:`1.5px solid ${on ? VIOLET : th.textSub}`, background: on ? VIOLET : "transparent", color:"#fff", fontSize:9, lineHeight:"11px", textAlign:"center", flexShrink:0 }}>{on ? "✓" : ""}</span>
+                    <span style={{ fontSize:fs(10, isDesktop), color:th.text, flex:1 }}>{m.name}</span>
+                    {m.url && <a href={m.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ fontSize:fs(9, isDesktop), color:CYAN }}>view ↗</a>}
+                  </div>
+                );
+              })}
+              {g.categoryGaps?.length > 0 && (
+                <div style={{ display:"flex", gap:5, flexWrap:"wrap", alignItems:"center", marginTop:4 }}>
+                  <span style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>Few schemes for:</span>
+                  {g.categoryGaps.map(c => (
+                    <span key={c.key}>{small(`${c.label} (${c.count}) — search`, () => onRun({ regions: [g.region], focus: c.key, maxNew: 2, draftOnly: draftPref() }), null, busy, `Search ${g.region} for ${c.label} schemes`)}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          {missPick.length > 0 && (
+            <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:6 }}>
+              {small(`Research ${missPick.length} selected`, () => { onRun({ names: missPick.map(m => ({ name: m.name, region: m.region, url: m.url, from: "official-list" })), maxNew: missPick.length, draftOnly: draftPref() }); setMissPick([]); }, VIOLET, busy)}
+              <span style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>up to 3 per run</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 3 · Benefit changes found by the Background Verifier */}
+      {head("updates", "Benefit changes to review", updates.length,
+        "The Background Verifier noticed a different amount on the official page — nothing changes until you tap Apply")}
+      {open === "updates" && (
+        <div style={{ paddingBottom:6 }}>
+          {!updates.length && <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, padding:"4px 0" }}>No changes found. Each scheme's page is re-read on the verifier's regular lap.</div>}
+          {updates.map(u => (
+            <div key={u.id} style={{ padding:"6px 0", borderTop:`1px dashed ${th.border}` }}>
+              <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:800, color:th.text }}>{u.name} <span style={{ fontWeight:600, color:th.textSub }}>· {u.state}</span></div>
+              <div style={{ fontSize:fs(9.5, isDesktop), color:"#EF4444", textDecoration:"line-through", marginTop:2, wordBreak:"break-word" }}>{u.oldEn}</div>
+              <div style={{ fontSize:fs(9.5, isDesktop), color:IND_GREEN, marginTop:2, wordBreak:"break-word" }}>{u.newEn}</div>
+              {u.newHi && <div style={{ fontSize:fs(9.5, isDesktop), color:th.textMid, marginTop:1 }}>हिंदी: {u.newHi}</div>}
+              <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:4 }}>
+                {u.source && <a href={u.source} target="_blank" rel="noopener noreferrer" style={{ fontSize:fs(9, isDesktop), color:CYAN }}>Official page ↗</a>}
+                <span style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>confidence {Math.round((u.confidence ?? 0) * 100)}%</span>
+                <span style={{ flex:1 }} />
+                {canPublish && small(working === `ap-${u.id}` ? "…" : "Apply", () => { if (window.confirm(`Change the benefit of "${u.name}" to:\n\n${u.newEn}\n\nThe site updates in about 2 minutes.`)) call(`ap-${u.id}`, { op: "applyUpdate", id: u.id }, r => r?.note || `"${u.name}" updated — live in ~2 minutes.`); }, IND_GREEN, !!working)}
+                {canPublish && small(working === `du-${u.id}` ? "…" : "Dismiss", () => call(`du-${u.id}`, { op: "dismissUpdate", id: u.id }, "Dismissed."), null, !!working)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDesktop }) {
   const th = THEME[dark ? "dark" : "light"];
   const runner = useRunAgent();
@@ -2767,6 +2959,8 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
               </div>
             )}
 
+            <DiscoveryInsights plan={state.plan} canPublish={state.canPublish} busy={ctl.running} onRun={ctl.start}
+              dark={dark} isDesktop={isDesktop} reloadKey={run?.createdAt ?? ""} />
             {pending.length > 0 && (
               <>
                 <div style={{ fontSize:fs(8.5, isDesktop), fontWeight:800, color:SAFFRON, textTransform:"uppercase", letterSpacing:0.3, marginTop:6 }}>Waiting for approval</div>

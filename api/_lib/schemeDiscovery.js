@@ -86,6 +86,27 @@ export const FOCUS = {
   business:   { label: "Business",         q: "self employment business subsidy entrepreneur", hint: "self-employment, small business, entrepreneurs" },
 };
 const DAY_MS = 86_400_000;
+export const regionDocId = r => String(r).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "national";
+
+// A scheme someone asked for ("Request a scheme") is now live → tell them in
+// their report thread and close it.
+export async function replyToRequests(db, reportIds, scheme) {
+  const ids = Array.isArray(reportIds) ? reportIds.filter(x => typeof x === "string" && /^[A-Za-z0-9_-]{4,64}$/.test(x)).slice(0, 20) : [];
+  if (!db || !ids.length || !scheme?.name?.en) return 0;
+  const { FieldValue } = await import("firebase-admin/firestore");
+  const text = `Good news — "${scheme.name.en}" is now in YojanaSahay. Search for it in the app to see who can apply, the documents and the official link. Thank you for the suggestion!`;
+  let n = 0;
+  for (const id of ids) {
+    try {
+      const ref = db.collection("reports").doc(id);
+      const snap = await ref.get();
+      if (!snap.exists || snap.data()?.type !== "scheme_request" || snap.data()?.status === "resolved") continue;
+      await ref.update({ status: "resolved", adminReply: text, repliedAt: new Date(), replyHistory: FieldValue.arrayUnion({ text, sentAt: new Date().toISOString(), status: "resolved", by: "Scheme Discovery" }) });
+      n++;
+    } catch { /* ignore one */ }
+  }
+  return n;
+}
 export function regionCounts(schemes = SCHEME_DB) {
   const c = Object.fromEntries(REGIONS.map(r => [r, 0]));
   for (const s of schemes) {
@@ -195,6 +216,7 @@ function regionSchemes(region, schemes = SCHEME_DB) {
     : schemes.filter(s => s.scope === "national" || s.state === region);
 }
 
+export { regionSchemes, tokensOf, safeHost as hostOf };
 export function findDuplicate(name, region, schemes = SCHEME_DB) {
   return regionSchemes(region, schemes).find(s => sameScheme(name, s.name?.en ?? "") || (s.name?.hi && sameScheme(name, s.name.hi))) ?? null;
 }
@@ -268,7 +290,7 @@ export function groqRetryMs(msg) {
   if (!m || (!m[1] && !m[2])) return null;
   return ((Number(m[1]) || 0) * 60 + (parseFloat(m[2]) || 0)) * 1000;
 }
-async function groqJson(model, system, user, maxTokens) {
+export async function groqJson(model, system, user, maxTokens) {
   const models = [model, ...FALLBACK_MODELS.filter(m => m !== model)];
   let last = null, perDay = true;
   for (let i = 0; i < models.length; i++) {
@@ -369,6 +391,45 @@ async function findSourceUrl(candidate, region, serperKey, out) {
   return ok.find(x => domainScore(x.url) >= 0.9)?.url ?? direct ?? ok[0]?.url ?? null;
 }
 function safeHost(u) { try { return new URL(u).hostname; } catch { return ""; } }
+
+// ── Second official source ───────────────────────────────────────────────────
+// Before a scheme is added on its own, look for ANOTHER government page that
+// mentions it (search snippets only — no page read). Same amount → confirmed;
+// a different amount → it waits for the admin instead.
+export function moneyValues(text) {
+  const out = new Set();
+  const re = /(?:₹|rs\.?|inr)\s*([\d,]+(?:\.\d+)?)\s*(lakh|lac|crore|cr|k|l)?(?![a-z])/gi;
+  let m;
+  while ((m = re.exec(String(text || "")))) {
+    const n = parseFloat(m[1].replace(/,/g, ""));
+    if (!Number.isFinite(n) || n <= 0) continue;
+    const unit = (m[2] || "").toLowerCase();
+    const v = Math.round(n * (unit === "lakh" || unit === "lac" || unit === "l" ? 1e5 : unit === "crore" || unit === "cr" ? 1e7 : unit === "k" ? 1e3 : 1));
+    if (v >= 50) out.add(v);
+  }
+  return [...out];
+}
+export async function secondSourceCheck(scheme, sourceUrl, serperKey, out) {
+  const mine = moneyValues(`${scheme.benefit?.en ?? ""} ${scheme.description?.en ?? ""}`);
+  if (!serperKey || !mine.length) return { status: "skipped" };
+  out.serperCalls++;
+  const where = scheme.scope === "state" ? scheme.state : "India";
+  const r = await serperSearch(`"${scheme.name?.en}" ${where} benefit amount`, serperKey, 8);
+  const srcHost = safeHost(sourceUrl).replace(/^www\./, "");
+  const key = tokensOf(scheme.name?.en ?? "").filter(t => t.length >= 4);
+  const others = (r.results ?? []).filter(x => {
+    const h = safeHost(x.url).replace(/^www\./, "");
+    if (!h || h === srcHost || !/\.(gov|nic)\.in$/.test(h)) return false;
+    const txt = `${x.title} ${x.snippet}`.toLowerCase();
+    const hit = key.filter(t => txt.includes(t)).length;
+    return key.length ? hit >= Math.ceil(key.length / 2) : false;
+  });
+  if (!others.length) return { status: "none" };
+  const theirs = moneyValues(others.map(x => `${x.title} ${x.snippet}`).join(" "));
+  const host = safeHost(others[0].url).replace(/^www\./, "");
+  if (!theirs.length) return { status: "no-amount", host };
+  return mine.some(v => theirs.includes(v)) ? { status: "confirmed", host } : { status: "differs", host, theirs: theirs.slice(0, 4) };
+}
 
 // ── Validate an AI draft → scheme object + problems ──────────────────────────
 function slugify(name, region = "") {
@@ -602,15 +663,17 @@ async function liveSchemeNames(files) {
 }
 
 // ── Main run ─────────────────────────────────────────────────────────────────
-export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions: forcedRegions = null, focus = null, draftOnly = false, log = console, progress = { step() {} } } = {}) {
+export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions: forcedRegions = null, names: forcedNames = null, focus = null, draftOnly = false, log = console, progress = { step() {} } } = {}) {
   if (!Array.isArray(forcedRegions) || !forcedRegions.length) forcedRegions = null;
+  if (!Array.isArray(forcedNames) || !forcedNames.length) forcedNames = null;
+  if (forcedNames) forcedRegions = [...new Set(forcedNames.map(n => n.region))];
   if (focus && !FOCUS[focus]) focus = null;
   const startedAt = Date.now();
   const out = {
     regions: [], searched: 0, candidates: 0, duplicates: 0, researched: 0,
     published: [], drafted: [], rejected: [], errors: [], stopReason: null,
     serperCalls: 0, tavilyCalls: 0,
-    mode: { regions: forcedRegions ? "chosen" : "smart", focus, draftOnly: !!draftOnly, maxNew },
+    mode: { regions: forcedNames ? "named" : forcedRegions ? "chosen" : "smart", focus, draftOnly: !!draftOnly, maxNew, ...(forcedNames ? { names: forcedNames.map(n => n.name) } : {}) },
   };
   const serperKey = process.env.SERPER_API_KEY?.trim();
   const tavilyKey = (process.env.TAVILY_VERIFY_KEY ?? process.env.TAVILY_API_KEY)?.trim();
@@ -647,7 +710,9 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
   let regionsSearched = 0;
   out.regions = regions;
   const nice = r => r === "national" ? "Central government" : r;
-  progress.step(forcedRegions
+  progress.step(forcedNames
+    ? `Researching the scheme${forcedNames.length > 1 ? "s" : ""} you picked: ${forcedNames.map(n => `"${n.name}"`).join(", ")}`
+    : forcedRegions
     ? `Searching the region${regions.length > 1 ? "s" : ""} you chose: ${regions.map(nice).join(", ")}${focus ? ` · focus: ${FOCUS[focus].label}` : ""}`
     : `Smart pick — starting with ${nice(regions[0])} (fewest schemes for its population, not searched recently)${focus ? ` · focus: ${FOCUS[focus].label}` : ""}`);
   if (draftOnly) progress.step("Draft-only run: nothing is published without your approval");
@@ -667,8 +732,59 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
   const year = new Date().getUTCFullYear();
   const toResearch = [];
 
-  for (const region of regions) {
+  // A. Schemes the admin picked by name (from "People want" or an official list).
+  if (forcedNames) {
+    for (const n of forcedNames) {
+      if (toResearch.length >= maxNew) break;
+      if (findDuplicate(n.name, n.region, known) || toResearch.some(t => sameScheme(t.name, n.name))) {
+        out.duplicates++;
+        progress.step(`  ↳ "${n.name}" — already in the app, skipped`);
+        continue;
+      }
+      toResearch.push({ name: n.name, url: n.url ?? null, region: n.region, reportIds: n.reportIds ?? [], from: n.from ?? "admin" });
+      progress.step(`  ↳ "${n.name}" (${nice(n.region)}) — will research it`, "ok");
+    }
+  }
+
+  // B. Daily run: what people asked for comes first (searches with no result,
+  //    "Request a scheme" reports — gathered by discoveryInsights.js).
+  if (!forcedNames && !forcedRegions && toResearch.length < maxNew) {
+    try {
+      const dem = (await db?.collection("appMeta").doc("discoveryDemand").get())?.data();
+      const pick = (dem?.items ?? []).filter(it => it.region && REGIONS.includes(it.region) && (it.requests > 0 || it.searches >= 2) && !it.dismissed
+        && !seen[seenKey(it.region, it.name)] && !findDuplicate(it.name, it.region, known)).slice(0, 1);
+      for (const it of pick) {
+        toResearch.push({ name: it.name, url: null, region: it.region, reportIds: it.reportIds ?? [], from: "demand" });
+        progress.step(`People asked for "${it.name}" (${it.searches ?? 0} searches, ${it.requests ?? 0} requests) — researching it first`, "ok");
+      }
+    } catch { /* demand list is optional */ }
+  }
+
+  // C. Fresh official-list gaps for the regions of this run (no search needed).
+  const gapNames = {};
+  if (!forcedNames && !focus) { // a focused run searches for that focus instead
+    for (const region of regions) {
+      try {
+        const g = (await db?.collection("discoveryGaps").doc(regionDocId(region)).get())?.data();
+        if (g?.at && Date.now() - Date.parse(g.at) < 21 * DAY_MS) gapNames[region] = (g.missing ?? []).filter(m => m?.name);
+      } catch { /* ignore */ }
+    }
+  }
+
+  for (const region of (forcedNames ? [] : regions)) {
     if (toResearch.length >= maxNew) break;
+    // An official list already showed what's missing here — use it first.
+    const fromGap = (gapNames[region] ?? []).filter(m => !seen[seenKey(region, m.name)] && !findDuplicate(m.name, region, known) && !toResearch.some(t => sameScheme(t.name, m.name)));
+    if (fromGap.length) {
+      regionsSearched++;
+      for (const m of fromGap) {
+        if (toResearch.length >= maxNew) break;
+        toResearch.push({ name: m.name, url: m.url ?? null, region, from: "official-list" });
+        progress.step(`  ↳ "${m.name}" — on the official list, missing from the app; will research it`, "ok");
+      }
+      regionLog[region] = { at: new Date().toISOString(), found: fromGap.length, empty: 0 };
+      continue;
+    }
     // At least REGIONS_PER_RUN regions; more only while nothing new has turned up.
     if (!forcedRegions && regionsSearched >= REGIONS_PER_RUN && toResearch.length > 0) break;
     if (Date.now() - startedAt > MAX_RUNTIME_MS / 2) break; // leave time for research
@@ -758,6 +874,17 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
         built.autoPublish = false;
         built.problems = [...(built.problems ?? []), "draft-only run — passed every check, waiting for your approval"];
       }
+      let second = null;
+      if (built.autoPublish && !built.hardReject) {
+        try { second = await secondSourceCheck(built.scheme, sourceUrl, serperKey, out); } catch { second = null; }
+        if (second?.status === "differs") {
+          built.autoPublish = false;
+          built.problems = [...(built.problems ?? []), `another official page (${second.host}) shows different amounts (₹${second.theirs.map(v => v.toLocaleString("en-IN")).join(", ₹")}) — please check`];
+          progress.step(`  ↳ second official source (${second.host}) disagrees on the amount — keeping it for your approval`, "warn");
+        } else if (second?.status === "confirmed") {
+          progress.step(`  ↳ amount confirmed by a second official page (${second.host})`, "ok");
+        }
+      }
 
       progress.step(
         built.hardReject ? `  ↳ dropped: ${built.hardReject.join("; ")}`
@@ -777,6 +904,8 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
         scheme: built.scheme, matchSrc: built.matchSrc, eligibility: built.eligibility,
         confidence: built.confidence, ruleShare: built.ruleShare, problems: built.problems,
         evidence: built.evidence, file: built.file, region: c.region, candidateName: c.name,
+        from: c.from ?? "search", ...(c.reportIds?.length ? { reportIds: c.reportIds.slice(0, 20) } : {}),
+        ...(second?.status ? { secondSource: second } : {}),
         createdAt: new Date(),
       };
       try { await db?.collection("schemeDrafts").doc(built.scheme.id).set(doc); } catch (e) { out.errors.push(`${c.name}: could not save draft — ${e.message}`); }
@@ -798,6 +927,7 @@ export async function runSchemeDiscovery({ db, maxNew = MAX_NEW_PER_RUN, regions
         await postNote(db, { from: "discover", to: "verifyBatch", type: "verify", schemeId: r.id, schemeName: it.scheme.name.en,
           text: `I just added "${it.scheme.name.en}" (${it.scheme.state ?? "Central"}). Please check its deadline and link first.` });
         await db?.collection("schemeDrafts").doc(r.id).set({ status: "published", publishedAt: new Date(), publishedBy: "agent", commitUrl: r.commitUrl ?? null }, { merge: true }).catch(() => {});
+        await replyToRequests(db, it.doc?.reportIds, it.scheme);
       } else {
         out.errors.push(`${it.scheme.name.en}: publish failed — ${r.error}`);
         out.drafted.push({ id: r.id, name: it.scheme.name.en, region: it.scheme.state ?? "national", problems: [`auto-publish failed: ${r.error}`] });
@@ -859,7 +989,8 @@ export async function reviewSchemeDraft(db, { id, op, by }) {
     await ref.set({ status: "published", publishedAt: new Date(), publishedBy: by ?? "admin", commitUrl: r.commitUrl ?? null }, { merge: true });
     await postNote(db, { from: "discover", to: "verifyBatch", type: "verify", schemeId: d.scheme.id, schemeName: sc.name?.en ?? d.scheme.id,
       text: `The admin approved "${sc.name?.en ?? d.scheme.id}" — it's live now. Please check its deadline and link first.` });
-    return { ok: true, commitUrl: r.commitUrl ?? null };
+    const answered = await replyToRequests(db, d.reportIds, d.scheme);
+    return { ok: true, commitUrl: r.commitUrl ?? null, answered };
   }
   if (op === "reject") {
     await ref.set({ status: "rejected", reviewedAt: new Date(), reviewedBy: by ?? "admin" }, { merge: true });
@@ -883,6 +1014,7 @@ export async function runAndLogDiscovery({ db, trigger = "cron", options = {} } 
     result = await runSchemeDiscovery({
       db, progress,
       ...(Array.isArray(options.regions) && options.regions.length ? { regions: options.regions } : {}),
+      ...(Array.isArray(options.names) && options.names.length ? { names: options.names } : {}),
       ...(options.focus ? { focus: options.focus } : {}),
       ...(Number.isInteger(options.maxNew) ? { maxNew: options.maxNew } : {}),
       ...(options.draftOnly ? { draftOnly: true } : {}),

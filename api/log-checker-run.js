@@ -371,6 +371,23 @@ async function wipeUser(db, app, uid) {
     if (!mine.empty) await batch.commit();
     steps.push(`reports:${mine.size}`);
   } catch { steps.push("reports:fail"); }
+  // Usage records (searches, checker runs, state filters) keep no trace of this account.
+  try {
+    const uref = db.collection("appStats").doc("usage");
+    const n = await db.runTransaction(async tx => {
+      const d = (await tx.get(uref)).data() ?? {};
+      const upd = {}; let count = 0;
+      for (const f of ["schemeSearches", "checkerRuns", "stateSelections"]) {
+        if (!Array.isArray(d[f])) continue;
+        let hit = false;
+        const next = d[f].map(r => (r && r.uid === uid) ? (hit = true, count++, { ...r, uid: "deleted" }) : r);
+        if (hit) upd[f] = next;
+      }
+      if (Object.keys(upd).length) tx.set(uref, upd, { merge: true });
+      return count;
+    });
+    steps.push(`usage:${n}`);
+  } catch { steps.push("usage:fail"); }
   try { await getAuth(app).deleteUser(uid); steps.push("auth"); }
   catch (e) { if (e?.code !== "auth/user-not-found") return { ok: false, steps }; }
   await db.collection("appStats").doc("usage").set({ accountsDeleted: FieldValue.increment(1) }, { merge: true }).catch(() => {});

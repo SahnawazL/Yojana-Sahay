@@ -39,6 +39,7 @@ import nodemailer               from "nodemailer";
 import { runAutoFixAgent }      from "./_lib/autoFixAgent.js";
 import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import refreshNewsHandler       from "./refresh-news.js";
+import { loadInsights, scanDemand, refreshDemandIfStale, dismissDemand, scanOfficialList, applyUpdate, dismissUpdate } from "./_lib/discoveryInsights.js";
 import { runAndLogDiscovery, listSchemeDrafts, reviewSchemeDraft, discoveryPlan, REGIONS as DISCOVERY_REGIONS, FOCUS as DISCOVERY_FOCUS, MAX_NEW_PER_RUN as DISCOVERY_MAX } from "./_lib/schemeDiscovery.js";
 import { createProgress, isJobRunning, readAgentLive } from "./_lib/agentProgress.js";
 import { getFirebaseUsage }    from "./_lib/firebaseUsage.js";
@@ -651,7 +652,7 @@ export default async function handler(req, res) {
 
   // Not a cron request — everything below requires an authenticated admin
   // Actions: running agents needs the Agents tab; e-mail actions need Deadlines.
-  const tabsFor = ["runAgent", "schemeDrafts", "firebaseUsage", "verifyOne", "verifySkip", "verifyAttention", "verifySite", "teamFeed", "teamNote"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
+  const tabsFor = ["runAgent", "schemeDrafts", "discoveryInsights", "firebaseUsage", "verifyOne", "verifySkip", "verifyAttention", "verifySite", "teamFeed", "teamNote"].includes(req.body?.action) ? ["agents"] : ["deadlines"];
   const auth = await verifyAdmin(req, tabsFor);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
@@ -687,7 +688,16 @@ export default async function handler(req, res) {
         const focus = typeof o.focus === "string" && Object.hasOwn(DISCOVERY_FOCUS, o.focus) ? o.focus : null;
         const want = Math.floor(Number(o.maxNew));
         const maxNew = Math.min(DISCOVERY_MAX, Number.isFinite(want) && want >= 1 ? want : DISCOVERY_MAX);
-        const options = { regions, focus, maxNew, draftOnly: o.draftOnly === true };
+        // Named schemes (from "People want" / an official list): ≤ 3, known regions only.
+        const names = Array.isArray(o.names) ? o.names.filter(n => n && typeof n.name === "string" && n.name.trim().length >= 4 && DISCOVERY_REGIONS.includes(n.region))
+          .slice(0, 3).map(n => ({
+            name: n.name.replace(/\s+/g, " ").trim().slice(0, 120), region: n.region,
+            url: typeof n.url === "string" && /^https:\/\/[^\s]{6,400}$/.test(n.url) ? n.url : null,
+            reportIds: Array.isArray(n.reportIds) ? n.reportIds.filter(x => typeof x === "string" && /^[A-Za-z0-9_-]{4,64}$/.test(x)).slice(0, 20) : [],
+            from: n.from === "demand" || n.from === "official-list" ? n.from : "admin",
+          })) : [];
+        const options = { regions, names, focus, maxNew, draftOnly: o.draftOnly === true };
+        if (!names.length) await refreshDemandIfStale(auth.db);
         return res.status(200).json({ ok: true, result: await runAndLogDiscovery({ db: auth.db, trigger: "manual", options }) });
       }
       if (job === "deadlineAlerts") return res.status(200).json({ ok: true, result: await runDeadlineAlertsLogged({ trigger: "manual", triggeredBy: auth.email ?? null }) });
@@ -733,6 +743,31 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error(`[deadline-alerts] ${action} failed:`, err.message);
       return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── action: "discoveryInsights" — what people want · official-list gaps ·
+  //    benefit updates found by the Background Verifier (Agents tab)
+  if (action === "discoveryInsights") {
+    const op = req.body?.op ?? "load";
+    try {
+      if (op === "load") return res.status(200).json(await loadInsights(auth.db));
+      if (op === "scanDemand") return res.status(200).json({ demand: await scanDemand(auth.db) });
+      if (op === "scanGaps") {
+        const regions = Array.isArray(req.body?.regions) ? [...new Set(req.body.regions.filter(r => typeof r === "string" && DISCOVERY_REGIONS.includes(r) && r !== "national"))].slice(0, 3) : [];
+        if (!regions.length) return res.status(400).json({ error: "Choose 1–3 states" });
+        const out = [];
+        for (const r of regions) out.push(await scanOfficialList(auth.db, r));
+        return res.status(200).json({ gaps: out });
+      }
+      if (!auth.full) return res.status(403).json({ error: "Only a full admin can change schemes or dismiss items." });
+      if (op === "dismissDemand") return res.status(200).json(await dismissDemand(auth.db, req.body?.name));
+      if (op === "applyUpdate") return res.status(200).json(await applyUpdate(auth.db, req.body?.id, auth.email ?? null));
+      if (op === "dismissUpdate") return res.status(200).json(await dismissUpdate(auth.db, req.body?.id, auth.email ?? null));
+      return res.status(400).json({ error: "Unknown op" });
+    } catch (err) {
+      console.error("[deadline-alerts] discoveryInsights failed:", err.message);
+      return res.status(400).json({ error: err.message });
     }
   }
 
