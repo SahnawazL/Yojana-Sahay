@@ -85,6 +85,7 @@ export default function TelegramBotPanel({ dark = false }) {
               <Stat label="Alerts turned on" value={st.alertSubscribers} />
               <Stat label="Money checks" value={k.moneyChecks} />
               <Stat label="Searches" value={k.searched} />
+              <Stat label="AI replies" value={k.aiReplies} />
             </div>
           )}
 

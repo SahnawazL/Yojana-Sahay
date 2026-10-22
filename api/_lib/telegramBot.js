@@ -18,6 +18,7 @@ import crypto from "node:crypto";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminDb } from "./firebaseAdmin.js";
 import { verifyAdminRequest } from "./adminAuth.js";
+import { smartGroq } from "./groqSmart.js";
 import { matchedSchemesFor } from "../../src/eligibility.js";
 import { benefitSummary, topBenefits, valueLabel } from "../../src/benefitMath.js";
 import { schemePageUrl, officialSchemeLink, SITE_URL } from "../../src/schemeMatch.js";
@@ -255,6 +256,77 @@ async function onSearch(chat_id, text) {
   await bump("searched");
 }
 
+// ── Conversation: small talk + an AI helper grounded in the scheme data ──────
+// Everyday replies ("ok", "thanks", "bye") are answered instantly without AI.
+// Anything else: we find the matching schemes in OUR data first, then the AI
+// writes a short reply using only those facts (it may not invent amounts,
+// dates or links). If the AI is unavailable, the plain search reply is used.
+const THANKS_RE = /^(thanks?( you)?( so much)?|thank u|thanku|thx|dhanyavaa?d|shukriya|🙏|धन्यवाद|शुक्रिया)[\s!.🙏👍]*$/i;
+const OK_RE = /^(ok+a*y*|okay|k+|thik hai|theek hai|accha|achha|great|nice|good|done|cool|hmm+|👍|ठीक है|अच्छा)[\s!.👍]*$/i;
+const BYE_RE = /\b(bye|good ?night|see you|tata|alvida|later|not now|no thanks|don'?t want|nahi chahiye|nahin chahiye|abhi nahi|baad mein)\b|अलविदा|बाद में|नहीं चाहिए|अभी नहीं/i;
+const smallTalkKeyboard = lang => ({ inline_keyboard: [[{ text: L(lang, "✅ Check which schemes I qualify for", "✅ जांचें मैं किन योजनाओं का पात्र हूं"), callback_data: `L:${lang}` }], [{ text: L(lang, "💸 Money not received?", "💸 पैसा नहीं आया?"), callback_data: `M:${lang}:-:` }]] });
+
+function smallTalk(text, lang) {
+  if (OK_RE.test(text)) return L(lang, "👍 Sure! Whenever you're ready, type a scheme name or a need (like \"PM Kisan\" or \"scholarship\"), or tap below.", "👍 ठीक है! जब चाहें, योजना का नाम या ज़रूरत लिखें (जैसे \"पीएम किसान\" या \"छात्रवृत्ति\"), या नीचे दबाएं।");
+  if (THANKS_RE.test(text)) return L(lang, "🙏 You're welcome! Type a scheme name or a need anytime (like \"PM Kisan\" or \"widow pension\"), or check which schemes you qualify for.", "🙏 आपका स्वागत है! कभी भी योजना का नाम या ज़रूरत लिखें (जैसे \"पीएम किसान\" या \"विधवा पेंशन\"), या जांचें कि आप किन योजनाओं के पात्र हैं।");
+  if (BYE_RE.test(text) && text.length < 80) return L(lang, "No problem 🙏 I'm here whenever you need help with a government scheme. Take care!", "कोई बात नहीं 🙏 जब भी किसी सरकारी योजना में मदद चाहिए, मैं यहीं हूं। अपना ख़याल रखें!");
+  return null;
+}
+
+const AGENT_SYSTEM = `You are the YojanaSahay assistant on Telegram — an AI helper. YojanaSahay is a free, independent guide to Indian government welfare schemes. It is NOT a government service.
+Rules:
+- Reply in the user's language: Hindi (Devanagari) if they write in Hindi script, Hinglish (Roman Hindi) if they write Hinglish, otherwise simple English.
+- Be warm and brief: at most 6 short lines. Plain text only — no markdown, no tables, no links (buttons are added under your reply).
+- Use ONLY the scheme facts given in SCHEMES below. Never invent amounts, dates, eligibility or links. If the facts don't answer the question, say so honestly and suggest checking the official website.
+- Refer to schemes by their number, e.g. "(1) PM Kisan", so the user can tap that number for full details.
+- If the user asks which schemes they can get, or about their own eligibility, tell them to tap "Check which schemes I qualify for".
+- If their money/payment hasn't come, tell them to tap the 💸 button for a step-by-step check.
+- Never ask for Aadhaar number, bank details, OTP or money. If they mention paying an agent or sharing an OTP, warn them: applying is free and officials never ask for OTP.
+- If the message is not about government schemes or help, reply kindly in one line and offer to help with schemes.`;
+
+async function agentReply(text, lang, found) {
+  const keys = [process.env.GROQ_API_KEY, process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2, process.env.GROQ_API_KEY_3, process.env.GROQ_API_KEY_4, process.env.GROQ_API_KEY_5]
+    .map(k => (k || "").trim()).filter((k, i, a) => k && a.indexOf(k) === i);
+  if (!keys.length) return null;
+  const k = lang === "h" ? "hi" : "en";
+  const facts = found.length ? found.map((s, i) => {
+    let who = []; try { const w = whoCanApply(s, "en"); who = Array.isArray(w) ? w : w ? [String(w)] : []; } catch {}
+    return `${i + 1}. ${s.name?.en}${s.name?.hi ? ` / ${s.name.hi}` : ""} — ${s.scope === "national" ? "Central Government" : `${s.state} state`}${s.closed ? " — CLOSED for new applications" : ""}
+   Benefit: ${s.benefit?.en || ""}${valueLabel(s, "en") ? ` (${valueLabel(s, "en")})` : ""}
+   Who can apply: ${who.slice(0, 4).join("; ") || "see official site"}
+   Documents: ${(s.docs?.en || []).slice(0, 6).join(", ") || "see official site"}
+   How to apply: ${s.applyType === "online" ? "online on the official website" : "at the office / Common Service Centre"}`;
+  }).join("\n") : "(no matching schemes found in the database)";
+  try {
+    const r = await smartGroq(keys, {
+      model: "openai/gpt-oss-20b",
+      messages: [{ role: "system", content: AGENT_SYSTEM }, { role: "user", content: `SCHEMES:\n${facts}\n\nUSER MESSAGE (${lang === "h" ? "writes Hindi/Hinglish" : "writes English"}):\n${text}` }],
+      temperature: 0.3, max_completion_tokens: 700, reasoning_effort: "low",
+    }, { pool: "chat", fallbackModels: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"] });
+    const out = String(r?.data?.choices?.[0]?.message?.content || "").replace(/\*\*|__|`/g, "").replace(/\s*(visit|see|check|देखें)?:?\s*https?:\/\/\S+/gi, "").trim();
+    return out ? out.slice(0, 1500) : null;
+  } catch (e) { console.warn("[telegram] agent failed:", e.message); return null; }
+}
+
+async function onText(chat_id, text) {
+  const lang = looksHindi(text) ? "h" : "e";
+  const quick = smallTalk(text, lang);
+  if (quick) { await tg("sendMessage", { chat_id, text: quick, reply_markup: smallTalkKeyboard(lang) }); return; }
+  tg("sendChatAction", { chat_id, action: "typing" }).catch(() => {});
+  const found = searchSchemes(text);
+  const answer = await agentReply(text, lang, found);
+  if (!answer) return onSearch(chat_id, text); // AI unavailable → plain search reply
+  const money = MONEY_RE.test(text);
+  await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true,
+    text: `${esc(answer)}${found.length ? `\n\n${L(lang, "👇 Tap a number for full details.", "👇 पूरा विवरण देखने के लिए नंबर दबाएं।")}` : ""}\n\n<i>${L(lang, "🤖 AI reply — always confirm on the official website.", "🤖 AI जवाब — आधिकारिक वेबसाइट पर ज़रूर पुष्टि करें।")}</i>`,
+    reply_markup: { inline_keyboard: [
+      ...(money ? [[{ text: L(lang, "💸 Find why the money didn't come", "💸 जानें पैसा क्यों नहीं आया"), callback_data: `M:${lang}:${found[0] && found[0].id.length <= 40 ? found[0].id : "-"}:` }]] : []),
+      ...detailRows(lang, found),
+      [{ text: L(lang, "✅ Check which schemes I qualify for", "✅ जांचें मैं किन योजनाओं का पात्र हूं"), callback_data: `L:${lang}` }],
+    ] } });
+  await bump("aiReplies");
+}
+
 const welcome = (name) => ({
   text: `🙏 <b>${esc(name ? `Namaste ${name}!` : "Namaste!")}</b>\n\nFind the government schemes you may qualify for — a few quick questions, free.\nसरकारी योजनाएं जिनके आप पात्र हो सकते हैं — कुछ आसान सवाल, मुफ़्त।\n\n💬 You can also type a scheme name or a need, like "PM Kisan" or "widow pension".\n💬 आप योजना का नाम या ज़रूरत भी लिख सकते हैं, जैसे "पीएम किसान" या "विधवा पेंशन"।\n\n<b>Choose your language / भाषा चुनें:</b>`,
   reply_markup: { inline_keyboard: [[{ text: "English", callback_data: "L:e" }, { text: "हिंदी", callback_data: "L:h" }], [shareButton("e")]] },
@@ -400,7 +472,7 @@ async function onMessage(m) {
   if (!chat_id || m.chat?.type !== "private") return; // groups: stay quiet
   const text = String(m.text || "").trim();
   const greeting = /^(hi|hii+|hello|hey|namaste|namaskar|start|नमस्ते|नमस्कार|हेलो)\b[!. ]*$/i.test(text);
-  if (text && !text.startsWith("/") && !greeting && text.length >= 2) return onSearch(chat_id, text.slice(0, 200));
+  if (text && !text.startsWith("/") && !greeting && text.length >= 2) return onText(chat_id, text.slice(0, 300));
   if (/^\/(start|check)/i.test(text) || !text.startsWith("/")) {
     await tg("sendMessage", { chat_id, parse_mode: "HTML", ...welcome(m.from?.first_name) });
     return;

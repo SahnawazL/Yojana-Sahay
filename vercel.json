@@ -105,6 +105,9 @@
     },
     "api/deadline-alerts.js": {
       "maxDuration": 300
+    },
+    "api/stats.js": {
+      "maxDuration": 30
     }
   }
 }
