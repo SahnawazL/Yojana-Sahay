@@ -540,7 +540,7 @@ ${TERMS.hi.points.map(t => `    <li>${esc(t)}</li>`).join("\n")}
     <li>Android app: on Google Play — link here at launch</li>
     <li>Open data — the full scheme list as <a href="/data/schemes.json">JSON</a> or <a href="/data/schemes.csv">CSV</a> (ODC-By licence, please credit YojanaSahay)</li>
     <li>Free printable posters with a QR code (Hindi / English, any state): <a href="/poster.html">yojanasahay.vercel.app/poster.html</a></li>
-    <li>Telegram bot: <a href="https://t.me/YojanaSahayBot">@YojanaSahayBot</a> — the same eligibility check inside Telegram, in English and Hindi</li>
+    <li>Telegram bot: <a href="/telegram">@YojanaSahayBot</a> — the same eligibility check inside Telegram, in English and Hindi</li>
     <li>How the information is checked: <a href="/how-we-verify.html">How we verify</a></li>
   </ul>
   <h2>Media contact</h2>

@@ -5,6 +5,10 @@
       "destination": "/api/stats?via=telegram"
     },
     {
+      "source": "/telegram",
+      "destination": "/telegram.html"
+    },
+    {
       "source": "/__/auth/:path*",
       "destination": "https://yojanasetu-e24bb.firebaseapp.com/__/auth/:path*"
     },
