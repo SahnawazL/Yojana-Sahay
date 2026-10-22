@@ -4065,6 +4065,16 @@ function SchemeDirectory({ lang, dark }) {
           </a>
         ))}
       </div>
+      <a href="https://t.me/YojanaSahayBot" target="_blank" rel="noopener noreferrer"
+        style={{ display:"flex", alignItems:"center", gap:10, marginTop:14, padding:"11px 13px", borderRadius:14, textDecoration:"none",
+          background: dark ? "rgba(34,158,217,0.12)" : "#EEF8FD", border:`1px solid ${dark ? "rgba(34,158,217,0.35)" : "#BAE3F5"}` }}>
+        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink:0 }}><circle cx="12" cy="12" r="12" fill="#229ED9"/><path d="M5.5 11.8 17 7.3c.5-.2 1 .1.8.9l-2 9.3c-.1.6-.6.8-1.1.5l-3-2.2-1.5 1.4c-.2.2-.3.3-.6.3l.2-3.1 5.6-5.1c.2-.2 0-.3-.3-.1l-6.9 4.4-3-.9c-.6-.2-.6-.6.3-.9z" fill="#fff"/></svg>
+        <span style={{ flex:1, minWidth:0 }}>
+          <span style={{ display:"block", fontSize:13, fontWeight:800, color: dark ? "#7DD3FC" : "#0369A1" }}>{isHindi ? "Telegram पर जांचें" : "Check on Telegram"}</span>
+          <span style={{ display:"block", fontSize:11, color: dark ? "#a8a29e" : "#57534e", marginTop:1 }}>{isHindi ? "@YojanaSahayBot — वही जांच, चैट में" : "@YojanaSahayBot — the same check, in a chat"}</span>
+        </span>
+        <span style={{ fontSize:15, color: dark ? "#7DD3FC" : "#0369A1" }}>↗</span>
+      </a>
       <div style={{ marginTop:14, fontSize:11.5, color: dark ? "#a8a29e" : "#78716c", lineHeight:1.7 }}>
         {isHindi ? "YojanaSahay एक मुफ्त, स्वतंत्र गाइड है — सरकारी वेबसाइट नहीं। हम कभी पैसे या OTP नहीं मांगते।" : "YojanaSahay is a free, independent guide — not a government website. We never ask for money or OTP."}
         {" "}<a href="/about.html" style={{ color:"inherit" }}>{isHindi ? "हमारे बारे में" : "About"}</a>
@@ -10490,6 +10500,7 @@ function YojanaSahayInner(){
       const go = params.get("go");
       if(go){
         if(go==="checker") setShowChecker(true);
+        else if(go==="money") setTimeout(()=>openMoneyCheck(null),500); // "Why didn't my money come?" (Telegram bot link)
         else if(["ai","search","schemes","profile"].includes(go)) setActiveTab(go);
         window.history.replaceState({}, "", window.location.pathname);
       }

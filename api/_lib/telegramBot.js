@@ -19,11 +19,16 @@ import { getAdminDb } from "./firebaseAdmin.js";
 import { verifyAdminRequest } from "./adminAuth.js";
 import { matchedSchemesFor } from "../../src/eligibility.js";
 import { benefitSummary, topBenefits, valueLabel } from "../../src/benefitMath.js";
-import { schemePageUrl, SITE_URL } from "../../src/schemeMatch.js";
+import { schemePageUrl, officialSchemeLink, SITE_URL } from "../../src/schemeMatch.js";
+import { SCHEME_DB } from "../../src/schemesData.js";
+import { scoreSchemes } from "../../src/groqClient.js";
+import { whoCanApply } from "../../src/eligibilityText.js";
 import { unlockSteps, UNLOCK_QUESTIONS, UNLOCK_GROUPS } from "../../src/unlockPath.js";
 import { QUIZ, decodeQuiz, encodeAnswer, nextQuizQuestion } from "../../src/quizCode.js";
 
 const WEBHOOK_URL = `${SITE_URL}/api/telegram`;
+const BOT_LINK = `https://t.me/${(process.env.TELEGRAM_BOT_USERNAME || "YojanaSahayBot").replace(/^@/, "")}`;
+const BY_ID = new Map(SCHEME_DB.map(s => [s.id, s]));
 const token = () => (process.env.TELEGRAM_BOT_TOKEN || "").trim();
 // The webhook secret is derived from the bot token — no second env var.
 const secret = () => crypto.createHash("sha256").update(`ys-telegram:${token()}`).digest("hex").slice(0, 48);
@@ -158,21 +163,95 @@ function resultView(lang, answers) {
       if (title) { lines.push(""); lines.push(`🔓 <b>${L(lang, "Next step:", "अगला कदम:")}</b> ${esc(title)} ${L(lang, `— could open ${step.count} more schemes. Answer it in the app.`, `— ${step.count} और योजनाएं खुल सकती हैं। ऐप में जवाब दें।`)}`); }
     }
   } catch {}
+  if (top.length || rest.length) { lines.push(""); lines.push(L(lang, "👇 Tap a number for that scheme's details.", "👇 किसी योजना का पूरा विवरण देखने के लिए उसका नंबर दबाएं।")); }
   lines.push("");
   lines.push(NOTE[lang] || NOTE.e);
   const code = encodeAll(answers);
   return {
     text: lines.join("\n"),
     reply_markup: { inline_keyboard: [
+      ...detailRows(lang, [...top.map(x => x.s), ...rest]),
       [{ text: L(lang, `📱 See all ${all.length} in the app`, `📱 सभी ${all.length} ऐप में देखें`), url: `${SITE_URL}/?quiz=${code}` }],
       [{ text: L(lang, "🔄 Check again", "🔄 फिर से जांचें"), callback_data: `R:${lang}` }, { text: hi ? "English" : "हिंदी", callback_data: `A:${hi ? "e" : "h"}${code}:x` }],
+      [shareButton(lang)],
     ] },
   };
 }
 
+// ── Scheme details, search, sharing ──────────────────────────────────────────
+function shareButton(lang) {
+  const text = L(lang, "Check which government schemes you may qualify for — free, in Hindi & English:", "जानें आप किन सरकारी योजनाओं के पात्र हो सकते हैं — मुफ़्त, हिंदी और English में:");
+  return { text: L(lang, "📤 Share with family & friends", "📤 परिवार और दोस्तों को भेजें"), url: `https://t.me/share/url?url=${encodeURIComponent(BOT_LINK)}&text=${encodeURIComponent(text)}` };
+}
+// Number buttons 1…n that open each listed scheme's details.
+function detailRows(lang, list) {
+  const btns = list.slice(0, 10).filter(s => s.id.length <= 50).map((s, i) => ({ text: String(i + 1), callback_data: `S:${lang}:${s.id}` }));
+  const rows = [];
+  for (let i = 0; i < btns.length; i += 5) rows.push(btns.slice(i, i + 5));
+  return rows;
+}
+function detailView(lang, s) {
+  const hi = lang === "h", k = hi ? "hi" : "en";
+  const lines = [`<b>${esc(s.name?.[k] || s.name?.en)}</b>`];
+  if (s.closed) lines.push(L(lang, "⛔ This scheme is closed for new applications.", "⛔ इस योजना में अभी नए आवेदन बंद हैं।"));
+  if (s.benefit?.[k] || s.benefit?.en) lines.push(`🎁 ${esc(s.benefit?.[k] || s.benefit?.en)}`);
+  const v = valueLabel(s, k); if (v) lines.push(`💰 ${esc(v)}`);
+  lines.push(`📍 ${s.scope === "national" ? L(lang, "Central Government — all of India", "केंद्र सरकार — पूरे भारत में") : esc(s.state || "")}`);
+  let who = []; try { const w = whoCanApply(s, k); who = Array.isArray(w) ? w : w ? [String(w)] : []; } catch {}
+  if (who.length) { lines.push(""); lines.push(`<b>${L(lang, "Who can apply", "कौन आवेदन कर सकता है")}</b>`); who.slice(0, 6).forEach(x => lines.push(`• ${esc(x)}`)); }
+  const docs = s.docs?.[k] || s.docs?.en || [];
+  if (docs.length) { lines.push(""); lines.push(`<b>${L(lang, "Documents needed", "ज़रूरी दस्तावेज़")}</b>`); docs.slice(0, 8).forEach(x => lines.push(`• ${esc(x)}`)); }
+  lines.push("");
+  lines.push(`<b>${L(lang, "How to apply", "आवेदन कैसे करें")}:</b> ${s.applyType === "online" ? L(lang, "online, on the official website", "ऑनलाइन, आधिकारिक वेबसाइट पर") : L(lang, "at the office or a Common Service Centre (CSC)", "कार्यालय या कॉमन सर्विस सेंटर (CSC) पर")}`);
+  lines.push(L(lang, "⚠️ Applying is free. Never pay an agent or share an OTP.", "⚠️ आवेदन मुफ़्त है। किसी एजेंट को पैसे या OTP न दें।"));
+  const official = officialSchemeLink(s);
+  const rows = [];
+  if (official) rows.push([{ text: L(lang, "🏛️ Official website", "🏛️ आधिकारिक वेबसाइट"), url: official }]);
+  rows.push([{ text: L(lang, "📄 Full details", "📄 पूरा विवरण"), url: schemePageUrl(s, k) }, { text: L(lang, "✅ Do I qualify?", "✅ क्या मैं पात्र हूं?"), callback_data: `L:${lang}` }]);
+  return { text: lines.join("\n"), reply_markup: { inline_keyboard: rows } };
+}
+
+const STOP = new Set(["for", "of", "the", "a", "an", "to", "in", "my", "me", "is", "how", "what", "apply", "scheme", "schemes", "yojana", "ka", "ki", "ke", "ko", "me", "mein", "hai", "kya", "kaise", "kare", "karna", "mujhe", "mera", "meri", "chahiye", "liye", "nahi", "aaya", "paisa", "money", "not", "received", "की", "का", "के", "में", "है", "क्या", "कैसे", "योजना", "मुझे", "लिए"]);
+const normq = t => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+function searchSchemes(q) {
+  const words = normq(q).split(" ").filter(w => w.length > 1 && !STOP.has(w));
+  const live = s => s && !s.closed && !s.duplicateOf;
+  const named = words.length ? SCHEME_DB.filter(s => live(s) && words.every(w => normq(`${s.name?.en} ${s.name?.hi}`).includes(w))) : [];
+  named.sort((a, b) => (a.scope === "national" ? 0 : 1) - (b.scope === "national" ? 0 : 1) || (a.name?.en || "").length - (b.name?.en || "").length);
+  let scored = [];
+  try { scored = scoreSchemes(String(q), null, null).scored.filter(x => live(x.scheme)).map(x => ({ s: x.scheme, r: x.score + (x.scheme.scope === "national" ? 6 : 0) })).sort((a, b) => b.r - a.r).map(x => x.s); } catch {}
+  const out = [];
+  for (const s of [...named, ...scored]) { if (!out.some(x => x.id === s.id)) out.push(s); if (out.length >= 5) break; }
+  return out;
+}
+const looksHindi = t => /[\u0900-\u097F]/.test(t) || /\b(ka|ki|ke|hai|nahi|kaise|mujhe|chahiye|liye|paisa|kya|mera|meri)\b/i.test(t);
+const MONEY_RE = /paisa nahi|nahi aaya|nahin aaya|not received|didn'?t (get|receive|come)|not come|stopped coming|पैसा नहीं|नहीं आया|बंद हो गया/i;
+
+async function onSearch(chat_id, text) {
+  const lang = looksHindi(text) ? "h" : "e";
+  const found = searchSchemes(text);
+  const lines = [];
+  if (MONEY_RE.test(text)) {
+    lines.push(L(lang, "💸 <b>Money not received?</b> Our step-by-step check finds the likely reason (Aadhaar–bank link, e-KYC, name mismatch…) and the fix:", "💸 <b>पैसा नहीं आया?</b> हमारी कदम-दर-कदम जांच संभावित कारण (आधार–बैंक लिंक, e-KYC, नाम में अंतर…) और उसका हल बताती है:"));
+    lines.push(`${SITE_URL}/?go=money`);
+    lines.push("");
+  }
+  if (found.length) {
+    lines.push(`<b>${L(lang, "Schemes that match:", "मिलती-जुलती योजनाएं:")}</b>`);
+    found.forEach((s, i) => lines.push(`${i + 1}. ${esc(s.name?.[lang === "h" ? "hi" : "en"] || s.name?.en)}${s.scope === "national" || String(s.name?.en || "").includes(s.state) ? "" : ` (${esc(s.state)})`}`));
+    lines.push("");
+    lines.push(L(lang, "👇 Tap a number for details.", "👇 विवरण के लिए नंबर दबाएं।"));
+  } else if (!lines.length) {
+    lines.push(L(lang, "I couldn't find a scheme for that. Try a scheme name (like \"PM Kisan\") or a need (like \"widow pension\", \"scholarship\") — or check which schemes fit you:", "इसके लिए कोई योजना नहीं मिली। योजना का नाम (जैसे \"पीएम किसान\") या ज़रूरत (जैसे \"विधवा पेंशन\", \"छात्रवृत्ति\") लिखें — या जांचें कि कौन सी योजनाएं आपके लिए हैं:"));
+  }
+  await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true, text: lines.join("\n"),
+    reply_markup: { inline_keyboard: [...detailRows(lang, found), [{ text: L(lang, "✅ Check which schemes I qualify for", "✅ जांचें मैं किन योजनाओं का पात्र हूं"), callback_data: `L:${lang}` }]] } });
+  await bump("searched");
+}
+
 const welcome = (name) => ({
-  text: `🙏 <b>${esc(name ? `Namaste ${name}!` : "Namaste!")}</b>\n\nFind the government schemes you may qualify for — a few quick questions, free.\nसरकारी योजनाएं जिनके आप पात्र हो सकते हैं — कुछ आसान सवाल, मुफ़्त।\n\n<b>Choose your language / भाषा चुनें:</b>`,
-  reply_markup: { inline_keyboard: [[{ text: "English", callback_data: "L:e" }, { text: "हिंदी", callback_data: "L:h" }]] },
+  text: `🙏 <b>${esc(name ? `Namaste ${name}!` : "Namaste!")}</b>\n\nFind the government schemes you may qualify for — a few quick questions, free.\nसरकारी योजनाएं जिनके आप पात्र हो सकते हैं — कुछ आसान सवाल, मुफ़्त।\n\n💬 You can also type a scheme name or a need, like "PM Kisan" or "widow pension".\n💬 आप योजना का नाम या ज़रूरत भी लिख सकते हैं, जैसे "पीएम किसान" या "विधवा पेंशन"।\n\n<b>Choose your language / भाषा चुनें:</b>`,
+  reply_markup: { inline_keyboard: [[{ text: "English", callback_data: "L:e" }, { text: "हिंदी", callback_data: "L:h" }], [shareButton("e")]] },
 });
 
 // ── Counters (anonymous) ─────────────────────────────────────────────────────
@@ -189,6 +268,8 @@ async function onMessage(m) {
   const chat_id = m.chat?.id;
   if (!chat_id || m.chat?.type !== "private") return; // groups: stay quiet
   const text = String(m.text || "").trim();
+  const greeting = /^(hi|hii+|hello|hey|namaste|namaskar|start|नमस्ते|नमस्कार|हेलो)\b[!. ]*$/i.test(text);
+  if (text && !text.startsWith("/") && !greeting && text.length >= 2) return onSearch(chat_id, text.slice(0, 200));
   if (/^\/(start|check)/i.test(text) || !text.startsWith("/")) {
     await tg("sendMessage", { chat_id, parse_mode: "HTML", ...welcome(m.from?.first_name) });
     if (/^\/start/i.test(text)) await bump("started");
@@ -210,6 +291,11 @@ async function onCallback(cq) {
   const show = (view) => tg("editMessageText", { chat_id, message_id, parse_mode: "HTML", disable_web_page_preview: true, ...view });
 
   let m;
+  if ((m = /^S:([eh]):([A-Za-z0-9_-]{1,50})$/.exec(data))) {
+    const s = BY_ID.get(m[2]);
+    if (s) await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true, ...detailView(m[1], s) });
+    return;
+  }
   if ((m = /^L:([eh])$/.exec(data)) || (m = /^R:([eh])$/.exec(data))) return show(questionView(m[1], {}));
   if ((m = /^P:([eh])([0-9a-z]*):(\d{1,2})$/.exec(data))) {
     const { answers, bad } = decodeQuiz(m[2]);

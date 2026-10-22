@@ -363,7 +363,7 @@ ${TERMS.hi.points.map(t => `    <li>${esc(t)}</li>`).join("\n")}
     <li><strong>Free</strong> — no ads, no charges to find schemes or check eligibility</li>
     <li><strong>Hindi and English</strong>, with voice input</li>
     <li>Official government links on every scheme, re-checked automatically on a regular schedule</li>
-    <li>Available as a website and an Android app</li>
+    <li>Available as a website, an Android app and a Telegram bot (@YojanaSahayBot)</li>
     <li>Built in India by Sahnawaz Ahmed Laskar</li>
   </ul>
   <h2>Please note</h2>
@@ -388,6 +388,7 @@ ${TERMS.hi.points.map(t => `    <li>${esc(t)}</li>`).join("\n")}
   <ul>
     <li>Website: <a href="${SITE_URL}/">${SITE_URL.replace(/^https:\/\//, "")}</a></li>
     <li>Android app: on Google Play — link here at launch</li>
+    <li>Telegram bot: <a href="https://t.me/YojanaSahayBot">@YojanaSahayBot</a> — the same eligibility check inside Telegram, in English and Hindi</li>
     <li>How the information is checked: <a href="/how-we-verify.html">How we verify</a></li>
   </ul>
   <h2>Media contact</h2>
