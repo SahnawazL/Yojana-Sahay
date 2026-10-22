@@ -263,6 +263,16 @@ async function bump(field) {
   } catch (e) { console.warn("[telegram] counter failed:", e.message); }
 }
 
+// A finished check on Telegram counts toward "Indians helped" on the home
+// screen, the same as a finished check in the app (appStats/usage.checkerTotal).
+// Only the number goes up — no answers are stored.
+async function countHelped() {
+  try {
+    const db = getAdminDb(); if (!db) return;
+    await db.collection("appStats").doc("usage").set({ checkerTotal: FieldValue.increment(1), lastRun: new Date().toISOString() }, { merge: true });
+  } catch (e) { console.warn("[telegram] helped counter failed:", e.message); }
+}
+
 // ── Updates ──────────────────────────────────────────────────────────────────
 async function onMessage(m) {
   const chat_id = m.chat?.id;
@@ -318,7 +328,7 @@ async function onCallback(cq) {
     const next = { ...answers, [q.id]: q.values[i] };
     if (nextQuizQuestion(next)) return show(questionView(lang, next));
     await show(resultView(lang, next));
-    await bump("finished");
+    await Promise.all([bump("finished"), countHelped()]);
     return;
   }
 }

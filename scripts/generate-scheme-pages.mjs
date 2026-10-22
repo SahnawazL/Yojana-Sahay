@@ -39,6 +39,7 @@ const { SCHEME_COUNT_LABEL, STATE_COUNT, CENTRAL_COUNT } = await import("../src/
 const { whoCanApply } = await import("../src/eligibilityText.js");
 const { isOfficialUrl } = await import("../src/schemeMatch.js");
 const { benefitKind } = await import("../src/benefitMath.js");
+const { nicheAudience } = await import("../src/audience.js");
 const { GUIDES, GUIDES_REVIEWED } = await import("./seo-guides.mjs");
 let META = {};
 try { META = JSON.parse(fs.readFileSync(path.join(ROOT, "src", "schemes-meta.json"), "utf8")); } catch { /* optional */ }
@@ -277,6 +278,155 @@ ${enUrl && hiUrl ? `<link rel="alternate" hreflang="en-IN" href="${enUrl}" />
 </head>`;
 }
 
+// ── Printable posters (/poster.html) ─────────────────────────────────────────
+// A4 poster for panchayat offices, CSCs, ration shops, colleges: a QR code that
+// opens the eligibility checker. Counts and example schemes come from the data
+// at every build, per state.
+function renderPoster() {
+  const live = SCHEME_DB.filter(s => !s.closed && s.name?.en);
+  const pick = list => list
+    .filter(s => benefitKind(s) === "yearly" && (Number(s.annual) || 0) > 0 && !nicheAudience(s))
+    .sort((a, b) => (b.annual || 0) - (a.annual || 0))
+    .slice(0, 3).map(s => ({ en: String(s.name.en).replace(/\s*\([^)]*\)\s*$/, ""), hi: String(s.name.hi || s.name.en).replace(/\s*\([^)]*\)\s*$/, "") }));
+  const central = live.filter(s => s.scope === "national");
+  const FAMOUS = ["pmkisan", "ayushman", "pmawas-rural", "pmujjwala", "nfsa-pds"];
+  const centralTop = FAMOUS.map(id => central.find(s => s.id === id)).filter(Boolean).slice(0, 3)
+    .map(s => ({ en: String(s.name.en).replace(/\s*\([^)]*\)\s*$/, ""), hi: String(s.name.hi || s.name.en).replace(/\s*\([^)]*\)\s*$/, "") }));
+  const states = {};
+  for (const s of live) if (s.scope === "state" && s.state) (states[s.state] ||= []).push(s);
+  const data = { central: central.length, centralTop, states: Object.fromEntries(Object.entries(states).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, { n: v.length, top: pick(v) }])) };
+  const json = JSON.stringify(data).replace(/</g, "\\u003c");
+  return `<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Free Printable Posters – YojanaSahay</title>
+<meta name="description" content="Print a free A4 poster with a QR code that opens the YojanaSahay scheme checker — for panchayat offices, CSCs, ration shops, schools and colleges. Hindi and English, any state." />
+<link rel="canonical" href="${SITE_URL}/poster.html" />
+<meta property="og:title" content="Free printable scheme-checker posters – YojanaSahay" />
+<meta property="og:image" content="${SITE_URL}/og-image.png" />
+<link rel="icon" href="/favicon.ico" />
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Noto Sans','Noto Sans Devanagari',-apple-system,system-ui,sans-serif;background:#e7e5e4;color:#1c1917}
+  .tools{max-width:820px;margin:0 auto;padding:18px 16px 6px}
+  .tools h1{font-size:20px;margin:0 0 4px} .tools p{font-size:13.5px;color:#57534e;margin:0 0 12px;line-height:1.55}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+  label{font-size:12px;font-weight:700;color:#44403c;display:flex;flex-direction:column;gap:4px;flex:1 1 160px}
+  select{font:inherit;font-size:14px;padding:9px 10px;border-radius:10px;border:1px solid #d6d3d1;background:#fff;color:#1c1917}
+  .chk{flex-direction:row;align-items:center;gap:6px;flex:0 0 auto;font-weight:600}
+  button{font:inherit;font-weight:800;font-size:15px;padding:11px 18px;border-radius:12px;border:0;background:#FF9933;color:#fff;cursor:pointer}
+  .tip{font-size:12px;color:#78716c;margin:0 0 14px}
+  .wrap{display:flex;justify-content:center;padding:0 12px 30px;overflow:hidden}
+  .sheet{width:210mm;height:297mm;background:#fff;box-shadow:0 6px 30px rgba(0,0,0,.18);position:relative;overflow:hidden;display:flex;flex-direction:column;transform-origin:top center}
+  .band{height:9mm;background:linear-gradient(90deg,#FF9933 0 33.3%,#fff 33.3% 66.6%,#138808 66.6%)}
+  .in{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:8mm 15mm 7mm}
+  .brand{display:flex;align-items:center;gap:4mm;margin-bottom:4mm}
+  .brand img{width:16mm;height:16mm;border-radius:4mm}
+  .brand b{font-size:9mm;letter-spacing:.2mm;color:#1B2A4A}
+  .kick{font-size:4.3mm;font-weight:700;color:#C2410C;letter-spacing:.3mm;margin-bottom:4mm}
+  .h1{font-size:11mm;line-height:1.18;font-weight:900;color:#111;margin:0 0 3mm}
+  .h1en{font-size:6.2mm;font-weight:700;color:#44403c;margin:0 0 4mm}
+  .sub{font-size:5mm;color:#44403c;line-height:1.45;margin:0 0 4mm}
+  .qrbox{display:flex;align-items:center;justify-content:center;gap:9mm;margin:0 0 4mm}
+  .qr{border:1.6mm solid #FF9933;border-radius:6mm;padding:3mm;background:#fff}
+  .qr img{display:block;width:66mm;height:66mm}
+  .qr.small img{width:30mm;height:30mm}
+  .qrl{font-size:5.6mm;font-weight:900;margin-top:3mm;color:#111}
+  .qrs{font-size:3.8mm;color:#57534e;margin-top:1mm}
+  .stats{display:flex;gap:5mm;justify-content:center;margin:0 0 3mm;flex-wrap:wrap}
+  .stat{border:0.5mm solid #e7e5e4;border-radius:4mm;padding:3mm 6mm;background:#fafaf9}
+  .stat b{display:block;font-size:9mm;color:#138808;line-height:1.1} .stat span{font-size:4mm;color:#44403c}
+  .eg{font-size:4.2mm;color:#44403c;line-height:1.5;margin:0 0 4mm;max-width:170mm}
+  .steps{display:flex;gap:4mm;justify-content:center;margin:0 0 4mm}
+  .step{flex:1;max-width:56mm;font-size:4.2mm;line-height:1.35;color:#1c1917;background:#FFF7ED;border-radius:4mm;padding:3mm}
+  .step i{font-style:normal;display:block;font-size:6mm;font-weight:900;color:#FF9933}
+  .foot{margin-top:auto;width:100%;border-top:0.5mm solid #e7e5e4;padding-top:4mm}
+  .url{font-size:5.6mm;font-weight:900;color:#1B2A4A}
+  .warn{font-size:3.9mm;color:#7f1d1d;background:#FEF2F2;border-radius:3mm;padding:2.5mm 4mm;margin-top:3mm;line-height:1.45}
+  .fine{font-size:3.2mm;color:#78716c;margin-top:2.5mm}
+  @page{size:A4 portrait;margin:0}
+  @media print{body{background:#fff}.tools{display:none}.wrap{padding:0}.sheet{box-shadow:none;transform:none!important;margin:0!important}}
+</style>
+</head>
+<body>
+<div class="tools">
+  <h1>Free posters — print and paste</h1>
+  <p>Put one up at a panchayat office, CSC, ration shop, bank, school or college. People scan the QR code with their phone camera and check which schemes they qualify for — free, in Hindi and English.</p>
+  <div class="row">
+    <label>Language
+      <select id="lang"><option value="hi">हिंदी (with English line)</option><option value="en">English</option></select>
+    </label>
+    <label>State on the poster
+      <select id="state"><option value="">All India (Central schemes)</option></select>
+    </label>
+    <label class="chk"><input type="checkbox" id="tg" checked> Telegram QR</label>
+    <button type="button" onclick="window.print()">🖨️ Print / Save PDF</button>
+  </div>
+  <p class="tip">Tip: in the print window choose paper size A4, margins “None”, and turn on “Background graphics”. Save as PDF to share on WhatsApp.</p>
+</div>
+<div class="wrap"><div class="sheet" id="sheet">
+  <div class="band"></div>
+  <div class="in">
+    <div class="brand"><img src="/press/yojana-sahay-logo-512.png" alt=""><b id="brand">योजना सहाय</b></div>
+    <div class="kick" id="kick"></div>
+    <div class="h1" id="h1"></div>
+    <div class="h1en" id="h1en"></div>
+    <div class="sub" id="sub"></div>
+    <div class="qrbox">
+      <div><div class="qr"><img src="/poster/qr-checker.svg" alt="QR code: YojanaSahay scheme checker"></div><div class="qrl" id="qrl"></div><div class="qrs" id="qrs"></div></div>
+      <div id="tgbox"><div class="qr small"><img src="/poster/qr-telegram.svg" alt="QR code: YojanaSahay on Telegram"></div><div class="qrs" id="tgl" style="font-weight:800;color:#0369A1"></div></div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="eg" id="eg"></div>
+    <div class="steps" id="steps"></div>
+    <div class="foot">
+      <div class="url">yojanasahay.vercel.app</div>
+      <div class="warn" id="warn"></div>
+      <div class="fine" id="fine"></div>
+    </div>
+  </div>
+</div></div>
+<script>
+var D=${json};
+var S=document.getElementById("state");
+Object.keys(D.states).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k;S.appendChild(o);});
+function $(i){return document.getElementById(i);}
+function render(){
+  var hi=$("lang").value==="hi", st=S.value, sd=st&&D.states[st];
+  var T=function(e,h){return hi?h:e;};
+  $("brand").textContent=T("YojanaSahay","योजना सहाय");
+  $("kick").textContent=T("FREE · INDEPENDENT · IN HINDI & ENGLISH","मुफ़्त · स्वतंत्र · हिंदी और English में");
+  $("h1").textContent=T("Which government schemes can you get?","आपको कौन सी सरकारी योजनाएं मिल सकती हैं?");
+  $("h1en").textContent=hi?"Which government schemes can you get? Check free.":"";
+  $("h1en").style.display=hi?"":"none";
+  $("sub").textContent=T("Answer a few simple questions — find out in 2 minutes. Pensions, scholarships, farmer support, housing, health cover and more.","कुछ आसान सवालों के जवाब दें — 2 मिनट में जानें। पेंशन, छात्रवृत्ति, किसान सहायता, मकान, इलाज और भी बहुत कुछ।");
+  $("qrl").textContent=T("📱 Scan with your phone camera","📱 फ़ोन के कैमरे से स्कैन करें");
+  $("qrs").textContent=T("Opens the free scheme checker","मुफ़्त योजना जांच खुलेगी");
+  $("tgbox").style.display=$("tg").checked?"":"none";
+  $("tgl").textContent=T("or on Telegram: @YojanaSahayBot","या Telegram पर: @YojanaSahayBot");
+  var stats='<div class="stat"><b>'+D.central+'</b><span>'+T("Central Government schemes","केंद्र सरकार की योजनाएं")+'</span></div>';
+  if(sd) stats+='<div class="stat"><b>'+sd.n+'</b><span>'+T(st+" schemes",st+" की योजनाएं")+'</span></div>';
+  $("stats").innerHTML=stats;
+  var top=(sd&&sd.top.length?sd.top:D.centralTop).map(function(x){return hi?x.hi:x.en;});
+  $("eg").textContent=top.length?T("For example: ","जैसे: ")+top.join(" · "):"";
+  $("steps").innerHTML=[T("Scan the QR code","QR कोड स्कैन करें"),T("Answer a few questions","कुछ सवालों के जवाब दें"),T("See your schemes and how to apply","अपनी योजनाएं और आवेदन का तरीका देखें")]
+    .map(function(t,i){return '<div class="step"><i>'+(i+1)+'</i>'+t+'</div>';}).join("");
+  $("warn").textContent=T("⚠️ Applying for a scheme is free. Never pay anyone or share an OTP. Apply only on the official website or at the office.","⚠️ योजना का आवेदन मुफ़्त है। किसी को पैसे या OTP न दें। आवेदन सिर्फ़ आधिकारिक वेबसाइट या कार्यालय में करें।");
+  $("fine").textContent=T("YojanaSahay is a free, independent guide — not a government website or service.","YojanaSahay एक मुफ़्त, स्वतंत्र गाइड है — सरकारी वेबसाइट या सेवा नहीं।");
+  fit();
+}
+function fit(){var w=document.querySelector(".wrap").clientWidth-24, sh=$("sheet"), px=sh.offsetWidth, k=Math.min(1,w/px); sh.style.transform="scale("+k+")"; sh.style.marginBottom=(k<1?-(sh.offsetHeight*(1-k)):0)+"px";}
+["lang","state","tg"].forEach(function(i){$(i).addEventListener("change",render);});
+window.addEventListener("resize",fit);
+try{var q=new URLSearchParams(location.search); if(q.get("state")&&D.states[q.get("state")]) S.value=q.get("state"); if(q.get("lang")==="en") $("lang").value="en";}catch(e){}
+render();
+</script>
+</body>
+</html>`;
+}
+
 // ── Category hubs ("Schemes for Women", "Farmer schemes in Bihar") ──────────
 function renderCatHub(hub, lang) {
   const isHindi = lang === "hi";
@@ -388,6 +538,7 @@ ${TERMS.hi.points.map(t => `    <li>${esc(t)}</li>`).join("\n")}
   <ul>
     <li>Website: <a href="${SITE_URL}/">${SITE_URL.replace(/^https:\/\//, "")}</a></li>
     <li>Android app: on Google Play — link here at launch</li>
+    <li>Free printable posters with a QR code (Hindi / English, any state): <a href="/poster.html">yojanasahay.vercel.app/poster.html</a></li>
     <li>Telegram bot: <a href="https://t.me/YojanaSahayBot">@YojanaSahayBot</a> — the same eligibility check inside Telegram, in English and Hindi</li>
     <li>How the information is checked: <a href="/how-we-verify.html">How we verify</a></li>
   </ul>
@@ -980,6 +1131,8 @@ function main() {
     fs.writeFileSync(path.join(ROOT, "public", `${kind}.html`), renderTrust(kind), "utf8");
     sitemapEntries.push({ loc: `${SITE_URL}/${kind}.html` });
   }
+  fs.writeFileSync(path.join(ROOT, "public", "poster.html"), renderPoster(), "utf8");
+  sitemapEntries.push({ loc: `${SITE_URL}/poster.html` });
   fs.writeFileSync(path.join(ROOT, "public", "faq.html"), renderFaq(), "utf8");
   sitemapEntries.push({ loc: `${SITE_URL}/faq.html` });
   // Data for the embeddable widget (public/widget.html, shown on other
