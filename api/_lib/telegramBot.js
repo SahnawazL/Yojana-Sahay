@@ -403,7 +403,6 @@ async function onMessage(m) {
   if (text && !text.startsWith("/") && !greeting && text.length >= 2) return onSearch(chat_id, text.slice(0, 200));
   if (/^\/(start|check)/i.test(text) || !text.startsWith("/")) {
     await tg("sendMessage", { chat_id, parse_mode: "HTML", ...welcome(m.from?.first_name) });
-    if (/^\/start/i.test(text)) await bump("started");
     return;
   }
   if (/^\/stop/i.test(text)) {
@@ -457,7 +456,9 @@ async function onCallback(cq) {
     if (s) await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true, ...detailView(m[1], s) });
     return;
   }
-  if ((m = /^L:([eh])$/.exec(data)) || (m = /^R:([eh])$/.exec(data))) return show(questionView(m[1], {}));
+  // "Started" = a check begun (language chosen, "Check again", "Do I qualify?") —
+  // so it lines up with "Finished".
+  if ((m = /^L:([eh])$/.exec(data)) || (m = /^R:([eh])$/.exec(data))) { await bump("started"); return show(questionView(m[1], {})); }
   if ((m = /^P:([eh])([0-9a-z]*):(\d{1,2})$/.exec(data))) {
     const { answers, bad } = decodeQuiz(m[2]);
     if (bad || !nextQuizQuestion(answers)) return show(questionView(m[1], {}));
