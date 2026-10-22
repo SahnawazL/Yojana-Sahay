@@ -220,7 +220,7 @@ export const PUDUCHERRY_SCHEMES = [
     id: "puducherry_grant_monthly_financial",
     icon: "👩", color: "#BE185D", scope: "state", state: "Puducherry",
     ministry: { en: "Department of Women and Child Development, Puducherry", hi: "पुदुचेरी के महिला एवं बाल विकास विभाग" },
-    name:    { en: "Grant of Monthly Financial Assistance to Women Heads of Families Living Below Poverty Line", hi: "बेरोज़गारी रेखा के नीचे रहने वाली परिवारों की महिला प्रमुखों को मासिक वित्तीय सहायता का अनुदान" },
+    name:    { en: "Grant of Monthly Financial Assistance to Women Heads of Families Living Below Poverty Line", hi: "गरीबी रेखा से नीचे के परिवारों की महिला मुखियाओं को मासिक आर्थिक सहायता" },
     benefit: { en: "₹1,000 per month", hi: "प्रति माह ₹1,000" },
     tag:     { en: "Financial Assistance", hi: "वित्तीय सहायता" },
     annual: 12000,
