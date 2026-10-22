@@ -4018,73 +4018,174 @@ const DIR_CATS = [
   { k:"disability", i:"♿", en:"Disability", hi:"दिव्यांगजन" },
 ];
 const DIR_POPULAR = ["pmkisan","ayushman","pmawas_rural","pmawas_urban","scholarship","mudra","ujjwala","kisancredit","vriddhapension","pmjdy","apy","pmjjby"];
+const DIR_CAT_COLOR = { women:"#DB2777", farmers:"#16A34A", students:"#2563EB", health:"#DC2626", senior:"#D97706", business:"#7C3AED", housing:"#EA580C", workers:"#0891B2", disability:"#4F46E5" };
+function DirIcon({ d, size = 18 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d}</svg>;
+}
 function SchemeDirectory({ lang, dark }) {
   const isHindi = lang === "hi";
+  const L = (en, hi) => (isHindi ? hi : en);
   const base = isHindi ? "/yojana/" : "/schemes/";
   const bf = isHindi ? "'Noto Sans Devanagari',sans-serif" : "'Noto Sans',sans-serif";
-  const chip = {
-    display:"inline-block", padding:"6px 11px", borderRadius:999, fontSize:12, fontWeight:600, textDecoration:"none",
-    color: dark ? "#e7e5e4" : "#44403c", background: dark ? "#1c1c1e" : "#fff",
-    border:`1px solid ${dark ? "#2c2c2e" : "#ece7e1"}`, fontFamily:bf,
-  };
+  const [allStates, setAllStates] = useState(false);
+  const [allPop, setAllPop] = useState(false);
+  const c = dark
+    ? { card:"#18181b", line:"#2a2a2e", text:"#f4f4f5", sub:"#a1a1aa", soft:"#1f1f23", tile:"#202024" }
+    : { card:"#ffffff", line:"#ece7e1", text:"#1c1917", sub:"#78716c", soft:"#faf8f5", tile:"#fbfaf8" };
+  const card = { background:c.card, border:`1.5px solid ${c.line}`, borderRadius:20, padding:16, marginBottom:14, boxShadow: dark ? "none" : "0 4px 18px rgba(0,0,0,0.05)" };
+  const Head = ({ grad, icon, title, sub }) => (
+    <div style={{ display:"flex", alignItems:"center", gap:11, marginBottom:13 }}>
+      <div style={{ width:38, height:38, borderRadius:12, background:grad, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 12px rgba(0,0,0,0.12)" }}>{icon}</div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:14.5, fontWeight:800, color:c.text }}>{title}</div>
+        {sub && <div style={{ fontSize:11, color:c.sub, marginTop:2, lineHeight:1.4 }}>{sub}</div>}
+      </div>
+    </div>
+  );
+  const More = ({ open, onClick, more, less }) => (
+    <button type="button" onClick={onClick} style={{ all:"unset", boxSizing:"border-box", width:"100%", marginTop:10, padding:"10px 12px", borderRadius:12, textAlign:"center", cursor:"pointer",
+      fontSize:12.5, fontWeight:800, color: dark ? "#FDBA74" : "#C2410C", background: dark ? "rgba(255,153,51,0.08)" : "#FFF7ED", border:`1px solid ${dark ? "rgba(255,153,51,0.25)" : "#FED7AA"}`, fontFamily:bf }}>
+      {open ? less : more} <span style={{ display:"inline-block", transform: open ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+    </button>
+  );
+  const central = DIR_HUBS.find(h => !h.state);
+  const states = DIR_HUBS.filter(h => h.state);
+  const STATE_PREVIEW = 10, POP_PREVIEW = 6;
   // Duplicate listings have no page of their own — link the main entry instead.
   const pop = [...new Set(DIR_POPULAR.map(id => {
     const s = SCHEME_DB.find(x => x.id === id);
     return s?.duplicateOf ? SCHEME_DB.find(x => x.id === s.duplicateOf) : s;
   }).filter(Boolean))];
+  const slug = id => String(id).toLowerCase().replace(/[^a-z0-9-]/g, "-");
+  const links = [
+    ["/about.html", L("About us", "हमारे बारे में")], ["/how-we-verify.html", L("How we verify", "जानकारी कैसे जांचते हैं")],
+    ["/faq.html", "FAQ"], ["/contact.html", L("Contact & corrections", "संपर्क व सुधार")],
+    ["/terms.html", L("Terms of Service", "सेवा की शर्तें")], ["/privacy.html", L("Privacy Policy", "गोपनीयता नीति")],
+    ["/press.html", L("Press & media", "मीडिया")], ["/poster.html", L("Free posters", "मुफ़्त पोस्टर")],
+  ];
   return (
-    <nav aria-label={isHindi ? "योजनाओं की सूची" : "Scheme directory"} style={{ margin:"6px 16px 22px", fontFamily:bf }}>
-      <div style={{ fontSize:14.5, fontWeight:800, color: dark ? "#f0f0f0" : "#1a1a1a", marginBottom:4 }}>
-        {isHindi ? "📍 राज्य के अनुसार योजनाएं देखें" : "📍 Browse schemes by state"}
-      </div>
-      <div style={{ fontSize:11.5, color: dark ? "#a8a29e" : "#78716c", marginBottom:10 }}>
-        {isHindi ? "हर राज्य की पूरी सूची — लाभ, दस्तावेज़ और आवेदन का तरीका" : "Full lists for every state — benefits, documents and how to apply"}
-      </div>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-        {DIR_HUBS.map(h => (
-          <a key={h.key} href={`${base}${h.key}.html`} style={chip}>
-            {h.state ?? (isHindi ? "केंद्र सरकार" : "Central Govt")} <span style={{ opacity:0.55 }}>({h.n})</span>
+    <nav aria-label={L("Scheme directory", "योजनाओं की सूची")} style={{ margin:"6px 16px 22px", fontFamily:bf }}>
+      {/* ── States ── */}
+      <div style={card}>
+        <Head grad="linear-gradient(135deg,#FF9933,#F97316)" title={L("Browse schemes by state", "राज्य के अनुसार योजनाएं")}
+          sub={L("Full lists — benefits, documents and how to apply", "पूरी सूची — लाभ, दस्तावेज़ और आवेदन का तरीका")}
+          icon={<DirIcon d={<><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></>}/>}/>
+        {central && (
+          <a href={`${base}${central.key}.html`} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 14px", borderRadius:15, textDecoration:"none", marginBottom:9,
+            background:"linear-gradient(135deg,#1B2A4A 0%,#003580 100%)", boxShadow:"0 6px 18px rgba(11,22,38,0.25)" }}>
+            <div style={{ width:36, height:36, borderRadius:11, background:"rgba(255,255,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <DirIcon size={19} d={<><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6"/></>}/>
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:13.5, fontWeight:800, color:"#fff" }}>{L("Central Government", "केंद्र सरकार")}</div>
+              <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)", marginTop:1 }}>{L(`${central.n} schemes · for all of India`, `${central.n} योजनाएं · पूरे भारत के लिए`)}</div>
+            </div>
+            <span style={{ fontSize:18, color:"#D9B84A" }}>›</span>
           </a>
-        ))}
+        )}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7 }}>
+          {states.map((h, i) => (
+            <a key={h.key} href={`${base}${h.key}.html`}
+              style={{ display: allStates || i < STATE_PREVIEW ? "flex" : "none", alignItems:"center", gap:6, padding:"10px 10px 10px 12px", borderRadius:12, textDecoration:"none", minWidth:0,
+                background:c.tile, border:`1px solid ${c.line}` }}>
+              <span style={{ flex:1, minWidth:0, fontSize:12.5, fontWeight:700, color:c.text, lineHeight:1.25 }}>{h.state}</span>
+              <span style={{ fontSize:10.5, fontWeight:800, color: dark ? "#86EFAC" : "#15803D", background: dark ? "rgba(34,197,94,0.12)" : "#F0FDF4", borderRadius:20, padding:"2px 7px", flexShrink:0 }}>{h.n}</span>
+            </a>
+          ))}
+        </div>
+        {states.length > STATE_PREVIEW && (
+          <More open={allStates} onClick={() => setAllStates(v => !v)}
+            more={L(`Show all ${states.length} states & UTs`, `सभी ${states.length} राज्य व केंद्रशासित प्रदेश देखें`)} less={L("Show fewer", "कम दिखाएं")}/>
+        )}
       </div>
-      <div style={{ fontSize:14.5, fontWeight:800, color: dark ? "#f0f0f0" : "#1a1a1a", margin:"18px 0 10px" }}>
-        {isHindi ? "🗂️ श्रेणी के अनुसार" : "🗂️ Browse by category"}
+
+      {/* ── Categories ── */}
+      <div style={card}>
+        <Head grad="linear-gradient(135deg,#7C3AED,#2563EB)" title={L("Browse by category", "श्रेणी के अनुसार")}
+          sub={L("Schemes grouped by who they help", "किसकी मदद करती हैं — उसके अनुसार योजनाएं")}
+          icon={<DirIcon d={<><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>}/>}/>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+          {DIR_CATS.map(cat => {
+            const col = DIR_CAT_COLOR[cat.k] || "#C2410C";
+            return (
+              <a key={cat.k} href={`${base}cat-${cat.k}.html`}
+                style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, padding:"12px 6px 11px", borderRadius:14, textDecoration:"none", background:c.tile, border:`1px solid ${c.line}`, minWidth:0 }}>
+                <span style={{ width:40, height:40, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, background:`${col}${dark ? "26" : "14"}`, border:`1px solid ${col}33` }}>{cat.i}</span>
+                <span style={{ fontSize:11.5, fontWeight:700, color:c.text, textAlign:"center", lineHeight:1.25 }}>{isHindi ? cat.hi : cat.en}</span>
+              </a>
+            );
+          })}
+        </div>
       </div>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-        {DIR_CATS.map(c => (
-          <a key={c.k} href={`${base}cat-${c.k}.html`} style={chip}>{c.i} {isHindi ? c.hi : c.en}</a>
-        ))}
+
+      {/* ── Popular schemes ── */}
+      <div style={card}>
+        <Head grad="linear-gradient(135deg,#F59E0B,#EA580C)" title={L("Popular schemes", "लोकप्रिय योजनाएं")}
+          sub={L("Most searched Central Government schemes", "सबसे ज़्यादा खोजी जाने वाली केंद्र सरकार की योजनाएं")}
+          icon={<DirIcon d={<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>}/>}/>
+        <div style={{ borderRadius:14, border:`1px solid ${c.line}`, overflow:"hidden" }}>
+          {pop.map((s, i) => {
+            const v = valueLabel(s, lang);
+            return (
+              <a key={s.id} href={`${base}${slug(s.id)}.html`}
+                style={{ display: allPop || i < POP_PREVIEW ? "flex" : "none", alignItems:"center", gap:11, padding:"11px 12px", textDecoration:"none", background:c.card, borderTop: i ? `1px solid ${c.line}` : "none" }}>
+                <span style={{ width:34, height:34, borderRadius:10, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, background:`${s.color || "#FF9933"}${dark ? "26" : "16"}` }}>{s.icon}</span>
+                <span style={{ flex:1, minWidth:0 }}>
+                  <span style={{ display:"block", fontSize:12.5, fontWeight:700, color:c.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.name?.[lang] || s.name?.en}</span>
+                  {v && <span style={{ display:"block", fontSize:10.5, fontWeight:700, color: dark ? "#86EFAC" : "#15803D", marginTop:2 }}>{v}</span>}
+                </span>
+                <span style={{ fontSize:17, color:c.sub, flexShrink:0 }}>›</span>
+              </a>
+            );
+          })}
+        </div>
+        {pop.length > POP_PREVIEW && (
+          <More open={allPop} onClick={() => setAllPop(v => !v)} more={L(`Show all ${pop.length} popular schemes`, `सभी ${pop.length} लोकप्रिय योजनाएं देखें`)} less={L("Show fewer", "कम दिखाएं")}/>
+        )}
       </div>
-      <div style={{ fontSize:14.5, fontWeight:800, color: dark ? "#f0f0f0" : "#1a1a1a", margin:"18px 0 10px" }}>
-        {isHindi ? "⭐ लोकप्रिय योजनाएं" : "⭐ Popular schemes"}
-      </div>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-        {pop.map(s => (
-          <a key={s.id} href={`${base}${String(s.id).toLowerCase().replace(/[^a-z0-9-]/g, "-")}.html`} style={chip}>
-            {s.icon} {s.name?.[lang] || s.name?.en}
-          </a>
-        ))}
-      </div>
+
+      {/* ── Telegram ── */}
       <a href="/telegram" target="_blank" rel="noopener noreferrer"
-        style={{ display:"flex", alignItems:"center", gap:10, marginTop:14, padding:"11px 13px", borderRadius:14, textDecoration:"none",
-          background: dark ? "rgba(34,158,217,0.12)" : "#EEF8FD", border:`1px solid ${dark ? "rgba(34,158,217,0.35)" : "#BAE3F5"}` }}>
-        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink:0 }}><circle cx="12" cy="12" r="12" fill="#229ED9"/><path d="M5.5 11.8 17 7.3c.5-.2 1 .1.8.9l-2 9.3c-.1.6-.6.8-1.1.5l-3-2.2-1.5 1.4c-.2.2-.3.3-.6.3l.2-3.1 5.6-5.1c.2-.2 0-.3-.3-.1l-6.9 4.4-3-.9c-.6-.2-.6-.6.3-.9z" fill="#fff"/></svg>
+        style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 15px", borderRadius:20, textDecoration:"none", marginBottom:14,
+          background: dark ? "linear-gradient(135deg,rgba(34,158,217,0.16),rgba(34,158,217,0.06))" : "linear-gradient(135deg,#E0F2FE,#F0F9FF)",
+          border:`1.5px solid ${dark ? "rgba(34,158,217,0.35)" : "#BAE6FD"}` }}>
+        <svg width="38" height="38" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink:0, filter:"drop-shadow(0 4px 10px rgba(34,158,217,0.35))" }}><circle cx="12" cy="12" r="12" fill="#229ED9"/><path d="M5.5 11.8 17 7.3c.5-.2 1 .1.8.9l-2 9.3c-.1.6-.6.8-1.1.5l-3-2.2-1.5 1.4c-.2.2-.3.3-.6.3l.2-3.1 5.6-5.1c.2-.2 0-.3-.3-.1l-6.9 4.4-3-.9c-.6-.2-.6-.6.3-.9z" fill="#fff"/></svg>
         <span style={{ flex:1, minWidth:0 }}>
-          <span style={{ display:"block", fontSize:13, fontWeight:800, color: dark ? "#7DD3FC" : "#0369A1" }}>{isHindi ? "Telegram पर जांचें" : "Check on Telegram"}</span>
-          <span style={{ display:"block", fontSize:11, color: dark ? "#a8a29e" : "#57534e", marginTop:1 }}>{isHindi ? "@YojanaSahayBot — वही जांच, चैट में" : "@YojanaSahayBot — the same check, in a chat"}</span>
+          <span style={{ display:"block", fontSize:14, fontWeight:800, color: dark ? "#7DD3FC" : "#0369A1" }}>{L("Check on Telegram", "Telegram पर जांचें")}</span>
+          <span style={{ display:"block", fontSize:11, color:c.sub, marginTop:2 }}>{L("@YojanaSahayBot — the same check, in a chat", "@YojanaSahayBot — वही जांच, चैट में")}</span>
         </span>
-        <span style={{ fontSize:15, color: dark ? "#7DD3FC" : "#0369A1" }}>↗</span>
+        <span style={{ fontSize:12, fontWeight:800, color:"#fff", background:"#229ED9", borderRadius:20, padding:"6px 12px", flexShrink:0 }}>{L("Open", "खोलें")}</span>
       </a>
-      <div style={{ marginTop:14, fontSize:11.5, color: dark ? "#a8a29e" : "#78716c", lineHeight:1.7 }}>
-        {isHindi ? "YojanaSahay एक मुफ्त, स्वतंत्र गाइड है — सरकारी वेबसाइट नहीं। हम कभी पैसे या OTP नहीं मांगते।" : "YojanaSahay is a free, independent guide — not a government website. We never ask for money or OTP."}
-        {" "}<a href="/about.html" style={{ color:"inherit" }}>{isHindi ? "हमारे बारे में" : "About"}</a>
-        {" · "}<a href="/how-we-verify.html" style={{ color:"inherit" }}>{isHindi ? "जानकारी कैसे जांचते हैं" : "How we verify"}</a>
-        {" · "}<a href="/faq.html" style={{ color:"inherit" }}>FAQ</a>
-        {" · "}<a href="/contact.html" style={{ color:"inherit" }}>{isHindi ? "संपर्क" : "Contact"}</a>
-        {" · "}<a href="/privacy.html" style={{ color:"inherit" }}>{isHindi ? "गोपनीयता नीति" : "Privacy"}</a>
-        {" · "}<a href="/press.html" style={{ color:"inherit" }}>{isHindi ? "मीडिया" : "Press"}</a>
-        {" · "}<a href="/poster.html" style={{ color:"inherit" }}>{isHindi ? "मुफ़्त पोस्टर" : "Free posters"}</a>
-      </div>
+
+      {/* ── Footer ── */}
+      <footer style={{ ...card, marginBottom:0, padding:"18px 16px 16px" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:11 }}>
+          <img src={appLogo} alt="" width="38" height="38" style={{ borderRadius:11, flexShrink:0 }}/>
+          <div style={{ minWidth:0 }}>
+            <div style={{ fontSize:15.5, fontWeight:900, color:c.text, letterSpacing:0.2 }}>{L("YojanaSahay", "योजना सहाय")}</div>
+            <div style={{ fontSize:11, color:c.sub, marginTop:1 }}>{L("Find the government schemes you qualify for — free", "जानें आप किन सरकारी योजनाओं के पात्र हैं — मुफ़्त")}</div>
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:9, alignItems:"flex-start", marginTop:13, padding:"10px 12px", borderRadius:12, background: dark ? "rgba(34,197,94,0.08)" : "#F0FDF4", border:`1px solid ${dark ? "rgba(34,197,94,0.25)" : "#BBF7D0"}` }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={dark ? "#86EFAC" : "#15803D"} strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0, marginTop:1 }} aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>
+          <span style={{ fontSize:11.5, lineHeight:1.55, color: dark ? "#D1FAE5" : "#14532D" }}>
+            {L("A free, independent guide — not a government website. We never ask for money or OTP. Always apply on the official website or office.",
+               "एक मुफ़्त, स्वतंत्र गाइड — सरकारी वेबसाइट नहीं। हम कभी पैसे या OTP नहीं मांगते। आवेदन हमेशा आधिकारिक वेबसाइट या कार्यालय में करें।")}
+          </span>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"2px 12px", marginTop:12 }}>
+          {links.map(([href, label]) => (
+            <a key={href} href={href} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:6, padding:"9px 2px", textDecoration:"none", fontSize:12.5, fontWeight:600, color:c.text, borderBottom:`1px solid ${c.line}` }}>
+              <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{label}</span>
+              <span style={{ color:c.sub, fontSize:14 }}>›</span>
+            </a>
+          ))}
+        </div>
+        <div style={{ textAlign:"center", fontSize:10.5, color:c.sub, marginTop:14, lineHeight:1.6 }}>
+          © {new Date().getFullYear()} YojanaSahay · {L("Made in India", "भारत में बना")}<br/>
+          <a href="mailto:yojanasahayofficial@gmail.com" style={{ color:c.sub }}>yojanasahayofficial@gmail.com</a>
+        </div>
+      </footer>
     </nav>
   );
 }
