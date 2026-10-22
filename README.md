@@ -34,7 +34,7 @@ The platform closes the information gap between citizens and the government welf
 Search and browse a constantly expanding database of Central and State government schemes, filtered by category, state, and beneficiary type. Instant results with detailed eligibility criteria, benefits, and application guidance.
 
 ### 🎯 Eligibility Checker
-A 6-step guided questionnaire that analyses your profile and instantly matches the schemes you qualify for — no guesswork, no wasted time.
+A short guided questionnaire (also on Telegram) that analyses your profile and instantly matches the schemes you qualify for — no guesswork, no wasted time.
 
 ### 🤖 AI Assistant (Bilingual)
 A real-time AI-powered assistant for scheme queries in **Hindi and English**. Provides personalised guidance, scheme comparisons, eligibility clarification, and actionable next steps — powered by **Groq AI**.
@@ -54,9 +54,10 @@ Full dark/light theme toggle and seamless Hindi ↔ English language switching t
 
 | Metric | Value |
 |--------|-------|
-| Government Schemes Indexed | Growing weekly 📈 |
-| States & UTs Covered | 28+ |
+| Government Schemes Indexed | Counted live from the data — see the [live count](https://yojanasahay.vercel.app/api/stats) and the [About page](https://yojanasahay.vercel.app/about.html) |
+| States & UTs Covered | Counted live from the data (Central + every state with its own schemes) |
 | Languages Supported | 2 (Hindi & English) |
+| Ways to use it | Website · Android app · Telegram bot ([@YojanaSahayBot](https://t.me/YojanaSahayBot)) |
 | Cost to Citizens | Free |
 
 ---
@@ -210,11 +211,30 @@ Logged-in users receive **automatic email confirmation** on submission and are *
 
 ---
 
+## 📂 Open Data
+
+The full scheme list is published as open data, refreshed on every update:
+
+- JSON — https://yojanasahay.vercel.app/data/schemes.json
+- CSV — https://yojanasahay.vercel.app/data/schemes.csv
+
+Licence: [Open Data Commons Attribution (ODC-By) v1.0](https://opendatacommons.org/licenses/by/1-0/) — free to use, please credit **YojanaSahay (yojanasahay.vercel.app)**. It contains no personal data. Always confirm details on the official website before applying.
+
+---
+
+## 🌐 Digital Public Good
+
+How YojanaSahay meets the Digital Public Goods Standard (SDGs, licences, ownership, platform independence, privacy and do-no-harm) is documented in [docs/DIGITAL-PUBLIC-GOOD.md](docs/DIGITAL-PUBLIC-GOOD.md).
+
+Security issues: see [SECURITY.md](SECURITY.md).
+
+---
+
 ## 📄 License
 
 Copyright © 2026 **Sahnawaz Ahmed Laskar**
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE). The scheme dataset is licensed under ODC-By v1.0 (see [Open Data](#-open-data)). The YojanaSahay name and logo may not be used to present another app or service as YojanaSahay.
 
 ---
 

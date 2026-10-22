@@ -538,6 +538,7 @@ ${TERMS.hi.points.map(t => `    <li>${esc(t)}</li>`).join("\n")}
   <ul>
     <li>Website: <a href="${SITE_URL}/">${SITE_URL.replace(/^https:\/\//, "")}</a></li>
     <li>Android app: on Google Play — link here at launch</li>
+    <li>Open data — the full scheme list as <a href="/data/schemes.json">JSON</a> or <a href="/data/schemes.csv">CSV</a> (ODC-By licence, please credit YojanaSahay)</li>
     <li>Free printable posters with a QR code (Hindi / English, any state): <a href="/poster.html">yojanasahay.vercel.app/poster.html</a></li>
     <li>Telegram bot: <a href="https://t.me/YojanaSahayBot">@YojanaSahayBot</a> — the same eligibility check inside Telegram, in English and Hindi</li>
     <li>How the information is checked: <a href="/how-we-verify.html">How we verify</a></li>
@@ -1132,6 +1133,49 @@ function main() {
     sitemapEntries.push({ loc: `${SITE_URL}/${kind}.html` });
   }
   fs.writeFileSync(path.join(ROOT, "public", "poster.html"), renderPoster(), "utf8");
+  // Open data — the scheme list as JSON and CSV for NGOs, researchers and
+  // developers (Open Data Commons Attribution licence). No personal data.
+  {
+    const dir = path.join(ROOT, "public", "data");
+    fs.mkdirSync(dir, { recursive: true });
+    const open = ALL_SCHEMES.filter(s => s?.id && s.name?.en);
+    const arr = v => (Array.isArray(v) ? v.map(x => String(x)) : v ? [String(v)] : []);
+    const who = (s, l) => { try { return arr(whoCanApply(s, l)); } catch { return []; } };
+    const official = s => { const raw = String(s.apply?.en || "").trim(); const u = /^https?:\/\//i.test(raw) ? raw : /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(raw) ? `https://${raw}` : ""; return u && isOfficialUrl(u) ? u : ""; };
+    const rows = open.map(s => ({
+      id: s.id,
+      name: { en: s.name.en, hi: s.name.hi || "" },
+      scope: s.scope === "national" ? "central" : "state",
+      state: s.scope === "national" ? "" : (s.state || ""),
+      ministry: s.ministry?.en || "",
+      benefit: { en: s.benefit?.en || "", hi: s.benefit?.hi || "" },
+      annualValueINR: Number(s.annual) || 0,
+      valueKind: benefitKind(s),
+      category: s.tag?.en || "",
+      whoCanApply: { en: who(s, "en"), hi: who(s, "hi") },
+      documents: { en: arr(s.docs?.en), hi: arr(s.docs?.hi) },
+      applyMode: s.applyType === "online" ? "online" : "offline",
+      officialLink: official(s),
+      status: s.closed ? "closed" : "open",
+      duplicateOf: s.duplicateOf || "",
+      page: { en: `${SITE_URL}/schemes/${slugify(s.duplicateOf || s.id)}.html`, hi: `${SITE_URL}/yojana/${slugify(s.duplicateOf || s.id)}.html` },
+    }));
+    const meta = {
+      name: "YojanaSahay — Indian government welfare schemes (Central and State)",
+      publisher: "YojanaSahay (Sahnawaz Ahmed Laskar)",
+      homepage: SITE_URL,
+      license: "Open Data Commons Attribution License (ODC-By) v1.0 — https://opendatacommons.org/licenses/by/1-0/",
+      attribution: "Data: YojanaSahay (yojanasahay.vercel.app)",
+      note: "Compiled from official government sources for information only. Not an official government dataset; always confirm details on the official website before applying. annualValueINR is the scheme's typical yearly amount, or a one-time / cover amount — read valueKind (yearly, oneTime, health, other).",
+      generatedAt: new Date().toISOString(),
+      count: rows.length,
+    };
+    fs.writeFileSync(path.join(dir, "schemes.json"), JSON.stringify({ meta, schemes: rows }), "utf8");
+    const csvCell = v => { const t = String(v ?? ""); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+    const cols = ["id", "name_en", "name_hi", "scope", "state", "ministry", "benefit_en", "annual_value_inr", "value_kind", "category", "who_can_apply_en", "documents_en", "apply_mode", "official_link", "status", "duplicate_of", "page_en"];
+    const csv = [cols.join(","), ...rows.map(r => [r.id, r.name.en, r.name.hi, r.scope, r.state, r.ministry, r.benefit.en, r.annualValueINR, r.valueKind, r.category, r.whoCanApply.en.join(" | "), r.documents.en.join(" | "), r.applyMode, r.officialLink, r.status, r.duplicateOf, r.page.en].map(csvCell).join(","))].join("\n");
+    fs.writeFileSync(path.join(dir, "schemes.csv"), "\ufeff" + csv, "utf8");
+  }
   sitemapEntries.push({ loc: `${SITE_URL}/poster.html` });
   fs.writeFileSync(path.join(ROOT, "public", "faq.html"), renderFaq(), "utf8");
   sitemapEntries.push({ loc: `${SITE_URL}/faq.html` });
