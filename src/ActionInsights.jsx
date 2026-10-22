@@ -33,6 +33,13 @@ const LIFE_LABEL = {
   senior: "👴 Parent turned 60", marriage: "💍 Getting married", house: "🏠 Building a house", loss: "🕊️ Death of earning member",
   disability: "♿ Disability", college: "🎓 Going to college",
 };
+// "Your next best steps" (k = q_<field> / g_<group> / ration, + _yes/_no reply)
+const UNLOCK_LABEL = (k) => {
+  const m = /^(q|g|ration)_?([a-zA-Z]*)?(?:_(.+))?$/.exec(k) || [];
+  const what = m[1] === "q" ? `Answered: ${m[2]}` : m[1] === "g" ? `${GROUP_LABEL[m[2]] || m[2]}` : m[1] === "ration" ? "Ration card" : k;
+  return m[3] ? `${what} · ${m[3]}` : what;
+};
+const MONEY_LABEL = { status: "Not approved yet / check status", renew: "Life certificate / renewal missing", seed: "Aadhaar not linked to bank", otherAccount: "Went to another bank account", inactive: "Account inactive / KYC", name: "Name mismatch", ekyc: "e-KYC pending", early: "Too early — just wait", escalate: "Ask the department / complaint", open: "Opened the check" };
 const CAL_LABEL = { open: "📅 Opened the calendar", reminder: "🔔 Added a Google Calendar reminder", not_received: "❗ Tapped “Didn't get it?”" };
 // near_me keys are the Maps search words with spaces → "_" (cut at 20 chars).
 const placeLabel = k => k.replace(/_/g, " ").replace(/\s*near( me)?\s*$/i, "").trim() || k;
@@ -93,7 +100,7 @@ export default function ActionInsights({ events, usageData, th, dark, onRefresh,
   const feat = useMemo(() => {
     const f = events?.features || {};
     const sorted = o => Object.entries(o || {}).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
-    return { life: sorted(f.life_event), cal: f.money_cal || {}, near: sorted(f.near_me) };
+    return { life: sorted(f.life_event), cal: f.money_cal || {}, near: sorted(f.near_me), unlock: sorted(f.unlock), money: sorted(f.money_check) };
   }, [events]);
 
   const zeroSearches = useMemo(() => {
@@ -252,11 +259,11 @@ export default function ActionInsights({ events, usageData, th, dark, onRefresh,
           ))}
         </div>
 
-        {(sumRange.life_event || sumRange.money_cal || sumRange.near_me || feat.life.length || feat.near.length || Object.keys(feat.cal).length) ? (
+        {(sumRange.life_event || sumRange.money_cal || sumRange.near_me || sumRange.unlock || sumRange.money_check || feat.life.length || feat.near.length || Object.keys(feat.cal).length) ? (
           <div style={card}>
             {h("✨ NEW FEATURES — ARE PEOPLE USING THEM?", <span style={{ fontSize: 9.5, color: th.textSub }}>{range ? `taps · last ${range}d` : "taps · all time"}</span>)}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, marginBottom: 10 }}>
-              {[["🎯", "Life events", sumRange.life_event], ["📅", "Money calendar", sumRange.money_cal], ["📍", "Help near me", sumRange.near_me]].map(([i, l, n]) => (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(88px,1fr))", gap: 6, marginBottom: 10 }}>
+              {[["🎯", "Life events", sumRange.life_event], ["📅", "Money calendar", sumRange.money_cal], ["📍", "Help near me", sumRange.near_me], ["🔓", "Next steps", sumRange.unlock], ["💸", "Money check", sumRange.money_check]].map(([i, l, n]) => (
                 <div key={l} style={{ textAlign: "center", padding: "8px 4px", borderRadius: 10, background: th.card2, border: `1px solid ${th.border}` }}>
                   <div style={{ fontSize: 17, fontWeight: 900, color: th.text }}>{fmt(n || 0)}</div>
                   <div style={{ fontSize: 9.5, color: th.textSub, fontWeight: 700, marginTop: 1 }}>{i} {l}</div>
@@ -266,7 +273,9 @@ export default function ActionInsights({ events, usageData, th, dark, onRefresh,
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               {[["LIFE EVENTS OPENED", feat.life.map(([k, n]) => [LIFE_LABEL[k] || k, n]), VIOLET],
                 ["MONEY CALENDAR", Object.entries(CAL_LABEL).map(([k, l]) => [l, feat.cal[k] || 0]).filter(([, n]) => n > 0), TEAL],
-                ["PLACES SEARCHED (HELP NEAR ME)", feat.near.slice(0, 8).map(([k, n]) => [placeLabel(k), n]), SAFFRON]]
+                ["PLACES SEARCHED (HELP NEAR ME)", feat.near.slice(0, 8).map(([k, n]) => [placeLabel(k), n]), SAFFRON],
+                ["NEXT STEPS ANSWERED", feat.unlock.slice(0, 8).map(([k, n]) => [UNLOCK_LABEL(k), n]), VIOLET],
+                ["MONEY CHECK — REASON FOUND", feat.money.slice(0, 8).map(([k, n]) => [MONEY_LABEL[k] || k, n]), TEAL]]
                 .filter(([, rows]) => rows.length).map(([title, rows, color]) => (
                 <div key={title} style={{ flex: "1 1 200px", minWidth: 0 }}>
                   <div style={{ fontSize: 9.5, fontWeight: 800, color: th.textSub, letterSpacing: 0.3, marginBottom: 6 }}>{title} <span style={{ fontWeight: 600 }}>· all time</span></div>
@@ -284,7 +293,7 @@ export default function ActionInsights({ events, usageData, th, dark, onRefresh,
                 </div>
               ))}
             </div>
-            {!feat.life.length && !feat.near.length && !Object.keys(feat.cal).length && (
+            {!feat.life.length && !feat.near.length && !feat.unlock.length && !feat.money.length && !Object.keys(feat.cal).length && (
               <div style={{ fontSize: 10, color: th.textSub, marginTop: 4 }}>Per-item breakdown is recorded from now on.</div>
             )}
           </div>

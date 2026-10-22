@@ -71,11 +71,11 @@ const EVENT_NAMES = new Set([
   ...Object.keys(SCHEME_EVENT_FIELD),
   "share_result", "share_checklist", "family_add", "push_on", "push_off",
   "quiz_start", "quiz_step", "quiz_done", "quiz_group",
-  "near_me", "life_event", "money_cal",
+  "near_me", "life_event", "money_cal", "unlock", "money_check",
   "visit", "visit_new",
 ]);
 // visit = one per device per day (k = where it was opened: app / installed / web)
-const FEATURE_EVENTS = new Set(["near_me", "life_event", "money_cal", "visit"]);
+const FEATURE_EVENTS = new Set(["near_me", "life_event", "money_cal", "unlock", "money_check", "visit"]);
 const cleanKey = (v, max) => (typeof v === "string" && new RegExp(`^[A-Za-z0-9_]{1,${max}}$`).test(v) ? v : null);
 function istDay(d = new Date()) {
   return new Date(d.getTime() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);

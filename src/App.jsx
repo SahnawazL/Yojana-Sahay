@@ -43,7 +43,9 @@ import { SchemeFlagButton, SchemeFlagNotice, claimGuestReports } from "./SchemeF
 import { GUIDES, GUIDES_REVIEWED } from "../scripts/seo-guides.mjs";
 import { LIFE_EVENTS, lifeEventPlan } from "./lifeEvents.js";
 import { buildProfileAnswers, safeMatch, safeMatchAny } from "./eligibility.js";
-import { moneyCalendar, googleCalendarUrl, NOT_RECEIVED_TIPS } from "./moneyCalendar.js";
+import { moneyCalendar, googleCalendarUrl } from "./moneyCalendar.js";
+import { unlockSteps, patchFor, dbtSchemes, UNLOCK_QUESTIONS, UNLOCK_GROUPS } from "./unlockPath.js";
+import { nextQuestion, diagnose, schemeTraits, questionText, LINKS as MONEY_LINKS } from "./moneyCheck.js";
 import UserReportsTab from "./UserReportsTab.jsx";
 const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
@@ -2331,6 +2333,11 @@ function ApplicationTracker({scheme,lang,dark=false}){
           );
         })}
       </div>
+      {(app.status==="approved"||app.status==="received"||(app.status==="pending"&&due))&&(
+        <div role="button" onClick={()=>openMoneyCheck(scheme.id)} style={{marginTop:12,padding:"10px 12px",borderRadius:12,background:dark?"rgba(220,38,38,0.12)":"#FEF2F2",border:`1px solid ${dark?"rgba(220,38,38,0.35)":"#FECACA"}`,fontSize:12.5,fontWeight:800,color:dark?"#FCA5A5":"#B91C1C",cursor:"pointer",fontFamily:bf,textAlign:"center"}}>
+          💸 {app.status==="received"?L("Money stopped coming? Find out why","पैसा आना बंद हो गया? कारण जानें"):L("Money not received? Find out why","पैसा नहीं आया? कारण जानें")}
+        </div>
+      )}
       <div onClick={()=>{haptic();if(window.confirm(L("Stop tracking this application?","इस आवेदन की ट्रैकिंग बंद करें?")))removeApplication(scheme.id);}}
         style={{marginTop:12,fontSize:11,color:th.textSub,textAlign:"center",cursor:"pointer",fontFamily:bf}}>
         {L("Remove from my applications","मेरे आवेदनों से हटाएं")}
@@ -2467,6 +2474,7 @@ function StatusGuide({scheme,lang,dark,forceOpen=false}){
           <Ol items={g.status}/>
           <div style={{fontSize:11,fontWeight:800,color:sub,letterSpacing:0.3,marginTop:10,fontFamily:bf}}>{L("MONEY OR BENEFIT NOT RECEIVED?","पैसा / लाभ नहीं मिला?")}</div>
           <ul style={{margin:"6px 0 0",paddingLeft:20}}>{g.notReceived.map((t,i)=><li key={i} style={{fontSize:12.5,lineHeight:1.55,color:txt,margin:"4px 0",fontFamily:bf,overflowWrap:"anywhere"}}>{t}</li>)}</ul>
+          <div role="button" onClick={()=>openMoneyCheck(scheme.id)} style={{marginTop:9,padding:"10px 12px",borderRadius:12,background:dark?"rgba(220,38,38,0.12)":"#FEF2F2",border:`1px solid ${dark?"rgba(220,38,38,0.35)":"#FECACA"}`,fontSize:12.5,fontWeight:800,color:dark?"#FCA5A5":"#B91C1C",cursor:"pointer",fontFamily:bf,textAlign:"center"}}>💸 {L("Find the exact reason — a few taps","सही कारण जानें — कुछ टैप में")}</div>
           <div style={{fontSize:12,fontWeight:700,color:txt,marginTop:9,fontFamily:bf,overflowWrap:"anywhere"}}>📞 {g.help}</div>
           <div style={{fontSize:10,color:sub,marginTop:6,fontFamily:bf}}>{L(`Steps reviewed ${GUIDES_REVIEWED} — processes can change, confirm on the official portal.`,`कदम ${GUIDES_REVIEWED} में जांचे गए — प्रक्रिया बदल सकती है, आधिकारिक पोर्टल पर पुष्टि करें।`)}</div>
         </div>
@@ -8587,7 +8595,6 @@ function MoneyRow({r,lang,dark,onSchemeOpen,compact=false}){
   const bf=fontFamily(lang);
   const isHindi=lang==="hi";
   const L=(en,hi)=>isHindi?hi:en;
-  const [tips,setTips]=useState(false);
   const d=MC_DIR[mcDir(r)];
   const st=r.mine&&STATUS_TEXT[r.status];
   const canChase=r.mine&&mcDir(r)==="in"&&["pending","approved","received"].includes(r.status);
@@ -8616,16 +8623,10 @@ function MoneyRow({r,lang,dark,onSchemeOpen,compact=false}){
           <a href={mcReminder(r,lang)} target="_blank" rel="noopener noreferrer" onClick={()=>{haptic();track("money_cal",{k:"reminder"});}}
             style={{...pill,color:"#7C3AED",background:dark?"rgba(124,58,237,0.14)":"#F5F3FF"}}>🔔 {L("Add reminder","रिमाइंडर लगाएं")}</a>
           {canChase&&(
-            <div role="button" onClick={()=>{haptic();track("money_cal",{k:"not_received"});
-              if(GUIDES[r.scheme.id]) onSchemeOpen?.(r.scheme.id,"status"); else setTips(t=>!t);}}
+            <div role="button" onClick={()=>{track("money_cal",{k:"not_received"});openMoneyCheck(r.scheme.id);}}
               style={{...pill,color:"#B91C1C",background:dark?"rgba(220,38,38,0.12)":"#FEF2F2"}}>{L("Didn't get it?","पैसा नहीं आया?")}</div>
           )}
         </div>
-      )}
-      {tips&&(
-        <ol style={{margin:"8px 0 0 26px",paddingLeft:16}}>
-          {NOT_RECEIVED_TIPS[isHindi?"hi":"en"].map((t,i)=><li key={i} style={{fontSize:11.5,lineHeight:1.5,color:th.text,margin:"3px 0",fontFamily:bf,overflowWrap:"anywhere"}}>{t}</li>)}
-        </ol>
       )}
     </div>
   );
@@ -9076,7 +9077,258 @@ function MyApplicationsCard({ lang, dark, onSchemeOpen }) {
           {showAll?L("Show less","कम दिखाएं"):L(`Show all ${rows.length}`,`सभी ${rows.length} देखें`)}
         </div>
       )}
+      {rows.some(r=>r.a.status!=="rejected")&&(
+        <div role="button" onClick={()=>openMoneyCheck(null)} style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${th.divider}`,display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
+          <span style={{fontSize:16}}>💸</span>
+          <span style={{flex:1,fontSize:12.5,fontWeight:800,color:dark?"#FCA5A5":"#B91C1C",fontFamily:bf}}>{L("Money not received? Find out why","पैसा नहीं आया? कारण जानें")}</span>
+          <span style={{fontSize:14,color:th.textSub}}>›</span>
+        </div>
+      )}
     </div>
+  );
+}
+
+// ─── YOUR NEXT BEST STEPS (home) ───────────────────────────────────────────────
+// Works backwards from the eligibility rules (src/unlockPath.js): the one
+// answer or real-world step that opens the most schemes, with the money it
+// adds. Answering here updates the profile / saved answers straight away.
+const fmtRs=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+function unlockValueText(v,L){
+  if(v.yearly>0) return L(`+${fmtRs(v.yearly)} a year`,`+${fmtRs(v.yearly)} सालाना`);
+  if(v.oneTime>0) return L(`${fmtRs(v.oneTime)} one-time`,`${fmtRs(v.oneTime)} एकमुश्त`);
+  if(v.health>0) return L(`${fmtRs(v.health)} health cover`,`${fmtRs(v.health)} इलाज कवर`);
+  return "";
+}
+const UNLOCK_HIDE_KEY="ys_unlock_hidden";
+function UnlockPathCard({answers,matched,lang,dark,onSchemeOpen,onApply}){
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const L=(en,hi)=>isHindi?hi:en;
+  const [hidden,setHidden]=useState(()=>{try{return new Set(JSON.parse(localStorage.getItem(UNLOCK_HIDE_KEY)||"[]"));}catch{return new Set();}});
+  const steps=useMemo(()=>{try{return unlockSteps(answers,6).filter(s=>!hidden.has(s.id)).slice(0,3);}catch{return [];}},[answers,hidden]);
+  const dbt=useMemo(()=>dbtSchemes(matched||[]),[matched]);
+  const [dbtDone,setDbtDone]=useState(()=>{try{return localStorage.getItem("ys_dbt_ready")==="1";}catch{return false;}});
+  const [open,setOpen]=useState(null);
+  const [flash,setFlash]=useState("");
+  const before=useRef(null);
+  // After an answer, say how many schemes it actually added.
+  useEffect(()=>{
+    if(before.current==null) return;
+    const diff=(matched?.length||0)-before.current; before.current=null;
+    setFlash(diff>0?L(`✓ ${diff} new scheme${diff===1?"":"s"} added to your list`,`✓ आपकी सूची में ${diff} नई योजनाएं जुड़ीं`):L("✓ Saved","✓ सेव हो गया"));
+    const id=setTimeout(()=>setFlash(""),4000); return()=>clearTimeout(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[matched]);
+  const showDbt=!dbtDone&&dbt.length>0;
+  if(!steps.length&&!showDbt&&!flash) return null;
+  const openId=open??steps[0]?.id;
+  const reply=(step,val,key)=>{
+    before.current=matched?.length||0;
+    track("unlock",{k:key});
+    onApply?.(patchFor(step,answers,val));
+    setOpen(null);
+  };
+  const hide=(id)=>{ setHidden(h=>{ const n=new Set(h); n.add(id); try{localStorage.setItem(UNLOCK_HIDE_KEY,JSON.stringify([...n]));}catch{} return n; }); setOpen(null); };
+  const chip={fontSize:12,fontWeight:700,padding:"8px 12px",borderRadius:10,cursor:"pointer",fontFamily:bf,border:`1.5px solid ${dark?"rgba(124,58,237,0.5)":"#C4B5FD"}`,color:dark?"#DDD6FE":"#5B21B6",background:dark?"rgba(124,58,237,0.12)":"#F5F3FF"};
+  const ghost={fontSize:11.5,fontWeight:600,padding:"8px 10px",cursor:"pointer",color:th.textSub,fontFamily:bf};
+  const linkBtn={display:"inline-flex",alignItems:"center",gap:4,fontSize:11.5,fontWeight:800,color:"#C2410C",textDecoration:"none",fontFamily:bf};
+  return(
+    <div style={{background:th.card,borderRadius:20,border:`1.5px solid ${th.border}`,padding:16,marginBottom:14,boxShadow:dark?"none":"0 4px 18px rgba(0,0,0,0.05)"}}>
+      <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:12}}>
+        <div style={{width:38,height:38,borderRadius:12,background:"linear-gradient(135deg,#5B21B6,#2563EB)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 4px 12px rgba(91,33,182,0.3)"}}>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:14.5,fontWeight:800,color:th.text,fontFamily:bf}}>{L("Your next best steps","आपके अगले सबसे अच्छे कदम")}</div>
+          <div style={{fontSize:11,color:th.textSub,marginTop:2,fontFamily:bf}}>{L("One answer or one step — more schemes open up","एक जवाब या एक कदम — और योजनाएं खुलेंगी")}</div>
+        </div>
+      </div>
+      {flash&&<div role="status" style={{fontSize:12,fontWeight:700,color:dark?"#86EFAC":"#166534",background:dark?"rgba(19,136,8,0.12)":"#F0FDF4",border:`1px solid ${dark?"rgba(19,136,8,0.35)":"#BBF7D0"}`,borderRadius:11,padding:"8px 11px",marginBottom:10,fontFamily:bf}}>{flash}</div>}
+      {steps.map((s,i)=>{
+        const isOpen=openId===s.id;
+        const val=unlockValueText(s.value,L);
+        const title=s.kind==="question"?(isHindi?UNLOCK_QUESTIONS[s.field].hi:UNLOCK_QUESTIONS[s.field].en)
+          :s.kind==="group"?(isHindi?UNLOCK_GROUPS[s.group].hi:UNLOCK_GROUPS[s.group].en)
+          :L("Get a priority (BPL) ration card","प्राथमिकता (BPL) राशन कार्ड बनवाएं");
+        const sub=s.kind==="question"?L(`Answer this — up to ${s.count} more schemes may fit`,`इसका जवाब दें — ${s.count} और योजनाएं तक मिल सकती हैं`)
+          :s.kind==="group"?L(`${s.count} schemes are only for this group`,`${s.count} योजनाएं सिर्फ़ इस समूह के लिए हैं`)
+          :L(`If your family qualifies — opens ${s.count} schemes`,`अगर परिवार पात्र है — ${s.count} योजनाएं खुलेंगी`);
+        return(
+          <div key={s.id} style={{borderTop:i?`1px solid ${th.divider}`:"none",padding:"10px 0"}}>
+            <div role="button" onClick={()=>setOpen(isOpen?"__none":s.id)} style={{display:"flex",gap:10,alignItems:"flex-start",cursor:"pointer"}}>
+              <div style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,#5B21B6,#2563EB)",color:"#fff",fontSize:11,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>{i+1}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,fontWeight:800,color:th.text,lineHeight:1.35,fontFamily:bf}}>{title}</div>
+                <div style={{fontSize:11,color:th.textSub,marginTop:3,lineHeight:1.4,fontFamily:bf}}>
+                  {sub}{val&&<b style={{color:dark?"#86EFAC":"#15803D",fontWeight:800}}> · {val}</b>}
+                </div>
+              </div>
+              <span style={{fontSize:14,color:th.textSub,flexShrink:0,transform:isOpen?"rotate(90deg)":"none",transition:"transform 0.2s"}}>›</span>
+            </div>
+            {isOpen&&(
+              <div style={{paddingLeft:32,marginTop:9}}>
+                <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:9}}>
+                  {s.schemes.slice(0,4).map(x=>(
+                    <div key={x.id} role="button" onClick={()=>onSchemeOpen?.(x.id)} style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:th.text,cursor:"pointer",fontFamily:bf,minWidth:0}}>
+                      <span style={{flexShrink:0}}>{x.icon}</span>
+                      <span style={{flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{x.name[lang]||x.name.en}</span>
+                      <span style={{fontSize:10.5,color:th.textSub,flexShrink:0}}>{valueLabel(x,lang)}</span>
+                    </div>
+                  ))}
+                  {s.schemes.length>4&&<div style={{fontSize:11,color:th.textSub,fontFamily:bf}}>{L(`+ ${s.schemes.length-4} more`,`+ ${s.schemes.length-4} और`)}</div>}
+                </div>
+                {s.how&&<div style={{fontSize:11.5,color:th.textMid,lineHeight:1.55,marginBottom:8,fontFamily:bf}}>📝 {isHindi?s.how.hi:s.how.en}</div>}
+                {s.link&&<a href={s.link} target="_blank" rel="noopener noreferrer" style={{...linkBtn,marginBottom:9}}>{L("Official website","आधिकारिक वेबसाइट")} ↗</a>}
+                <div style={{display:"flex",flexWrap:"wrap",gap:7,alignItems:"center"}}>
+                  {s.kind==="question"&&UNLOCK_QUESTIONS[s.field].options.map(([v,en,hi])=>(
+                    <span key={v} role="button" style={chip} onClick={()=>reply(s,v,`q_${s.field}`)}>{isHindi?hi:en}</span>
+                  ))}
+                  {s.kind==="group"&&<>
+                    <span role="button" style={chip} onClick={()=>reply(s,"yes",`g_${s.group}_yes`)}>{s.how?L("Yes — I'm registered","हां — मेरा पंजीकरण है"):L("Yes, this is me","हां, यह मैं हूं")}</span>
+                    <span role="button" style={ghost} onClick={()=>reply(s,"no",`g_${s.group}_no`)}>{L("No","नहीं")}</span>
+                  </>}
+                  {s.kind==="ration"&&<>
+                    <span role="button" style={chip} onClick={()=>reply(s,"bpl","ration_bpl")}>{L("I have a BPL / priority card","मेरे पास BPL / प्राथमिकता कार्ड है")}</span>
+                    <span role="button" style={chip} onClick={()=>reply(s,"aay","ration_aay")}>{L("I have an AAY card","मेरे पास AAY कार्ड है")}</span>
+                  </>}
+                  {s.kind!=="group"&&<span role="button" style={ghost} onClick={()=>hide(s.id)}>{L("Not now","अभी नहीं")}</span>}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {showDbt&&(
+        <div style={{marginTop:steps.length?6:0,padding:"11px 12px",borderRadius:13,background:dark?"rgba(37,99,235,0.10)":"#EFF6FF",border:`1px solid ${dark?"rgba(37,99,235,0.35)":"#BFDBFE"}`}}>
+          <div style={{fontSize:12.5,fontWeight:800,color:dark?"#BFDBFE":"#1E3A8A",fontFamily:bf}}>💳 {L("Make sure the money can reach you","पक्का करें कि पैसा आप तक पहुंचे")}</div>
+          <div style={{fontSize:11.5,color:dark?"#DBEAFE":"#1E40AF",marginTop:4,lineHeight:1.5,fontFamily:bf}}>
+            {L(`${dbt.length} of your schemes pay straight into a bank account. Your Aadhaar must be linked to that account for government payments (DBT), or the money fails.`,
+               `आपकी ${dbt.length} योजनाओं का पैसा सीधे बैंक खाते में आता है। सरकारी भुगतान (DBT) के लिए आधार उस खाते से जुड़ा होना ज़रूरी है, वरना भुगतान फ़ेल हो जाता है।`)}
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:12,alignItems:"center",marginTop:8}}>
+            <a href={MONEY_LINKS.aadhaarBank.url} target="_blank" rel="noopener noreferrer" style={linkBtn}>{L("Check: myAadhaar → Bank Seeding Status","जांचें: myAadhaar → बैंक सीडिंग स्टेटस")} ↗</a>
+            <span role="button" onClick={()=>openMoneyCheck(null)} style={{...linkBtn,cursor:"pointer"}}>{L("Money not coming?","पैसा नहीं आ रहा?")}</span>
+            <span role="button" onClick={()=>{setDbtDone(true);try{localStorage.setItem("ys_dbt_ready","1");}catch{}}} style={{...ghost,padding:0}}>{L("Already linked ✓","पहले से जुड़ा है ✓")}</span>
+          </div>
+        </div>
+      )}
+      <div style={{fontSize:10,color:th.textSub,marginTop:10,lineHeight:1.5,fontFamily:bf}}>{L("Worked out from each scheme's own rules. The department makes the final decision.","हर योजना के अपने नियमों से निकाला गया। अंतिम फ़ैसला विभाग करता है।")}</div>
+    </div>
+  );
+}
+
+// ─── WHY DIDN'T MY MONEY COME? ─────────────────────────────────────────────────
+// A few taps → the most likely reason and the exact fix (src/moneyCheck.js).
+// Opened from anywhere with openMoneyCheck(schemeId | null); one host renders it.
+function openMoneyCheck(id=null){ try{ window.dispatchEvent(new CustomEvent("ys-money-check",{detail:{id}})); }catch{} }
+function MoneyCheckHost({lang,dark}){
+  const [id,setId]=useState(undefined);
+  useEffect(()=>{ const f=e=>setId(e.detail?.id??null); window.addEventListener("ys-money-check",f); return()=>window.removeEventListener("ys-money-check",f); },[]);
+  if(id===undefined) return null;
+  return <MoneyCheckSheet key={String(id)} schemeId={id} lang={lang} dark={dark} onClose={()=>setId(undefined)}/>;
+}
+const LEVEL_STYLE={
+  likely:{en:"Most likely",hi:"सबसे संभावित",c:"#B91C1C",bg:"#FEF2F2",bd:"#FECACA"},
+  check:{en:"Worth checking",hi:"जांच लें",c:"#B45309",bg:"#FFFBEB",bd:"#FDE68A"},
+  info:{en:"Good to know",hi:"जानने लायक",c:"#1D4ED8",bg:"#EFF6FF",bd:"#BFDBFE"},
+};
+function MoneyCheckSheet({schemeId,lang,dark,onClose}){
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const isHindi=lang==="hi";
+  const L=(en,hi)=>isHindi?hi:en;
+  const apps=useApplications();
+  const [sid,setSid]=useState(schemeId||null);
+  const [general,setGeneral]=useState(false);
+  const [replies,setReplies]=useState({});
+  const [hist,setHist]=useState([]);
+  const [visible,setVisible]=useState(false);
+  const scrollRef=useRef(null);
+  useEffect(()=>{const id=setTimeout(()=>setVisible(true),20);track("money_check",{k:"open"},{once:true});return()=>clearTimeout(id);},[]);
+  const scheme=sid?SCHEME_BY_ID.get(sid)||null:null;
+  const app=sid?apps[sid]||null:null;
+  const mine=useMemo(()=>Object.keys(apps||{}).map(id=>SCHEME_BY_ID.get(id)).filter(Boolean),[apps]);
+  const picking=!scheme&&!general&&mine.length>0;
+  const tr=schemeTraits(scheme);
+  const q=picking?null:nextQuestion(replies,scheme);
+  const result=useMemo(()=>(!picking&&!q)?diagnose(replies,scheme,app):null,[picking,q,replies,scheme,app]);
+  const tracked=useRef(false);
+  useEffect(()=>{ if(result&&!tracked.current){ tracked.current=true; const top=result.find(c=>c.level==="likely")||result[0]; if(top) track("money_check",{k:top.id}); } },[result]);
+  useEffect(()=>{ scrollRef.current?.scrollTo?.({top:0}); },[q?.id,!!result]);
+  const answer=(v)=>{ setHist(h=>[...h,replies]); setReplies(r=>({...r,[q.id]:v})); };
+  const back=()=>{ if(hist.length){ setReplies(hist[hist.length-1]); setHist(h=>h.slice(0,-1)); } else if(!schemeId&&(scheme||general)){ setSid(null); setGeneral(false); } };
+  const restart=()=>{ setReplies({}); setHist([]); tracked.current=false; };
+  const linkFor=(k)=>{
+    if(k==="scheme"){ const u=scheme&&officialSchemeLink(scheme); return u?{url:u,label:L("Scheme's official website","योजना की आधिकारिक वेबसाइट")}:null; }
+    const l=MONEY_LINKS[k]; return l?{url:l.url,label:isHindi?l.hi:l.en}:null;
+  };
+  const asked=hist.length+1;
+  const btn={display:"block",width:"100%",boxSizing:"border-box",textAlign:"left",padding:"13px 14px",borderRadius:13,border:`1.5px solid ${th.border}`,background:dark?"rgba(255,255,255,0.03)":"#fff",color:th.text,fontSize:13.5,fontWeight:700,fontFamily:bf,cursor:"pointer",marginBottom:8};
+  return createPortal(
+    <div onClick={e=>{if(e.target===e.currentTarget)onClose();}} style={{position:"fixed",inset:0,zIndex:260,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.2s"}}>
+      <div ref={scrollRef} role="dialog" aria-modal="true" aria-label={L("Why didn't my money come?","पैसा क्यों नहीं आया?")} className="sheet-85"
+        style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.card,borderRadius:"24px 24px 0 0",overflowY:"auto",overflowX:"hidden",maxHeight:"88vh",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.28s cubic-bezier(0.32,0.72,0,1)",paddingBottom:"calc(18px + env(safe-area-inset-bottom))"}}>
+        <div style={{display:"flex",justifyContent:"center",paddingTop:10}}><div style={{width:40,height:4,background:th.handle,borderRadius:2}}/></div>
+        <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px 10px"}}>
+          <div style={{fontSize:28,flexShrink:0}}>💸</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:16.5,fontWeight:800,color:th.text,fontFamily:bf}}>{L("Why didn't my money come?","पैसा क्यों नहीं आया?")}</div>
+            <div style={{fontSize:11.5,color:th.textSub,marginTop:2,fontFamily:bf,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+              {scheme?(scheme.name[lang]||scheme.name.en):L("Find the reason in a few taps","कुछ टैप में कारण जानें")}
+            </div>
+          </div>
+          <div role="button" aria-label={L("Close","बंद करें")} onClick={onClose} style={{width:32,height:32,borderRadius:"50%",background:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.06)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",color:th.textSub,fontSize:15,flexShrink:0}}>✕</div>
+        </div>
+        <div style={{padding:"0 16px"}}>
+          {picking&&(<>
+            <div style={{fontSize:13.5,fontWeight:800,color:th.text,margin:"4px 0 10px",fontFamily:bf}}>{L("Which scheme is it?","कौन सी योजना?")}</div>
+            {mine.map(s=>(
+              <div key={s.id} role="button" onClick={()=>setSid(s.id)} style={{...btn,display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:18,flexShrink:0}}>{s.icon}</span>
+                <span style={{flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name[lang]||s.name.en}</span>
+              </div>
+            ))}
+            <div role="button" onClick={()=>setGeneral(true)} style={{...btn,color:th.textMid,fontWeight:600}}>{L("Another scheme","कोई दूसरी योजना")}</div>
+          </>)}
+          {q&&(<>
+            <div style={{fontSize:10.5,fontWeight:800,color:th.textSub,letterSpacing:0.3,marginBottom:6,fontFamily:bf}}>{L(`QUESTION ${asked}`,`सवाल ${asked}`)}</div>
+            <div style={{fontSize:15,fontWeight:800,color:th.text,lineHeight:1.4,marginBottom:12,fontFamily:bf}}>{(()=>{const x=questionText(q,tr);return isHindi?x.hi:x.en;})()}</div>
+            {q.id==="seed"&&<div style={{fontSize:11.5,color:th.textSub,lineHeight:1.5,margin:"-4px 0 12px",fontFamily:bf}}>{L("You can see this on myAadhaar → Bank Seeding Status.","यह myAadhaar → बैंक सीडिंग स्टेटस पर दिखता है।")}</div>}
+            {q.options.map(([v,txt])=>(
+              <div key={v} role="button" onClick={()=>answer(v)} style={btn}>{isHindi?txt.hi:txt.en}</div>
+            ))}
+          </>)}
+          {result&&(<>
+            <div style={{fontSize:13.5,fontWeight:800,color:th.text,margin:"4px 0 10px",fontFamily:bf}}>{L("Here's what to do","यह करें")}</div>
+            {result.map((c,i)=>{
+              const st=LEVEL_STYLE[c.level]||LEVEL_STYLE.info;
+              const links=c.links.map(linkFor).filter(Boolean);
+              return(
+                <div key={c.id} style={{border:`1px solid ${dark?st.c+"55":st.bd}`,background:dark?st.c+"14":st.bg,borderRadius:14,padding:"12px 13px",marginBottom:10}}>
+                  <div style={{fontSize:10,fontWeight:800,color:dark?"#fff":st.c,background:dark?st.c+"55":"#fff",border:`1px solid ${dark?"transparent":st.bd}`,borderRadius:20,padding:"2px 8px",display:"inline-block",marginBottom:6,fontFamily:bf}}>{i===0&&c.level==="likely"?"① ":""}{isHindi?st.hi:st.en}</div>
+                  <div style={{fontSize:13.5,fontWeight:800,color:th.text,lineHeight:1.35,fontFamily:bf}}>{isHindi?c.title.hi:c.title.en}</div>
+                  <div style={{fontSize:11.5,color:th.textMid,lineHeight:1.55,marginTop:4,fontFamily:bf}}>{isHindi?c.why.hi:c.why.en}</div>
+                  <ol style={{margin:"8px 0 0",paddingLeft:18}}>
+                    {c.fix.map((f,j)=><li key={j} style={{fontSize:12,lineHeight:1.55,color:th.text,margin:"4px 0",fontFamily:bf,overflowWrap:"anywhere"}}>{isHindi?f.hi:f.en}</li>)}
+                  </ol>
+                  {links.length>0&&<div style={{display:"flex",flexDirection:"column",gap:6,marginTop:8}}>
+                    {links.map(l=><a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" style={{fontSize:12,fontWeight:800,color:"#C2410C",textDecoration:"none",fontFamily:bf}}>{l.label} ↗</a>)}
+                  </div>}
+                </div>
+              );
+            })}
+            {app?.ref&&<div style={{fontSize:11.5,color:th.textMid,margin:"2px 0 10px",fontFamily:bf}}>🔖 {L("Keep your application number ready:","आवेदन नंबर तैयार रखें:")} <b style={{color:th.text}}>{app.ref}</b></div>}
+            <div style={{fontSize:10.5,color:th.textSub,lineHeight:1.5,margin:"4px 0 12px",fontFamily:bf}}>{L("General guidance based on your answers — the bank or the department can confirm the exact reason.","आपके जवाबों पर आधारित सामान्य मार्गदर्शन — सही कारण बैंक या विभाग बता सकता है।")}</div>
+            <div role="button" onClick={restart} style={{...btn,textAlign:"center",color:th.textMid}}>{L("Start again","फिर से शुरू करें")}</div>
+          </>)}
+          {(hist.length>0||(!schemeId&&(scheme||general)))&&!picking&&(
+            <div role="button" onClick={back} style={{textAlign:"center",fontSize:12.5,fontWeight:700,color:th.textSub,padding:"6px 0 4px",cursor:"pointer",fontFamily:bf}}>← {L("Back","पीछे")}</div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -10900,6 +11152,27 @@ function YojanaSahayInner(){
   // Family mode needs your own answers (state, income, category…): profile,
   // this session's quiz, or the last finished quiz saved on this phone.
   const familyBase=committedCheckerAnswers||profileAnswers||savedQuizAnswers;
+  // "Your next best steps" answers: saved to wherever the answers come from —
+  // the profile (and Firestore) when there is one, else this phone's quiz.
+  const applyAnswerPatch=useCallback((patch)=>{
+    if(!patch||!Object.keys(patch).length) return;
+    if(profile){
+      const p={...patch};
+      if("rationCard" in p){ p.ration=p.rationCard; delete p.rationCard; }
+      setProfile(prev=>prev?{...prev,...p}:prev);
+      if(auth.currentUser){ try{ updateDoc(doc(db,"users",auth.currentUser.uid),{...p,lastSeen:serverTimestamp()}).catch(()=>{}); }catch{} }
+      return;
+    }
+    if(committedCheckerAnswers) setCommittedCheckerAnswers(a=>a?{...a,...patch}:a);
+    try{
+      const raw=JSON.parse(localStorage.getItem("yojana_eligibility_answers")||"null");
+      if(raw){
+        if(raw.answers&&typeof raw.step==="number") raw.answers={...raw.answers,...patch}; else Object.assign(raw,patch);
+        localStorage.setItem("yojana_eligibility_answers",JSON.stringify(raw));
+        window.dispatchEvent(new Event("ys-quiz-saved"));
+      }
+    }catch{}
+  },[profile,committedCheckerAnswers]);
   const eligibleIdSet=useMemo(()=>new Set((allMatchedSchemes||[]).map(s=>s.id)),[allMatchedSchemes]);
   const familySelf=allMatchedSchemes;
   // "Matched for You" — the best 3 of everything you qualify for (it used to be
@@ -11384,6 +11657,9 @@ function YojanaSahayInner(){
             {allMatchedSchemes.length>0&&(
               <div id="home-benefits"><BenefitCalculatorCard key={checkerRunId} allMatchedSchemes={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme}/></div>
             )}
+
+            {/* Your next best steps — what opens the most schemes next */}
+            {familyBase&&<div id="home-unlock"><UnlockPathCard answers={familyBase} matched={allMatchedSchemes} lang={lang} dark={dark} onSchemeOpen={setSelectedScheme} onApply={applyAnswerPatch}/></div>}
 
             {/* Life events — "What's happening in your life?" */}
             <div id="home-life"><LifeEventsCard lang={lang} dark={dark} state={familyBase?.state||profile?.state||""}
@@ -12320,6 +12596,8 @@ function YojanaSahayInner(){
           userName={profile?.name||""} onSignIn={auth.currentUser?null:()=>{setSelectedScheme(null);setSchemeFocus(null);setActiveTab("profile");}}
           eligible={!!allMatchedSchemes?.some(s=>s.id===selectedScheme)} focus={schemeFocus}/>
       )}
+      {/* "Why didn't my money come?" — opened from anywhere via openMoneyCheck() */}
+      <MoneyCheckHost lang={lang} dark={dark}/>
       {/* Home search (🔍) — schemes + app features + Ask AI; loaded only when opened */}
       {showHomeSearch&&(
         <Suspense fallback={null}>
