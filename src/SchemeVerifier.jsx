@@ -17,13 +17,13 @@
  *   · Filterable + searchable + paginated results (numbered pages)
  *   · Color-coded HTTP status badge (2xx green / 3xx amber / 4xx red)
  *   · Copy URL to clipboard from expanded result row
- *   · Export results as print-ready PDF (post-run) — Claude AI-uploadable report
+ *   · Export results as print-ready PDF (post-run) — fix-list report
  *   · Auto-save scan results to localStorage once per scope (national / state)
  *   · Saved Scans panel — export PDF from a previous scan without re-running
  *   · Stop / Pause mid-run via AbortController
  *   · New Run reset
  *
- * PDF Report Structure (for uploading to Claude AI):
+ * PDF Report Structure (for working through the fixes):
  *   Cover → AI Usage Hint → 8-stat Summary →
  *   Issues Requiring Fixes (grouped: critical / warnings / config) →
  *   No Response (India-bound domains) →
@@ -31,7 +31,7 @@
  *
  *   Each issue card shows: scheme ID · file path (schemesData.js / state/xxx.js) ·
  *   current apply URL · HTTP code · error text · exact fix instruction +
- *   "search for <id> in <file>" hint so Claude can locate it instantly.
+ *   "search for <id> in <file>" hint so each scheme can be located instantly.
  *
  * localStorage keys:  "ys_scan_national" | "ys_scan_all" | "ys_scan_state_<name>"
  */
@@ -558,12 +558,12 @@ function detectUrlIssues(schemes, scopeFilter) {
 
 // ─── PDF EXPORT ───────────────────────────────────────────────────────────────
 // Generates a print-ready HTML report in a new tab.
-// Designed to be uploaded to Claude AI with the scheme source file so Claude
+// Designed to be read alongside the scheme source file so the developer
 // can locate and fix each broken scheme automatically.
 //
 // Report sections:
 //   1. Cover (scope / tier / date)
-//   2. "How to use with Claude AI" hint
+//   2. "How to use this report" hint
 //   3. 8-stat summary grid
 //   4. ISSUES REQUIRING FIXES — grouped by severity
 //      Each card: scheme ID · file path · current URL · HTTP code · error · fix detail
@@ -941,14 +941,13 @@ body {
 
 <!-- AI USAGE HINT -->
 <div class="ai-hint">
-  <strong>📌 HOW TO USE THIS REPORT WITH CLAUDE AI:</strong><br/>
-  1. Upload this PDF to Claude AI.<br/>
-  2. Also upload the scheme source file — <code>src/schemesData.js</code> (for national) or
-     <code>src/state/statename.js</code> (for state schemes).<br/>
-  3. Tell Claude: <em>"Fix all the issues listed in the verification report.
-     For each issue the Scheme ID and File to Edit are shown — find that scheme and
-     update the <code>apply.en</code> field (or follow the WHAT TO FIX instruction)."</em><br/>
-  <strong>Focus Claude on the "ISSUES REQUIRING FIXES" section below.</strong>
+  <strong>📌 HOW TO USE THIS REPORT:</strong><br/>
+  1. Open this report next to the scheme files listed in it.<br/>
+  2. Open the scheme source file — <code>src/schemesData.js</code> (for national) or
+     <code>src/states/statename.js</code> (for state schemes).<br/>
+  3. For each issue, the Scheme ID and File to Edit are shown — find that scheme and
+     update its <code>apply.en</code> field (or follow the WHAT TO FIX instruction).<br/>
+  <strong>Start with the "ISSUES REQUIRING FIXES" section below.</strong>
 </div>
 
 <!-- SUMMARY -->
@@ -972,7 +971,7 @@ ${issues.length > 0 ? `
 <div class="sec-sub">
   Each card below shows the exact <strong>File to Edit</strong>, <strong>Scheme ID</strong>, and
   <strong>WHAT TO FIX</strong> instruction. Upload the corresponding source file alongside this
-  PDF to Claude AI for automated fixes.
+  PDF to work through the fixes.
 </div>
 
 ${critIssues.length > 0 ? `
@@ -1065,10 +1064,10 @@ ${active.length > 0 ? `
 
 
 // ─── ISSUES-ONLY PDF EXPORT ──────────────────────────────────────────────────
-// Leaner variant of exportResultsPDF for uploading to Claude AI.
+// Leaner variant of exportResultsPDF that lists only what needs fixing.
 // Includes: Cover + AI Hint + 8-stat Summary + Issues section only.
 // Omits the No Response table and Active Schemes table — those are noise for
-// the Claude AI workflow where you only want fixes, not reference data.
+// when you only want the fixes, not the reference data.
 
 function exportIssuesOnlyPDF(results, summary, scopeFilter, priorityFilter, tier) {
   const now      = new Date();
@@ -1203,7 +1202,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Ar
   <div style="font-size:8pt;opacity:0.6;letter-spacing:1.5px;font-weight:700;margin-bottom:6px;">YOJANA SAHAY · ADMIN DASHBOARD</div>
   <h1>🇮🇳 Scheme Verification — Issues Only</h1>
   <div class="sub">Scheme URL Verifier · ${scopeLabel}</div>
-  <div><span class="issues-only-badge">⚡ ISSUES ONLY — Optimized for Claude AI upload</span></div>
+  <div><span class="issues-only-badge">⚡ ISSUES ONLY — just what needs fixing</span></div>
   <div class="chips">
     <div class="chip">📅 ${dateStr} · ${timeStr}</div>
     <div class="chip">🎯 ${scopeLabel}</div>
@@ -1214,11 +1213,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Ar
 </div>
 
 <div class="ai-hint">
-  <strong>📌 HOW TO USE THIS REPORT WITH CLAUDE AI (Issues Only):</strong><br/>
-  1. Upload this PDF to Claude AI — it contains <strong>only the issues</strong>, no noise from active/no-response schemes.<br/>
-  2. Also upload the scheme source file — <code>src/schemesData.js</code> (national) or <code>src/state/statename.js</code>.<br/>
-  3. Tell Claude: <em>"Fix all the issues listed. For each issue the Scheme ID and File to Edit are shown."</em><br/>
-  <strong>This leaner format keeps Claude focused on what actually needs fixing.</strong>
+  <strong>📌 HOW TO USE THIS REPORT (Issues Only):</strong><br/>
+  1. This report contains <strong>only the issues</strong>, no noise from active/no-response schemes.<br/>
+  2. Open the scheme source file — <code>src/schemesData.js</code> (national) or <code>src/states/statename.js</code>.<br/>
+  3. For each issue, the Scheme ID and File to Edit are shown — find that scheme and apply the fix.<br/>
+  <strong>This leaner format keeps the focus on what actually needs fixing.</strong>
 </div>
 
 <div class="stat-grid">
@@ -6917,7 +6916,7 @@ export default function SchemeVerifier({ dark, isDesktop }) {
               >
                 Export PDF
               </div>
-              {/* Issues Only PDF — leaner report for Claude AI upload */}
+              {/* Issues Only PDF — leaner report with just the fixes */}
               <div
                 {...a11yClickable(handleExportIssuesOnly)}
                 style={{

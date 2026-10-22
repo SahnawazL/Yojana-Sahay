@@ -3249,7 +3249,7 @@ const FirebaseUsageCard = React.memo(function FirebaseUsageCard({ dark, isDeskto
             Firebase gives your project a <b>free amount every day</b>. The bars show how much of today's free amount is used.
             <br />🟢 Green: plenty left. 🟡 Yellow (70%+): busy day. 🔴 Red (90%+): close to the limit.
             <br />The count starts again from zero at <b>{fmtLocalTime(d.resetsAt)}</b> your time. Numbers can be a few minutes behind.
-            <br />If any bar goes red often, tell Claude and the app can be made to use less.
+            <br />If any bar goes red often, the app can be tuned to use less.
           </div>
         )}
       </div>
