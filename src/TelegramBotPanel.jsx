@@ -52,7 +52,7 @@ export default function TelegramBotPanel({ dark = false }) {
       {!collapsed && (
         <div style={{ padding: "0 16px 14px", fontSize: 13, lineHeight: 1.55 }}>
           <div style={{ color: c.sub, fontSize: 12.5, marginBottom: 10 }}>
-            The eligibility checker inside Telegram — same rules as the app, English and Hindi. Answers are kept in the chat buttons, never saved on the server.
+            The eligibility checker inside Telegram — same rules as the app, English and Hindi. Answers are kept in the chat buttons — saved only for people who turn on alerts (and deleted when they stop).
           </div>
           {err && <div role="alert" style={{ color: c.red, fontSize: 12.5, marginBottom: 8 }}>{err}</div>}
           {!st && busy && <div style={{ color: c.sub }}>Checking…</div>}
@@ -82,6 +82,9 @@ export default function TelegramBotPanel({ dark = false }) {
               <Stat label="Started · 7 days" value={last7("started")} />
               <Stat label="Finished · 7 days" value={last7("finished")} />
               <Stat label="Finished · all time" value={k.finished} />
+              <Stat label="Alerts turned on" value={st.alertSubscribers} />
+              <Stat label="Money checks" value={k.moneyChecks} />
+              <Stat label="Searches" value={k.searched} />
             </div>
           )}
 

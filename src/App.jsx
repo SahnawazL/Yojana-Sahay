@@ -4083,6 +4083,7 @@ function SchemeDirectory({ lang, dark }) {
         {" · "}<a href="/contact.html" style={{ color:"inherit" }}>{isHindi ? "संपर्क" : "Contact"}</a>
         {" · "}<a href="/privacy.html" style={{ color:"inherit" }}>{isHindi ? "गोपनीयता नीति" : "Privacy"}</a>
         {" · "}<a href="/press.html" style={{ color:"inherit" }}>{isHindi ? "मीडिया" : "Press"}</a>
+        {" · "}<a href="/poster.html" style={{ color:"inherit" }}>{isHindi ? "मुफ़्त पोस्टर" : "Free posters"}</a>
       </div>
     </nav>
   );

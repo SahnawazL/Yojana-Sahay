@@ -232,7 +232,7 @@ function officialUrl(raw) {
 function trustFooter(isHindi) {
   return `<footer>
       ${isHindi ? "YojanaSahay एक स्वतंत्र, मुफ्त नागरिक मंच है — भारत सरकार या किसी राज्य सरकार से संबद्ध नहीं।" : "YojanaSahay is a free, independent civic-tech guide — not affiliated with the Government of India or any state government."}
-      <div class="trust"><a href="/about.html">${isHindi ? "हमारे बारे में" : "About"}</a>·<a href="/how-we-verify.html">${isHindi ? "हम जानकारी कैसे जांचते हैं" : "How we verify"}</a>·<a href="/faq.html">FAQ</a>·<a href="/add-widget.html">${isHindi ? "मुफ्त विजेट" : "Free widget"}</a>·<a href="/contact.html">${isHindi ? "संपर्क / सुधार" : "Contact & corrections"}</a>·<a href="/terms.html">${isHindi ? "शर्तें" : "Terms"}</a>·<a href="/privacy.html">${isHindi ? "गोपनीयता" : "Privacy"}</a>·<a href="/press.html">${isHindi ? "मीडिया" : "Press"}</a></div>
+      <div class="trust"><a href="/about.html">${isHindi ? "हमारे बारे में" : "About"}</a>·<a href="/how-we-verify.html">${isHindi ? "हम जानकारी कैसे जांचते हैं" : "How we verify"}</a>·<a href="/faq.html">FAQ</a>·<a href="/add-widget.html">${isHindi ? "मुफ्त विजेट" : "Free widget"}</a>·<a href="/contact.html">${isHindi ? "संपर्क / सुधार" : "Contact & corrections"}</a>·<a href="/terms.html">${isHindi ? "शर्तें" : "Terms"}</a>·<a href="/privacy.html">${isHindi ? "गोपनीयता" : "Privacy"}</a>·<a href="/press.html">${isHindi ? "मीडिया" : "Press"}</a>·<a href="/poster.html">${isHindi ? "मुफ़्त पोस्टर" : "Free posters"}</a></div>
       <a href="${SITE_URL}/">yojanasahay.vercel.app</a>
     </footer>`;
 }
@@ -1236,7 +1236,7 @@ function main() {
     const block = `<!--SEO-LINKS:START--><main class="seo-fallback" style="max-width:860px;margin:0 auto;padding:24px 16px;font-family:system-ui,sans-serif;color:#1c1917;background:#fff">`
       + `<h1>YojanaSahay – Free Government Scheme Finder for India</h1>`
       + `<p>Find the Central and State government welfare schemes you qualify for: ${SCHEME_COUNT_LABEL} schemes for farmers, women, students, workers, senior citizens and persons with disabilities, with eligibility, documents and the official link to apply. Free, in Hindi and English. YojanaSahay is an independent guide, not a government website.</p>`
-      + `<p><a href="/faq.html">FAQ</a> · <a href="/about.html">About</a> · <a href="/how-we-verify.html">How we verify</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/press.html">Press</a></p>`
+      + `<p><a href="/faq.html">FAQ</a> · <a href="/about.html">About</a> · <a href="/how-we-verify.html">How we verify</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/press.html">Press</a> · <a href="/poster.html">Free posters</a></p>`
       + `<h2>Government schemes by state</h2><ul>${stateHubs}</ul>`
       + `<h2>Schemes by category</h2><ul>${catHubs}</ul>`
       + `<h2>Popular schemes</h2><ul>${popular}</ul></main><!--SEO-LINKS:END-->`;

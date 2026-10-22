@@ -8,7 +8,8 @@
 //                                   body { op: "status" | "connect" | "disconnect" }
 //
 // The whole quiz lives in the buttons' data (src/quizCode.js): nothing the
-// person answers is stored on our server — only anonymous counters.
+// person answers is stored on our server — only anonymous counters — unless
+// they tap "Notify me" (opt-in alerts, tgAlerts/{chatId}; /stop deletes it).
 // Uses the app's own rules (eligibility.js, benefitMath.js, unlockPath.js) so
 // the bot and the app always give the same answer.
 // Needs one env var: TELEGRAM_BOT_TOKEN (from @BotFather).
@@ -23,6 +24,8 @@ import { schemePageUrl, officialSchemeLink, SITE_URL } from "../../src/schemeMat
 import { SCHEME_DB } from "../../src/schemesData.js";
 import { scoreSchemes } from "../../src/groqClient.js";
 import { whoCanApply } from "../../src/eligibilityText.js";
+import { safeMatch } from "../../src/eligibility.js";
+import { QUESTIONS as MONEY_QUESTIONS, nextQuestion as nextMoneyQuestion, diagnose, schemeTraits as moneySchemeTraits, questionText as moneyQuestionText, LINKS as MONEY_LINKS } from "../../src/moneyCheck.js";
 import { unlockSteps, UNLOCK_QUESTIONS, UNLOCK_GROUPS } from "../../src/unlockPath.js";
 import { QUIZ, decodeQuiz, encodeAnswer, nextQuizQuestion } from "../../src/quizCode.js";
 
@@ -76,8 +79,8 @@ const Q_TEXT = {
 };
 const L = (lang, en, hi) => (lang === "h" ? hi : en);
 const NOTE = {
-  e: "ℹ️ YojanaSahay is a free, independent guide — not a government service. Always apply on the official website or office. Never pay anyone or share an OTP to get a scheme.\n🔒 Your answers are not saved.",
-  h: "ℹ️ YojanaSahay एक मुफ़्त, स्वतंत्र गाइड है — सरकारी सेवा नहीं। आवेदन हमेशा आधिकारिक वेबसाइट या कार्यालय में करें। योजना के लिए किसी को पैसे या OTP न दें।\n🔒 आपके जवाब सेव नहीं किए जाते।",
+  e: "ℹ️ YojanaSahay is a free, independent guide — not a government service. Always apply on the official website or office. Never pay anyone or share an OTP to get a scheme.\n🔒 Your answers are not saved (unless you turn on alerts).",
+  h: "ℹ️ YojanaSahay एक मुफ़्त, स्वतंत्र गाइड है — सरकारी सेवा नहीं। आवेदन हमेशा आधिकारिक वेबसाइट या कार्यालय में करें। योजना के लिए किसी को पैसे या OTP न दें।\n🔒 आपके जवाब सेव नहीं किए जाते (जब तक आप सूचनाएं चालू न करें)।",
 };
 
 // ── Quiz state <-> button data ───────────────────────────────────────────────
@@ -173,6 +176,7 @@ function resultView(lang, answers) {
       ...detailRows(lang, [...top.map(x => x.s), ...rest]),
       [{ text: L(lang, `📱 See all ${all.length} in the app`, `📱 सभी ${all.length} ऐप में देखें`), url: `${SITE_URL}/?quiz=${code}` }],
       [{ text: L(lang, "🔄 Check again", "🔄 फिर से जांचें"), callback_data: `R:${lang}` }, { text: hi ? "English" : "हिंदी", callback_data: `A:${hi ? "e" : "h"}${code}:x` }],
+      [{ text: L(lang, "🔔 Notify me about new schemes & deadlines", "🔔 नई योजनाओं और आख़िरी तारीख की सूचना पाएं"), callback_data: `N:${lang}${code}` }],
       [shareButton(lang)],
     ] },
   };
@@ -208,6 +212,7 @@ function detailView(lang, s) {
   const rows = [];
   if (official) rows.push([{ text: L(lang, "🏛️ Official website", "🏛️ आधिकारिक वेबसाइट"), url: official }]);
   rows.push([{ text: L(lang, "📄 Full details", "📄 पूरा विवरण"), url: schemePageUrl(s, k) }, { text: L(lang, "✅ Do I qualify?", "✅ क्या मैं पात्र हूं?"), callback_data: `L:${lang}` }]);
+  if (moneySchemeTraits(s).cash && s.id.length <= 40) rows.push([{ text: L(lang, "💸 Applied but money not received?", "💸 आवेदन किया, पर पैसा नहीं आया?"), callback_data: `M:${lang}:${s.id}:` }]);
   return { text: lines.join("\n"), reply_markup: { inline_keyboard: rows } };
 }
 
@@ -232,8 +237,7 @@ async function onSearch(chat_id, text) {
   const found = searchSchemes(text);
   const lines = [];
   if (MONEY_RE.test(text)) {
-    lines.push(L(lang, "💸 <b>Money not received?</b> Our step-by-step check finds the likely reason (Aadhaar–bank link, e-KYC, name mismatch…) and the fix:", "💸 <b>पैसा नहीं आया?</b> हमारी कदम-दर-कदम जांच संभावित कारण (आधार–बैंक लिंक, e-KYC, नाम में अंतर…) और उसका हल बताती है:"));
-    lines.push(`${SITE_URL}/?go=money`);
+    lines.push(L(lang, "💸 <b>Money not received?</b> Tap below — a few questions find the likely reason (Aadhaar–bank link, e-KYC, name mismatch…) and the fix.", "💸 <b>पैसा नहीं आया?</b> नीचे दबाएं — कुछ सवालों से संभावित कारण (आधार–बैंक लिंक, e-KYC, नाम में अंतर…) और उसका हल मिलेगा।"));
     lines.push("");
   }
   if (found.length) {
@@ -245,7 +249,9 @@ async function onSearch(chat_id, text) {
     lines.push(L(lang, "I couldn't find a scheme for that. Try a scheme name (like \"PM Kisan\") or a need (like \"widow pension\", \"scholarship\") — or check which schemes fit you:", "इसके लिए कोई योजना नहीं मिली। योजना का नाम (जैसे \"पीएम किसान\") या ज़रूरत (जैसे \"विधवा पेंशन\", \"छात्रवृत्ति\") लिखें — या जांचें कि कौन सी योजनाएं आपके लिए हैं:"));
   }
   await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true, text: lines.join("\n"),
-    reply_markup: { inline_keyboard: [...detailRows(lang, found), [{ text: L(lang, "✅ Check which schemes I qualify for", "✅ जांचें मैं किन योजनाओं का पात्र हूं"), callback_data: `L:${lang}` }]] } });
+    reply_markup: { inline_keyboard: [
+      ...(MONEY_RE.test(text) ? [[{ text: L(lang, "💸 Find why the money didn't come", "💸 जानें पैसा क्यों नहीं आया"), callback_data: `M:${lang}:${found[0] && found[0].id.length <= 40 ? found[0].id : "-"}:` }]] : []),
+      ...detailRows(lang, found), [{ text: L(lang, "✅ Check which schemes I qualify for", "✅ जांचें मैं किन योजनाओं का पात्र हूं"), callback_data: `L:${lang}` }]] } });
   await bump("searched");
 }
 
@@ -273,6 +279,121 @@ async function countHelped() {
   } catch (e) { console.warn("[telegram] helped counter failed:", e.message); }
 }
 
+// ── "Why didn't my money come?" in the chat ──────────────────────────────────
+// Same questions and answers as the app (src/moneyCheck.js). The replies ride
+// in the button data: one character per question (option number, "_" = not
+// asked). Callback: "M:<lang>:<schemeId or ->:<replies>".
+const MQ = MONEY_QUESTIONS;
+function decodeMoney(str) {
+  const r = {};
+  MQ.forEach((q, i) => { const c = str[i]; if (c && c !== "_") { const o = q.options[Number(c)]; if (o) r[q.id] = o[0]; } });
+  return r;
+}
+const encodeMoney = r => MQ.map(q => { const i = q.options.findIndex(o => o[0] === r[q.id]); return i >= 0 ? String(i) : "_"; }).join("").replace(/_+$/, "");
+function moneyView(lang, scheme, replies) {
+  const k = lang === "h" ? "hi" : "en";
+  const sid = scheme?.id || "-";
+  const head = `💸 <b>${L(lang, "Why didn't my money come?", "पैसा क्यों नहीं आया?")}</b>${scheme ? `\n${esc(scheme.name?.[k] || scheme.name?.en)}` : ""}`;
+  const q = nextMoneyQuestion(replies, scheme);
+  if (q) {
+    const n = Object.keys(replies).length + 1;
+    const t = moneyQuestionText(q, moneySchemeTraits(scheme));
+    const rows = q.options.map((o, i) => [{ text: o[1][k], callback_data: `M:${lang}:${sid}:${encodeMoney({ ...replies, [q.id]: o[0] })}` }]);
+    if (n > 1) {
+      const prev = { ...replies }; const last = MQ.filter(x => prev[x.id] != null).pop(); if (last) delete prev[last.id];
+      rows.push([{ text: L(lang, "↩ Back", "↩ पीछे"), callback_data: `M:${lang}:${sid}:${encodeMoney(prev)}` }]);
+    }
+    return { text: `${head}\n\n<b>${L(lang, `Question ${n}`, `सवाल ${n}`)}</b>\n${esc(t[k])}${q.id === "seed" ? `\n<i>${L(lang, "You can see this on myAadhaar → Bank Seeding Status.", "यह myAadhaar → बैंक सीडिंग स्टेटस पर दिखता है।")}</i>` : ""}`, reply_markup: { inline_keyboard: rows } };
+  }
+  const causes = diagnose(replies, scheme, null);
+  const badge = { likely: L(lang, "🔴 Most likely", "🔴 सबसे संभावित"), check: L(lang, "🟡 Worth checking", "🟡 जांच लें"), info: L(lang, "🔵 Good to know", "🔵 जानने लायक") };
+  const linkFor = key => {
+    if (key === "scheme") { const u = scheme && officialSchemeLink(scheme); return u ? `<a href="${u}">${L(lang, "Scheme's official website", "योजना की आधिकारिक वेबसाइट")}</a>` : ""; }
+    const l = MONEY_LINKS[key]; return l ? `<a href="${l.url}">${esc(l[k])}</a>` : "";
+  };
+  const build = (withWhy) => {
+    const out = [head, ""];
+    for (const c of causes) {
+      out.push(`${badge[c.level] || ""} · <b>${esc(c.title[k])}</b>`);
+      if (withWhy) out.push(esc(c.why[k]));
+      c.fix.forEach((f, i) => out.push(`${i + 1}. ${esc(f[k])}`));
+      const links = c.links.map(linkFor).filter(Boolean);
+      if (links.length) out.push(`🔗 ${links.join(" · ")}`);
+      out.push("");
+    }
+    out.push(L(lang, "<i>General guidance based on your answers — the bank or the department can confirm the exact reason.</i>", "<i>आपके जवाबों पर आधारित सामान्य मार्गदर्शन — सही कारण बैंक या विभाग बता सकता है।</i>"));
+    return out.join("\n");
+  };
+  let text = build(true);
+  if (text.length > 4000) text = build(false);
+  if (text.length > 4000) text = text.slice(0, 3990) + "…";
+  return { text, reply_markup: { inline_keyboard: [[{ text: L(lang, "🔄 Start again", "🔄 फिर से शुरू करें"), callback_data: `M:${lang}:${sid}:` }, { text: L(lang, "✅ Check my schemes", "✅ मेरी योजनाएं जांचें"), callback_data: `L:${lang}` }]] } };
+}
+
+// ── New-scheme and deadline alerts (opt-in) ──────────────────────────────────
+// Only when the person taps "Notify me": we keep tgAlerts/{chatId} = the
+// answers code, language and which alerts were sent. "Stop alerts" or /stop
+// deletes it. Sent by the daily deadline-alerts cron (runTelegramAlerts).
+async function alertsOn(chat_id, lang, code) {
+  const db = getAdminDb(); if (!db) return false;
+  await db.collection("tgAlerts").doc(String(chat_id)).set({ code, lang, createdAt: new Date().toISOString(), sent: {} });
+  return true;
+}
+async function alertsOff(chat_id) {
+  const db = getAdminDb(); if (!db) return;
+  await db.collection("tgAlerts").doc(String(chat_id)).delete().catch(() => {});
+}
+const stopRow = lang => [{ text: L(lang, "🔕 Stop alerts", "🔕 सूचनाएं बंद करें"), callback_data: `U:${lang}` }];
+
+// Called once a day from the deadline-alerts cron. At most one message per
+// subscriber: a matching scheme closing within 7 days, else a new matching
+// scheme. Never throws.
+export async function runTelegramAlerts({ db, schemes, newSchemes = [], daysUntil }) {
+  const out = { subscribers: 0, sent: 0, removed: 0, failed: 0 };
+  if (!token() || !db) return out;
+  try {
+    const snap = await db.collection("tgAlerts").get();
+    for (const doc of snap.docs) {
+      out.subscribers++;
+      try {
+        const d = doc.data() || {};
+        const { answers, done } = decodeQuiz(d.code);
+        if (!done) { await doc.ref.delete(); out.removed++; continue; }
+        const lang = d.lang === "h" ? "h" : "e", k = lang === "h" ? "hi" : "en";
+        const sent = d.sent || {};
+        const matched = schemes.filter(s => { try { return !s.closed && safeMatch(s, answers); } catch { return false; } });
+        const ids = new Set(matched.map(s => s.id));
+        const nm = s => esc(s.name?.[k] || s.name?.en);
+        let msg = null, marks = [];
+        const closing = matched.map(s => ({ s, d: daysUntil(s.lastDate) })).filter(x => x.d !== null && x.d >= 0 && x.d <= 7 && !sent[`deadline:${x.s.id}`]).sort((a, b) => a.d - b.d);
+        if (closing.length) {
+          const { s, d: days } = closing[0];
+          marks = closing.map(x => `deadline:${x.s.id}`);
+          msg = { text: `⏳ <b>${days === 0 ? L(lang, "Last day today", "आज आख़िरी दिन") : L(lang, `${days} day${days === 1 ? "" : "s"} left to apply`, `आवेदन के ${days} दिन बाकी`)}</b>\n${nm(s)}${closing.length > 1 ? `\n${L(lang, `+ ${closing.length - 1} more of your schemes closing soon`, `+ आपकी ${closing.length - 1} और योजनाएं जल्द बंद`)}` : ""}`, s };
+        } else {
+          const fresh = newSchemes.filter(s => ids.has(s.id) && !sent[`new:${s.id}`]);
+          if (fresh.length) {
+            marks = fresh.map(s => `new:${s.id}`);
+            msg = { text: `🆕 <b>${L(lang, "New scheme you may qualify for", "नई योजना जिसके आप पात्र हो सकते हैं")}</b>\n${fresh.slice(0, 3).map(nm).join("\n")}${fresh.length > 3 ? `\n+ ${fresh.length - 3}` : ""}`, s: fresh[0] };
+          }
+        }
+        if (!msg) continue;
+        const r = await tg("sendMessage", { chat_id: doc.id, parse_mode: "HTML", disable_web_page_preview: true, text: msg.text,
+          reply_markup: { inline_keyboard: [[{ text: L(lang, "ℹ️ Details", "ℹ️ विवरण"), callback_data: `S:${lang}:${msg.s.id}` }, { text: L(lang, "📄 Open", "📄 खोलें"), url: schemePageUrl(msg.s, k) }], stopRow(lang)] } });
+        if (r.ok) {
+          const now = new Date().toISOString();
+          const next = { ...sent }; marks.forEach(m => { next[m] = now; });
+          await doc.ref.update({ sent: Object.fromEntries(Object.entries(next).sort((a, b) => String(b[1]).localeCompare(String(a[1]))).slice(0, 300)), lastSentAt: now });
+          out.sent++;
+        } else if (/blocked|deactivated|chat not found|kicked/i.test(r.description || "")) {
+          await doc.ref.delete(); out.removed++; // they blocked the bot → forget them
+        } else out.failed++;
+      } catch (e) { out.failed++; console.warn("[telegram] alert failed:", e.message); }
+    }
+  } catch (e) { out.error = e.message; }
+  return out;
+}
+
 // ── Updates ──────────────────────────────────────────────────────────────────
 async function onMessage(m) {
   const chat_id = m.chat?.id;
@@ -283,6 +404,15 @@ async function onMessage(m) {
   if (/^\/(start|check)/i.test(text) || !text.startsWith("/")) {
     await tg("sendMessage", { chat_id, parse_mode: "HTML", ...welcome(m.from?.first_name) });
     if (/^\/start/i.test(text)) await bump("started");
+    return;
+  }
+  if (/^\/stop/i.test(text)) {
+    await alertsOff(chat_id);
+    await tg("sendMessage", { chat_id, text: "🔕 Alerts are off. Your saved answers were deleted.\n🔕 सूचनाएं बंद। आपके सेव किए जवाब हटा दिए गए।" });
+    return;
+  }
+  if (/^\/money/i.test(text)) {
+    await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true, ...moneyView(looksHindi(text) ? "h" : "e", null, {}) });
     return;
   }
   if (/^\/help/i.test(text)) {
@@ -301,6 +431,27 @@ async function onCallback(cq) {
   const show = (view) => tg("editMessageText", { chat_id, message_id, parse_mode: "HTML", disable_web_page_preview: true, ...view });
 
   let m;
+  if ((m = /^M:([eh]):([A-Za-z0-9_-]{1,40}|-):([0-9_]{0,12})$/.exec(data))) {
+    const scheme = m[2] === "-" ? null : BY_ID.get(m[2]) || null;
+    const view = moneyView(m[1], scheme, decodeMoney(m[3]));
+    if (!m[3]) { await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true, ...view }); await bump("moneyChecks"); return; }
+    return show(view);
+  }
+  if ((m = /^N:([eh])([0-9a-z]{4,24})$/.exec(data))) {
+    const { done } = decodeQuiz(m[2]);
+    const ok = done && await alertsOn(chat_id, m[1], m[2]).catch(() => false);
+    await tg("sendMessage", { chat_id, parse_mode: "HTML", text: ok
+      ? L(m[1], "🔔 <b>Alerts are on.</b> We'll message you when a new scheme you may qualify for is added, or one of your schemes is about to close — at most once a day.\n\nTo do this we keep your answers to the questions and this chat's ID — nothing else. Tap “Stop alerts” or send /stop any time and they are deleted.", "🔔 <b>सूचनाएं चालू हैं।</b> जब कोई नई योजना जुड़ेगी जिसके आप पात्र हो सकते हैं, या आपकी किसी योजना की आख़िरी तारीख करीब होगी, हम संदेश भेजेंगे — दिन में ज़्यादा से ज़्यादा एक बार।\n\nइसके लिए हम सिर्फ़ आपके सवालों के जवाब और इस चैट की ID रखते हैं। “सूचनाएं बंद करें” दबाएं या /stop भेजें — सब हटा दिया जाएगा।")
+      : L(m[1], "Sorry, alerts couldn't be turned on right now. Please try again later.", "माफ़ करें, अभी सूचनाएं चालू नहीं हो सकीं। बाद में फिर कोशिश करें।"),
+      reply_markup: ok ? { inline_keyboard: [stopRow(m[1])] } : undefined });
+    if (ok) await bump("alertsOn");
+    return;
+  }
+  if ((m = /^U:([eh])$/.exec(data))) {
+    await alertsOff(chat_id);
+    await tg("sendMessage", { chat_id, text: L(m[1], "🔕 Alerts are off. Your saved answers were deleted.", "🔕 सूचनाएं बंद। आपके सेव किए जवाब हटा दिए गए।") });
+    return;
+  }
   if ((m = /^S:([eh]):([A-Za-z0-9_-]{1,50})$/.exec(data))) {
     const s = BY_ID.get(m[2]);
     if (s) await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true, ...detailView(m[1], s) });
@@ -345,21 +496,23 @@ async function adminOp(req, res) {
   if (op === "connect") {
     const r = await tg("setWebhook", { url: WEBHOOK_URL, secret_token: secret(), allowed_updates: ["message", "callback_query"], drop_pending_updates: true, max_connections: 20 });
     if (!r.ok) return res.status(502).json({ error: r.description || "Telegram did not accept the webhook" });
-    await tg("setMyCommands", { commands: [{ command: "check", description: "Check which schemes you qualify for" }, { command: "help", description: "About YojanaSahay" }] });
-    await tg("setMyCommands", { language_code: "hi", commands: [{ command: "check", description: "जांचें कि आप किन योजनाओं के पात्र हैं" }, { command: "help", description: "योजना सहाय के बारे में" }] });
+    await tg("setMyCommands", { commands: [{ command: "check", description: "Check which schemes you qualify for" }, { command: "money", description: "Money not received? Find out why" }, { command: "stop", description: "Turn off alerts" }, { command: "help", description: "About YojanaSahay" }] });
+    await tg("setMyCommands", { language_code: "hi", commands: [{ command: "check", description: "जांचें कि आप किन योजनाओं के पात्र हैं" }, { command: "money", description: "पैसा नहीं आया? कारण जानें" }, { command: "stop", description: "सूचनाएं बंद करें" }, { command: "help", description: "योजना सहाय के बारे में" }] });
     await tg("setMyShortDescription", { short_description: "Free check: which Indian government schemes you may qualify for. Independent guide — not a government service." });
-    await tg("setMyDescription", { description: "YojanaSahay finds the Central and State government schemes you may qualify for — a few quick questions, in English or Hindi. Free. An independent guide, not a government service. Your answers are not saved. योजना सहाय — कुछ सवालों में जानें कि आप किन सरकारी योजनाओं के पात्र हो सकते हैं।" });
+    await tg("setMyDescription", { description: "YojanaSahay finds the Central and State government schemes you may qualify for — a few quick questions, in English or Hindi. Free. An independent guide, not a government service. Your answers are not saved unless you turn on alerts. योजना सहाय — कुछ सवालों में जानें कि आप किन सरकारी योजनाओं के पात्र हो सकते हैं।" });
   }
   if (op === "disconnect") await tg("deleteWebhook", { drop_pending_updates: true });
 
   const [me, wh] = await Promise.all([tg("getMe"), tg("getWebhookInfo")]);
+  let alertSubscribers = null;
+  try { const c = await getAdminDb()?.collection("tgAlerts").count().get(); alertSubscribers = c?.data()?.count ?? null; } catch {}
   return res.status(200).json({
     configured: true,
     bot: me.ok ? { username: me.result.username, name: me.result.first_name } : null,
     tokenError: me.ok ? null : (me.description || "Token not accepted by Telegram"),
     connected: !!(wh.ok && wh.result?.url === WEBHOOK_URL),
     webhook: wh.ok ? { url: wh.result.url || "", pending: wh.result.pending_update_count || 0, lastError: wh.result.last_error_message || null, lastErrorAt: wh.result.last_error_date ? wh.result.last_error_date * 1000 : null } : null,
-    counters,
+    counters, alertSubscribers,
   });
 }
 

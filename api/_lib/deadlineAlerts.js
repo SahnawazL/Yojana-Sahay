@@ -26,6 +26,7 @@ import nodemailer      from "nodemailer";
 import { SCHEME_DB }   from "../../src/schemesData.js";
 import { postNote, teamBrief, briefLine } from "./teamBoard.js";
 import { runPushReminders } from "./push.js";
+import { runTelegramAlerts } from "./telegramBot.js";
 import { nicheAudience, audienceApplies } from "../../src/audience.js";
 // Special-group schemes (athletes, widows, construction workers…) only when the group applies — same as the app.
 const audienceOk = (s, a) => { const aud = nicheAudience(s); return !aud || audienceApplies(aud.key, a); };
@@ -608,10 +609,13 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null, 
   // ── Phone notifications (Web Push) — at most one per subscribed user ──────
   // Self-contained and never throws, so it can't break the e-mail alerts.
   const push = await runPushReminders({ db, schemes: mergedSchemes.filter(s => !heldBack.has(s.id)), newSchemes, buildProfileAnswers, daysUntil });
+  // ── Telegram alerts — only people who tapped "Notify me" in the bot ────────
+  const telegram = await runTelegramAlerts({ db, schemes: mergedSchemes.filter(s => !heldBack.has(s.id)), newSchemes: newSchemes.filter(s => !heldBack.has(s.id)), daysUntil });
 
   // ── Log this run to Firestore so the Admin Dashboard can show history ───────
   const runDoc = {
     push,
+    telegram,
     trigger,
     triggeredBy,
     runAt: FieldValue.serverTimestamp(),
