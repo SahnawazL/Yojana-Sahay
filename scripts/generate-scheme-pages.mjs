@@ -309,6 +309,7 @@ function renderPoster() {
 <link rel="icon" href="/favicon.ico" />
 <style>
   *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   body{margin:0;font-family:'Noto Sans','Noto Sans Devanagari',-apple-system,system-ui,sans-serif;background:#e7e5e4;color:#1c1917}
   .tools{max-width:820px;margin:0 auto;padding:18px 16px 6px}
   .tools h1{font-size:20px;margin:0 0 4px} .tools p{font-size:13.5px;color:#57534e;margin:0 0 12px;line-height:1.55}
@@ -319,7 +320,7 @@ function renderPoster() {
   button{font:inherit;font-weight:800;font-size:15px;padding:11px 18px;border-radius:12px;border:0;background:#FF9933;color:#fff;cursor:pointer}
   .tip{font-size:12px;color:#78716c;margin:0 0 14px}
   .wrap{display:flex;justify-content:center;padding:0 12px 30px;overflow:hidden}
-  .sheet{width:210mm;height:297mm;background:#fff;box-shadow:0 6px 30px rgba(0,0,0,.18);position:relative;overflow:hidden;display:flex;flex-direction:column;transform-origin:top center}
+  .sheet{flex-shrink:0;width:210mm;height:297mm;background:#fff;box-shadow:0 6px 30px rgba(0,0,0,.18);position:relative;overflow:hidden;display:flex;flex-direction:column;transform-origin:top center}
   .band{height:9mm;background:linear-gradient(90deg,#FF9933 0 33.3%,#fff 33.3% 66.6%,#138808 66.6%)}
   .in{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:8mm 15mm 7mm}
   .brand{display:flex;align-items:center;gap:4mm;margin-bottom:4mm}
