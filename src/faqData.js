@@ -10,20 +10,23 @@
 // true in the app today; keep each `id` stable (FAQ helpful-votes are stored
 // by id). Plain JS only — no JSX — because the build script imports it.
 // An answer is a string, or { text, note } (note = a highlighted tip).
+// Scheme / state counts come from schemeStats.js — never type a number here.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import { SCHEME_COUNT_LABEL, STATE_COUNT } from "./schemeStats.js";
 
 export const FAQ_DATA = {
   en: [
     // ── About the app ────────────────────────────────────────────────────────
     { cat: "about", id: "about_001", q: "What is YojanaSahay?",
-      a: "YojanaSahay is a free app and website that helps people in India find the government schemes they can get — pensions, scholarships, farmer support, housing, health cover, loans and more. It lists 1,100+ Central and State schemes in one place, in simple Hindi and English, and tells you which ones you qualify for, what you will get, the documents you need and where to apply." },
+      a: `YojanaSahay is a free app and website that helps people in India find the government schemes they can get — pensions, scholarships, farmer support, housing, health cover, loans and more. It lists ${SCHEME_COUNT_LABEL} Central and State schemes in one place, in simple Hindi and English, and tells you which ones you qualify for, what you will get, the documents you need and where to apply.` },
     { cat: "about", id: "about_002", q: "Is YojanaSahay free?",
       a: "Yes. Finding schemes, the Eligibility Checker, scheme details, document lists and the AI assistant are all free. There are no ads and no hidden charges. A paid Pro plan with extra features is planned for later, but finding schemes will always stay free." },
     { cat: "about", id: "about_003", q: "Is this an official government app?",
       a: { text: "No. YojanaSahay is an independent app built to help citizens. It is not run by, or connected to, any Central or State Government department.",
            note: "We never ask for money, OTP, bank details or your Aadhaar number. If anyone asks for these in YojanaSahay's name, it is a scam." } },
     { cat: "about", id: "about_004", q: "Which states and schemes are covered?",
-      a: "Central Government schemes plus State schemes from 34 states and union territories — from Uttar Pradesh, Bihar and Maharashtra to Assam, Ladakh and the Andaman & Nicobar Islands. That is 1,100+ schemes in total, and new ones are added regularly." },
+      a: `Central Government schemes plus State schemes from ${STATE_COUNT} states and union territories — from Uttar Pradesh, Bihar and Maharashtra to Assam, Ladakh and the Andaman & Nicobar Islands. That is ${SCHEME_COUNT_LABEL} schemes in total, and new ones are added regularly.` },
     { cat: "about", id: "about_005", q: "Can I apply for a scheme directly in this app?",
       a: "No. YojanaSahay helps you find and understand schemes. To apply, every scheme shows the official government website or office. You always apply there — we never take, hold or submit applications for you." },
 
@@ -123,14 +126,14 @@ export const FAQ_DATA = {
   hi: [
     // ── ऐप के बारे में ──────────────────────────────────────────────────────────
     { cat: "about", id: "about_001", q: "योजना सहाय क्या है?",
-      a: "योजना सहाय एक मुफ़्त ऐप और वेबसाइट है जो भारत के लोगों को वे सरकारी योजनाएं ढूंढने में मदद करती है जिनका लाभ वे ले सकते हैं — पेंशन, छात्रवृत्ति, किसान सहायता, आवास, इलाज, लोन और बहुत कुछ। इसमें केंद्र और राज्यों की 1,100+ योजनाएं एक जगह, आसान हिंदी और English में हैं, और यह बताता है कि आप किन योजनाओं के पात्र हैं, क्या मिलेगा, कौन से दस्तावेज़ चाहिए और कहां आवेदन करें।" },
+      a: `योजना सहाय एक मुफ़्त ऐप और वेबसाइट है जो भारत के लोगों को वे सरकारी योजनाएं ढूंढने में मदद करती है जिनका लाभ वे ले सकते हैं — पेंशन, छात्रवृत्ति, किसान सहायता, आवास, इलाज, लोन और बहुत कुछ। इसमें केंद्र और राज्यों की ${SCHEME_COUNT_LABEL} योजनाएं एक जगह, आसान हिंदी और English में हैं, और यह बताता है कि आप किन योजनाओं के पात्र हैं, क्या मिलेगा, कौन से दस्तावेज़ चाहिए और कहां आवेदन करें।` },
     { cat: "about", id: "about_002", q: "क्या योजना सहाय मुफ़्त है?",
       a: "हां। योजनाएं खोजना, पात्रता जांच, योजना की जानकारी, दस्तावेज़ सूची और AI सहायक — सब मुफ़्त है। कोई विज्ञापन नहीं, कोई छुपा खर्च नहीं। आगे चलकर अतिरिक्त सुविधाओं वाला Pro प्लान आ सकता है, लेकिन योजनाएं खोजना हमेशा मुफ़्त रहेगा।" },
     { cat: "about", id: "about_003", q: "क्या यह सरकारी ऐप है?",
       a: { text: "नहीं। योजना सहाय नागरिकों की मदद के लिए बना एक स्वतंत्र ऐप है। यह किसी केंद्र या राज्य सरकार के विभाग द्वारा नहीं चलाया जाता, न ही उनसे जुड़ा है।",
            note: "हम कभी पैसे, OTP, बैंक जानकारी या आधार नंबर नहीं मांगते। अगर कोई योजना सहाय के नाम पर ये मांगे, तो वह धोखा है।" } },
     { cat: "about", id: "about_004", q: "कौन से राज्य और योजनाएं शामिल हैं?",
-      a: "केंद्र सरकार की योजनाएं और 34 राज्यों व केंद्र शासित प्रदेशों की योजनाएं — उत्तर प्रदेश, बिहार और महाराष्ट्र से लेकर असम, लद्दाख और अंडमान-निकोबार तक। कुल 1,100+ योजनाएं, और नई योजनाएं लगातार जुड़ती रहती हैं।" },
+      a: `केंद्र सरकार की योजनाएं और ${STATE_COUNT} राज्यों व केंद्र शासित प्रदेशों की योजनाएं — उत्तर प्रदेश, बिहार और महाराष्ट्र से लेकर असम, लद्दाख और अंडमान-निकोबार तक। कुल ${SCHEME_COUNT_LABEL} योजनाएं, और नई योजनाएं लगातार जुड़ती रहती हैं।` },
     { cat: "about", id: "about_005", q: "क्या मैं इस ऐप से सीधे आवेदन कर सकता हूं?",
       a: "नहीं। योजना सहाय योजनाएं ढूंढने और समझने में मदद करता है। आवेदन के लिए हर योजना में आधिकारिक सरकारी वेबसाइट या कार्यालय बताया गया है — आवेदन हमेशा वहीं होता है। हम आपकी ओर से कोई आवेदन नहीं लेते या जमा नहीं करते।" },
 

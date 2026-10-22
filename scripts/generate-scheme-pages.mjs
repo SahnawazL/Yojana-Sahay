@@ -34,6 +34,8 @@ const { SCHEME_DB: ALL_SCHEMES } = await import("../src/schemesData.js");
 // scheme's page covers them, so Google never sees near-copy pages.
 const SCHEME_DB = ALL_SCHEMES.filter(s => !s.duplicateOf);
 const { FAQ_DATA, faqAnswerText } = await import("../src/faqData.js");
+const { TERMS } = await import("../src/legalText.js");
+const { SCHEME_COUNT_LABEL, STATE_COUNT, CENTRAL_COUNT } = await import("../src/schemeStats.js");
 const { whoCanApply } = await import("../src/eligibilityText.js");
 const { isOfficialUrl } = await import("../src/schemeMatch.js");
 const { benefitKind } = await import("../src/benefitMath.js");
@@ -229,7 +231,7 @@ function officialUrl(raw) {
 function trustFooter(isHindi) {
   return `<footer>
       ${isHindi ? "YojanaSahay एक स्वतंत्र, मुफ्त नागरिक मंच है — भारत सरकार या किसी राज्य सरकार से संबद्ध नहीं।" : "YojanaSahay is a free, independent civic-tech guide — not affiliated with the Government of India or any state government."}
-      <div class="trust"><a href="/about.html">${isHindi ? "हमारे बारे में" : "About"}</a>·<a href="/how-we-verify.html">${isHindi ? "हम जानकारी कैसे जांचते हैं" : "How we verify"}</a>·<a href="/faq.html">FAQ</a>·<a href="/add-widget.html">${isHindi ? "मुफ्त विजेट" : "Free widget"}</a>·<a href="/contact.html">${isHindi ? "संपर्क / सुधार" : "Contact & corrections"}</a></div>
+      <div class="trust"><a href="/about.html">${isHindi ? "हमारे बारे में" : "About"}</a>·<a href="/how-we-verify.html">${isHindi ? "हम जानकारी कैसे जांचते हैं" : "How we verify"}</a>·<a href="/faq.html">FAQ</a>·<a href="/add-widget.html">${isHindi ? "मुफ्त विजेट" : "Free widget"}</a>·<a href="/contact.html">${isHindi ? "संपर्क / सुधार" : "Contact & corrections"}</a>·<a href="/terms.html">${isHindi ? "शर्तें" : "Terms"}</a>·<a href="/privacy.html">${isHindi ? "गोपनीयता" : "Privacy"}</a>·<a href="/press.html">${isHindi ? "मीडिया" : "Press"}</a></div>
       <a href="${SITE_URL}/">yojanasahay.vercel.app</a>
     </footer>`;
 }
@@ -238,7 +240,8 @@ const SHARED_CSS = `:root{color-scheme:light dark;} *{box-sizing:border-box;}
   .wrap{max-width:720px;margin:0 auto;padding:28px 20px 60px;}
   h1{font-size:24px;line-height:1.3;margin:0 0 8px;font-weight:800;} h2{font-size:16px;margin:24px 0 10px;}
   p, li{font-size:14.5px;line-height:1.65;color:#44403c;} p.lead{color:#57534e;}
-  ul{padding-left:20px;} li{margin:6px 0;}
+  ul,ol{padding-left:20px;} li{margin:6px 0;}
+  .shots{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;} .shots img{width:140px;height:auto;border-radius:12px;border:1px solid #e7e5e4;display:block;}
   li a{color:#c2410c;font-weight:700;text-decoration:none;} li span{color:#57534e;}
   a{color:#c2410c;}
   .cta{display:block;text-align:center;text-decoration:none;background:#FF9933;color:#fff;font-weight:700;padding:14px;border-radius:12px;margin:22px 0;}
@@ -324,7 +327,74 @@ ${groups.get(g).map(li).join("\n")}
 const SUPPORT_EMAIL = "yojanasahayofficial@gmail.com";
 const MAIL = `<a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>`;
 function renderTrust(kind) {
+  // Counts come from src/schemeStats.js (recounted on every build).
+  const nRounded = SCHEME_COUNT_LABEL.replace(/\+$/, "");
+  const nStates = STATE_COUNT;
+  const nCentral = CENTRAL_COUNT;
   const pages = {
+    terms: {
+      title: "Terms of Service – YojanaSahay",
+      desc: "The terms for using the YojanaSahay app and website: an independent, free guide to Indian government schemes — not a government service.",
+      body: `
+  <h1>${esc(TERMS.en.title)}</h1>
+  <p class="lead">Effective date: 22 October 2026 · The same terms are shown in the app under About.</p>
+  <ol>
+${TERMS.en.points.map(t => `    <li>${esc(t)}</li>`).join("\n")}
+  </ol>
+  <p>Questions about these terms: ${MAIL}. See also our <a href="/privacy.html">Privacy Policy</a>.</p>
+  <h2>${esc(TERMS.hi.title)} (हिंदी)</h2>
+  <ol>
+${TERMS.hi.points.map(t => `    <li>${esc(t)}</li>`).join("\n")}
+  </ol>`,
+    },
+    press: {
+      title: "Press & Media Kit – YojanaSahay",
+      desc: "Logos, screenshots, key facts and descriptions of YojanaSahay — the free app that helps people in India find the government schemes they qualify for.",
+      body: `
+  <h1>Press & media kit</h1>
+  <p class="lead">Everything you need to write about YojanaSahay — free to use in articles, videos and posts about the app.</p>
+  <h2>In one line</h2>
+  <p><strong>YojanaSahay helps people in India find the government schemes they qualify for — free, in Hindi and English.</strong></p>
+  <h2>Short description</h2>
+  <p>YojanaSahay is a free app and website that brings together ${nRounded}+ Central and State government welfare schemes. People answer a few simple questions and see the schemes they may be eligible for — pensions, scholarships, farmer support, housing, health cover and more — with who can apply, the documents needed and the official link to apply. An AI assistant answers questions in Hindi, English or Hinglish, by text or voice.</p>
+  <h2>Key facts</h2>
+  <ul>
+    <li><strong>${nRounded}+ schemes</strong> — ${nCentral} Central Government schemes and State schemes from <strong>${nStates} states and union territories</strong></li>
+    <li><strong>Free</strong> — no ads, no charges to find schemes or check eligibility</li>
+    <li><strong>Hindi and English</strong>, with voice input</li>
+    <li>Official government links on every scheme, re-checked automatically on a regular schedule</li>
+    <li>Available as a website and an Android app</li>
+    <li>Built in India by Sahnawaz Ahmed Laskar</li>
+  </ul>
+  <h2>Please note</h2>
+  <p>YojanaSahay is an independent civic-tech app. It is <strong>not a government website</strong> and is not affiliated with the Government of India or any state government. It does not take applications — people always apply on the official government website or at the office. Please describe it as an "independent app", not as a government service.</p>
+  <h2>Name</h2>
+  <p>Written <strong>Yojana Sahay</strong> (two words) in text, and <strong>YojanaSahay</strong> in handles and web addresses. In Hindi: <strong>योजना सहाय</strong>.</p>
+  <h2>Logos and images</h2>
+  <ul>
+    <li><a href="/press/yojana-sahay-logo-1024.png" download>App logo — 1024 × 1024 PNG</a> · <a href="/press/yojana-sahay-logo-512.png" download>512 × 512 PNG</a></li>
+    <li><a href="/press/yojana-sahay-banner-1024x500.jpg" download>Banner — 1024 × 500</a> · <a href="/og-image.png" download>Social image — 1200 × 630</a></li>
+  </ul>
+  <p>Please don't change the colours or shape of the logo, or combine it with government emblems.</p>
+  <h2>Screenshots</h2>
+  <div class="shots">
+    <a href="/press/screenshot-1-home.jpg" download><img src="/press/screenshot-1-home.jpg" alt="Home screen" loading="lazy" width="216" height="384"></a>
+    <a href="/press/screenshot-2-eligibility.jpg" download><img src="/press/screenshot-2-eligibility.jpg" alt="Eligibility check" loading="lazy" width="216" height="384"></a>
+    <a href="/press/screenshot-3-scheme-details.jpg" download><img src="/press/screenshot-3-scheme-details.jpg" alt="Scheme details" loading="lazy" width="216" height="384"></a>
+    <a href="/press/screenshot-4-ai-assistant.jpg" download><img src="/press/screenshot-4-ai-assistant.jpg" alt="AI assistant" loading="lazy" width="216" height="384"></a>
+    <a href="/press/screenshot-5-search.jpg" download><img src="/press/screenshot-5-search.jpg" alt="Search" loading="lazy" width="216" height="384"></a>
+  </div>
+  <h2>Links</h2>
+  <ul>
+    <li>Website: <a href="${SITE_URL}/">${SITE_URL.replace(/^https:\/\//, "")}</a></li>
+    <li>Android app: on Google Play — link here at launch</li>
+    <li>How the information is checked: <a href="/how-we-verify.html">How we verify</a></li>
+  </ul>
+  <h2>Media contact</h2>
+  <p>${MAIL} — we usually reply within 24 hours.</p>
+  <h2>मीडिया के लिए (हिंदी)</h2>
+  <p>योजना सहाय एक मुफ़्त ऐप और वेबसाइट है जो भारत के लोगों को उनकी पात्र सरकारी योजनाएं ढूंढने में मदद करती है — केंद्र और ${nStates} राज्यों/केंद्र शासित प्रदेशों की ${nRounded}+ योजनाएं, हिंदी और English में। यह एक स्वतंत्र ऐप है, सरकारी वेबसाइट नहीं। लोगो और स्क्रीनशॉट ऊपर दिए गए हैं। संपर्क: ${SUPPORT_EMAIL}</p>`,
+    },
     about: {
       title: "About YojanaSahay – Free Government Scheme Finder for India",
       desc: "What YojanaSahay is, who built it and how it helps people in India find the government schemes they qualify for — free, in Hindi and English.",
@@ -333,7 +403,7 @@ function renderTrust(kind) {
   <p class="lead">YojanaSahay is a free app and website that helps people in India find the government schemes they can get — in simple Hindi and English.</p>
   <h2>What it does</h2>
   <ul>
-    <li><strong>1,100+ schemes in one place</strong> — Central Government schemes plus State schemes from 34 states and union territories: pensions, scholarships, farmer support, housing, health cover, loans and more.</li>
+    <li><strong>${SCHEME_COUNT_LABEL} schemes in one place</strong> — Central Government schemes plus State schemes from ${STATE_COUNT} states and union territories: pensions, scholarships, farmer support, housing, health cover, loans and more.</li>
     <li><strong>Eligibility Checker</strong> — answer a few simple questions and see the schemes you qualify for, with the money or benefit for each.</li>
     <li><strong>Clear scheme details</strong> — who can apply, documents needed, how to apply and the official government link.</li>
     <li><strong>AI assistant</strong> — ask in Hindi, English or Hinglish, by typing or by voice. It can check your eligibility in the chat, explain why you do or don't qualify, make a document checklist and track your applications.</li>
@@ -349,7 +419,7 @@ function renderTrust(kind) {
   </ul>
   <p>Questions? Read the <a href="/faq.html">FAQ</a> or <a href="/contact.html">contact us</a>.</p>
   <h2>हमारे बारे में (हिंदी)</h2>
-  <p>योजना सहाय एक मुफ़्त ऐप और वेबसाइट है जो भारत के लोगों को उनकी पात्र सरकारी योजनाएं ढूंढने में मदद करती है — केंद्र और 34 राज्यों/केंद्र शासित प्रदेशों की 1,100+ योजनाएं, आसान हिंदी और English में। इसे असम के स्वतंत्र डेवलपर सहनवाज़ अहमद लस्कर ने बनाया है। यह सरकारी वेबसाइट नहीं है। हम कभी पैसे, OTP या आधार नंबर नहीं मांगते, और आवेदन हमेशा आधिकारिक सरकारी वेबसाइट या कार्यालय में ही होता है।</p>`,
+  <p>योजना सहाय एक मुफ़्त ऐप और वेबसाइट है जो भारत के लोगों को उनकी पात्र सरकारी योजनाएं ढूंढने में मदद करती है — केंद्र और ${STATE_COUNT} राज्यों/केंद्र शासित प्रदेशों की ${SCHEME_COUNT_LABEL} योजनाएं, आसान हिंदी और English में। इसे असम के स्वतंत्र डेवलपर सहनवाज़ अहमद लस्कर ने बनाया है। यह सरकारी वेबसाइट नहीं है। हम कभी पैसे, OTP या आधार नंबर नहीं मांगते, और आवेदन हमेशा आधिकारिक सरकारी वेबसाइट या कार्यालय में ही होता है।</p>`,
     },
     "how-we-verify": {
       title: "How YojanaSahay Checks Scheme Information",
@@ -363,9 +433,9 @@ function renderTrust(kind) {
     <li>Official announcements (such as PIB and state information departments) for new schemes and changes.</li>
   </ul>
   <h2>How new schemes are added</h2>
-  <p>New schemes are found from official announcements. A scheme is published only after its details are checked against an official government (.gov.in / .nic.in) page. Anything that is not fully clear is reviewed by hand before it goes live.</p>
+  <p>New schemes are found from official announcements, from each state's own list of schemes, and from what people search for or request in the app. A scheme is published only after its details are checked against an official government (.gov.in / .nic.in) page; before it goes live on its own, the amount must also not disagree with a second official page. Anything that is not fully clear is reviewed by hand first.</p>
   <h2>Automatic checks</h2>
-  <p>The official link of every scheme is checked automatically on a regular schedule, and each scheme page shows the date it was last checked. Links that stop working, and schemes that close or change, are flagged and corrected.</p>
+  <p>The official page of every scheme is re-read automatically on a regular schedule, and each scheme page shows the date it was last checked. Links that stop working are repaired, deadlines are updated, schemes that close are marked as closed, and a changed benefit amount is flagged and corrected after review.</p>
   <h2>Eligibility results</h2>
   <p>The Eligibility Checker applies each scheme's published conditions (state, age, income, category and so on) to your answers. Results are a guide — the final decision is always made by the government office that runs the scheme.</p>
   <h2>AI assistant</h2>
@@ -389,7 +459,7 @@ function renderTrust(kind) {
   </ul>
   <p>Every report is acknowledged within 24 hours.</p>
   <h2>Delete your account</h2>
-  <p>Email ${MAIL} from your registered email with the subject “Data Deletion Request”. Your account and data are deleted within 7 working days.</p>
+  <p>In the app: <strong>Profile → Delete account</strong> — deleted immediately. Or email ${MAIL} from your registered email with the subject “Data Deletion Request” — done within 7 working days. <a href="/delete-account.html">More about account deletion</a>.</p>
   <h2>Please note</h2>
   <ul>
     <li>We cannot check or change your application status — only the department that runs the scheme can. Use the official website or helpline shown on each scheme page.</li>
@@ -905,7 +975,7 @@ function main() {
     sitemapEntries.push({ loc: `${SITE_URL}/yojana/${hub.file}.html` });
   }
   // Trust pages
-  for (const kind of ["about", "how-we-verify", "contact"]) {
+  for (const kind of ["about", "how-we-verify", "contact", "terms", "press"]) {
     fs.writeFileSync(path.join(ROOT, "public", `${kind}.html`), renderTrust(kind), "utf8");
     sitemapEntries.push({ loc: `${SITE_URL}/${kind}.html` });
   }
@@ -967,15 +1037,21 @@ function main() {
       .map(x => li(`/schemes/${slugify(x.id)}.html`, x.name.en)).join("");
     const block = `<!--SEO-LINKS:START--><main class="seo-fallback" style="max-width:860px;margin:0 auto;padding:24px 16px;font-family:system-ui,sans-serif;color:#1c1917;background:#fff">`
       + `<h1>YojanaSahay – Free Government Scheme Finder for India</h1>`
-      + `<p>Find the Central and State government welfare schemes you qualify for: over ${(Math.floor(SCHEME_DB.length / 100) * 100).toLocaleString("en-IN")} schemes for farmers, women, students, workers, senior citizens and persons with disabilities, with eligibility, documents and the official link to apply. Free, in Hindi and English. YojanaSahay is an independent guide, not a government website.</p>`
-      + `<p><a href="/faq.html">FAQ</a> · <a href="/about.html">About</a> · <a href="/how-we-verify.html">How we verify</a> · <a href="/privacy.html">Privacy</a></p>`
+      + `<p>Find the Central and State government welfare schemes you qualify for: ${SCHEME_COUNT_LABEL} schemes for farmers, women, students, workers, senior citizens and persons with disabilities, with eligibility, documents and the official link to apply. Free, in Hindi and English. YojanaSahay is an independent guide, not a government website.</p>`
+      + `<p><a href="/faq.html">FAQ</a> · <a href="/about.html">About</a> · <a href="/how-we-verify.html">How we verify</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/press.html">Press</a></p>`
       + `<h2>Government schemes by state</h2><ul>${stateHubs}</ul>`
       + `<h2>Schemes by category</h2><ul>${catHubs}</ul>`
       + `<h2>Popular schemes</h2><ul>${popular}</ul></main><!--SEO-LINKS:END-->`;
     const next = /<!--SEO-LINKS:START-->[\s\S]*?<!--SEO-LINKS:END-->/.test(idx)
       ? idx.replace(/<!--SEO-LINKS:START-->[\s\S]*?<!--SEO-LINKS:END-->/, block)
       : idx.replace('<div id="root"></div>', `<div id="root">${block}</div>`);
-    if (next !== idx) fs.writeFileSync(idxPath, next, "utf8");
+    // The homepage's own text (title tags, social previews, structured data)
+    // says "1,100+ … schemes" and "34 Indian States" — keep those numbers
+    // equal to the data on every build instead of typed by hand.
+    const counted = next
+      .replace(/\b\d{1,2},\d00\+(?=\s+(?:Central|government|Indian|Central &|welfare))/g, SCHEME_COUNT_LABEL)
+      .replace(/\b\d{2} Indian States and Union Territories covered/g, `${STATE_COUNT} Indian States and Union Territories covered`);
+    if (counted !== idx) fs.writeFileSync(idxPath, counted, "utf8");
     console.log(`✓ homepage directory: ${hubs.length} state lists, ${CAT_HUBS.filter(h => !h.state).length} categories, popular schemes`);
   }
 

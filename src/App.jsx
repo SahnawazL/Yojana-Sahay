@@ -28,6 +28,7 @@ import {
   getSchemesForCategory,
   SEARCH_SYNONYM_GROUPS,
 } from "./schemesData.js";
+import { SCHEME_COUNT, STATE_COUNT } from "./schemeStats.js";
 import schemesMeta from "./schemes-meta.json";
 import { auth, db } from "./firebase.js";
 import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
@@ -415,9 +416,9 @@ function onDarkColor(hex){
   const mix=c=>Math.round(c+(255-c)*0.55);
   return `rgb(${mix(r)},${mix(g)},${mix(b)})`;
 }
-const UNIQUE_SCHEME_COUNT=SCHEME_DB.filter(s=>!s.duplicateOf&&!s.closed).length; // open schemes only
-// States & UTs that have their own schemes in the app (not a hard-coded 28).
-const STATE_COVERAGE=new Set(SCHEME_DB.filter(s=>s.scope==="state"&&s.state).map(s=>s.state)).size;
+// Counts come from src/schemeStats.js — recounted from the data on every deploy.
+const UNIQUE_SCHEME_COUNT=SCHEME_COUNT; // open schemes only
+const STATE_COVERAGE=STATE_COUNT; // states & UTs that have their own schemes
 // Main results leave out schemes for special groups (govt employees, athletes,
 // construction workers…) — the quiz can't know those, so they're listed in
 // their own "if this applies to you" section instead of inflating the totals.

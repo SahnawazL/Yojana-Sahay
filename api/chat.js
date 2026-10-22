@@ -67,7 +67,7 @@ const fn = (name, description, properties = {}, required = []) => ({
 const S = (description) => ({ type: "string", description });
 const LIST = (description) => ({ type: "array", items: { type: "string" }, description });
 const AGENT_TOOLS = [
-  fn("search_schemes", "Search the app's database of 1,100+ Indian government schemes by need, topic, group or state. Returns schemes with benefit, official link and whether the user is eligible.",
+  fn("search_schemes", "Search the app's full database of Indian government schemes (Central and every state) by need, topic, group or state. Returns schemes with benefit, official link and whether the user is eligible.",
     { query: S("What to look for, in English, e.g. 'widow pension', 'loan for small shop', 'scholarship for girls'"), state: S("Optional Indian state to focus on"), limit: { type: "integer", description: "Max results (default 6, max 10)" } }, ["query"]),
   fn("scheme_details", "Full details of ONE scheme: benefit, who can apply, documents, how to apply, deadline/status, official link, and whether THIS user is eligible (with the exact reason if not).",
     { scheme: S("Scheme name or id") }, ["scheme"]),
