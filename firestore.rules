@@ -88,52 +88,14 @@ service cloud.firestore {
       allow create, update: if request.auth != null;
     }
 
-    // ── App-wide usage stats — home screen "Indians Helped" counter, search/
-    // scheme-check logging for admin analytics. Single doc: appStats/usage,
-    // written by writeAppStatsSafe() in App.jsx for BOTH logged-in users and
-    // anonymous guests (guests get a real anon Firebase Auth session via a
-    // secondary app instance, so request.auth != null holds for them too).
-    //
-    // Fields: schemeSearches (array), searchTotal (number), stateSelections
-    //   (array), checkerRuns (array), checkerTotal (number), lastRun
-    //   (string), plus one `stateCount_<STATE>` (number) per entry in
-    //   INDIA_STATES (schemesData.js), built via st.replace(/\s+/g,"_").
-    //   The 34-entry list below is that exact transform baked in —
-    //   IMPORTANT: if a state is ever added/renamed in INDIA_STATES, this
-    //   list must be updated too, or writes touching the new state's
-    //   counter will be silently rejected.
+    // ── App-wide usage stats (appStats/usage, appStats/events) ─────────────
+    // Written ONLY by the server: /api/log-checker-run and /api/stats use the
+    // Admin SDK, which is not subject to these rules (searches, eligibility
+    // checks, state filters, visits, events, the "Indians Helped" counter).
+    // The app itself never writes here any more, so no user can change or
+    // erase these records. Admins may tidy old entries (Usage Data Cleaner).
     match /appStats/{docId} {
-      allow create: if request.auth != null;
-      allow update: if request.auth != null
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-                         'schemeSearches','searchTotal','stateSelections',
-                         'checkerRuns','checkerTotal','lastRun',
-                         'stateCount_Andhra_Pradesh','stateCount_Arunachal_Pradesh',
-                         'stateCount_Assam','stateCount_Bihar','stateCount_Chhattisgarh',
-                         'stateCount_Goa','stateCount_Gujarat','stateCount_Haryana',
-                         'stateCount_Himachal_Pradesh','stateCount_Jharkhand',
-                         'stateCount_Karnataka','stateCount_Kerala','stateCount_Madhya_Pradesh',
-                         'stateCount_Maharashtra','stateCount_Manipur','stateCount_Meghalaya',
-                         'stateCount_Mizoram','stateCount_Nagaland','stateCount_Odisha',
-                         'stateCount_Punjab','stateCount_Rajasthan','stateCount_Sikkim',
-                         'stateCount_Tamil_Nadu','stateCount_Telangana','stateCount_Tripura',
-                         'stateCount_Uttar_Pradesh','stateCount_Uttarakhand','stateCount_West_Bengal',
-                         'stateCount_Delhi','stateCount_Jammu_&_Kashmir','stateCount_Ladakh',
-                         'stateCount_Puducherry','stateCount_Chandigarh','stateCount_Andaman_&_Nicobar',
-                       ])
-                    // searchTotal/checkerTotal can only move by exactly +1 per write,
-                    // matching increment(1) everywhere it's called — so no one can set
-                    // the public "Indians Helped" number directly to an arbitrary value.
-                    && (!('searchTotal' in request.resource.data)
-                          || request.resource.data.searchTotal == resource.data.get('searchTotal', 0) + 1)
-                    && (!('checkerTotal' in request.resource.data)
-                          || request.resource.data.checkerTotal == resource.data.get('checkerTotal', 0) + 1)
-                    && (!('lastRun' in request.resource.data) || request.resource.data.lastRun is string)
-                    && (!('schemeSearches' in request.resource.data) || request.resource.data.schemeSearches is list)
-                    && (!('stateSelections' in request.resource.data) || request.resource.data.stateSelections is list)
-                    && (!('checkerRuns' in request.resource.data) || request.resource.data.checkerRuns is list);
-      // Both full and restricted admin can read usage stats
-      allow read: if isAdmin() || isRestrictedAdmin();
+      allow read, create, update: if isAdmin() || isRestrictedAdmin();
     }
 
     // ── Scheme verifier checkpoint — full admin only ──────────────────────

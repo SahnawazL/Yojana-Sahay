@@ -196,7 +196,7 @@ const STRINGS = {
       { icon:"💡", color:SAFFRON,   label:"Feedback & Suggestions",  desc:"Share suggestions to improve the platform for citizens across India." },
     ],
     reportFlow:
-      "All submissions are stored securely and personally reviewed by the developer. Signed-in users receive an automatic e-mail confirmation and are notified when a reply is posted. Status changes — Open → In Progress → Resolved — show in real time in the app.",
+      "All submissions are stored securely and personally reviewed by YojanaSahay. Signed-in users receive an automatic e-mail confirmation and are notified when a reply is posted. Status changes — Open → In Progress → Resolved — show in real time in the app.",
 
     termsTitle:  "Terms of Service",
     termsPoints: [
@@ -373,7 +373,7 @@ const STRINGS = {
       { icon:"💡", color:SAFFRON,   label:"सुझाव और प्रतिक्रिया",   desc:"देशभर के नागरिकों के लिए प्लेटफ़ॉर्म सुधार के सुझाव साझा करें।" },
     ],
     reportFlow:
-      "सभी सबमिशन सुरक्षित रूप से संग्रहीत होते हैं और डेवलपर स्वयं उनकी समीक्षा करते हैं। साइन-इन उपयोगकर्ताओं को स्वचालित ई-मेल पुष्टि मिलती है और जवाब आने पर सूचना मिलती है। स्थिति — Open → In Progress → Resolved — ऐप में तुरंत दिखती है।",
+      "सभी सबमिशन सुरक्षित रूप से संग्रहीत होते हैं और योजना सहाय स्वयं उनकी समीक्षा करता है। साइन-इन उपयोगकर्ताओं को स्वचालित ई-मेल पुष्टि मिलती है और जवाब आने पर सूचना मिलती है। स्थिति — Open → In Progress → Resolved — ऐप में तुरंत दिखती है।",
 
     termsTitle:  "सेवा की शर्तें",
     termsPoints: [
