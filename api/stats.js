@@ -68,6 +68,7 @@ import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { SCHEME_DB } from "../src/schemesData.js";
 import { vapidKeys } from "./_lib/vapid.js";
+import telegramHandler from "./_lib/telegramBot.js";
 
 const SCHEMES_META_PATH = "src/schemes-meta.json";
 
@@ -166,6 +167,9 @@ async function getSchemeHealthStats() {
 }
 
 export default async function handler(req, res) {
+  // Telegram bot webhook + its admin controls (/api/telegram → here, see vercel.json).
+  if (req.query?.via === "telegram") return telegramHandler(req, res);
+
   // Read-only, non-sensitive aggregate stats — safe to expose cross-origin
   // so other sites (e.g. the portfolio project card) can fetch this directly.
   res.setHeader("Access-Control-Allow-Origin", "*");

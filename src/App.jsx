@@ -44,6 +44,7 @@ import { GUIDES, GUIDES_REVIEWED } from "../scripts/seo-guides.mjs";
 import { LIFE_EVENTS, lifeEventPlan } from "./lifeEvents.js";
 import { buildProfileAnswers, safeMatch, safeMatchAny } from "./eligibility.js";
 import { moneyCalendar, googleCalendarUrl } from "./moneyCalendar.js";
+import { quizAnswersFromCode } from "./quizCode.js";
 import { unlockSteps, patchFor, dbtSchemes, UNLOCK_QUESTIONS, UNLOCK_GROUPS } from "./unlockPath.js";
 import { nextQuestion, diagnose, schemeTraits, questionText, LINKS as MONEY_LINKS } from "./moneyCheck.js";
 import UserReportsTab from "./UserReportsTab.jsx";
@@ -10473,6 +10474,16 @@ function YojanaSahayInner(){
       const schemeId = params.get("scheme");
       if(schemeId){
         setSelectedScheme(schemeId);
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+      // From the Telegram bot's "See all in the app": ?quiz=<code> (src/quizCode.js)
+      const qc = params.get("quiz");
+      if(qc){
+        const a = /^[0-9a-z]{4,24}$/.test(qc) ? quizAnswersFromCode(qc) : null;
+        if(a){
+          try{ localStorage.setItem("yojana_eligibility_answers", JSON.stringify({answers:a,step:999,v:2})); window.dispatchEvent(new Event("ys-quiz-saved")); }catch{}
+          setShowChecker(true);
+        }
         window.history.replaceState({}, "", window.location.pathname);
       }
       // App-icon shortcuts (manifest "shortcuts", long-press on Android): ?go=…

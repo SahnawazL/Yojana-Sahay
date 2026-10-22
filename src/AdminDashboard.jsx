@@ -26,6 +26,7 @@ import UsageDataCleaner from "./UsageDataCleaner.jsx";
 import DeleteUserTool from "./DeleteUserTool.jsx";
 import AiReportsPanel from "./AiReportsPanel.jsx";
 import AudiencePanel from "./AudiencePanel.jsx";
+import TelegramBotPanel from "./TelegramBotPanel.jsx";
 import SchemeVerifier from "./SchemeVerifier.jsx";
 import AgentsTab, {
   useAgentPresence, useDailyTimeTracking, logAdminActivity,
@@ -8908,6 +8909,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           }}>
 
             <AudiencePanel events={eventsData} dark={dark} />
+            <TelegramBotPanel dark={dark} />
 
             {/* ── Stat Cards: 6 cards, 3-per-row ── */}
             <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
@@ -9034,6 +9036,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           <div style={{ padding:"16px 14px", display:"flex", flexDirection:"column", gap:14 }}>
 
             <AudiencePanel events={eventsData} dark={dark} />
+            <TelegramBotPanel dark={dark} />
 
             {/* Row 1 */}
             <div style={{ display:"flex", gap:10 }}>
