@@ -652,7 +652,7 @@
     "linkAlive": true
   },
   "tn_solar_green_house": {
-    "lastVerified": "2026-10-08T07:44:05.062Z",
+    "lastVerified": "2026-10-22T21:34:10.574Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -664,7 +664,7 @@
     "linkAlive": true
   },
   "tn_scst_free_coaching": {
-    "lastVerified": "2026-10-08T07:44:11.481Z",
+    "lastVerified": "2026-10-22T21:34:01.599Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
@@ -676,7 +676,7 @@
     "linkAlive": true
   },
   "tn_vetri_nichayam": {
-    "lastVerified": "2026-10-08T07:45:25.002Z",
+    "lastVerified": "2026-10-22T21:35:25.072Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1680,19 +1680,19 @@
     "confidence": 0
   },
   "tripura_cm_krishak_samridhi": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-22T21:36:12.627Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "tripura_mukhyamantri_swasthya": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-22T21:37:01.121Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "tripura_cm_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-22T21:36:15.921Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1764,7 +1764,7 @@
     "confidence": 0
   },
   "tn_stamp_duty_women": {
-    "lastVerified": "2026-10-09T09:27:20.794Z",
+    "lastVerified": "2026-10-22T21:34:46.601Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 410
@@ -3241,7 +3241,7 @@
     "confidence": 0
   },
   "top_class_sc": {
-    "lastVerified": "2026-09-21T23:46:46.173Z",
+    "lastVerified": "2026-10-22T21:35:59.148Z",
     "confidence": 0
   },
   "inspire_she": {
@@ -3500,6 +3500,21 @@
   },
   "karnataka_gruhalakshmi": {
     "lastVerified": "2026-10-21T21:33:44.188Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "up_mahila_samarthya": {
+    "lastVerified": "2026-10-22T21:33:42.489Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "tripura_konya_atmonirbhor_free": {
+    "lastVerified": "2026-10-22T21:36:57.558Z"
+  },
+  "tripura_swavalamban_self_employment": {
+    "lastVerified": "2026-10-22T21:37:43.019Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
