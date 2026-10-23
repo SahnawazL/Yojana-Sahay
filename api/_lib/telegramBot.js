@@ -19,9 +19,10 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminDb } from "./firebaseAdmin.js";
 import { verifyAdminRequest } from "./adminAuth.js";
 import { smartGroq } from "./groqSmart.js";
+import { telegramAgent, getMemory, saveMemory, clearMemory, rememberAnswers, AGENT_MEMORY_TURNS } from "./telegramAgent.js";
 import { matchedSchemesFor } from "../../src/eligibility.js";
 import { benefitSummary, topBenefits, valueLabel } from "../../src/benefitMath.js";
-import { schemePageUrl, officialSchemeLink, SITE_URL } from "../../src/schemeMatch.js";
+import { schemePageUrl, officialSchemeLink, findSchemesInText, SITE_URL } from "../../src/schemeMatch.js";
 import { SCHEME_DB } from "../../src/schemesData.js";
 import { scoreSchemes } from "../../src/groqClient.js";
 import { whoCanApply } from "../../src/eligibilityText.js";
@@ -308,22 +309,58 @@ async function agentReply(text, lang, found) {
   } catch (e) { console.warn("[telegram] agent failed:", e.message); return null; }
 }
 
-async function onText(chat_id, text) {
+// Markdown from the AI → Telegram HTML (only balanced, simple tags).
+function mdToTg(t) {
+  let h = esc(String(t || "").replace(/^#{1,6}\s*/gm, "").replace(/^\s*[-*]\s+/gm, "• "));
+  h = h.replace(/\[([^\]\n]{1,120})\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
+  h = h.replace(/\*\*([^*\n]{1,200})\*\*/g, "<b>$1</b>").replace(/\*\*/g, "");
+  return h.slice(0, 3900);
+}
+async function answersFor(chat_id, mem) {
+  let code = mem.code;
+  if (!code) { try { const d = await getAdminDb()?.collection("tgAlerts").doc(String(chat_id)).get(); if (d?.exists) code = d.data()?.code; } catch {} }
+  if (!code) return null;
+  const { answers, done } = decodeQuiz(code);
+  return done ? answers : null;
+}
+
+async function onText(chat_id, text, from = {}) {
   const lang = looksHindi(text) ? "h" : "e";
   const quick = smallTalk(text, lang);
   if (quick) { await tg("sendMessage", { chat_id, text: quick, reply_markup: smallTalkKeyboard(lang) }); return; }
   tg("sendChatAction", { chat_id, action: "typing" }).catch(() => {});
-  const found = searchSchemes(text);
-  const answer = await agentReply(text, lang, found);
-  if (!answer) return onSearch(chat_id, text); // AI unavailable → plain search reply
-  const money = MONEY_RE.test(text);
-  await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true,
-    text: esc(answer),
-    reply_markup: { inline_keyboard: [
-      ...(money ? [[{ text: L(lang, "💸 Find why the money didn't come", "💸 जानें पैसा क्यों नहीं आया"), callback_data: `M:${lang}:${found[0] && found[0].id.length <= 40 ? found[0].id : "-"}:` }]] : []),
-      ...detailRows(lang, found),
-      [{ text: L(lang, "✅ Check which schemes I qualify for", "✅ जांचें मैं किन योजनाओं का पात्र हूं"), callback_data: `L:${lang}` }],
-    ] } });
+  const mem = await getMemory(chat_id);
+  const answers = await answersFor(chat_id, mem);
+  const out = await telegramAgent({ chatId: chat_id, text, lang, firstName: String(from.first_name || "").slice(0, 40), answers, history: Array.isArray(mem.h) ? mem.h : [] });
+  if (out?.error === "limit") {
+    await tg("sendMessage", { chat_id, text: L(lang, "You've reached today's limit for typed questions 🙏 You can still use the buttons — check your schemes, scheme details and the money check — or use the app: yojanasahay.vercel.app", "आज के लिखे गए सवालों की सीमा पूरी हो गई 🙏 आप बटन अब भी इस्तेमाल कर सकते हैं — योजनाएं जांचें, विवरण देखें, पैसा जांच — या ऐप खोलें: yojanasahay.vercel.app"), reply_markup: smallTalkKeyboard(lang) });
+    return;
+  }
+  if (!out?.reply) {
+    // The full assistant is busy → the simpler grounded reply, then plain search.
+    const found = searchSchemes(text);
+    const answer = await agentReply(text, lang, found);
+    if (!answer) return onSearch(chat_id, text);
+    await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true, text: esc(answer),
+      reply_markup: { inline_keyboard: [...detailRows(lang, found), [{ text: L(lang, "✅ Check which schemes I qualify for", "✅ जांचें मैं किन योजनाओं का पात्र हूं"), callback_data: `L:${lang}` }]] } });
+    return;
+  }
+  const chips = (out.chips || []).filter(c => c && c.length <= 80).slice(0, 3);
+  // Detail buttons for the schemes the reply actually names; else the top 2 the tools found.
+  const named = findSchemesInText(out.reply, 4).map(s => (s.duplicateOf ? BY_ID.get(s.duplicateOf) || s : s));
+  const schemes = (named.length ? named : (out.schemeIds || []).map(id => BY_ID.get(id)).slice(0, 2)).filter(s => s && s.id.length <= 40).slice(0, 4);
+  const short = s => { const n = String(s.name?.[lang === "h" ? "hi" : "en"] || s.name?.en || s.id).replace(/\s*\([^)]*\)\s*$/, ""); return n.length > 30 ? n.slice(0, 29) + "…" : n; };
+  const rows = [
+    ...chips.map((c, i) => [{ text: `💬 ${c.length > 40 ? c.slice(0, 39) + "…" : c}`, callback_data: `Q:${lang}:${i}` }]),
+    ...(schemes.length ? [schemes.slice(0, 2).map(x => ({ text: `ℹ️ ${short(x)}`, callback_data: `S:${lang}:${x.id}` })), ...(schemes.length > 2 ? [schemes.slice(2, 4).map(x => ({ text: `ℹ️ ${short(x)}`, callback_data: `S:${lang}:${x.id}` }))] : [])] : []),
+    ...(MONEY_RE.test(text) ? [[{ text: L(lang, "💸 Find why the money didn't come", "💸 जानें पैसा क्यों नहीं आया"), callback_data: `M:${lang}:${schemes[0]?.id || "-"}:` }]] : []),
+    ...(!answers ? [[{ text: L(lang, "✅ Check which schemes I qualify for", "✅ जांचें मैं किन योजनाओं का पात्र हूं"), callback_data: `L:${lang}` }]] : []),
+  ];
+  const html = mdToTg(out.reply);
+  const sent = await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true, text: html, reply_markup: { inline_keyboard: rows } });
+  if (!sent.ok) await tg("sendMessage", { chat_id, disable_web_page_preview: true, text: String(out.reply).replace(/\*\*/g, "").slice(0, 3900), reply_markup: { inline_keyboard: rows } });
+  const h = [...(Array.isArray(mem.h) ? mem.h : []), { role: "user", content: text.slice(0, 600) }, { role: "assistant", content: String(out.reply).slice(0, 1500) }].slice(-AGENT_MEMORY_TURNS);
+  await saveMemory(chat_id, { ...mem, h, chips });
   await bump("aiReplies");
 }
 
@@ -472,13 +509,13 @@ async function onMessage(m) {
   if (!chat_id || m.chat?.type !== "private") return; // groups: stay quiet
   const text = String(m.text || "").trim();
   const greeting = /^(hi|hii+|hello|hey|namaste|namaskar|start|नमस्ते|नमस्कार|हेलो)\b[!. ]*$/i.test(text);
-  if (text && !text.startsWith("/") && !greeting && text.length >= 2) return onText(chat_id, text.slice(0, 300));
+  if (text && !text.startsWith("/") && !greeting && text.length >= 2) return onText(chat_id, text.slice(0, 500), m.from || {});
   if (/^\/(start|check)/i.test(text) || !text.startsWith("/")) {
     await tg("sendMessage", { chat_id, parse_mode: "HTML", ...welcome(m.from?.first_name) });
     return;
   }
   if (/^\/stop/i.test(text)) {
-    await alertsOff(chat_id);
+    await Promise.all([alertsOff(chat_id), clearMemory(chat_id)]);
     await tg("sendMessage", { chat_id, text: "🔕 Alerts are off. Your saved answers were deleted.\n🔕 सूचनाएं बंद। आपके सेव किए जवाब हटा दिए गए।" });
     return;
   }
@@ -502,6 +539,13 @@ async function onCallback(cq) {
   const show = (view) => tg("editMessageText", { chat_id, message_id, parse_mode: "HTML", disable_web_page_preview: true, ...view });
 
   let m;
+  if ((m = /^Q:([eh]):([0-2])$/.exec(data))) {
+    const mem = await getMemory(chat_id);
+    const q = Array.isArray(mem.chips) ? mem.chips[Number(m[2])] : null;
+    if (!q) { await tg("sendMessage", { chat_id, text: L(m[1], "That suggestion has expired — just type your question.", "यह सुझाव पुराना हो गया — अपना सवाल लिख दें।") }); return; }
+    await tg("sendMessage", { chat_id, text: `💬 ${q}` });
+    return onText(chat_id, q, cq.from || {});
+  }
   if ((m = /^M:([eh]):([A-Za-z0-9_-]{1,40}|-):([0-9_]{0,12})$/.exec(data))) {
     const scheme = m[2] === "-" ? null : BY_ID.get(m[2]) || null;
     const view = moneyView(m[1], scheme, decodeMoney(m[3]));
@@ -552,7 +596,7 @@ async function onCallback(cq) {
     const next = { ...answers, [q.id]: q.values[i] };
     if (nextQuizQuestion(next)) return show(questionView(lang, next));
     await show(resultView(lang, next));
-    await Promise.all([bump("finished"), countHelped()]);
+    await Promise.all([bump("finished"), countHelped(), rememberAnswers(chat_id, encodeAll(next))]);
     return;
   }
 }
@@ -569,8 +613,8 @@ async function adminOp(req, res) {
   if (op === "connect") {
     const r = await tg("setWebhook", { url: WEBHOOK_URL, secret_token: secret(), allowed_updates: ["message", "callback_query"], drop_pending_updates: true, max_connections: 20 });
     if (!r.ok) return res.status(502).json({ error: r.description || "Telegram did not accept the webhook" });
-    await tg("setMyCommands", { commands: [{ command: "check", description: "Check which schemes you qualify for" }, { command: "money", description: "Money not received? Find out why" }, { command: "stop", description: "Turn off alerts" }, { command: "help", description: "About YojanaSahay" }] });
-    await tg("setMyCommands", { language_code: "hi", commands: [{ command: "check", description: "जांचें कि आप किन योजनाओं के पात्र हैं" }, { command: "money", description: "पैसा नहीं आया? कारण जानें" }, { command: "stop", description: "सूचनाएं बंद करें" }, { command: "help", description: "योजना सहाय के बारे में" }] });
+    await tg("setMyCommands", { commands: [{ command: "check", description: "Check which schemes you qualify for" }, { command: "money", description: "Money not received? Find out why" }, { command: "stop", description: "Turn off alerts and clear chat memory" }, { command: "help", description: "About YojanaSahay" }] });
+    await tg("setMyCommands", { language_code: "hi", commands: [{ command: "check", description: "जांचें कि आप किन योजनाओं के पात्र हैं" }, { command: "money", description: "पैसा नहीं आया? कारण जानें" }, { command: "stop", description: "सूचनाएं बंद करें व चैट मेमोरी मिटाएं" }, { command: "help", description: "योजना सहाय के बारे में" }] });
     await tg("setMyShortDescription", { short_description: "Free check: which Indian government schemes you may qualify for. Independent guide — not a government service." });
     await tg("setMyDescription", { description: "YojanaSahay finds the Central and State government schemes you may qualify for — a few quick questions, in English or Hindi. Free. An independent guide, not a government service. Your answers are not saved unless you turn on alerts. योजना सहाय — कुछ सवालों में जानें कि आप किन सरकारी योजनाओं के पात्र हो सकते हैं।" });
   }

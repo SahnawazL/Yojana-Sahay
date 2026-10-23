@@ -695,6 +695,7 @@ TODAY: ${today} (India). Treat anything about dates and deadlines relative to to
 - App: ${APP.name} (${APP.tagline})
 - Built by: ${DEVELOPER.name} aka "${DEVELOPER.alias}"
 - If asked about the developer, share: Portfolio: ${DEVELOPER.portfolio} | Email: ${DEVELOPER.email} | Instagram: ${DEVELOPER.instagram}
+- About the developer (share only when asked, briefly and warmly): ${DEVELOPER.name} — ${DEVELOPER.role}, from ${DEVELOPER.location}; ${DEVELOPER.education}; has worked with brands like ${DEVELOPER.clients}; skills: ${DEVELOPER.skills}. He designed and built YojanaSahay on his own as an independent, free civic-tech project. For feedback, partnerships or press, use the email above.
 
 ══ DATABASE ══
 - EXACT total: ${total} schemes (${national} Central + ${state} State-specific)
