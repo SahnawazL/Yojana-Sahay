@@ -318,7 +318,7 @@ async function onText(chat_id, text) {
   if (!answer) return onSearch(chat_id, text); // AI unavailable → plain search reply
   const money = MONEY_RE.test(text);
   await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true,
-    text: `${esc(answer)}${found.length ? `\n\n${L(lang, "👇 Tap a number for full details.", "👇 पूरा विवरण देखने के लिए नंबर दबाएं।")}` : ""}\n\n<i>${L(lang, "🤖 AI reply — always confirm on the official website.", "🤖 AI जवाब — आधिकारिक वेबसाइट पर ज़रूर पुष्टि करें।")}</i>`,
+    text: esc(answer),
     reply_markup: { inline_keyboard: [
       ...(money ? [[{ text: L(lang, "💸 Find why the money didn't come", "💸 जानें पैसा क्यों नहीं आया"), callback_data: `M:${lang}:${found[0] && found[0].id.length <= 40 ? found[0].id : "-"}:` }]] : []),
       ...detailRows(lang, found),
@@ -328,7 +328,7 @@ async function onText(chat_id, text) {
 }
 
 const welcome = (name) => ({
-  text: `🙏 <b>${esc(name ? `Namaste ${name}!` : "Namaste!")}</b>\n\nFind the government schemes you may qualify for — a few quick questions, free.\nसरकारी योजनाएं जिनके आप पात्र हो सकते हैं — कुछ आसान सवाल, मुफ़्त।\n\n💬 You can also type a scheme name or a need, like "PM Kisan" or "widow pension".\n💬 आप योजना का नाम या ज़रूरत भी लिख सकते हैं, जैसे "पीएम किसान" या "विधवा पेंशन"।\n\n<b>Choose your language / भाषा चुनें:</b>`,
+  text: `🙏 <b>${esc(name ? `Namaste ${name}!` : "Namaste!")}</b>\n\nFind the government schemes you may qualify for — a few quick questions, free.\nसरकारी योजनाएं जिनके आप पात्र हो सकते हैं — कुछ आसान सवाल, मुफ़्त।\n\n💬 You can also type a question, like "PM Kisan" or "schemes for students" — an AI assistant replies using our scheme data.\n💬 आप सवाल भी लिख सकते हैं, जैसे "पीएम किसान" या "छात्रों के लिए योजनाएं" — AI सहायक हमारे योजना डेटा से जवाब देता है।\n\n<b>Choose your language / भाषा चुनें:</b>`,
   reply_markup: { inline_keyboard: [[{ text: "English", callback_data: "L:e" }, { text: "हिंदी", callback_data: "L:h" }], [shareButton("e")]] },
 });
 
@@ -488,7 +488,7 @@ async function onMessage(m) {
   }
   if (/^\/help/i.test(text)) {
     await tg("sendMessage", { chat_id, parse_mode: "HTML", disable_web_page_preview: true,
-      text: `${NOTE.e}\n\n${NOTE.h}\n\n/check — start a new check / नई जांच\n\n🌐 ${SITE_URL}\n📧 yojanasahayofficial@gmail.com` });
+      text: `${NOTE.e}\n🤖 Replies to typed questions are written by an AI assistant from our scheme data — please confirm on the official website before applying.\n\n${NOTE.h}\n🤖 लिखे गए सवालों के जवाब AI सहायक हमारे योजना डेटा से देता है — आवेदन से पहले आधिकारिक वेबसाइट पर पुष्टि करें।\n\n/check — start a new check / नई जांच\n\n🌐 ${SITE_URL}\n📧 yojanasahayofficial@gmail.com` });
     return;
   }
   await tg("sendMessage", { chat_id, parse_mode: "HTML", ...welcome(m.from?.first_name) });
