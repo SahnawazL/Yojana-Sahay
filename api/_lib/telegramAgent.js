@@ -15,14 +15,13 @@ import { runTool } from "../../src/agentTools.js";
 import { matchedSchemesFor } from "../../src/eligibility.js";
 import { smartGroq } from "./groqSmart.js";
 
-// The bot's own Groq keys (TELEGRAM_GROQ_KEY, _2, _3 — separate accounts) so
-// it never uses the app assistant's quota. Until those are added, it uses only
-// the LAST app chat key (GROQ_API_KEY_5), leaving keys 1–4 to the app.
+// Groq keys for the bot: the app's chat keys 4 and 5 (GROQ_API_KEY_4, _5) plus
+// the bot's own keys when added (TELEGRAM_GROQ_KEY, _2, _3 — picked up
+// automatically after a redeploy). Keys 1–3 stay for the app assistant only.
 export function botGroqKeys() {
-  const own = [process.env.TELEGRAM_GROQ_KEY, process.env.TELEGRAM_GROQ_KEY_2, process.env.TELEGRAM_GROQ_KEY_3].map(k => (k || "").trim()).filter(Boolean);
-  if (own.length) return [...new Set(own)];
-  const last = (process.env.GROQ_API_KEY_5 || "").trim();
-  return last ? [last] : [];
+  const list = [process.env.TELEGRAM_GROQ_KEY, process.env.TELEGRAM_GROQ_KEY_2, process.env.TELEGRAM_GROQ_KEY_3, process.env.GROQ_API_KEY_4, process.env.GROQ_API_KEY_5]
+    .map(k => (k || "").trim()).filter(Boolean);
+  return [...new Set(list)];
 }
 
 const MEMORY_TTL = 3600;          // seconds
