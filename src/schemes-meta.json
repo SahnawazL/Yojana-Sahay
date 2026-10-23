@@ -894,31 +894,31 @@
     "confidence": 0
   },
   "ts_rythu_bandhu": {
-    "lastVerified": "2026-10-08T16:37:28.471Z",
+    "lastVerified": "2026-10-23T21:36:19.407Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
   },
   "ts_aarogyasri": {
-    "lastVerified": "2026-10-08T16:37:28.471Z",
+    "lastVerified": "2026-10-23T21:34:37.401Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_kalyana_lakshmi": {
-    "lastVerified": "2026-10-08T16:37:28.471Z",
+    "lastVerified": "2026-10-23T21:35:03.978Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_shaadi_mubarak": {
-    "lastVerified": "2026-10-08T16:37:28.471Z",
+    "lastVerified": "2026-10-23T21:36:46.183Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "ts_epass_fee": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-23T21:34:51.480Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1536,60 +1536,59 @@
     "confidence": 0
   },
   "ts_t_pride": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-23T21:37:59.997Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_prematric_scholarship": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-23T21:35:53.883Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_dalit_bandhu": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-23T21:34:44.434Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_stree_nidhi": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-23T21:36:56.712Z",
     "linkAlive": true,
     "httpStatus": 200,
-    "confidence": 1,
-    "lastDate": "2026-05-29",
-    "isActive": false
+    "confidence": 0.5,
+    "lastDate": "2026-05-29"
   },
   "ts_micro_irrigation": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-23T21:35:16.387Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_overseas_scholarship": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-23T21:35:41.456Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_minority_scholarship": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-23T21:35:29.012Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_t_fiber": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-23T21:37:21.162Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "ts_rajiv_yuva_vikasam": {
-    "lastVerified": "2026-10-09T09:29:55.141Z",
+    "lastVerified": "2026-10-23T21:36:06.462Z",
     "confidence": 0,
     "linkAlive": true,
-    "httpStatus": 403
+    "httpStatus": 200
   },
   "odisha_samrudha_krushak": {
     "lastVerified": "2026-10-16T13:35:51.363Z",
@@ -3518,5 +3517,19 @@
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
+  },
+  "tripura_yuva_yogayog_special": {
+    "lastVerified": "2026-10-23T21:34:00.393Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "ts_sewing_machines_distribution": {
+    "lastVerified": "2026-10-23T21:36:31.735Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 1,
+    "isActive": false,
+    "lastDate": "2026-09-15"
   }
 }
