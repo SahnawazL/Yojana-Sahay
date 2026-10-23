@@ -15,6 +15,16 @@ import { runTool } from "../../src/agentTools.js";
 import { matchedSchemesFor } from "../../src/eligibility.js";
 import { smartGroq } from "./groqSmart.js";
 
+// The bot's own Groq keys (TELEGRAM_GROQ_KEY, _2, _3 — separate accounts) so
+// it never uses the app assistant's quota. Until those are added, it uses only
+// the LAST app chat key (GROQ_API_KEY_5), leaving keys 1–4 to the app.
+export function botGroqKeys() {
+  const own = [process.env.TELEGRAM_GROQ_KEY, process.env.TELEGRAM_GROQ_KEY_2, process.env.TELEGRAM_GROQ_KEY_3].map(k => (k || "").trim()).filter(Boolean);
+  if (own.length) return [...new Set(own)];
+  const last = (process.env.GROQ_API_KEY_5 || "").trim();
+  return last ? [last] : [];
+}
+
 const MEMORY_TTL = 3600;          // seconds
 const MEMORY_TURNS = 8;           // messages kept (4 exchanges)
 const DAILY_LIMIT = 30;
@@ -98,8 +108,7 @@ const ANS_LABEL = {
 
 // → { reply, chips, schemeIds } or null (AI unavailable / limit reached → null + reason)
 export async function telegramAgent({ chatId, text, lang, firstName = "", answers = null, history = [] }) {
-  const keys = [process.env.GROQ_API_KEY, process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2, process.env.GROQ_API_KEY_3, process.env.GROQ_API_KEY_4, process.env.GROQ_API_KEY_5]
-    .map(k => (k || "").trim()).filter((k, i, a) => k && a.indexOf(k) === i);
+  const keys = botGroqKeys();
   if (!keys.length) return { error: "no_keys" };
   if (await overLimit(chatId)) return { error: "limit" };
 
@@ -120,7 +129,7 @@ export async function telegramAgent({ chatId, text, lang, firstName = "", answer
     const r = await smartGroq(keys, {
       model: "openai/gpt-oss-120b", messages, temperature: 0.4, max_completion_tokens: 1400, reasoning_effort: "low",
       ...(final ? {} : { tools: TOOLS, tool_choice: "auto" }),
-    }, { pool: "chat", fallbackModels: ["openai/gpt-oss-20b"] });
+    }, { pool: "telegram", fallbackModels: ["openai/gpt-oss-20b"] });
     const msg = r?.data?.choices?.[0]?.message;
     if (!msg) return { error: r?.rateLimited ? "busy" : "ai" };
     const calls = Array.isArray(msg.tool_calls) ? msg.tool_calls.filter(c => c?.function?.name) : [];

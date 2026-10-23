@@ -4064,7 +4064,7 @@ function SchemeDirectory({ lang, dark }) {
     ["/press.html", L("Press & media", "मीडिया")], ["/poster.html", L("Free posters", "मुफ़्त पोस्टर")],
   ];
   return (
-    <nav aria-label={L("Scheme directory", "योजनाओं की सूची")} style={{ margin:"6px 16px 22px", fontFamily:bf }}>
+    <nav aria-label={L("Scheme directory", "योजनाओं की सूची")} style={{ margin:"4px 0 22px", fontFamily:bf }}>
       {/* ── States ── */}
       <div style={card}>
         <Head grad="linear-gradient(135deg,#FF9933,#F97316)" title={L("Browse schemes by state", "राज्य के अनुसार योजनाएं")}

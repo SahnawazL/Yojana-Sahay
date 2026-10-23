@@ -19,7 +19,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminDb } from "./firebaseAdmin.js";
 import { verifyAdminRequest } from "./adminAuth.js";
 import { smartGroq } from "./groqSmart.js";
-import { telegramAgent, getMemory, saveMemory, clearMemory, rememberAnswers, AGENT_MEMORY_TURNS } from "./telegramAgent.js";
+import { telegramAgent, botGroqKeys, getMemory, saveMemory, clearMemory, rememberAnswers, AGENT_MEMORY_TURNS } from "./telegramAgent.js";
 import { matchedSchemesFor } from "../../src/eligibility.js";
 import { benefitSummary, topBenefits, valueLabel } from "../../src/benefitMath.js";
 import { schemePageUrl, officialSchemeLink, findSchemesInText, SITE_URL } from "../../src/schemeMatch.js";
@@ -286,8 +286,7 @@ Rules:
 - If the message is not about government schemes or help, reply kindly in one line and offer to help with schemes.`;
 
 async function agentReply(text, lang, found) {
-  const keys = [process.env.GROQ_API_KEY, process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2, process.env.GROQ_API_KEY_3, process.env.GROQ_API_KEY_4, process.env.GROQ_API_KEY_5]
-    .map(k => (k || "").trim()).filter((k, i, a) => k && a.indexOf(k) === i);
+  const keys = botGroqKeys();
   if (!keys.length) return null;
   const k = lang === "h" ? "hi" : "en";
   const facts = found.length ? found.map((s, i) => {
@@ -303,7 +302,7 @@ async function agentReply(text, lang, found) {
       model: "openai/gpt-oss-20b",
       messages: [{ role: "system", content: AGENT_SYSTEM }, { role: "user", content: `SCHEMES:\n${facts}\n\nUSER MESSAGE (${lang === "h" ? "writes Hindi/Hinglish" : "writes English"}):\n${text}` }],
       temperature: 0.3, max_completion_tokens: 700, reasoning_effort: "low",
-    }, { pool: "chat", fallbackModels: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"] });
+    }, { pool: "telegram", fallbackModels: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"] });
     const out = String(r?.data?.choices?.[0]?.message?.content || "").replace(/\*\*|__|`/g, "").replace(/\s*(visit|see|check|देखें)?:?\s*https?:\/\/\S+/gi, "").trim();
     return out ? out.slice(0, 1500) : null;
   } catch (e) { console.warn("[telegram] agent failed:", e.message); return null; }
