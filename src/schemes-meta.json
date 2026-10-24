@@ -298,7 +298,7 @@
     "linkAlive": true
   },
   "ujjwala": {
-    "lastVerified": "2026-09-22T23:25:17.601Z",
+    "lastVerified": "2026-10-24T21:34:47.684Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -614,7 +614,7 @@
     "linkAlive": true
   },
   "premat_sc": {
-    "lastVerified": "2026-10-18T08:47:27.923Z",
+    "lastVerified": "2026-10-24T21:33:44.185Z",
     "httpStatus": 200,
     "confidence": 1,
     "linkAlive": true,
@@ -736,7 +736,7 @@
     "confidence": 0
   },
   "up_abhyudaya": {
-    "lastVerified": "2026-09-23T23:22:22.196Z",
+    "lastVerified": "2026-10-24T21:37:12.432Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -924,10 +924,10 @@
     "confidence": 0
   },
   "ts_task_skill": {
-    "lastVerified": "2026-10-09T09:28:51.860Z",
+    "lastVerified": "2026-10-24T21:34:05.211Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.49
+    "confidence": 0
   },
   "goa_housing_board_affordable": {
     "lastVerified": "2026-10-10T12:20:51.901Z",
@@ -1022,13 +1022,13 @@
     "confidence": 0
   },
   "uk_vatsalya": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-24T21:36:40.546Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "uk_medhavi_chhatravriti": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-24T21:35:25.521Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1500,25 +1500,25 @@
     "confidence": 0
   },
   "uk_nanda_gaura": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-24T21:35:38.016Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "uk_atal_ayushman": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-24T21:35:03.127Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "uk_saur_swarojgar": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-24T21:36:09.295Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "uk_swarozgar_yojana": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-24T21:36:15.559Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -3032,10 +3032,11 @@
     "confidence": 0
   },
   "uk_post_matric_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-24T21:35:50.397Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 1,
+    "isActive": true
   },
   "wb_lakshmir_bhandar": {
     "lastVerified": "2026-10-09T09:29:55.141Z",
@@ -3056,7 +3057,7 @@
     "confidence": 0
   },
   "up_bal_seva": {
-    "lastVerified": "2026-09-23T23:22:28.475Z",
+    "lastVerified": "2026-10-24T21:37:18.071Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3290,7 +3291,7 @@
     "confidence": 0
   },
   "tulip_internship": {
-    "lastVerified": "2026-09-22T23:25:05.794Z",
+    "lastVerified": "2026-10-24T21:34:46.235Z",
     "confidence": 0
   },
   "delhi_pmkvy_skill": {
@@ -3437,7 +3438,7 @@
     "confidence": 0
   },
   "uk_yuva_bhavishya_nirman": {
-    "lastVerified": "2026-10-16T13:32:08.305Z",
+    "lastVerified": "2026-10-24T21:36:53.692Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3531,5 +3532,20 @@
     "confidence": 1,
     "isActive": false,
     "lastDate": "2026-09-15"
+  },
+  "uk_kisan_pension": {
+    "lastVerified": "2026-10-24T21:35:16.364Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "uk_teelu_rauteli_pension": {
+    "lastVerified": "2026-10-24T21:36:29.861Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "up_bocw_kanya_vivah": {
+    "lastVerified": "2026-10-24T21:37:57.766Z"
   }
 }
