@@ -491,4 +491,21 @@ export const HARYANA_SCHEMES = [
     match: (a) => a.state === "Haryana" && (["bpl", "aay"].includes(a.rationCard) || a.income === "below1"),
   },
 
+  // <auto-scheme id="haryana_ambedkar_medhavi_chhatar"> added by Scheme Discovery agent on 2026-10-24 · source: https://schemes.haryanascbc.gov.in/Citizen/aboutMedhavi
+  {
+    id: "haryana_ambedkar_medhavi_chhatar",
+    icon: "📚", color: "#003580", scope: "state", state: "Haryana",
+    ministry: { en: "Government of Haryana", hi: "Haryana सरकार" },
+    name:    { en: "Dr. Ambedkar Medhavi Chhatar Sansodhit Yojna", hi: "डॉ. अम्बेडकर मेधावी छत्र संजोदित योजना" },
+    benefit: { en: "Financial incentives based on academic achievements", hi: "शैक्षणिक उपलब्धियों के आधार पर वित्तीय प्रोत्साहन" },
+    tag:     { en: "Scholarship", hi: "छात्रवृत्ति" },
+    annual: 0,
+    apply:   { en: "https://schemes.haryanascbc.gov.in/Citizen/aboutMedhavi", hi: "https://schemes.haryanascbc.gov.in/Citizen/aboutMedhavi" }, applyType: "online",
+    docs:    { en: ["Scanned Caste Certificate","Bank Account Details","Self-Attested Marksheet","Income Certificate","Proof of Current Enrollment","Haryana Residence Certificate"],
+               hi: ["स्कैन किया हुआ जाति प्रमाणपत्र","बैंक खाता विवरण","स्व-प्रमाणित मार्कशीट","आय प्रमाणपत्र","वर्तमान नामांकन का प्रमाण","हरियाणा निवास प्रमाणपत्र"] },
+    autoAdded: "2026-10-24", source: "https://schemes.haryanascbc.gov.in/Citizen/aboutMedhavi",
+    match: (a) => a.state === "Haryana" && a.who === "student" && a.income === "below1" && ["sc","obc"].includes(a.caste) && ["class9to12","undergrad"].includes(a.educationLevel),
+  },
+  // </auto-scheme id="haryana_ambedkar_medhavi_chhatar">
+
 ];
