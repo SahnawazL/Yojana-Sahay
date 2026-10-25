@@ -694,7 +694,7 @@
     "linkAlive": true
   },
   "up_kanya": {
-    "lastVerified": "2026-09-23T23:22:54.988Z",
+    "lastVerified": "2026-10-25T21:36:52.743Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -718,7 +718,7 @@
     "confidence": 0
   },
   "up_divyang_pension": {
-    "lastVerified": "2026-09-23T23:22:33.977Z",
+    "lastVerified": "2026-10-25T21:34:49.715Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -730,7 +730,7 @@
     "confidence": 0
   },
   "up_free_tablet": {
-    "lastVerified": "2026-09-23T23:22:41.226Z",
+    "lastVerified": "2026-10-25T21:35:42.966Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -742,7 +742,7 @@
     "confidence": 0
   },
   "up_internship": {
-    "lastVerified": "2026-09-23T23:22:46.431Z",
+    "lastVerified": "2026-10-25T21:36:36.936Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3069,7 +3069,7 @@
     "confidence": 0
   },
   "up_khet_suraksha": {
-    "lastVerified": "2026-09-23T23:23:02.709Z",
+    "lastVerified": "2026-10-25T21:37:05.692Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3546,6 +3546,24 @@
     "confidence": 0
   },
   "up_bocw_kanya_vivah": {
-    "lastVerified": "2026-10-24T21:37:57.766Z"
+    "lastVerified": "2026-10-25T21:34:30.734Z"
+  },
+  "haryana_ambedkar_medhavi_chhatar": {
+    "lastVerified": "2026-10-25T21:33:43.953Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "up_bocw_matritva": {
+    "lastVerified": "2026-10-25T21:34:47.863Z"
+  },
+  "up_divyang_vivah": {
+    "lastVerified": "2026-10-25T21:35:38.052Z"
+  },
+  "up_gramodyog_rozgar": {
+    "lastVerified": "2026-10-25T21:36:34.863Z"
+  },
+  "up_kushth_pension": {
+    "lastVerified": "2026-10-25T21:37:56.867Z"
   }
 }
