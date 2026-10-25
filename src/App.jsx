@@ -4009,16 +4009,7 @@ const DIR_HUBS = (() => {
   }
   return [...m.values()].sort((a, b) => (a.state === null ? -1 : b.state === null ? 1 : a.state.localeCompare(b.state)));
 })();
-// Same keys as the category pages made by scripts/generate-scheme-pages.mjs.
-const DIR_CATS = [
-  { k:"women", i:"👩", en:"Women", hi:"महिलाएं" }, { k:"farmers", i:"🌾", en:"Farmers", hi:"किसान" },
-  { k:"students", i:"📚", en:"Students", hi:"विद्यार्थी" }, { k:"health", i:"🏥", en:"Health", hi:"स्वास्थ्य" },
-  { k:"senior", i:"👴", en:"Senior citizens", hi:"वरिष्ठ नागरिक" }, { k:"business", i:"💼", en:"Business", hi:"व्यापार" },
-  { k:"housing", i:"🏠", en:"Housing", hi:"आवास" }, { k:"workers", i:"👷", en:"Workers & jobs", hi:"श्रमिक व रोज़गार" },
-  { k:"disability", i:"♿", en:"Disability", hi:"दिव्यांगजन" },
-];
 const DIR_POPULAR = ["pmkisan","ayushman","pmawas_rural","pmawas_urban","scholarship","mudra","ujjwala","kisancredit","vriddhapension","pmjdy","apy","pmjjby"];
-const DIR_CAT_COLOR = { women:"#DB2777", farmers:"#16A34A", students:"#2563EB", health:"#DC2626", senior:"#D97706", business:"#7C3AED", housing:"#EA580C", workers:"#0891B2", disability:"#4F46E5" };
 function DirIcon({ d, size = 18 }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d}</svg>;
 }
@@ -4097,25 +4088,6 @@ function SchemeDirectory({ lang, dark }) {
           <More open={allStates} onClick={() => setAllStates(v => !v)}
             more={L(`Show all ${states.length} states & UTs`, `सभी ${states.length} राज्य व केंद्रशासित प्रदेश देखें`)} less={L("Show fewer", "कम दिखाएं")}/>
         )}
-      </div>
-
-      {/* ── Categories ── */}
-      <div style={card}>
-        <Head grad="linear-gradient(135deg,#7C3AED,#2563EB)" title={L("Browse by category", "श्रेणी के अनुसार")}
-          sub={L("Schemes grouped by who they help", "किसकी मदद करती हैं — उसके अनुसार योजनाएं")}
-          icon={<DirIcon d={<><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>}/>}/>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
-          {DIR_CATS.map(cat => {
-            const col = DIR_CAT_COLOR[cat.k] || "#C2410C";
-            return (
-              <a key={cat.k} href={`${base}cat-${cat.k}.html`}
-                style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, padding:"12px 6px 11px", borderRadius:14, textDecoration:"none", background:c.tile, border:`1px solid ${c.line}`, minWidth:0 }}>
-                <span style={{ width:40, height:40, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, background:`${col}${dark ? "26" : "14"}`, border:`1px solid ${col}33` }}>{cat.i}</span>
-                <span style={{ fontSize:11.5, fontWeight:700, color:c.text, textAlign:"center", lineHeight:1.25 }}>{isHindi ? cat.hi : cat.en}</span>
-              </a>
-            );
-          })}
-        </div>
       </div>
 
       {/* ── Popular schemes ── */}
