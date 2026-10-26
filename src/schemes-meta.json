@@ -310,8 +310,10 @@
     "linkAlive": true
   },
   "vriddhapension": {
-    "lastVerified": "2026-09-23T23:24:02.493Z",
-    "confidence": 0
+    "lastVerified": "2026-10-26T21:37:48.270Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "pmjdy": {
     "lastVerified": "2026-10-17T21:34:11.778Z",
@@ -700,19 +702,19 @@
     "confidence": 0
   },
   "up_samuhik_vivah": {
-    "lastVerified": "2026-10-10T03:41:38.425Z",
+    "lastVerified": "2026-10-26T21:34:23.811Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_vidhva": {
-    "lastVerified": "2026-09-23T23:23:26.333Z",
+    "lastVerified": "2026-10-26T21:36:14.727Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "up_vridha_pension": {
-    "lastVerified": "2026-09-23T23:23:45.388Z",
+    "lastVerified": "2026-10-26T21:36:53.262Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -724,7 +726,7 @@
     "confidence": 0
   },
   "up_parivarik_labh": {
-    "lastVerified": "2026-09-23T23:23:08.324Z",
+    "lastVerified": "2026-10-26T21:34:09.553Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -748,7 +750,7 @@
     "confidence": 0
   },
   "up_vishwakarma_shram": {
-    "lastVerified": "2026-09-23T23:23:31.597Z",
+    "lastVerified": "2026-10-26T21:36:29.167Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3063,7 +3065,7 @@
     "confidence": 0
   },
   "up_yuva_udyami": {
-    "lastVerified": "2026-09-23T23:23:50.916Z",
+    "lastVerified": "2026-10-26T21:37:08.189Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3505,7 +3507,7 @@
     "confidence": 0
   },
   "up_mahila_samarthya": {
-    "lastVerified": "2026-10-22T21:33:42.489Z",
+    "lastVerified": "2026-10-26T21:33:43.760Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3565,5 +3567,38 @@
   },
   "up_kushth_pension": {
     "lastVerified": "2026-10-25T21:37:56.867Z"
+  },
+  "up_odop_margin": {
+    "lastVerified": "2026-10-26T21:34:00.703Z"
+  },
+  "up_scholarship": {
+    "lastVerified": "2026-10-26T21:35:06.067Z"
+  },
+  "up_shadi_anudan": {
+    "lastVerified": "2026-10-26T21:35:44.299Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "up_shadi_anudan_obc": {
+    "lastVerified": "2026-10-26T21:35:47.261Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "up_solar_pump_kusum": {
+    "lastVerified": "2026-10-26T21:35:58.481Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "up_yuva_swarojgar": {
+    "lastVerified": "2026-10-26T21:36:54.985Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "viksit_bharat_rozgar": {
+    "lastVerified": "2026-10-26T21:37:27.148Z"
   }
 }
