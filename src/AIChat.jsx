@@ -2549,7 +2549,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
       const p = window.__ysPendingChat;
       if (!p) return;
       window.__ysPendingChat = undefined;
-      if (p.at && Date.now() - p.at > 120000) return; // stale (e.g. had to sign in first) — don't surprise them
+      if (p.at && Date.now() - p.at > (p.ttl || 120000)) return; // stale (e.g. had to sign in first) — don't surprise them
       setTimeout(() => pendingRunRef.current?.(p), 120);
     };
     take();

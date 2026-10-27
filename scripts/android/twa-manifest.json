@@ -37,6 +37,12 @@
       "chosenIconUrl": "https://yojanasahay.vercel.app/icons/app-icon-192.png"
     },
     {
+      "name": "Money not received?",
+      "shortName": "Money check",
+      "url": "https://yojanasahay.vercel.app/?go=money",
+      "chosenIconUrl": "https://yojanasahay.vercel.app/icons/app-icon-192.png"
+    },
+    {
       "name": "Ask AI assistant",
       "shortName": "Ask AI",
       "url": "https://yojanasahay.vercel.app/?go=ai",
@@ -59,5 +65,14 @@
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
   "appVersion": "1.0.0",
-  "monochromeIconUrl": "https://yojanasahay.vercel.app/icons/app-monochrome-512.png"
+  "monochromeIconUrl": "https://yojanasahay.vercel.app/icons/app-monochrome-512.png",
+  "shareTarget": {
+    "action": "https://yojanasahay.vercel.app/",
+    "method": "GET",
+    "params": {
+      "title": "share_title",
+      "text": "share_text",
+      "url": "share_url"
+    }
+  }
 }

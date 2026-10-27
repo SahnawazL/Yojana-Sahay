@@ -10570,6 +10570,18 @@ function YojanaSahayInner(){
         }
         window.history.replaceState({}, "", window.location.pathname);
       }
+      // Android "Share" → Yojana Sahay (manifest share_target): a WhatsApp
+      // forward, SMS or link shared into the app goes straight to the AI
+      // assistant's "Is this message real?" check.
+      const shared = [params.get("share_title"), params.get("share_text"), params.get("share_url")]
+        .map(v => (v || "").trim()).filter(Boolean).filter((v, i, all) => all.indexOf(v) === i).join("\n").slice(0, 2000);
+      if (shared) {
+        const isHi = (()=>{ try{ return localStorage.getItem("yojana_lang")==="hi"; }catch{ return false; } })();
+        window.__ysPendingChat = { kind: "ai", text: (isHi ? "क्या यह संदेश असली है? कृपया जाँचें:\n\n" : "Is this message real? Please check it:\n\n") + shared, at: Date.now(), ttl: 600000 }; // waits up to 10 min if they sign in first
+        setActiveTab("ai");
+        requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent("ys-chat-pending")));
+        window.history.replaceState({}, "", window.location.pathname);
+      }
       // App-icon shortcuts (manifest "shortcuts", long-press on Android): ?go=…
       const go = params.get("go");
       if(go){
