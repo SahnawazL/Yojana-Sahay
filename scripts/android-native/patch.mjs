@@ -57,6 +57,18 @@ const extra = `
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         `;
 if (!man.includes("android.intent.action.SEND")) man = man.slice(0, actEnd) + extra + man.slice(actEnd);
+// microphone (voice questions to the AI) + Android 11+ visibility of the
+// phone's text-to-speech and speech-recognition services (read-aloud, mic)
+if (!man.includes("android.permission.RECORD_AUDIO")) {
+  man = man.replace("</manifest>", '    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n</manifest>');
+}
+if (!man.includes("android.intent.action.TTS_SERVICE")) {
+  man = man.replace("</manifest>", `    <queries>
+        <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
+        <intent><action android:name="android.speech.RecognitionService" /></intent>
+    </queries>
+</manifest>`);
+}
 write(manP, man);
 
 // 4) branded splash (the website's launch card) instead of Capacitor's default

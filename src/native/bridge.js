@@ -20,6 +20,9 @@ import { Browser } from "@capacitor/browser";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
+import { SpeechRecognition } from "@capacitor-community/speech-recognition";
 
 const SITE = "https://yojanasahay.vercel.app";
 
@@ -59,12 +62,116 @@ if (Capacitor.isNativePlatform()) {
     openUrl(url) { return Browser.open({ url, presentationStyle: "popover" }); }
   };
 
-  // ── Share sheet ────────────────────────────────────────────────────────────
+  // ── Share sheet (text, links and images such as the benefits card) ──────
+  const blobToBase64 = (blob) => new Promise((ok, bad) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(",")[1] || "");
+    r.onerror = () => bad(r.error);
+    r.readAsDataURL(blob);
+  });
   navigator.share = async (data = {}) => {
     const url = data.url && data.url.startsWith("/") ? SITE + data.url : data.url;
-    await Share.share({ title: data.title, text: data.text, url, dialogTitle: data.title || "Share" });
+    let files;
+    if (data.files && data.files.length) {
+      files = [];
+      for (const f of Array.from(data.files).slice(0, 5)) {
+        const name = (f.name || "share.png").replace(/[^\w.-]+/g, "_");
+        const w = await Filesystem.writeFile({ path: "share/" + name, data: await blobToBase64(f), directory: Directory.Cache, recursive: true });
+        files.push(w.uri);
+      }
+    }
+    try {
+      await Share.share({ title: data.title, text: data.text, url, files, dialogTitle: data.title || "Share" });
+    } catch (e) {
+      // closing the share sheet = cancelled (the website gets an AbortError too)
+      if (/cancel/i.test(String(e && e.message))) throw new DOMException("Share cancelled", "AbortError");
+      throw e;
+    }
   };
   navigator.canShare = () => true;
+
+  // ── Read aloud: Android's own text-to-speech ──────────────────────────────
+  // Android's app view has no Web Speech API, so the app's read-aloud
+  // (src/voice.js, news ticker) is given the same API backed by Android TTS.
+  if (!("speechSynthesis" in window) || typeof window.SpeechSynthesisUtterance === "undefined") {
+    class Utterance {
+      constructor(text) { this.text = text || ""; this.lang = ""; this.rate = 1; this.pitch = 1; this.volume = 1; this.voice = null; this.onstart = null; this.onend = null; this.onerror = null; this.onboundary = null; }
+    }
+    const VOICES = [
+      { name: "Android voice (Hindi)", lang: "hi-IN", localService: true, default: false, voiceURI: "android-hi" },
+      { name: "Android voice (English, India)", lang: "en-IN", localService: true, default: true, voiceURI: "android-en" }
+    ];
+    const queue = [];
+    let running = false, gen = 0;
+    const synth = {
+      speaking: false, pending: false, paused: false, onvoiceschanged: null,
+      speak(u) { queue.push(u); synth.pending = true; run(); },
+      cancel() { queue.length = 0; gen++; synth.speaking = false; synth.pending = false; TextToSpeech.stop().catch(() => {}); },
+      pause() {}, resume() {},
+      getVoices() { return VOICES.slice(); },
+      addEventListener() {}, removeEventListener() {}
+    };
+    const run = async () => {
+      if (running) return;
+      running = true;
+      const my = gen;
+      while (queue.length && my === gen) {
+        const u = queue.shift();
+        synth.pending = queue.length > 0;
+        synth.speaking = true;
+        try {
+          if (u.onstart) u.onstart({ utterance: u });
+          if (!String(u.text).trim()) { if (u.onend) u.onend({ utterance: u }); continue; }
+          // rate: web 1 = normal; Android 1 = normal too
+          await TextToSpeech.speak({ text: u.text, lang: (u.voice && u.voice.lang) || u.lang || "en-IN", rate: u.rate || 1, pitch: u.pitch || 1, volume: u.volume == null ? 1 : u.volume, category: "playback" });
+          if (my === gen && u.onend) u.onend({ utterance: u });
+        } catch (e) {
+          if (my === gen && u.onerror) u.onerror({ utterance: u, error: "synthesis-failed" });
+        }
+      }
+      if (my === gen) synth.speaking = false;
+      running = false;
+      if (queue.length) run();          // speak() was called during a cancel
+    };
+    window.SpeechSynthesisUtterance = Utterance;
+    Object.defineProperty(window, "speechSynthesis", { value: synth, configurable: true });
+  }
+
+  // ── Voice input: Android's speech recognition ─────────────────────────────
+  // Same API the AI chat's mic button uses on the website.
+  if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+    class Recognition {
+      constructor() { this.lang = "en-IN"; this.interimResults = false; this.continuous = false; this.maxAlternatives = 1; this.onstart = null; this.onresult = null; this.onerror = null; this.onend = null; this._aborted = false; this._ended = false; }
+      _end() { if (this._ended) return; this._ended = true; if (this.onend) this.onend({}); }
+      _fail(code) { if (this.onerror) this.onerror({ error: code }); this._end(); }
+      async start() {
+        try {
+          const av = await SpeechRecognition.available();
+          if (!av || !av.available) return this._fail("service-not-allowed");
+          let perm = await SpeechRecognition.checkPermissions();
+          if (perm.speechRecognition !== "granted") perm = await SpeechRecognition.requestPermissions();
+          if (perm.speechRecognition !== "granted") return this._fail("not-allowed");
+          if (this.onstart) this.onstart({});
+          const r = await SpeechRecognition.start({ language: this.lang || "en-IN", maxResults: this.maxAlternatives || 1, partialResults: false, popup: false });
+          if (this._aborted) return this._end();
+          const text = r && r.matches && r.matches[0];
+          if (text) {
+            const alt = { transcript: text, confidence: 0.9 };
+            const result = Object.assign([alt], { isFinal: true });
+            if (this.onresult) this.onresult({ resultIndex: 0, results: Object.assign([result], { item: (i) => [result][i] }) });
+          } else if (this.onerror) this.onerror({ error: "no-speech" });
+          this._end();
+        } catch (e) {
+          if (this._aborted) return this._end();
+          this._fail(/permission/i.test(String(e && e.message)) ? "not-allowed" : "no-speech");
+        }
+      }
+      stop() { SpeechRecognition.stop().catch(() => {}); }
+      abort() { this._aborted = true; SpeechRecognition.stop().catch(() => {}); this._end(); }
+    }
+    window.SpeechRecognition = Recognition;
+    window.webkitSpeechRecognition = Recognition;
+  }
 
   // ── Links: website pages and other sites open in an in-app browser tab ────
   // The app itself is a single page; its SEO pages (/schemes/…, /yojana/…,
@@ -147,8 +254,9 @@ if (Capacitor.isNativePlatform()) {
   };
 
   // ── Splash + status bar ───────────────────────────────────────────────────
+  // white status-bar icons on the app's navy bar (MainActivity keeps the app
+  // below the status bar and above the keyboard / navigation bar)
   StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-  StatusBar.setBackgroundColor({ color: "#003580" }).catch(() => {});
   const hide = () => SplashScreen.hide({ fadeOutDuration: 250 }).catch(() => {});
   if (document.readyState === "complete") setTimeout(hide, 300);
   else window.addEventListener("load", () => setTimeout(hide, 300), { once: true });

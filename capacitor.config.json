@@ -3,7 +3,7 @@
   "appName": "Yojana Sahay",
   "webDir": "dist-native",
   "server": { "androidScheme": "https" },
-  "android": { "backgroundColor": "#003580" },
+  "android": { "backgroundColor": "#003580", "adjustMarginsForEdgeToEdge": "disable" },
   "plugins": {
     "SplashScreen": {
       "launchAutoHide": false,

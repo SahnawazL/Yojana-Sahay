@@ -58,6 +58,8 @@ jobs:
             @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 \
             @capacitor/app@7 @capacitor/share@7 @capacitor/browser@7 \
             @capacitor/splash-screen@7 @capacitor/status-bar@7 \
+            @capacitor/filesystem@7 @capacitor-community/text-to-speech@6 \
+            @capacitor-community/speech-recognition@7 \
             @capacitor-firebase/authentication@7 @capacitor/assets@3 >> "$RUNNER_TEMP/npm.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm.log"; exit 1; }
           cd scripts/android && npm install --no-save --no-package-lock --loglevel=error node-forge@1.3.1 >> "$RUNNER_TEMP/npm.log" 2>&1
           cd "$GITHUB_WORKSPACE" && npx cap --version
@@ -135,7 +137,9 @@ jobs:
           echo "$M" | grep -q "android.intent.action.SEND" || { echo "::error::share-to-app missing"; exit 1; }
           echo "$M" | grep -q '"yojanasahay"' || { echo "::error::shortcut links missing"; exit 1; }
           echo "$M" | grep -q "android.app.shortcuts" || { echo "::error::shortcuts missing"; exit 1; }
-          echo "::notice title=Checks::app files inside APK ✓ · share-to-app ✓ · shortcuts ✓ · $(unzip -l "$APK" | tail -n 1 | awk '{print int($1/1048576)" MB uncompressed"}')"
+          echo "$M" | grep -q "android.permission.RECORD_AUDIO" || { echo "::error::microphone permission missing (voice input)"; exit 1; }
+          echo "$M" | grep -q "android.intent.action.TTS_SERVICE" || echo "::warning::text-to-speech query missing (read-aloud may be silent on Android 11+)"
+          echo "::notice title=Checks::app files inside APK ✓ · share-to-app ✓ · shortcuts ✓ · mic ✓ · $(unzip -l "$APK" | tail -n 1 | awk '{print int($1/1048576)" MB uncompressed"}')"
           SHA1=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA1:" | sed 's/.*SHA1: //')
           SHA256=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA256:" | sed 's/.*SHA256: //')
           echo "::notice title=Add to Firebase (Android app → SHA certificate fingerprints)::SHA-1 $SHA1 · SHA-256 $SHA256"
