@@ -183,6 +183,7 @@ jobs:
           echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
           cp "$GITHUB_WORKSPACE/scripts/android-native/diagnose.mjs" "$RUNNER_TEMP/pw/diagnose.mjs"
           # live-update test feed: a newer working copy and a deliberately broken one
+          cd "$GITHUB_WORKSPACE"
           L="$RUNNER_TEMP/live"; mkdir -p "$L/broken"
           YS_BUILD=$(( YS_BUILD + 100 )) YS_NATIVE_API=$(tr -dc '0-9' < scripts/android-native/native-api.txt) VITE_YS_DIAG=1 \
             npx vite build -c vite.native.config.js --outDir "$L/good" > "$RUNNER_TEMP/vite-good.log" 2>&1 || { tail -n 30 "$RUNNER_TEMP/vite-good.log"; exit 1; }
@@ -221,7 +222,7 @@ jobs:
       - name: Report errors (readable from the run's annotations)
         if: failure()
         run: |
-          for f in npm.log vite.log cap.log gradle.log; do
+          for f in npm.log vite.log cap.log gradle.log vite-good.log; do
             p="$RUNNER_TEMP/$f"
             [ -f "$p" ] || continue
             node -e '
