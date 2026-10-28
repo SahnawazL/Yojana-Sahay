@@ -255,14 +255,17 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      background: radial-gradient(120% 90% at 50% 0%, #0b2a7a 0%, #04164f 45%, #020b2e 100%);
+      /* aurora light painted into the background itself: no large moving
+         layers, so it draws instantly and never runs out of graphics memory */
+      background:
+        radial-gradient(60% 40% at 12% 8%, rgba(255,153,51,.42) 0%, rgba(255,153,51,0) 100%),
+        radial-gradient(65% 45% at 92% 96%, rgba(124,92,255,.5) 0%, rgba(124,92,255,0) 100%),
+        radial-gradient(45% 30% at 62% 58%, rgba(59,163,255,.16) 0%, rgba(59,163,255,0) 100%),
+        radial-gradient(120% 90% at 50% 0%, #0b2a7a 0%, #04164f 45%, #020b2e 100%);
     }
 
     /* ── Launch screen: aurora light, orbit rings, logo sweep, shimmer ───
        YojanaSahay's own look — independent app, so no national symbols. ── */
-    @keyframes hs-aurora-a { 0%,100% { transform: translate(-10%, -8%) scale(1); } 50% { transform: translate(12%, 10%) scale(1.15); } }
-    @keyframes hs-aurora-b { 0%,100% { transform: translate(14%, 12%) scale(1.1); } 50% { transform: translate(-12%, -6%) scale(0.95); } }
-    @keyframes hs-aurora-c { 0%,100% { transform: translate(0, 18%) scale(0.9); } 50% { transform: translate(-6%, -14%) scale(1.12); } }
     @keyframes hs-spin { to { transform: rotate(360deg); } }
     @keyframes hs-spin-rev { to { transform: rotate(-360deg); } }
     /* starts exactly like Android's launch icon (logo in a white circle, ~1.55×)
@@ -273,19 +276,13 @@
     @keyframes hs-sweep { 0% { transform: translateX(-140%) skewX(-18deg); } 60%,100% { transform: translateX(240%) skewX(-18deg); } }
     @keyframes hs-rings-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
     @keyframes hs-title-in { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
-    @keyframes hs-shimmer { to { background-position: -200% 0; } }
     @keyframes hs-tagline-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
     @keyframes hs-bar-in { from { opacity: 0; transform: scaleX(0.4); } to { opacity: 1; transform: none; } }
     @keyframes hs-fill { 0% { transform: scaleX(.04); } 100% { transform: scaleX(1); } }
     @keyframes hs-run { 0% { transform: translateX(-120%); } 100% { transform: translateX(300%); } }
-    @keyframes hs-flow { to { background-position: 200% 0; } }
     @keyframes hs-pA { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: .7; } 90% { opacity: .3; } 100% { transform: translateY(-110vh) translateX(25px); opacity: 0; } }
     @keyframes hs-pB { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: .55; } 90% { opacity: .2; } 100% { transform: translateY(-110vh) translateX(-20px); opacity: 0; } }
 
-    .hs-aurora { position: absolute; width: 80vmax; height: 80vmax; border-radius: 50%; opacity: .5; pointer-events: none; will-change: transform; }
-    .hs-aurora.a { top: -30vmax; left: -25vmax; background: radial-gradient(circle, rgba(255,153,51,.9) 0%, rgba(255,153,51,.35) 30%, rgba(255,153,51,0) 66%); animation: hs-aurora-a 11s ease-in-out infinite; }
-    .hs-aurora.b { bottom: -35vmax; right: -30vmax; background: radial-gradient(circle, rgba(124,92,255,.95) 0%, rgba(124,92,255,.35) 30%, rgba(124,92,255,0) 66%); animation: hs-aurora-b 13s ease-in-out infinite; }
-    .hs-aurora.c { top: 20%; left: 30%; width: 50vmax; height: 50vmax; background: radial-gradient(circle, rgba(59,163,255,.8) 0%, rgba(59,163,255,.25) 32%, rgba(59,163,255,0) 68%); opacity: .32; animation: hs-aurora-c 15s ease-in-out infinite; }
     .hs-grain { position: absolute; inset: 0; pointer-events: none; opacity: .5;
       background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 22px 22px; }
 
@@ -361,10 +358,7 @@
     ─────────────────────────────────────────────────────────────────────── -->
     <div id="html-splash">
 
-      <!-- ── Aurora light + soft grain ── -->
-      <div class="hs-aurora a"></div>
-      <div class="hs-aurora b"></div>
-      <div class="hs-aurora c"></div>
+      <!-- ── Soft grain (the aurora light is part of the background) ── -->
       <div class="hs-grain"></div>
 
       <!-- ── Rising light particles ── -->
