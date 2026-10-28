@@ -433,7 +433,21 @@
         var liftAndroidLaunch = function () {
           try { if (window.Capacitor && window.Capacitor.nativePromise) window.Capacitor.nativePromise('SplashScreen', 'hide', { fadeOutDuration: 180 }).catch(function () {}); } catch (e) {}
         };
-        requestAnimationFrame(function () { requestAnimationFrame(function () { liftAndroidLaunch(); play(); }); });
+        var start = function () {
+          if (el.classList.contains('hs-play')) return;
+          liftAndroidLaunch(); play();
+          // how smoothly the animation's frames came (checked by the Android test build)
+          var tr = window.__hsTrace = { frames: 0, maxGap: 0, slow: 0 }, last = 0, t0 = performance.now();
+          var tick = function (t) { if (last) { var g = t - last; tr.frames++; if (g > tr.maxGap) tr.maxGap = Math.round(g); if (g > 50) tr.slow++; } last = t; if (t - t0 < 2500) requestAnimationFrame(tick); };
+          requestAnimationFrame(tick);
+        };
+        window.__hsResume = function () { window.__ysSwitching = 0; start(); };
+        // Android app with a newer version already downloaded: the app switches
+        // to it straight away (one quick reload). Android's launch screen stays
+        // up meanwhile, so the animation plays once, from the start, in the new
+        // version — never cut off half-way. (Safety: carry on after 4 s anyway.)
+        if (window.__ysSwitching) setTimeout(window.__hsResume, 4000);
+        else requestAnimationFrame(function () { requestAnimationFrame(start); });
       })();
     </script>
 

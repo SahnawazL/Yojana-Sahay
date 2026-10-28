@@ -76,7 +76,7 @@ out("launch timing (ms after tapping the icon)", await ev((dev) => {
   return { pageStarts: Math.round(nav), firstPaint: paint["first-paint"], firstContentfulPaint: paint["first-contentful-paint"],
            htmlParsed: Math.round(nav + (t.domInteractive || 0)), appCodeRan: Math.round(nav + (t.domContentLoadedEventEnd || 0)),
            splashPlay: typeof window.__hsStart === "number" ? Math.round(nav + window.__hsStart) : null,
-           splashShown: !!document.getElementById("html-splash") || "removed" };
+           splashShown: !!document.getElementById("html-splash") || "removed", animFrames: window.__hsTrace || null };
 }, globalThis.__devStart || 0));
 
 // ── Launch animation as Android's web engine draws it (frame by frame) ──────
@@ -91,7 +91,7 @@ try {
     if (r.result && r.result.data) shots.push(`${Date.now() - t0}ms ${r.result.data}`);
     await T(220);
   }
-  fsy.writeFileSync(process.env.RUNNER_TEMP + "/diag/frames.txt", shots.join("\n"));
+  fsy.appendFileSync(process.env.RUNNER_TEMP + "/diag/frames.txt", "\n" + shots.map(l => "w" + l).join("\n"));
   out("launch frames (web engine)", shots.length + " captured");
   await T(2500);
 } catch (e) { out("launch frames (web engine)", "FAILED " + e.message); }
@@ -203,8 +203,22 @@ if (LIVE && B0) {
   feed(B0 + 100, "bundle-good.zip");
   await restart(25000);
   out("live 1 (installed copy " + B0 + ") finds + downloads " + (B0 + 100), await liveInfo());
-  await restart(20000);
+  // this start switches to the downloaded copy: film what people see meanwhile
+  {
+    const sharp = (await import("sharp")).default;
+    adb("shell am force-stop com.yojanasahay.app"); await T(1500);
+    adb("shell am start -n com.yojanasahay.app/.MainActivity");
+    const t0 = Date.now(), lines = [];
+    for (let k = 0; k < 14; k++) {
+      const png = execSync("adb exec-out screencap -p", { maxBuffer: 64 * 1024 * 1024 });
+      const jpg = await sharp(png).resize(216).jpeg({ quality: 42 }).toBuffer();
+      lines.push(`s${Date.now() - t0}ms ${jpg.toString("base64")}`);
+    }
+    fsm.appendFileSync(process.env.RUNNER_TEMP + "/diag/frames.txt", "\n" + lines.join("\n"));
+    await T(Math.max(1000, 20000 - (Date.now() - t0))); try { ws.close(); } catch {}
+  }
   out("live 2 (next start) runs " + (B0 + 100), await liveInfo());
+  out("live 2 launch animation", await ev(() => ({ trace: window.__hsTrace || null, played: typeof window.__hsStart === "number", splashGone: !document.getElementById("html-splash") })));
   out("live 2 app drew its screen", await ev(() => document.getElementById("root")?.childElementCount + " | " + /Yojana Sahay/.test(document.body.innerText)));
   feed(B0 + 200, "bundle-broken.zip");
   await ev(async () => { await window.ysNative.liveCheck(); return true; });

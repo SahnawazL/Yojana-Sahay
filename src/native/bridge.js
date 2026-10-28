@@ -94,13 +94,19 @@ if (Capacitor.isNativePlatform()) {
       live.state = "applying " + p.build; note("apply " + p.build + " (" + why + ")");
       CapacitorUpdater.set({ id: p.id }).catch((e) => {          // bundle missing (e.g. after an app update) → fetch it again later
         ls.del(K.applying); ls.del(K.pending); note("apply failed " + (e && e.message));
+        resumeLaunch();
       });
     };
+
+    // the page keeps Android's launch screen up when it expects this switch
+    // (index.html: window.__ysSwitching) — if no switch happens, carry on
+    const resumeLaunch = () => { if (window.__ysSwitching) { try { window.__hsResume ? window.__hsResume() : (window.__ysSwitching = 0); } catch { window.__ysSwitching = 0; } } };
 
     // 2) switch to a newer copy at start-up
     const p0 = pendingInfo();
     if (p0 && p0.build > BUILD && !isFailed(p0.build)) { apply(p0, "start"); return; }
     if (p0) ls.del(K.pending);
+    resumeLaunch();
 
     // 3) check for a newer copy
     let checking = false;
@@ -425,7 +431,7 @@ if (Capacitor.isNativePlatform()) {
   // app's own animated launch screen (#html-splash in index.html — aurora, orbit rings,
   // particles, logo) is what people see while the app loads.
   // start the app's own launch animation at the same moment, from its first frame
-  const hide = () => { SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {}); try { window.__hsPlay && window.__hsPlay(); } catch {} };
+  const hide = () => { if (window.__ysSwitching) return; SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {}); try { window.__hsPlay && window.__hsPlay(); } catch {} };
   requestAnimationFrame(() => requestAnimationFrame(hide));
   setTimeout(hide, 1500); // in case the screen isn't drawing frames yet
   });

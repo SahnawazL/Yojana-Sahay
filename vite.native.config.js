@@ -28,6 +28,14 @@ d.querySelector("pre").textContent=(all.length?all.join("\\n"):"No error message
 d.querySelector("button").onclick=function(){location.reload()};document.body.appendChild(d);
 try{window.Capacitor&&window.Capacitor.nativePromise&&window.Capacitor.nativePromise("SplashScreen","hide",{})}catch(x){}},9000);})();`;
 
+// A newer app version is downloaded and will be switched to as soon as the
+// app code runs (src/native/bridge.js, "live update"): tell the launch screen
+// to wait for it, so the animation isn't cut off by the switch.
+const BUILD_NUM = Number(process.env.YS_BUILD || 0) || 0;
+const SWITCH_CHECK = `(function(){try{var g=function(k,d){try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}};
+var p=g("ys_live_pending","null"),f=g("ys_live_failed","[]"),a=Number(localStorage.getItem("ys_live_applying")||0);
+if(a&&${BUILD_NUM}<a)return;if(p&&p.build>${BUILD_NUM}&&f.indexOf(p.build)<0)window.__ysSwitching=1}catch(e){}})();`;
+
 export default defineConfig({
   plugins: [
     react(),
@@ -43,7 +51,7 @@ export default defineConfig({
           // the website registers its service worker here; the app doesn't use one
           .replace('if ("serviceWorker" in navigator) {', 'if ("serviceWorker" in navigator && !window.Capacitor) {')
           // if the app ever fails to start, say why on screen instead of a blank/stuck screen
-          .replace("<head>", "<head>\n<script>" + STARTUP_GUARD + "</script>");
+          .replace("<head>", "<head>\n<script>" + STARTUP_GUARD + "</script>\n<script>" + SWITCH_CHECK + "</script>");
       } }
     },
     {
