@@ -44,6 +44,7 @@ import { runAndLogDiscovery, listSchemeDrafts, reviewSchemeDraft, discoveryPlan,
 import { createProgress, isJobRunning, readAgentLive } from "./_lib/agentProgress.js";
 import { getFirebaseUsage }    from "./_lib/firebaseUsage.js";
 
+import { appCors } from "./_lib/appCors.js";
 // ═══════════════════════════════════════════════════════════════════════════
 // AI Compose & Send — folded into this same file (not a separate function)
 // to stay within the Vercel Hobby plan's 12-serverless-function limit.
@@ -471,6 +472,7 @@ async function runNewsRefresh(trigger = "manual") {
 }
 
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   if (req.method !== "GET" && req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed. Use GET or POST." });
   }

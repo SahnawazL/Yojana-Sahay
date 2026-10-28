@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+  <shortcut android:shortcutId="checker" android:enabled="true" android:icon="@mipmap/ic_launcher"
+      android:shortcutShortLabel="@string/sc_checker_short" android:shortcutLongLabel="@string/sc_checker_long">
+    <intent android:action="android.intent.action.VIEW" android:data="yojanasahay://go/checker"
+        android:targetPackage="com.yojanasahay.app" android:targetClass="com.yojanasahay.app.MainActivity" />
+  </shortcut>
+  <shortcut android:shortcutId="search" android:enabled="true" android:icon="@mipmap/ic_launcher"
+      android:shortcutShortLabel="@string/sc_search_short" android:shortcutLongLabel="@string/sc_search_long">
+    <intent android:action="android.intent.action.VIEW" android:data="yojanasahay://go/search"
+        android:targetPackage="com.yojanasahay.app" android:targetClass="com.yojanasahay.app.MainActivity" />
+  </shortcut>
+  <shortcut android:shortcutId="money" android:enabled="true" android:icon="@mipmap/ic_launcher"
+      android:shortcutShortLabel="@string/sc_money_short" android:shortcutLongLabel="@string/sc_money_long">
+    <intent android:action="android.intent.action.VIEW" android:data="yojanasahay://go/money"
+        android:targetPackage="com.yojanasahay.app" android:targetClass="com.yojanasahay.app.MainActivity" />
+  </shortcut>
+  <shortcut android:shortcutId="ai" android:enabled="true" android:icon="@mipmap/ic_launcher"
+      android:shortcutShortLabel="@string/sc_ai_short" android:shortcutLongLabel="@string/sc_ai_long">
+    <intent android:action="android.intent.action.VIEW" android:data="yojanasahay://go/ai"
+        android:targetPackage="com.yojanasahay.app" android:targetClass="com.yojanasahay.app.MainActivity" />
+  </shortcut>
+</shortcuts>

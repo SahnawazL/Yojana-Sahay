@@ -23,6 +23,7 @@
 import { requireAdmin } from "./_lib/adminAuth.js";
 import { updateRepoFile } from "./_lib/githubCommit.js";
 
+import { appCors } from "./_lib/appCors.js";
 const FILE_PATH = "src/schemes-meta.json";
 const ALLOWED_FIELDS = new Set(["lastVerified", "lastDate", "linkAlive", "httpStatus", "isActive", "confidence"]);
 const CLEAR_ON_NULL  = new Set(["lastDate", "linkAlive", "isActive"]);
@@ -85,6 +86,7 @@ export async function commitSchemesMeta(results) {
 }
 
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

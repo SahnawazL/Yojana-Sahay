@@ -70,6 +70,7 @@ import { SCHEME_DB } from "../src/schemesData.js";
 import { vapidKeys } from "./_lib/vapid.js";
 import telegramHandler from "./_lib/telegramBot.js";
 
+import { appCors } from "./_lib/appCors.js";
 const SCHEMES_META_PATH = "src/schemes-meta.json";
 
 function getAdminApp() {
@@ -167,6 +168,7 @@ async function getSchemeHealthStats() {
 }
 
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   // Telegram bot webhook + its admin controls (/api/telegram → here, see vercel.json).
   if (req.query?.via === "telegram") return telegramHandler(req, res);
 

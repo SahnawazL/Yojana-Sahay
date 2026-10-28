@@ -17,7 +17,9 @@
 import refreshNewsHandler from "./refresh-news.js";
 import { getAdminDb, getAdminAuth } from "./_lib/firebaseAdmin.js";
 
+import { appCors } from "./_lib/appCors.js";
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   if (req.method !== "POST" && req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed. Use POST (sync) or GET (status)." });
   }

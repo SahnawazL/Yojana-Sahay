@@ -32,6 +32,7 @@ import { createProgress }              from "./_lib/agentProgress.js";
 import { smartGroq, AGENT_FALLBACK_MODELS } from "./_lib/groqSmart.js";
 import { postNote } from "./_lib/teamBoard.js";
 
+import { appCors } from "./_lib/appCors.js";
 // ── Teamwork: news that changes a date → ask the Verifier ─────────────────────
 // "Last date extended", "registration opens"… — if a headline clearly names
 // ONE scheme in our catalog, the Background Verifier re-reads its official
@@ -600,6 +601,7 @@ async function refreshNewsCore(req, res) {
 // ran fine but found nothing (or failed before writing) looked "never run".
 // Every authorised run now records its outcome in _config/news.
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   // Capture the response instead of sending it, so the outcome can be
   // recorded (awaited — a serverless function may freeze right after it
   // responds) before it goes out.

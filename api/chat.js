@@ -25,6 +25,7 @@ import { getNextStartIdx } from "./_lib/groqRotation.js";
 import { noteGroqQuota, bodyForModel } from "./_lib/groqSmart.js";
 import { noteGroqOrg } from "./_lib/keyMap.js";
 
+import { appCors } from "./_lib/appCors.js";
 const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_URL = "https://api.tavily.com/search";
 
@@ -672,6 +673,7 @@ async function handleAgentStream(req, res, keys, requestBody, final) {
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   req._t0 = Date.now();
   req._cold = !warmInstance;
   warmInstance = true;

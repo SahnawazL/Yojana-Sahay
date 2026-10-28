@@ -24,9 +24,11 @@
 import { requireAdmin } from "./_lib/adminAuth.js";
 import { commitPatches } from "./_lib/githubCommit.js";
 
+import { appCors } from "./_lib/appCors.js";
 const MAX_PATCHES = 200;
 
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

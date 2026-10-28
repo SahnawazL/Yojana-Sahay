@@ -24,7 +24,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import {
-  onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+  onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInWithCredential,
   getRedirectResult, signInWithEmailAndPassword, sendPasswordResetEmail, signOut,
   setPersistence, browserLocalPersistence,
 } from "firebase/auth";
@@ -168,6 +168,14 @@ function SignIn({ initialError }) {
     // signInWithPopup must start synchronously inside the click (user gesture).
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
+    // Android app (native build): Android's Google account picker
+    if (window.ysNative && window.ysNative.googleSignIn) {
+      setBusy("google"); setError(""); setInfo("");
+      window.ysNative.googleSignIn()
+        .then(c => signInWithCredential(auth, GoogleAuthProvider.credential(c.idToken, c.accessToken || undefined)))
+        .catch(err => { if (!/cancel/i.test(String(err && (err.code || err.message) || ""))) setError(authErrorText(err)); setBusy(null); });
+      return;
+    }
     const p = signInWithPopup(auth, provider);
     setBusy("google"); setError(""); setInfo("");
     p.catch(async err => {

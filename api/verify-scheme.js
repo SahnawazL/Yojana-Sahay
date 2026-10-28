@@ -31,6 +31,7 @@ import { checkTavilyBudget, noteTavilyCall } from "./_lib/tavilyBudget.js";
 import { smartGroq, AGENT_FALLBACK_MODELS, borrowedChatKey, noteGroqQuota } from "./_lib/groqSmart.js";
 import { noteGroqOrg } from "./_lib/keyMap.js";
 
+import { appCors } from "./_lib/appCors.js";
 const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
 const TAVILY_EXTRACT = "https://api.tavily.com/extract";
 const MODEL          = "openai/gpt-oss-20b"; // migrated from llama-3.1-8b-instant (Groq deprecated it June 17, 2026) — sufficient for JSON extraction, free tier, 200K TPD
@@ -569,6 +570,7 @@ export async function verifySchemeCore({ url, name, state = "national", budgetLi
 }
 
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

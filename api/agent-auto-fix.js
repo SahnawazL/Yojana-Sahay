@@ -42,7 +42,9 @@ import { getAdminDb } from "./_lib/firebaseAdmin.js";
 import { runAndLogDiscovery } from "./_lib/schemeDiscovery.js";
 import { isJobRunning } from "./_lib/agentProgress.js";
 
+import { appCors } from "./_lib/appCors.js";
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   // ── Auth: only Vercel Cron / the GitHub watchdog (CRON_SECRET) ────────────
   const cronSecret = process.env.CRON_SECRET?.trim();
   const authHeader = req.headers["authorization"] ?? "";

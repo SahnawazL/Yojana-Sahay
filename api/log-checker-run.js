@@ -36,6 +36,7 @@ import { getFirestore, FieldValue, FieldPath } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { createHash } from "crypto";
 
+import { appCors } from "./_lib/appCors.js";
 function getAdminApp() {
   if (getApps().length) return getApps()[0];
 
@@ -116,6 +117,7 @@ function safeStateKey(state) {
 }
 
 export default async function handler(req, res) {
+  if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   if (req.method !== "POST") {
     res.status(405).json({ error: "method not allowed" });
     return;

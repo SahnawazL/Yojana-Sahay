@@ -31,7 +31,7 @@ import {
 import { SCHEME_COUNT, STATE_COUNT } from "./schemeStats.js";
 import schemesMeta from "./schemes-meta.json";
 import { auth, db } from "./firebase.js";
-import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInWithCredential, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment, deleteField } from "firebase/firestore";
 import AIChat from "./AIChat.jsx";
 import { generateResultsBrief } from "./groqClient.js";
@@ -6197,6 +6197,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     try{ localStorage.removeItem(STORAGE_KEY); }catch{}       // Bug 2 fix: eligibility answers bleed to next user
     try{ localStorage.removeItem(RECENT_STATE_KEY); }catch{}  // Bug 6 fix: last-picked state leaks across accounts
     await signOut(auth);
+    try{ if(window.ysNative&&window.ysNative.googleSignOut) await window.ysNative.googleSignOut(); }catch{}
     setProfile(null);
     setPhone("");setOtp(["","","","","",""]);
     setSetupName("");setSetupGender("");setSetupState("");setStateSearch("");setSetupCat("");
@@ -6264,14 +6265,19 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     // ⚠️ signInWithPopup MUST be called synchronously here — before any
     // setState call — so the browser recognises it as a direct user gesture.
     const provider=new GoogleAuthProvider();
-    // Inside the Android app: same-site full-page redirect (reliable there).
-    let inApp=false; try{inApp=sessionStorage.getItem("ys_twa")==="1";}catch{}
+    // Android app (native build): Android's own Google account picker; Google
+    // doesn't allow its web sign-in page inside apps.
+    const native=typeof window!=="undefined"&&window.ysNative&&window.ysNative.googleSignIn;
+    // Inside the older Android app (Chrome-based): same-site full-page redirect.
+    let inApp=false; try{inApp=!native&&sessionStorage.getItem("ys_twa")==="1";}catch{}
     if(inApp){
       setGoogleLoading(true);setAuthError("");
       signInWithRedirect(auth,provider).catch(e=>{setAuthError(e.message||"Google sign-in failed. Please try again.");setGoogleLoading(false);});
       return;
     }
-    const popupPromise=signInWithPopup(auth,provider);
+    const popupPromise=native
+      ? window.ysNative.googleSignIn().then(c=>signInWithCredential(auth,GoogleAuthProvider.credential(c.idToken,c.accessToken||undefined)))
+      : signInWithPopup(auth,provider);
     setGoogleLoading(true);setAuthError("");
     popupPromise.then(async result=>{
       const user=result.user;
@@ -6293,6 +6299,13 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       setStage("setup1");
       setGoogleLoading(false); // reset spinner for new user entering setup flow
     }).catch(err=>{
+      if(native){
+        // cancelled the account picker → just stop the spinner
+        const cancelled=/cancel/i.test(String(err&&(err.code||err.message)||""));
+        if(!cancelled) setAuthError(err.message||"Google sign-in failed. Please try again.");
+        setGoogleLoading(false);
+        return;
+      }
       if(err.code==="auth/popup-blocked"||err.code==="auth/popup-closed-by-user"){
         // Popup blocked — fall back to full-page redirect
         signInWithRedirect(auth,provider).catch(e=>{
@@ -10582,6 +10595,17 @@ function YojanaSahayInner(){
         requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent("ys-chat-pending")));
         window.history.replaceState({}, "", window.location.pathname);
       }
+      // Android app (native build): text shared to the app arrives here
+      const takeNativeShare = (t) => {
+        if (!t) return;
+        window.__ysPendingShare = undefined;
+        const hi = (()=>{ try{ return localStorage.getItem("yojana_lang")==="hi"; }catch{ return false; } })();
+        window.__ysPendingChat = { kind: "ai", text: (hi ? "क्या यह संदेश असली है? कृपया जाँचें:\n\n" : "Is this message real? Please check it:\n\n") + t, at: Date.now(), ttl: 600000 };
+        setActiveTab("ai");
+        requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent("ys-chat-pending")));
+      };
+      if (window.__ysPendingShare) takeNativeShare(window.__ysPendingShare);
+      window.addEventListener("ys-native-share", (e) => takeNativeShare(e.detail && e.detail.text));
       // App-icon shortcuts (manifest "shortcuts", long-press on Android): ?go=…
       const go = params.get("go");
       if(go){
