@@ -289,7 +289,8 @@ export default function AdminPage() {
   useEffect(() => {
     setPersistence(auth, browserLocalPersistence).catch(() => {});
     // Finish a Google redirect sign-in (popup-blocked fallback).
-    getRedirectResult(auth).catch(err => setSignInError(authErrorText(err)));
+    if (!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()))
+      getRedirectResult(auth).catch(err => setSignInError(authErrorText(err)));
   }, []);
 
   // ── Who is signed in, and are they an admin? ─────────────────────────────

@@ -2,7 +2,10 @@
   "appId": "com.yojanasahay.app",
   "appName": "Yojana Sahay",
   "webDir": "dist-native",
-  "server": { "androidScheme": "https" },
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": ["yojanasetu-e24bb.firebaseapp.com", "*.google.com", "*.gstatic.com", "*.recaptcha.net"]
+  },
   "android": { "backgroundColor": "#003580", "adjustMarginsForEdgeToEdge": "disable" },
   "plugins": {
     "SplashScreen": {

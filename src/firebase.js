@@ -1,6 +1,6 @@
 // firebase.js — Yojana Sahay Firebase initialisation
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from "firebase/auth";
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -28,7 +28,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+// Android app: sign-in happens through Android's own Google account picker
+// (src/native/bridge.js) → signInWithCredential. Leaving out the web
+// popup/redirect helper stops Firebase from loading its hidden sign-in page
+// (…firebaseapp.com/__/auth/iframe), which Android would open in the browser.
+const isNativeApp = typeof window !== "undefined" && !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+export const auth = isNativeApp
+  ? initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] })
+  : getAuth(app);
 
 // ── Firestore with offline persistence ────────────────────────────────────────
 // Uses the correct v9+ API (initializeFirestore) instead of the deprecated

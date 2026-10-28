@@ -11115,6 +11115,7 @@ function YojanaSahayInner(){
   // regardless of which tab is active. Catches the result even on low-memory
   // phones where the browser killed the tab mid-redirect. ──────────────────────
   useEffect(()=>{
+    if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) return; // Android app: no web redirects
     getRedirectResult(auth).then(async result=>{
       if(!result||!result.user) return;
       const user=result.user;
