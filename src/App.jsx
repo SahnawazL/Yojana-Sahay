@@ -10639,13 +10639,21 @@ function YojanaSahayInner(){
   useEffect(()=>{
     const el=document.getElementById('html-splash');
     if(!el)return;
-    el.style.transition='opacity 0.35s ease';
-    el.style.opacity='0';
-    const t=setTimeout(()=>{
-      el.remove();
-      sessionStorage.setItem('ys_splashed','1');
-    },380);
-    return()=>clearTimeout(t);
+    // Android app: its files are on the phone, so React is ready almost at once —
+    // keep the animated launch screen up for ~1.6 s from launch so it plays
+    // smoothly instead of flashing. The website is unchanged (no wait).
+    const isApp=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+    const wait=isApp?Math.max(0,1600-(performance.now?performance.now():0)):0;
+    let t2=null;
+    const t1=setTimeout(()=>{
+      el.style.transition='opacity 0.35s ease';
+      el.style.opacity='0';
+      t2=setTimeout(()=>{
+        el.remove();
+        try{sessionStorage.setItem('ys_splashed','1');}catch{}
+      },380);
+    },wait);
+    return()=>{clearTimeout(t1);clearTimeout(t2);};
   },[]);
 
   const toggleDark=useCallback(()=>setDark(d=>!d),[]);

@@ -64,7 +64,7 @@ export const db = initializeFirestore(app, isAdminRoute
 // lets the automated phone test call Firebase directly.
 if (import.meta.env && import.meta.env.VITE_YS_DIAG === "1" && typeof window !== "undefined") {
   import("firebase/firestore").then(fs => {
-    window.__ysDiag = { auth, db, signInWithCredential, GoogleAuthProvider, getDoc: fs.getDoc, doc: fs.doc };
+    window.__ysDiag = { auth, db, signInWithCredential, GoogleAuthProvider, getDoc: fs.getDoc, doc: fs.doc, getDocs: fs.getDocs, query: fs.query, where: fs.where, collection: fs.collection };
   });
 }
 

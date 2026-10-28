@@ -288,10 +288,12 @@ if (Capacitor.isNativePlatform()) {
   // white status-bar icons on the app's navy bar (MainActivity keeps the app
   // below the status bar and above the keyboard / navigation bar)
   StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-  const hide = () => SplashScreen.hide({ fadeOutDuration: 250 }).catch(() => {});
-  if (document.readyState === "complete") setTimeout(hide, 300);
-  else window.addEventListener("load", () => setTimeout(hide, 300), { once: true });
-  setTimeout(hide, 4000); // never stay on the splash
+  // Android's launch screen steps aside as soon as the app can draw, so the
+  // app's own animated launch screen (#html-splash in index.html — chakra,
+  // particles, logo) is what people see while the app loads.
+  const hide = () => SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {});
+  requestAnimationFrame(() => requestAnimationFrame(hide));
+  setTimeout(hide, 1500); // in case the screen isn't drawing frames yet
   });
 
 }

@@ -86,6 +86,18 @@ for (const d of fs.readdirSync(splashSrc)) {
 fs.mkdirSync(path.join(res, "drawable"), { recursive: true });
 fs.copyFileSync(path.join(splashSrc, "drawable-xxhdpi", "splash.png"), path.join(res, "drawable", "splash.png"));
 
+// 4b) Android 12+ launch screen: same navy as the app's animated launch
+//     screen, so the hand-over is seamless (icon stays the app icon)
+const stylesP = path.join(res, "values/styles.xml");
+let styles = read(stylesP);
+if (!styles.includes("windowSplashScreenBackground")) {
+  const launch = /(<style name="AppTheme\.NoActionBarLaunch"[^>]*>)/;
+  if (launch.test(styles)) {
+    styles = styles.replace(launch, `$1\n        <item name="windowSplashScreenBackground">#001659</item>\n        <item name="android:windowBackground">@drawable/splash</item>`);
+    write(stylesP, styles);
+  } else console.warn("patch: launch style not found — default launch screen colours kept");
+}
+
 // 5) Google sign-in plugin: include its Google provider only when configured
 const varsP = path.join(A, "variables.gradle");
 let vars = read(varsP);

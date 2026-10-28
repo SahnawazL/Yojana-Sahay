@@ -88,13 +88,14 @@ out("all server functions reachable from the app (CORS)", await ev(async () => {
   for (const n of names) { try { const r = await fetch("https://yojanasahay.vercel.app/api/" + n, { method: "OPTIONS" }); res[n] = r.status; } catch (e) { res[n] = "BLOCKED"; } }
   return res;
 }));
-out("news feed on home", await ev(() => (document.body.innerText.match(/SCHEME UPDATE[\s\S]{0,160}/) || ["none"])[0].replace(/\n+/g, " | ")));
+out("news feed on home", await ev(() => (document.body.innerText.match(/scheme update[\s\S]{0,160}/i) || ["none"])[0].replace(/\n+/g, " | ")));
+out("news in Firestore (schemeNews, active)", await ev(async () => { const d = window.__ysDiag; if (!d) return "no diag"; try { const s = await Promise.race([d.getDocs(d.query(d.collection(d.db, "schemeNews"), d.where("active", "==", true))), new Promise((_, j) => setTimeout(() => j(new Error("timeout 20s")), 20000))]); return "ok " + s.size + " items, fromCache=" + s.metadata.fromCache; } catch (e) { return "FAILED " + (e.code || "") + " " + e.message; } }));
 adb("shell am start -a android.intent.action.VIEW -d yojanasahay://go/checker com.yojanasahay.app");
 await T(6000);
 out("shortcut yojanasahay://go/checker opens checker", await ev(() => /STEP 1|Eligibility Check|question/i.test(document.body.innerText) + " url=" + location.href));
 adb("shell input keyevent 4"); await T(1500);
 out("back button closes it (app still open)", await ev(() => "url=" + location.href + " stillChecker=" + /STEP 1 OF/i.test(document.body.innerText)) + " | top=" + adb("shell dumpsys activity activities | grep -m1 -E 'topResumedActivity|mResumedActivity'"));
-adb('shell am start -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "PM-Kisan 6000 bonus, click bit.ly/x to claim" -n com.yojanasahay.app/.MainActivity');
+adb("shell am start -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT PM-Kisan-6000-bonus-click-bit.ly/x-to-claim -n com.yojanasahay.app/.MainActivity");
 await T(7000);
 out("text shared from another app reaches the AI check", await ev(() => ({ pending: !!window.__ysPendingChat || !!window.__ysPendingShare, onAI: /AI Assistant|Unlock AI|Is this message real/i.test(document.body.innerText) })));
 await ev(() => { history.replaceState(null, "", "/"); });
