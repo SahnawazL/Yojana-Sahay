@@ -15,5 +15,5 @@ adb forward tcp:9222 "localabstract:webview_devtools_remote_$PID" >> "$OUT/pid.t
 curl -s http://127.0.0.1:9222/json/list >> "$OUT/pid.txt" 2>&1
 node "$RUNNER_TEMP/pw/diagnose.mjs" > "$OUT/app.txt" 2>&1
 adb exec-out uiautomator dump /dev/tty 2>/dev/null | grep -o 'text="[^"]\{2,\}"' | head -40 > "$OUT/screen.txt"
-adb logcat -d 2>/dev/null | grep -iE "chromium|Capacitor|AndroidRuntime|FATAL|FirebaseAuth|GoogleSignIn|credential|yojana" | grep -v "^$" | tail -n 150 > "$OUT/logcat.txt"
+adb logcat -d 2>/dev/null | grep -iE "Capacitor|chromium:.*(Console|Uncaught)|AndroidRuntime|FATAL|FirebaseAuth|GoogleSignIn|credential|yojana" | grep -v "^$" | tail -n 150 > "$OUT/logcat.txt"
 exit 0

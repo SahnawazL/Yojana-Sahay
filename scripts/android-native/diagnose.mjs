@@ -1,13 +1,30 @@
 // scripts/android-native/diagnose.mjs — connects to the app's screen on the
-// emulator (Chrome DevTools protocol) and checks every connection the app uses.
-import { chromium } from "playwright-core";
+// emulator (plain Chrome DevTools protocol over WebSocket; no browser tool)
+// and checks every connection the app uses.
 const out = (k, v) => console.log(`${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`);
-const browser = await chromium.connectOverCDP("http://127.0.0.1:9222");
-const page = browser.contexts().flatMap(c => c.pages()).find(p => p.url().startsWith("https://localhost"));
-if (!page) { out("ERROR", "app page not found"); process.exit(0); }
-page.on("console", m => { if (["error", "warning"].includes(m.type())) console.log(`console.${m.type()}: ${m.text().slice(0, 300)}`); });
+const list = await (await fetch("http://127.0.0.1:9222/json/list")).json();
+const target = list.find(t => t.type === "page" && String(t.url).startsWith(process.env.YS_DIAG_URL || "https://localhost"));
+if (!target) { out("ERROR", "app page not found " + JSON.stringify(list).slice(0, 300)); process.exit(0); }
+const ws = new WebSocket(target.webSocketDebuggerUrl);
+await new Promise((ok, bad) => { ws.onopen = ok; ws.onerror = bad; });
+let seq = 0; const waiting = new Map();
+ws.onmessage = (m) => {
+  const d = JSON.parse(m.data);
+  if (d.id && waiting.has(d.id)) { waiting.get(d.id)(d); waiting.delete(d.id); return; }
+  if (d.method === "Runtime.consoleAPICalled" && ["error", "warning"].includes(d.params.type))
+    console.log(`console.${d.params.type}: ` + d.params.args.map(a => a.value ?? a.description ?? "").join(" ").slice(0, 400));
+  if (d.method === "Runtime.exceptionThrown")
+    console.log("exception: " + (d.params.exceptionDetails.exception?.description || d.params.exceptionDetails.text).slice(0, 500));
+};
+const send = (method, params = {}) => new Promise(r => { const id = ++seq; waiting.set(id, r); ws.send(JSON.stringify({ id, method, params })); });
+await send("Runtime.enable");
 const T = (ms) => new Promise(r => setTimeout(r, ms));
-const ev = (fn, arg) => page.evaluate(fn, arg).catch(e => "EVAL-ERR " + e.message);
+const page = { url: () => target.url };
+const ev = async (fn, arg) => {
+  const r = await send("Runtime.evaluate", { expression: `(${fn.toString()})(${JSON.stringify(arg ?? null)})`, awaitPromise: true, returnByValue: true, userGesture: true });
+  if (r.result?.exceptionDetails) return "EVAL-ERR " + (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text);
+  return r.result?.result?.value;
+};
 
 out("url", page.url());
 out("basics", await ev(() => ({
@@ -43,4 +60,4 @@ out("profile screen has Google button", await ev(() => !![...document.querySelec
 await ev(() => { const b = [...document.querySelectorAll("button")].find(x => /Continue with Google/i.test(x.innerText || "")); b && b.click(); });
 await T(12000);
 out("after tapping Continue with Google", await ev(() => [...document.querySelectorAll("div")].filter(x => /Firebase|error|failed|cancel|set up/i.test(x.innerText || "") && x.children.length === 0).map(x => x.innerText.trim()).slice(0, 5)));
-await browser.close().catch(() => {});
+ws.close();
