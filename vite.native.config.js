@@ -12,6 +12,7 @@ import react from "@vitejs/plugin-react";
 import fs from "fs";
 import path from "path";
 
+let nativeOut = null; // build.outDir (dist-native, or a test copy)
 const KEEP_PUBLIC = ["icons", "favicon.ico", "manifest.json", "logo.webp", "robots.txt"];
 
 // Shown only if the app hasn't drawn anything 9 s after launch: the error(s)
@@ -48,8 +49,9 @@ export default defineConfig({
     {
       name: "ys-native-public",
       apply: "build",
+      configResolved(c) { nativeOut = path.resolve(c.root || ".", c.build.outDir); },
       closeBundle() {
-        const out = path.resolve("dist-native");
+        const out = nativeOut || path.resolve("dist-native");
         for (const name of KEEP_PUBLIC) {
           const src = path.resolve("public", name);
           if (fs.existsSync(src)) fs.cpSync(src, path.join(out, name), { recursive: true });
@@ -63,6 +65,13 @@ export default defineConfig({
   resolve: process.env.YS_NATIVE_FIREBASE === "1" ? {} : {
     alias: { "@capacitor-firebase/authentication": path.resolve("src/native/firebase-auth-stub.js") }
   },
-  define: { "import.meta.env.VITE_NATIVE": JSON.stringify("1") },
+  define: {
+    "import.meta.env.VITE_NATIVE": JSON.stringify("1"),
+    // live updates (src/native/bridge.js): this copy's build id (commit time),
+    // the Android-side version it needs, and (test builds only) a local feed
+    __YS_BUILD__: JSON.stringify(process.env.YS_BUILD || "0"),
+    __YS_NATIVE_API__: JSON.stringify(process.env.YS_NATIVE_API || fs.readFileSync("scripts/android-native/native-api.txt", "utf8").trim()),
+    __YS_LIVE_URL__: JSON.stringify(process.env.YS_LIVE_URL || "")
+  },
   build: { outDir: "dist-native", emptyOutDir: true, chunkSizeWarningLimit: 6000 }
 });

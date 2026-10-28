@@ -1,0 +1,99 @@
+name: App live update
+
+# Keeps the INSTALLED Android app up to date without a new APK.
+#
+# Every change to the app's code on main builds the same app files that are
+# packed inside the APK (vite.native.config.js) and publishes them on the
+# "app-live" GitHub release:
+#   bundle-<build>.zip   the app files (build = commit time)
+#   latest-api<N>.json   { api, build, url, sha256, size, commit } — what the app checks
+# The app (src/native/bridge.js) checks latest-api<N>.json every time it opens,
+# downloads a newer bundle in the background and switches to it on the next
+# start — or when it comes back after 10+ minutes. A bundle that fails to
+# start is rolled back automatically and never tried again.
+#
+# <N> = scripts/android-native/native-api.txt. Bump it when the Android side
+# changes (a plugin is added/removed in install-deps.sh): installed apps then
+# keep the last bundle that fits them until the new APK is installed.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "vite.native.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/android-native/native-api.txt"
+      - "scripts/android-native/install-deps.sh"
+      - ".github/workflows/app-live-update.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: app-live-update
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install app + Capacitor packages
+        run: |
+          npm install --no-audit --no-fund --loglevel=error > "$RUNNER_TEMP/npm.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm.log"; exit 1; }
+          bash scripts/android-native/install-deps.sh >> "$RUNNER_TEMP/npm.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm.log"; exit 1; }
+
+      - name: Build the app files
+        env:
+          GSJ: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GSJ" ]; then export YS_NATIVE_FIREBASE=1; else export YS_NATIVE_FIREBASE=0; fi
+          export YS_BUILD=$(git log -1 --format=%ct)
+          export YS_NATIVE_API=$(tr -dc '0-9' < scripts/android-native/native-api.txt)
+          VITE_YS_DIAG=0 npx vite build -c vite.native.config.js > "$RUNNER_TEMP/vite.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/vite.log"; exit 1; }
+          # same checks as the APK build: the Android bridge and the updater must be inside
+          grep -rlq "__ysShared" dist-native/assets/ || { echo "::error::Android bridge missing from the app files"; exit 1; }
+          grep -rlq "notifyAppReady" dist-native/assets/ || { echo "::error::live-update code missing from the app files"; exit 1; }
+          test -f dist-native/index.html
+          ZIP="$RUNNER_TEMP/bundle-$YS_BUILD.zip"
+          (cd dist-native && zip -qr -X "$ZIP" .)
+          SHA=$(sha256sum "$ZIP" | cut -d' ' -f1)
+          SIZE=$(stat -c%s "$ZIP")
+          URL="https://github.com/${{ github.repository }}/releases/download/app-live/bundle-$YS_BUILD.zip"
+          node -e '
+            const [api, build, url, sha256, size, commit, out] = process.argv.slice(1);
+            require("fs").writeFileSync(out, JSON.stringify({ api: +api, build: +build, url, sha256, size: +size, commit, builtAt: new Date().toISOString() }, null, 2));
+          ' "$YS_NATIVE_API" "$YS_BUILD" "$URL" "$SHA" "$SIZE" "$GITHUB_SHA" "$RUNNER_TEMP/latest-api$YS_NATIVE_API.json"
+          echo "YS_BUILD=$YS_BUILD" >> "$GITHUB_ENV"
+          echo "YS_NATIVE_API=$YS_NATIVE_API" >> "$GITHUB_ENV"
+          echo "ZIP=$ZIP" >> "$GITHUB_ENV"
+          cat "$RUNNER_TEMP/latest-api$YS_NATIVE_API.json"
+
+      - name: Publish (bundle first, then the pointer to it)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          R=app-live
+          if ! gh release view "$R" > /dev/null 2>&1; then
+            gh release create "$R" --title "App live updates" --prerelease --latest=false \
+              --notes "Files used by the installed Yojana Sahay Android app to update itself (see .github/workflows/app-live-update.yml). Not a download for people."
+          fi
+          gh release upload "$R" "$ZIP" --clobber
+          # only now point installed apps at it (so they never see a half-uploaded bundle)
+          gh release upload "$R" "$RUNNER_TEMP/latest-api$YS_NATIVE_API.json" --clobber
+          # keep the newest 6 bundles (apps mid-download still find theirs)
+          gh release view "$R" --json assets -q '.assets[].name' | grep '^bundle-[0-9]*\.zip$' \
+            | sed 's/^bundle-\([0-9]*\)\.zip$/\1/' | sort -n | head -n -6 \
+            | while read -r b; do gh release delete-asset "$R" "bundle-$b.zip" -y || true; done
+          echo "::notice title=Live update published::build $YS_BUILD for app version 2.$YS_NATIVE_API.x · $(( $(stat -c%s "$ZIP") / 1024 )) KB"

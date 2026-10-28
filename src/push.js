@@ -7,10 +7,22 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const flagKey = uid => `yojana_push_${uid}`;
+const tokKey = uid => `yojana_push_tok_${uid}`;
+
+// Android app: real Android notifications through Firebase Cloud Messaging
+// (window.ysNative.push, src/native/bridge.js). The token is stored in the same
+// pushSubs/{uid} list as website subscriptions, as { type: "fcm", endpoint:
+// "fcm:<token>", token } — the daily server job (api/_lib/push.js) sends to both.
+const isApp = () => typeof window !== "undefined" && !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const appPush = () => (typeof window !== "undefined" && window.ysNative && window.ysNative.push) || null;
+const fcmSub = token => ({ type: "fcm", endpoint: `fcm:${token}`, token, platform: "android" });
+const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+const lsDel = k => { try { localStorage.removeItem(k); } catch {} };
+export const isAndroidApp = isApp;
 
 export function pushSupported() {
-  // the Android app (native build) has no web push — app notifications come later
-  if (typeof window !== "undefined" && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return false;
+  if (isApp()) return !!appPush();
   return typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 }
 
@@ -44,7 +56,21 @@ async function registration(timeoutMs = 8000) {
 }
 
 // → "unsupported" | "ios-install" | "denied" | "on" | "off"
-export async function pushState(uid) {
+// saveSub (optional): in the Android app, re-saves the token if it changed.
+export async function pushState(uid, saveSub) {
+  if (isApp()) {
+    const P = appPush();
+    if (!P) return "unsupported";
+    let perm = "prompt";
+    try { perm = await P.permission(); } catch {}
+    if (perm === "denied") return "denied";
+    if (lsGet(flagKey(uid)) !== "1" || perm !== "granted") return "off";
+    try {
+      const t = await P.token();
+      if (t && saveSub && t !== lsGet(tokKey(uid))) { await saveSub(fcmSub(t)); lsSet(tokKey(uid), t); }
+    } catch {}
+    return "on";
+  }
   if (needsIosInstall()) return "ios-install";
   if (!pushSupported()) return "unsupported";
   if (Notification.permission === "denied") return "denied";
@@ -57,6 +83,17 @@ export async function pushState(uid) {
 
 // saveSub(subscriptionJSON) stores it for this user. Throws {code} on failure.
 export async function enablePush(uid, saveSub) {
+  if (isApp()) {
+    const P = appPush();
+    if (!P) throw Object.assign(new Error("unsupported"), { code: "unsupported" });
+    const perm = await P.request();
+    if (perm !== "granted") throw Object.assign(new Error("denied"), { code: "denied" });
+    const t = await P.token();
+    if (!t) throw Object.assign(new Error("no token"), { code: "server" });
+    await saveSub(fcmSub(t));
+    lsSet(tokKey(uid), t); lsSet(flagKey(uid), "1");
+    return { token: t };
+  }
   if (!pushSupported()) throw Object.assign(new Error("unsupported"), { code: "unsupported" });
   const perm = await Notification.requestPermission();
   if (perm !== "granted") throw Object.assign(new Error("denied"), { code: "denied" });
@@ -75,6 +112,12 @@ export async function enablePush(uid, saveSub) {
 
 // removeSub(endpoint) deletes it for this user.
 export async function disablePush(uid, removeSub) {
+  if (isApp()) {
+    const t = lsGet(tokKey(uid));
+    try { if (t) await removeSub(`fcm:${t}`); }
+    finally { lsDel(flagKey(uid)); lsDel(tokKey(uid)); await appPush()?.remove(); }
+    return;
+  }
   try {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = await reg?.pushManager.getSubscription();

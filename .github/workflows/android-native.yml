@@ -59,16 +59,7 @@ jobs:
       - name: Install app + Capacitor packages
         run: |
           npm install --no-audit --no-fund --loglevel=error > "$RUNNER_TEMP/npm.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm.log"; exit 1; }
-          # Added to package.json on the build machine only (not committed):
-          # Capacitor puts an Android plugin into the app ONLY if it is listed
-          # in package.json — with --no-save every plugin was silently left out.
-          npm install --save --no-audit --no-fund --loglevel=error \
-            @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 \
-            @capacitor/app@7 @capacitor/share@7 @capacitor/browser@7 \
-            @capacitor/splash-screen@7 @capacitor/status-bar@7 \
-            @capacitor/filesystem@7 @capacitor-community/text-to-speech@6 \
-            @capacitor-community/speech-recognition@7 \
-            @capacitor-firebase/authentication@7 sharp@0.33.5 >> "$RUNNER_TEMP/npm.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm.log"; exit 1; }
+          bash scripts/android-native/install-deps.sh >> "$RUNNER_TEMP/npm.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm.log"; exit 1; }
           cd scripts/android && npm install --no-save --no-package-lock --loglevel=error node-forge@1.3.1 >> "$RUNNER_TEMP/npm.log" 2>&1
           cd "$GITHUB_WORKSPACE" && npx cap --version
 
@@ -91,7 +82,9 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.diagnose }}" = "true" ]; then
             echo "YS_DIAG=1" >> "$GITHUB_ENV"
-            node -e 'const f="capacitor.config.json",fs=require("fs"),c=JSON.parse(fs.readFileSync(f));c.android.webContentsDebuggingEnabled=true;c.loggingBehavior="production";fs.writeFileSync(f,JSON.stringify(c,null,2))'
+            # live updates are tested against a local feed on the build machine
+            echo "YS_LIVE_URL=http://localhost:8000/latest.json" >> "$GITHUB_ENV"
+            node -e 'const f="capacitor.config.json",fs=require("fs"),c=JSON.parse(fs.readFileSync(f));c.android.webContentsDebuggingEnabled=true;c.loggingBehavior="production";c.server.cleartext=true;fs.writeFileSync(f,JSON.stringify(c,null,2))'
             echo "::warning title=Test build::diagnose build (debuggable app screen) — do not publish this APK"
           else
             echo "YS_DIAG=0" >> "$GITHUB_ENV"
@@ -99,6 +92,8 @@ jobs:
 
       - name: Build the app files (inside the APK)
         run: |
+          export YS_BUILD=$(git log -1 --format=%ct) YS_NATIVE_API=$(tr -dc '0-9' < scripts/android-native/native-api.txt)
+          echo "YS_BUILD=$YS_BUILD" >> "$GITHUB_ENV"
           VITE_YS_DIAG=$YS_DIAG npx vite build -c vite.native.config.js 2>&1 | tee "$RUNNER_TEMP/vite.log"
           test -f dist-native/index.html
           # the Android bridge (src/native/bridge.js) must be inside the app's code
@@ -112,7 +107,7 @@ jobs:
           # every Android plugin the app relies on must be wired into the project
           for p in capacitor-app capacitor-share capacitor-browser capacitor-splash-screen capacitor-status-bar \
                    capacitor-filesystem capacitor-community-text-to-speech capacitor-community-speech-recognition \
-                   capacitor-firebase-authentication; do
+                   capacitor-firebase-authentication capacitor-firebase-messaging capgo-capacitor-updater; do
             grep -q "':$p'" android/capacitor.settings.gradle || { echo "::error title=Plugin missing::$p is not in the Android project"; cat android/capacitor.settings.gradle; exit 1; }
           done
           echo "::notice title=Plugins::$(grep -c "^include ':capacitor-" android/capacitor.settings.gradle) Android plugins wired in"
@@ -126,7 +121,9 @@ jobs:
         run: |
           VERSION_CODE=$(( ${{ github.run_number }} + 100 ))
           VERSION_NAME="${{ github.event.inputs.version_name }}"
-          if [ -z "$VERSION_NAME" ]; then VERSION_NAME="2.0.${{ github.run_number }}"; fi
+          API=$(tr -dc '0-9' < scripts/android-native/native-api.txt)
+          # 2.<native api>.<run>: the middle number tells live updates which app files fit this app
+          if [ -z "$VERSION_NAME" ]; then VERSION_NAME="2.$API.${{ github.run_number }}"; fi
           echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
           npx cap sync android 2>&1 | tail -n 15
           node scripts/android-native/patch.mjs "$VERSION_CODE" "$VERSION_NAME" "$YS_NATIVE_FIREBASE"
@@ -161,7 +158,7 @@ jobs:
           # the app's own files are inside the APK, and the Android integrations are wired
           unzip -l "$APK" | grep -q "assets/public/index.html" || { echo "::error::app files missing from APK"; exit 1; }
           PJ=$(unzip -p "$APK" assets/capacitor.plugins.json)
-          for c in App Share Browser SplashScreen StatusBar Filesystem TextToSpeech SpeechRecognition FirebaseAuthentication; do
+          for c in App Share Browser SplashScreen StatusBar Filesystem TextToSpeech SpeechRecognition FirebaseAuthentication FirebaseMessaging CapacitorUpdater; do
             echo "$PJ" | grep -qE "\\.${c}(Plugin)?\"" || { echo "::error title=Plugin missing in APK::$c"; echo "$PJ"; exit 1; }
           done
           M=$("$BT/aapt2" dump xmltree --file AndroidManifest.xml "$APK")
@@ -171,7 +168,7 @@ jobs:
           "$BT/aapt2" dump resources "$APK" | grep -q "ic_launcher_monochrome" || { echo "::error::Yojana Sahay app icon missing (placeholder icon would show)"; exit 1; }
           echo "$M" | grep -q "android.permission.RECORD_AUDIO" || { echo "::error::microphone permission missing (voice input)"; exit 1; }
           echo "$M" | grep -q "android.intent.action.TTS_SERVICE" || echo "::warning::text-to-speech query missing (read-aloud may be silent on Android 11+)"
-          echo "::notice title=Checks::app files inside APK ✓ · share-to-app ✓ · Android bridge ✓ · shortcuts ✓ · mic ✓ · app icon ✓ · 9 Android plugins ✓ · $(unzip -l "$APK" | tail -n 1 | awk '{print int($1/1048576)" MB uncompressed"}')"
+          echo "::notice title=Checks::app files inside APK ✓ · share-to-app ✓ · Android bridge ✓ · shortcuts ✓ · mic ✓ · app icon ✓ · 11 Android plugins ✓ · $(unzip -l "$APK" | tail -n 1 | awk '{print int($1/1048576)" MB uncompressed"}')"
           SHA1=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA1:" | sed 's/.*SHA1: //')
           SHA256=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA256:" | sed 's/.*SHA256: //')
           echo "::notice title=Add to Firebase (Android app → SHA certificate fingerprints)::SHA-1 $SHA1 · SHA-256 $SHA256"
@@ -185,10 +182,23 @@ jobs:
           mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw" && npm init -y > /dev/null && true
           echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
           cp "$GITHUB_WORKSPACE/scripts/android-native/diagnose.mjs" "$RUNNER_TEMP/pw/diagnose.mjs"
+          # live-update test feed: a newer working copy and a deliberately broken one
+          L="$RUNNER_TEMP/live"; mkdir -p "$L/broken"
+          YS_BUILD=$(( YS_BUILD + 100 )) YS_NATIVE_API=$(tr -dc '0-9' < scripts/android-native/native-api.txt) VITE_YS_DIAG=1 \
+            npx vite build -c vite.native.config.js --outDir "$L/good" > "$RUNNER_TEMP/vite-good.log" 2>&1 || { tail -n 30 "$RUNNER_TEMP/vite-good.log"; exit 1; }
+          (cd "$L/good" && zip -qr -X "$L/bundle-good.zip" .)
+          printf '<!doctype html><title>broken</title><p>broken test copy</p>' > "$L/broken/index.html"
+          (cd "$L/broken" && zip -qr -X "$L/bundle-broken.zip" .)
+          echo '{}' > "$L/latest.json"
+          nohup python3 -m http.server 8000 --bind 127.0.0.1 --directory "$L" > "$RUNNER_TEMP/http.log" 2>&1 &
+          echo "LIVE_DIR=$L" >> "$GITHUB_ENV"
+          ls -la "$L"
 
       - name: Run the app on an Android emulator (test build)
         if: env.YS_DIAG == '1'
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         with:
           api-level: 34
           target: google_apis

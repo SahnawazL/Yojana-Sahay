@@ -10,6 +10,11 @@
 // Every item is remembered in pushSubs/{uid}.sent so it's never repeated
 // (application reminders may repeat after 7 days if still unanswered).
 //
+// Android app: its "subscription" is a Firebase Cloud Messaging token stored in
+// the same list as { type: "fcm", endpoint: "fcm:<token>", token, platform } and
+// delivered with firebase-admin (the server's existing Firebase credentials —
+// no extra key). Website subscriptions keep using Web Push below.
+//
 // VAPID keys: VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY env vars if set; otherwise a
 // key pair is derived (HKDF) from the existing FIREBASE_PRIVATE_KEY secret, so
 // no new secret has to be created or handled. The public half is served by
@@ -19,6 +24,8 @@
 import { nicheAudience, audienceApplies } from "../../src/audience.js";
 import { vapidKeys } from "./vapid.js";
 import { sendWebPush } from "./webPushSend.js";
+import { getMessaging } from "firebase-admin/messaging";
+import { getAdminDb } from "./firebaseAdmin.js";
 
 const DAY = 86_400_000;
 const SITE = "https://yojanasahay.vercel.app";
@@ -80,11 +87,34 @@ function pickNotification({ hi, matched, apps, newSchemes, sent, daysUntil }) {
   return null;
 }
 
+// One Android notification through Firebase Cloud Messaging. Throws with
+// .gone = true when the token no longer exists (app removed / signed out).
+export async function sendFcm(token, { title, body, url, tag }) {
+  try {
+    getAdminDb(); // makes sure the Firebase admin app is initialised
+    return await getMessaging().send({
+      token,
+      notification: { title, body },
+      data: { url: String(url || SITE), tag: String(tag || "") },
+      android: {
+        priority: "high",
+        ttl: 24 * 60 * 60 * 1000,
+        notification: { channelId: "reminders", icon: "ic_stat_notify", color: "#FF9933", tag: String(tag || "reminder") },
+      },
+    });
+  } catch (e) {
+    const code = e?.errorInfo?.code || e?.code || "";
+    if (/registration-token-not-registered|invalid-registration-token/.test(code)) e.gone = true;
+    throw e;
+  }
+}
+const isFcm = sub => sub && sub.type === "fcm" && typeof sub.token === "string" && sub.token.length > 20;
+
 // Called from runDeadlineAlerts. Never throws.
 export async function runPushReminders({ db, schemes, newSchemes = [], buildProfileAnswers, daysUntil }) {
   const out = { subscribers: 0, sent: 0, removed: 0, failed: 0, skipped: 0 };
   try {
-    if (!vapidKeys()) return { ...out, error: "no VAPID keys" };
+    const hasVapid = !!vapidKeys(); // website pushes need it; Android (FCM) doesn't
     const subject = `mailto:${process.env.GMAIL_USER || "yojanasahayofficial@gmail.com"}`;
     const subsSnap = await db.collection("pushSubs").get();
     for (const doc of subsSnap.docs) {
@@ -113,11 +143,13 @@ export async function runPushReminders({ db, schemes, newSchemes = [], buildProf
         let delivered = false;
         for (const sub of subs) {
           try {
-            await sendWebPush(sub, payload, { TTL: 60 * 60 * 24, urgency: "normal", subject });
+            if (isFcm(sub)) await sendFcm(sub.token, { title: n.title, body: n.body, url: n.url, tag: n.key });
+            else if (hasVapid) await sendWebPush(sub, payload, { TTL: 60 * 60 * 24, urgency: "normal", subject });
+            else { alive.push(sub); continue; }
             delivered = true; alive.push(sub);
           } catch (e) {
-            if (e?.statusCode === 404 || e?.statusCode === 410) out.removed++; // subscription gone → drop it
-            else { out.failed++; alive.push(sub); }
+            if (e?.gone || e?.statusCode === 404 || e?.statusCode === 410) out.removed++; // subscription gone → drop it
+            else { out.failed++; alive.push(sub); console.warn("[push] send failed:", e?.errorInfo?.code || e?.statusCode || e?.message); }
           }
         }
         const now = new Date().toISOString();

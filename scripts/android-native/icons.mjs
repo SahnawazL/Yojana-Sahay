@@ -52,9 +52,21 @@ for (const f of ["drawable-v24/ic_launcher_foreground.xml", "drawable/ic_launche
   const p = path.join(res, f);
   if (fs.existsSync(p)) fs.rmSync(p);
 }
+// notification icon (status bar): white silhouette on transparent, 24dp
+if (fs.existsSync(MONO)) {
+  for (const [d, k] of Object.entries(D)) {
+    const px = Math.round(24 * k);
+    const dir = path.join(res, "drawable-" + d);
+    fs.mkdirSync(dir, { recursive: true });
+    const { data, info } = await sharp(MONO).resize(px, px).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let i = 0; i < data.length; i += 4) { data[i] = 255; data[i + 1] = 255; data[i + 2] = 255; } // keep alpha only
+    await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toFile(path.join(dir, "ic_stat_notify.png"));
+  }
+}
 write(path.join(res, "values/ic_launcher_background.xml"), `<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ys_notify">#FF9933</color>
 </resources>
 `);
 console.log("app icon written to", res);

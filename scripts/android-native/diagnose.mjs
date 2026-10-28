@@ -7,8 +7,14 @@ import { execSync } from "node:child_process";
 const adb = (c) => { try { return execSync("adb " + c, { encoding: "utf8", timeout: 30000 }).trim(); } catch (e) { return "ADB-ERR " + e.message.slice(0, 200); } };
 // The app's screen reloads on some actions (shortcuts) — reconnect when that happens.
 let ws = null, seq = 0, target = null; const waiting = new Map();
+const reforward = () => {
+  const pid = adb("shell pidof com.yojanasahay.app").split(/\s+/)[0];
+  if (pid && !pid.startsWith("ADB-ERR")) { adb("forward --remove tcp:9222"); adb(`forward tcp:9222 localabstract:webview_devtools_remote_${pid}`); }
+  return pid;
+};
 async function connect() {
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 12; i++) {
+    if (i > 0) reforward();
     try {
       const list = await (await fetch("http://127.0.0.1:9222/json/list")).json();
       target = list.find(t => t.type === "page" && String(t.url).startsWith(process.env.YS_DIAG_URL || "https://localhost"));
@@ -108,5 +114,45 @@ await ev(() => { location.reload(); });
 await T(9000);
 out("offline start", await ev(() => ({ drew: document.getElementById("root")?.childElementCount, text: document.body.innerText.slice(0, 160).replace(/\n+/g, " | ") })));
 adb("shell svc wifi enable"); adb("shell svc data enable");
+
+// ── Phase 3: Android notifications, end to end through the real server ─────
+await T(8000); // network back after the offline test
+out("notifications: permission", await ev(async () => { try { return await window.ysNative.push.request(); } catch (e) { return "ERR " + e.message; } }));
+const tok = await ev(async () => { try { return await window.ysNative.push.token(); } catch (e) { return "ERR " + e.message; } });
+out("notifications: Firebase token", typeof tok === "string" && !tok.startsWith("ERR") && !tok.startsWith("EVAL") ? tok.length + " characters" : tok);
+if (typeof tok === "string" && tok.length > 20 && !tok.startsWith("ERR") && !tok.startsWith("EVAL") && process.env.CRON_SECRET) {
+  adb("shell input keyevent 3"); await T(1500); // home screen, as when a reminder arrives
+  try {
+    const r = await fetch("https://yojanasahay.vercel.app/api/deadline-alerts", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + process.env.CRON_SECRET }, body: JSON.stringify({ action: "pushTest", token: tok }) });
+    out("notifications: server sent one", r.status + " " + (await r.text()).slice(0, 160));
+  } catch (e) { out("notifications: server sent one", "FAILED " + e.message); }
+  await T(15000);
+  const dump = adb("shell dumpsys notification --noredact");
+  const mine = dump.split("\n").filter(l => /pkg=com\.yojanasahay\.app|android\.title=|android\.text=/.test(l)).map(l => l.trim()).slice(0, 8);
+  out("notifications: shown on the phone", mine.length ? mine.join(" | ") : "NOT FOUND");
+}
+
+// ── Phase 4: live updates (local feed; app built to read it) ───────────────
+const LIVE = process.env.LIVE_DIR, B0 = Number(process.env.YS_BUILD || 0);
+if (LIVE && B0) {
+  const fsm = await import("node:fs");
+  const feed = (build, file) => fsm.writeFileSync(LIVE + "/latest.json", JSON.stringify({ api: 1, build, url: `http://localhost:8000/${file}` }));
+  const restart = async (wait) => { adb("shell am force-stop com.yojanasahay.app"); await T(1500); adb("shell am start -n com.yojanasahay.app/.MainActivity"); await T(wait); try { ws.close(); } catch {} };
+  const liveInfo = () => ev(() => window.__ysLive ? { build: window.__ysLive.build, state: window.__ysLive.state, ready: !!window.__ysLive.ready, log: window.__ysLive.log.slice(-6) } : { none: document.title + " | " + document.body.innerText.slice(0, 60) });
+  feed(B0 + 100, "bundle-good.zip");
+  await restart(25000);
+  out("live 1 (installed copy " + B0 + ") finds + downloads " + (B0 + 100), await liveInfo());
+  await restart(20000);
+  out("live 2 (next start) runs " + (B0 + 100), await liveInfo());
+  out("live 2 app drew its screen", await ev(() => document.getElementById("root")?.childElementCount + " | " + /Yojana Sahay/.test(document.body.innerText)));
+  feed(B0 + 200, "bundle-broken.zip");
+  await ev(async () => { await window.ysNative.liveCheck(); return true; });
+  await T(5000);
+  out("live 3 broken copy " + (B0 + 200) + " downloaded", await liveInfo());
+  await restart(50000); // switches to the broken copy, which never confirms → automatic roll-back
+  out("live 4 after broken copy → rolled back to " + (B0 + 100), await liveInfo());
+  await restart(20000);
+  out("live 5 next start: still " + (B0 + 100) + ", broken one skipped", await liveInfo());
+}
 
 ws.close();

@@ -6,6 +6,8 @@ set -u
 OUT="$RUNNER_TEMP/diag"; mkdir -p "$OUT"
 APK=$(ls "$1"/*.apk | head -n 1)
 adb install -r "$APK" > "$OUT/install.txt" 2>&1
+adb shell pm grant com.yojanasahay.app android.permission.POST_NOTIFICATIONS >> "$OUT/install.txt" 2>&1 || true
+adb reverse tcp:8000 tcp:8000 >> "$OUT/install.txt" 2>&1 || true
 adb logcat -c
 adb shell am start -n com.yojanasahay.app/.MainActivity > /dev/null
 sleep 30

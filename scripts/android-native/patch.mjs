@@ -59,6 +59,17 @@ const extra = `
 if (!man.includes("android.intent.action.SEND")) man = man.slice(0, actEnd) + extra + man.slice(actEnd);
 // microphone (voice questions to the AI) + Android 11+ visibility of the
 // phone's text-to-speech and speech-recognition services (read-aloud, mic)
+// Android 13+: permission to show reminder notifications; default icon, colour
+// and channel for Firebase Cloud Messaging notifications
+if (!man.includes("android.permission.POST_NOTIFICATIONS")) {
+  man = man.replace("</manifest>", '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>');
+}
+if (!man.includes("default_notification_icon")) {
+  man = man.replace(/(<application[^>]*>)/, `$1
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_notify" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/ys_notify" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="reminders" />`);
+}
 if (!man.includes("android.permission.RECORD_AUDIO")) {
   man = man.replace("</manifest>", '    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n</manifest>');
 }

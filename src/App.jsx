@@ -17,7 +17,7 @@ import { benefitSummary, benefitKind, topBenefits, valueLabel, exclusiveGroup } 
 import { nicheAudience, groupByAudience, audienceApplies as audienceAppliesShared } from "./audience.js";
 import { useApplications, initApplications, mergeRemote, setRemoteWriter, trackApplication, updateApplication, snoozeApplication, removeApplication, isDueForCheck, daysSince, STATUS_TEXT, CHECK_AFTER_DAYS } from "./applications.js";
 import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamily, initFamily, saveMember, removeMember } from "./family.js";
-import { pushState, enablePush, disablePush } from "./push.js";
+import { pushState, enablePush, disablePush, isAndroidApp } from "./push.js";
 import { track } from "./track.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import { createPortal } from "react-dom";
@@ -8610,19 +8610,22 @@ function PushNotifyCard({ uid, lang, dark }) {
   const [busy,setBusy]=useState(false);
   const [err,setErr]=useState("");
   const [hidden,setHidden]=useState(()=>{try{return Date.now()-Number(localStorage.getItem("yojana_push_dismiss")||0)<30*86400000;}catch{return false;}});
-  useEffect(()=>{let live=true;pushState(uid).then(s=>{if(live)setState(s);});return()=>{live=false;};},[uid]);
-  if(!uid||!state||state==="unsupported") return null;
-  if(hidden&&state!=="on") return null;
-  const ref=doc(db,"pushSubs",uid);
+  // (defined before the effect: in the Android app pushState re-saves a changed token)
+  const pushRef=()=>doc(db,"pushSubs",uid);
   const saveSub=async(sub)=>{
+    const ref=pushRef();
     let subs=[];
     try{const snap=await getDoc(ref);subs=(snap.exists()&&Array.isArray(snap.data().subs))?snap.data().subs:[];}catch{}
     subs=[...subs.filter(s=>s?.endpoint!==sub.endpoint),sub].slice(-5);
     await setDoc(ref,{subs,lang,updatedAt:serverTimestamp()},{merge:true});
   };
   const removeSub=async(endpoint)=>{
+    const ref=pushRef();
     try{const snap=await getDoc(ref);if(!snap.exists())return;const subs=(snap.data().subs||[]).filter(s=>s?.endpoint!==endpoint);await setDoc(ref,{subs,updatedAt:serverTimestamp()},{merge:true});}catch{}
   };
+  useEffect(()=>{if(!uid)return;let live=true;pushState(uid,saveSub).then(s=>{if(live)setState(s);});return()=>{live=false;};},[uid]); // eslint-disable-line react-hooks/exhaustive-deps
+  if(!uid||!state||state==="unsupported") return null;
+  if(hidden&&state!=="on") return null;
   const dismiss=()=>{haptic();try{localStorage.setItem("yojana_push_dismiss",String(Date.now()));}catch{}setHidden(true);};
   const turnOn=async()=>{
     haptic();setBusy(true);setErr("");
@@ -8650,6 +8653,8 @@ function PushNotifyCard({ uid, lang, dark }) {
           <div style={{fontSize:11.5,color:th.textMid,marginTop:3,lineHeight:1.5,fontFamily:bf}}>
             {state==="ios-install"
               ?L("On iPhone, first add Yojana Sahay to your Home Screen (Share ⬆ → Add to Home Screen), then open it from there and turn reminders on.","iPhone पर पहले योजना सहाय को होम स्क्रीन पर जोड़ें (शेयर ⬆ → Add to Home Screen), फिर वहीं से खोलकर रिमाइंडर चालू करें।")
+              :state==="denied"&&isAndroidApp()
+                ?L("Notifications are off for Yojana Sahay. Turn them on in your phone's Settings → Apps → Yojana Sahay → Notifications, then come back.","योजना सहाय के नोटिफ़िकेशन बंद हैं। फ़ोन की सेटिंग्स → ऐप्स → योजना सहाय → नोटिफ़िकेशन में चालू करें, फिर वापस आएं।")
               :state==="denied"
                 ?L("Notifications are blocked for this site. Allow them in your browser's site settings, then come back.","इस साइट के नोटिफ़िकेशन ब्लॉक हैं। ब्राउज़र की साइट सेटिंग में अनुमति दें, फिर वापस आएं।")
                 :L("Deadline closing soon, time to check your application, or a new scheme for you — at most one a day.","आवेदन की आख़िरी तारीख़, आवेदन की स्थिति जांचने का समय, या आपके लिए नई योजना — दिन में ज़्यादा से ज़्यादा एक।")}

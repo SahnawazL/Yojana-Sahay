@@ -12,8 +12,12 @@
 //   • Android back button closes the open sheet/dialog, then leaves the app
 //   • text shared to the app from WhatsApp/SMS → "Is this message real?" check
 //   • splash screen and status bar
+//   • live updates: the newest app files are downloaded from GitHub in the
+//     background and used from the next start (automatic roll-back if a new
+//     version ever fails to start) — see .github/workflows/app-live-update.yml
+//   • deadline reminders as Android notifications (Firebase Cloud Messaging)
 // ─────────────────────────────────────────────────────────────────────────────
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, CapacitorHttp } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { Share } from "@capacitor/share";
 import { Browser } from "@capacitor/browser";
@@ -23,6 +27,15 @@ import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { SpeechRecognition } from "@capacitor-community/speech-recognition";
+import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+import { CapacitorUpdater } from "@capgo/capacitor-updater";
+
+// Set at build time (vite.native.config.js): this copy's build id (commit time),
+// the Android-side version it needs, and where new versions are announced.
+const BUILD = Number(typeof __YS_BUILD__ !== "undefined" ? __YS_BUILD__ : 0) || 0;
+const NATIVE_API = Number(typeof __YS_NATIVE_API__ !== "undefined" ? __YS_NATIVE_API__ : 0) || 0;
+const LIVE_URL = (typeof __YS_LIVE_URL__ !== "undefined" && __YS_LIVE_URL__) ||
+  `https://github.com/SahnawazL/Yojana-Sahay/releases/download/app-live/latest-api${NATIVE_API}.json`;
 
 const SITE = "https://yojanasahay.vercel.app";
 
@@ -37,6 +50,96 @@ if (Capacitor.isNativePlatform()) {
     try { fn(); }
     catch (e) { (window.__ysBridgeErrors = window.__ysBridgeErrors || []).push(name + ": " + (e && e.message || e)); console.error("[app] " + name, e); }
   };
+
+  // ── Live updates: always the newest app files ─────────────────────────────
+  // 1) once this copy has drawn its screen, tell the updater it works (a copy
+  //    that never gets this far is rolled back automatically);
+  // 2) a newer copy downloaded earlier is switched to at start-up, while the
+  //    launch screen is still showing;
+  // 3) every open checks for a newer copy and downloads it in the background;
+  // 4) after 10+ minutes away, coming back switches to it too (never in the
+  //    middle of something — Google sign-in, sharing, a form).
+  part("live update", () => {
+    const K = { pending: "ys_live_pending", failed: "ys_live_failed", applying: "ys_live_applying" };
+    const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+                 set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+                 del: (k) => { try { localStorage.removeItem(k); } catch {} } };
+    const failedList = () => { try { return JSON.parse(ls.get(K.failed) || "[]"); } catch { return []; } };
+    const isFailed = (b) => failedList().includes(b);
+    const addFailed = (b) => ls.set(K.failed, JSON.stringify([...new Set([...failedList(), b])].slice(-20)));
+    const pendingInfo = () => { try { return JSON.parse(ls.get(K.pending) || "null"); } catch { return null; } };
+    const live = window.__ysLive = { build: BUILD, api: NATIVE_API, url: LIVE_URL, state: "start", log: [] };
+    const note = (m) => { live.log.push(new Date().toISOString().slice(11, 19) + " " + m); if (live.log.length > 30) live.log.shift(); };
+
+    // a copy we switched to didn't confirm in time → the updater rolled back to this one
+    const applying = Number(ls.get(K.applying) || 0);
+    if (applying) {
+      ls.del(K.applying);
+      if (BUILD < applying) { addFailed(applying); ls.del(K.pending); note("rolled back from " + applying); }
+    }
+
+    // 1) confirm this copy works
+    let tries = 0;
+    const confirmTimer = setInterval(() => {
+      tries++;
+      const root = document.getElementById("root");
+      if (root && root.childElementCount && !root.querySelector(".seo-fallback")) {
+        clearInterval(confirmTimer);
+        CapacitorUpdater.notifyAppReady().then(() => { live.ready = true; note("ready"); }).catch((e) => note("ready failed " + (e && e.message)));
+      } else if (tries > 80) clearInterval(confirmTimer);
+    }, 250);
+
+    const apply = (p, why) => {
+      ls.set(K.applying, String(p.build));
+      live.state = "applying " + p.build; note("apply " + p.build + " (" + why + ")");
+      CapacitorUpdater.set({ id: p.id }).catch((e) => {          // bundle missing (e.g. after an app update) → fetch it again later
+        ls.del(K.applying); ls.del(K.pending); note("apply failed " + (e && e.message));
+      });
+    };
+
+    // 2) switch to a newer copy at start-up
+    const p0 = pendingInfo();
+    if (p0 && p0.build > BUILD && !isFailed(p0.build)) { apply(p0, "start"); return; }
+    if (p0) ls.del(K.pending);
+
+    // 3) check for a newer copy
+    let checking = false;
+    const check = async () => {
+      if (checking) return; checking = true;
+      try {
+        const info = await App.getInfo().catch(() => ({}));
+        const nativeApi = Number(String(info.version || "").split(".")[1]) || 0;
+        const r = await CapacitorHttp.get({ url: LIVE_URL + (LIVE_URL.includes("?") ? "&" : "?") + "t=" + Date.now(), headers: { "Cache-Control": "no-cache" }, connectTimeout: 10000, readTimeout: 15000 });
+        if (r.status !== 200) { note("check " + r.status); return; }
+        const m = typeof r.data === "string" ? JSON.parse(r.data) : r.data;
+        live.latest = m && m.build;
+        if (!m || !m.url || !(m.build > BUILD)) { live.state = "up to date"; return; }
+        if (m.api !== nativeApi || m.api !== NATIVE_API) { live.state = "needs app update (api " + m.api + ")"; return; }
+        if (isFailed(m.build)) { live.state = "skipping failed " + m.build; return; }
+        const have = pendingInfo();
+        if (have && have.build >= m.build) { live.state = "ready to apply " + have.build; return; }
+        live.state = "downloading " + m.build; note("download " + m.build);
+        const b = await CapacitorUpdater.download({ url: m.url, version: String(m.build) });
+        ls.set(K.pending, JSON.stringify({ id: b.id, build: m.build }));
+        live.state = "ready to apply " + m.build; note("downloaded " + m.build);
+      } catch (e) {
+        live.state = "check failed"; note("check failed " + (e && e.message));
+      } finally { checking = false; }
+    };
+    setTimeout(check, 5000);
+
+    // 4) back after 10+ minutes → switch; otherwise just check again
+    let awaySince = 0;
+    App.addListener("appStateChange", ({ isActive }) => {
+      if (!isActive) { awaySince = Date.now(); return; }
+      const away = awaySince ? Date.now() - awaySince : 0;
+      awaySince = 0;
+      const p = pendingInfo();
+      if (away >= 10 * 60 * 1000 && p && p.build > BUILD && !isFailed(p.build)) apply(p, "resume");
+      else if (away >= 60 * 1000) check();
+    });
+    window.ysNative = Object.assign(window.ysNative || {}, { liveCheck: check });
+  });
 
   // ── Server calls: relative /api/… → the website's server ─────────────────
   part("server calls", () => {
@@ -61,7 +164,7 @@ if (Capacitor.isNativePlatform()) {
 
   // ── Native Google sign-in (account picker) ────────────────────────────────
   part("google sign-in", () => {
-  window.ysNative = {
+  window.ysNative = Object.assign(window.ysNative || {}, {
     platform: Capacitor.getPlatform(),
     async googleSignIn() {
       const r = await FirebaseAuthentication.signInWithGoogle();
@@ -71,7 +174,33 @@ if (Capacitor.isNativePlatform()) {
     },
     async googleSignOut() { try { await FirebaseAuthentication.signOut(); } catch {} },
     openUrl(url) { return Browser.open({ url, presentationStyle: "popover" }); }
-  };
+  });
+  });
+
+  // ── Deadline reminders: Android notifications (Firebase Cloud Messaging) ──
+  // src/push.js uses window.ysNative.push; the token is saved with the user's
+  // reminder settings (pushSubs/{uid}) and the daily server job sends to it.
+  part("notifications", () => {
+    const perm = (r) => (r && r.receive) || "prompt";
+    window.ysNative = Object.assign(window.ysNative || {}, {
+      push: {
+        permission: async () => perm(await FirebaseMessaging.checkPermissions()),
+        request: async () => perm(await FirebaseMessaging.requestPermissions()),
+        token: async () => (await FirebaseMessaging.getToken()).token || "",
+        remove: async () => { try { await FirebaseMessaging.deleteToken(); } catch {} },
+      }
+    });
+    FirebaseMessaging.createChannel({ id: "reminders", name: "Scheme reminders", description: "Deadlines closing soon, application checks and new schemes for you", importance: 4, visibility: 1 }).catch(() => {});
+    // tapping a reminder opens that scheme in the app
+    FirebaseMessaging.addListener("notificationActionPerformed", (e) => {
+      try {
+        const url = (e && e.notification && e.notification.data && e.notification.data.url) || "";
+        const u = new URL(url, SITE);
+        if (u.origin === SITE && (u.pathname === "/" || u.pathname === "/index.html")) {
+          if (location.search !== u.search) location.replace("/" + u.search);
+        } else if (/^https?:$/.test(u.protocol)) Browser.open({ url: u.href });
+      } catch {}
+    });
   });
 
   // ── Share sheet (text, links and images such as the benefits card) ──────

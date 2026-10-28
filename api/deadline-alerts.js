@@ -29,6 +29,7 @@
 
 import { getAdminDb, getAdminAuth, recordAiCall }        from "./_lib/firebaseAdmin.js";
 import { runDeadlineAlerts, DAILY_EMAIL_LIMIT } from "./_lib/deadlineAlerts.js";
+import { sendFcm }              from "./_lib/push.js";
 import { teamFeed, adminNoteAction } from "./_lib/teamBoard.js";
 import { runSchemeVerificationBatch, verifyOneScheme, setVerifySkip, listVerifyAttention, getCheckableUrl, clearSitePause } from "./_lib/schemeVerifyBatch.js";
 import { SCHEME_DB } from "../src/schemesData.js";
@@ -634,6 +635,18 @@ export default async function handler(req, res) {
     //      in the POST body. This must NEVER fall through to runDeadlineAlerts,
     //      or a misconfigured external ping would re-check/re-send deadline
     //      emails instead of just running the scheme-verify batch.
+    // Test one Android notification (used by the app's automated phone test):
+    // { action: "pushTest", token } → sends a single notification to that token.
+    if (req.body?.action === "pushTest") {
+      const token = String(req.body?.token || "");
+      if (token.length < 20 || token.length > 4096) return res.status(400).json({ error: "token required" });
+      try {
+        const id = await sendFcm(token, { title: "✅ Yojana Sahay test", body: "Notifications are working on this phone.", url: "https://yojanasahay.vercel.app/", tag: "test" });
+        return res.status(200).json({ ok: true, id });
+      } catch (err) {
+        return res.status(502).json({ ok: false, error: err?.errorInfo?.code || err?.message });
+      }
+    }
     if (req.body?.action === "verifyBatch") {
       if (await isJobRunning(getAdminDb(), "verifyBatch")) return res.status(409).json({ error: "verify batch already running" });
       try {
