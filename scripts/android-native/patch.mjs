@@ -104,10 +104,13 @@ let styles = read(stylesP);
 if (!styles.includes("windowSplashScreenBackground")) {
   const launch = /(<style name="AppTheme\.NoActionBarLaunch"[^>]*>)/;
   if (launch.test(styles)) {
-    styles = styles.replace(launch, `$1\n        <item name="windowSplashScreenBackground">#001659</item>\n        <item name="android:windowBackground">@drawable/splash</item>`);
+    styles = styles.replace(launch, `$1\n        <item name="windowSplashScreenBackground">#001659</item>\n        <item name="android:windowBackground">@drawable/splash</item>${styles.includes("postSplashScreenTheme") ? "" : `\n        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>`}`);
     write(stylesP, styles);
   } else console.warn("patch: launch style not found — default launch screen colours kept");
 }
+// MainActivity hands over from the launch screen itself (androidx SplashScreen),
+// which needs the app's normal theme named here — without it the app can't open
+must(read(stylesP).includes("postSplashScreenTheme") && read(stylesP).includes('name="AppTheme.NoActionBar"'), "launch theme: postSplashScreenTheme / AppTheme.NoActionBar missing");
 
 // 5) Google sign-in plugin: include its Google provider only when configured
 const varsP = path.join(A, "variables.gradle");
