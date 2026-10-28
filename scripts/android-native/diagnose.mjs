@@ -79,6 +79,22 @@ out("launch timing (ms after tapping the icon)", await ev((dev) => {
            splashShown: !!document.getElementById("html-splash") || "removed" };
 }, globalThis.__devStart || 0));
 
+// ── Launch animation as Android's web engine draws it (frame by frame) ──────
+try {
+  await ev(() => { try { sessionStorage.removeItem("ys_splashed"); } catch {} location.reload(); return true; });
+  await T(300);
+  try { ws.close(); } catch {}
+  await connect();
+  const fsy = await import("node:fs"); const shots = []; const t0 = Date.now();
+  for (let k = 0; k < 12; k++) {
+    const r = await send("Page.captureScreenshot", { format: "jpeg", quality: 40 });
+    if (r.result && r.result.data) shots.push(`${Date.now() - t0}ms ${r.result.data}`);
+    await T(220);
+  }
+  fsy.writeFileSync(process.env.RUNNER_TEMP + "/diag/frames.txt", shots.join("\n"));
+  out("launch frames (web engine)", shots.length + " captured");
+  await T(2500);
+} catch (e) { out("launch frames (web engine)", "FAILED " + e.message); }
 out("url", page.url());
 out("basics", await ev(() => ({
   ua: navigator.userAgent, rootChildren: document.getElementById("root")?.childElementCount,
