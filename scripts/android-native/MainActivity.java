@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -14,6 +15,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebViewClient;
 import org.json.JSONObject;
 
 /**
@@ -23,6 +25,8 @@ import org.json.JSONObject;
  *    "Is this message real?" check (window.__ysShared, src/native/bridge.js)
  *  • app-icon shortcuts (res/xml/shortcuts.xml) → yojanasahay://go/<key>
  *    opens that part of the app (?go=<key>, handled in App.jsx)
+ * opens the website's own pages (scheme pages, About, Contact…) in an in-app
+ * browser tab — they live on the website, not inside the app —
  * and keeps the app inside the screen's safe area on every Android version
  * (Android 15 draws apps behind the status/navigation bars and the keyboard).
  */
@@ -33,6 +37,7 @@ public class MainActivity extends BridgeActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     fitToScreen();
+    keepWebsitePagesOnWebsite();
     handle(getIntent());
   }
 
@@ -66,6 +71,42 @@ public class MainActivity extends BridgeActivity {
       return WindowInsetsCompat.CONSUMED;
     });
     ViewCompat.requestApplyInsets(content);
+  }
+
+  private static final String SITE = "https://yojanasahay.vercel.app";
+
+  /** Pages that are part of the app itself (everything else is on the website). */
+  private static boolean insideApp(String p) {
+    if (p == null || p.isEmpty() || p.equals("/") || p.equals("/index.html")) return true;
+    return p.startsWith("/admin") || p.startsWith("/embed") || p.startsWith("/assets/") || p.startsWith("/icons/");
+  }
+
+  private void keepWebsitePagesOnWebsite() {
+    if (getBridge() == null) return;
+    getBridge().setWebViewClient(new BridgeWebViewClient(getBridge()) {
+      @Override
+      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+        Uri u = request.getUrl();
+        if (request.isForMainFrame() && u != null && "localhost".equals(u.getHost()) && !insideApp(u.getPath())) {
+          String web = SITE + u.getEncodedPath()
+              + (u.getEncodedQuery() != null ? "?" + u.getEncodedQuery() : "")
+              + (u.getEncodedFragment() != null ? "#" + u.getEncodedFragment() : "");
+          openOnWebsite(view, web);
+          return true;
+        }
+        return super.shouldOverrideUrlLoading(view, request);
+      }
+    });
+  }
+
+  /** In-app browser tab (via the app's own Browser plugin); Chrome as a fallback. */
+  private void openOnWebsite(WebView view, final String url) {
+    String js = "(function(){try{if(window.ysNative&&window.ysNative.openUrl){window.ysNative.openUrl(" + JSONObject.quote(url) + ");return true}}catch(e){}return false})()";
+    view.evaluateJavascript(js, value -> {
+      if (!"true".equals(value)) {
+        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception ignored) {}
+      }
+    });
   }
 
   private void handle(Intent intent) {

@@ -93,7 +93,9 @@ if (Capacitor.isNativePlatform()) {
   // ── Read aloud: Android's own text-to-speech ──────────────────────────────
   // Android's app view has no Web Speech API, so the app's read-aloud
   // (src/voice.js, news ticker) is given the same API backed by Android TTS.
-  if (!("speechSynthesis" in window) || typeof window.SpeechSynthesisUtterance === "undefined") {
+  // (Android's app view may list these APIs without them actually working, so
+  // the app always uses the Android versions.)
+  {
     class Utterance {
       constructor(text) { this.text = text || ""; this.lang = ""; this.rate = 1; this.pitch = 1; this.volume = 1; this.voice = null; this.onstart = null; this.onend = null; this.onerror = null; this.onboundary = null; }
     }
@@ -133,13 +135,15 @@ if (Capacitor.isNativePlatform()) {
       running = false;
       if (queue.length) run();          // speak() was called during a cancel
     };
-    window.SpeechSynthesisUtterance = Utterance;
-    Object.defineProperty(window, "speechSynthesis", { value: synth, configurable: true });
+    try {
+      Object.defineProperty(window, "SpeechSynthesisUtterance", { value: Utterance, configurable: true, writable: true });
+      Object.defineProperty(window, "speechSynthesis", { value: synth, configurable: true });
+    } catch {}
   }
 
   // ── Voice input: Android's speech recognition ─────────────────────────────
   // Same API the AI chat's mic button uses on the website.
-  if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+  {
     class Recognition {
       constructor() { this.lang = "en-IN"; this.interimResults = false; this.continuous = false; this.maxAlternatives = 1; this.onstart = null; this.onresult = null; this.onerror = null; this.onend = null; this._aborted = false; this._ended = false; }
       _end() { if (this._ended) return; this._ended = true; if (this.onend) this.onend({}); }
@@ -169,8 +173,10 @@ if (Capacitor.isNativePlatform()) {
       stop() { SpeechRecognition.stop().catch(() => {}); }
       abort() { this._aborted = true; SpeechRecognition.stop().catch(() => {}); this._end(); }
     }
-    window.SpeechRecognition = Recognition;
-    window.webkitSpeechRecognition = Recognition;
+    try {
+      Object.defineProperty(window, "SpeechRecognition", { value: Recognition, configurable: true, writable: true });
+      Object.defineProperty(window, "webkitSpeechRecognition", { value: Recognition, configurable: true, writable: true });
+    } catch {}
   }
 
   // ── Links: website pages and other sites open in an in-app browser tab ────
