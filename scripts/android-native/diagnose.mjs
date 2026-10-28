@@ -136,7 +136,9 @@ if (typeof tok === "string" && tok.length > 20 && !tok.startsWith("ERR") && !tok
 const LIVE = process.env.LIVE_DIR, B0 = Number(process.env.YS_BUILD || 0);
 if (LIVE && B0) {
   const fsm = await import("node:fs");
-  const feed = (build, file) => fsm.writeFileSync(LIVE + "/latest.json", JSON.stringify({ api: 1, build, url: `http://localhost:8000/${file}` }));
+  const { createHash } = await import("node:crypto");
+  const sha = (file) => createHash("sha256").update(fsm.readFileSync(LIVE + "/" + file)).digest("hex");
+  const feed = (build, file) => fsm.writeFileSync(LIVE + "/latest.json", JSON.stringify({ api: 1, build, url: `http://localhost:8000/${file}`, sha256: sha(file) }));
   const restart = async (wait) => { adb("shell am force-stop com.yojanasahay.app"); await T(1500); adb("shell am start -n com.yojanasahay.app/.MainActivity"); await T(wait); try { ws.close(); } catch {} };
   const liveInfo = () => ev(() => window.__ysLive ? { build: window.__ysLive.build, state: window.__ysLive.state, ready: !!window.__ysLive.ready, log: window.__ysLive.log.slice(-6) } : { none: document.title + " | " + document.body.innerText.slice(0, 60) });
   feed(B0 + 100, "bundle-good.zip");

@@ -114,12 +114,14 @@ if (Capacitor.isNativePlatform()) {
         const m = typeof r.data === "string" ? JSON.parse(r.data) : r.data;
         live.latest = m && m.build;
         if (!m || !m.url || !(m.build > BUILD)) { live.state = "up to date"; return; }
+        if (!/^[0-9a-f]{64}$/i.test(String(m.sha256 || ""))) { live.state = "no checksum — skipped"; return; }
         if (m.api !== nativeApi || m.api !== NATIVE_API) { live.state = "needs app update (api " + m.api + ")"; return; }
         if (isFailed(m.build)) { live.state = "skipping failed " + m.build; return; }
         const have = pendingInfo();
         if (have && have.build >= m.build) { live.state = "ready to apply " + have.build; return; }
         live.state = "downloading " + m.build; note("download " + m.build);
-        const b = await CapacitorUpdater.download({ url: m.url, version: String(m.build) });
+        // checksum (SHA-256 of the zip): the updater only accepts the exact file that was published
+        const b = await CapacitorUpdater.download({ url: m.url, version: String(m.build), checksum: String(m.sha256).toLowerCase() });
         ls.set(K.pending, JSON.stringify({ id: b.id, build: m.build }));
         live.state = "ready to apply " + m.build; note("downloaded " + m.build);
       } catch (e) {
