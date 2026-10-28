@@ -34,7 +34,7 @@ on:
       - ".github/workflows/android-native.yml"
 
 permissions:
-  contents: read
+  contents: write   # test builds only: upload the emulator screenshots to the "test-reports" pre-release
 
 concurrency:
   group: android-native
@@ -230,6 +230,18 @@ jobs:
               let t = ""; try { t = fs.readFileSync(path.join(dir, f), "utf8"); } catch { t = "(missing)"; }
               for (let i = 0, n = 0; i < t.length && n < 6; i += 3500, n++) console.log(`::notice title=diag ${f} ${n + 1}::${esc(t.slice(i, i + 3500))}`);
             }'
+
+      - name: Upload launch screenshots (test build)
+        if: always() && env.YS_DIAG == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          F="$RUNNER_TEMP/diag/frames.txt"
+          [ -f "$F" ] || exit 0
+          gh release view test-reports > /dev/null 2>&1 || gh release create test-reports --prerelease --latest=false \
+            --title "Automated test reports" --notes "Screenshots from the automated Android emulator test. Not a download for people."
+          cp "$F" "$RUNNER_TEMP/launch-frames.txt"
+          gh release upload test-reports "$RUNNER_TEMP/launch-frames.txt" --clobber
 
       - name: Report errors (readable from the run's annotations)
         if: failure()
