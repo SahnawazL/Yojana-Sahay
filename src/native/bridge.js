@@ -30,7 +30,16 @@ if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add("ys-native");
   try { sessionStorage.setItem("ys_native", "1"); } catch {}
 
+  // ── Never stay on the launch screen (even if something below fails) ───────
+  setTimeout(() => { SplashScreen.hide().catch(() => {}); }, 3500);
+  // each part runs on its own: one failing part must never stop the app
+  const part = (name, fn) => {
+    try { fn(); }
+    catch (e) { (window.__ysBridgeErrors = window.__ysBridgeErrors || []).push(name + ": " + (e && e.message || e)); console.error("[app] " + name, e); }
+  };
+
   // ── Server calls: relative /api/… → the website's server ─────────────────
+  part("server calls", () => {
   const toSite = (u) => (typeof u === "string" && u.startsWith("/api/")) ? SITE + u : u;
   const origFetch = window.fetch.bind(window);
   window.fetch = (input, init) => {
@@ -48,8 +57,10 @@ if (Capacitor.isNativePlatform()) {
     const origBeacon = navigator.sendBeacon.bind(navigator);
     navigator.sendBeacon = (url, data) => (typeof url === "string" && url.startsWith("/api/")) ? false : origBeacon(url, data);
   }
+  });
 
   // ── Native Google sign-in (account picker) ────────────────────────────────
+  part("google sign-in", () => {
   window.ysNative = {
     platform: Capacitor.getPlatform(),
     async googleSignIn() {
@@ -61,8 +72,10 @@ if (Capacitor.isNativePlatform()) {
     async googleSignOut() { try { await FirebaseAuthentication.signOut(); } catch {} },
     openUrl(url) { return Browser.open({ url, presentationStyle: "popover" }); }
   };
+  });
 
   // ── Share sheet (text, links and images such as the benefits card) ──────
+  part("share", () => {
   const blobToBase64 = (blob) => new Promise((ok, bad) => {
     const r = new FileReader();
     r.onload = () => ok(String(r.result).split(",")[1] || "");
@@ -89,8 +102,10 @@ if (Capacitor.isNativePlatform()) {
     }
   };
   navigator.canShare = () => true;
+  });
 
   // ── Read aloud: Android's own text-to-speech ──────────────────────────────
+  part("read aloud", () => {
   // Android's app view has no Web Speech API, so the app's read-aloud
   // (src/voice.js, news ticker) is given the same API backed by Android TTS.
   // (Android's app view may list these APIs without them actually working, so
@@ -140,8 +155,10 @@ if (Capacitor.isNativePlatform()) {
       Object.defineProperty(window, "speechSynthesis", { value: synth, configurable: true });
     } catch {}
   }
+  });
 
   // ── Voice input: Android's speech recognition ─────────────────────────────
+  part("voice input", () => {
   // Same API the AI chat's mic button uses on the website.
   {
     class Recognition {
@@ -178,8 +195,10 @@ if (Capacitor.isNativePlatform()) {
       Object.defineProperty(window, "webkitSpeechRecognition", { value: Recognition, configurable: true, writable: true });
     } catch {}
   }
+  });
 
   // ── Links: website pages and other sites open in an in-app browser tab ────
+  part("links", () => {
   // The app itself is a single page; its SEO pages (/schemes/…, /yojana/…,
   // about.html, privacy.html …) live on the website.
   const external = (href) => {
@@ -211,8 +230,10 @@ if (Capacitor.isNativePlatform()) {
     if (ext && ext.web) { Browser.open({ url: ext.web }); return null; }
     return origOpen ? origOpen.call(window, url, target, features) : null;
   };
+  });
 
   // ── Android back button ───────────────────────────────────────────────────
+  part("back button", () => {
   // The app already adds a history entry for each screen it opens (scheme
   // details, eligibility check, FAQ…) and closes it on "back", exactly like the
   // website on Android. Order:
@@ -249,8 +270,10 @@ if (Capacitor.isNativePlatform()) {
       if (canGoBack) history.back();                           // last resort: never trap the user
     }, 160);
   });
+  });
 
   // ── Text shared to the app (WhatsApp/SMS "Share" → Yojana Sahay) ─────────
+  part("shared text", () => {
   // MainActivity passes the text in; App.jsx listens for "ys-native-share".
   window.__ysShared = (text) => {
     const t = String(text || "").trim().slice(0, 2000);
@@ -258,8 +281,10 @@ if (Capacitor.isNativePlatform()) {
     window.__ysPendingShare = t;
     window.dispatchEvent(new CustomEvent("ys-native-share", { detail: { text: t } }));
   };
+  });
 
   // ── Splash + status bar ───────────────────────────────────────────────────
+  part("splash", () => {
   // white status-bar icons on the app's navy bar (MainActivity keeps the app
   // below the status bar and above the keyboard / navigation bar)
   StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
@@ -267,4 +292,6 @@ if (Capacitor.isNativePlatform()) {
   if (document.readyState === "complete") setTimeout(hide, 300);
   else window.addEventListener("load", () => setTimeout(hide, 300), { once: true });
   setTimeout(hide, 4000); // never stay on the splash
+  });
+
 }

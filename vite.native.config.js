@@ -14,6 +14,19 @@ import path from "path";
 
 const KEEP_PUBLIC = ["icons", "favicon.ico", "manifest.json", "logo.webp", "robots.txt"];
 
+// Shown only if the app hasn't drawn anything 9 s after launch: the error(s)
+// that stopped it, so a screenshot tells us exactly what went wrong.
+const STARTUP_GUARD = `(function(){var E=[];
+window.addEventListener("error",function(e){E.push((e.message||"error")+(e.filename?" @"+String(e.filename).split("/").pop()+":"+e.lineno:""))});
+window.addEventListener("unhandledrejection",function(e){var r=e.reason;E.push("promise: "+(r&&r.message||r))});
+setTimeout(function(){var root=document.getElementById("root");if(root&&root.childElementCount)return;
+var all=(window.__ysBridgeErrors||[]).concat(E);var d=document.createElement("div");
+d.style.cssText="position:fixed;inset:0;z-index:2147483647;background:#003580;color:#fff;padding:24px;font:15px/1.5 sans-serif;overflow:auto";
+d.innerHTML='<h2 style="margin:0 0 8px">Yojana Sahay could not start</h2><p style="margin:0 0 12px">Please take a screenshot of this screen and send it to yojanasahayofficial@gmail.com.</p><pre style="white-space:pre-wrap;font-size:12px;background:rgba(0,0,0,.25);padding:10px;border-radius:8px;margin:0"></pre><button style="margin-top:14px;padding:11px 18px;border:0;border-radius:10px;font-weight:700;font-size:15px">Try again</button>';
+d.querySelector("pre").textContent=(all.length?all.join("\\n"):"No error message (the app did not draw its screen).")+"\\n\\n"+navigator.userAgent;
+d.querySelector("button").onclick=function(){location.reload()};document.body.appendChild(d);
+try{window.Capacitor&&window.Capacitor.nativePromise&&window.Capacitor.nativePromise("SplashScreen","hide",{})}catch(x){}},9000);})();`;
+
 export default defineConfig({
   plugins: [
     react(),
@@ -23,7 +36,9 @@ export default defineConfig({
         return html
           .replace(/\/src\/main\.jsx/g, "/src/main-native.jsx")
           // the website registers its service worker here; the app doesn't use one
-          .replace('if ("serviceWorker" in navigator) {', 'if ("serviceWorker" in navigator && !window.Capacitor) {');
+          .replace('if ("serviceWorker" in navigator) {', 'if ("serviceWorker" in navigator && !window.Capacitor) {')
+          // if the app ever fails to start, say why on screen instead of a blank/stuck screen
+          .replace("<head>", "<head>\n<script>" + STARTUP_GUARD + "</script>");
       }
     },
     {

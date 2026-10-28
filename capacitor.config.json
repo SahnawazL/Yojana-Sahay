@@ -9,7 +9,8 @@
   "android": { "backgroundColor": "#003580", "adjustMarginsForEdgeToEdge": "disable" },
   "plugins": {
     "SplashScreen": {
-      "launchAutoHide": false,
+      "launchAutoHide": true,
+      "launchShowDuration": 3000,
       "backgroundColor": "#003580",
       "showSpinner": false,
       "androidScaleType": "CENTER_CROP"
