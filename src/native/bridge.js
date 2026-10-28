@@ -338,7 +338,9 @@ if (Capacitor.isNativePlatform()) {
       // tel:, mailto:, sms:, whatsapp:, upi: … are left to Android (Capacitor opens the right app)
       if (u.origin === location.origin) {
         const p = u.pathname;
-        if (p === "/" || p === "/index.html" || p.startsWith("/admin") || p.startsWith("/embed")) return null; // inside the app
+        // the admin dashboard always opens on the website (full browser: reports,
+        // printing, downloads) — the app itself is only the people-facing part
+        if (p === "/" || p === "/index.html" || p.startsWith("/embed")) return null; // inside the app
         if (p.startsWith("/icons/") || p.startsWith("/assets/")) return null;
         return { web: SITE + p + u.search + u.hash };
       }

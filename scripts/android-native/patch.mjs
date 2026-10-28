@@ -113,7 +113,15 @@ if (!styles.includes("windowSplashScreenBackground")) {
 const varsP = path.join(A, "variables.gradle");
 let vars = read(varsP);
 if (withFirebase === "1" && !vars.includes("rgcfaIncludeGoogle")) vars = vars.replace(/ext\s*\{/, "ext {\n    rgcfaIncludeGoogle = true");
+// Google Play: new apps and updates must target Android 16 (API 36) from 31 Aug 2026
+vars = vars.replace(/compileSdkVersion\s*=\s*\d+/, "compileSdkVersion = 36").replace(/targetSdkVersion\s*=\s*\d+/, "targetSdkVersion = 36");
+must(/targetSdkVersion = 36/.test(vars), "targetSdkVersion not found in variables.gradle");
 write(varsP, vars);
+// Capacitor 7's Android build tools predate API 36 — allow compiling against it
+const propsP = path.join(A, "gradle.properties");
+let props = read(propsP);
+if (!props.includes("suppressUnsupportedCompileSdk")) props += "\nandroid.suppressUnsupportedCompileSdk=36\n";
+write(propsP, props);
 
 // 6) version + release signing
 const gradleP = path.join(app, "build.gradle");

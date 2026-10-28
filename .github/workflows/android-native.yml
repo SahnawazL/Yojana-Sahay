@@ -165,6 +165,14 @@ jobs:
           echo "$M" | grep -q "android.intent.action.SEND" || { echo "::error::share-to-app missing"; exit 1; }
           echo "$M" | grep -q '"yojanasahay"' || { echo "::error::shortcut links missing"; exit 1; }
           echo "$M" | grep -q "android.app.shortcuts" || { echo "::error::shortcuts missing"; exit 1; }
+          # Google Play: target API 36; 16 KB page-size support for any native libraries
+          grep -q "targetSdkVersion:'36'" "$RUNNER_TEMP/badging.txt" || { echo "::error::app must target API 36 (Android 16) for Google Play"; exit 1; }
+          if unzip -l "$APK" | grep -q "lib/.*\.so$"; then
+            "$BT/zipalign" -c -P 16 -v 4 "$APK" > "$RUNNER_TEMP/align.txt" 2>&1 && echo "::notice title=16 KB pages::native libraries aligned ✓" || { echo "::error title=16 KB pages::native libraries not 16 KB aligned"; grep -i "lib/" "$RUNNER_TEMP/align.txt" | head -20; exit 1; }
+          fi
+          PERMS=$("$BT/aapt2" dump permissions "$APK" | grep -o "name='[^']*'" | sed "s/name='//;s/'//" | sort -u | tr '\n' ' ')
+          echo "::notice title=Permissions::$PERMS"
+          echo "$PERMS" | grep -q "AD_ID" && echo "::warning title=Advertising ID::the app declares AD_ID — declare it in Play Console or remove it" || true
           "$BT/aapt2" dump resources "$APK" | grep -q "ic_launcher_monochrome" || { echo "::error::Yojana Sahay app icon missing (placeholder icon would show)"; exit 1; }
           echo "$M" | grep -q "android.permission.RECORD_AUDIO" || { echo "::error::microphone permission missing (voice input)"; exit 1; }
           echo "$M" | grep -q "android.intent.action.TTS_SERVICE" || echo "::warning::text-to-speech query missing (read-aloud may be silent on Android 11+)"
@@ -201,7 +209,7 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         with:
-          api-level: 34
+          api-level: 36
           target: google_apis
           arch: x86_64
           disable-animations: true

@@ -24,7 +24,7 @@
 <body><div class="wrap">
   <nav class="crumbs"><a href="/">YojanaSahay</a> › Privacy Policy</nav>
   <h1>Privacy Policy</h1>
-  <p class="meta">Effective date: 23 October 2026 · Applies to the YojanaSahay Android app and the website yojanasahay.vercel.app</p>
+  <p class="meta">Effective date: 28 October 2026 · Applies to the YojanaSahay Android app and the website yojanasahay.vercel.app</p>
 
   <p>YojanaSahay ("we", "the app") is a free, independent guide that helps people in India find government welfare schemes. It is built and run by Sahnawaz Ahmed Laskar, an independent developer in India. This policy explains, in plain words, what data the app uses, why, who processes it, and how you can delete it.</p>
   <div class="notice"><strong>Not a government app.</strong> YojanaSahay is not affiliated with, endorsed by, or representing the Government of India or any State Government. Scheme information is compiled from official government portals (for example india.gov.in, myscheme.gov.in and the official websites of ministries and state departments), and each scheme links to its official source.</div>
@@ -54,8 +54,11 @@
 
   <h2>3. Service providers who process data for us</h2>
   <ul>
-    <li><strong>Google Firebase</strong> (Authentication, Cloud Firestore) — accounts and saved data.</li>
-    <li><strong>Web Push</strong> — phone notifications are delivered through your browser's push service (for Chrome on Android, Google).</li>
+    <li><strong>Google Firebase</strong> (Authentication, Cloud Firestore) — accounts and saved data. In the Android app, "Continue with Google" uses your phone's Google account picker (Google Sign-In).</li>
+    <li><strong>Firebase Cloud Messaging (Google)</strong> — delivers reminder notifications in the Android app, only if you turn reminders on. It uses a notification token for your phone; turning reminders off or deleting your account removes it.</li>
+    <li><strong>Web Push</strong> — on the website, phone notifications are delivered through your browser's push service (for Chrome on Android, Google).</li>
+    <li><strong>Your phone's speech services</strong> — in the Android app, when you tap the mic, your phone's speech recognition (for most phones, Google) turns your voice into text; "Read aloud" uses your phone's text-to-speech. We never receive or keep your voice.</li>
+    <li><strong>GitHub</strong> — the Android app downloads its own updated app files from GitHub so it always has the latest scheme information. No personal data is sent.</li>
     <li><strong>Vercel</strong> — hosts the app and its servers.</li>
     <li><strong>Groq</strong> — AI language models that generate the assistant's answers. Questions are sent to generate a reply only; we do not allow them to be used for advertising.</li>
     <li><strong>Tavily</strong> and <strong>Serper</strong> — web search, used for live news, deadlines and checking official scheme pages.</li>

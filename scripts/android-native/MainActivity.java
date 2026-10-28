@@ -78,7 +78,7 @@ public class MainActivity extends BridgeActivity {
   /** Pages that are part of the app itself (everything else is on the website). */
   private static boolean insideApp(String p) {
     if (p == null || p.isEmpty() || p.equals("/") || p.equals("/index.html")) return true;
-    return p.startsWith("/admin") || p.startsWith("/embed") || p.startsWith("/assets/") || p.startsWith("/icons/");
+    return p.startsWith("/embed") || p.startsWith("/assets/") || p.startsWith("/icons/"); // /admin → website
   }
 
   private void keepWebsitePagesOnWebsite() {
