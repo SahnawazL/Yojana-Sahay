@@ -32,14 +32,18 @@ export default defineConfig({
     react(),
     {
       name: "ys-native-entry",
-      transformIndexHtml(html) {
+      // order "pre": must run BEFORE Vite reads the page's <script> entry —
+      // otherwise the swap to main-native.jsx happens too late and the Android
+      // bridge is silently left out of the build.
+      transformIndexHtml: { order: "pre", handler(html) {
+        if (!html.includes('src="/src/main.jsx"')) throw new Error("index.html entry /src/main.jsx not found");
         return html
           .replace(/\/src\/main\.jsx/g, "/src/main-native.jsx")
           // the website registers its service worker here; the app doesn't use one
           .replace('if ("serviceWorker" in navigator) {', 'if ("serviceWorker" in navigator && !window.Capacitor) {')
           // if the app ever fails to start, say why on screen instead of a blank/stuck screen
           .replace("<head>", "<head>\n<script>" + STARTUP_GUARD + "</script>");
-      }
+      } }
     },
     {
       name: "ys-native-public",

@@ -101,6 +101,9 @@ jobs:
         run: |
           VITE_YS_DIAG=$YS_DIAG npx vite build -c vite.native.config.js 2>&1 | tee "$RUNNER_TEMP/vite.log"
           test -f dist-native/index.html
+          # the Android bridge (src/native/bridge.js) must be inside the app's code
+          grep -rlq "__ysShared" dist-native/assets/ || { echo "::error title=Android bridge missing::src/native/bridge.js is not in the build (entry not switched to main-native.jsx)"; exit 1; }
+          grep -q "main-native\|/assets/" dist-native/index.html
           du -sh dist-native
 
       - name: Create Android project
@@ -168,7 +171,7 @@ jobs:
           "$BT/aapt2" dump resources "$APK" | grep -q "ic_launcher_monochrome" || { echo "::error::Yojana Sahay app icon missing (placeholder icon would show)"; exit 1; }
           echo "$M" | grep -q "android.permission.RECORD_AUDIO" || { echo "::error::microphone permission missing (voice input)"; exit 1; }
           echo "$M" | grep -q "android.intent.action.TTS_SERVICE" || echo "::warning::text-to-speech query missing (read-aloud may be silent on Android 11+)"
-          echo "::notice title=Checks::app files inside APK ✓ · share-to-app ✓ · shortcuts ✓ · mic ✓ · app icon ✓ · 9 Android plugins ✓ · $(unzip -l "$APK" | tail -n 1 | awk '{print int($1/1048576)" MB uncompressed"}')"
+          echo "::notice title=Checks::app files inside APK ✓ · share-to-app ✓ · Android bridge ✓ · shortcuts ✓ · mic ✓ · app icon ✓ · 9 Android plugins ✓ · $(unzip -l "$APK" | tail -n 1 | awk '{print int($1/1048576)" MB uncompressed"}')"
           SHA1=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA1:" | sed 's/.*SHA1: //')
           SHA256=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA256:" | sed 's/.*SHA256: //')
           echo "::notice title=Add to Firebase (Android app → SHA certificate fingerprints)::SHA-1 $SHA1 · SHA-256 $SHA256"
