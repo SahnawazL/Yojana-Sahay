@@ -96,7 +96,7 @@ const STRINGS = {
     appName:      "YojanaSahay",
     tagline:      "India's free scheme discovery app",
     madeInIndia:  "Made in India",
-    version:      "Version 1.6",
+    version:      "Version 2.1",
 
     missionTitle: "Our Mission",
     missionBody:
@@ -243,13 +243,14 @@ const STRINGS = {
 
     whatsNewTitle: "What's New",
     whatsNew: [
-      { version:"v1.6", date:"Oct 2026",   note:"Search anything from Home · Clearer, faster AI chat with live progress · Report wrong AI answers · E-mail reminder switch · Delete account in Profile · Android app" },
-      { version:"v1.5", date:"Oct 2026",   note:"Life events — schemes for what's happening in your life · My Money Calendar with reminders · Status check & 'money not received' guides" },
-      { version:"v1.4", date:"Oct 2026",   note:"AI agent: eligibility check in chat, voice, application tracking · Fake-message checker · Readiness score · Help near me · ⚑ Scheme reports · Scheme pages on Google" },
-      { version:"v1.3", date:"May 2026",   note:"Email & Google sign-in · Dark mode · Vercel edge deployment" },
-      { version:"v1.2", date:"Mar 2026",   note:"Report & Resolution Centre · Admin dashboard · Email alerts" },
-      { version:"v1.1", date:"Jan 2026",   note:"AI Assistant (Groq) · Bilingual support · Profile-aware responses" },
-      { version:"v1.0", date:"Nov 2025",   note:"Initial public Beta · Eligibility checker · Government scheme database launched" },
+      { version:"v2.1", date:"Oct 2026", title:"Yojana Sahay for Android",
+        note:"A full Android app with Google sign-in, deadline reminders as notifications, automatic updates, offline access and a fresh new look." },
+      { version:"v1.5", date:"Oct 2026", title:"Smarter AI assistance",
+        note:"Eligibility checks in chat and by voice, guides for life events, an application tracker and a fake-message checker." },
+      { version:"v1.3", date:"May 2026", title:"Personal accounts & AI assistant",
+        note:"Google and e-mail sign-in, a saved profile for matched schemes, a bilingual AI assistant and deadline e-mail reminders." },
+      { version:"v1.0", date:"Nov 2025", title:"Public launch",
+        note:"1,200+ Central and State schemes with a free eligibility checker, in Hindi and English." },
     ],
 
     shareTitle: "Share YojanaSahay",
@@ -278,7 +279,7 @@ const STRINGS = {
     appName:      "योजना सहाय",
     tagline:      "निःशुल्क योजना सहायक",
     madeInIndia:  "मेड इन इंडिया",
-    version:      "संस्करण 1.6",
+    version:      "संस्करण 2.1",
 
     missionTitle: "हमारा उद्देश्य",
     missionBody:
@@ -408,13 +409,14 @@ const STRINGS = {
 
     whatsNewTitle: "नया क्या है",
     whatsNew: [
-      { version:"v1.6", date:"अक्टू 2026", note:"होम से कुछ भी खोजें · लाइव प्रगति के साथ साफ़ और तेज़ AI चैट · गलत AI जवाब की रिपोर्ट · ई-मेल रिमाइंडर स्विच · प्रोफ़ाइल में खाता हटाएं · Android ऐप" },
-      { version:"v1.5", date:"अक्टू 2026", note:"जीवन की घटनाएं — आपके हालात के लिए योजनाएं · मेरा पैसा कैलेंडर और रिमाइंडर · स्टेटस जांच और 'पैसा नहीं आया' गाइड" },
-      { version:"v1.4", date:"अक्टू 2026", note:"AI एजेंट: चैट में पात्रता जांच, आवाज़, आवेदन ट्रैकिंग · फर्जी मैसेज जांच · तैयारी स्कोर · नज़दीकी मदद · ⚑ योजना रिपोर्ट · Google पर योजना पेज" },
-      { version:"v1.3", date:"मई 2026",    note:"ईमेल & Google साइन-इन · डार्क मोड · Vercel एज डिप्लॉयमेंट" },
-      { version:"v1.2", date:"मार्च 2026", note:"रिपोर्ट & समाधान केंद्र · एडमिन डैशबोर्ड · ईमेल अलर्ट" },
-      { version:"v1.1", date:"जनवरी 2026", note:"AI सहायक (Groq) · द्विभाषी समर्थन · प्रोफाइल-आधारित उत्तर" },
-      { version:"v1.0", date:"नवंबर 2025", note:"पहला सार्वजनिक Beta · पात्रता जांचक · सरकारी योजना डेटाबेस लॉन्च" },
+      { version:"v2.1", date:"अक्टू 2026", title:"Android के लिए योजना सहाय",
+        note:"पूरा Android ऐप — Google साइन-इन, आख़िरी तारीख़ के नोटिफ़िकेशन, अपने-आप अपडेट, ऑफ़लाइन उपयोग और नया रूप।" },
+      { version:"v1.5", date:"अक्टू 2026", title:"और समझदार AI सहायता",
+        note:"चैट और आवाज़ से पात्रता जांच, जीवन की घटनाओं के लिए गाइड, आवेदन ट्रैकर और फ़र्ज़ी संदेश जांच।" },
+      { version:"v1.3", date:"मई 2026", title:"व्यक्तिगत खाता और AI सहायक",
+        note:"Google और ई-मेल साइन-इन, मिलान वाली योजनाओं के लिए सहेजी प्रोफ़ाइल, हिंदी-अंग्रेज़ी AI सहायक और ई-मेल रिमाइंडर।" },
+      { version:"v1.0", date:"नवंबर 2025", title:"सार्वजनिक शुरुआत",
+        note:"1,200+ केंद्रीय और राज्य योजनाएं, मुफ़्त पात्रता जांच के साथ — हिंदी और अंग्रेज़ी में।" },
     ],
 
     shareTitle: "योजना सहाय साझा करें",
@@ -1368,6 +1370,11 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
                           }}>LATEST</span>
                         )}
                       </div>
+                      {item.title && (
+                        <div style={{ fontSize: 13.5, fontWeight: 800, color: th.text, lineHeight: 1.35, marginBottom: 3, fontFamily: bf }}>
+                          {item.title}
+                        </div>
+                      )}
                       <div style={{ fontSize: 12, color: th.textMid, lineHeight: 1.6, fontFamily: bf }}>
                         {item.note}
                       </div>
