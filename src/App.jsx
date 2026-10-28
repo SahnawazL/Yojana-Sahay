@@ -10606,21 +10606,26 @@ function YojanaSahayInner(){
   useEffect(()=>{
     const el=document.getElementById('html-splash');
     if(!el)return;
-    // Android app: its files are on the phone, so React is ready almost at once —
-    // keep the animated launch screen up for ~1.6 s from launch so it plays
-    // smoothly instead of flashing. The website is unchanged (no wait).
+    if(el.style.display==='none'){ el.remove(); return; } // already seen this session
+    // The launch animation plays as one complete sequence from the moment it is
+    // visible (window.__hsStart, index.html) — app: the full ~2.3 s; website:
+    // at least the logo + name (~1 s) — then a smooth zoom-and-fade exit.
     const isApp=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-    const wait=isApp?Math.max(0,1600-(performance.now?performance.now():0)):0;
-    let t2=null;
-    const t1=setTimeout(()=>{
-      el.style.transition='opacity 0.35s ease';
-      el.style.opacity='0';
-      t2=setTimeout(()=>{
-        el.remove();
-        try{sessionStorage.setItem('ys_splashed','1');}catch{}
-      },380);
-    },wait);
-    return()=>{clearTimeout(t1);clearTimeout(t2);};
+    const minShow=isApp?2300:1000;
+    let t1=null,t2=null,gone=false;
+    const out=()=>{
+      if(gone)return; gone=true;
+      el.classList.add('hs-out');
+      t2=setTimeout(()=>{ el.remove(); try{sessionStorage.setItem('ys_splashed','1');}catch{} },560);
+    };
+    const schedule=()=>{
+      const start=typeof window.__hsStart==="number"?window.__hsStart:null;
+      if(start===null){ t1=setTimeout(schedule,120); return; } // not visible yet (Android launch screen)
+      t1=setTimeout(out,Math.max(0,minShow-(performance.now()-start)));
+    };
+    schedule();
+    const hardStop=setTimeout(out,6000); // never keep people waiting
+    return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(hardStop);};
   },[]);
 
   const toggleDark=useCallback(()=>setDark(d=>!d),[]);

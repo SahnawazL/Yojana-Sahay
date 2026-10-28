@@ -192,6 +192,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw" && npm init -y > /dev/null && true
           echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
           cp "$GITHUB_WORKSPACE/scripts/android-native/diagnose.mjs" "$RUNNER_TEMP/pw/diagnose.mjs"
+          mkdir -p "$RUNNER_TEMP/pw/node_modules" && ln -sfn "$GITHUB_WORKSPACE/node_modules/sharp" "$RUNNER_TEMP/pw/node_modules/sharp"
           # live-update test feed: a newer working copy and a deliberately broken one
           cd "$GITHUB_WORKSPACE"
           L="$RUNNER_TEMP/live"; mkdir -p "$L/broken"
@@ -224,6 +225,7 @@ jobs:
           node -e '
             const fs = require("fs"), path = require("path"), dir = process.env.RUNNER_TEMP + "/diag";
             const esc = s => s.replace(/%/g, "%25").replace(/\r/g, "").replace(/\n/g, "%0A");
+            try { const fr = fs.readFileSync(path.join(dir, "frames.txt"), "utf8"); for (let i = 0, n = 0; i < fr.length && n < 4; i += 60000, n++) console.log(`::notice title=diag frames ${n + 1}::${esc(fr.slice(i, i + 60000))}`); } catch {}
             for (const f of ["app.txt", "screen.txt", "logcat.txt", "pid.txt", "install.txt"]) {
               let t = ""; try { t = fs.readFileSync(path.join(dir, f), "utf8"); } catch { t = "(missing)"; }
               for (let i = 0, n = 0; i < t.length && n < 6; i += 3500, n++) console.log(`::notice title=diag ${f} ${n + 1}::${esc(t.slice(i, i + 3500))}`);

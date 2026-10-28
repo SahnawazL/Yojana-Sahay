@@ -277,15 +277,15 @@
     @keyframes hs-shimmer { to { background-position: -200% 0; } }
     @keyframes hs-tagline-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
     @keyframes hs-bar-in { from { opacity: 0; transform: scaleX(0.4); } to { opacity: 1; transform: none; } }
-    @keyframes hs-fill { 0% { width: 6%; } 60% { width: 78%; } 100% { width: 94%; } }
+    @keyframes hs-fill { 0% { width: 4%; } 100% { width: 100%; } }
     @keyframes hs-flow { to { background-position: 200% 0; } }
     @keyframes hs-pA { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: .7; } 90% { opacity: .3; } 100% { transform: translateY(-110vh) translateX(25px); opacity: 0; } }
     @keyframes hs-pB { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: .55; } 90% { opacity: .2; } 100% { transform: translateY(-110vh) translateX(-20px); opacity: 0; } }
 
-    .hs-aurora { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(60px); opacity: .55; pointer-events: none; }
-    .hs-aurora.a { top: -25vmax; left: -20vmax; background: radial-gradient(circle, #FF9933 0%, rgba(255,153,51,0) 62%); animation: hs-aurora-a 11s ease-in-out infinite; }
-    .hs-aurora.b { bottom: -30vmax; right: -25vmax; background: radial-gradient(circle, #7C5CFF 0%, rgba(124,92,255,0) 62%); animation: hs-aurora-b 13s ease-in-out infinite; }
-    .hs-aurora.c { top: 20%; left: 30%; width: 45vmax; height: 45vmax; background: radial-gradient(circle, #3BA3FF 0%, rgba(59,163,255,0) 65%); opacity: .35; animation: hs-aurora-c 15s ease-in-out infinite; }
+    .hs-aurora { position: absolute; width: 80vmax; height: 80vmax; border-radius: 50%; opacity: .5; pointer-events: none; will-change: transform; }
+    .hs-aurora.a { top: -30vmax; left: -25vmax; background: radial-gradient(circle, rgba(255,153,51,.9) 0%, rgba(255,153,51,.35) 30%, rgba(255,153,51,0) 66%); animation: hs-aurora-a 11s ease-in-out infinite; }
+    .hs-aurora.b { bottom: -35vmax; right: -30vmax; background: radial-gradient(circle, rgba(124,92,255,.95) 0%, rgba(124,92,255,.35) 30%, rgba(124,92,255,0) 66%); animation: hs-aurora-b 13s ease-in-out infinite; }
+    .hs-aurora.c { top: 20%; left: 30%; width: 50vmax; height: 50vmax; background: radial-gradient(circle, rgba(59,163,255,.8) 0%, rgba(59,163,255,.25) 32%, rgba(59,163,255,0) 68%); opacity: .32; animation: hs-aurora-c 15s ease-in-out infinite; }
     .hs-grain { position: absolute; inset: 0; pointer-events: none; opacity: .5;
       background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 22px 22px; }
 
@@ -293,7 +293,7 @@
 
     .hs-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
     .hs-stage { position: relative; width: 230px; height: 230px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
-    .hs-rings { position: absolute; inset: 0; animation: hs-rings-in .9s cubic-bezier(.22,1,.36,1) .25s both; }
+    .hs-rings { position: absolute; inset: 0; animation: hs-rings-in .8s cubic-bezier(.22,1,.36,1) .15s both; }
     .hs-rings svg { position: absolute; inset: 0; overflow: visible; }
     .hs-ring-1 { animation: hs-spin 14s linear infinite; }
     .hs-ring-2 { animation: hs-spin-rev 9s linear infinite; }
@@ -301,36 +301,46 @@
       background: conic-gradient(from 0deg, rgba(255,153,51,0), #FF9933, #FF6B6B, #7C5CFF, rgba(124,92,255,0) 70%);
       -webkit-mask: radial-gradient(circle, transparent 62%, #000 63%, #000 66%, transparent 67%);
               mask: radial-gradient(circle, transparent 62%, #000 63%, #000 66%, transparent 67%);
-      animation: hs-spin 3.2s linear infinite; filter: drop-shadow(0 0 10px rgba(255,140,80,.8)); }
+      animation: hs-halo-in .6s ease .3s both, hs-spin 3.2s linear infinite; will-change: transform; }
+    .hs-glow { position: absolute; width: 190px; height: 190px; border-radius: 50%; pointer-events: none;
+      background: radial-gradient(circle, rgba(255,140,80,.38) 0%, rgba(124,92,255,.22) 42%, rgba(124,92,255,0) 70%);
+      animation: hs-halo-in .8s ease .2s both, hs-breathe 3.4s ease-in-out 1s infinite; }
+    @keyframes hs-halo-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes hs-breathe { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.12); opacity: 1; } }
     .hs-logo-box {
       position: relative; width: 124px; height: 124px; border-radius: 32px; overflow: hidden; background: #fff;
       box-shadow: 0 0 0 1px rgba(255,255,255,.35), 0 18px 50px rgba(0,0,0,.45), 0 0 60px rgba(255,140,80,.45), 0 0 90px rgba(124,92,255,.35);
-      animation: hs-logo-in .9s cubic-bezier(.34,1.56,.64,1) .05s both, hs-float 4s ease-in-out 1.2s infinite;
+      animation: hs-logo-in .75s cubic-bezier(.34,1.56,.64,1) 0s both, hs-float 4s ease-in-out 1s infinite;
     }
     .hs-logo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .hs-logo-box::after { content: ""; position: absolute; top: -10%; bottom: -10%; width: 38%;
       background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.75), rgba(255,255,255,0));
-      animation: hs-sweep 2.8s ease-in-out 1s infinite; }
+      animation: hs-sweep 2.4s ease-in-out .7s infinite; }
 
     .hs-title {
       font-size: 34px; font-weight: 900; font-family: 'Noto Sans', system-ui, sans-serif; line-height: 1.05; margin-bottom: 8px;
       background: linear-gradient(90deg, #ffffff 0%, #ffffff 35%, #FFD199 50%, #ffffff 65%, #ffffff 100%);
       background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
       text-shadow: 0 2px 28px rgba(255,140,80,.35);
-      opacity: 0; animation: hs-title-in .7s cubic-bezier(.22,1,.36,1) .7s forwards, hs-shimmer 3s linear 1.4s infinite;
+      opacity: 0; animation: hs-title-in .6s cubic-bezier(.22,1,.36,1) .45s forwards, hs-shimmer 2.6s linear 1.05s infinite;
     }
     .hs-tagline { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.72); font-family: 'Noto Sans', system-ui, sans-serif;
-      letter-spacing: 3.5px; text-transform: uppercase; margin-bottom: 20px; opacity: 0; animation: hs-tagline-in .6s ease 1.1s forwards; }
+      letter-spacing: 3.5px; text-transform: uppercase; margin-bottom: 20px; opacity: 0; animation: hs-tagline-in .5s ease .75s forwards; }
     .hs-bar { position: relative; width: 168px; height: 4px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,.12);
-      opacity: 0; transform-origin: center; animation: hs-bar-in .5s cubic-bezier(.22,1,.36,1) 1.3s forwards; }
+      opacity: 0; transform-origin: center; animation: hs-bar-in .45s cubic-bezier(.22,1,.36,1) .9s forwards; }
     .hs-bar span { position: absolute; left: 0; top: 0; bottom: 0; width: 6%; border-radius: 4px;
       background: linear-gradient(90deg, #FF9933, #FF6B6B, #7C5CFF, #FF9933); background-size: 200% 100%;
       box-shadow: 0 0 12px rgba(255,120,90,.8);
-      animation: hs-fill 2.6s cubic-bezier(.2,.8,.2,1) 1.4s forwards, hs-flow 1.6s linear infinite; }
+      animation: hs-fill 1.5s cubic-bezier(.3,.7,.2,1) 1s forwards, hs-flow 1.6s linear infinite; }
     .hs-foot { position: absolute; bottom: 34px; left: 0; right: 0; text-align: center; z-index: 2;
       font: 600 11px/1.4 'Noto Sans', system-ui, sans-serif; color: rgba(255,255,255,.45); letter-spacing: .4px;
-      opacity: 0; animation: hs-tagline-in .8s ease 1.8s forwards; }
+      opacity: 0; animation: hs-tagline-in .6s ease 1.1s forwards; }
 
+    /* Nothing moves until the screen is really visible (.hs-play) — in the
+       Android app that is when Android's own launch screen lifts — so the
+       whole sequence is always seen from its first frame. */
+    #html-splash:not(.hs-play) *, #html-splash:not(.hs-play) *::after { animation-play-state: paused !important; }
+    #html-splash.hs-out { opacity: 0; transform: scale(1.05); transition: opacity .5s ease, transform .55s cubic-bezier(.4,0,.2,1); pointer-events: none; }
     @media (prefers-reduced-motion: reduce) {
       #html-splash *, #html-splash *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
       .hs-title, .hs-tagline, .hs-bar, .hs-foot { opacity: 1; }
@@ -377,6 +387,7 @@
               <circle cx="23" cy="115" r="2.6" fill="#6CC4FF"/>
             </svg>
           </div>
+          <div class="hs-glow" aria-hidden="true"></div>
           <div class="hs-halo" aria-hidden="true"></div>
           <div class="hs-logo-box">
             <!-- Vite will hash this path on build; logo must live at src/logo.webp -->
@@ -406,6 +417,14 @@
       if (sessionStorage.getItem('ys_splashed') === '1' || location.pathname.indexOf('/admin') === 0) {
         document.getElementById('html-splash').style.display = 'none';
       }
+      (function () {
+        var el = document.getElementById('html-splash');
+        if (!el || el.style.display === 'none') return;
+        var play = function () { if (el.classList.contains('hs-play')) return; window.__hsStart = performance.now(); el.classList.add('hs-play'); };
+        window.__hsPlay = play;
+        var isApp = !!(window.androidBridge || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()));
+        if (isApp) setTimeout(play, 1800); else play();
+      })();
     </script>
 
     <div id="root"><!--SEO-LINKS:START--><main class="seo-fallback" style="max-width:860px;margin:0 auto;padding:24px 16px;font-family:system-ui,sans-serif;color:#1c1917;background:#fff"><h1>YojanaSahay – Free Government Scheme Finder for India</h1><p>Find the Central and State government welfare schemes you qualify for: 1,200+ schemes for farmers, women, students, workers, senior citizens and persons with disabilities, with eligibility, documents and the official link to apply. Free, in Hindi and English. YojanaSahay is an independent guide, not a government website.</p><p><a href="/faq.html">FAQ</a> · <a href="/about.html">About</a> · <a href="/how-we-verify.html">How we verify</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/press.html">Press</a> · <a href="/poster.html">Free posters</a></p><h2>Government schemes by state</h2><ul><li><a href="/schemes/list-central.html">Central Government schemes (119)</a></li><li><a href="/schemes/list-andaman-nicobar.html">Andaman &amp; Nicobar schemes (7)</a></li><li><a href="/schemes/list-andhra-pradesh.html">Andhra Pradesh schemes (20)</a></li><li><a href="/schemes/list-arunachal-pradesh.html">Arunachal Pradesh schemes (13)</a></li><li><a href="/schemes/list-assam.html">Assam schemes (48)</a></li><li><a href="/schemes/list-bihar.html">Bihar schemes (31)</a></li><li><a href="/schemes/list-chandigarh.html">Chandigarh schemes (11)</a></li><li><a href="/schemes/list-chhattisgarh.html">Chhattisgarh schemes (54)</a></li><li><a href="/schemes/list-delhi.html">Delhi schemes (102)</a></li><li><a href="/schemes/list-goa.html">Goa schemes (15)</a></li><li><a href="/schemes/list-gujarat.html">Gujarat schemes (50)</a></li><li><a href="/schemes/list-haryana.html">Haryana schemes (30)</a></li><li><a href="/schemes/list-himachal-pradesh.html">Himachal Pradesh schemes (46)</a></li><li><a href="/schemes/list-jammu-kashmir.html">Jammu &amp; Kashmir schemes (13)</a></li><li><a href="/schemes/list-jharkhand.html">Jharkhand schemes (38)</a></li><li><a href="/schemes/list-karnataka.html">Karnataka schemes (83)</a></li><li><a href="/schemes/list-kerala.html">Kerala schemes (40)</a></li><li><a href="/schemes/list-ladakh.html">Ladakh schemes (14)</a></li><li><a href="/schemes/list-madhya-pradesh.html">Madhya Pradesh schemes (35)</a></li><li><a href="/schemes/list-maharashtra.html">Maharashtra schemes (75)</a></li><li><a href="/schemes/list-manipur.html">Manipur schemes (11)</a></li><li><a href="/schemes/list-meghalaya.html">Meghalaya schemes (11)</a></li><li><a href="/schemes/list-mizoram.html">Mizoram schemes (13)</a></li><li><a href="/schemes/list-nagaland.html">Nagaland schemes (14)</a></li><li><a href="/schemes/list-odisha.html">Odisha schemes (16)</a></li><li><a href="/schemes/list-puducherry.html">Puducherry schemes (12)</a></li><li><a href="/schemes/list-punjab.html">Punjab schemes (57)</a></li><li><a href="/schemes/list-rajasthan.html">Rajasthan schemes (42)</a></li><li><a href="/schemes/list-sikkim.html">Sikkim schemes (20)</a></li><li><a href="/schemes/list-tamil-nadu.html">Tamil Nadu schemes (46)</a></li><li><a href="/schemes/list-telangana.html">Telangana schemes (40)</a></li><li><a href="/schemes/list-tripura.html">Tripura schemes (15)</a></li><li><a href="/schemes/list-uttar-pradesh.html">Uttar Pradesh schemes (32)</a></li><li><a href="/schemes/list-uttarakhand.html">Uttarakhand schemes (16)</a></li><li><a href="/schemes/list-west-bengal.html">West Bengal schemes (21)</a></li></ul><h2>Schemes by category</h2><ul><li><a href="/schemes/cat-women.html">Schemes for Women (220)</a></li><li><a href="/schemes/cat-farmers.html">Schemes for Farmers (194)</a></li><li><a href="/schemes/cat-students.html">Schemes for Students (219)</a></li><li><a href="/schemes/cat-health.html">Schemes for Health (94)</a></li><li><a href="/schemes/cat-senior.html">Schemes for Senior Citizens (91)</a></li><li><a href="/schemes/cat-business.html">Schemes for Business &amp; Self-Employment (145)</a></li><li><a href="/schemes/cat-housing.html">Schemes for Housing (60)</a></li><li><a href="/schemes/cat-workers.html">Schemes for Workers &amp; Jobs (134)</a></li><li><a href="/schemes/cat-disability.html">Schemes for Persons with Disabilities (57)</a></li></ul><h2>Popular schemes</h2><ul><li><a href="/schemes/ran.html">Rashtriya Arogya Nidhi (RAN) – Life-Threatening Disease Fund</a></li><li><a href="/schemes/nos-overseas.html">National Overseas Scholarship (NOS)</a></li><li><a href="/schemes/wb-student-credit-card.html">West Bengal Student Credit Card Scheme</a></li><li><a href="/schemes/ayushman.html">Ayushman Bharat (PMJAY)</a></li><li><a href="/schemes/pmjay-senior.html">Ayushman Bharat – Senior Citizens (70+)</a></li><li><a href="/schemes/khelo-india.html">Khelo India Scholarship (Young Athlete Scheme)</a></li><li><a href="/schemes/tn-chief-minister-health.html">CM Comprehensive Health Insurance Scheme (TN)</a></li><li><a href="/schemes/rgnf.html">Rajiv Gandhi National Fellowship for SC Students (RGNF)</a></li><li><a href="/schemes/nfobc.html">National Fellowship for OBC Students (NFOBC)</a></li><li><a href="/schemes/bihar-student-credit-card.html">Bihar Student Credit Card Scheme (7 Nischay)</a></li><li><a href="/schemes/nfst.html">National Fellowship for Higher Education of ST Students (NFST)</a></li><li><a href="/schemes/nfpwd.html">National Fellowship for Students with Disabilities (NFPwD)</a></li><li><a href="/schemes/agniveer.html">Agnipath – Agniveer Recruitment Scheme</a></li><li><a href="/schemes/pmay-urban2.html">PM Awas Yojana 2.0 (Urban)</a></li><li><a href="/schemes/pm-janman.html">PM JANMAN – Janjati Adivasi Nyaya Maha Abhiyan</a></li><li><a href="/schemes/top-class-sc.html">Top Class Education Scheme for SC Students</a></li><li><a href="/schemes/punjab-kisan-karj-mafi.html">Punjab Kisan Karj Mafi Scheme</a></li><li><a href="/schemes/ndp.html">National Dialysis Programme (NDP) – Free Kidney Dialysis</a></li><li><a href="/schemes/tulip-internship.html">TULIP – The Urban Learning Internship Program</a></li><li><a href="/schemes/pm-special-jk.html">PM Special Scholarship Scheme (J&amp;K and Ladakh)</a></li><li><a href="/schemes/pmawas-rural.html">PM Awas Yojana (Gramin)</a></li><li><a href="/schemes/emrs.html">Eklavya Model Residential Schools (EMRS)</a></li><li><a href="/schemes/nats-apprenticeship.html">National Apprenticeship Training Scheme (NATS)</a></li><li><a href="/schemes/inspire-she.html">INSPIRE Scholarship (SHE)</a></li><li><a href="/schemes/pm-yasasvi.html">PM YASASVI Scholarship (OBC/EBC/DNT)</a></li><li><a href="/schemes/pm-internship.html">PM Internship Scheme</a></li><li><a href="/schemes/pm-cares-children.html">PM CARES for Children (COVID Orphan Scheme)</a></li><li><a href="/schemes/assam-jibika-sakhi.html">Jibika Sakhi Express Scheme (Assam)</a></li><li><a href="/schemes/aicte-pragati.html">AICTE Pragati Scholarship – Girl Students in Technical Education</a></li><li><a href="/schemes/aicte-saksham.html">AICTE Saksham Scholarship – Differently-Abled Students in Technical Education</a></li><li><a href="/schemes/ishan-uday.html">Ishan Uday Scholarship (North-East Students)</a></li><li><a href="/schemes/ts-epass-fee.html">TS ePASS — Fee Reimbursement for SC/ST/BC Students (Telangana)</a></li><li><a href="/schemes/ig-pg-sgc.html">PG Indira Gandhi Scholarship for Single Girl Child</a></li><li><a href="/schemes/pmkmy.html">PM Shram Yogi Maan-dhan (PM-SYM)</a></li><li><a href="/schemes/surya-ghar.html">PM Surya Ghar Muft Bijli Yojana</a></li><li><a href="/schemes/pmkmy-kisan.html">PM Kisan Maan Dhan Yojana (PMKMY)</a></li><li><a href="/schemes/pmlvmy.html">PM Laghu Vyapari Maan-dhan Yojana (PMLVMY)</a></li><li><a href="/schemes/free-coaching-sc.html">Free Coaching Scheme for SC &amp; OBC Students</a></li><li><a href="/schemes/nai-manzil.html">Nai Manzil Scheme (Education &amp; Livelihood for Minority Dropouts)</a></li><li><a href="/schemes/pmss-defence.html">PM Scholarship Scheme (PMSS)</a></li><li><a href="/schemes/wb-annapurna-bhandar.html">Annapurna Bhandar (West Bengal)</a></li><li><a href="/schemes/jharkhand-maiya-samman.html">Mukhyamantri Maiya Samman Yojana</a></li><li><a href="/schemes/scholarship.html">National Scholarship (NSP)</a></li><li><a href="/schemes/mcm-minority.html">Merit-cum-Means Scholarship for Minorities (MCM)</a></li><li><a href="/schemes/karnataka-gruha-lakshmi.html">Gruha Lakshmi Scheme</a></li><li><a href="/schemes/mgnrega.html">MGNREGA (Job Guarantee Scheme)</a></li><li><a href="/schemes/ddu-gky.html">DDU-Grameen Kaushalya Yojana (DDU-GKY)</a></li><li><a href="/schemes/naps.html">National Apprenticeship Promotion Scheme (NAPS)</a></li><li><a href="/schemes/seekho-kamao.html">Seekho aur Kamao (Learn &amp; Earn)</a></li><li><a href="/schemes/pm-daksh.html">PM DAKSH Yojana (Skill Training for SC/OBC/EBC)</a></li><li><a href="/schemes/working-women-hostel.html">Working Women's Hostel Scheme</a></li><li><a href="/schemes/usttad.html">USTTAD – Upgrading Skills &amp; Training in Traditional Arts/Crafts (Minority Artisans)</a></li><li><a href="/schemes/cbse-single-girl.html">CBSE Merit Scholarship for Single Girl Child</a></li><li><a href="/schemes/maha-majhi-ladki-bahin.html">Majhi Ladki Bahin Yojana (Maharashtra)</a></li><li><a href="/schemes/mp-ladli-behna.html">Ladli Behna Yojana (MP)</a></li><li><a href="/schemes/pkvy.html">Paramparagat Krishi Vikas Yojana (PKVY)</a></li><li><a href="/schemes/pmvishwakarma.html">PM Vishwakarma Yojana</a></li><li><a href="/schemes/viksit-bharat-rozgar.html">Pradhan Mantri Viksit Bharat Rozgar Yojana</a></li><li><a href="/schemes/assam-orunodoi.html">Orunodoi Scheme (Assam)</a></li><li><a href="/schemes/pms-sc-st.html">Post Matric Scholarship – SC / ST Students</a></li><li><a href="/schemes/pms-obc.html">Post-Matric Scholarship for OBC Students</a></li><li><a href="/schemes/odisha-cm-kisan.html">CM Kisan Yojana (Odisha)</a></li><li><a href="/schemes/sbm-gramin.html">Swachh Bharat Mission – Gramin (Toilet Scheme)</a></li><li><a href="/schemes/nmmss.html">National Means-cum-Merit Scholarship (NMMSS)</a></li><li><a href="/schemes/pmvvy.html">PM Vaya Vandana Yojana (PMVVY)</a></li><li><a href="/schemes/jan-aushadhi.html">PM Bharatiya Janaushadhi Pariyojana</a></li><li><a href="/schemes/csss.html">Central Sector Scholarship Scheme (CSSS)</a></li><li><a href="/schemes/ab-hwc.html">Ayushman Arogya Mandir – Health &amp; Wellness Centres (AB-HWC)</a></li><li><a href="/schemes/sbm-urban2.html">Swachh Bharat Mission – Urban 2.0 (Individual Toilet Grant)</a></li><li><a href="/schemes/maha-smart-solar.html">Maharashtra SMART Solar Scheme 2025 (Rooftop Solar)</a></li><li><a href="/schemes/cg-mahtari-vandan.html">Mahtari Vandan Yojana</a></li><li><a href="/schemes/jk-widow-pension.html">Widow Pension Scheme (J&amp;K)</a></li><li><a href="/schemes/odisha-subhadra.html">Subhadra Yojana (Odisha)</a></li><li><a href="/schemes/national-creche.html">National Creche Scheme (Palna)</a></li><li><a href="/schemes/pmkvy.html">PM Kaushal Vikas Yojana (PMKVY)</a></li><li><a href="/schemes/pmkisan.html">PM Kisan Samman Nidhi</a></li><li><a href="/schemes/nikshay-poshan.html">Nikshay Poshan Yojana (TB Nutritional Support)</a></li><li><a href="/schemes/annapurna.html">Annapurna Scheme (Free Food for Destitute Seniors)</a></li><li><a href="/schemes/poshan-abhiyaan.html">POSHAN Abhiyaan 2.0 (National Nutrition Mission)</a></li><li><a href="/schemes/icds.html">Integrated Child Development Services (ICDS) – Anganwadi</a></li></ul></main><!--SEO-LINKS:END--></div>

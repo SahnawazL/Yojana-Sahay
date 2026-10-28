@@ -41,6 +41,23 @@ const send = (method, params = {}) => new Promise(r => {
   const t = setTimeout(() => { if (waiting.has(id)) { waiting.delete(id); r({ result: { exceptionDetails: { text: "no answer in 25s" } } }); } }, 25000);
   try { ws.send(JSON.stringify({ id, method, params })); } catch { clearTimeout(t); waiting.delete(id); r({ result: { exceptionDetails: { text: "not connected" } } }); }
 });
+// ── Phase 0: what people see while the app opens (cold start) ──────────────
+try {
+  const sharp = (await import("sharp")).default;
+  const fsx = await import("node:fs");
+  adb("shell am force-stop com.yojanasahay.app"); await new Promise(r => setTimeout(r, 1500));
+  adb("shell am start -n com.yojanasahay.app/.MainActivity");
+  const t0 = Date.now(), lines = [];
+  for (const at of [500, 1100, 1700, 2300, 2900, 3500, 4300, 5200]) {
+    const wait = at - (Date.now() - t0); if (wait > 0) await new Promise(r => setTimeout(r, wait));
+    const png = execSync("adb exec-out screencap -p", { maxBuffer: 64 * 1024 * 1024 });
+    const jpg = await sharp(png).resize(216).jpeg({ quality: 42 }).toBuffer();
+    lines.push(`${Date.now() - t0}ms ${jpg.toString("base64")}`);
+  }
+  fsx.writeFileSync(process.env.RUNNER_TEMP + "/diag/frames.txt", lines.join("\n"));
+  out("launch frames", lines.length + " captured");
+  await new Promise(r => setTimeout(r, 4000));
+} catch (e) { out("launch frames", "FAILED " + e.message); }
 await connect();
 const T = (ms) => new Promise(r => setTimeout(r, ms));
 const page = { url: () => target.url };

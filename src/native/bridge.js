@@ -424,7 +424,8 @@ if (Capacitor.isNativePlatform()) {
   // Android's launch screen steps aside as soon as the app can draw, so the
   // app's own animated launch screen (#html-splash in index.html — aurora, orbit rings,
   // particles, logo) is what people see while the app loads.
-  const hide = () => SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {});
+  // start the app's own launch animation at the same moment, from its first frame
+  const hide = () => { SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {}); try { window.__hsPlay && window.__hsPlay(); } catch {} };
   requestAnimationFrame(() => requestAnimationFrame(hide));
   setTimeout(hide, 1500); // in case the screen isn't drawing frames yet
   });
