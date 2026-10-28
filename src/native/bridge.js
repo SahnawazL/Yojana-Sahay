@@ -431,7 +431,12 @@ if (Capacitor.isNativePlatform()) {
   // app's own animated launch screen (#html-splash in index.html — aurora, orbit rings,
   // particles, logo) is what people see while the app loads.
   // start the app's own launch animation at the same moment, from its first frame
-  const hide = () => { if (window.__ysSwitching) return; SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {}); try { window.__hsPlay && window.__hsPlay(); } catch {} };
+  const hide = () => {
+    if (window.__ysSwitching) return;
+    // this app version hands over from Android's launch screen itself (MainActivity)
+    if (Capacitor.isPluginAvailable("YSLaunch")) { Capacitor.nativePromise("YSLaunch", "ready", {}).catch(() => {}); return; }
+    SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {}); try { window.__hsPlay && window.__hsPlay(); } catch {}
+  };
   requestAnimationFrame(() => requestAnimationFrame(hide));
   setTimeout(hide, 1500); // in case the screen isn't drawing frames yet
   });

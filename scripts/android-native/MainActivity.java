@@ -14,8 +14,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebViewClient;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
 import org.json.JSONObject;
 
 /**
@@ -33,9 +38,54 @@ import org.json.JSONObject;
 public class MainActivity extends BridgeActivity {
   private final Handler main = new Handler(Looper.getMainLooper());
 
+  // ── Launch screen ─────────────────────────────────────────────────────────
+  // Android's launch screen (the app icon on navy) stays up until the page has
+  // drawn its own launch scene — which starts with the very same icon — and
+  // the page tells us so (YSLaunch.ready). Then Android's screen fades away and
+  // the page's animation starts at that exact moment, so people see one
+  // smooth, continuous animation. (While Android's screen is up the page can't
+  // draw, so the animation must not start earlier.) Safety: 6 s at most.
+  private volatile boolean launchDone = false;
+  private boolean webAnimStarted = false;
+
+  void webReady() {
+    if (launchDone) return;
+    launchDone = true;
+    View c = findViewById(android.R.id.content);
+    if (c != null) c.invalidate();   // re-check now (Android only re-checks on a redraw)
+    // opened without Android's launch screen (e.g. from Share): start right away
+    main.postDelayed(this::startWebAnimation, 350);
+  }
+
+  private void startWebAnimation() {
+    if (webAnimStarted) return;
+    webAnimStarted = true;
+    WebView wv = getBridge() != null ? getBridge().getWebView() : null;
+    if (wv != null) wv.evaluateJavascript("try{window.__hsPlay&&window.__hsPlay()}catch(e){}", null);
+  }
+
+  /** Lets the page say "my launch scene is drawn" (index.html). */
+  @CapacitorPlugin(name = "YSLaunch")
+  public static class LaunchPlugin extends Plugin {
+    @PluginMethod
+    public void ready(PluginCall call) {
+      final android.app.Activity a = getActivity();
+      if (a instanceof MainActivity) a.runOnUiThread(((MainActivity) a)::webReady);
+      call.resolve();
+    }
+  }
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    SplashScreen launch = SplashScreen.installSplashScreen(this);
+    launch.setKeepOnScreenCondition(() -> !launchDone);
+    launch.setOnExitAnimationListener(view -> {
+      startWebAnimation();
+      view.getView().animate().alpha(0f).setDuration(220).withEndAction(view::remove).start();
+    });
+    registerPlugin(LaunchPlugin.class);
     super.onCreate(savedInstanceState);
+    main.postDelayed(() -> { webReady(); main.postDelayed(this::startWebAnimation, 400); }, 6000);
     fitToScreen();
     keepWebsitePagesOnWebsite();
     handle(getIntent());

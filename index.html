@@ -424,30 +424,51 @@
       }
       (function () {
         var el = document.getElementById('html-splash');
-        if (!el || el.style.display === 'none') return;
+        if (!el || el.style.display === 'none') {   // no launch scene: let the app show itself
+          try { var c0 = window.Capacitor; if (c0 && c0.isPluginAvailable && c0.isPluginAvailable('YSLaunch')) c0.nativePromise('YSLaunch', 'ready', {}).catch(function () {}); } catch (e) {}
+          return;
+        }
         var play = function () { if (el.classList.contains('hs-play')) return; window.__hsStart = performance.now(); el.classList.add('hs-play'); };
-        window.__hsPlay = play;
-        // Android app: Android's launch screen (logo in a white circle) stays up
-        // until this page has drawn its first frame — the same logo circle —
-        // and is lifted right then, so the two read as one continuous scene.
-        var liftAndroidLaunch = function () {
-          try { if (window.Capacitor && window.Capacitor.nativePromise) window.Capacitor.nativePromise('SplashScreen', 'hide', { fadeOutDuration: 180 }).catch(function () {}); } catch (e) {}
-        };
+        var cap = window.Capacitor;
+        var isApp = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
         var start = function () {
           if (el.classList.contains('hs-play')) return;
-          liftAndroidLaunch(); play();
+          play();
           // how smoothly the animation's frames came (checked by the Android test build)
           var tr = window.__hsTrace = { frames: 0, maxGap: 0, slow: 0 }, last = 0, t0 = performance.now();
           var tick = function (t) { if (last) { var g = t - last; tr.frames++; if (g > tr.maxGap) tr.maxGap = Math.round(g); if (g > 50) tr.slow++; } last = t; if (t - t0 < 2500) requestAnimationFrame(tick); };
           requestAnimationFrame(tick);
         };
-        window.__hsResume = function () { window.__ysSwitching = 0; start(); };
-        // Android app with a newer version already downloaded: the app switches
-        // to it straight away (one quick reload). Android's launch screen stays
-        // up meanwhile, so the animation plays once, from the start, in the new
-        // version — never cut off half-way. (Safety: carry on after 4 s anyway.)
-        if (window.__ysSwitching) setTimeout(window.__hsResume, 4000);
-        else requestAnimationFrame(function () { requestAnimationFrame(start); });
+        window.__hsPlay = start;
+        // Android app: Android's launch screen (the same logo circle) stays up
+        // until this scene is drawn; the app then fades it away and calls
+        // __hsPlay at that moment, so the animation starts exactly when it's seen.
+        var tellApp = function () {
+          if (window.__ysSwitching) return;
+          try {
+            if (cap.isPluginAvailable && cap.isPluginAvailable('YSLaunch')) {
+              cap.nativePromise('YSLaunch', 'ready', {}).catch(function () {});
+              setTimeout(start, 1800);            // in case the app never calls back
+            } else {                              // older app versions
+              cap.nativePromise('SplashScreen', 'hide', { fadeOutDuration: 180 }).catch(function () {});
+              start();
+            }
+          } catch (e) { start(); }
+        };
+        window.__hsResume = function () { window.__ysSwitching = 0; tellApp(); };
+        if (!isApp) { requestAnimationFrame(function () { requestAnimationFrame(start); }); return; }
+        // A newer app version is about to be switched to (one quick reload):
+        // Android's launch screen stays up and the animation plays once, in the
+        // new version — never cut off half-way. (Safety: carry on after 4 s.)
+        if (window.__ysSwitching) { setTimeout(window.__hsResume, 4000); return; }
+        // the logo is ready to draw → tell the app (or after 300 ms anyway)
+        var sent = false, send = function () { if (!sent) { sent = true; tellApp(); } };
+        try {
+          var imgs = el.querySelectorAll('img'), ps = [];
+          for (var i = 0; i < imgs.length; i++) if (imgs[i].decode) ps.push(imgs[i].decode().catch(function () {}));
+          if (ps.length && window.Promise) Promise.all(ps).then(function () { requestAnimationFrame(send); setTimeout(send, 60); });
+        } catch (e) {}
+        setTimeout(send, 300);
       })();
     </script>
 

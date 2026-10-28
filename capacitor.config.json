@@ -17,10 +17,10 @@
   },
   "plugins": {
     "SplashScreen": {
-      "launchAutoHide": false,
-      "backgroundColor": "#003580",
-      "showSpinner": false,
-      "androidScaleType": "CENTER_CROP"
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#001659",
+      "showSpinner": false
     },
     "FirebaseAuthentication": {
       "skipNativeAuth": true,

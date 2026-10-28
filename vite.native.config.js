@@ -26,7 +26,7 @@ d.style.cssText="position:fixed;inset:0;z-index:2147483647;background:#003580;co
 d.innerHTML='<h2 style="margin:0 0 8px">Yojana Sahay could not start</h2><p style="margin:0 0 12px">Please take a screenshot of this screen and send it to yojanasahayofficial@gmail.com.</p><pre style="white-space:pre-wrap;font-size:12px;background:rgba(0,0,0,.25);padding:10px;border-radius:8px;margin:0"></pre><button style="margin-top:14px;padding:11px 18px;border:0;border-radius:10px;font-weight:700;font-size:15px">Try again</button>';
 d.querySelector("pre").textContent=(all.length?all.join("\\n"):"No error message (the app did not draw its screen).")+"\\n\\n"+navigator.userAgent;
 d.querySelector("button").onclick=function(){location.reload()};document.body.appendChild(d);
-try{window.Capacitor&&window.Capacitor.nativePromise&&window.Capacitor.nativePromise("SplashScreen","hide",{})}catch(x){}},9000);})();`;
+try{var C=window.Capacitor;if(C&&C.nativePromise){C.nativePromise("SplashScreen","hide",{}).catch(function(){});if(C.isPluginAvailable&&C.isPluginAvailable("YSLaunch"))C.nativePromise("YSLaunch","ready",{}).catch(function(){})}}catch(x){}},9000);})();`;
 
 // A newer app version is downloaded and will be switched to as soon as the
 // app code runs (src/native/bridge.js, "live update"): tell the launch screen
