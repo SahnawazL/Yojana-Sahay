@@ -54,7 +54,10 @@ jobs:
       - name: Install app + Capacitor packages
         run: |
           npm install --no-audit --no-fund --loglevel=error > "$RUNNER_TEMP/npm.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm.log"; exit 1; }
-          npm install --no-save --no-audit --no-fund --loglevel=error \
+          # Added to package.json on the build machine only (not committed):
+          # Capacitor puts an Android plugin into the app ONLY if it is listed
+          # in package.json — with --no-save every plugin was silently left out.
+          npm install --save --no-audit --no-fund --loglevel=error \
             @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 \
             @capacitor/app@7 @capacitor/share@7 @capacitor/browser@7 \
             @capacitor/splash-screen@7 @capacitor/status-bar@7 \
@@ -88,6 +91,13 @@ jobs:
       - name: Create Android project
         run: |
           npx cap add android 2>&1 | tee "$RUNNER_TEMP/cap.log"
+          # every Android plugin the app relies on must be wired into the project
+          for p in capacitor-app capacitor-share capacitor-browser capacitor-splash-screen capacitor-status-bar \
+                   capacitor-filesystem capacitor-community-text-to-speech capacitor-community-speech-recognition \
+                   capacitor-firebase-authentication; do
+            grep -q "':$p'" android/capacitor.settings.gradle || { echo "::error title=Plugin missing::$p is not in the Android project"; cat android/capacitor.settings.gradle; exit 1; }
+          done
+          echo "::notice title=Plugins::$(grep -c "^include ':capacitor-" android/capacitor.settings.gradle) Android plugins wired in"
           if [ "$YS_NATIVE_FIREBASE" = "1" ]; then cp "$RUNNER_TEMP/google-services.json" android/app/google-services.json; fi
 
       - name: App icons
@@ -132,6 +142,10 @@ jobs:
           "$BT/aapt2" dump badging "$APK" | grep -E "^package|targetSdkVersion|sdkVersion|application-label:" | tee "$RUNNER_TEMP/badging.txt"
           # the app's own files are inside the APK, and the Android integrations are wired
           unzip -l "$APK" | grep -q "assets/public/index.html" || { echo "::error::app files missing from APK"; exit 1; }
+          PJ=$(unzip -p "$APK" assets/capacitor.plugins.json)
+          for c in App Share Browser SplashScreen StatusBar Filesystem TextToSpeech SpeechRecognition FirebaseAuthentication; do
+            echo "$PJ" | grep -qE "\\.${c}(Plugin)?\"" || { echo "::error title=Plugin missing in APK::$c"; echo "$PJ"; exit 1; }
+          done
           M=$("$BT/aapt2" dump xmltree --file AndroidManifest.xml "$APK")
           echo "$M" | grep -q "android.intent.action.SEND" || { echo "::error::share-to-app missing"; exit 1; }
           echo "$M" | grep -q '"yojanasahay"' || { echo "::error::shortcut links missing"; exit 1; }
@@ -139,7 +153,7 @@ jobs:
           "$BT/aapt2" dump resources "$APK" | grep -q "ic_launcher_monochrome" || { echo "::error::Yojana Sahay app icon missing (placeholder icon would show)"; exit 1; }
           echo "$M" | grep -q "android.permission.RECORD_AUDIO" || { echo "::error::microphone permission missing (voice input)"; exit 1; }
           echo "$M" | grep -q "android.intent.action.TTS_SERVICE" || echo "::warning::text-to-speech query missing (read-aloud may be silent on Android 11+)"
-          echo "::notice title=Checks::app files inside APK ✓ · share-to-app ✓ · shortcuts ✓ · mic ✓ · app icon ✓ · $(unzip -l "$APK" | tail -n 1 | awk '{print int($1/1048576)" MB uncompressed"}')"
+          echo "::notice title=Checks::app files inside APK ✓ · share-to-app ✓ · shortcuts ✓ · mic ✓ · app icon ✓ · 9 Android plugins ✓ · $(unzip -l "$APK" | tail -n 1 | awk '{print int($1/1048576)" MB uncompressed"}')"
           SHA1=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA1:" | sed 's/.*SHA1: //')
           SHA256=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA256:" | sed 's/.*SHA256: //')
           echo "::notice title=Add to Firebase (Android app → SHA certificate fingerprints)::SHA-1 $SHA1 · SHA-256 $SHA256"
