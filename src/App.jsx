@@ -6301,8 +6301,10 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     }).catch(err=>{
       if(native){
         // cancelled the account picker → just stop the spinner
-        const cancelled=/cancel/i.test(String(err&&(err.code||err.message)||""));
-        if(!cancelled) setAuthError(err.message||"Google sign-in failed. Please try again.");
+        const msg=String(err&&(err.code||err.message)||"");
+        const cancelled=/cancel/i.test(msg);
+        if(/no credentials/i.test(msg)) setAuthError(isHindi?"इस फ़ोन में कोई Google खाता नहीं मिला। सेटिंग्स में Google खाता जोड़ें या ईमेल से साइन इन करें।":"No Google account found on this phone. Add one in Settings → Accounts, or sign in with email below.");
+        else if(!cancelled) setAuthError(err.message||"Google sign-in failed. Please try again.");
         setGoogleLoading(false);
         return;
       }
