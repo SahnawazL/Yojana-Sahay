@@ -172,6 +172,8 @@ jobs:
           fi
           PERMS=$("$BT/aapt2" dump permissions "$APK" | grep -o "name='[^']*'" | sed "s/name='//;s/'//" | sort -u | tr '\n' ' ')
           echo "::notice title=Permissions::$PERMS"
+          SVC=$("$BT/aapt2" dump xmltree --file AndroidManifest.xml "$APK" | awk '/E: service/{f=1} f&&/android:name|foregroundServiceType/{print} /E: (activity|receiver|provider)/{f=0}' | sed 's/^ *//' | tr '\n' ' ')
+          echo "::notice title=Services::$SVC"
           echo "$PERMS" | grep -q "AD_ID" && echo "::warning title=Advertising ID::the app declares AD_ID — declare it in Play Console or remove it" || true
           "$BT/aapt2" dump resources "$APK" | grep -q "ic_launcher_monochrome" || { echo "::error::Yojana Sahay app icon missing (placeholder icon would show)"; exit 1; }
           echo "$M" | grep -q "android.permission.RECORD_AUDIO" || { echo "::error::microphone permission missing (voice input)"; exit 1; }
