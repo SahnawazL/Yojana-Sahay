@@ -270,20 +270,28 @@ function useCountUp(targets, trigger, duration=1400){
   useEffect(()=>{ targetsRef.current=targets; },[targets]);
   useEffect(()=>{ durationRef.current=duration; },[duration]);
 
+  // A target that arrives late (slow connection: "Indians helped" after the
+  // first animation already ran with 0) animates on from where it is.
+  const targetsKey=targets.join(",");
+  const countsRef=useRef(counts);
   useEffect(()=>{
     const t=targetsRef.current;
     const d=durationRef.current;
-    if(!trigger){setCounts(t.map(()=>0));return;}
+    if(!trigger){const z=t.map(()=>0);countsRef.current=z;setCounts(z);return;}
+    const from=countsRef.current.length===t.length?countsRef.current:t.map(()=>0);
+    if(t.every((v,i)=>from[i]===v)) return;
     const start=performance.now();
     const step=(now)=>{
       const p=Math.min((now-start)/d,1);
       const ease=1-Math.pow(1-p,3); // cubic ease-out
-      setCounts(t.map(v=>Math.floor(ease*v)));
+      const next=t.map((v,i)=>Math.floor(from[i]+(v-from[i])*ease));
+      countsRef.current=next;
+      setCounts(next);
       if(p<1) raf.current=requestAnimationFrame(step);
     };
     raf.current=requestAnimationFrame(step);
     return()=>{if(raf.current)cancelAnimationFrame(raf.current);};
-  },[trigger]); // trigger is the only true re-run signal; targets/duration read via refs
+  },[trigger,targetsKey]); // targets/duration read via refs; targetsKey re-runs on a changed value
   return counts;
 }
 // ─── HAPTIC FEEDBACK ───────────────────────────────────────────────────────────
@@ -6664,15 +6672,16 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         </div>
       </div>
 
-      {/* ── OR divider before Phone ── */}
-      <div style={{display:"flex",alignItems:"center",gap:10,padding:"2px 28px 10px"}}>
+      {/* ── OR divider before Phone ── (hidden in the Android app with the box below:
+           store reviewers treat a disabled "coming soon" feature as an unfinished app) */}
+      <div style={{display:isAndroidApp()?"none":"flex",alignItems:"center",gap:10,padding:"2px 28px 10px"}}>
         <div style={{flex:1,height:1,background:dark?"#3a3a3c":"#e8e8e8"}}/>
         <span style={{fontSize:10,fontWeight:600,color:dark?"#444":"#ccc",letterSpacing:0.5}}>OR</span>
         <div style={{flex:1,height:1,background:dark?"#3a3a3c":"#e8e8e8"}}/>
       </div>
 
       {/* ── Phone Sign-In (visible but COMING SOON — remove opacity + pointerEvents when billing is enabled) ── */}
-      <div style={{opacity:0.5,pointerEvents:"none",margin:"0 16px 20px"}}>
+      <div style={{opacity:0.5,pointerEvents:"none",margin:"0 16px 20px",display:isAndroidApp()?"none":undefined}}>
         <div style={{background:dark?"#1c1c1e":"#fff",borderRadius:20,padding:20,
           border:`1.5px solid ${dark?"#3a3a3c":"#f0e8d8"}`,
           position:"relative",overflow:"hidden",
