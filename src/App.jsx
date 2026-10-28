@@ -10949,12 +10949,21 @@ function YojanaSahayInner(){
         .catch(()=>{ if(!cancelled) setLiveCheckerTotal(prev=>prev??0); });
     };
     const fallback=setTimeout(()=>{ if(!cancelled) setLiveCheckerTotal(prev=>prev??0); },8000);
-    fetch("/api/stats")
-      .then(res=>{ if(!res.ok) throw new Error("stats proxy returned "+res.status); return res.json(); })
-      .then(data=>{ applyTotal(data.checkerTotal??0); })
-      .catch(directFirestoreFallback)
-      .finally(()=>clearTimeout(fallback));
-    return()=>{ cancelled=true; clearTimeout(fallback); };
+    // A phone app is often opened before its connection is ready — so a failed
+    // read is retried (after 4 s and 12 s), and again whenever the app comes
+    // back to the screen, instead of leaving "—" until the next launch.
+    let got=false, timer=null;
+    const attempt=(n)=>{
+      fetch("/api/stats")
+        .then(res=>{ if(!res.ok) throw new Error("stats proxy returned "+res.status); return res.json(); })
+        .then(data=>{ got=true; applyTotal(data.checkerTotal??0); })
+        .catch(()=>{ if(cancelled) return; if(n<2) timer=setTimeout(()=>attempt(n+1),n===0?4000:12000); else directFirestoreFallback(); })
+        .finally(()=>{ if(got||n>=2) clearTimeout(fallback); });
+    };
+    attempt(0);
+    const onVisible=()=>{ if(!got&&!cancelled&&document.visibilityState==="visible") attempt(2); };
+    document.addEventListener("visibilitychange",onVisible);
+    return()=>{ cancelled=true; clearTimeout(fallback); clearTimeout(timer); document.removeEventListener("visibilitychange",onVisible); };
   },[]);
 
   // Persist profile across page refreshes — localStorage + IndexedDB mirror
