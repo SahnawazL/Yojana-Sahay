@@ -46,7 +46,9 @@ try {
   const sharp = (await import("sharp")).default;
   const fsx = await import("node:fs");
   adb("shell am force-stop com.yojanasahay.app"); await new Promise(r => setTimeout(r, 1500));
+  const devStart = Number(adb("shell date +%s%3N")) || 0;
   adb("shell am start -n com.yojanasahay.app/.MainActivity");
+  globalThis.__devStart = devStart;
   const t0 = Date.now(), lines = [];
   for (const at of [500, 1100, 1700, 2300, 2900, 3500, 4300, 5200]) {
     const wait = at - (Date.now() - t0); if (wait > 0) await new Promise(r => setTimeout(r, wait));
@@ -59,6 +61,15 @@ try {
   await new Promise(r => setTimeout(r, 4000));
 } catch (e) { out("launch frames", "FAILED " + e.message); }
 await connect();
+out("launch timing (ms after tapping the icon)", await ev((dev) => {
+  const nav = performance.timeOrigin - dev;
+  const paint = Object.fromEntries(performance.getEntriesByType("paint").map(p => [p.name, Math.round(nav + p.startTime)]));
+  const t = performance.getEntriesByType("navigation")[0] || {};
+  return { pageStarts: Math.round(nav), firstPaint: paint["first-paint"], firstContentfulPaint: paint["first-contentful-paint"],
+           htmlParsed: Math.round(nav + (t.domInteractive || 0)), appCodeRan: Math.round(nav + (t.domContentLoadedEventEnd || 0)),
+           splashPlay: typeof window.__hsStart === "number" ? Math.round(nav + window.__hsStart) : null,
+           splashShown: !!document.getElementById("html-splash") || "removed" };
+}, globalThis.__devStart || 0));
 const T = (ms) => new Promise(r => setTimeout(r, ms));
 const page = { url: () => target.url };
 const ev = async (fn, arg) => {
