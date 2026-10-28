@@ -50,7 +50,7 @@ try {
   adb("shell am start -n com.yojanasahay.app/.MainActivity");
   globalThis.__devStart = devStart;
   const t0 = Date.now(), lines = [];
-  for (const at of [3500, 4800, 5300, 5800, 6300, 6800, 7400, 8200, 9200]) {
+  for (const at of [2200, 2900, 3500, 4100, 4700, 5300, 6000, 6800, 7800]) {
     const wait = at - (Date.now() - t0); if (wait > 0) await new Promise(r => setTimeout(r, wait));
     const png = execSync("adb exec-out screencap -p", { maxBuffer: 64 * 1024 * 1024 });
     const jpg = await sharp(png).resize(216).jpeg({ quality: 42 }).toBuffer();
