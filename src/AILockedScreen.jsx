@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { HaloMark } from "./HaloMark.jsx";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -102,24 +103,6 @@ const ACCENT_COLORS = ["#A78BFA", "#60A5FA", "#34D399", "#F472B6", "#FBBF24", "#
 
 // ─── SVG ICONS ────────────────────────────────────────────────────────────────
 
-function AshokaChakra({ size = 20, color = "#06038D", spinning = false }) {
-  const spokes = Array.from({ length: 24 }, (_, i) => i);
-  const cx = size / 2, cy = size / 2, r = size / 2 - 1, innerR = r * 0.28;
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
-      style={{ flexShrink: 0, animation: spinning ? "chakra-spin 9s linear infinite" : "none" }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={size * 0.055} />
-      <circle cx={cx} cy={cy} r={innerR} fill={color} />
-      {spokes.map(i => {
-        const a = (i * 360 / 24) * Math.PI / 180;
-        return <line key={i}
-          x1={cx + innerR * Math.cos(a)} y1={cy + innerR * Math.sin(a)}
-          x2={cx + r * 0.78 * Math.cos(a)} y2={cy + r * 0.78 * Math.sin(a)}
-          stroke={color} strokeWidth={size * 0.042} />;
-      })}
-    </svg>
-  );
-}
 
 function LockIcon({ size = 14, color = "#888" }) {
   return (
@@ -888,7 +871,7 @@ export default function AILockedScreen({
           </div>
 
           <div style={{ flex: 1 }} />
-          <AshokaChakra size={26} color="rgba(255,255,255,0.18)" spinning />
+          <HaloMark size={26} color="rgba(255,255,255,0.18)" />
         </div>
       </div>
 
@@ -1074,7 +1057,7 @@ export default function AILockedScreen({
           display: "flex", alignItems: "center", gap: 7,
           marginBottom: 9, paddingLeft: 2,
         }}>
-          <AshokaChakra size={13} color={dark ? "#A78BFA" : "#7C3AED"} />
+          <HaloMark size={13} color={dark ? "#A78BFA" : "#7C3AED"} />
           <span style={{
             fontSize: 9.5, fontWeight: 700, color: th.textSub,
             letterSpacing: 1.0, textTransform: "uppercase", fontFamily: bf,

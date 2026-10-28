@@ -72,7 +72,7 @@ const APP = {
     "Eligibility quiz: asks about occupation, income, state, housing, age, area",
     "Suggested follow-up chips after each AI response",
     "Reading-time cooldown for rural users (10–15s after each reply)",
-    "Light / dark mode, Ashok Chakra animation in header",
+    "Light / dark mode, animated orbit mark in the header",
     "Powered by Groq AI (openai/gpt-oss-120b) via Vercel serverless API",
     "Web search powered by Tavily for real-time scheme updates",
   ],
@@ -222,7 +222,7 @@ function buildCountGuidance(lang, context = "total") {
 1. नीचे नेविगेशन बार में **"योजनाएं"** टैब पर टैप करें
 2. सबसे ऊपर **"सभी योजनाएं"** पिल में लाइव कुल संख्या दिखती है
 3. श्रेणी के अनुसार: 🌾 किसान · 📚 छात्र · 👩 महिला · 👴 वरिष्ठ · 💼 व्यापार · 🏠 आवास — किसी भी पिल पर टैप करें
-4. अपने राज्य की योजनाएं: ऊपर दाईं ओर **"🇮🇳 सभी राज्य"** बटन → अपना राज्य चुनें`;
+4. अपने राज्य की योजनाएं: ऊपर दाईं ओर **"🗺️ सभी राज्य"** बटन → अपना राज्य चुनें`;
 
     if (context === "state") {
       return base + `\n5. राज्य चुनने के बाद **"सभी योजनाएं"** पिल में केवल उस राज्य की + केंद्रीय योजनाएं दिखेंगी`;
@@ -237,7 +237,7 @@ function buildCountGuidance(lang, context = "total") {
 1. Tap the **"Schemes"** tab in the bottom navigation bar
 2. The **"All Schemes"** pill at the top shows the live total — updates whenever new schemes are added
 3. By category: tap 🌾 Farmer · 📚 Student · 👩 Women · 👴 Senior · 💼 Business · 🏠 Housing to see each category's count
-4. By state: tap the **"🇮🇳 All States"** button (top-right) → select your state`;
+4. By state: tap the **"🗺️ All States"** button (top-right) → select your state`;
 
   if (context === "state") {
     return base + `\n5. After selecting a state, the **"All Schemes"** pill shows only that state's schemes + Central schemes`;

@@ -422,7 +422,7 @@ if (Capacitor.isNativePlatform()) {
   // below the status bar and above the keyboard / navigation bar)
   StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
   // Android's launch screen steps aside as soon as the app can draw, so the
-  // app's own animated launch screen (#html-splash in index.html — chakra,
+  // app's own animated launch screen (#html-splash in index.html — aurora, orbit rings,
   // particles, logo) is what people see while the app loads.
   const hide = () => SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {});
   requestAnimationFrame(() => requestAnimationFrame(hide));

@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { HaloMark, BRAND_GRADIENT } from "./HaloMark.jsx";
 import { TERMS } from "./legalText.js";
 import { STATE_COUNT } from "./schemeStats.js";
 import appLogo from "./logo.webp";
@@ -94,7 +95,7 @@ const STRINGS = {
   en: {
     appName:      "YojanaSahay",
     tagline:      "India's free scheme discovery app",
-    madeInIndia:  "Made in India 🇮🇳",
+    madeInIndia:  "Made in India",
     version:      "Version 1.6",
 
     missionTitle: "Our Mission",
@@ -259,7 +260,7 @@ const STRINGS = {
     ackBody:  "YojanaSahay is built on open-source tools and publicly available resources. We gratefully acknowledge the following:",
     ackItems: [
       { icon:"⚛️",  name:"React",                note:"UI library — Meta Open Source" },
-      { icon:"🇮🇳", name:"Digital India Spirit", note:"Built in the spirit of making government services more accessible to every Indian citizen" },
+      { icon:"💡", name:"Digital India Spirit", note:"Built in the spirit of making government services more accessible to every Indian citizen" },
       { icon:"📖",  name:"Open Source Community",note:"The libraries and tools that power this platform, freely available to all developers" },
     ],
 
@@ -276,7 +277,7 @@ const STRINGS = {
   hi: {
     appName:      "योजना सहाय",
     tagline:      "निःशुल्क योजना सहायक",
-    madeInIndia:  "मेड इन इंडिया 🇮🇳",
+    madeInIndia:  "मेड इन इंडिया",
     version:      "संस्करण 1.6",
 
     missionTitle: "हमारा उद्देश्य",
@@ -424,7 +425,7 @@ const STRINGS = {
     ackBody:  "योजना सहाय ओपन-सोर्स टूल्स और सार्वजनिक रूप से उपलब्ध संसाधनों पर निर्मित है। हम निम्नलिखित का कृतज्ञतापूर्वक उल्लेख करते हैं:",
     ackItems: [
       { icon:"⚛️",  name:"React",                note:"UI लाइब्रेरी — Meta ओपन सोर्स" },
-      { icon:"🇮🇳", name:"डिजिटल इंडिया भावना", note:"हर भारतीय नागरिक तक सरकारी सेवाएं सुलभ बनाने की भावना से निर्मित" },
+      { icon:"💡", name:"डिजिटल इंडिया भावना", note:"हर भारतीय नागरिक तक सरकारी सेवाएं सुलभ बनाने की भावना से निर्मित" },
       { icon:"📖",  name:"ओपन सोर्स समुदाय",   note:"इस प्लेटफ़ॉर्म को शक्ति देने वाले टूल्स और लाइब्रेरी, सभी डेवलपर्स के लिए निःशुल्क" },
     ],
 
@@ -439,30 +440,6 @@ const STRINGS = {
   },
 };
 
-// ─── ASHOKA CHAKRA (24-spoke SVG, same geometry as original) ─────────────────
-function AshokaChakra({ size = 18, color = ASHOKA_BLUE, spinning = false }) {
-  const spokes = Array.from({ length: 24 }, (_, i) => i);
-  const cx = size / 2, cy = size / 2, r = size / 2 - 1, innerR = r * 0.28;
-  return (
-    <svg
-      width={size} height={size} viewBox={`0 0 ${size} ${size}`}
-      style={{ flexShrink: 0, animation: spinning ? "ys-chakra-spin 14s linear infinite" : "none" }}
-    >
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={size * 0.055} />
-      <circle cx={cx} cy={cy} r={innerR} fill={color} />
-      {spokes.map(i => {
-        const a = (i * 360 / 24) * Math.PI / 180;
-        return (
-          <line key={i}
-            x1={cx + innerR * Math.cos(a)} y1={cy + innerR * Math.sin(a)}
-            x2={cx + r * 0.78 * Math.cos(a)} y2={cy + r * 0.78 * Math.sin(a)}
-            stroke={color} strokeWidth={size * 0.042}
-          />
-        );
-      })}
-    </svg>
-  );
-}
 
 // ─── PREMIUM SECTION HEADER ───────────────────────────────────────────────────
 function SectionHeader({ title, accent = NAVY, dark, bf, eyebrow }) {
@@ -964,13 +941,13 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
           pointerEvents: "none",
         }} />
 
-        {/* Large watermark Chakra */}
+        {/* Large animated orbit watermark */}
         <div style={{
           position: "absolute", top: "50%", right: -30,
           transform: "translateY(-50%)",
           opacity: 0.04, pointerEvents: "none",
         }}>
-          <AshokaChakra size={200} color="#FFFFFF" spinning />
+          <HaloMark size={200} color="#FFFFFF" spinning />
         </div>
 
         {/* Subtle dot-grid texture */}
@@ -1029,14 +1006,8 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
             {s.appName}
           </div>
 
-          {/* Tricolour accent bar */}
-          <div style={{ display: "flex", alignItems: "center", gap: 3, marginBottom: 12 }}>
-            <div style={{ height: 3, width: 36, borderRadius: 3, background: SAFFRON }} />
-            <div style={{ height: 3, width: 3, borderRadius: "50%", background: "rgba(255,255,255,0.6)" }} />
-            <div style={{ height: 3, width: 16, borderRadius: 3, background: "rgba(255,255,255,0.9)" }} />
-            <div style={{ height: 3, width: 3, borderRadius: "50%", background: "rgba(255,255,255,0.6)" }} />
-            <div style={{ height: 3, width: 36, borderRadius: 3, background: IND_GREEN }} />
-          </div>
+          {/* Brand accent bar */}
+          <div style={{ height: 3, width: 96, borderRadius: 3, marginBottom: 12, background: BRAND_GRADIENT }} />
 
           {/* Tagline */}
           <div style={{
@@ -2851,7 +2822,7 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
                 if (typeof navigator !== "undefined" && navigator.share) {
                   navigator.share({
                     title: "YojanaSahay — India's Free Scheme Discovery",
-                    text: "Find government schemes you qualify for. Free, bilingual, and made in India 🇮🇳",
+                    text: "Find government schemes you qualify for. Free, bilingual, and made in India.",
                     url: "https://yojanasahay.vercel.app",
                   }).catch(() => {/* user cancelled or not supported — silent fail */});
                 }
@@ -2985,9 +2956,9 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
             textAlign: "center",
           }}>
 
-            {/* Brand mark — Chakra + wordmark */}
+            {/* Brand mark — orbit mark + wordmark */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, marginBottom: 6 }}>
-              <AshokaChakra size={20} color={ASHOKA_BLUE} spinning />
+              <HaloMark size={20} color={ASHOKA_BLUE} />
               <span style={{
                 fontSize: 13, fontWeight: 800, letterSpacing: 1.8,
                 textTransform: "uppercase", fontFamily: bf,

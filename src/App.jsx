@@ -18,6 +18,7 @@ import { nicheAudience, groupByAudience, audienceApplies as audienceAppliesShare
 import { useApplications, initApplications, mergeRemote, setRemoteWriter, trackApplication, updateApplication, snoozeApplication, removeApplication, isDueForCheck, daysSince, STATUS_TEXT, CHECK_AFTER_DAYS } from "./applications.js";
 import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamily, initFamily, saveMember, removeMember } from "./family.js";
 import { pushState, enablePush, disablePush, isAndroidApp } from "./push.js";
+import { HaloMark, BRAND_GRADIENT } from "./HaloMark.jsx";
 import { track } from "./track.js";
 import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import { createPortal } from "react-dom";
@@ -798,46 +799,10 @@ const THEME={
   }
 };
 
-// ─── ASHOKA CHAKRA SVG (24-spoke wheel) ────────────────────────────────────────
-// Stable index array — never changes, no reason to recreate it per render
-const SPOKE_INDICES=Array.from({length:24},(_,i)=>i);
-// Cache of precomputed spoke coords keyed by size (sizes used: 18, 22, 24 …)
-const _spokeCoordsCache=new Map();
-function getSpokeCoords(size){
-  if(_spokeCoordsCache.has(size))return _spokeCoordsCache.get(size);
-  const cx=size/2,cy=size/2,r=size/2-1,innerR=r*0.28;
-  const coords=SPOKE_INDICES.map(i=>{
-    const a=(i*360/24)*Math.PI/180;
-    return{i,x1:cx+innerR*Math.cos(a),y1:cy+innerR*Math.sin(a),x2:cx+r*0.78*Math.cos(a),y2:cy+r*0.78*Math.sin(a)};
-  });
-  _spokeCoordsCache.set(size,coords);
-  return coords;
-}
-function AshokaChakra({size=18,color=ASHOKA_BLUE,spinning=false}){
-  const cx=size/2,cy=size/2,r=size/2-1,innerR=r*0.28;
-  const spokeCoords=getSpokeCoords(size);
-  return(
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
-      style={{flexShrink:0,animation:spinning?"chakra-spin 3s linear infinite":"none"}}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={size*0.055}/>
-      <circle cx={cx} cy={cy} r={innerR} fill={color}/>
-      {spokeCoords.map(({i,x1,y1,x2,y2})=>(
-        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={size*0.042}/>
-      ))}
-    </svg>
-  );
-}
-
+// ─── BRAND MARK ───────────────────────────────────────────────────────────────
+// No national symbols anywhere (independent app): the animated orbit mark from
+// src/HaloMark.jsx is used for loaders, badges and watermarks.
 // ─── TRANSLATIONS ──────────────────────────────────────────────────────────────
-// Precomputed spoke lines for the fixed 220×220 decorative watermark chakra
-// (cx=110, cy=110, r=100, ir=28 — never changes)
-const WATERMARK_SPOKES=(()=>{
-  const cx=110,cy=110,r=100,ir=28;
-  return SPOKE_INDICES.map(i=>{
-    const a=(i*360/24)*Math.PI/180;
-    return{i,x1:cx+ir*Math.cos(a),y1:cy+ir*Math.sin(a),x2:cx+r*0.78*Math.cos(a),y2:cy+r*0.78*Math.sin(a)};
-  });
-})();
 const T = {
   en: {
     appName:"Yojana Sahay", appSub:"Scheme Discovery Platform",
@@ -869,7 +834,7 @@ const T = {
       "Each scheme has its own application process and is verified separately by its respective government department.",
       "Keep your documents accurate and ready — incomplete or incorrect documents are the most common reason eligible applicants get rejected.",
     ],
-    centralLabel:"🇮🇳 Central", stateLabel:(s)=>s,
+    centralLabel:"🏛️ Central", stateLabel:(s)=>s,
     noMatchTitle:"No exact matches", noMatchSub:"Try a different state or change your answers",
     retakeBtn:"Retake", doneBtn:"Done", fixAnswerBtn:"← Fix my answer",
     applyLabel:"How to Apply", docsLabel:"Documents Needed", totalBenefit:"Total annual benefit",
@@ -1041,7 +1006,7 @@ const T = {
       "हर योजना की अपनी अलग आवेदन प्रक्रिया है और संबंधित सरकारी विभाग द्वारा अलग से सत्यापित की जाती है।",
       "अपने दस्तावेज़ सही और तैयार रखें — गलत या अधूरे दस्तावेज़ ही पात्र लोगों के आवेदन रद्द होने की सबसे बड़ी वजह हैं।",
     ],
-    centralLabel:"🇮🇳 केंद्रीय", stateLabel:(s)=>s,
+    centralLabel:"🏛️ केंद्रीय", stateLabel:(s)=>s,
     noMatchTitle:"कोई मिलान नहीं", noMatchSub:"राज्य या जवाब बदलकर दोबारा कोशिश करें",
     retakeBtn:"फिर से", doneBtn:"पूरा हुआ", fixAnswerBtn:"← जवाब ठीक करें",
     applyLabel:"आवेदन कैसे करें", docsLabel:"ज़रूरी दस्तावेज़", totalBenefit:"कुल वार्षिक लाभ",
@@ -2212,7 +2177,7 @@ function CategorySheet({category,lang,onClose,dark=false,onOpenDetail=null}){
               <div style={{display:"flex",alignItems:"center",gap:8,margin:"14px 0 10px"}}>
                 <div style={{height:1,flex:1,background:th.border2}}/>
                 <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",background:"#EFF6FF",borderRadius:20,padding:"3px 10px",border:"1px solid #BFDBFE"}}>
-                  🇮🇳 {t.centralSchemes} ({nationalSchemes.length})
+                  🏛️ {t.centralSchemes} ({nationalSchemes.length})
                 </span>
                 <div style={{height:1,flex:1,background:th.border2}}/>
               </div>
@@ -2565,7 +2530,7 @@ function SchemeDetailSheet({schemeId,lang,onClose,dark=false,onSignIn=null,userN
         ?(isHindi?`आवेदन करें: ${applyUrl}`:`Apply here: ${applyUrl}`)
         :(isHindi?`आवेदन: ${applyHelpText(scheme.apply[lang],true)}`:`How to apply: ${applyHelpText(scheme.apply[lang],false)}`),
       "",
-      isHindi?"🇮🇳 पूरी जानकारी और मुफ्त पात्रता जांच — ऊपर दिया लिंक खोलें":"🇮🇳 Full details & free eligibility check — open the link above",
+      isHindi?"🔎 पूरी जानकारी और मुफ्त पात्रता जांच — ऊपर दिया लिंक खोलें":"🔎 Full details & free eligibility check — open the link above",
     ];
     window.open(`https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`,"_blank");
   };
@@ -2959,7 +2924,7 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
           {/* Stale spinner while deferred query is catching up */}
           {isStale&&(
             <div style={{flexShrink:0}}>
-              <AshokaChakra size={15} color={SAFFRON} spinning={true}/>
+              <HaloMark size={15} color={SAFFRON} spinning={true}/>
             </div>
           )}
           {query&&!isStale&&(
@@ -3000,7 +2965,7 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
                 <div style={{height:1,flex:1,background:th.border2}}/>
                 <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",background:"#EFF6FF",borderRadius:20,padding:"3px 10px",border:"1px solid #BFDBFE"}}>
-                  🇮🇳 {t.centralSchemes} ({national.length})
+                  🏛️ {t.centralSchemes} ({national.length})
                 </span>
                 <div style={{height:1,flex:1,background:th.border2}}/>
               </div>
@@ -3035,7 +3000,7 @@ function SearchTab({lang,dark=false,onOpenDetail=null}){
           {/* Auto load-more sentinel */}
           {hasMore&&(
             <div ref={sentinelRef} style={{padding:"18px 0",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-              <AshokaChakra size={15} color={SAFFRON} spinning={true}/>
+              <HaloMark size={15} color={SAFFRON} spinning={true}/>
               <span style={{fontSize:12,color:th.textSub,fontFamily:bf}}>
                 {isHindi?"और योजनाएं लोड हो रही हैं...":"Loading more schemes…"}
               </span>
@@ -3190,7 +3155,7 @@ function StatePickerSheet({selectedState,onSelect,onClose,lang,dark=false}){
               style={{display:"flex",alignItems:"center",gap:12,padding:"13px 20px",
                 background:selectedState==="all"?(dark?"rgba(122,165,255,0.14)":ASHOKA_BLUE+"10"):"transparent",
                 cursor:"pointer",borderBottom:`1px solid ${th.border}`}}>
-              <span style={{fontSize:18}}>🇮🇳</span>
+              <span style={{fontSize:18}}>🗺️</span>
               <span style={{flex:1,fontSize:14,fontWeight:selectedState==="all"?700:500,
                 color:selectedState==="all"?(dark?"#7aa5ff":ASHOKA_BLUE):th.text,fontFamily:bf}}>
                 {isHindi?"सभी राज्य":"All States"}
@@ -3547,7 +3512,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
             <div style={{fontSize:17,fontWeight:800,color:th.text,fontFamily:bf}}>{t.allSchemes||"All Schemes"}</div>
             {isStale&&(
               <div style={{width:16,height:16,flexShrink:0}}>
-                <AshokaChakra size={16} color={SAFFRON} spinning={true}/>
+                <HaloMark size={16} color={SAFFRON} spinning={true}/>
               </div>
             )}
           </div>
@@ -3605,7 +3570,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                 border:`1.5px solid ${selectedState==="national"?(dark?"rgba(122,165,255,0.5)":ASHOKA_BLUE):selectedState!=="all"?(dark?STATE_ACCENT_DARK:STATE_ACCENT):th.border2}`,
                 boxShadow:selectedState==="national"?`0 2px 10px ${dark?"rgba(122,165,255,0.3)":ASHOKA_BLUE+"28"}`:selectedState!=="all"?`0 2px 10px ${dark?STATE_ACCENT_DARK:STATE_ACCENT}28`:"0 1px 4px rgba(0,0,0,0.06)",
               }}>
-              <span style={{fontSize:14,lineHeight:1}}>{selectedState==="national"?"🏛️":"🇮🇳"}</span>
+              <span style={{fontSize:14,lineHeight:1}}>{selectedState==="national"?"🏛️":"🗺️"}</span>
               <span style={{fontSize:11,fontWeight:700,color:selectedState==="national"?(dark?"#7aa5ff":ASHOKA_BLUE):selectedState!=="all"?(dark?STATE_ACCENT_DARK:STATE_ACCENT):th.textMid,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:bf}}>
                 {selectedState==="all"?(isHindi?"सभी राज्य":"All States"):selectedState==="national"?t.nationalOnly:selectedState}
               </span>
@@ -3874,7 +3839,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                   {isHindi?"राज्य":"State"} ({stateSchemes.length})
                 </span>
                 {scrollingTo==="state"
-                  ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><AshokaChakra size={11} color="#b45309" spinning={true}/></span>
+                  ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><HaloMark size={11} color="#b45309" spinning={true}/></span>
                   :stateSchemes.length>0&&<span style={{fontSize:9,color:"#b45309",marginLeft:1}}>↓</span>}
               </div>
             )}
@@ -3889,12 +3854,12 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
                   transform:scrollingTo==="central"?"scale(0.93)":"scale(1)",
                   boxShadow:scrollingTo==="central"?"0 0 0 3px #93c5fd80":"none",
                   transition:"background 0.15s,border-color 0.15s,transform 0.15s,box-shadow 0.15s"}}>
-                <span style={{fontSize:11}}>🇮🇳</span>
+                <span style={{fontSize:11}}>🏛️</span>
                 <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",fontFamily:bf}}>
                   {isHindi?"केंद्रीय":"Central"} ({national.length})
                 </span>
                 {scrollingTo==="central"
-                  ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><AshokaChakra size={11} color="#1D4ED8" spinning={true}/></span>
+                  ?<span style={{marginLeft:3,display:"inline-flex",alignItems:"center"}}><HaloMark size={11} color="#1D4ED8" spinning={true}/></span>
                   :national.length>0&&<span style={{fontSize:9,color:"#2563eb",marginLeft:1}}>↓</span>}
               </div>
             )}
@@ -3945,7 +3910,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
               <div ref={centralHeaderRef} style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,marginTop:visibleState.length>0?16:0}}>
                 <div style={{height:1,flex:1,background:th.border2}}/>
                 <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",background:"#EFF6FF",borderRadius:20,padding:"3px 10px",border:"1px solid #3b82f6"}}>
-                  🇮🇳 {t.centralSchemes} ({national.length})
+                  🏛️ {t.centralSchemes} ({national.length})
                 </span>
                 <div style={{height:1,flex:1,background:th.border2}}/>
               </div>
@@ -3962,7 +3927,7 @@ function SchemesTab({lang,dark=false,onOpenDetail=null}){
           {hasMore&&(
             <div ref={loadMoreRef} style={{padding:"18px 0",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
               <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <AshokaChakra size={15} color={SAFFRON} spinning={true}/>
+                <HaloMark size={15} color={SAFFRON} spinning={true}/>
                 <span style={{fontSize:12,color:th.textSub,fontFamily:bf}}>
                   {isHindi?"और योजनाएं लोड हो रही हैं...":"Loading more schemes..."}
                 </span>
@@ -4883,13 +4848,8 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
       style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",opacity:visible?1:0,transition:"opacity 0.25s"}}>
       <div ref={scrollContainerRef} className="elig-sheet" style={{width:"100%",maxWidth:420,margin:"0 auto",background:th.appBg,borderRadius:"24px 24px 0 0",overflowY:"auto",transform:visible?`translateY(${headerDragY}px)`:"translateY(100%)",transition:headerDragActive?"none":"transform 0.35s cubic-bezier(0.32,0.72,0,1)",fontFamily:bf}}>
 
-        {/* Sheet top — Premium Tricolor Stepper */}
-        {/* Tricolor top stripe */}
-        <div style={{display:"flex",height:5,borderRadius:"24px 24px 0 0",overflow:"hidden"}}>
-          <div style={{flex:1,background:SAFFRON}}/>
-          <div style={{flex:1,background:"#fff",borderLeft:"1px solid #f0e8dc",borderRight:"1px solid #dde8dd"}}/>
-          <div style={{flex:1,background:IND_GREEN}}/>
-        </div>
+        {/* Sheet top — brand gradient stripe */}
+        <div style={{height:5,borderRadius:"24px 24px 0 0",background:BRAND_GRADIENT,backgroundSize:"200% 100%",animation:"ys-brand-flow 6s linear infinite"}}/>
         <div ref={stickyHeaderRef}
           onTouchStart={onHeaderTouchStart}
           onTouchMove={onHeaderTouchMove}
@@ -4904,7 +4864,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <div style={{width:38,height:38,borderRadius:11,background:`linear-gradient(135deg,${NAVY_BLUE},${ASHOKA_BLUE})`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 3px 12px rgba(6,3,141,0.28)`,flexShrink:0}}>
-                <AshokaChakra size={22} color="#fff" spinning={step<TOTAL}/>
+                <HaloMark size={22} color="#fff" spinning={step<TOTAL}/>
               </div>
               <div>
                 <div style={{fontSize:15,fontWeight:800,color:th.text,letterSpacing:-0.2,lineHeight:1,fontFamily:bf}}>{t.checkerTitle}</div>
@@ -4937,7 +4897,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                       {done
                         ?<span style={{color:"#fff",fontSize:14,fontWeight:900}}>✓</span>
                         :active
-                          ?<AshokaChakra size={16} color="#fff" spinning={true}/>
+                          ?<HaloMark size={16} color="#fff" spinning={true}/>
                           :<span style={{color:isAdaptive?"#FF9933":"#ccc",fontSize:11,fontWeight:800}}>{i+1}</span>
                       }
                     </div>,
@@ -5003,8 +4963,8 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
             {/* ── Phase 0: Scanning ── */}
             {calcPhase===0&&(
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:22,animation:"reveal-overlay-in 0.45s ease"}}>
-                <div style={{animation:"chakra-spin 0.9s linear infinite",filter:"drop-shadow(0 0 22px rgba(255,153,51,0.65)) drop-shadow(0 0 45px rgba(6,3,141,0.9))"}}>
-                  <AshokaChakra size={112} color={SAFFRON} spinning={false}/>
+                <div style={{filter:"drop-shadow(0 0 22px rgba(255,153,51,0.65)) drop-shadow(0 0 45px rgba(124,92,255,0.8))"}}>
+                  <HaloMark size={112} color={SAFFRON} spinning={true}/>
                 </div>
                 <div>
                   <div style={{fontSize:20,fontWeight:800,color:"#fff",fontFamily:bf,letterSpacing:-0.3,marginBottom:7}}>
@@ -5020,10 +4980,10 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
             {/* ── Phase 1: Icons flying in ── */}
             {calcPhase===1&&(
               <div style={{position:"relative",width:300,height:260,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                {/* Center chakra */}
+                {/* Center mark */}
                 <div style={{position:"relative",zIndex:2,display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
-                  <div style={{animation:"chakra-spin 0.8s linear infinite",filter:"drop-shadow(0 0 18px rgba(255,153,51,0.7)) drop-shadow(0 0 36px rgba(6,3,141,1))"}}>
-                    <AshokaChakra size={74} color={SAFFRON} spinning={false}/>
+                  <div style={{filter:"drop-shadow(0 0 18px rgba(255,153,51,0.7)) drop-shadow(0 0 36px rgba(124,92,255,0.9))"}}>
+                    <HaloMark size={74} color={SAFFRON} spinning={true}/>
                   </div>
                   <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.65)",fontFamily:bf,letterSpacing:0.2}}>
                     {isHindi?"आपकी प्रोफाइल से मिलान…":"Matching to your profile…"}
@@ -5058,12 +5018,8 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                 <div style={{fontSize:18,fontWeight:700,color:"#fff",fontFamily:bf,marginTop:6,letterSpacing:0.2}}>
                   {isHindi?"योजनाएं मिलीं आपके लिए 🎯":"schemes found for you 🎯"}
                 </div>
-                {/* Tricolor bar */}
-                <div style={{display:"flex",margin:"18px auto 0",width:76,height:4,borderRadius:99,overflow:"hidden"}}>
-                  <div style={{flex:1,background:SAFFRON}}/>
-                  <div style={{flex:1,background:"rgba(255,255,255,0.9)"}}/>
-                  <div style={{flex:1,background:IND_GREEN}}/>
-                </div>
+                {/* Brand accent */}
+                <div style={{margin:"18px auto 0",width:76,height:4,borderRadius:99,background:BRAND_GRADIENT,backgroundSize:"200% 100%",animation:"ys-brand-flow 4s linear infinite"}}/>
               </div>
             )}
 
@@ -5346,7 +5302,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                   <div style={{display:"flex",gap:8,position:"relative"}}>
                     <div style={{flex:1,background:"rgba(255,255,255,0.13)",borderRadius:12,padding:"10px 12px",textAlign:"center"}}>
                       <div style={{fontSize:22,fontWeight:900,color:"#fff",lineHeight:1}}>{nationalResults.length}</div>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,0.78)",marginTop:3}}>🇮🇳 {isHindi?"केंद्रीय":"Central"}</div>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.78)",marginTop:3}}>🏛️ {isHindi?"केंद्रीय":"Central"}</div>
                     </div>
                     <div style={{flex:1,background:"rgba(255,255,255,0.13)",borderRadius:12,padding:"10px 12px",textAlign:"center"}}>
                       <div style={{fontSize:22,fontWeight:900,color:"#fff",lineHeight:1}}>{stateResults.length}</div>
@@ -5625,7 +5581,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
                   <>
                     <div style={{display:"flex",alignItems:"center",gap:8,margin:"14px 0 10px"}}>
                       <div style={{height:1,flex:1,background:th.border2}}/>
-                      <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",background:"#EFF6FF",borderRadius:20,padding:"3px 10px",border:"1px solid #BFDBFE"}}>🇮🇳 {t.centralSchemes} ({nationalResults.length})</span>
+                      <span style={{fontSize:11,fontWeight:700,color:"#1D4ED8",background:"#EFF6FF",borderRadius:20,padding:"3px 10px",border:"1px solid #BFDBFE"}}>🏛️ {t.centralSchemes} ({nationalResults.length})</span>
                       <div style={{height:1,flex:1,background:th.border2}}/>
                     </div>
                     {(showAllNational?nationalResults:nationalResults.slice(0,PREVIEW_COUNT)).map((s,idx)=>(
@@ -5884,9 +5840,9 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
 function TriHeader({children,bg="linear-gradient(160deg,#FF9933 0%,#FF8C00 35%,#003580 100%)"}){
   return(
     <div style={{background:bg,paddingTop:44,paddingBottom:24,paddingLeft:24,paddingRight:24,position:"relative",overflow:"hidden",flexShrink:0}}>
-      {/* Large Ashoka Chakra watermark — absolute positioned top-right */}
+      {/* Large orbit-mark watermark — absolute positioned top-right */}
       <div style={{position:"absolute",right:-18,top:12,opacity:0.08,pointerEvents:"none"}}>
-        <AshokaChakra size={150} color="#fff"/>
+        <HaloMark size={150} color="#fff"/>
       </div>
       {/* Subtle decorative ring — bottom-left */}
       <div style={{position:"absolute",left:-45,bottom:-45,width:150,height:150,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.07)",pointerEvents:"none"}}/>
@@ -6436,7 +6392,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           <div style={{display:"inline-flex",alignItems:"center",gap:5,
             background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.28)",
             borderRadius:20,padding:"4px 11px"}}>
-            <AshokaChakra size={11} color="#fff"/>
+            <HaloMark size={11} color="#fff"/>
             <span style={{fontSize:9,fontWeight:800,color:"#fff",letterSpacing:0.9,textTransform:"uppercase"}}>
               {isHindi?"स्वतंत्र प्लेटफ़ॉर्म":"Independent Platform"}
             </span>
@@ -6447,7 +6403,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         <div style={{marginBottom:8}}>
           <div style={{color:"#fff",fontSize:25,fontWeight:900,fontFamily:bf,lineHeight:1.1,letterSpacing:-0.3}}>{pt.signInTitle}</div>
           <div style={{color:"rgba(255,255,255,0.72)",fontSize:11.5,marginTop:5,fontFamily:bf,letterSpacing:0.2}}>
-            🇮🇳&nbsp; Yojana Sahay · Independent Civic Platform
+            ✦&nbsp; Yojana Sahay · Independent Civic Platform
           </div>
         </div>
         <div style={{color:"rgba(255,255,255,0.84)",fontSize:12.5,lineHeight:1.65,fontFamily:bf,marginBottom:12}}>{pt.signInSub}</div>
@@ -6725,7 +6681,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:0,padding:"2px 16px 14px"}}>
         {[
           {icon:"🔒",label:"SSL Secured",col:"#138808"},
-          {icon:"🇮🇳",label:"India Platform",col:"#FF9933"},
+          {icon:"✨",label:"Free & Independent",col:"#FF9933"},
           {icon:"🔥",label:"Firebase Auth",col:"#1a56db"},
         ].map((b,i)=>(
           <div key={i} style={{display:"flex",alignItems:"center",gap:0}}>
@@ -7583,18 +7539,14 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         background:"linear-gradient(160deg,#002060 0%,#003580 50%,#06038D 100%)",
         padding:"44px 20px 0",position:"relative",overflow:"hidden",flexShrink:0,
       }}>
-        {/* Tricolor accent bar at top */}
-        <div style={{position:"absolute",top:0,left:0,right:0,height:4,display:"flex",zIndex:2}}>
-          <div style={{flex:1,background:"#FF9933"}}/>
-          <div style={{flex:1,background:"#fff"}}/>
-          <div style={{flex:1,background:"#138808"}}/>
-        </div>
-        {/* Ashoka Chakra watermarks */}
+        {/* Brand accent bar at top */}
+        <div style={{position:"absolute",top:0,left:0,right:0,height:4,zIndex:2,background:BRAND_GRADIENT,backgroundSize:"200% 100%",animation:"ys-brand-flow 6s linear infinite"}}/>
+        {/* Orbit watermarks */}
         <div style={{position:"absolute",right:-35,top:5,opacity:0.06,pointerEvents:"none"}}>
-          <AshokaChakra size={190} color="#ffffff"/>
+          <HaloMark size={190} color="#ffffff"/>
         </div>
         <div style={{position:"absolute",left:-55,bottom:-15,opacity:0.04,pointerEvents:"none"}}>
-          <AshokaChakra size={160} color="#ffffff"/>
+          <HaloMark size={160} color="#ffffff"/>
         </div>
 
         {/* Signed-in member badge (not a government verification) */}
@@ -7603,7 +7555,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.22)",
           borderRadius:20,padding:"4px 12px 4px 8px",marginBottom:18,backdropFilter:"blur(8px)",
         }}>
-          <AshokaChakra size={13} color="#FF9933"/>
+          <HaloMark size={13} color="#FF9933"/>
           <span style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.9)",letterSpacing:0.9,textTransform:"uppercase"}}>
             {isHindi?"साइन-इन सदस्य":"Signed-in member"}
           </span>
@@ -7705,7 +7657,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             border:"1px solid rgba(255,255,255,0.07)",
           }}>
           <div style={{position:"absolute",right:58,top:"50%",transform:"translateY(-50%)",opacity:0.1,pointerEvents:"none"}}>
-            <AshokaChakra size={68} color="#ffffff"/>
+            <HaloMark size={68} color="#ffffff"/>
           </div>
           <div style={{position:"relative",zIndex:1}}>
             <div style={{color:"#fff",fontSize:15,fontWeight:800,fontFamily:bf,letterSpacing:-0.2}}>{pt.viewSchemes}</div>
@@ -7763,7 +7715,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             borderBottom:`1.5px solid ${dark?"rgba(0,53,128,0.28)":"rgba(0,53,128,0.10)"}`,
             padding:"11px 16px",display:"flex",alignItems:"center",gap:8,
           }}>
-            <AshokaChakra size={14} color={ASHOKA_BLUE}/>
+            <HaloMark size={14} color={ASHOKA_BLUE}/>
             <div style={{fontSize:10.5,fontWeight:700,color:dark?"#7ba7f0":ASHOKA_BLUE,letterSpacing:0.9,textTransform:"uppercase",fontFamily:bf}}>
               {isHindi?"नागरिक प्रोफाइल विवरण":"Citizen Profile Details"}
             </div>
@@ -10380,7 +10332,8 @@ export const APP_STYLES = `
         }
         .fpill-state:active{transform:scale(0.93);transition:transform 0.1s ease;}
 
-        /* ── AshokaChakra spin (moved from inline SVG <style>) ── */
+        /* ── Mark spin (moved from inline SVG <style>) ── */
+        @keyframes ys-brand-flow{0%{background-position:0% 50%}100%{background-position:200% 50%}}
         @keyframes chakra-spin{
           from{transform-box:fill-box;transform-origin:center;transform:rotate(0deg)}
           to{transform-box:fill-box;transform-origin:center;transform:rotate(360deg)}
@@ -11491,15 +11444,9 @@ function YojanaSahayInner(){
               backgroundSize:"20px 20px",
             }}/>
 
-            {/* Decorative: spinning chakra watermark */}
-            <div className="spin" style={{position:"absolute",right:-55,top:-55,width:220,height:220,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.06)",opacity:1,pointerEvents:"none"}}>
-              <svg width="220" height="220" viewBox="0 0 220 220" style={{position:"absolute",inset:0,opacity:0.07}}>
-                {WATERMARK_SPOKES.map(({i,x1,y1,x2,y2})=>(
-                  <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#fff" strokeWidth={3}/>
-                ))}
-                <circle cx="110" cy="110" r="100" fill="none" stroke="#fff" strokeWidth="5"/>
-                <circle cx="110" cy="110" r="28" fill="#fff"/>
-              </svg>
+            {/* Decorative: animated orbit watermark */}
+            <div style={{position:"absolute",right:-55,top:-55,width:220,height:220,opacity:0.13,pointerEvents:"none"}}>
+              <HaloMark size={220} color="#fff"/>
             </div>
             {/* Decorative: saffron orb bottom-left */}
             <div style={{position:"absolute",left:-30,bottom:-20,width:130,height:130,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,153,51,0.18) 0%,transparent 70%)",pointerEvents:"none"}}/>
@@ -11695,20 +11642,18 @@ function YojanaSahayInner(){
               position:"relative",overflow:"hidden",
               margin:"8px 14px 14px",
               background:dark
-                ?"linear-gradient(120deg,rgba(255,153,51,0.14) 0%,rgba(255,255,255,0.03) 40%,rgba(255,255,255,0.03) 60%,rgba(19,136,8,0.14) 100%),#1c1c1e"
-                :"linear-gradient(120deg,rgba(255,153,51,0.10) 0%,rgba(255,255,255,0.9) 40%,rgba(255,255,255,0.9) 60%,rgba(19,136,8,0.09) 100%),#ffffff",
+                ?"linear-gradient(120deg,rgba(255,153,51,0.14) 0%,rgba(255,255,255,0.03) 45%,rgba(124,92,255,0.14) 100%),#1c1c1e"
+                :"linear-gradient(120deg,rgba(255,153,51,0.10) 0%,rgba(255,255,255,0.92) 45%,rgba(124,92,255,0.09) 100%),#ffffff",
               border:`1px solid ${dark?"rgba(255,255,255,0.12)":"rgba(27,42,74,0.12)"}`,
               borderRadius:13,
               boxShadow:dark?"0 6px 20px rgba(0,0,0,0.35)":"0 4px 16px rgba(27,42,74,0.08)",
               animation:"verifyBadgeIn 0.6s cubic-bezier(0.22,1,0.36,1) both",
             }}>
-              {/* Whole-card tricolor wash (above) is the single intentional place in
-                  the app where saffron/white/green appears together, marking this as
-                  the one "official verification" moment. A soft top hairline ties it
-                  together without reading as a loading/progress indicator. */}
+              {/* Soft brand wash (saffron → violet) + a glowing top hairline. No
+                  flag colours: the app is independent and uses no national symbols. */}
               <div style={{
                 position:"absolute",top:0,left:14,right:14,height:2,borderRadius:2,
-                background:"linear-gradient(90deg,rgba(255,153,51,0.85) 0%,rgba(255,197,122,0.85) 22%,rgba(255,255,255,0.9) 50%,rgba(143,217,168,0.85) 78%,rgba(19,136,8,0.85) 100%)",
+                background:"linear-gradient(90deg,rgba(255,153,51,0.9) 0%,rgba(255,107,107,0.9) 50%,rgba(124,92,255,0.9) 100%)",
                 animation:"verifyRibbonGlow 3.2s ease-in-out infinite",
               }}/>
               {/* soft glow beneath the hairline so the blend reads even at 2px height */}
@@ -12003,7 +11948,7 @@ function YojanaSahayInner(){
                               color:s.scope==="national"?"#1D4ED8":"#854D0E",
                               borderRadius:6,padding:"1px 6px",
                               border:`1px solid ${s.scope==="national"?"#BFDBFE":"#FEF08A"}`}}>
-                              {s.scope==="national"?`🇮🇳 ${isHindi?"केंद्रीय":"Central"}`:s.state}
+                              {s.scope==="national"?`🏛️ ${isHindi?"केंद्रीय":"Central"}`:s.state}
                             </span>
                             {homeApps[s.id]&&<span style={{fontSize:9,fontWeight:800,background:"#DCFCE7",color:"#15803D",borderRadius:6,padding:"1px 6px",border:"1px solid #BBF7D0"}}>{STATUS_TEXT[homeApps[s.id].status]?.icon} {isHindi?"आवेदन किया":"Applied"}</span>}
                           </div>
@@ -12319,7 +12264,7 @@ function YojanaSahayInner(){
                         opacity: active ? 1 : 0.32,
                         transition:"opacity 0.25s",
                       }}>
-                      <AshokaChakra
+                      <HaloMark
                         size={22}
                         color={active ? navAccent : (dark?"#606060":"#C0C0C0")}
                         spinning={false}
@@ -12418,7 +12363,7 @@ function YojanaSahayInner(){
                 display:"flex",alignItems:"center",justifyContent:"center",
                 gap:5,marginTop:4,
               }}>
-                <span style={{fontSize:11}}>🇮🇳</span>
+                <span style={{fontSize:11}}>✦</span>
                 <span style={{
                   color:"rgba(255,255,255,0.56)",
                   fontSize:10,fontWeight:700,letterSpacing:0.6,

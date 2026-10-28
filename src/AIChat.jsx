@@ -11,6 +11,7 @@
 // FIXED (5 bugs): anti-pattern in updater, memory leaks, dead state, stale closure
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { AuroraOrb } from "./HaloMark.jsx";
 import { runAgent } from "./agent.js";
 import { QUESTIONS, nextQuestion, questionQueue, withImplied, eligibilityResult, startingAnswers, STATES } from "./chatEligibility.js";
 import { canSpeak, speak, stopSpeaking, voiceLabel } from "./voice.js";
@@ -562,7 +563,7 @@ function AvatarPreviewModal({ onClose }) {
         {/* Spinning gradient ring behind the image */}
         <div style={{
           position:"absolute", inset:-5, borderRadius:"50%",
-          background:"conic-gradient(from 0deg, #FF9933, #fff, #138808, #003580, #6366f1, #FF9933)",
+          background:"conic-gradient(from 0deg, #FF9933, #FF6B6B, #C850C0, #7C5CFF, #3BA3FF, #FF9933)",
           animation:"border-rotate 2.4s linear infinite",
           zIndex:0,
         }} />
@@ -604,97 +605,9 @@ function AvatarPreviewModal({ onClose }) {
   );
 }
 
-// ─── ASHOK CHAKRA SVG ────────────────────────────────────────────────────────
-// Real 24-spoke Dharma Chakra — navy blue on white, exactly like the Indian flag.
-// Outer ring uses a conic gradient cycling through India's tricolor (saffron →
-// white → green) so the border colours change smoothly as the wheel spins.
-// compact: for small sizes (header) — same 24 spokes, drawn bolder with a
-// cleaner rim and a lighter glow, so it stays crisp instead of a blur.
-function AshokChakra({ size = 44, duration = "10s", compact = false }) {
-  const n     = 24;
-  const cx    = 50, cy = 50;
-  const toRad = d => (d * Math.PI) / 180;
-  const navy  = "#003580"; // exact Indian-flag chakra navy
-
-  // Geometry (SVG viewBox 100×100)
-  const rimOuter  = compact ? 47 : 46;
-  const rimInner  = compact ? 40 : 37;
-  const hubR      = compact ? 9 : 7;
-  const spokeFrom = hubR + 2.5;
-
-  // 24 spokes
-  const spokes = Array.from({ length: n }, (_, i) => {
-    const a = toRad(i * (360 / n) - 90);
-    return {
-      x1: cx + spokeFrom * Math.cos(a),
-      y1: cy + spokeFrom * Math.sin(a),
-      x2: cx + rimInner  * Math.cos(a),
-      y2: cy + rimInner  * Math.sin(a),
-    };
-  });
-
-  // 24 lens/leaf arrowheads between spokes, inside the rim band
-  const leaves = Array.from({ length: n }, (_, i) => {
-    const angleDeg = i * (360 / n) + (360 / n / 2) - 90;
-    const a  = toRad(angleDeg);
-    const tr = (rimInner + rimOuter) / 2;
-    return {
-      cx:  cx + tr * Math.cos(a),
-      cy:  cy + tr * Math.sin(a),
-      rot: angleDeg + 90,
-    };
-  });
-
-  const border    = compact ? 2.5 : 3.5; // tricolor ring thickness in px
-  const innerSize = size - border * 2; // SVG fits inside the white disc
-
-  return (
-    // ── Outer ring: Indian tricolor conic gradient ──────────────────────────
-    // Saffron(0°) → White(120°) → Green(240°) → Saffron(360°) — smoothly
-    // connected. Rotating this div makes the colours appear to flow around.
-    <div style={{
-      width: size, height: size, borderRadius: "50%", flexShrink: 0,
-      background: "conic-gradient(from 0deg, #FF9933 0deg, #FFFFFF 120deg, #138808 240deg, #FF9933 360deg)",
-      padding: border,
-      boxShadow: compact
-        ? "0 0 0 1px rgba(0,53,128,0.10), 0 2px 6px rgba(255,153,51,0.35)"
-        : "0 0 16px rgba(255,153,51,0.6), 0 0 32px rgba(19,136,8,0.3), 0 2px 8px rgba(0,0,0,0.25)",
-      animation: `spin ${duration} linear infinite`,
-    }}>
-      {/* ── White disc — chakra sits on white, exactly like the Indian flag ── */}
-      <div style={{
-        width: "100%", height: "100%", borderRadius: "50%",
-        background: "#FFFFFF",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        overflow: "hidden",
-      }}>
-        <svg width={innerSize} height={innerSize} viewBox="0 0 100 100">
-          {/* Outer rim */}
-          <circle cx={cx} cy={cy} r={rimOuter}
-            fill="none" stroke={navy} strokeWidth={compact ? 6 : 7} />
-          {/* Inner rim line */}
-          {!compact && <circle cx={cx} cy={cy} r={rimInner}
-            fill="none" stroke={navy} strokeWidth="1.8" />}
-          {/* Solid hub */}
-          <circle cx={cx} cy={cy} r={hubR} fill={navy} />
-          {/* 24 spokes */}
-          {spokes.map((s, i) => (
-            <line key={i}
-              x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
-              stroke={navy} strokeWidth={compact ? 3.6 : 2.4} strokeLinecap="round"
-            />
-          ))}
-          {/* 24 lens-shaped arrowheads between spokes */}
-          {!compact && leaves.map((l, i) => (
-            <g key={i} transform={`translate(${l.cx},${l.cy}) rotate(${l.rot})`}>
-              <path d="M 0,-5.5 Q 4,0 0,5.5 Q -4,0 0,-5.5 Z" fill={navy} />
-            </g>
-          ))}
-        </svg>
-      </div>
-    </div>
-  );
-}
+// ─── AI AVATAR ───────────────────────────────────────────────────────────────
+// The assistant's avatar is the animated aurora orb (src/HaloMark.jsx) — no
+// national symbols anywhere in this independent app.
 
 // ─── AGENT STEPS — what the assistant is doing / did ──────────────────────────
 function AgentSteps({ steps, dark, lang, compact = false }) {
@@ -2859,7 +2772,7 @@ export default function AIChat({ lang="en", dark=false, profile=null, uid=null, 
               </span>
             </div>
           </div>
-          <AshokChakra size={34} duration="9s" compact />
+          <AuroraOrb size={34} />
           <div role="button" tabIndex={0} aria-label={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"} title={isHindi ? "मैं क्या कर सकता हूं" : "What can I do?"}
             onClick={() => { dismissNews(); setShowCaps(true); }}
             onKeyDown={e => { if (e.key === "Enter") { dismissNews(); setShowCaps(true); } }}

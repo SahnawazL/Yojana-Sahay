@@ -321,7 +321,7 @@ function renderPoster() {
   .tip{font-size:12px;color:#78716c;margin:0 0 14px}
   .wrap{display:flex;justify-content:center;padding:0 12px 30px;overflow:hidden}
   .sheet{flex-shrink:0;width:210mm;height:297mm;background:#fff;box-shadow:0 6px 30px rgba(0,0,0,.18);position:relative;overflow:hidden;display:flex;flex-direction:column;transform-origin:top center}
-  .band{height:9mm;background:linear-gradient(90deg,#FF9933 0 33.3%,#fff 33.3% 66.6%,#138808 66.6%)}
+  .band{height:9mm;background:linear-gradient(90deg,#FF9933 0%,#FF6B6B 52%,#7C5CFF 100%)}
   .in{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:8mm 15mm 7mm}
   .brand{display:flex;align-items:center;gap:4mm;margin-bottom:4mm}
   .brand img{width:16mm;height:16mm;border-radius:4mm}

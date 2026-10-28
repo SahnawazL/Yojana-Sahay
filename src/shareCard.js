@@ -58,8 +58,8 @@ export async function drawBenefitCard({ total, health = 0, oneTime = 0, count, t
   const rg = ctx.createRadialGradient(W * 0.8, 120, 20, W * 0.8, 120, 520);
   rg.addColorStop(0, "rgba(255,255,255,0.22)"); rg.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
-  // Tricolour strip
-  [["#FF9933", 0], ["#FFFFFF", 1], ["#138808", 2]].forEach(([col, i]) => { ctx.fillStyle = col; ctx.fillRect(i * W / 3, 0, W / 3, 14); });
+  // Brand gradient strip (saffron → coral → violet; no flag colours)
+  { const g = ctx.createLinearGradient(0, 0, W, 0); g.addColorStop(0, "#FF9933"); g.addColorStop(0.52, "#FF6B6B"); g.addColorStop(1, "#7C5CFF"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, 14); }
 
   // Brand row
   const logo = await loadImage("/icons/logo192.png");
