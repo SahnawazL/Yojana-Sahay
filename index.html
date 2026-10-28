@@ -425,9 +425,13 @@
         if (!el || el.style.display === 'none') return;
         var play = function () { if (el.classList.contains('hs-play')) return; window.__hsStart = performance.now(); el.classList.add('hs-play'); };
         window.__hsPlay = play;
-        // first painted frame (in the Android app this is the moment Android's
-        // own launch screen lifts — capacitor.config.json launchShowDuration 0)
-        requestAnimationFrame(play);
+        // Android app: Android's launch screen (logo in a white circle) stays up
+        // until this page has drawn its first frame — the same logo circle —
+        // and is lifted right then, so the two read as one continuous scene.
+        var liftAndroidLaunch = function () {
+          try { if (window.Capacitor && window.Capacitor.nativePromise) window.Capacitor.nativePromise('SplashScreen', 'hide', { fadeOutDuration: 180 }).catch(function () {}); } catch (e) {}
+        };
+        requestAnimationFrame(function () { requestAnimationFrame(function () { liftAndroidLaunch(); play(); }); });
       })();
     </script>
 

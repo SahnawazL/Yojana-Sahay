@@ -61,6 +61,14 @@ try {
   await new Promise(r => setTimeout(r, 4000));
 } catch (e) { out("launch frames", "FAILED " + e.message); }
 await connect();
+const T = (ms) => new Promise(r => setTimeout(r, ms));
+const page = { url: () => target.url };
+const ev = async (fn, arg) => {
+  if (!ws || ws.readyState !== 1) { await new Promise(r => setTimeout(r, 1500)); await connect(); }
+  const r = await send("Runtime.evaluate", { expression: `(${fn.toString()})(${JSON.stringify(arg ?? null)})`, awaitPromise: true, returnByValue: true, userGesture: true });
+  if (r.result?.exceptionDetails) return "EVAL-ERR " + (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text);
+  return r.result?.result?.value;
+};
 out("launch timing (ms after tapping the icon)", await ev((dev) => {
   const nav = performance.timeOrigin - dev;
   const paint = Object.fromEntries(performance.getEntriesByType("paint").map(p => [p.name, Math.round(nav + p.startTime)]));
@@ -70,14 +78,6 @@ out("launch timing (ms after tapping the icon)", await ev((dev) => {
            splashPlay: typeof window.__hsStart === "number" ? Math.round(nav + window.__hsStart) : null,
            splashShown: !!document.getElementById("html-splash") || "removed" };
 }, globalThis.__devStart || 0));
-const T = (ms) => new Promise(r => setTimeout(r, ms));
-const page = { url: () => target.url };
-const ev = async (fn, arg) => {
-  if (!ws || ws.readyState !== 1) { await new Promise(r => setTimeout(r, 1500)); await connect(); }
-  const r = await send("Runtime.evaluate", { expression: `(${fn.toString()})(${JSON.stringify(arg ?? null)})`, awaitPromise: true, returnByValue: true, userGesture: true });
-  if (r.result?.exceptionDetails) return "EVAL-ERR " + (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text);
-  return r.result?.result?.value;
-};
 
 out("url", page.url());
 out("basics", await ev(() => ({
