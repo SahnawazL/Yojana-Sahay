@@ -244,9 +244,7 @@ const STRINGS = {
     whatsNewTitle: "What's New",
     whatsNew: [
       { version:"v2.1", date:"Oct 2026", title:"Yojana Sahay for Android",
-        note:"A full Android app with Google sign-in, deadline reminders as notifications, automatic updates, offline access and a fresh new look." },
-      { version:"v1.5", date:"Oct 2026", title:"Smarter AI assistance",
-        note:"Eligibility checks in chat and by voice, guides for life events, an application tracker and a fake-message checker." },
+        note:"A full Android app — Google sign-in, deadline reminders as notifications, automatic updates and offline access — plus a smarter AI assistant that checks eligibility by chat or voice, life-event guides, an application tracker and a fake-message checker." },
       { version:"v1.3", date:"May 2026", title:"Personal accounts & AI assistant",
         note:"Google and e-mail sign-in, a saved profile for matched schemes, a bilingual AI assistant and deadline e-mail reminders." },
       { version:"v1.0", date:"Nov 2025", title:"Public launch",
@@ -410,9 +408,7 @@ const STRINGS = {
     whatsNewTitle: "नया क्या है",
     whatsNew: [
       { version:"v2.1", date:"अक्टू 2026", title:"Android के लिए योजना सहाय",
-        note:"पूरा Android ऐप — Google साइन-इन, आख़िरी तारीख़ के नोटिफ़िकेशन, अपने-आप अपडेट, ऑफ़लाइन उपयोग और नया रूप।" },
-      { version:"v1.5", date:"अक्टू 2026", title:"और समझदार AI सहायता",
-        note:"चैट और आवाज़ से पात्रता जांच, जीवन की घटनाओं के लिए गाइड, आवेदन ट्रैकर और फ़र्ज़ी संदेश जांच।" },
+        note:"पूरा Android ऐप — Google साइन-इन, आख़िरी तारीख़ के नोटिफ़िकेशन, अपने-आप अपडेट और ऑफ़लाइन उपयोग — साथ में और समझदार AI सहायक: चैट या आवाज़ से पात्रता जांच, जीवन की घटनाओं के गाइड, आवेदन ट्रैकर और फ़र्ज़ी संदेश जांच।" },
       { version:"v1.3", date:"मई 2026", title:"व्यक्तिगत खाता और AI सहायक",
         note:"Google और ई-मेल साइन-इन, मिलान वाली योजनाओं के लिए सहेजी प्रोफ़ाइल, हिंदी-अंग्रेज़ी AI सहायक और ई-मेल रिमाइंडर।" },
       { version:"v1.0", date:"नवंबर 2025", title:"सार्वजनिक शुरुआत",
