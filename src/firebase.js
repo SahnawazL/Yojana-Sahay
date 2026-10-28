@@ -1,6 +1,6 @@
 // firebase.js — Yojana Sahay Firebase initialisation
 import { initializeApp } from "firebase/app";
-import { getAuth, initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from "firebase/auth";
+import { getAuth, initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, signInWithCredential, GoogleAuthProvider } from "firebase/auth";
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -59,5 +59,13 @@ const isAdminRoute = typeof window !== "undefined" && window.location.pathname.s
 export const db = initializeFirestore(app, isAdminRoute
   ? { localCache: memoryLocalCache() }
   : { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+
+// Test builds of the Android app only (VITE_YS_DIAG=1, never the released app):
+// lets the automated phone test call Firebase directly.
+if (import.meta.env && import.meta.env.VITE_YS_DIAG === "1" && typeof window !== "undefined") {
+  import("firebase/firestore").then(fs => {
+    window.__ysDiag = { auth, db, signInWithCredential, GoogleAuthProvider, getDoc: fs.getDoc, doc: fs.doc };
+  });
+}
 
 export default app;

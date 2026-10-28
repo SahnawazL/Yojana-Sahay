@@ -19,6 +19,11 @@ on:
         description: "Version name (e.g. 2.0.1). Leave empty for 2.0.<run>"
         required: false
         default: ""
+      diagnose:
+        description: "Test build: run it on an Android emulator and report what happens inside (not for release)"
+        type: boolean
+        required: false
+        default: false
   push:
     branches: [main]
     paths:
@@ -38,7 +43,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 70
     steps:
       - uses: actions/checkout@v4
 
@@ -82,9 +87,19 @@ jobs:
             echo "::warning title=Google sign-in::off — add the GOOGLE_SERVICES_JSON secret to turn it on"
           fi
 
+      - name: Test build switch
+        run: |
+          if [ "${{ github.event.inputs.diagnose }}" = "true" ]; then
+            echo "YS_DIAG=1" >> "$GITHUB_ENV"
+            node -e 'const f="capacitor.config.json",fs=require("fs"),c=JSON.parse(fs.readFileSync(f));c.android.webContentsDebuggingEnabled=true;fs.writeFileSync(f,JSON.stringify(c,null,2))'
+            echo "::warning title=Test build::diagnose build (debuggable app screen) — do not publish this APK"
+          else
+            echo "YS_DIAG=0" >> "$GITHUB_ENV"
+          fi
+
       - name: Build the app files (inside the APK)
         run: |
-          npx vite build -c vite.native.config.js 2>&1 | tee "$RUNNER_TEMP/vite.log"
+          VITE_YS_DIAG=$YS_DIAG npx vite build -c vite.native.config.js 2>&1 | tee "$RUNNER_TEMP/vite.log"
           test -f dist-native/index.html
           du -sh dist-native
 
@@ -158,6 +173,37 @@ jobs:
           SHA256=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA256:" | sed 's/.*SHA256: //')
           echo "::notice title=Add to Firebase (Android app → SHA certificate fingerprints)::SHA-1 $SHA1 · SHA-256 $SHA256"
           echo "::notice title=Built::$(cat "$RUNNER_TEMP/badging.txt" | tr '\n' ' ')"
+
+      - name: Enable the emulator (test build)
+        if: env.YS_DIAG == '1'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw" && npm init -y > /dev/null && npm install --no-audit --no-fund --loglevel=error playwright-core@1.48.2
+          echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
+          cp "$GITHUB_WORKSPACE/scripts/android-native/diagnose.mjs" "$RUNNER_TEMP/pw/diagnose.mjs"
+
+      - name: Run the app on an Android emulator (test build)
+        if: env.YS_DIAG == '1'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: bash scripts/android-native/diagnose.sh "${{ runner.temp }}/out"
+
+      - name: Report what happened inside the app (test build)
+        if: always() && env.YS_DIAG == '1'
+        run: |
+          node -e '
+            const fs = require("fs"), path = require("path"), dir = process.env.RUNNER_TEMP + "/diag";
+            const esc = s => s.replace(/%/g, "%25").replace(/\r/g, "").replace(/\n/g, "%0A");
+            for (const f of ["app.txt", "screen.txt", "logcat.txt", "pid.txt", "install.txt"]) {
+              let t = ""; try { t = fs.readFileSync(path.join(dir, f), "utf8"); } catch { t = "(missing)"; }
+              for (let i = 0, n = 0; i < t.length && n < 6; i += 3500, n++) console.log(`::notice title=diag ${f} ${n + 1}::${esc(t.slice(i, i + 3500))}`);
+            }'
 
       - name: Report errors (readable from the run's annotations)
         if: failure()
