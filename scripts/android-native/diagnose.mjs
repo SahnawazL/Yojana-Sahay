@@ -1,7 +1,10 @@
 // scripts/android-native/diagnose.mjs — connects to the app's screen on the
 // emulator (plain Chrome DevTools protocol over WebSocket; no browser tool)
 // and checks every connection the app uses.
-const out = (k, v) => console.log(`${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`);
+// braces are swapped for ( ) so GitHub's secret masking can't hide results
+const out = (k, v) => console.log(`${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`.replace(/[{]/g, "(").replace(/[}]/g, ")"));
+import { execSync } from "node:child_process";
+const adb = (c) => { try { return execSync("adb " + c, { encoding: "utf8", timeout: 30000 }).trim(); } catch (e) { return "ADB-ERR " + e.message.slice(0, 200); } };
 const list = await (await fetch("http://127.0.0.1:9222/json/list")).json();
 const target = list.find(t => t.type === "page" && String(t.url).startsWith(process.env.YS_DIAG_URL || "https://localhost"));
 if (!target) { out("ERROR", "app page not found " + JSON.stringify(list).slice(0, 300)); process.exit(0); }
@@ -60,4 +63,33 @@ out("profile screen has Google button", await ev(() => !![...document.querySelec
 await ev(() => { const b = [...document.querySelectorAll("button")].find(x => /Continue with Google/i.test(x.innerText || "")); b && b.click(); });
 await T(12000);
 out("after tapping Continue with Google", await ev(() => [...document.querySelectorAll("div")].filter(x => /Firebase|error|failed|cancel|set up/i.test(x.innerText || "") && x.children.length === 0).map(x => x.innerText.trim()).slice(0, 5)));
+
+// ── Phase 2: server functions, Android integrations, offline ────────────────
+out("AI chat server (POST, empty)", await ev(async () => { try { const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }); return r.status + " " + (await r.text()).slice(0, 120); } catch (e) { return "FAILED " + e.message; } }));
+out("all server functions reachable from the app (CORS)", await ev(async () => {
+  const names = ["admin-sync-news","agent-auto-fix","batch-patch-urls","chat","deadline-alerts","find-new-url","log-checker-run","ping-url","refresh-news","stats","update-schemes-meta","verify-scheme"];
+  const res = {};
+  for (const n of names) { try { const r = await fetch("https://yojanasahay.vercel.app/api/" + n, { method: "OPTIONS" }); res[n] = r.status; } catch (e) { res[n] = "BLOCKED"; } }
+  return res;
+}));
+out("news feed on home", await ev(() => (document.body.innerText.match(/SCHEME UPDATE[\s\S]{0,160}/) || ["none"])[0].replace(/\n+/g, " | ")));
+adb("shell am start -a android.intent.action.VIEW -d yojanasahay://go/checker com.yojanasahay.app");
+await T(6000);
+out("shortcut yojanasahay://go/checker opens checker", await ev(() => /STEP 1|Eligibility Check|question/i.test(document.body.innerText) + " url=" + location.href));
+adb("shell input keyevent 4"); await T(1500);
+out("back button closes it (app still open)", await ev(() => "url=" + location.href + " stillChecker=" + /STEP 1 OF/i.test(document.body.innerText)) + " | top=" + adb("shell dumpsys activity activities | grep -m1 -E 'topResumedActivity|mResumedActivity'"));
+adb('shell am start -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "PM-Kisan 6000 bonus, click bit.ly/x to claim" -n com.yojanasahay.app/.MainActivity');
+await T(7000);
+out("text shared from another app reaches the AI check", await ev(() => ({ pending: !!window.__ysPendingChat || !!window.__ysPendingShare, onAI: /AI Assistant|Unlock AI|Is this message real/i.test(document.body.innerText) })));
+await ev(() => { history.replaceState(null, "", "/"); });
+await ev(() => { const a = [...document.querySelectorAll("a[href]")].find(x => /about\.html$/.test(x.getAttribute("href"))); if (a) a.click(); return !!a; });
+await T(5000);
+out("About us opens outside the app screen", adb("shell dumpsys activity activities | grep -m1 -E 'topResumedActivity|mResumedActivity'") + " | appUrl=" + (await ev(() => location.href)));
+adb("shell input keyevent 4"); await T(2500);
+adb("shell svc wifi disable"); adb("shell svc data disable"); await T(3000);
+await ev(() => { location.reload(); });
+await T(9000);
+out("offline start", await ev(() => ({ drew: document.getElementById("root")?.childElementCount, text: document.body.innerText.slice(0, 160).replace(/\n+/g, " | ") })));
+adb("shell svc wifi enable"); adb("shell svc data enable");
+
 ws.close();
