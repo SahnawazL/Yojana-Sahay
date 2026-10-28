@@ -132,6 +132,21 @@ if (typeof tok === "string" && tok.length > 20 && !tok.startsWith("ERR") && !tok
   out("notifications: shown on the phone", mine.length ? mine.join(" | ") : "NOT FOUND");
 }
 
+// ── Phase 3b: the REAL update feed on GitHub (what released apps use) ──────
+out("live feed on GitHub (released apps)", await ev(async () => {
+  const P = window.Capacitor.Plugins;
+  try {
+    const url = "https://github.com/SahnawazL/Yojana-Sahay/releases/download/app-live/latest-api1.json?t=" + Date.now();
+    const r = await P.CapacitorHttp.get({ url, headers: { "Cache-Control": "no-cache" } });
+    const m = typeof r.data === "string" ? JSON.parse(r.data) : r.data;
+    const res = { feed: r.status, build: m && m.build, api: m && m.api, sizeKB: m && Math.round(m.size / 1024) };
+    const b = await P.CapacitorUpdater.download({ url: m.url, version: "github-check-" + m.build, checksum: m.sha256 });
+    res.download = b && b.status; res.bundleId = b && b.id;
+    await P.CapacitorUpdater.delete({ id: b.id }).catch(() => {});
+    return res;
+  } catch (e) { return "FAILED " + (e && e.message); }
+}));
+
 // ── Phase 4: live updates (local feed; app built to read it) ───────────────
 const LIVE = process.env.LIVE_DIR, B0 = Number(process.env.YS_BUILD || 0);
 if (LIVE && B0) {
