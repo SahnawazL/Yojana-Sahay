@@ -55,6 +55,25 @@ export default defineConfig({
       } }
     },
     {
+      // The launch animation gets a free hand first: the app's code (a big
+      // file the phone needs a moment to start) is loaded ~1.3 s after the
+      // animation begins, so its first, most visible part never stutters.
+      // Loaded at once when there is no animation (or an update switch is due).
+      name: "ys-native-boot",
+      apply: "build",
+      transformIndexHtml: { order: "post", handler(html) {
+        const m = html.match(/<script type="module" crossorigin src="([^"]+)"><\/script>\s*/);
+        if (!m) throw new Error("ys-native-boot: app entry <script> not found in the built page");
+        const boot = `<script>(function(){var src=${JSON.stringify(m[1])},done=0,t0=performance.now();
+function go(){if(done)return;done=1;var s=document.createElement("script");s.type="module";s.crossOrigin="";s.src=src;document.head.appendChild(s)}
+window.__ysBoot=go;var sp=document.getElementById("html-splash");
+if(!sp||sp.style.display==="none"||window.__ysSwitching)return go();
+(function wait(){var st=window.__hsStart;if(typeof st==="number")return setTimeout(go,Math.max(0,st+1300-performance.now()));
+if(performance.now()-t0>3000)return go();setTimeout(wait,40)})()})();</script>`;
+        return html.replace(m[0], "").replace("</body>", boot + "\n</body>");
+      } }
+    },
+    {
       name: "ys-native-public",
       apply: "build",
       configResolved(c) { nativeOut = path.resolve(c.root || ".", c.build.outDir); },
