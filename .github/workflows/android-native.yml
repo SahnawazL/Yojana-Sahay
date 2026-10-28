@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -90,10 +90,7 @@ jobs:
 
       - name: App icons
         run: |
-          mkdir -p "$RUNNER_TEMP/icons"
-          convert public/icons/app-icon-512.png -resize 1024x1024 "$RUNNER_TEMP/icons/icon-only.png"
-          convert -size 1024x1024 xc:white "$RUNNER_TEMP/icons/icon-background.png"
-          convert public/icons/app-icon-512.png -resize 640x640 -background none -gravity center -extent 1024x1024 "$RUNNER_TEMP/icons/icon-foreground.png"
+          node scripts/android-native/icons.mjs "$RUNNER_TEMP/icons"
           npx capacitor-assets generate --android --assetPath "$RUNNER_TEMP/icons" 2>&1 | tail -n 5
 
       - name: Customise (share, shortcuts, splash, version, signing)
