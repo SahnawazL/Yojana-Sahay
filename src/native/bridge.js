@@ -72,7 +72,7 @@ if (Capacitor.isNativePlatform()) {
   const external = (href) => {
     try {
       const u = new URL(href, location.href);
-      if (u.protocol === "tel:" || u.protocol === "mailto:" || u.protocol === "sms:" || u.protocol === "whatsapp:" || u.protocol === "upi:") return { system: u.href };
+      // tel:, mailto:, sms:, whatsapp:, upi: … are left to Android (Capacitor opens the right app)
       if (u.origin === location.origin) {
         const p = u.pathname;
         if (p === "/" || p === "/index.html" || p.startsWith("/admin") || p.startsWith("/embed")) return null; // inside the app
@@ -90,46 +90,51 @@ if (Capacitor.isNativePlatform()) {
     const ext = external(a.getAttribute("href"));
     if (!ext) return;
     e.preventDefault();
-    if (ext.system) window.location.href = ext.system;      // dialer, mail, WhatsApp…
-    else Browser.open({ url: ext.web });
+    Browser.open({ url: ext.web });
   }, true);
   const origOpen = window.open;
   window.open = (url, target, features) => {
     const ext = url ? external(String(url)) : null;
     if (ext && ext.web) { Browser.open({ url: ext.web }); return null; }
-    if (ext && ext.system) { window.location.href = ext.system; return null; }
     return origOpen ? origOpen.call(window, url, target, features) : null;
   };
 
   // ── Android back button ───────────────────────────────────────────────────
-  // 1) an open dialog/sheet → close it (the app's sheets close on Escape)
-  // 2) page history → go back   3) otherwise → leave the app (stays in recents)
+  // The app already adds a history entry for each screen it opens (scheme
+  // details, eligibility check, FAQ…) and closes it on "back", exactly like the
+  // website on Android. Order:
+  //   1) an open pop-up without its own history entry (search, money check,
+  //      chat sheets) → close it (Escape, then its close button)
+  //   2) history → back (closes the top screen)
+  //   3) nothing open → leave the app (it stays in recent apps)
   const openDialog = () => {
-    const list = document.querySelectorAll('[role="dialog"], [aria-modal="true"], .ys-sheet, .sheet-overlay');
-    for (const el of list) {
-      const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
-      if (r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none" && cs.opacity !== "0") return el;
+    const list = document.querySelectorAll('[role="dialog"], [aria-modal="true"]');
+    for (let i = list.length - 1; i >= 0; i--) {
+      const el = list[i], r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+      if (r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none" && Number(cs.opacity) > 0.05) return el;
     }
     return null;
   };
-  App.addListener("backButton", ({ canGoBack }) => {
-    const d = openDialog();
-    if (d) {
-      const ev = new KeyboardEvent("keydown", { key: "Escape", code: "Escape", keyCode: 27, bubbles: true, cancelable: true });
-      (document.activeElement || document.body).dispatchEvent(ev);
-      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", code: "Escape", keyCode: 27, bubbles: true }));
-      // still open (no Escape handler)? try its close button
-      setTimeout(() => {
-        if (openDialog() === d) {
-          const btn = d.querySelector('[aria-label*="lose" i], [aria-label*="ack" i], button.close, .close');
-          if (btn) btn.click();
-        }
-      }, 120);
-      return;
-    }
-    if (window.dispatchEvent(new CustomEvent("ys-native-back", { cancelable: true })) === false) return; // app handled it
+  const escape = () => {
+    const o = { key: "Escape", code: "Escape", keyCode: 27, which: 27, bubbles: true, cancelable: true };
+    (document.activeElement && document.activeElement !== document.body ? document.activeElement : document).dispatchEvent(new KeyboardEvent("keydown", o));
+    window.dispatchEvent(new KeyboardEvent("keydown", o));
+  };
+  const back = (canGoBack) => {
     if (canGoBack && history.length > 1) history.back();
     else App.minimizeApp();
+  };
+  App.addListener("backButton", ({ canGoBack }) => {
+    if (window.dispatchEvent(new CustomEvent("ys-native-back", { cancelable: true })) === false) return; // a screen handled it
+    const d = openDialog();
+    if (!d) { back(canGoBack); return; }
+    escape();
+    setTimeout(() => {
+      if (openDialog() !== d) return;                          // closed on Escape
+      const btn = d.querySelector('[aria-label*="close" i], [aria-label*="बंद"], [aria-label*="back" i], [data-close]');
+      if (btn) { btn.click(); return; }
+      if (canGoBack) history.back();                           // last resort: never trap the user
+    }, 160);
   });
 
   // ── Text shared to the app (WhatsApp/SMS "Share" → Yojana Sahay) ─────────

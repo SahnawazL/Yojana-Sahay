@@ -9,6 +9,8 @@
 const flagKey = uid => `yojana_push_${uid}`;
 
 export function pushSupported() {
+  // the Android app (native build) has no web push — app notifications come later
+  if (typeof window !== "undefined" && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return false;
   return typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 }
 

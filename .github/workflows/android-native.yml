@@ -129,6 +129,13 @@ jobs:
           APK=$(ls "$RUNNER_TEMP"/out/*.apk)
           "$BT/apksigner" verify --print-certs "$APK" | tee "$RUNNER_TEMP/certs.txt"
           "$BT/aapt2" dump badging "$APK" | grep -E "^package|targetSdkVersion|sdkVersion|application-label:" | tee "$RUNNER_TEMP/badging.txt"
+          # the app's own files are inside the APK, and the Android integrations are wired
+          unzip -l "$APK" | grep -q "assets/public/index.html" || { echo "::error::app files missing from APK"; exit 1; }
+          M=$("$BT/aapt2" dump xmltree --file AndroidManifest.xml "$APK")
+          echo "$M" | grep -q "android.intent.action.SEND" || { echo "::error::share-to-app missing"; exit 1; }
+          echo "$M" | grep -q '"yojanasahay"' || { echo "::error::shortcut links missing"; exit 1; }
+          echo "$M" | grep -q "android.app.shortcuts" || { echo "::error::shortcuts missing"; exit 1; }
+          echo "::notice title=Checks::app files inside APK ✓ · share-to-app ✓ · shortcuts ✓ · $(unzip -l "$APK" | tail -n 1 | awk '{print int($1/1048576)" MB uncompressed"}')"
           SHA1=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA1:" | sed 's/.*SHA1: //')
           SHA256=$(keytool -list -v -keystore "$YS_KEYSTORE" -storetype pkcs12 -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep -m1 "SHA256:" | sed 's/.*SHA256: //')
           echo "::notice title=Add to Firebase (Android app → SHA certificate fingerprints)::SHA-1 $SHA1 · SHA-256 $SHA256"
