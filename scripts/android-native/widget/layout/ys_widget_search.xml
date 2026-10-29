@@ -9,7 +9,7 @@
     <ImageView android:layout_width="36dp" android:layout_height="36dp" android:src="@drawable/ys_w_logo"
         android:scaleType="fitCenter" android:importantForAccessibility="no" />
     <TextView android:id="@+id/ys_w_hint" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="8dp"
-        android:text="@string/ys_w_search_hint" android:textColor="#46557A" android:textSize="15sp"
+        android:text="@string/ys_w_search_short" android:textColor="#46557A" android:textSize="15sp"
         android:maxLines="1" android:ellipsize="end" />
     <ImageView android:id="@+id/ys_w_mic" android:layout_width="38dp" android:layout_height="38dp" android:padding="8dp"
         android:background="@drawable/ys_w_mic_bg" android:src="@drawable/ys_w_ic_mic" android:contentDescription="@string/ys_w_voice" />

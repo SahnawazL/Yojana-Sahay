@@ -16,4 +16,5 @@
     <string name="ys_w_days_0">आज आख़िरी दिन</string>
     <string name="ys_w_days_1">कल आख़िरी दिन</string>
     <string name="ys_w_days_n">%1$d दिन बाकी</string>
+    <string name="ys_w_search_short">योजनाएँ खोजें</string>
 </resources>

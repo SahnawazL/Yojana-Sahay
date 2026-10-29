@@ -16,4 +16,5 @@
     <string name="ys_w_days_0">Last day today</string>
     <string name="ys_w_days_1">Ends tomorrow</string>
     <string name="ys_w_days_n">%1$d days left</string>
+    <string name="ys_w_search_short">Search schemes</string>
 </resources>

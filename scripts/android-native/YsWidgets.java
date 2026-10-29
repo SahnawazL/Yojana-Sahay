@@ -129,6 +129,7 @@ public final class YsWidgets {
     Context t = lang(c, d);
     RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.ys_widget_search);
     common(c, t, v);
+    v.setTextViewText(R.id.ys_w_hint, t.getString(R.string.ys_w_search_short));   // fits next to 🎤 and ✨
     return v;
   }
 

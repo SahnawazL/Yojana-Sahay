@@ -267,9 +267,10 @@ try {
   }
   if (app) { adb(`shell input tap ${app.x} ${app.y}`); await T(2500); }
   await shot("1-picker");
-  // drag the first preview below the app's name onto the home screen
+  // the 4×2 widget's preview is the second one: bring it up, photograph it, drag it home
+  if (app) { adb(`shell input swipe ${W >> 1} ${Math.round(H * 0.75)} ${W >> 1} ${Math.round(H * 0.45)} 600`); await T(1500); await shot("1b-picker"); }
   if (app) {
-    const x = W >> 1, y = Math.min(H - 100, app.y2 + Math.round(H * 0.12));
+    const x = W >> 1, y = Math.round(H * 0.5);
     adb(`shell input draganddrop ${x} ${y} ${x} ${Math.round(H * 0.35)} 2500`); await T(4000);
     adb("shell input keyevent KEYCODE_HOME"); await T(2500);
     await shot("2-home");
