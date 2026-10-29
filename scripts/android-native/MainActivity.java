@@ -80,6 +80,28 @@ public class MainActivity extends BridgeActivity {
     }
   }
 
+  /** Soft system haptics for the app (Android's own touch-feedback, no vibrate permission):
+   *  "tick" = switching tabs etc. (like a keyboard tap), "confirm" = an important action. */
+  @CapacitorPlugin(name = "YSHaptic")
+  public static class HapticPlugin extends Plugin {
+    @PluginMethod
+    public void tap(PluginCall call) {
+      final String kind = call.getString("kind", "tick");
+      final android.app.Activity a = getActivity();
+      if (a == null) { call.resolve(); return; }
+      a.runOnUiThread(() -> {
+        try {
+          View v = getBridge() != null && getBridge().getWebView() != null ? getBridge().getWebView() : a.getWindow().getDecorView();
+          int c = "confirm".equals(kind)
+              ? (android.os.Build.VERSION.SDK_INT >= 30 ? android.view.HapticFeedbackConstants.CONFIRM : android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+              : android.view.HapticFeedbackConstants.KEYBOARD_TAP;
+          v.performHapticFeedback(c);
+        } catch (Exception ignored) {}
+      });
+      call.resolve();
+    }
+  }
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     SplashScreen launch = SplashScreen.installSplashScreen(this);
@@ -98,6 +120,7 @@ public class MainActivity extends BridgeActivity {
     quickLaunch = first != null && first.getData() != null && "yojanasahay".equals(first.getData().getScheme());
     registerPlugin(LaunchPlugin.class);
     registerPlugin(YsWidgets.Bridge.class);
+    registerPlugin(HapticPlugin.class);
     super.onCreate(savedInstanceState);
     main.postDelayed(() -> { webReady(); main.postDelayed(this::startWebAnimation, 400); }, 6000);
     fitToScreen();

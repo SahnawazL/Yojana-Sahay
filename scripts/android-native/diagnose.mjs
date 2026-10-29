@@ -99,7 +99,7 @@ out("url", page.url());
 out("basics", await ev(() => ({
   ua: navigator.userAgent, rootChildren: document.getElementById("root")?.childElementCount,
   bridgeErrors: window.__ysBridgeErrors || [], nativeClass: document.documentElement.classList.contains("ys-native"),
-  plugins: Object.fromEntries(["App","Share","Browser","SplashScreen","YSLaunch","StatusBar","Filesystem","TextToSpeech","SpeechRecognition","FirebaseAuthentication"].map(n => [n, window.Capacitor?.isPluginAvailable?.(n)])),
+  plugins: Object.fromEntries(["App","Share","Browser","SplashScreen","YSLaunch","YSHaptic","YSWidget","StatusBar","Filesystem","TextToSpeech","SpeechRecognition","FirebaseAuthentication"].map(n => [n, window.Capacitor?.isPluginAvailable?.(n)])),
   speech: { synth: typeof window.speechSynthesis?.speak, rec: typeof window.webkitSpeechRecognition },
   helped: (document.body.innerText.match(/([\d,+—–-]+)\s*\n?\s*INDIANS HELPED/i) || [])[1]
 })));

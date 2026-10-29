@@ -302,10 +302,17 @@ function useCountUp(targets, trigger, duration=1400){
 // touch felt noisy. haptic() is therefore a no-op; use hapticImportant().
 // navigator.vibrate works on Android Chrome; iOS ignores it silently.
 const haptic = () => {};
-const hapticImportant = (pattern = 18) => {
+// Light, system-style feedback for the few moments that deserve it (switching
+// tabs, signing out). Android app: Android's own touch-feedback tick (the same
+// soft tap as the keyboard; follows the phone's "touch feedback" setting).
+// Elsewhere: a very short vibration where the browser supports it.
+//   kind: "tick" (light) · "confirm" (a little firmer, for important actions)
+const hapticImportant = (kind = "tick") => {
   try {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
-    navigator.vibrate?.(pattern);
+    const k = kind === "confirm" ? "confirm" : "tick";
+    const C = window.Capacitor;
+    if (C?.isNativePlatform?.() && C.isPluginAvailable?.("YSHaptic")) { C.nativePromise("YSHaptic", "tap", { kind: k }).catch(() => {}); return; }
+    navigator.vibrate?.(k === "confirm" ? 14 : 8);
   } catch {}
 };
 
@@ -4709,7 +4716,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
     prevCalculatingRef.current=calculating;
     if(wasCalculating && !calculating && results.length>0){
       setShowCelebration(true);
-      hapticImportant([18,60,18]); // results are ready
+      hapticImportant("confirm"); // results are ready
       if(totalAnnual>0){
         setAnimatedBenefit(0);
         const dur=1800;
@@ -7980,7 +7987,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
           )}
 
           {/* Sign Out */}
-          <div onClick={()=>{haptic([50,60,50]);setShowSignOutModal(true);}}
+          <div onClick={()=>{hapticImportant("tick");setShowSignOutModal(true);}}
             style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",gap:12}}>
               <div style={{width:38,height:38,borderRadius:11,background:dark?"rgba(220,38,38,0.14)":"#FEF2F2",border:`1.5px solid ${dark?"rgba(220,38,38,0.28)":"#FECACA"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>🚪</div>
@@ -8096,21 +8103,27 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             {/* ── Content ── */}
             <div style={{padding:"30px 26px 26px",position:"relative"}}>
 
-              {/* Close button */}
-              <div
-                onClick={()=>{if(!signOutLoading){haptic(30);setShowSignOutModal(false);}}}
+              {/* Close button — above the decorations (they used to catch some taps)
+                  with a full finger-sized tap area around the small circle */}
+              <button type="button" aria-label={isHindi?"बंद करें":"Close"}
+                onClick={e=>{e.stopPropagation();if(!signOutLoading){setShowSignOutModal(false);}}}
                 style={{
-                  position:"absolute",top:16,right:16,
-                  width:32,height:32,borderRadius:"50%",
+                  position:"absolute",top:6,right:6,zIndex:10,
+                  width:52,height:52,padding:0,border:"none",background:"transparent",
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  cursor:"pointer",WebkitTapHighlightColor:"transparent",touchAction:"manipulation",
+                }}>
+                <span style={{
+                  width:32,height:32,borderRadius:"50%",pointerEvents:"none",
                   background:dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.05)",
                   border:`1px solid ${dark?"rgba(255,255,255,0.11)":"rgba(0,0,0,0.09)"}`,
                   display:"flex",alignItems:"center",justifyContent:"center",
-                  cursor:"pointer",WebkitTapHighlightColor:"transparent",flexShrink:0,
                 }}>
                 <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
                   <path d="M1 1l10 10M11 1L1 11" stroke={dark?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.35)"} strokeWidth="1.8" strokeLinecap="round"/>
                 </svg>
-              </div>
+              </span>
+              </button>
 
               {/* ── Icon with pulsing rings ── */}
               <div style={{display:"flex",justifyContent:"center",marginBottom:22,animation:"so_fadeslide 0.4s 0.1s ease both"}}>
@@ -8252,7 +8265,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                 <div
                   onClick={async()=>{
                     if(signOutLoading)return;
-                    haptic([50,60,50]);
+                    hapticImportant("confirm");
                     setSignOutLoading(true);
                     await handleSignOut();
                     setSignOutLoading(false);
@@ -10946,11 +10959,11 @@ function YojanaSahayInner(){
 
     const idx = TABS.indexOf(activeTab);
     if (dx < 0 && idx < TABS.length - 1) {
-      haptic();
+      hapticImportant("tick");
       setSwipeDir("left");
       setActiveTab(TABS[idx + 1]);
     } else if (dx > 0 && idx > 0) {
-      haptic();
+      hapticImportant("tick");
       setSwipeDir("right");
       setActiveTab(TABS[idx - 1]);
     }
@@ -12328,7 +12341,7 @@ function YojanaSahayInner(){
             <div key={item.tab} className="bn"
               style={{animationDelay:`${idx*0.05}s`}}
               onClick={()=>{
-                if(!active) haptic(30);   // only haptic when switching
+                if(!active) hapticImportant("tick");   // a soft tick only when switching
                 setActiveTab(item.tab);
                 // Double rAF: wait for the display:none→flex swap to commit
                 // and lay out before measuring/scrolling, so this works
