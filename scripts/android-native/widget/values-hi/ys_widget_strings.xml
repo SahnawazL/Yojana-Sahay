@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ys_w_quick_label">योजना सहाय</string>
+    <string name="ys_w_search_label">योजना सहाय खोज</string>
+    <string name="ys_w_quick_desc">योजनाएँ खोजें, पात्रता जाँचें, पैसे की जाँच और AI सहायक</string>
+    <string name="ys_w_search_desc">होम स्क्रीन से सरकारी योजनाएँ खोजें</string>
+    <string name="ys_w_search_hint">1,200+ योजनाएँ खोजें</string>
+    <string name="ys_w_checker">पात्रता</string>
+    <string name="ys_w_money">पैसा जाँचें</string>
+    <string name="ys_w_ai">AI से पूछें</string>
+    <string name="ys_w_open">योजना सहाय खोलें</string>
+</resources>

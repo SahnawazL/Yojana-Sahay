@@ -140,6 +140,7 @@ out("all server functions reachable from the app (CORS)", await ev(async () => {
 }));
 out("news feed on home", await ev(() => (document.body.innerText.match(/scheme update[\s\S]{0,160}/i) || ["none"])[0].replace(/\n+/g, " | ")));
 out("news in Firestore (schemeNews, active)", await ev(async () => { const d = window.__ysDiag; if (!d) return "no diag"; try { const s = await Promise.race([d.getDocs(d.query(d.collection(d.db, "schemeNews"), d.where("active", "==", true))), new Promise((_, j) => setTimeout(() => j(new Error("timeout 20s")), 20000))]); return "ok " + s.size + " items, fromCache=" + s.metadata.fromCache; } catch (e) { return "FAILED " + (e.code || "") + " " + e.message; } }));
+out("home-screen widgets", adb("shell dumpsys appwidget").split("\n").filter(l => /yojanasahay.*YsWidgets/.test(l)).map(l => l.trim()).slice(0, 4).join(" | ") || "NOT REGISTERED");
 adb("shell am start -a android.intent.action.VIEW -d yojanasahay://go/checker com.yojanasahay.app");
 await T(6000);
 out("shortcut yojanasahay://go/checker opens checker", await ev(() => /STEP 1|Eligibility Check|question/i.test(document.body.innerText) + " url=" + location.href));

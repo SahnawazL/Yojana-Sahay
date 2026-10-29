@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ys_w_quick_label">Yojana Sahay</string>
+    <string name="ys_w_search_label">Yojana Sahay search</string>
+    <string name="ys_w_quick_desc">Search schemes, check eligibility, money check and AI assistant</string>
+    <string name="ys_w_search_desc">Search government schemes from your home screen</string>
+    <string name="ys_w_search_hint">Search 1,200+ schemes</string>
+    <string name="ys_w_checker">Eligibility</string>
+    <string name="ys_w_money">Money check</string>
+    <string name="ys_w_ai">Ask AI</string>
+    <string name="ys_w_open">Open Yojana Sahay</string>
+</resources>

@@ -21,6 +21,10 @@ const javaDir = path.join(app, "src/main/java/com/yojanasahay/app");
 must(fs.existsSync(path.join(javaDir, "MainActivity.java")), "MainActivity.java not found (appId changed?)");
 fs.copyFileSync(path.join(here, "MainActivity.java"), path.join(javaDir, "MainActivity.java"));
 
+// 1b) home-screen widgets: provider code + layouts, drawables, strings
+fs.copyFileSync(path.join(here, "YsWidgets.java"), path.join(javaDir, "YsWidgets.java"));
+fs.cpSync(path.join(here, "widget"), res, { recursive: true });
+
 // 2) shortcuts + labels
 write(path.join(res, "xml/shortcuts.xml"), read(path.join(here, "shortcuts.xml")));
 const stringsP = path.join(res, "values/strings.xml");
@@ -57,6 +61,16 @@ const extra = `
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         `;
 if (!man.includes("android.intent.action.SEND")) man = man.slice(0, actEnd) + extra + man.slice(actEnd);
+// home-screen widgets (YsWidgets.java)
+if (!man.includes("YsWidgets$Quick")) {
+  const rx = (cls, label, info) => `
+        <receiver android:name=".YsWidgets$${cls}" android:exported="false" android:label="@string/${label}">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/${info}" />
+        </receiver>`;
+  man = man.replace("</application>", rx("Quick", "ys_w_quick_label", "ys_widget_quick_info") + rx("Search", "ys_w_search_label", "ys_widget_search_info") + "\n    </application>");
+}
+must(man.includes("YsWidgets$Quick") && man.includes("YsWidgets$Search"), "widgets not added to the manifest");
 // microphone (voice questions to the AI) + Android 11+ visibility of the
 // phone's text-to-speech and speech-recognition services (read-aloud, mic)
 // Android 13+: permission to show reminder notifications; default icon, colour
