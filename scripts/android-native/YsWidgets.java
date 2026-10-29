@@ -133,7 +133,7 @@ public final class YsWidgets {
     return v;
   }
 
-  /** rows: 0 = no deadline list, 2 or 3 = that many deadlines */
+  /** rows: 0 = no deadline list, 1–3 = that many deadlines */
   static RemoteViews quick(Context c, Data d, int rows) {
     Context t = lang(c, d);
     RemoteViews v = new RemoteViews(c.getPackageName(), rows > 0 ? R.layout.ys_widget_tall : R.layout.ys_widget_quick);
@@ -173,21 +173,26 @@ public final class YsWidgets {
     return v;
   }
 
+  /** height (dp) the widget needs to show `rows` deadlines without squeezing:
+   *  10+10 padding, 44 search row, 8 + 40 buttons, 10 gap, list box (6+4 padding,
+   *  ~16 heading) and 30 per deadline, plus a little to spare */
+  static float minHeight(int rows) { return 112f + 10f + 26f + 30f * rows + 6f; }
+
   /** the right layout for the widget's size (Android 12+: Android picks as it resizes) */
   static RemoteViews forSize(Context c, AppWidgetManager m, int id, Data d) {
     if (Build.VERSION.SDK_INT >= 31) {
       Map<SizeF, RemoteViews> sizes = new HashMap<>();
       sizes.put(new SizeF(110f, 40f), searchBar(c, d));
       sizes.put(new SizeF(180f, 100f), quick(c, d, 0));
-      sizes.put(new SizeF(180f, 165f), quick(c, d, 2));
-      sizes.put(new SizeF(180f, 205f), quick(c, d, 3));
+      for (int r = 1; r <= 3; r++) sizes.put(new SizeF(180f, minHeight(r)), quick(c, d, r));
       return new RemoteViews(sizes);
     }
     Bundle o = m.getAppWidgetOptions(id);
     int h = o != null ? o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 110) : 110;
     if (h < 100) return searchBar(c, d);
-    if (h < 165) return quick(c, d, 0);
-    return quick(c, d, h < 205 ? 2 : 3);
+    int rows = 0;
+    for (int r = 1; r <= 3; r++) if (h >= minHeight(r)) rows = r;
+    return quick(c, d, rows);
   }
 
   /** redraw every Yojana Sahay widget (after the app hands over new deadlines) */

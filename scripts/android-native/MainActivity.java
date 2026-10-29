@@ -55,7 +55,7 @@ public class MainActivity extends BridgeActivity {
     View c = findViewById(android.R.id.content);
     if (c != null) c.invalidate();   // re-check now (Android only re-checks on a redraw)
     // opened without Android's launch screen (e.g. from Share): start right away
-    main.postDelayed(this::startWebAnimation, 350);
+    main.postDelayed(this::startWebAnimation, 700);
   }
 
   private void startWebAnimation() {
@@ -84,10 +84,16 @@ public class MainActivity extends BridgeActivity {
   public void onCreate(Bundle savedInstanceState) {
     SplashScreen launch = SplashScreen.installSplashScreen(this);
     launch.setKeepOnScreenCondition(() -> !launchDone);
-    launch.setOnExitAnimationListener(view -> {
-      startWebAnimation();
-      view.getView().animate().alpha(0f).setDuration(220).withEndAction(view::remove).start();
-    });
+    // The page draws its first frames (the slowest moment) still hidden under
+    // Android's launch screen, which shows the identical logo circle; then the
+    // launch screen fades and the animation starts — so its very first frames
+    // are smooth instead of being dropped while the page draws for the first time.
+    launch.setOnExitAnimationListener(view -> main.postDelayed(() -> {
+      view.getView().animate().alpha(0f).setDuration(240)
+          .setInterpolator(new android.view.animation.DecelerateInterpolator())
+          .withEndAction(view::remove).start();
+      main.postDelayed(this::startWebAnimation, 80);
+    }, 160));
     Intent first = getIntent();
     quickLaunch = first != null && first.getData() != null && "yojanasahay".equals(first.getData().getScheme());
     registerPlugin(LaunchPlugin.class);
