@@ -6,7 +6,7 @@
     "confidence": 0
   },
   "assam_atal_amrit": {
-    "lastVerified": "2026-10-10T11:53:51.234Z",
+    "lastVerified": "2026-10-29T21:35:34.443Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -54,7 +54,7 @@
     "confidence": 0
   },
   "assam_arundhati_gold": {
-    "lastVerified": "2026-10-10T11:55:02.067Z",
+    "lastVerified": "2026-10-29T21:34:52.874Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -66,7 +66,7 @@
     "confidence": 0
   },
   "assam_aponar_apon_ghar": {
-    "lastVerified": "2026-10-10T11:55:02.067Z",
+    "lastVerified": "2026-10-29T21:33:44.656Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -120,7 +120,7 @@
     "confidence": 0
   },
   "assam_covid_widow": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-29T21:36:05.420Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -136,25 +136,25 @@
     "confidence": 0
   },
   "assam_basundhara": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-29T21:35:35.943Z",
     "httpStatus": 200,
     "confidence": 0.49,
     "linkAlive": true
   },
   "assam_arohan": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-29T21:34:36.309Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_bigyan_pratibha": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-29T21:35:48.974Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.49
+    "confidence": 0
   },
   "assam_disability_pension": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-29T21:36:13.443Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3620,6 +3620,27 @@
   },
   "arunachal_deen_dayal_upadhyaya": {
     "lastVerified": "2026-10-28T21:37:02.869Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "assam_arogya_nidhi": {
+    "lastVerified": "2026-10-29T21:34:34.095Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "assam_educational_assistance_children": {
+    "lastVerified": "2026-10-29T21:37:02.568Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "assam_financial_assistance_higher": {
+    "lastVerified": "2026-10-29T21:37:35.778Z"
+  },
+  "assam_grants_tea_tribe": {
+    "lastVerified": "2026-10-29T21:38:13.193Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
