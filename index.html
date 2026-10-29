@@ -310,7 +310,7 @@
     @keyframes hs-breathe { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.12); opacity: 1; } }
     .hs-logo-box {
       will-change: transform, opacity;
-      position: relative; width: 124px; height: 124px; border-radius: 32px; overflow: hidden; background: #fff;
+      position: relative; width: 124px; height: 124px; border-radius: 50%; overflow: hidden; background: #fff;
       box-shadow: 0 0 0 1px rgba(255,255,255,.35), 0 18px 50px rgba(0,0,0,.45), 0 0 60px rgba(255,140,80,.45), 0 0 90px rgba(124,92,255,.35);
       animation: hs-logo-in .8s cubic-bezier(.45,0,.2,1) .05s both;
     }
@@ -470,7 +470,10 @@
           if (window.__ysSwitching) return;
           try {
             if (cap.isPluginAvailable && cap.isPluginAvailable('YSLaunch')) {
-              cap.nativePromise('YSLaunch', 'ready', {}).catch(function () {});
+              cap.nativePromise('YSLaunch', 'ready', {}).then(function (r) {
+                // opened from a home-screen widget / shortcut: go straight to it
+                if (r && r.quick) { window.__hsQuick = 1; try { window.__ysBoot && window.__ysBoot(); } catch (e) {} }
+              }).catch(function () {});
               setTimeout(start, 1800);            // in case the app never calls back
             } else {                              // older app versions
               cap.nativePromise('SplashScreen', 'hide', { fadeOutDuration: 180 }).catch(function () {});

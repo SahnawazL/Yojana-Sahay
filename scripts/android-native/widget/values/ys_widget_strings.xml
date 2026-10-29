@@ -9,4 +9,11 @@
     <string name="ys_w_money">Money check</string>
     <string name="ys_w_ai">Ask AI</string>
     <string name="ys_w_open">Open Yojana Sahay</string>
+    <string name="ys_w_voice">Search by voice</string>
+    <string name="ys_w_head_mine">Closing soon · for you</string>
+    <string name="ys_w_head_all">Closing soon</string>
+    <string name="ys_w_empty">See which schemes you qualify for  ›</string>
+    <string name="ys_w_days_0">Last day today</string>
+    <string name="ys_w_days_1">Ends tomorrow</string>
+    <string name="ys_w_days_n">%1$d days left</string>
 </resources>

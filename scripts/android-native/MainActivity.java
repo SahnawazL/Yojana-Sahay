@@ -46,6 +46,7 @@ public class MainActivity extends BridgeActivity {
   // smooth, continuous animation. (While Android's screen is up the page can't
   // draw, so the animation must not start earlier.) Safety: 6 s at most.
   private volatile boolean launchDone = false;
+  volatile boolean quickLaunch = false;
   private boolean webAnimStarted = false;
 
   void webReady() {
@@ -70,8 +71,12 @@ public class MainActivity extends BridgeActivity {
     @PluginMethod
     public void ready(PluginCall call) {
       final android.app.Activity a = getActivity();
-      if (a instanceof MainActivity) a.runOnUiThread(((MainActivity) a)::webReady);
-      call.resolve();
+      com.getcapacitor.JSObject r = new com.getcapacitor.JSObject();
+      if (a instanceof MainActivity) {
+        r.put("quick", ((MainActivity) a).quickLaunch);   // opened from a widget / shortcut
+        a.runOnUiThread(((MainActivity) a)::webReady);
+      }
+      call.resolve(r);
     }
   }
 
@@ -83,7 +88,10 @@ public class MainActivity extends BridgeActivity {
       startWebAnimation();
       view.getView().animate().alpha(0f).setDuration(220).withEndAction(view::remove).start();
     });
+    Intent first = getIntent();
+    quickLaunch = first != null && first.getData() != null && "yojanasahay".equals(first.getData().getScheme());
     registerPlugin(LaunchPlugin.class);
+    registerPlugin(YsWidgets.Bridge.class);
     super.onCreate(savedInstanceState);
     main.postDelayed(() -> { webReady(); main.postDelayed(this::startWebAnimation, 400); }, 6000);
     fitToScreen();
@@ -177,9 +185,33 @@ public class MainActivity extends BridgeActivity {
     if (Intent.ACTION_VIEW.equals(action) && data != null && "yojanasahay".equals(data.getScheme()) && "go".equals(data.getHost())) {
       String key = data.getLastPathSegment();
       if (key != null && key.matches("[a-z]{2,20}")) {
-        deliver("(function(){if(document.readyState!=='loading'&&document.getElementById('root')&&document.getElementById('root').childElementCount){location.replace('/?go=" + key + "');return true}return false})()", 0);
+        // the app opens it in place (no reload); older app versions: reload at ?go=
+        deliver("(function(){if(window.__ysGo)return window.__ysGo('" + key + "');if(document.readyState!=='loading'&&document.getElementById('root')&&document.getElementById('root').childElementCount){location.replace('/?go=" + key + "');return true}return false})()", 0);
+        if ("find".equals(key)) showKeyboardWhenReady(0);
       }
     }
+    // a scheme from the widget's deadline list
+    if (Intent.ACTION_VIEW.equals(action) && data != null && "yojanasahay".equals(data.getScheme()) && "scheme".equals(data.getHost())) {
+      String id = data.getLastPathSegment();
+      if (id != null && id.matches("[A-Za-z0-9_-]{2,80}")) {
+        deliver("(function(){if(window.__ysOpenScheme)return window.__ysOpenScheme('" + id + "');if(document.readyState!=='loading'&&document.getElementById('root')&&document.getElementById('root').childElementCount){location.replace('/?scheme=" + id + "');return true}return false})()", 0);
+      }
+    }
+  }
+
+  /** Search from the widget: once the search box has focus, bring up the keyboard. */
+  private void showKeyboardWhenReady(final int attempt) {
+    main.postDelayed(() -> {
+      final WebView wv = getBridge() != null ? getBridge().getWebView() : null;
+      if (wv == null) { if (attempt < 20) showKeyboardWhenReady(attempt + 1); return; }
+      wv.evaluateJavascript("(function(){var a=document.activeElement;return !!a&&a.tagName==='INPUT'})()", v -> {
+        if ("true".equals(v)) {
+          wv.requestFocus();
+          android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+          if (imm != null) imm.showSoftInput(wv, 0);
+        } else if (attempt < 20) showKeyboardWhenReady(attempt + 1);
+      });
+    }, attempt == 0 ? 600 : 400);
   }
 
   /** Runs the script once the app's page is ready (retries for ~12 s). */

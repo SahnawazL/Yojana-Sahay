@@ -231,4 +231,51 @@ if (LIVE && B0) {
   out("live 5 next start: still " + (B0 + 100) + ", broken one skipped", await liveInfo());
 }
 
+// ── Home-screen widgets: links open in place, the app hands over deadlines,
+//    and the widget is placed on the home screen and photographed ───────────
+try {
+  out("widget data → widget", await ev(async () => {
+    if (!window.Capacitor?.isPluginAvailable?.("YSWidget")) return "plugin missing";
+    const d = new Date(Date.now() + 5.5 * 3600e3), ymd = (n) => new Date(d.getTime() + n * 864e5).toISOString().slice(0, 10);
+    const data = JSON.stringify({ v: 1, lang: "en", mine: true, items: [
+      { id: "pmkisan", en: "PM Kisan Samman Nidhi", hi: "पीएम किसान", date: ymd(3) },
+      { id: "scholarship", en: "National Scholarship (NSP)", hi: "राष्ट्रीय छात्रवृत्ति", date: ymd(12) },
+      { id: "ayushman", en: "Ayushman Bharat (PMJAY)", hi: "आयुष्मान भारत", date: ymd(40) }] });
+    await window.Capacitor.nativePromise("YSWidget", "update", { data });
+    return "sent";
+  }));
+  adb("shell am start -a android.intent.action.VIEW -d yojanasahay://go/find -n com.yojanasahay.app/.MainActivity"); await T(3500);
+  out("widget search opens search, typing ready", await ev(() => ({ searchOpen: !!document.querySelector('[role="dialog"] input'), focused: document.activeElement?.tagName, pageAgeSeconds: Math.round(performance.now() / 1000) })));
+  adb("shell am start -a android.intent.action.VIEW -d yojanasahay://scheme/pmkisan -n com.yojanasahay.app/.MainActivity"); await T(3000);
+  out("widget deadline opens that scheme", await ev(() => /Kisan/i.test(document.body.innerText.slice(0, 20000)) + " | search closed: " + !document.querySelector('[role="dialog"] input')));
+
+  const sharp = (await import("sharp")).default;
+  const fsw = await import("node:fs");
+  const shots = [];
+  const shot = async (tag) => { const png = execSync("adb exec-out screencap -p", { maxBuffer: 64 * 1024 * 1024 }); shots.push(`g${tag} ${(await sharp(png).resize(360).jpeg({ quality: 55 }).toBuffer()).toString("base64")}`); };
+  const ui = () => { adb("shell uiautomator dump /sdcard/ui.xml"); return adb("shell cat /sdcard/ui.xml"); };
+  const node = (xml, re) => { for (const m of xml.matchAll(/<node [^>]*>/g)) if (re.test(m[0])) { const b = /bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/.exec(m[0]); if (b) return { x: (+b[1] + +b[3]) >> 1, y: (+b[2] + +b[4]) >> 1, y2: +b[4] }; } return null; };
+  const [W, H] = (/(\d+)x(\d+)/.exec(adb("shell wm size")) || [0, 1080, 2400]).slice(1).map(Number);
+  adb("shell input keyevent KEYCODE_HOME"); await T(2000);
+  adb(`shell input swipe ${W >> 1} ${Math.round(H * 0.55)} ${W >> 1} ${Math.round(H * 0.55)} 1500`); await T(1500);
+  let n = node(ui(), /text="Widgets"/);
+  if (n) { adb(`shell input tap ${n.x} ${n.y}`); await T(2500); }
+  let app = null;
+  for (let k = 0; k < 14 && !app; k++) {
+    app = node(ui(), /text="Yojana Sahay"/);
+    if (!app) { adb(`shell input swipe ${W >> 1} ${Math.round(H * 0.8)} ${W >> 1} ${Math.round(H * 0.35)} 400`); await T(900); }
+  }
+  if (app) { adb(`shell input tap ${app.x} ${app.y}`); await T(2500); }
+  await shot("1-picker");
+  // drag the first preview below the app's name onto the home screen
+  if (app) {
+    const x = W >> 1, y = Math.min(H - 100, app.y2 + Math.round(H * 0.12));
+    adb(`shell input draganddrop ${x} ${y} ${x} ${Math.round(H * 0.35)} 2500`); await T(4000);
+    adb("shell input keyevent KEYCODE_HOME"); await T(2500);
+    await shot("2-home");
+  }
+  out("widget on home screen", (app ? "picker found the app" : "app not found in picker") + " | placed: " + (adb("shell dumpsys appwidget").match(/YsWidgets\$(Quick|Search)[^\n]*\n[^\n]*id=/g) || []).length);
+  fsw.appendFileSync(process.env.RUNNER_TEMP + "/diag/frames.txt", "\n" + shots.join("\n"));
+} catch (e) { out("widgets test", "FAILED " + e.message); }
+
 ws.close();

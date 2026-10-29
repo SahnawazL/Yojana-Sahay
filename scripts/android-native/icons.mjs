@@ -73,8 +73,11 @@ write(path.join(res, "values/ic_launcher_background.xml"), `<?xml version="1.0" 
 {
   const nodpi = path.join(res, "drawable-nodpi");
   fs.mkdirSync(nodpi, { recursive: true });
-  await sharp(ICON).resize(144, 144).png().toFile(path.join(nodpi, "ys_w_logo.png"));
-  const logo = (await sharp(ICON).resize(88, 88).png().toBuffer()).toString("base64");
+  // round logo (white circle) — the same shape as Android's launch screen and the app's opening screen
+  const roundLogo = async (px) => sharp("src/logo.webp").resize(px, px)
+    .composite([{ input: Buffer.from(`<svg width="${px}" height="${px}"><circle cx="${px / 2}" cy="${px / 2}" r="${px / 2}" fill="#fff"/></svg>`), blend: "dest-in" }]).png().toBuffer();
+  fs.writeFileSync(path.join(nodpi, "ys_w_logo.png"), await roundLogo(144));
+  const logo = (await roundLogo(96)).toString("base64");
   const card = (w, h, inner) => Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}">
     <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B2A7A"/><stop offset=".5" stop-color="#06195A"/><stop offset="1" stop-color="#231A6B"/></linearGradient>
     <radialGradient id="o" cx=".08" cy="0" r=".7"><stop offset="0" stop-color="#FF9933" stop-opacity=".35"/><stop offset="1" stop-color="#FF9933" stop-opacity="0"/></radialGradient></defs>
@@ -82,7 +85,7 @@ write(path.join(res, "values/ic_launcher_background.xml"), `<?xml version="1.0" 
   const pill = (x, y, w, h, text, fs, tx = 0.4) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="#fff"/>
     <text x="${x + h * tx}" y="${y + h * 0.64}" font-family="sans-serif" font-size="${fs}" fill="#46557A">${text}</text>`;
   const quick = card(600, 264, `<rect width="600" height="264" rx="52" fill="url(#g)"/><rect width="600" height="264" rx="52" fill="url(#o)"/>
-    <rect x="20" y="20" width="96" height="96" rx="28" fill="#fff"/><image x="24" y="24" width="88" height="88" xlink:href="data:image/png;base64,${logo}"/>
+    <image x="20" y="20" width="96" height="96" xlink:href="data:image/png;base64,${logo}"/>
     ${pill(132, 20, 448, 96, "Search 1,200+ schemes", 28)}
     ${["Eligibility", "Money check", "Ask AI"].map((t, i) => `<rect x="${20 + i * 192}" y="136" width="176" height="104" rx="32" fill="#fff" fill-opacity=".1" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
       <text x="${108 + i * 192}" y="198" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="24" fill="#fff">${t}</text>`).join("")}`);

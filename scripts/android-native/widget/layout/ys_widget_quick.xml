@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Yojana Sahay widget (YsWidgets.java) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@android:id/background"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:gravity="center_vertical"
     android:background="@drawable/ys_w_bg" android:padding="10dp">
-
   <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
       android:orientation="horizontal" android:gravity="center_vertical">
     <ImageView android:id="@+id/ys_w_logo" android:layout_width="44dp" android:layout_height="44dp"
-        android:background="@drawable/ys_w_logo_bg" android:padding="3dp" android:scaleType="fitCenter"
-        android:src="@drawable/ys_w_logo" android:contentDescription="@string/ys_w_open" />
+        android:scaleType="fitCenter" android:src="@drawable/ys_w_logo" android:contentDescription="@string/ys_w_open" />
     <LinearLayout android:id="@+id/ys_w_search" android:layout_width="0dp" android:layout_weight="1"
         android:layout_height="44dp" android:layout_marginStart="8dp"
         android:orientation="horizontal" android:gravity="center_vertical"
-        android:background="@drawable/ys_w_pill" android:paddingStart="14dp" android:paddingEnd="14dp">
+        android:background="@drawable/ys_w_pill" android:paddingStart="14dp" android:paddingEnd="4dp">
       <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ys_w_ic_search"
           android:importantForAccessibility="no" />
-      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp"
+      <TextView android:id="@+id/ys_w_hint" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="10dp"
           android:text="@string/ys_w_search_hint" android:textColor="#46557A" android:textSize="14sp"
           android:maxLines="1" android:ellipsize="end" />
+      <ImageView android:id="@+id/ys_w_mic" android:layout_width="36dp" android:layout_height="36dp" android:padding="8dp"
+          android:background="@drawable/ys_w_mic_bg" android:src="@drawable/ys_w_ic_mic" android:contentDescription="@string/ys_w_voice" />
     </LinearLayout>
   </LinearLayout>
 
@@ -28,25 +29,23 @@
         android:orientation="horizontal" android:gravity="center" android:background="@drawable/ys_w_chip"
         android:paddingStart="6dp" android:paddingEnd="6dp">
       <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ys_w_ic_check" android:importantForAccessibility="no" />
-      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="5dp"
+      <TextView android:id="@+id/ys_w_checker_t" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="5dp"
           android:text="@string/ys_w_checker" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"
           android:maxLines="1" android:ellipsize="end" />
     </LinearLayout>
-    <LinearLayout android:id="@+id/ys_w_money" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent"
-        android:layout_marginStart="6dp"
+    <LinearLayout android:id="@+id/ys_w_money" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:layout_marginStart="6dp"
         android:orientation="horizontal" android:gravity="center" android:background="@drawable/ys_w_chip"
         android:paddingStart="6dp" android:paddingEnd="6dp">
       <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ys_w_ic_money" android:importantForAccessibility="no" />
-      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="5dp"
+      <TextView android:id="@+id/ys_w_money_t" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="5dp"
           android:text="@string/ys_w_money" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"
           android:maxLines="1" android:ellipsize="end" />
     </LinearLayout>
-    <LinearLayout android:id="@+id/ys_w_ai" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent"
-        android:layout_marginStart="6dp"
+    <LinearLayout android:id="@+id/ys_w_ai_chip" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:layout_marginStart="6dp"
         android:orientation="horizontal" android:gravity="center" android:background="@drawable/ys_w_chip"
         android:paddingStart="6dp" android:paddingEnd="6dp">
       <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ys_w_ic_ai" android:importantForAccessibility="no" />
-      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="5dp"
+      <TextView android:id="@+id/ys_w_ai_t" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="5dp"
           android:text="@string/ys_w_ai" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"
           android:maxLines="1" android:ellipsize="end" />
     </LinearLayout>

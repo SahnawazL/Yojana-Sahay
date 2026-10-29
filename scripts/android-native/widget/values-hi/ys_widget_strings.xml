@@ -9,4 +9,11 @@
     <string name="ys_w_money">पैसा जाँचें</string>
     <string name="ys_w_ai">AI से पूछें</string>
     <string name="ys_w_open">योजना सहाय खोलें</string>
+    <string name="ys_w_voice">बोलकर खोजें</string>
+    <string name="ys_w_head_mine">जल्द बंद · आपके लिए</string>
+    <string name="ys_w_head_all">जल्द बंद हो रही</string>
+    <string name="ys_w_empty">देखें आप किन योजनाओं के पात्र हैं  ›</string>
+    <string name="ys_w_days_0">आज आख़िरी दिन</string>
+    <string name="ys_w_days_1">कल आख़िरी दिन</string>
+    <string name="ys_w_days_n">%1$d दिन बाकी</string>
 </resources>

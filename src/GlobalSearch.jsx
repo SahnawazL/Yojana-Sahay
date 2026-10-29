@@ -102,7 +102,9 @@ function saveRecent(q) {
   try { localStorage.setItem(RECENT_KEY, JSON.stringify([t, ...readRecent().filter(x => x.toLowerCase() !== t.toLowerCase())].slice(0, 6))); } catch {}
 }
 
-export default function GlobalSearch({ lang = "en", dark = false, onClose, onAction, expandTags = null, appsCount = 0, theme }) {
+const SpeechRec = typeof window !== "undefined" ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
+
+export default function GlobalSearch({ lang = "en", dark = false, onClose, onAction, expandTags = null, appsCount = 0, theme, startVoice = false }) {
   const hi = lang === "hi";
   const L = (pair) => (Array.isArray(pair) ? (hi ? pair[1] : pair[0]) : pair);
   const th = theme;
@@ -111,6 +113,38 @@ export default function GlobalSearch({ lang = "en", dark = false, onClose, onAct
   const [closing, setClosing] = useState(false);
   const dq = useDeferredValue(q);
   const inputRef = useRef(null);
+  // 🎤 speak to search (phone's own speech recognition; also the widget's mic button)
+  const [listening, setListening] = useState(false);
+  const [micNote, setMicNote] = useState("");
+  const recRef = useRef(null);
+  const startMic = () => {
+    if (!SpeechRec || listening) return;
+    try {
+      const rec = new SpeechRec();
+      rec.lang = hi ? "hi-IN" : "en-IN";
+      rec.interimResults = true;
+      rec.continuous = false;
+      rec.maxAlternatives = 1;
+      rec.onresult = (e) => {
+        let txt = "";
+        for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
+        if (txt.trim()) setQ(txt.trim());
+      };
+      rec.onerror = (e) => {
+        setMicNote(e.error === "not-allowed" || e.error === "service-not-allowed"
+          ? (hi ? "माइक की अनुमति दें" : "Allow microphone access to speak")
+          : e.error === "no-speech" ? (hi ? "कुछ सुनाई नहीं दिया — फिर कोशिश करें" : "Didn't catch that — try again") : "");
+      };
+      rec.onend = () => { setListening(false); recRef.current = null; };
+      recRef.current = rec;
+      setMicNote("");
+      setListening(true);
+      rec.start();
+    } catch { setListening(false); }
+  };
+  const stopMic = () => { try { recRef.current?.stop(); } catch {} };
+  useEffect(() => () => { try { recRef.current?.abort(); } catch {} }, []);
+  useEffect(() => { if (startVoice) { const t = setTimeout(startMic, 350); return () => clearTimeout(t); } }, [startVoice]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 60);
@@ -199,7 +233,7 @@ export default function GlobalSearch({ lang = "en", dark = false, onClose, onAct
       style={{ position: "fixed", inset: 0, zIndex: 3000, background: dark ? "rgba(10,10,12,0.97)" : "rgba(246,247,249,0.98)", fontFamily: bf,
         display: "flex", flexDirection: "column",
         animation: closing ? "ys-gs-out .16s ease-in forwards" : "ys-gs-in .2s ease-out" }}>
-      <style>{`@keyframes ys-gs-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}@keyframes ys-gs-out{to{opacity:0;transform:translateY(-6px)}}`}</style>
+      <style>{`@keyframes ys-gs-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}@keyframes ys-gs-out{to{opacity:0;transform:translateY(-6px)}}@keyframes ys-gs-mic{0%,100%{box-shadow:0 0 0 0 rgba(124,92,255,.45)}50%{box-shadow:0 0 0 7px rgba(124,92,255,0)}}`}</style>
       {/* Search bar */}
       <div style={{ padding: "calc(10px + env(safe-area-inset-top)) 12px 10px", display: "flex", alignItems: "center", gap: 8, borderBottom: `1px solid ${line}` }}>
         <button type="button" onClick={close} aria-label={hi ? "बंद करें" : "Close"}
@@ -212,9 +246,23 @@ export default function GlobalSearch({ lang = "en", dark = false, onClose, onAct
             style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", color: th.text, fontSize: 15, fontFamily: bf }} />
           {q && <button type="button" onClick={() => { setQ(""); inputRef.current?.focus(); }} aria-label={hi ? "साफ़ करें" : "Clear"}
             style={{ border: "none", background: dark ? "rgba(255,255,255,0.1)" : "#E2E8F0", color: th.text, width: 22, height: 22, borderRadius: "50%", fontSize: 12, cursor: "pointer", flexShrink: 0 }}>✕</button>}
+          {SpeechRec && (listening || !q) && (
+            <button type="button" onClick={listening ? stopMic : startMic}
+              aria-label={listening ? (hi ? "सुनना बंद करें" : "Stop listening") : (hi ? "बोलकर खोजें" : "Search by voice")}
+              style={{ border: "none", width: 32, height: 32, borderRadius: "50%", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                background: listening ? "linear-gradient(135deg,#FF6B6B,#7C5CFF)" : "transparent",
+                animation: listening ? "ys-gs-mic 1.1s ease-in-out infinite" : "none" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill={listening ? "#fff" : sub} d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+            </button>
+          )}
         </div>
       </div>
 
+      {(listening || micNote) && (
+        <div role="status" style={{ padding: "8px 16px 0", fontSize: 12.5, fontWeight: 700, color: listening ? "#7C5CFF" : sub }}>
+          {listening ? (hi ? "बोलिए… जैसे “किसान योजना”" : "Listening… say something like “farmer scheme”") : micNote}
+        </div>
+      )}
       <div style={{ flex: 1, overflowY: "auto", padding: "4px 14px calc(24px + env(safe-area-inset-bottom))", WebkitOverflowScrolling: "touch" }}>
         {!trimmed && (
           <>

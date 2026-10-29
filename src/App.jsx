@@ -10516,6 +10516,7 @@ function YojanaSahayInner(){
   const [langAnim,setLangAnim]=useState(false);
   const [showChecker,setShowChecker]=useState(false);
   const [showHomeSearch,setShowHomeSearch]=useState(false);
+  const [homeSearchVoice,setHomeSearchVoice]=useState(false); // opened by the widget's 🎤
   const [checkerAnswers,setCheckerAnswers]=useState(null); // answers from latest eligibility recheck (raw, pre-decision)
   // Bumped when the AI chat finishes an eligibility check, so Home re-reads it.
   const [quizSavedTick,setQuizSavedTick]=useState(0);
@@ -10576,11 +10577,19 @@ function YojanaSahayInner(){
       if (window.__ysPendingShare) takeNativeShare(window.__ysPendingShare);
       window.addEventListener("ys-native-share", (e) => takeNativeShare(e.detail && e.detail.text));
       // App-icon shortcuts (manifest "shortcuts", long-press on Android): ?go=…
+      // Home-screen widgets: find = search with the keyboard up, voice = search by speaking
+      const runGo=(g)=>{
+        if(g==="checker") setShowChecker(true);
+        else if(g==="money") setTimeout(()=>openMoneyCheck(null),500); // "Why didn't my money come?" (Telegram bot link)
+        else if(g==="find"||g==="voice"){ setSelectedScheme(null); setHomeSearchVoice(g==="voice"); setShowHomeSearch(true); }
+        else if(["ai","search","schemes","profile"].includes(g)) setActiveTab(g);
+      };
+      // the Android app calls these when a widget / shortcut is tapped while the app is open (no reload)
+      window.__ysGo=(g)=>{ if(typeof g!=="string"||!/^[a-z]{2,20}$/.test(g)) return false; runGo(g); return true; };
+      window.__ysOpenScheme=(id)=>{ if(typeof id!=="string"||!/^[A-Za-z0-9_-]{2,80}$/.test(id)) return false; setShowHomeSearch(false); setSelectedScheme(id); return true; };
       const go = params.get("go");
       if(go){
-        if(go==="checker") setShowChecker(true);
-        else if(go==="money") setTimeout(()=>openMoneyCheck(null),500); // "Why didn't my money come?" (Telegram bot link)
-        else if(["ai","search","schemes","profile"].includes(go)) setActiveTab(go);
+        runGo(go);
         window.history.replaceState({}, "", window.location.pathname);
       }
     }catch{}
@@ -10611,7 +10620,8 @@ function YojanaSahayInner(){
     // visible (window.__hsStart, index.html) — app: the full ~2.3 s; website:
     // at least the logo + name (~1 s) — then a smooth zoom-and-fade exit.
     const isApp=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-    const minShow=isApp?2300:1000;
+    // opened from a widget / app shortcut: straight to what was tapped
+    const minShow=window.__hsQuick?0:isApp?2300:1000;
     let t1=null,t2=null,gone=false;
     const out=()=>{
       if(gone)return; gone=true;
@@ -11298,6 +11308,29 @@ function YojanaSahayInner(){
     }catch{}
   },[profile,committedCheckerAnswers]);
   const eligibleIdSet=useMemo(()=>new Set((allMatchedSchemes||[]).map(s=>s.id)),[allMatchedSchemes]);
+  // Android home-screen widget: the nearest deadlines of schemes you qualify
+  // for (or, before the checker, schemes closing soon), in the app's language.
+  // The widget never goes online — it shows what the app hands it here and
+  // works out "days left" itself each day.
+  useEffect(()=>{
+    const C=window.Capacitor;
+    if(!C||!C.isNativePlatform?.()||!C.isPluginAvailable?.("YSWidget"))return;
+    const t=setTimeout(()=>{try{
+      const now=Date.now();
+      const pick=(list,max)=>list
+        .filter(s=>s&&!s.duplicateOf&&s.isActive!==false&&/^\d{4}-\d{2}-\d{2}$/.test(s.lastDate||""))
+        .map(s=>({s,d:deadlineDaysLeft(s.lastDate,now)}))
+        .filter(x=>x.d!=null&&x.d>=0&&x.d<=max)
+        .sort((a,b)=>a.d-b.d);
+      let mine=true, list=pick(allMatchedSchemes||[],120);
+      if(!list.length){ mine=false; list=pick(SCHEME_DB,60); }
+      const items=list.slice(0,3).map(({s})=>({id:s.id,en:s.name?.en||"",hi:s.name?.hi||s.name?.en||"",date:s.lastDate}));
+      const data=JSON.stringify({v:1,lang:lang==="hi"?"hi":"en",mine,items,day:new Date(now+5.5*3600e3).toISOString().slice(0,10)});
+      if(localStorage.getItem("ys_widget_sent")===data)return;
+      C.nativePromise("YSWidget","update",{data}).then(()=>{try{localStorage.setItem("ys_widget_sent",data);}catch{}}).catch(()=>{});
+    }catch{}},1500);
+    return()=>clearTimeout(t);
+  },[allMatchedSchemes,lang]);
   const familySelf=allMatchedSchemes;
   // "Matched for You" — the best 3 of everything you qualify for (it used to be
   // simply the first 3 in the database): schemes you haven't applied for yet,
@@ -12718,7 +12751,7 @@ function YojanaSahayInner(){
       {showHomeSearch&&(
         <Suspense fallback={null}>
           <GlobalSearch lang={lang} dark={dark} theme={THEME[dark?"dark":"light"]} expandTags={expandSearchTags}
-            appsCount={homeAppsCount} onClose={()=>setShowHomeSearch(false)} onAction={handleSearchAction}/>
+            appsCount={homeAppsCount} startVoice={homeSearchVoice} onClose={()=>{setShowHomeSearch(false);setHomeSearchVoice(false);}} onAction={handleSearchAction}/>
         </Suspense>
       )}
       {showFAQ&&(
