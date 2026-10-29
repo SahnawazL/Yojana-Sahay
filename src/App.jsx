@@ -4937,7 +4937,8 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
         </div>
 
         {/* ── CALCULATING REVEAL SCREEN (full-screen theatrical) ── */}
-        {calculating&&(
+        {/* drawn on top of the whole screen (outside the checker sheet), so nothing of the last question shows through */}
+        {calculating&&createPortal(
           <div style={{
             position:"fixed",inset:0,zIndex:9999,
             background:"linear-gradient(160deg,#03031a 0%,#06038D 55%,#03031a 100%)",
@@ -5035,7 +5036,7 @@ export function EligibilityChecker({lang,onClose,onComplete,onExitFromResults,pr
               ))}
             </div>
           </div>
-        )}
+        ,document.body)}
 
         {/* ── Profile Pre-fill Banner ── */}
         {prefillCount>0&&step<TOTAL&&(
