@@ -38,10 +38,9 @@
  * schemes-meta.json either — which meant `schemeCount` (previously
  * `Object.keys(meta).length`) was silently undercounting the real total
  * everywhere this stat is shown (portfolio hero bar, project card, case
- * study). schemeCount now comes from SCHEME_DB.length — the actual live
- * scheme database (national schemes + every state's schemes spread in via
- * stateSchemes.js) — which is the true total regardless of verification
- * status. schemes-meta.json is still used, unchanged, for linkHealthPercent
+ * study). schemeCount now comes from SCHEME_COUNT (src/schemeStats.js) —
+ * the open schemes in the live database, each counted once — the same
+ * number the app's home screen shows, regardless of verification status. schemes-meta.json is still used, unchanged, for linkHealthPercent
  * and lastVerifiedAt, since those specifically describe the verify queue.
  *
  * CORS: this endpoint is read-only, non-sensitive aggregate data, so it's
@@ -66,7 +65,7 @@
 
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { SCHEME_DB } from "../src/schemesData.js";
+import { SCHEME_COUNT } from "../src/schemeStats.js";
 import { vapidKeys } from "./_lib/vapid.js";
 import telegramHandler from "./_lib/telegramBot.js";
 
@@ -97,7 +96,7 @@ function getAdminApp() {
  * and reduces it to a small public-safe summary.
  *
  * schemeCount is NOT derived from this file — see the FIX note up top.
- * It comes from SCHEME_DB.length (the real, live total), so it's correct
+ * It comes from SCHEME_COUNT (the app's own home-screen total), so it's correct
  * even before the health-stats fetch below runs, and even if this whole
  * function falls through to its catch block.
  *
@@ -109,7 +108,9 @@ async function getSchemeHealthStats() {
   // The real total. Independent of GitHub/meta — always accurate even if
   // the fetch below fails, so schemeCount never silently reports 0 or the
   // wrong (verify-queue-sized) number again.
-  const schemeCount = SCHEME_DB.length;
+  // Open schemes, each counted once (duplicate listings and closed schemes
+  // left out) — exactly the number on the app's home screen.
+  const schemeCount = SCHEME_COUNT;
 
   try {
     const token = process.env.GITHUB_TOKEN;

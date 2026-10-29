@@ -12,6 +12,8 @@ import { eligibilityLine, nearMisses } from "./eligibilityExplain.js";
 // Duplicate listings (duplicateOf) are the same scheme listed twice — the AI
 // sees each scheme once, and counts match the app's home screen.
 const SCHEME_DB = ALL_SCHEMES.filter(s => !s.duplicateOf);
+// Counts quoted to users are the open schemes only — the same number as the app's home screen.
+const OPEN_DB = SCHEME_DB.filter(s => !s.closed);
 
 // ─── MODEL SELECTION ─────────────────────────────────────────────────────────
 // llama-3.3-70b-versatile was deprecated by Groq (announced June 17, 2026) and
@@ -199,7 +201,7 @@ const STOP_WORDS = new Set([
 // Returns exact per-state counts derived from SCHEME_DB — never hallucinated.
 function buildStateBreakdown() {
   const byState = {};
-  SCHEME_DB.filter(s => s.scope === "state").forEach(s => {
+  OPEN_DB.filter(s => s.scope === "state").forEach(s => {
     const key = s.state ?? "Unknown";
     byState[key] = (byState[key] ?? 0) + 1;
   });
@@ -533,8 +535,8 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
 
   // CASE B: User asks per-state count breakdown
   if (wantsStateBreakdown) {
-    const national = SCHEME_DB.filter(s => s.scope === "national").length;
-    const stateTotal = SCHEME_DB.filter(s => s.scope === "state").length;
+    const national = OPEN_DB.filter(s => s.scope === "national").length;
+    const stateTotal = OPEN_DB.filter(s => s.scope === "state").length;
     const breakdown = buildStateBreakdown();
     const guidance = buildCountGuidance(l, "state");
     return (
@@ -550,9 +552,9 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
   // CASE A: User asks total count OR wants to list all schemes (no specific topic)
   // → Give exact numbers + guide user to Schemes tab for live counts.
   if (wantsTotalCount) {
-    const national = SCHEME_DB.filter(s => s.scope === "national").length;
-    const stateTotal = SCHEME_DB.filter(s => s.scope === "state").length;
-    const total = SCHEME_DB.length;
+    const national = OPEN_DB.filter(s => s.scope === "national").length;
+    const stateTotal = OPEN_DB.filter(s => s.scope === "state").length;
+    const total = OPEN_DB.length;
     const guidance = buildCountGuidance(l, "total");
 
     if (wantsList) {
@@ -587,7 +589,7 @@ function buildSmartContext(query, lang = "en", profile = null, extras = {}) {
   // CASE C: Count/list for a specific topic (e.g. "how many farmer schemes")
   if (wantsCount || wantsList) {
     if (matched.length === 0) {
-      return `No schemes found in the database matching that specific criteria. There are ${SCHEME_DB.length} total schemes (${SCHEME_DB.filter(s=>s.scope==="national").length} Central + ${SCHEME_DB.filter(s=>s.scope==="state").length} State).`;
+      return `No schemes found in the database matching that specific criteria. There are ${OPEN_DB.length} total schemes (${OPEN_DB.filter(s=>s.scope==="national").length} Central + ${OPEN_DB.filter(s=>s.scope==="state").length} State).`;
     }
     // Numbered list with links.
     // Pre-build the opening sentence so AI copies it exactly — never recounts.
@@ -652,9 +654,9 @@ const SMALL_TALK = /^\s*(?:hi+|hello+|hey+|hii+|namaste|namaskar|good (?:morning
 //   • WEB SEARCH GUIDANCE (NEW) — tells AI when/how to use search results
 function buildSystemPrompt(query, lang, profile = null, extras = {}) {
   const isHindi  = lang === "hi";
-  const national = SCHEME_DB.filter(s => s.scope === "national").length;
-  const state    = SCHEME_DB.filter(s => s.scope === "state").length;
-  const total    = SCHEME_DB.length;
+  const national = OPEN_DB.filter(s => s.scope === "national").length;
+  const state    = OPEN_DB.filter(s => s.scope === "state").length;
+  const total    = OPEN_DB.length;
 
   const langRule = isHindi
     ? "- Reply in simple Hindi (हिंदी) by default. If the user writes in Hinglish (Hindi in English letters, e.g. 'mujhe kaunsi yojana milegi'), reply in the same easy Hinglish. If they write in clear English, you may reply in English."
