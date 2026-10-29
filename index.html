@@ -290,10 +290,10 @@
 
     .hs-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
     .hs-stage { position: relative; width: 230px; height: 230px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
-      will-change: transform; animation: hs-rise .85s cubic-bezier(.6,0,.2,1) .08s both; }
+      will-change: transform; }
     /* first frame: the logo circle exactly where Android's launch screen shows it
-       (screen centre), then it rises into place as the name appears */
-    @keyframes hs-rise { from { transform: translateY(var(--hs-dy, 0px)); } to { transform: none; } }
+       (screen centre); it then rises into place as the name appears (index.html
+       script below — a fixed-distance animation the graphics chip runs itself) */
     .hs-rings { position: absolute; inset: 0; animation: hs-rings-in .8s cubic-bezier(.22,1,.36,1) .15s both; }
     .hs-rings svg { position: absolute; inset: 0; overflow: visible; }
     .hs-ring-1 { animation: hs-spin 14s linear infinite; }
@@ -442,11 +442,21 @@
           var fr = el.querySelector('.hs-float').getBoundingClientRect(), target = innerHeight / 2;
           var extra = isApp && window.screen ? screen.height - innerHeight : 0;
           if (extra > 0 && extra < 200) target = screen.height / 2 - extra * 0.6;
-          el.style.setProperty('--hs-dy', Math.round(target - (fr.top + fr.height / 2)) + 'px');
+          var dy = Math.round(target - (fr.top + fr.height / 2));
+          var stage = el.querySelector('.hs-stage');
+          if (dy && stage.animate && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+            stage.style.transform = 'translateY(' + dy + 'px)';
+            window.__hsRise = function () {
+              stage.style.transform = 'none';
+              stage.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'translateY(0px)' }],
+                { duration: 850, delay: 80, easing: 'cubic-bezier(.6,0,.2,1)', fill: 'backwards' });
+            };
+          }
         } catch (e) {}
         var start = function () {
           if (el.classList.contains('hs-play')) return;
           play();
+          try { window.__hsRise && window.__hsRise(); } catch (e) {}
           // how smoothly the animation's frames came (checked by the Android test build)
           var tr = window.__hsTrace = { frames: 0, maxGap: 0, slow: 0 }, last = 0, t0 = performance.now();
           var tick = function (t) { if (last) { var g = t - last; tr.frames++; if (g > tr.maxGap) tr.maxGap = Math.round(g); if (g > 50) tr.slow++; } last = t; if (t - t0 < 2500) requestAnimationFrame(tick); };
