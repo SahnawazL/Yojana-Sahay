@@ -169,7 +169,7 @@ export default async function handler(req, res) {
     if (type === "email_prefs") {
       const token = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
       let d; try { d = await getAuth(getAdminApp()).verifyIdToken(token); } catch { res.status(401).json({ error: "sign-in required" }); return; }
-      await getFirestore(getAdminApp()).collection("users").doc(d.uid).set({ emailAlerts: body.on !== false }, { merge: true });
+      await getFirestore(getAdminApp()).collection("users").doc(d.uid).set({ emailAlerts: body.on !== false, emailAlertsChangedAt: new Date(), emailAlertsChangedVia: "app" }, { merge: true });
       res.status(200).json({ ok: true, emailAlerts: body.on !== false });
       return;
     }

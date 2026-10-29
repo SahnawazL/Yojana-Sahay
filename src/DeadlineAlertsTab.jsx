@@ -158,6 +158,8 @@ function StatBox({ label, value, color, dark }) {
 export default function DeadlineAlertsTab({ dark, isDesktop }) {
   const [runs, setRuns]         = useState([]);
   const [todayQuota, setTodayQuota] = useState(null);
+  const [audience, setAudience] = useState(null);
+  const [showUnsubs, setShowUnsubs] = useState(false);
   const [verifyRuns, setVerifyRuns]     = useState([]);
   const [verifyCursor, setVerifyCursor] = useState(null);
   const [loading, setLoading]   = useState(true);
@@ -203,6 +205,7 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
       if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
       setRuns(data.runs || []);
       setTodayQuota(data.todayQuota || null);
+      setAudience(data.audience || null);
       setVerifyRuns(data.verifyRuns || []);
       setVerifyCursor(data.verifyCursor || null);
     } catch (err) {
@@ -491,6 +494,51 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
         )}
       </div>
 
+      {/* Who gets reminders — e-mail on/off, who unsubscribed, phones, Telegram */}
+      {audience && (
+        <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 12, background: th.card, border: `1.5px solid ${th.border}` }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: th.text, marginBottom: 10 }}>📬 Who gets reminders</div>
+          <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "repeat(4,1fr)" : "repeat(2,1fr)", gap: 8 }}>
+            {[
+              { k: "E-mail on", v: audience.emailOn, sub: `of ${audience.withEmail} with an e-mail`, c: GREEN },
+              { k: "Unsubscribed", v: audience.emailOff, sub: "e-mail turned off", c: audience.emailOff ? AMBER : th.textSub },
+              { k: "Phone notifications", v: audience.phoneOn, sub: `${audience.phoneOnAndroidApp} in the Android app`, c: dark ? "#818CF8" : NAVY },
+              { k: "Telegram", v: audience.telegram ?? "—", sub: "tapped “Notify me”", c: PURPLE },
+            ].map(t => (
+              <div key={t.k} style={{ padding: "10px 12px", borderRadius: 10, background: dark ? "#101010" : "#fafafa", border: `1px solid ${th.border}` }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: t.c, lineHeight: 1.1 }}>{t.v}</div>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: th.text, marginTop: 3 }}>{t.k}</div>
+                <div style={{ fontSize: 10.5, color: th.textSub, marginTop: 1 }}>{t.sub}</div>
+              </div>
+            ))}
+          </div>
+          {audience.emailOff > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <button type="button" onClick={() => setShowUnsubs(v => !v)}
+                style={{ border: "none", background: "transparent", color: dark ? "#818CF8" : NAVY, fontSize: 11.5, fontWeight: 700, cursor: "pointer", padding: 0 }}>
+                {showUnsubs ? "▲ Hide" : "▼ Show"} who turned e-mails off ({audience.emailOff})
+              </button>
+              {showUnsubs && (
+                <div style={{ marginTop: 8 }}>
+                  {audience.unsubscribed.map((u, i) => (
+                    <div key={i} style={{ padding: "7px 0", borderBottom: i < audience.unsubscribed.length - 1 ? `1px solid ${th.border}` : "none", fontSize: 11.5, color: th.text, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                      <span><span style={{ fontWeight: 600 }}>{u.email}</span>{u.name ? <span style={{ color: th.textSub }}> · {u.name}</span> : null}</span>
+                      <span style={{ color: th.textSub }}>
+                        {u.via === "email-link" ? "Unsubscribe link in e-mail" : u.via === "app" ? "Switched off in the app" : "Turned off"}
+                        {u.at ? ` · ${fmtDateTime(u.at)}` : " · date not recorded (before 29 Oct 2026)"}
+                      </span>
+                    </div>
+                  ))}
+                  {audience.emailOff > audience.unsubscribed.length && (
+                    <div style={{ fontSize: 10.5, color: th.textSub, marginTop: 6 }}>Showing the latest {audience.unsubscribed.length}.</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Daily Gmail quota — always visible, independent of any single run */}
       {todayQuota && (() => {
         const pct = Math.min(100, Math.round((todayQuota.used / todayQuota.limit) * 100));
@@ -631,6 +679,8 @@ export default function DeadlineAlertsTab({ dark, isDesktop }) {
                     </div>
                     <div style={{ fontSize: 11, color: th.textSub, marginTop: 3 }}>
                       {run.checked} checked · {run.sent} sent · {run.announced ?? 0} announced · {run.skipped} skipped
+                      {run.push && <> · 📱 {run.push.sent ?? 0} phone</>}
+                      {run.telegram && <> · ✈️ {run.telegram.sent ?? 0} Telegram</>}
                     </div>
                   </div>
                   <div style={{ fontSize: 16, color: th.textSub }}>{expandedId === run.id ? "▲" : "▼"}</div>

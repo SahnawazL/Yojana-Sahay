@@ -531,6 +531,8 @@ export default async function handler(req, res) {
           quotaUsed:   data.quotaUsed ?? null,
           quotaLimit:  data.quotaLimit ?? null,
           quotaHit:    data.quotaHit ?? false,
+          push:        data.push ?? null,       // phone notifications this run
+          telegram:    data.telegram ?? null,   // Telegram alerts this run
         };
       });
 
@@ -542,6 +544,45 @@ export default async function handler(req, res) {
         used:  quotaSnap.exists ? (quotaSnap.data().count || 0) : 0,
         limit: DAILY_EMAIL_LIMIT,
       };
+
+      // Who gets reminders: e-mail on/off (and who unsubscribed, newest
+      // first), phone notifications, Telegram. Read-only, small collections.
+      let audience = null;
+      try {
+        const [usersSnap, pushSnap, tgSnap] = await Promise.all([
+          auth.db.collection("users").select("email", "name", "emailAlerts", "emailAlertsChangedAt", "emailAlertsChangedVia").get(),
+          auth.db.collection("pushSubs").get(),
+          auth.db.collection("tgAlerts").select().get().catch(() => null),
+        ]);
+        let withEmail = 0, emailOn = 0;
+        const off = [];
+        for (const d of usersSnap.docs) {
+          const u = d.data();
+          if (!u.email) continue;
+          withEmail++;
+          if (u.emailAlerts === false) {
+            off.push({ name: u.name || "", email: u.email,
+              at: u.emailAlertsChangedAt?.toDate?.().toISOString() ?? null,
+              via: u.emailAlertsChangedVia || null });
+          } else emailOn++;
+        }
+        off.sort((a, b) => String(b.at || "").localeCompare(String(a.at || "")));
+        let phones = 0, androidApp = 0;
+        for (const d of pushSnap.docs) {
+          const subs = Array.isArray(d.data().subs) ? d.data().subs : [];
+          if (!subs.length) continue;
+          phones++;
+          if (subs.some(x => x?.type === "fcm")) androidApp++;
+        }
+        audience = {
+          users: usersSnap.size, withEmail, emailOn, emailOff: off.length,
+          unsubscribed: off.slice(0, 50),
+          phoneOn: phones, phoneOnAndroidApp: androidApp,
+          telegram: tgSnap ? tgSnap.size : null,
+        };
+      } catch (err) {
+        console.error("[deadline-alerts] audience summary failed:", err.message);
+      }
 
       // Scheme-verify batch history — the background job the GitHub Action
       // pings once a day. Previously invisible anywhere; now surfaced
@@ -618,7 +659,7 @@ export default async function handler(req, res) {
       }
 
       const agentLive = await readAgentLive(auth.db);
-      return res.status(200).json({ runs, todayQuota, verifyRuns, verifyCursor, agentHealth, agentLive });
+      return res.status(200).json({ runs, todayQuota, verifyRuns, verifyCursor, agentHealth, agentLive, audience });
     } catch (err) {
       console.error("[deadline-alerts] Failed to fetch history:", err.message);
       return res.status(500).json({ error: "Could not load run history" });
