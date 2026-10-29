@@ -37,6 +37,7 @@ import { getAuth } from "firebase-admin/auth";
 import { createHash } from "crypto";
 
 import { appCors } from "./_lib/appCors.js";
+import { handleUnsubscribe } from "./_lib/unsubscribe.js";
 function getAdminApp() {
   if (getApps().length) return getApps()[0];
 
@@ -117,6 +118,12 @@ function safeStateKey(state) {
 }
 
 export default async function handler(req, res) {
+  // E-mail unsubscribe link / Gmail one-tap unsubscribe (/unsubscribe → here, vercel.json)
+  if (req.query?.action === "unsubscribe") {
+    try { await handleUnsubscribe(req, res, getFirestore(getAdminApp())); }
+    catch (e) { console.error("[unsubscribe]", e.message); res.status(500).send("Something went wrong — please try again, or turn e-mails off in the app: Profile → E-mail reminders."); }
+    return;
+  }
   if (appCors(req, res)) return;   // Android app (api/_lib/appCors.js)
   if (req.method !== "POST") {
     res.status(405).json({ error: "method not allowed" });

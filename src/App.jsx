@@ -6177,16 +6177,18 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
   // ── E-mail reminders on/off + Delete account (Google Play requirements) ──
   const [emailBusy,setEmailBusy]=useState(false);
+  const [emailErr,setEmailErr]=useState("");
   const emailAlertsOn=profile?.emailAlerts!==false;
   const toggleEmailAlerts=async()=>{
     if(emailBusy) return;
     const on=!emailAlertsOn;
-    setEmailBusy(true);
+    setEmailBusy(true);setEmailErr("");
     try{
       const token=await auth.currentUser?.getIdToken();
       const r=await fetch("/api/log-checker-run",{method:"POST",headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify({type:"email_prefs",on})});
       if(r.ok) setProfile(p=>p?{...p,emailAlerts:on}:p);
-    }catch{}
+      else throw new Error(String(r.status));
+    }catch{ setEmailErr(isHindi?"बदलाव सेव नहीं हुआ — इंटरनेट जांचकर फिर कोशिश करें":"Couldn't save — check your internet and try again"); }
     setEmailBusy(false);
   };
   const [showDeleteModal,setShowDeleteModal]=useState(false);
@@ -7954,6 +7956,9 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
           </div>
 
+          {/* Phone notifications on/off */}
+          {auth.currentUser&&<PushSwitchRow uid={auth.currentUser.uid} lang={isHindi?"hi":"en"} dark={dark}/>}
+
           {/* E-mail reminders — only for accounts with an e-mail address */}
           {auth.currentUser?.email&&(
             <div role="switch" aria-checked={emailAlertsOn} tabIndex={0} onClick={()=>{haptic();toggleEmailAlerts();}}
@@ -7965,7 +7970,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                 </div>
                 <div style={{minWidth:0}}>
                   <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>{isHindi?"ई-मेल रिमाइंडर":"E-mail reminders"}</div>
-                  <div style={{fontSize:11,color:th.textSub,marginTop:1}}>{isHindi?"आखिरी तारीख और नई योजनाओं की ई-मेल":"Deadline and new-scheme e-mails"}</div>
+                  <div style={{fontSize:11,color:emailErr?"#DC2626":th.textSub,marginTop:1}}>{emailErr||(isHindi?"आखिरी तारीख और नई योजनाओं की ई-मेल":"Deadline and new-scheme e-mails")}</div>
                 </div>
               </div>
               <span aria-hidden="true" style={{width:42,height:24,borderRadius:99,flexShrink:0,position:"relative",transition:"background .2s",background:emailAlertsOn?"#16a34a":(dark?"#3a3a3c":"#d1d5db")}}>
@@ -8564,14 +8569,13 @@ const ProfileTabMemo = memo(ProfileTab);
 // ─── PHONE NOTIFICATIONS CARD (home, signed-in users) ──────────────────────────
 // Web Push on/off. The daily cron sends at most one reminder a day (see
 // api/_lib/push.js); the subscription lives at pushSubs/{uid}.
-function PushNotifyCard({ uid, lang, dark }) {
-  const th=THEME[dark?"dark":"light"];
-  const bf=fontFamily(lang);
+// Phone notifications on/off — shared by the Home card and the Profile switch
+// (they stay in step through the "ys-push-changed" event).
+function usePushControl(uid, lang){
   const L=(en,hi)=>lang==="hi"?hi:en;
   const [state,setState]=useState(null);
   const [busy,setBusy]=useState(false);
   const [err,setErr]=useState("");
-  const [hidden,setHidden]=useState(()=>{try{return Date.now()-Number(localStorage.getItem("yojana_push_dismiss")||0)<30*86400000;}catch{return false;}});
   // (defined before the effect: in the Android app pushState re-saves a changed token)
   const pushRef=()=>doc(db,"pushSubs",uid);
   const saveSub=async(sub)=>{
@@ -8585,19 +8589,71 @@ function PushNotifyCard({ uid, lang, dark }) {
     const ref=pushRef();
     try{const snap=await getDoc(ref);if(!snap.exists())return;const subs=(snap.data().subs||[]).filter(s=>s?.endpoint!==endpoint);await setDoc(ref,{subs,updatedAt:serverTimestamp()},{merge:true});}catch{}
   };
-  useEffect(()=>{if(!uid)return;let live=true;pushState(uid,saveSub).then(s=>{if(live)setState(s);});return()=>{live=false;};},[uid]); // eslint-disable-line react-hooks/exhaustive-deps
-  if(!uid||!state||state==="unsupported") return null;
-  if(hidden&&state!=="on") return null;
-  const dismiss=()=>{haptic();try{localStorage.setItem("yojana_push_dismiss",String(Date.now()));}catch{}setHidden(true);};
+  useEffect(()=>{
+    if(!uid)return;
+    let live=true;
+    const read=()=>pushState(uid,saveSub).then(s=>{if(live)setState(s);});
+    read();
+    window.addEventListener("ys-push-changed",read);
+    return()=>{live=false;window.removeEventListener("ys-push-changed",read);};
+  },[uid]); // eslint-disable-line react-hooks/exhaustive-deps
+  const changed=()=>{try{window.dispatchEvent(new Event("ys-push-changed"));}catch{}};
   const turnOn=async()=>{
     haptic();setBusy(true);setErr("");
-    try{await enablePush(uid,saveSub);setState("on");track("push_on");}
+    try{await enablePush(uid,saveSub);setState("on");track("push_on");changed();}
     catch(e){
       if(e?.code==="denied"){setState("denied");}
       else setErr(L("Couldn't turn on notifications. Please try again.","नोटिफ़िकेशन चालू नहीं हो सके। फिर से कोशिश करें।"));
     }finally{setBusy(false);}
   };
-  const turnOff=async()=>{haptic();setBusy(true);try{await disablePush(uid,removeSub);}catch{}setState("off");setBusy(false);track("push_off");};
+  const turnOff=async()=>{haptic();setBusy(true);setErr("");try{await disablePush(uid,removeSub);}catch{}setState("off");setBusy(false);track("push_off");changed();};
+  return {state,setState,busy,err,turnOn,turnOff};
+}
+
+// Profile → "Phone notifications" switch (always there, even after the Home card is dismissed)
+function PushSwitchRow({ uid, lang, dark }){
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const L=(en,hi)=>lang==="hi"?hi:en;
+  const {state,busy,err,turnOn,turnOff}=usePushControl(uid,lang);
+  if(!uid||!state||state==="unsupported") return null;
+  const on=state==="on";
+  const note=err||(state==="denied"
+    ?L("Blocked in your phone's settings — allow notifications for Yojana Sahay there, then turn this on.","फ़ोन की सेटिंग में बंद है — वहां योजना सहाय के नोटिफ़िकेशन चालू करें, फिर यहां चालू करें।")
+    :state==="ios-install"
+    ?L("On iPhone, add Yojana Sahay to your Home Screen first, then turn this on there.","iPhone पर पहले योजना सहाय को होम स्क्रीन पर जोड़ें, फिर वहां चालू करें।")
+    :L("Deadline reminders on this phone","इस फ़ोन पर आखिरी तारीख के रिमाइंडर"));
+  const can=!busy&&state!=="ios-install";
+  const toggle=()=>{ if(!can) return; on?turnOff():turnOn(); };
+  return(
+    <div role="switch" aria-checked={on} tabIndex={0} onClick={toggle}
+      onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();}}}
+      style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:can?"pointer":"default",opacity:busy?0.6:1}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,minWidth:0}}>
+        <div style={{width:38,height:38,borderRadius:11,flexShrink:0,background:dark?"rgba(124,92,255,0.14)":"rgba(124,92,255,0.08)",border:`1.5px solid ${dark?"rgba(167,139,250,0.3)":"rgba(124,92,255,0.22)"}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={dark?"#a78bfa":"#7C5CFF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div style={{minWidth:0}}>
+          <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>{L("Phone notifications","फ़ोन नोटिफ़िकेशन")}</div>
+          <div style={{fontSize:11,color:err||state==="denied"?"#DC2626":th.textSub,marginTop:1,fontFamily:bf}}>{note}</div>
+        </div>
+      </div>
+      <span aria-hidden="true" style={{width:42,height:24,borderRadius:99,flexShrink:0,position:"relative",transition:"background .2s",background:on?"#16a34a":(dark?"#3a3a3c":"#d1d5db")}}>
+        <span style={{position:"absolute",top:3,left:on?21:3,width:18,height:18,borderRadius:"50%",background:"#fff",transition:"left .2s",boxShadow:"0 1px 3px rgba(0,0,0,0.25)"}}/>
+      </span>
+    </div>
+  );
+}
+
+function PushNotifyCard({ uid, lang, dark }) {
+  const th=THEME[dark?"dark":"light"];
+  const bf=fontFamily(lang);
+  const L=(en,hi)=>lang==="hi"?hi:en;
+  const {state,setState,busy,err,turnOn,turnOff}=usePushControl(uid,lang);
+  const [hidden,setHidden]=useState(()=>{try{return Date.now()-Number(localStorage.getItem("yojana_push_dismiss")||0)<30*86400000;}catch{return false;}});
+  if(!uid||!state||state==="unsupported") return null;
+  if(hidden&&state!=="on") return null;
+  const dismiss=()=>{haptic();try{localStorage.setItem("yojana_push_dismiss",String(Date.now()));}catch{}setHidden(true);};
 
   if(state==="on") return(
     <div style={{display:"flex",alignItems:"center",gap:10,background:th.card,borderRadius:16,border:`1.5px solid ${th.border}`,padding:"11px 14px",marginBottom:14}}>

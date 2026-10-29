@@ -2,6 +2,10 @@
   "ignoreCommand": "git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- . ':!scripts/android-native' ':!scripts/android' ':!.github' ':!src/native' ':!src/main-native.jsx' ':!capacitor.config.json' ':!vite.native.config.js'",
   "rewrites": [
     {
+      "source": "/unsubscribe",
+      "destination": "/api/log-checker-run?action=unsubscribe"
+    },
+    {
       "source": "/api/telegram",
       "destination": "/api/stats?via=telegram"
     },

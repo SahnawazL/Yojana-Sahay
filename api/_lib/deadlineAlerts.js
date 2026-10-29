@@ -26,6 +26,7 @@ import nodemailer      from "nodemailer";
 import { SCHEME_DB }   from "../../src/schemesData.js";
 import { postNote, teamBrief, briefLine } from "./teamBoard.js";
 import { runPushReminders } from "./push.js";
+import { unsubHeaders, unsubFooterHtml } from "./unsubscribe.js";
 import { runTelegramAlerts } from "./telegramBot.js";
 import { nicheAudience, audienceApplies } from "../../src/audience.js";
 // Special-group schemes (athletes, widows, construction workers…) only when the group applies — same as the app.
@@ -254,7 +255,7 @@ function escapeHtml(str) {
 // intro: AI-generated personalized sentence (or null → falls back to a plain default)
 // schemes: [{ scheme, days, isReminder }] — isReminder = true means this is the
 // second, more urgent nudge (already alerted once before, now very close to deadline)
-function buildEmailHtml(schemes, intro, isHindi = false) {
+function buildEmailHtml(schemes, intro, isHindi = false, uid = null) {
   const rows = schemes.map(({ scheme, days, isReminder }) => `
     <tr>
       <td style="padding:10px 12px;border-bottom:1px solid #eee;">
@@ -274,7 +275,7 @@ function buildEmailHtml(schemes, intro, isHindi = false) {
 
   return `
   <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
-    <div style="background:linear-gradient(135deg,#FF9933,#138808);padding:18px 20px;border-radius:10px 10px 0 0;">
+    <div style="background:#06038D;background:linear-gradient(135deg,#FF9933,#FF6B6B 55%,#7C5CFF);padding:18px 20px;border-radius:10px 10px 0 0;">
       <h2 style="color:#fff;margin:0;font-size:18px;">🔔 Scheme Deadline Alert</h2>
       <p style="color:#fff;opacity:0.9;margin:4px 0 0;font-size:12px;">Yojana Sahay — schemes you qualify for are closing soon</p>
     </div>
@@ -289,9 +290,7 @@ function buildEmailHtml(schemes, intro, isHindi = false) {
         text-decoration:none;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;">
         Open Yojana Sahay to Apply
       </a>
-      <p style="font-size:10.5px;color:#999;margin-top:12px;">
-        You're receiving this because you're signed in to Yojana Sahay and match these schemes.
-      </p>
+      ${uid ? unsubFooterHtml(uid) : ""}
     </div>
   </div>`;
 }
@@ -299,7 +298,7 @@ function buildEmailHtml(schemes, intro, isHindi = false) {
 // ── Build the HTML email body for a NEW SCHEME announcement ───────────────────
 // Distinct from buildEmailHtml (deadline countdown) — no "days left" framing,
 // just "this was just added, here's why it might apply to you."
-function buildNewSchemeEmailHtml(schemes, isHindi = false) {
+function buildNewSchemeEmailHtml(schemes, isHindi = false, uid = null) {
   const rows = schemes.map(({ scheme }) => `
     <tr>
       <td style="padding:10px 12px;border-bottom:1px solid #eee;">
@@ -333,9 +332,7 @@ function buildNewSchemeEmailHtml(schemes, isHindi = false) {
         text-decoration:none;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;">
         Open Yojana Sahay to Explore
       </a>
-      <p style="font-size:10.5px;color:#999;margin-top:12px;">
-        You're receiving this because you're signed in to Yojana Sahay and match these new schemes.
-      </p>
+      ${uid ? unsubFooterHtml(uid) : ""}
     </div>
   </div>`;
 }
@@ -497,7 +494,8 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null, 
             from:    `"Yojana Sahay" <${process.env.GMAIL_USER}>`,
             to:      email,
             subject,
-            html:    buildEmailHtml(urgent, intro, false),
+            html:    buildEmailHtml(urgent, intro, false, userDoc.id),
+            ...unsubHeaders(userDoc.id),
           });
 
           const urgentIdsThisSend = urgent.filter(u => u.days <= URGENT_DAYS).map(u => u.scheme.id);
@@ -561,7 +559,8 @@ export async function runDeadlineAlerts({ trigger = "cron", triggeredBy = null, 
               from:    `"Yojana Sahay" <${process.env.GMAIL_USER}>`,
               to:      email,
               subject,
-              html:    buildNewSchemeEmailHtml(matchingNew, false),
+              html:    buildNewSchemeEmailHtml(matchingNew, false, userDoc.id),
+              ...unsubHeaders(userDoc.id),
             });
 
             await userDoc.ref.update({
