@@ -6063,31 +6063,63 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
     }finally{setAuthLoading(false);}
   };
 
+  // ── Profile setup: 4 steps in a natural order ─────────────────────────────
+  //   1 About you (name, gender, age → marital status, not asked under 18)
+  //   2 Where you live (state, area, house)
+  //   3 Your work (occupation → land & KCC for farmers, class & institution for students)
+  //   4 Family & benefits (children → daughters, only if ever married; income,
+  //     ration card, caste, disability, special groups)
+  // Each handler re-checks exactly what its button checks (the greyed button
+  // still calls it).
+  // "Senior citizen" only from 60, never under 18; under 18: student / other.
+  const catFitsAge=(v,age)=>{
+    if(v==="senior") return age==="above60"||!age;
+    if(age==="below18") return v==="student"||v==="general";
+    return true;
+  };
+  const pickSetupAge=(v)=>{
+    setSetupAge(v);
+    if(v==="below18"){ setSetupMarital("single"); setSetupNumChildren("0"); setSetupHasGirls("no"); }
+    else if(setupAge==="below18"){ setSetupMarital(""); setSetupNumChildren(""); setSetupHasGirls(""); } // was auto-set for under-18
+    if(setupCat&&!catFitsAge(setupCat,v)){ setSetupCat(""); setSetupLandHolding(""); setSetupKisanCard(""); setSetupEducationLevel(""); setSetupInstitutionType(""); }
+  };
+  const pickSetupMarital=(v)=>{
+    if(v==="single"){ setSetupNumChildren("0"); setSetupHasGirls("no"); }
+    else if(setupMarital==="single"||!setupMarital){ setSetupNumChildren(""); setSetupHasGirls(""); } // now asked
+    setSetupMarital(v);
+  };
+  const setupMinor=setupAge==="below18";
+  const setupAsksChildren=!setupMinor&&!!setupMarital&&setupMarital!=="single";
+
   const handleSetup1Next=()=>{
-    if(setupName.trim().length<2||!setupGender)return;
+    if(setupName.trim().length<2||!setupGender||!setupAge)return;
+    if(!setupMinor&&!setupMarital)return;
+    if(phone.length!==0&&phone.length!==10)return;
+    if(setupMinor) setSetupMarital("single");
     setStage("setup2");
   };
 
   const handleSetup2Next=()=>{
-    if(!setupState||!setupCat)return;
+    if(!setupState||!setupArea||!setupHouse)return;
     setStage("setup3");
   };
 
   const handleSetup3Next=()=>{
-    // Must match the button's canSave — the handler is the real gate, and the
-    // greyed button still calls it. Income/age/area/house were skipped here,
-    // so a profile could be saved with invented defaults (₹1–3 L, 18–35,
-    // rural, no house) and matched against the wrong schemes.
-    if(!setupIncome||!setupAge||!setupArea||!setupHouse)return;
-    if(!setupRation||!setupDisability||!setupMarital)return;
+    if(!setupCat)return;
+    if(setupCat==="farmer"&&(!setupLandHolding||!setupKisanCard))return;
+    if(setupCat==="student"&&(!setupEducationLevel||!setupInstitutionType))return;
     setStage("setup4");
   };
 
   const handleSetup4Save=async()=>{
-    if(!setupNumChildren)return;
-    if(setupNumChildren!=="0"&&!setupHasGirls)return;
+    if(!setupIncome||!setupRation||!setupDisability)return;
+    if(setupAsksChildren&&!setupNumChildren)return;
+    if(setupAsksChildren&&setupNumChildren!=="0"&&!setupHasGirls)return;
+    if(!setupName.trim()||!setupGender||!setupAge||!setupState||!setupArea||!setupHouse||!setupCat)return;
     if(setupCat==="farmer"&&(!setupLandHolding||!setupKisanCard))return;
     if(setupCat==="student"&&(!setupEducationLevel||!setupInstitutionType))return;
+    const maritalFinal=setupMinor?"single":setupMarital;
+    const kidsFinal=setupAsksChildren?setupNumChildren:"0";
     const isNewUser=!profile;
     const profileData={
       name:setupName.trim(),phone,gender:setupGender,
@@ -6099,9 +6131,9 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       area:setupArea||"rural",
       ration:setupRation,
       disability:setupDisability,
-      marital:setupMarital,
-      numChildren:setupNumChildren,
-      hasGirls:setupNumChildren!=="0"?setupHasGirls:"no",
+      marital:maritalFinal,
+      numChildren:kidsFinal,
+      hasGirls:kidsFinal!=="0"?setupHasGirls:"no",
       ...(setupCat==="farmer"?{landHolding:setupLandHolding,kisanCard:setupKisanCard}:{}),
       ...(setupCat==="student"?{educationLevel:setupEducationLevel,institutionType:setupInstitutionType}:{}),
       ...(googleEmail?{email:googleEmail}:{}),
@@ -6901,26 +6933,28 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
 
   // ── STAGE: SETUP 1 — Name + Gender ──────────────────────────────────────────
   if(stage==="setup1"){
-    const canNext=setupName.trim().length>=2&&!!setupGender;
-    // Extracted from IIFE — computed once per render, not inside JSX
+    const hasDisability=setupDisability!=="none"&&setupDisability!=="";
+    const fields=T[lang].fields;
+    const isFarmer=setupCat==="farmer";
+    const isStudent=setupCat==="student";
+    const hasChildren=setupNumChildren&&setupNumChildren!=="0";
+    const showMarital=!!setupAge&&setupAge!=="below18";               // under 18: not asked
+    const showChildren=showMarital&&!!setupMarital&&setupMarital!=="single"; // unmarried: not asked
     const isPhoneUser=auth.currentUser?.providerData?.some(p=>p.providerId==="phone");
     const phoneValid=phone.length===0||phone.length===10;
+    const canNext=setupName.trim().length>=2&&!!setupGender&&!!setupAge&&(!showMarital||!!setupMarital)&&phoneValid;
     return(
       <div style={{flex:1,display:"flex",flexDirection:"column",background:th.appBg,overflowY:"auto"}}>
         <TriHeader bg="linear-gradient(135deg,#003580 0%,#1a56db 100%)">
-          {/* Progress bar — 4 steps */}
-          <div style={{display:"flex",gap:6,marginBottom:18}}>
-            <div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/>
-            <div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/>
-            <div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/>
-            <div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/>
-          </div>
+          <div style={{display:"flex",gap:6,marginBottom:18}}><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/></div>
           <div style={{color:"rgba(255,255,255,0.65)",fontSize:10.5,fontWeight:700,letterSpacing:0.9,marginBottom:5,textTransform:"uppercase"}}>{pt.step1of4}</div>
-          <div style={{color:"#fff",fontSize:20,fontWeight:800,fontFamily:bf,marginBottom:3}}>{pt.step1Title}</div>
-          <div style={{color:"rgba(255,255,255,0.65)",fontSize:12,fontFamily:bf}}>{pt.fillOnce}</div>
+          <div style={{color:"#fff",fontSize:20,fontWeight:800,fontFamily:bf,marginBottom:3}}>{isHindi?"आपके बारे में":"About you"}</div>
+          <div style={{color:"rgba(255,255,255,0.65)",fontSize:12,fontFamily:bf}}>{isHindi?"एक बार भरें · पूरे ऐप में काम आएगा":"Fill once · used everywhere in the app"}</div>
         </TriHeader>
 
         <Card dark={dark}>
+          <style>{`@keyframes ys-step-in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}@keyframes ys-q-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}.ys-step-in{animation:ys-step-in .32s cubic-bezier(.2,.9,.3,1) both}.ys-q-in{animation:ys-q-in .26s ease both}@media (prefers-reduced-motion:reduce){.ys-step-in,.ys-q-in{animation:none}}`}</style>
+          <div className="ys-step-in" key="setup1">
           {/* Name */}
           <div style={{marginBottom:18}}>
             <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>👤 {pt.nameLabel}</div>
@@ -6943,6 +6977,52 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
               })}
             </div>
           </div>
+
+          {/* ── Age Group ── */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>🎂 {fields.age}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {fields.ages.map(o=>{
+                const a=setupAge===o.v;
+                return(
+                  <div key={o.v} onClick={()=>{haptic();pickSetupAge(o.v);}}
+                    style={{padding:"11px 8px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#003580":th.border3}`,background:a?(dark?"rgba(0,53,128,0.22)":"rgba(0,53,128,0.1)"):th.optionBg,fontSize:11.5,fontWeight:a?700:400,color:a?(dark?"#7ba7f0":"#003580"):th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 12px rgba(0,53,128,0.22)":"none",lineHeight:1.35}}>
+                    {o.l}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {showMarital&&<div className="ys-q-in">
+          {/* ── Marital Status ── */}
+          <div style={{marginBottom:26}}>
+            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:10,fontFamily:bf,letterSpacing:0.3}}>
+              💍 {pt.maritalLabel}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {pt.maritals.map(m=>{
+                const a=setupMarital===m.v;
+                const accentColor=m.v==="widowed"?"#DC2626":m.v==="married"?"#FF9933":"#003580";
+                return(
+                  <div key={m.v} onClick={()=>{haptic();pickSetupMarital(m.v);}}
+                    style={{
+                      padding:"12px 10px",borderRadius:13,cursor:"pointer",fontFamily:bf,
+                      border:`2px solid ${a?accentColor:th.border3}`,
+                      background:a?(dark?`${accentColor}22`:`${accentColor}10`):th.optionBg,
+                      fontSize:12,fontWeight:a?700:400,
+                      color:a?accentColor:th.textMid,
+                      transition:"all 0.18s",
+                      boxShadow:a?`0 4px 14px ${accentColor}33`:"none",
+                      textAlign:"center",lineHeight:1.4,
+                    }}>
+                    {m.l}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          </div>}
 
           {/* Optional phone number — shown for Google/email users; read-only for phone-auth users */}
           <div style={{marginBottom:22}}>
@@ -6986,34 +7066,42 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                 )}
               </div>
 
-          <div onClick={()=>{if(canNext)haptic();handleSetup1Next();}}
-            style={{background:canNext?"linear-gradient(135deg,#FF9933,#FF8C00)":"#ddd",borderRadius:14,padding:15,textAlign:"center",fontSize:15,fontWeight:700,color:"#fff",cursor:canNext?"pointer":"default",fontFamily:bf,boxShadow:canNext?"0 6px 22px rgba(255,153,51,0.42)":"none",transition:"all 0.22s"}}>
-            {pt.nextBtn}
+          <div style={{display:"flex",gap:8,marginTop:6}}>
+            <div onClick={()=>{if(canNext)haptic();handleSetup1Next();}}
+              style={{flex:2,background:canNext?"linear-gradient(135deg,#FF9933,#FF8C00)":"#ddd",borderRadius:14,padding:14,textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canNext?"pointer":"default",fontFamily:bf,transition:"background .2s"}}>
+              {pt.nextBtn}
+            </div>
+          </div>
           </div>
         </Card>
       </div>
     );
   }
 
-  // ── STAGE: SETUP 2 — State + Category ────────────────────────────────────────
+  // ── STAGE: SETUP 2 — Where you live ─────────────────────────────────────────
   if(stage==="setup2"){
-    const canSave=!!setupState&&!!setupCat;
+    const hasDisability=setupDisability!=="none"&&setupDisability!=="";
+    const fields=T[lang].fields;
+    const isFarmer=setupCat==="farmer";
+    const isStudent=setupCat==="student";
+    const hasChildren=setupNumChildren&&setupNumChildren!=="0";
+    const showMarital=!!setupAge&&setupAge!=="below18";               // under 18: not asked
+    const showChildren=showMarital&&!!setupMarital&&setupMarital!=="single"; // unmarried: not asked
     const quizA=readSavedAnswers(); const hasPrefill=!!(quizA?.state||quizA?.who);
+    const canNext=!!setupState&&!!setupArea&&!!setupHouse;
     return(
       <div style={{flex:1,display:"flex",flexDirection:"column",background:th.appBg,overflowY:"auto"}}>
         <TriHeader bg="linear-gradient(135deg,#003580 0%,#1a56db 100%)">
-          <div style={{display:"flex",gap:6,marginBottom:18}}>
-            <div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/>
-            <div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/>
-            <div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/>
-            <div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/>
-          </div>
+          <div style={{display:"flex",gap:6,marginBottom:18}}><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/></div>
           <div style={{color:"rgba(255,255,255,0.65)",fontSize:10.5,fontWeight:700,letterSpacing:0.9,marginBottom:5,textTransform:"uppercase"}}>{pt.step2of4}</div>
-          <div style={{color:"#fff",fontSize:20,fontWeight:800,fontFamily:bf,marginBottom:3}}>{pt.step2Title}</div>
+          <div style={{color:"#fff",fontSize:20,fontWeight:800,fontFamily:bf,marginBottom:3}}>{isHindi?"आप कहाँ रहते हैं":"Where you live"}</div>
+          <div style={{color:"rgba(255,255,255,0.65)",fontSize:12,fontFamily:bf}}>{isHindi?"राज्य की योजनाएँ आपके निवास पर निर्भर हैं":"State schemes depend on where you live"}</div>
           {hasPrefill&&<div style={{color:"rgba(255,220,100,0.92)",fontSize:11,fontFamily:bf,marginTop:4}}>✓ {pt.prefilled}</div>}
         </TriHeader>
 
         <Card dark={dark}>
+          <style>{`@keyframes ys-step-in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}@keyframes ys-q-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}.ys-step-in{animation:ys-step-in .32s cubic-bezier(.2,.9,.3,1) both}.ys-q-in{animation:ys-q-in .26s ease both}@media (prefers-reduced-motion:reduce){.ys-step-in,.ys-q-in{animation:none}}`}</style>
+          <div className="ys-step-in" key="setup2">
           {/* State — tap-to-select scrollable list (no typing) */}
           <div style={{marginBottom:16}}>
             <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>{pt.stateLabel}</div>
@@ -7045,123 +7133,6 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                     }}>
                     <span>{s}</span>
                     {sel&&<span style={{color:"#138808",fontSize:15,fontWeight:700}}>✓</span>}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Category */}
-          <div style={{marginBottom:22}}>
-            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>💼 {pt.catLabel}</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
-              {pt.categories.map(c=>{
-                const a=setupCat===c.v;
-                return(
-                  <div key={c.v} onClick={()=>{haptic();setSetupCat(c.v);}}
-                    style={{padding:"11px 10px",borderRadius:13,border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,cursor:"pointer",fontSize:12,fontWeight:a?700:400,color:a?"#CC6600":th.text,fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none",textAlign:"center"}}>
-                    {c.l}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Social Caste Category */}
-          <div style={{marginBottom:22}}>
-            <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:8}}>
-              <div style={{fontSize:12,fontWeight:700,color:th.textMid,fontFamily:bf,letterSpacing:0.3}}>🪪 {T[lang].fields.caste}</div>
-              <span style={{fontSize:10,fontWeight:500,color:th.textSub,background:th.pillBg,borderRadius:20,padding:"1px 8px",border:`1px solid ${th.border3}`}}>
-                {isHindi?"पात्रता मिलान के लिए":"For scheme matching"}
-              </span>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
-              {T[lang].fields.castes.map(c=>{
-                const a=setupCaste===c.v;
-                const accentColor=c.v==="sc"||c.v==="st"?"#7C3AED":c.v==="obc"?"#1D4ED8":c.v==="ews"?"#D97706":"#138808";
-                return(
-                  <div key={c.v} onClick={()=>{haptic();setSetupCaste(c.v);}}
-                    style={{
-                      padding:"11px 10px",borderRadius:13,cursor:"pointer",
-                      border:`2px solid ${a?accentColor:th.border3}`,
-                      background:a?(dark?`${accentColor}22`:`${accentColor}10`):th.optionBg,
-                      fontSize:12,fontWeight:a?700:400,
-                      color:a?(dark?`${accentColor}ee`:accentColor):th.text,
-                      fontFamily:bf,transition:"all 0.18s",
-                      boxShadow:a?`0 4px 14px ${accentColor}33`:"none",textAlign:"center",
-                    }}>
-                    {c.l}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div style={{display:"flex",gap:8}}>
-            <div onClick={()=>{haptic();setStage("setup1");}}
-              style={{flex:1,padding:14,borderRadius:14,border:`1.5px solid ${th.border3}`,background:th.card,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>
-              {pt.backBtn}
-            </div>
-            <div onClick={()=>{if(canSave)haptic();handleSetup2Next();}}
-              style={{flex:2,background:canSave?"linear-gradient(135deg,#FF9933,#FF8C00)":"#ddd",borderRadius:14,padding:14,textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canSave?"pointer":"default",fontFamily:bf,boxShadow:canSave?"0 6px 22px rgba(255,153,51,0.42)":"none",transition:"all 0.22s"}}>
-              {pt.nextBtn}
-            </div>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  // ── STAGE: SETUP 3 — Ration Card + Disability + Marital Status ──────────────
-  if(stage==="setup3"){
-    const hasDisability=setupDisability!=="none"&&setupDisability!=="";
-    const fields=T[lang].fields; // reuse existing T translations for income/age/area/house labels
-    const canSave=!!setupIncome&&!!setupAge&&!!setupArea&&!!setupHouse&&!!setupRation&&!!setupDisability&&!!setupMarital;
-    return(
-      <div style={{flex:1,display:"flex",flexDirection:"column",background:th.appBg,overflowY:"auto"}}>
-        <TriHeader bg="linear-gradient(135deg,#138808 0%,#16a34a 60%,#003580 100%)">
-          {/* Progress bar — 3 of 4 filled */}
-          <div style={{display:"flex",gap:6,marginBottom:18}}>
-            <div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/>
-            <div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/>
-            <div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/>
-            <div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/>
-          </div>
-          <div style={{color:"rgba(255,255,255,0.65)",fontSize:10.5,fontWeight:700,letterSpacing:0.9,marginBottom:5,textTransform:"uppercase"}}>{pt.step3of4}</div>
-          <div style={{color:"#fff",fontSize:20,fontWeight:800,fontFamily:bf,marginBottom:3}}>{pt.step3Title}</div>
-          <div style={{color:"rgba(255,255,255,0.65)",fontSize:12,fontFamily:bf}}>
-            {isHindi?"ये जानकारी सटीक योजना मिलान के लिए ज़रूरी है":"Required for accurate scheme matching"}
-          </div>
-        </TriHeader>
-
-        <Card dark={dark}>
-
-          {/* ── Annual Income (Bug 4 fix: collected here, not assumed from eligibility checker) ── */}
-          <div style={{marginBottom:20}}>
-            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>💰 {fields.income}</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              {fields.incomes.map(o=>{
-                const a=setupIncome===o.v;
-                return(
-                  <div key={o.v} onClick={()=>{haptic();setSetupIncome(o.v);}}
-                    style={{padding:"11px 8px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:11.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 12px rgba(255,153,51,0.22)":"none",lineHeight:1.35}}>
-                    {o.l}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── Age Group ── */}
-          <div style={{marginBottom:20}}>
-            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>🎂 {fields.age}</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              {fields.ages.map(o=>{
-                const a=setupAge===o.v;
-                return(
-                  <div key={o.v} onClick={()=>{haptic();setSetupAge(o.v);}}
-                    style={{padding:"11px 8px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#003580":th.border3}`,background:a?(dark?"rgba(0,53,128,0.22)":"rgba(0,53,128,0.1)"):th.optionBg,fontSize:11.5,fontWeight:a?700:400,color:a?(dark?"#7ba7f0":"#003580"):th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 12px rgba(0,53,128,0.22)":"none",lineHeight:1.35}}>
-                    {o.l}
                   </div>
                 );
               })}
@@ -7200,6 +7171,230 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
 
+          <div style={{display:"flex",gap:8,marginTop:6}}>
+            <div onClick={()=>{haptic();setStage("setup1");}}
+              style={{flex:1,padding:14,borderRadius:14,border:`1.5px solid ${th.border3}`,background:th.card,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>
+              {pt.backBtn}
+            </div>
+            <div onClick={()=>{if(canNext)haptic();handleSetup2Next();}}
+              style={{flex:2,background:canNext?"linear-gradient(135deg,#FF9933,#FF8C00)":"#ddd",borderRadius:14,padding:14,textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canNext?"pointer":"default",fontFamily:bf,transition:"background .2s"}}>
+              {pt.nextBtn}
+            </div>
+          </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // ── STAGE: SETUP 3 — Work (farmer / student follow-ups) ─────────────────────
+  if(stage==="setup3"){
+    const hasDisability=setupDisability!=="none"&&setupDisability!=="";
+    const fields=T[lang].fields;
+    const isFarmer=setupCat==="farmer";
+    const isStudent=setupCat==="student";
+    const hasChildren=setupNumChildren&&setupNumChildren!=="0";
+    const showMarital=!!setupAge&&setupAge!=="below18";               // under 18: not asked
+    const showChildren=showMarital&&!!setupMarital&&setupMarital!=="single"; // unmarried: not asked
+    const canNext=!!setupCat&&(isFarmer?(!!setupLandHolding&&!!setupKisanCard):isStudent?(!!setupEducationLevel&&!!setupInstitutionType):true);
+    return(
+      <div style={{flex:1,display:"flex",flexDirection:"column",background:th.appBg,overflowY:"auto"}}>
+        <TriHeader bg="linear-gradient(135deg,#003580 0%,#1a56db 100%)">
+          <div style={{display:"flex",gap:6,marginBottom:18}}><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"rgba(255,255,255,0.22)"}}/></div>
+          <div style={{color:"rgba(255,255,255,0.65)",fontSize:10.5,fontWeight:700,letterSpacing:0.9,marginBottom:5,textTransform:"uppercase"}}>{pt.step3of4}</div>
+          <div style={{color:"#fff",fontSize:20,fontWeight:800,fontFamily:bf,marginBottom:3}}>{isHindi?"आपका काम":"Your work"}</div>
+          <div style={{color:"rgba(255,255,255,0.65)",fontSize:12,fontFamily:bf}}>{isHindi?"जो सबसे सही हो चुनें — कुछ आगे के सवाल आ सकते हैं":"Pick what fits you best — a few follow-ups may appear"}</div>
+        </TriHeader>
+
+        <Card dark={dark}>
+          <style>{`@keyframes ys-step-in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}@keyframes ys-q-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}.ys-step-in{animation:ys-step-in .32s cubic-bezier(.2,.9,.3,1) both}.ys-q-in{animation:ys-q-in .26s ease both}@media (prefers-reduced-motion:reduce){.ys-step-in,.ys-q-in{animation:none}}`}</style>
+          <div className="ys-step-in" key="setup3">
+          {/* Category */}
+          <div style={{marginBottom:22}}>
+            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>💼 {pt.catLabel}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+              {pt.categories.filter(c=>catFitsAge(c.v,setupAge)||c.v===setupCat).map(c=>{
+                const a=setupCat===c.v;
+                return(
+                  <div key={c.v} onClick={()=>{haptic();setSetupCat(c.v);if(c.v!=="farmer"){setSetupLandHolding("");setSetupKisanCard("");}if(c.v!=="student"){setSetupEducationLevel("");setSetupInstitutionType("");}}}
+                    style={{padding:"11px 10px",borderRadius:13,border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,cursor:"pointer",fontSize:12,fontWeight:a?700:400,color:a?"#CC6600":th.text,fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none",textAlign:"center"}}>
+                    {c.l}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {isFarmer&&<div className="ys-q-in">
+          {/* ── Farmer: Land Holding ── */}
+          {isFarmer&&(
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>🌾 {pt.landHoldingLabel}</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {pt.landHoldings.map(o=>{
+                  const a=setupLandHolding===o.v;
+                  return(
+                    <div key={o.v} onClick={()=>{haptic();setSetupLandHolding(o.v);}}
+                      style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
+                      {o.l}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {/* ── Farmer: Kisan Credit Card ── */}
+          {isFarmer&&(
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>💳 {pt.kisanCardLabel}</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {pt.kisanCards.map(o=>{
+                  const a=setupKisanCard===o.v;
+                  return(
+                    <div key={o.v} onClick={()=>{haptic();setSetupKisanCard(o.v);}}
+                      style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
+                      {o.l}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          </div>}
+
+          {isStudent&&<div className="ys-q-in">
+          {/* ── Student: Education Level ── */}
+          {isStudent&&(
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>📚 {pt.educationLevelLabel}</div>
+              {pt.educationLevels.map(o=>{
+                const a=setupEducationLevel===o.v;
+                return(
+                  <div key={o.v} onClick={()=>{haptic();setSetupEducationLevel(o.v);}}
+                    style={{padding:"12px 14px",borderRadius:13,cursor:"pointer",marginBottom:8,border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
+                    {o.l}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {/* ── Student: Institution Type ── */}
+          {isStudent&&(
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>🏫 {pt.institutionTypeLabel}</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {pt.institutionTypes.map(o=>{
+                  const a=setupInstitutionType===o.v;
+                  return(
+                    <div key={o.v} onClick={()=>{haptic();setSetupInstitutionType(o.v);}}
+                      style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
+                      {o.l}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          </div>}
+
+          <div style={{display:"flex",gap:8,marginTop:6}}>
+            <div onClick={()=>{haptic();setStage("setup2");}}
+              style={{flex:1,padding:14,borderRadius:14,border:`1.5px solid ${th.border3}`,background:th.card,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>
+              {pt.backBtn}
+            </div>
+            <div onClick={()=>{if(canNext)haptic();handleSetup3Next();}}
+              style={{flex:2,background:canNext?"linear-gradient(135deg,#FF9933,#FF8C00)":"#ddd",borderRadius:14,padding:14,textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canNext?"pointer":"default",fontFamily:bf,transition:"background .2s"}}>
+              {pt.nextBtn}
+            </div>
+          </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // ── STAGE: SETUP 4 — Family & benefits ──────────────────────────────────────
+  if(stage==="setup4"){
+    const hasDisability=setupDisability!=="none"&&setupDisability!=="";
+    const fields=T[lang].fields;
+    const isFarmer=setupCat==="farmer";
+    const isStudent=setupCat==="student";
+    const hasChildren=setupNumChildren&&setupNumChildren!=="0";
+    const showMarital=!!setupAge&&setupAge!=="below18";               // under 18: not asked
+    const showChildren=showMarital&&!!setupMarital&&setupMarital!=="single"; // unmarried: not asked
+    const canNext=!!setupIncome&&!!setupRation&&!!setupDisability&&(!showChildren||(!!setupNumChildren&&(hasChildren?!!setupHasGirls:true)));
+    return(
+      <div style={{flex:1,display:"flex",flexDirection:"column",background:th.appBg,overflowY:"auto"}}>
+        <TriHeader bg="linear-gradient(135deg,#003580 0%,#1a56db 100%)">
+          <div style={{display:"flex",gap:6,marginBottom:18}}><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/><div style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/></div>
+          <div style={{color:"rgba(255,255,255,0.65)",fontSize:10.5,fontWeight:700,letterSpacing:0.9,marginBottom:5,textTransform:"uppercase"}}>{pt.step4of4}</div>
+          <div style={{color:"#fff",fontSize:20,fontWeight:800,fontFamily:bf,marginBottom:3}}>{isHindi?"परिवार और लाभ":"Family & benefits"}</div>
+          <div style={{color:"rgba(255,255,255,0.65)",fontSize:12,fontFamily:bf}}>{isHindi?"केवल आपके लिए योजनाएँ मिलाने में उपयोग":"Used only to match schemes for you"}</div>
+        </TriHeader>
+
+        <Card dark={dark}>
+          <style>{`@keyframes ys-step-in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}@keyframes ys-q-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}.ys-step-in{animation:ys-step-in .32s cubic-bezier(.2,.9,.3,1) both}.ys-q-in{animation:ys-q-in .26s ease both}@media (prefers-reduced-motion:reduce){.ys-step-in,.ys-q-in{animation:none}}`}</style>
+          <div className="ys-step-in" key="setup4">
+          {showChildren&&<div className="ys-q-in">
+          {/* ── Number of Children (all occupations) ── */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:4,fontFamily:bf,letterSpacing:0.3}}>👶 {pt.numChildrenLabel}</div>
+            <div style={{fontSize:10.5,color:th.textSub,marginBottom:8,fontFamily:bf}}>
+              {isHindi?"सुकन्या समृद्धि, बेटी बचाओ, लाडली योजनाओं के लिए":"Unlocks Sukanya Samriddhi, Beti Bachao, Ladli & more"}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {pt.numChildrenOpts.map(o=>{
+                const a=setupNumChildren===o.v;
+                return(
+                  <div key={o.v} onClick={()=>{haptic();setSetupNumChildren(o.v);if(o.v==="0")setSetupHasGirls("no");}}
+                    style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
+                    {o.l}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          </div>}
+
+          {showChildren&&<div className="ys-q-in">
+          {/* ── Has Girl Children (shown only when numChildren > 0) ── */}
+          {hasChildren&&(
+            <div style={{marginBottom:24}}>
+              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:4,fontFamily:bf,letterSpacing:0.3}}>👧 {pt.hasGirlsLabel}</div>
+              <div style={{fontSize:10.5,color:th.textSub,marginBottom:8,fontFamily:bf}}>
+                {isHindi?"NSP, किशोरी शक्ति योजना की पात्रता के लिए":"For NSP, Kishori Shakti Yojana eligibility"}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {pt.hasGirlsOpts.map(o=>{
+                  const a=setupHasGirls===o.v;
+                  return(
+                    <div key={o.v} onClick={()=>{haptic();setSetupHasGirls(o.v);}}
+                      style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
+                      {o.l}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          </div>}
+
+          {/* ── Annual Income (Bug 4 fix: collected here, not assumed from eligibility checker) ── */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>💰 {fields.income}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {fields.incomes.map(o=>{
+                const a=setupIncome===o.v;
+                return(
+                  <div key={o.v} onClick={()=>{haptic();setSetupIncome(o.v);}}
+                    style={{padding:"11px 8px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:11.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 12px rgba(255,153,51,0.22)":"none",lineHeight:1.35}}>
+                    {o.l}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* ── Ration Card ── */}
           <div style={{marginBottom:22}}>
             <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:10,fontFamily:bf,letterSpacing:0.3}}>
@@ -7222,6 +7417,36 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
                       textAlign:"center",lineHeight:1.4,
                     }}>
                     {r.l}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Social Caste Category */}
+          <div style={{marginBottom:22}}>
+            <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:8}}>
+              <div style={{fontSize:12,fontWeight:700,color:th.textMid,fontFamily:bf,letterSpacing:0.3}}>🪪 {T[lang].fields.caste}</div>
+              <span style={{fontSize:10,fontWeight:500,color:th.textSub,background:th.pillBg,borderRadius:20,padding:"1px 8px",border:`1px solid ${th.border3}`}}>
+                {isHindi?"पात्रता मिलान के लिए":"For scheme matching"}
+              </span>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+              {T[lang].fields.castes.map(c=>{
+                const a=setupCaste===c.v;
+                const accentColor=c.v==="sc"||c.v==="st"?"#7C3AED":c.v==="obc"?"#1D4ED8":c.v==="ews"?"#D97706":"#138808";
+                return(
+                  <div key={c.v} onClick={()=>{haptic();setSetupCaste(c.v);}}
+                    style={{
+                      padding:"11px 10px",borderRadius:13,cursor:"pointer",
+                      border:`2px solid ${a?accentColor:th.border3}`,
+                      background:a?(dark?`${accentColor}22`:`${accentColor}10`):th.optionBg,
+                      fontSize:12,fontWeight:a?700:400,
+                      color:a?(dark?`${accentColor}ee`:accentColor):th.text,
+                      fontFamily:bf,transition:"all 0.18s",
+                      boxShadow:a?`0 4px 14px ${accentColor}33`:"none",textAlign:"center",
+                    }}>
+                    {c.l}
                   </div>
                 );
               })}
@@ -7291,187 +7516,6 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             )}
           </div>
 
-          {/* ── Marital Status ── */}
-          <div style={{marginBottom:26}}>
-            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:10,fontFamily:bf,letterSpacing:0.3}}>
-              💍 {pt.maritalLabel}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              {pt.maritals.map(m=>{
-                const a=setupMarital===m.v;
-                const accentColor=m.v==="widowed"?"#DC2626":m.v==="married"?"#FF9933":"#003580";
-                return(
-                  <div key={m.v} onClick={()=>{haptic();setSetupMarital(m.v);}}
-                    style={{
-                      padding:"12px 10px",borderRadius:13,cursor:"pointer",fontFamily:bf,
-                      border:`2px solid ${a?accentColor:th.border3}`,
-                      background:a?(dark?`${accentColor}22`:`${accentColor}10`):th.optionBg,
-                      fontSize:12,fontWeight:a?700:400,
-                      color:a?accentColor:th.textMid,
-                      transition:"all 0.18s",
-                      boxShadow:a?`0 4px 14px ${accentColor}33`:"none",
-                      textAlign:"center",lineHeight:1.4,
-                    }}>
-                    {m.l}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div style={{display:"flex",gap:8}}>
-            <div onClick={()=>{haptic();setStage("setup2");}}
-              style={{flex:1,padding:14,borderRadius:14,border:`1.5px solid ${th.border3}`,background:th.card,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>
-              {pt.backBtn}
-            </div>
-            <div onClick={()=>{if(canSave)haptic();handleSetup3Next();}}
-              style={{flex:2,background:canSave?"linear-gradient(135deg,#FF9933,#FF8C00)":"#ddd",borderRadius:14,padding:14,textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canSave?"pointer":"default",fontFamily:bf,boxShadow:canSave?"0 6px 22px rgba(255,153,51,0.38)":"none",transition:"all 0.22s"}}>
-              {pt.nextBtn}
-            </div>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  // ── STAGE: SETUP 4 — Occupation-conditional + Children ──────────────────────
-  if(stage==="setup4"){
-    const isFarmer=setupCat==="farmer";
-    const isStudent=setupCat==="student";
-    const hasChildren=setupNumChildren&&setupNumChildren!=="0";
-    const occupationValid=
-      isFarmer?(setupLandHolding&&setupKisanCard):
-      isStudent?(setupEducationLevel&&setupInstitutionType):
-      true;
-    const canSave=occupationValid&&setupNumChildren&&(hasChildren?!!setupHasGirls:true);
-    return(
-      <div style={{flex:1,display:"flex",flexDirection:"column",background:th.appBg,overflowY:"auto"}}>
-        <TriHeader bg="linear-gradient(135deg,#138808 0%,#16a34a 60%,#003580 100%)">
-          {/* Progress bar — all 4 filled */}
-          <div style={{display:"flex",gap:6,marginBottom:18}}>
-            {[0,1,2,3].map(i=>(
-              <div key={i} style={{height:4,flex:1,borderRadius:4,background:"#FF9933",boxShadow:"0 0 8px rgba(255,153,51,0.5)"}}/>
-            ))}
-          </div>
-          <div style={{color:"rgba(255,255,255,0.65)",fontSize:10.5,fontWeight:700,letterSpacing:0.9,marginBottom:5,textTransform:"uppercase"}}>{pt.step4of4}</div>
-          <div style={{color:"#fff",fontSize:20,fontWeight:800,fontFamily:bf,marginBottom:3}}>{pt.step4Title}</div>
-          <div style={{color:"rgba(255,255,255,0.65)",fontSize:12,fontFamily:bf}}>
-            {isHindi?"AI को सटीक योजनाएं सुझाने में मदद करता है":"Helps AI suggest the most accurate schemes"}
-          </div>
-        </TriHeader>
-
-        <Card dark={dark}>
-          {/* ── Farmer: Land Holding ── */}
-          {isFarmer&&(
-            <div style={{marginBottom:20}}>
-              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>🌾 {pt.landHoldingLabel}</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                {pt.landHoldings.map(o=>{
-                  const a=setupLandHolding===o.v;
-                  return(
-                    <div key={o.v} onClick={()=>{haptic();setSetupLandHolding(o.v);}}
-                      style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
-                      {o.l}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── Farmer: Kisan Credit Card ── */}
-          {isFarmer&&(
-            <div style={{marginBottom:20}}>
-              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>💳 {pt.kisanCardLabel}</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                {pt.kisanCards.map(o=>{
-                  const a=setupKisanCard===o.v;
-                  return(
-                    <div key={o.v} onClick={()=>{haptic();setSetupKisanCard(o.v);}}
-                      style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
-                      {o.l}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── Student: Education Level ── */}
-          {isStudent&&(
-            <div style={{marginBottom:20}}>
-              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>📚 {pt.educationLevelLabel}</div>
-              {pt.educationLevels.map(o=>{
-                const a=setupEducationLevel===o.v;
-                return(
-                  <div key={o.v} onClick={()=>{haptic();setSetupEducationLevel(o.v);}}
-                    style={{padding:"12px 14px",borderRadius:13,cursor:"pointer",marginBottom:8,border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
-                    {o.l}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* ── Student: Institution Type ── */}
-          {isStudent&&(
-            <div style={{marginBottom:20}}>
-              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:8,fontFamily:bf,letterSpacing:0.3}}>🏫 {pt.institutionTypeLabel}</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                {pt.institutionTypes.map(o=>{
-                  const a=setupInstitutionType===o.v;
-                  return(
-                    <div key={o.v} onClick={()=>{haptic();setSetupInstitutionType(o.v);}}
-                      style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
-                      {o.l}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── Number of Children (all occupations) ── */}
-          <div style={{marginBottom:20}}>
-            <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:4,fontFamily:bf,letterSpacing:0.3}}>👶 {pt.numChildrenLabel}</div>
-            <div style={{fontSize:10.5,color:th.textSub,marginBottom:8,fontFamily:bf}}>
-              {isHindi?"सुकन्या समृद्धि, बेटी बचाओ, लाडली योजनाओं के लिए":"Unlocks Sukanya Samriddhi, Beti Bachao, Ladli & more"}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              {pt.numChildrenOpts.map(o=>{
-                const a=setupNumChildren===o.v;
-                return(
-                  <div key={o.v} onClick={()=>{haptic();setSetupNumChildren(o.v);if(o.v==="0")setSetupHasGirls("no");}}
-                    style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
-                    {o.l}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── Has Girl Children (shown only when numChildren > 0) ── */}
-          {hasChildren&&(
-            <div style={{marginBottom:24}}>
-              <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:4,fontFamily:bf,letterSpacing:0.3}}>👧 {pt.hasGirlsLabel}</div>
-              <div style={{fontSize:10.5,color:th.textSub,marginBottom:8,fontFamily:bf}}>
-                {isHindi?"NSP, किशोरी शक्ति योजना की पात्रता के लिए":"For NSP, Kishori Shakti Yojana eligibility"}
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                {pt.hasGirlsOpts.map(o=>{
-                  const a=setupHasGirls===o.v;
-                  return(
-                    <div key={o.v} onClick={()=>{haptic();setSetupHasGirls(o.v);}}
-                      style={{padding:"12px 10px",borderRadius:13,cursor:"pointer",border:`2px solid ${a?"#FF9933":th.border3}`,background:a?th.optionActive:th.optionBg,fontSize:12.5,fontWeight:a?700:400,color:a?"#CC6600":th.textMid,textAlign:"center",fontFamily:bf,transition:"all 0.18s",boxShadow:a?"0 4px 14px rgba(255,153,51,0.22)":"none"}}>
-                      {o.l}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* ── Special groups (optional) — same list as the eligibility quiz ── */}
           <div style={{marginBottom:22}}>
             <div style={{fontSize:12,fontWeight:700,color:th.textMid,marginBottom:4,fontFamily:bf,letterSpacing:0.3}}>🧩 {isHindi?"क्या इनमें से कुछ लागू होता है? (वैकल्पिक)":"Does any of this apply? (optional)"}</div>
@@ -7498,16 +7542,16 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             </div>
           </div>
 
-          {/* Back + Save buttons */}
-          <div style={{display:"flex",gap:8}}>
+          <div style={{display:"flex",gap:8,marginTop:6}}>
             <div onClick={()=>{haptic();setStage("setup3");}}
               style={{flex:1,padding:14,borderRadius:14,border:`1.5px solid ${th.border3}`,background:th.card,textAlign:"center",fontSize:13,fontWeight:600,color:th.textMid,cursor:"pointer",fontFamily:bf}}>
               {pt.backBtn}
             </div>
-            <div onClick={()=>{if(canSave){hapticImportant();handleSetup4Save();}}}
-              style={{flex:2,background:canSave?"linear-gradient(135deg,#138808,#16a34a)":"#ddd",borderRadius:14,padding:14,textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canSave?"pointer":"default",fontFamily:bf,boxShadow:canSave?"0 6px 22px rgba(19,136,8,0.38)":"none",transition:"all 0.22s"}}>
+            <div onClick={()=>{if(canNext){hapticImportant();handleSetup4Save();}}}
+              style={{flex:2,background:canNext?"linear-gradient(135deg,#138808,#16a34a)":"#ddd",borderRadius:14,padding:14,textAlign:"center",fontSize:14,fontWeight:700,color:"#fff",cursor:canNext?"pointer":"default",fontFamily:bf,transition:"background .2s"}}>
               {pt.saveBtn}
             </div>
+          </div>
           </div>
         </Card>
       </div>
