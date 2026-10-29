@@ -1,4 +1,5 @@
 {
+  "ignoreCommand": "git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- . ':!scripts/android-native' ':!scripts/android' ':!.github' ':!src/native' ':!src/main-native.jsx' ':!capacitor.config.json' ':!vite.native.config.js'",
   "rewrites": [
     {
       "source": "/api/telegram",
