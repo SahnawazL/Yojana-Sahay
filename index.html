@@ -271,7 +271,7 @@
     /* starts exactly like Android's launch icon (logo in a white circle, ~1.55×)
        and morphs into the rounded tile — one continuous scene */
     @keyframes hs-logo-in { 0% { transform: scale(1.4); opacity: 0; } 45% { opacity: 1; } 70% { transform: scale(.96); } 100% { transform: scale(1); opacity: 1; } }
-    @keyframes hs-icon-out { 0% { transform: scale(1.55); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+    @keyframes hs-icon-out { 0% { transform: scale(1.62); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
     @keyframes hs-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
     @keyframes hs-sweep { 0% { transform: translateX(-140%) skewX(-18deg); } 60%,100% { transform: translateX(240%) skewX(-18deg); } }
     @keyframes hs-rings-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
@@ -289,7 +289,11 @@
     .hs-particle { position: absolute; width: 3px; height: 3px; border-radius: 50%; bottom: -4px; opacity: 0; }
 
     .hs-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
-    .hs-stage { position: relative; width: 230px; height: 230px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+    .hs-stage { position: relative; width: 230px; height: 230px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
+      will-change: transform; animation: hs-rise .85s cubic-bezier(.6,0,.2,1) .08s both; }
+    /* first frame: the logo circle exactly where Android's launch screen shows it
+       (screen centre), then it rises into place as the name appears */
+    @keyframes hs-rise { from { transform: translateY(var(--hs-dy, 0px)); } to { transform: none; } }
     .hs-rings { position: absolute; inset: 0; animation: hs-rings-in .8s cubic-bezier(.22,1,.36,1) .15s both; }
     .hs-rings svg { position: absolute; inset: 0; overflow: visible; }
     .hs-ring-1 { animation: hs-spin 14s linear infinite; }
@@ -324,21 +328,21 @@
       background: linear-gradient(90deg, #ffffff 0%, #ffffff 35%, #FFD199 50%, #ffffff 65%, #ffffff 100%);
       background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
       text-shadow: 0 2px 28px rgba(255,140,80,.35);
-      opacity: 0; letter-spacing: .5px; will-change: transform, opacity; animation: hs-title-in .6s cubic-bezier(.22,1,.36,1) .45s forwards;
+      opacity: 0; letter-spacing: .5px; will-change: transform, opacity; animation: hs-title-in .6s cubic-bezier(.22,1,.36,1) .62s forwards;
     }
     .hs-tagline { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.72); font-family: 'Noto Sans', system-ui, sans-serif;
-      letter-spacing: 3.5px; text-transform: uppercase; margin-bottom: 20px; opacity: 0; animation: hs-tagline-in .5s ease .75s forwards; }
+      letter-spacing: 3.5px; text-transform: uppercase; margin-bottom: 20px; opacity: 0; animation: hs-tagline-in .5s ease .88s forwards; }
     .hs-bar { position: relative; width: 168px; height: 4px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,.12);
-      opacity: 0; transform-origin: center; animation: hs-bar-in .45s cubic-bezier(.22,1,.36,1) .9s forwards; }
+      opacity: 0; transform-origin: center; animation: hs-bar-in .45s cubic-bezier(.22,1,.36,1) 1s forwards; }
     .hs-bar span { position: absolute; inset: 0; border-radius: 4px; transform-origin: left center; transform: scaleX(.04); will-change: transform;
       background: linear-gradient(90deg, #FF9933, #FF6B6B, #7C5CFF);
-      animation: hs-fill 1.5s cubic-bezier(.3,.7,.2,1) 1s forwards; }
+      animation: hs-fill 1.5s cubic-bezier(.3,.7,.2,1) 1.05s forwards; }
     .hs-bar i { position: absolute; top: 0; bottom: 0; left: 0; width: 40%; will-change: transform;
       background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.55), rgba(255,255,255,0));
-      animation: hs-run 1.4s ease-in-out 1.2s infinite; transform: translateX(-120%); }
+      animation: hs-run 1.4s ease-in-out 1.3s infinite; transform: translateX(-120%); }
     .hs-foot { position: absolute; bottom: 34px; left: 0; right: 0; text-align: center; z-index: 2;
       font: 600 11px/1.4 'Noto Sans', system-ui, sans-serif; color: rgba(255,255,255,.45); letter-spacing: .4px;
-      opacity: 0; animation: hs-tagline-in .6s ease 1.1s forwards; }
+      opacity: 0; animation: hs-tagline-in .6s ease 1.15s forwards; }
 
     /* Nothing moves until the screen is really visible (.hs-play) — in the
        Android app that is when Android's own launch screen lifts — so the
@@ -431,6 +435,15 @@
         var play = function () { if (el.classList.contains('hs-play')) return; window.__hsStart = performance.now(); el.classList.add('hs-play'); };
         var cap = window.Capacitor;
         var isApp = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
+        // where the logo starts: the centre of the screen — in the app, exactly
+        // where Android's launch screen shows the same logo (the app sits below
+        // the status bar, so that's a little above the middle of this page)
+        try {
+          var fr = el.querySelector('.hs-float').getBoundingClientRect(), target = innerHeight / 2;
+          var extra = isApp && window.screen ? screen.height - innerHeight : 0;
+          if (extra > 0 && extra < 200) target = screen.height / 2 - extra * 0.6;
+          el.style.setProperty('--hs-dy', Math.round(target - (fr.top + fr.height / 2)) + 'px');
+        } catch (e) {}
         var start = function () {
           if (el.classList.contains('hs-play')) return;
           play();
