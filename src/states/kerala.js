@@ -673,4 +673,21 @@ export const KERALA_SCHEMES = [
   },
   // </auto-scheme id="kerala_sthree_suraksha">
 
+  // <auto-scheme id="kerala_priyadarshini_free_bus"> added by Scheme Discovery agent on 2026-10-27 · source: https://www.thehindu.com/news/national/kerala/kerala-launches-priyadarshini-free-bus-travel-scheme-for-women/article71103460.ece
+  {
+    id: "kerala_priyadarshini_free_bus",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Kerala",
+    ministry: { en: "Kerala State Road Transport Corporation", hi: "केरल राज्य सड़क परिवहन निगम" },
+    name:    { en: "Priyadarshini Free Bus Travel Scheme", hi: "प्रियदर्शिनी फ्री बस ट्रैवल स्कीम" },
+    benefit: { en: "Zero‑fare travel on KSRTC buses for women and transgender persons", hi: "महिलाओं और ट्रांसजेंडर व्यक्तियों के लिए KSRTC बसों पर शून्य किराया" },
+    tag:     { en: "Transport", hi: "परिवहन" },
+    annual: 0,
+    apply:   { en: "https://www.thehindu.com/news/national/kerala/kerala-launches-priyadarshini-free-bus-travel-scheme-for-women/article71103460.ece", hi: "https://www.thehindu.com/news/national/kerala/kerala-launches-priyadarshini-free-bus-travel-scheme-for-women/article71103460.ece" }, applyType: "online",
+    docs:    { en: ["Scheme announcement"],
+               hi: ["संकल्पना घोषणा"] },
+    autoAdded: "2026-10-27", source: "https://www.thehindu.com/news/national/kerala/kerala-launches-priyadarshini-free-bus-travel-scheme-for-women/article71103460.ece",
+    match: (a) => a.state === "Kerala" && ["women","general"].includes(a.who) && (a.who === "women" || a.gender === "female" || (a.gender == null && a.who === "student")),
+  },
+  // </auto-scheme id="kerala_priyadarshini_free_bus">
+
 ];
