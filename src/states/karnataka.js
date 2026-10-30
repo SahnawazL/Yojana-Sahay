@@ -1514,4 +1514,21 @@ export const KARNATAKA_SCHEMES = [
   },
   // </auto-scheme id="karnataka_prasoothi_araike">
 
+  // <auto-scheme id="karnataka_gruha_jyothi"> added by Scheme Discovery agent on 2026-10-29 · source: https://yuvakanaja.karnataka.gov.in/588/gruha-jyothi-yojana/en
+  {
+    id: "karnataka_gruha_jyothi",
+    icon: "🏠", color: "#0F766E", scope: "state", state: "Karnataka",
+    ministry: { en: "Government of Karnataka", hi: "कर्नाटक सरकार" },
+    name:    { en: "Gruha Jyothi Yojana", hi: "गृह ज्योति योजना" },
+    benefit: { en: "Free electricity up to 200 units per residential household", hi: "प्रति आवासीय परिवार 200 यूनिट तक मुफ्त बिजली" },
+    tag:     { en: "Electricity", hi: "बिजली" },
+    annual: 0,
+    apply:   { en: "https://yuvakanaja.karnataka.gov.in/588/gruha-jyothi-yojana/en", hi: "https://yuvakanaja.karnataka.gov.in/588/gruha-jyothi-yojana/en" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-29", source: "https://yuvakanaja.karnataka.gov.in/588/gruha-jyothi-yojana/en",
+    match: (a) => a.state === "Karnataka" && a.who === "general",
+  },
+  // </auto-scheme id="karnataka_gruha_jyothi">
+
 ];
