@@ -753,4 +753,22 @@ export const ASSAM_SCHEMES = [
   },
   // </auto-scheme id="assam_arogya_nidhi">
 
+  // <auto-scheme id="assam_flight_foreign_language"> added by Scheme Discovery agent on 2026-10-28 · source: https://asdm.assam.gov.in/portlet-innerpage/cm-flight-chief-minister%E2%80%99s-foreign-language-initiative-for-global-talent
+  {
+    id: "assam_flight_foreign_language",
+    icon: "🎯", color: "#D97706", scope: "state", state: "Assam",
+    ministry: { en: "Assam Skill Development Mission", hi: "असम कौशल विकास मिशन" },
+    name:    { en: "CM-FLIGHT (Chief Minister’s Foreign Language Initiative for Global Talent)", hi: "सीएम-फ्लाइट (मुख्यमंत्री का विदेशी भाषा पहल वैश्विक प्रतिभा के लिए)" },
+    benefit: { en: "₹1,00,000 per candidate for training + ₹50,000 post-placement assistance", hi: "प्रति उम्मीदवार ₹1,00,000 प्रशिक्षण हेतु + ₹50,000 पोस्ट-परिनियोजन सहायता" },
+    tag:     { en: "Foreign Language Training", hi: "विदेशी भाषा प्रशिक्षण" },
+    annual: 150000,
+    apply:   { en: "https://asdm.assam.gov.in/portlet-innerpage/cm-flight-chief-minister%E2%80%99s-foreign-language-initiative-for-global-talent", hi: "https://asdm.assam.gov.in/portlet-innerpage/cm-flight-chief-minister%E2%80%99s-foreign-language-initiative-for-global-talent" }, applyType: "online",
+    docs:    { en: ["Application Form","Eligibility Criteria"],
+               hi: ["आवेदन पत्र","पात्रता मानदंड"] },
+    keywords: ["skill"],
+    autoAdded: "2026-10-28", source: "https://asdm.assam.gov.in/portlet-innerpage/cm-flight-chief-minister%E2%80%99s-foreign-language-initiative-for-global-talent",
+    match: (a) => a.state === "Assam" && a.who === "general" && a.age === "18to35" && a.educationLevel === "class9to12",
+  },
+  // </auto-scheme id="assam_flight_foreign_language">
+
 ];
