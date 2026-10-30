@@ -656,4 +656,21 @@ export const KERALA_SCHEMES = [
   },
   // </auto-scheme id="kerala_prathibha_scholarship">
 
+  // <auto-scheme id="kerala_sthree_suraksha"> added by Scheme Discovery agent on 2026-10-27 · source: https://www.outlookmoney.com/retirement/sthree-suraksha-scheme-what-is-it-and-will-the-kerala-government-continue-it
+  {
+    id: "kerala_sthree_suraksha",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Kerala",
+    ministry: { en: "Kerala State Government", hi: "केरल राज्य सरकार" },
+    name:    { en: "Sthree Suraksha Scheme", hi: "सतीरे सुरक्षा योजना" },
+    benefit: { en: "₹1,000/month to unemployed women and transgender women", hi: "₹1,000/माह बेरोजगार महिलाओं और ट्रांसजेंडर महिलाओं को" },
+    tag:     { en: "Financial Support", hi: "वित्तीय सहायता" },
+    annual: 12000,
+    apply:   { en: "https://www.outlookmoney.com/retirement/sthree-suraksha-scheme-what-is-it-and-will-the-kerala-government-continue-it", hi: "https://www.outlookmoney.com/retirement/sthree-suraksha-scheme-what-is-it-and-will-the-kerala-government-continue-it" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-10-27", source: "https://www.outlookmoney.com/retirement/sthree-suraksha-scheme-what-is-it-and-will-the-kerala-government-continue-it",
+    match: (a) => a.state === "Kerala" && a.who === "women" && a.age === "35to60",
+  },
+  // </auto-scheme id="kerala_sthree_suraksha">
+
 ];
