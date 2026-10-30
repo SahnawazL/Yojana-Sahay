@@ -30,7 +30,7 @@
     "httpStatus": 200
   },
   "assam_krishi_sajuli": {
-    "lastVerified": "2026-10-10T11:55:02.067Z",
+    "lastVerified": "2026-10-30T21:35:56.314Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -72,19 +72,19 @@
     "confidence": 0
   },
   "assam_kushal_konwar_pension": {
-    "lastVerified": "2026-10-10T11:56:48.961Z",
+    "lastVerified": "2026-10-30T21:36:08.494Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_lakhpati_baideo": {
-    "lastVerified": "2026-10-10T11:56:48.961Z",
+    "lastVerified": "2026-10-30T21:36:21.303Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_indira_miri_widow": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-30T21:35:33.553Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -96,7 +96,7 @@
     "confidence": 0
   },
   "assam_jibon_prerana": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-30T21:35:47.084Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -126,13 +126,13 @@
     "confidence": 0
   },
   "assam_mmua": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-30T21:37:44.747Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_mmlsay": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-30T21:37:10.289Z",
     "confidence": 0
   },
   "assam_basundhara": {
@@ -618,7 +618,7 @@
     "linkAlive": true
   },
   "premat_sc": {
-    "lastVerified": "2026-10-24T21:33:44.185Z",
+    "lastVerified": "2026-10-30T21:33:44.088Z",
     "httpStatus": 200,
     "confidence": 1,
     "linkAlive": true,
@@ -3640,9 +3640,33 @@
     "lastVerified": "2026-10-29T21:37:35.778Z"
   },
   "assam_grants_tea_tribe": {
-    "lastVerified": "2026-10-29T21:38:13.193Z",
+    "lastVerified": "2026-10-30T21:35:18.599Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
+  },
+  "kerala_sthree_suraksha": {
+    "lastVerified": "2026-10-30T21:33:56.320Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "kerala_priyadarshini_free_bus": {
+    "lastVerified": "2026-10-30T21:34:09.081Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "assam_flight_foreign_language": {
+    "lastVerified": "2026-10-30T21:34:21.900Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "karnataka_gruha_jyothi": {
+    "lastVerified": "2026-10-30T21:35:04.395Z"
+  },
+  "bihar_bcebc_scholarship": {
+    "lastVerified": "2026-10-30T21:35:09.643Z"
   }
 }
