@@ -41,6 +41,7 @@ import FAQFeedbackTab from "./FAQFeedbackTab.jsx";
 import DeadlineAlertsTab from "./DeadlineAlertsTab.jsx";
 import ActionInsights from "./ActionInsights.jsx";
 import { useAdminTasks } from "./adminTasks.js";
+import { buildAdminReportHtml, openAdminReport } from "./adminReport.js";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -3119,7 +3120,7 @@ function ExportPasswordGateModal({ dark, onUnlock, onCancel }) {
 // the ADMIN DASHBOARD's own theme (for styling this popup itself); `theme`
 // / `onSelectTheme` control the THEME OF THE GENERATED PDF, which is an
 // independent choice from how the dashboard itself currently looks.
-function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectOrientation, pageSize, onSelectPageSize, dateRangeLabel, preparedBy, onPreparedByChange, onConfirm, onCancel, selectedCount }) {
+function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectOrientation, pageSize, onSelectPageSize, dateRangeLabel, maskPII = false, onMaskPIIChange = () => {}, preparedBy, onPreparedByChange, onConfirm, onCancel, selectedCount }) {
   const [focusField, setFocusField] = useState(null); // "start" | "end" | "prepared" | null
   const C = {
     overlay: "rgba(5,6,12,0.72)",
@@ -3159,8 +3160,12 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
   });
 
   const THEME_OPTIONS = [
-    { id: "dark",  label: "Dark",  emoji: "🌙", hint: "Black bg · light text" },
-    { id: "light", label: "Light", emoji: "☀️", hint: "White bg · dark text" },
+    { id: "light", label: "Official",  hint: "White paper · best for print" },
+    { id: "dark",  label: "Dark",      hint: "For on-screen reading" },
+  ];
+  const PII_OPTIONS = [
+    { id: false, label: "Show in full",  hint: "Phone, email & user ID as stored" },
+    { id: true,  label: "Mask",          hint: "+91 98XXXXX210 · raXXXX@…" },
   ];
 
   const ORIENTATION_OPTIONS = [
@@ -3205,7 +3210,7 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
             PDF Export Options
           </div>
           <div style={{ fontSize: 10, color: C.sub, lineHeight: 1.5 }}>
-            {selectedCount} module{selectedCount !== 1 ? "s" : ""} selected · pick a report theme before compiling
+            {selectedCount} module{selectedCount !== 1 ? "s" : ""} selected · cover page, contents, executive summary and sign-off are always included
           </div>
         </div>
 
@@ -3228,7 +3233,6 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
                   ...pillGlass(on),
                 }}
               >
-                <div style={{ fontSize: 18, marginBottom: 4 }}>{opt.emoji}</div>
                 <div style={{ fontSize: 11, fontWeight: 800, color: on ? C.blue : C.text }}>
                   {opt.label}
                 </div>
@@ -3292,6 +3296,31 @@ function ExportOptionsModal({ dark, theme, onSelectTheme, orientation, onSelectO
           })}
         </div>
 
+        <div style={{
+          fontSize: 9, fontWeight: 700, color: C.sub, letterSpacing: 1,
+          textTransform: "uppercase", marginBottom: 8,
+        }}>
+          Personal Data
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 22 }}>
+          {PII_OPTIONS.map(opt => {
+            const on = maskPII === opt.id;
+            return (
+              <div
+                key={String(opt.id)}
+                onClick={() => onMaskPIIChange(opt.id)}
+                style={{
+                  flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10,
+                  cursor: "pointer", transition: "all 0.15s",
+                  ...pillGlass(on),
+                }}
+              >
+                <div style={{ fontSize: 10.5, fontWeight: 800, color: on ? C.blue : C.text }}>{opt.label}</div>
+                <div style={{ fontSize: 8, color: C.sub, marginTop: 2 }}>{opt.hint}</div>
+              </div>
+            );
+          })}
+        </div>
         <div style={{
           fontSize: 9, fontWeight: 700, color: C.sub, letterSpacing: 1,
           textTransform: "uppercase", marginBottom: 8,
@@ -3553,7 +3582,7 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports, onDow
     ? LINE_WIDTHS.length
     : Math.floor((progress / 100) * LINE_WIDTHS.length);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10); // IST, same as the report
 
   return (
     <>
@@ -3836,7 +3865,7 @@ function ExportModal({ steps, currentStep, done, totalUsers, totalReports, onDow
             </div>
             {done ? (
               <div className="ys-fslide" style={{ fontSize:10, color:IND_GREEN, fontWeight:700 }}>
-                ✓ &nbsp;yojanasetu_full_report_{today}.pdf &nbsp;— &nbsp;Ready to download
+                ✓ &nbsp;YojanaSahay_Administrative_Report_{today}.pdf &nbsp;— &nbsp;Ready to download
               </div>
             ) : (
               <div style={{
@@ -5042,7 +5071,7 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
     agents:    { desc:"Live presence, session tracking & activity feed for agents", badge:"live · auto-refresh",                                                             badge2Color:IND_GREEN, accentColor:IND_GREEN, glow:"rgba(19,136,8,0.35)",     icon:"agents" },
     news:      { desc:"Manage scheme news ticker — add, toggle & sync live updates",  badge:"live ticker",                                                                     badge2Color:SAFFRON,   accentColor:SAFFRON,   glow:"rgba(255,153,51,0.35)",   icon:"news" },
     faq:       { desc:"👍/👎 helpfulness votes per FAQ — spot confusing answers fast", badge:"user feedback",                                                                   badge2Color:VIOLET,    accentColor:VIOLET,    glow:"rgba(139,92,246,0.35)",   icon:"faq"  },
-    export:    { desc:"Compile & download full-dashboard PDF intelligence report",  badge:"landscape A4 · PDF",                                                             badge2Color:"#10B981", accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"export" },
+    export:    { desc:"Compile & download the official PDF administrative report",  badge:"official report · PDF",                                                             badge2Color:"#10B981", accentColor:"#10B981", glow:"rgba(16,185,129,0.35)",   icon:"export" },
   };
 
   const cols     = isDesktop ? 5 : 2;
@@ -5613,7 +5642,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
   // "Download PDF" — not automatically the instant compiling finishes.
   const [pendingExport,  setPendingExport] = useState(null);
   const [exportSections, setExportSections] = useState(
-    () => new Set(["overview","analytics","users","activity","usage","schemes","reports","agents"])
+    () => new Set(["overview","analytics","users","activity","usage","impact","schemes","reports","agents"])
   );
   // Pre-export options popup (theme choice etc.) shown before compiling
   const [showExportOptions, setShowExportOptions] = useState(false);
@@ -5622,7 +5651,11 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
   // can reach the export options / compile a PDF.
   const [showPdfPasswordGate, setShowPdfPasswordGate] = useState(false);
   const [pdfExportUnlocked,   setPdfExportUnlocked]   = useState(false);
-  const [pdfTheme,          setPdfTheme]          = useState("dark");
+  const [pdfTheme,          setPdfTheme]          = useState("light");
+  // Mask phone numbers, emails and user IDs in the PDF (remembered per browser).
+  const [pdfMaskPII,        setPdfMaskPII]        = useState(() => {
+    try { return localStorage.getItem("ys_admin_pdf_mask") === "1"; } catch { return false; }
+  });
   // Page orientation + physical size — landscape/A4 remains the default
   // since that's what the layout (wide tables, cross-tab matrices) was
   // built for, but portrait/Letter is now selectable for smaller printers
@@ -5644,6 +5677,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
   });
   const [usageData,     setUsageData]     = useState(null);
   const [eventsData,    setEventsData]    = useState(null); // appStats/events — anonymous action counters
+  const eventsRef = useRef(null);
   const [usageLoading,  setUsageLoading]  = useState(false);
 
   // ── Export tab: per-module sub-filters ──────────────────────────────────
@@ -5893,8 +5927,10 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
         getDoc(doc(db, "appStats", "events")).catch(() => null),
       ]);
       const data = snap.exists() ? snap.data() : {};
+      const evData = evSnap?.exists?.() ? evSnap.data() : {};
+      eventsRef.current = evData; // read straight away by the PDF export
       setUsageData(data);
-      setEventsData(evSnap?.exists?.() ? evSnap.data() : {});
+      setEventsData(evData);
       return data; // returned so callers (e.g. PDF export) can use it immediately,
                    // without waiting on a re-render to see the updated state
     } catch (err) {
@@ -6127,1629 +6163,38 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
   // separate data sources (exportUsageData, SCHEME_DB, freshAgentsData),
   // since those already have their own scoping and were never meant to be
   // truncated by a user/report date window.
-  const exportAllPDF = useCallback((sectionsToInclude, freshUsageData, freshAgentsData, theme = "dark", preparedByName = "", orientation = "landscape", pageSize = "A4", users, reports, dateRangeLabel = "All Time") => {
-    // Default to all sections if none specified
-    const s = sectionsToInclude instanceof Set && sectionsToInclude.size > 0
-      ? sectionsToInclude
-      : new Set(["overview","analytics","users","activity","usage","schemes","reports","agents"]);
-
-    // ── Logo watermark — same YojanaSahay ghost-seal used in the Agents
-    // tab's attendance PDF (WebP 180px, ~8KB base64), centered as a fixed
-    // body::after background seal on every page. grayscale + low opacity
-    // so it reads as a security watermark, not a visible logo.
+  // Builds the official Administrative Report (src/adminReport.js) and opens
+  // it in a new tab, where the print dialog opens by itself (Save as PDF).
+  // Data comes in fresh from handleExportAll where needed (usage, events,
+  // attendance) — same stale-closure reasoning as before.
+  const exportAllPDF = useCallback((sectionsToInclude, freshUsageData, freshAgentsData, theme = "light", preparedByName = "", orientation = "landscape", pageSize = "A4", users, reports, dateRangeLabel = "All Time", opts = {}) => {
+    // YojanaSahay seal (WebP 180px) — cover logo + faint page watermark.
     const LOGO_DATA_URI = "data:image/webp;base64,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";
-
-    // ── Report color palette — chosen once per export via the pre-export
-    // options popup. Light isn't just the dark palette inverted: accents are
-    // darker/more saturated versions of the same hues so they keep enough
-    // contrast on a white page (same reasoning as SECTION_COLORS_LIGHT in
-    // the Export tab's module selector).
-    const isLightPdf = theme === "light";
-    const T = isLightPdf ? {
-      bg:"#f7f8fc", surface:"#ffffff", card:"#ffffff", card2:"#eef1fa",
-      border:"#dde1f0", border2:"#c7cce0",
-      text:"#1a1d2e", textMid:"#5a5f7a", textSub:"#868bab",
-      accent1:"#2563eb", accent2:"#c2410c", accent3:"#059669", accent4:"#7c3aed", accent5:"#db2777",
-      red:"#dc2626", amber:"#b45309",
-      redRGB:"220,38,38", accent1RGB:"37,99,235", stripe:"rgba(0,0,0,0.035)",
-    } : {
-      bg:"#08090d", surface:"#0e1016", card:"#13151f", card2:"#191c28",
-      border:"#1f2235", border2:"#252840",
-      text:"#eef0f8", textMid:"#8b90b0", textSub:"#4a4f6a",
-      accent1:"#4f8ef7", accent2:"#f7824f", accent3:"#3dd68c", accent4:"#a78bfa", accent5:"#f472b6",
-      red:"#f87171", amber:"#fbbf24",
-      redRGB:"248,113,113", accent1RGB:"79,142,247", stripe:"rgba(255,255,255,0.015)",
-    };
-    // freshAgentsData = { monthReport, todayStr, monthStartStr }, built by
-    // handleExportAll just before this call (see there for why: same
-    // stale-closure reasoning as freshUsageData above — buildAttendanceReport
-    // needs logs fetched fresh for this export, not stale component state).
-    // If the caller just fetched usage data itself (e.g. handleExportAll did
-    // this because usageData was still null this session), use that directly
-    // instead of the component's guestProfiles memo — the memo won't have
-    // re-run yet inside this same synchronous export call, so reading it here
-    // would silently produce an empty guest list even though fresh data exists.
-    const exportGuestProfiles = freshUsageData ? deriveGuestProfiles(freshUsageData) : guestProfiles;
-    // Same staleness guard for the raw usage section (checker runs, searches,
-    // guest activity) — prefer the just-fetched object over the component's
-    // usageData state, which won't have re-rendered yet inside this call.
-    const exportUsageData = freshUsageData || usageData;
-    const now      = Date.now();
-    const dateStr  = new Date().toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric" });
-    const timeStr  = new Date().toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", hour12:true });
-    const isoDate  = new Date().toISOString().slice(0, 10);
-
-    // ── Emoji-strip helper (safe for PDF) ────────────────────────────────
-    function strip(str) {
-      return (str || "").replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "").trim();
-    }
-
-    // ── HTML-escape helper (safe for the "Prepared by" signature line,
-    // which is free-typed by the admin) ──────────────────────────────────
-    function escHtml(str) {
-      return (str || "").replace(/[&<>"']/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-      }[c]));
-    }
-
-    // ── "YYYY-MM-DD" → "8 Jul 2026" (agentTimeLogs date strings) ──────────
-    function fmtDateShort(dateStr) {
-      if (!dateStr) return "—";
-      const d = new Date(dateStr + "T00:00:00");
-      if (isNaN(d.getTime())) return dateStr;
-      return d.toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" });
-    }
-
-    // ── Mini bar (premium dark style) ────────────────────────────────
-    function miniBar(pct, color = "#4f8ef7") {
-      const safeW = Math.max(pct, 2);
-      return `<span class="bar-track"><span class="bar-fill" style="width:${safeW}px;background:${color};opacity:0.9;"></span></span>`;
-    }
-
-    // ── Summary key/value table ───────────────────────────────────────
-    function summaryTable(rows, accent = "#4f8ef7") {
-      return `<div class="card"><table class="sum-tbl"><tbody>
-        ${rows.map(([k, v, sub]) =>
-          `<tr>
-            <td class="sum-key">${k}</td>
-            <td class="sum-val" style="color:${accent}">${v}${sub ? `<span class="sum-sub">${sub}</span>` : ""}</td>
-          </tr>`
-        ).join("")}
-      </tbody></table></div>`;
-    }
-
-    // ── Full data table ───────────────────────────────────────────────
-    function dataTable(headers, rows, colWidths = []) {
-      return `<table>
-        <thead><tr>${headers.map((h, i) =>
-          `<th${colWidths[i] ? ` style="width:${colWidths[i]}"` : ""}>${h}</th>`
-        ).join("")}</tr></thead>
-        <tbody>
-          ${rows.length === 0
-            ? `<tr><td colspan="${headers.length}" style="color:#4a4f6a;padding:10px;text-align:center;font-style:italic">No data available</td></tr>`
-            : rows.map((r, i) =>
-                `<tr class="${i % 2 === 0 ? "even" : "odd"}">
-                  ${r.map(v => `<td>${v ?? "—"}</td>`).join("")}
-                </tr>`
-              ).join("")
-          }
-        </tbody>
-      </table>`;
-    }
-
-    // ── Breakdown block with inline bars ─────────────────────────────
-    function breakdownBlock(title, entries, color = "#4f8ef7") {
-      const sorted = [...entries].sort((a, b) => b[1] - a[1]);
-      const total  = sorted.reduce((s, [, v]) => s + v, 0);
-      const max    = sorted[0]?.[1] || 1;
-      return `<div class="breakdown">
-        <div class="bd-title">${title} <span class="bd-total">(${total} total)</span></div>
-        <table>
-          <thead><tr><th>Category</th><th style="width:80px">Trend</th><th style="width:36px">Count</th><th style="width:36px">%</th></tr></thead>
-          <tbody>
-            ${sorted.map(([k, v], i) => {
-              const pct = total ? Math.round(v / total * 100) : 0;
-              const barW = Math.round((v / max) * 72);
-              return `<tr class="${i % 2 === 0 ? "even" : "odd"}">
-                <td>${k}</td>
-                <td>${miniBar(barW, color)}</td>
-                <td style="text-align:right;font-weight:700;color:${color}">${v}</td>
-                <td style="text-align:right;color:#4a4f6a">${pct}%</td>
-              </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>`;
-    }
-
-    // ── 7-day trend bar chart (techy vertical spark bars) ──────────────
-    function sparkChart(labels, values, color = "#4f8ef7") {
-      const max = Math.max(...values, 1);
-      return `<div class="spark-wrap">
-        ${values.map((v, i) => {
-          const h = v > 0 ? Math.max(Math.round((v / max) * 44), 3) : 1;
-          return `<div class="spark-col">
-            <div class="spark-val">${v}</div>
-            <div class="spark-bar" style="height:${h}px;background:${color}"></div>
-            <div class="spark-lbl">${labels[i]}</div>
-          </div>`;
-        }).join("")}
-      </div>`;
-    }
-
-
-    // ── Cross-tab matrix ──────────────────────────────────────────────
-    function crossTabBlock(title, data, rowKey, colKey, rowLabels, colLabels) {
-      const rows = Object.keys(rowLabels);
-      const cols = Object.keys(colLabels);
-      const matrix = {};
-      rows.forEach(r => { matrix[r] = {}; cols.forEach(c => { matrix[r][c] = 0; }); });
-      data.forEach(u => {
-        const r = u[rowKey]; const c = u[colKey];
-        if (matrix[r] !== undefined && c !== undefined) matrix[r][c] = (matrix[r][c] || 0) + 1;
-      });
-      return `<div class="breakdown">
-        <div class="bd-title">${title}</div>
-        <table>
-          <thead><tr>
-            <th></th>
-            ${cols.map(c => `<th style="text-align:center">${strip(colLabels[c])}</th>`).join("")}
-            <th style="text-align:center">Total</th>
-          </tr></thead>
-          <tbody>
-            ${rows.map((r, i) => {
-              const rowTotal = cols.reduce((s, c) => s + (matrix[r][c] || 0), 0);
-              return `<tr class="${i % 2 === 0 ? "even" : "odd"}">
-                <td style="font-weight:700">${strip(rowLabels[r])}</td>
-                ${cols.map(c => {
-                  const v = matrix[r][c] || 0;
-                  const pct = rowTotal ? Math.round(v / rowTotal * 100) : 0;
-                  return `<td style="text-align:center;${v > 0 ? "font-weight:700" : "color:#2a2d40"}">${v > 0 ? `${v}<br><span style="font-size:7px;color:#4a4f6a">${pct}%</span>` : "·"}</td>`;
-                }).join("")}
-                <td style="text-align:center;font-weight:800;color:#4f8ef7">${rowTotal}</td>
-              </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>`;
-    }
-
-    // ── Section header ────────────────────────────────────────────────
-    function sectionHeader(icon, title, count = null) {
-      return `<div class="section-title"><span class="s-icon">${icon}</span>${title}${count !== null ? ` <span class="badge">${count}</span>` : ""}</div>`;
-    }
-
-    // ── Occupation Pulse donut (conic-gradient, share of active users) ─
-    const OCC_COLORS = {
-      farmer: "#3dd68c", student: "#a78bfa", women: "#f472b6",
-      senior: "#fbbf24", business: "#4f8ef7", general: "#f7824f",
-    };
-    function occPulseDonut(stats, centerLabel = "ACTIVE\nTHIS WEEK") {
-      const activeTotal = stats.reduce((s, o) => s + o.active, 0);
-      let cursor = 0;
-      const stops = activeTotal
-        ? stats.map(o => {
-            const pct = o.active / activeTotal * 100;
-            const seg = `${o.color} ${cursor}% ${cursor + pct}%`;
-            cursor += pct;
-            return seg;
-          }).join(", ")
-        : "#1f2235 0% 100%";
-      const [l1, l2] = centerLabel.split("\n");
-      return `<div class="pulse-wrap">
-        <div class="donut" style="background:conic-gradient(${stops})">
-          <div class="donut-hole">
-            <div class="donut-num">${activeTotal}</div>
-            <div class="donut-label">${l1}${l2 ? `<br>${l2}` : ""}</div>
-          </div>
-        </div>
-        <div class="pulse-legend">
-          ${stats.map(o => {
-            const pct = activeTotal ? Math.round(o.active / activeTotal * 100) : 0;
-            return `<div class="pulse-legend-row">
-              <span class="pulse-dot" style="background:${o.color}"></span>
-              <span class="pulse-legend-name">${o.label}</span>
-              <span class="pulse-legend-val">${o.active}</span>
-              <span class="pulse-legend-pct">${pct}%</span>
-            </div>`;
-          }).join("")}
-        </div>
-      </div>`;
-    }
-
-    // ── Occupation Engagement Matrix (dual-layer signal bars) ──────────
-    function occEngagementMatrix(stats) {
-      const maxTotal = Math.max(...stats.map(o => o.total), 1);
-      return `<div class="breakdown eng-matrix">
-        <div class="bd-title">💼 Occupation Engagement Matrix <span class="bd-total">(reach vs. weekly-active)</span></div>
-        <table>
-          <thead><tr>
-            <th>Occupation</th><th style="width:90px">Signal</th>
-            <th style="width:34px">Total</th><th style="width:34px">Active</th><th style="width:40px">Rate</th>
-          </tr></thead>
-          <tbody>
-            ${stats.map((o, i) => {
-              const trackW  = Math.max(Math.round((o.total / maxTotal) * 84), 4);
-              const fillW   = o.total ? Math.round((o.active / o.total) * trackW) : 0;
-              const rateClr = o.rate >= 50 ? "#3dd68c" : o.rate >= 25 ? "#fbbf24" : "#f87171";
-              return `<tr class="${i % 2 === 0 ? "even" : "odd"}">
-                <td>${o.label}</td>
-                <td><span class="eng-track" style="width:${trackW}px"><span class="eng-fill" style="width:${fillW}px;background:${o.color}"></span></span></td>
-                <td style="text-align:right;font-weight:700;color:${o.color}">${o.total}</td>
-                <td style="text-align:right;font-weight:700">${o.active}</td>
-                <td style="text-align:right"><span class="rate-chip" style="color:${rateClr};border-color:${rateClr}55;background:${rateClr}1a">${o.rate}%</span></td>
-              </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>`;
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // SECTION 1 — OVERVIEW
-    // ══════════════════════════════════════════════════════════════════
-    const activeToday   = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds * 1000) < 86400000).length;
-    const activeWeek    = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds * 1000) < 7 * 86400000).length;
-    const activeMonth   = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds * 1000) < 30 * 86400000).length;
-    const newToday      = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds * 1000) < 86400000).length;
-    const newThisWeek   = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds * 1000) < 7 * 86400000).length;
-    const newThisMonth  = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds * 1000) < 30 * 86400000).length;
-    const withPhone     = users.filter(u => u.phone && u.phone.trim()).length;
-    const withEmail     = users.filter(u => u.email && u.email.trim()).length;
-    const withBoth      = users.filter(u => u.phone && u.email).length;
-    const withNeither   = users.filter(u => !u.phone && !u.email).length;
-    const googleUsers   = users.filter(u => u.photo).length;
-    const guestUsers    = users.length - googleUsers;
-    const openRep       = reports.filter(r => r.status === "open").length;
-    const inProgRep     = reports.filter(r => r.status === "in_progress").length;
-    const resolvedRep   = reports.filter(r => r.status === "resolved").length;
-    const reopenedRep   = reports.filter(r => r.replyHistory?.some(h => h.isReopen) && r.status !== "resolved").length;
-    const repliedRep    = reports.filter(r => r.adminReply || r.replyHistory?.length > 0).length;
-    const unrepliedOpen = reports.filter(r => r.status === "open" && !r.adminReply && !(r.replyHistory?.length > 0)).length;
-    const uniqueStates  = new Set(users.map(u => u.state).filter(Boolean)).size;
-    const farmersCount  = users.filter(u => u.occupation === "farmer").length;
-    const studentsCount = users.filter(u => u.occupation === "student").length;
-    const bplUsers      = users.filter(u => u.ration === "bpl" || u.ration === "aay").length;
-    const disabledUsers = users.filter(u => u.disability && u.disability !== "none").length;
-    const needHousing   = users.filter(u => u.house === "no" || u.house === "kutcha").length;
-    const withGirls     = users.filter(u => u.hasGirls === "yes").length;
-
-    const overviewHTML = `
-      <div class="section">
-        ${sectionHeader("📊", "Overview — Platform Summary")}
-        <div class="three-col">
-          ${summaryTable([
-            ["👥 Total Registered Users",  users.length],
-            ["🟢 Active Today",            activeToday],
-            ["📅 Active This Week",        activeWeek],
-            ["📆 Active This Month",       activeMonth],
-            ["🆕 Joined Today",            newToday],
-            ["🆕 Joined This Week",        newThisWeek],
-            ["🆕 Joined This Month",       newThisMonth],
-          ], "#4f8ef7")}
-          ${summaryTable([
-            ["📱 Phone Only",              withPhone - withBoth],
-            ["✉️ Email Only",              withEmail - withBoth],
-            ["📱✉️ Both Phone & Email",    withBoth],
-            ["🚫 No Contact Info",         withNeither],
-            ["🔵 Google Account",          googleUsers],
-            ["👤 Guest / Phone Account",   guestUsers],
-            ["📍 States Represented",      uniqueStates],
-          ], "#3dd68c")}
-          ${summaryTable([
-            ["📬 Total Reports",           reports.length],
-            ["🔴 Open",                    openRep],
-            ["🟡 In Progress",             inProgRep],
-            ["✅ Resolved",                resolvedRep],
-            ["🔁 Reopened",                reopenedRep],
-            ["💬 Admin Replied",           repliedRep],
-            ["⚠️ Open & Unreplied",        unrepliedOpen],
-          ], "#f87171")}
-        </div>
-        <div class="info-bar">
-          Welfare Snapshot — BPL/AAY Users: <strong>${bplUsers}</strong> (${users.length ? Math.round(bplUsers/users.length*100) : 0}%) &nbsp;|&nbsp;
-          Disabled Users: <strong>${disabledUsers}</strong> &nbsp;|&nbsp;
-          Need Housing: <strong>${needHousing}</strong> &nbsp;|&nbsp;
-          Farmers: <strong>${farmersCount}</strong> &nbsp;|&nbsp;
-          Students: <strong>${studentsCount}</strong> &nbsp;|&nbsp;
-          Families with Girl Child: <strong>${withGirls}</strong>
-        </div>
-      </div>`;
-
-    // ══════════════════════════════════════════════════════════════════
-    // SECTION 2 — DEMOGRAPHICS & ANALYTICS
-    // ══════════════════════════════════════════════════════════════════
-    // Same guest-inclusion logic as the live Analytics tab: guests never get
-    // a users/{uid} profile doc, so the only demographic answers they ever
-    // give are the ones typed into the Eligibility Checker itself (already
-    // captured in guestProfiles). Marital/disability/house/children/land/
-    // kisan-card/education/institution are profile-setup-only fields with no
-    // checker equivalent, so those stay registered-users-only below.
-    const withGuestsPdf = [...users, ...exportGuestProfiles];
-    const byOcc     = groupBy(withGuestsPdf, "occupation");
-    const byInc     = groupBy(withGuestsPdf, "income");
-    const byAge     = groupBy(withGuestsPdf, "age");
-    const byArea    = groupBy(withGuestsPdf, "area");
-    const byGender  = groupBy(withGuestsPdf, "gender");
-    const byRation  = groupBy(withGuestsPdf, "ration");
-    const byMarital = groupBy(users, "marital");
-    const byDisab   = groupBy(users.map(u => ({...u, disability: u.disability || "none"})), "disability");
-    const byHouse   = groupBy(users, "house");
-    const byState   = groupBy(withGuestsPdf, "state");
-    const byKids    = groupBy(users, "numChildren");
-    const byLand    = groupBy(users.filter(u => u.occupation === "farmer"), "landHolding");
-    const byKisan   = groupBy(users.filter(u => u.occupation === "farmer"), "kisanCard");
-    const byEduc    = groupBy(users.filter(u => u.occupation === "student"), "educationLevel");
-    const byInst    = groupBy(users.filter(u => u.occupation === "student"), "institutionType");
-
-    const analyticsHTML = `
-      <div class="section page-break">
-        ${sectionHeader("🧮", "Demographics & Analytics")}
-        ${exportGuestProfiles.length > 0 ? `<div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">
-          Occupation, Income, Age, Area, Gender, Ration, State &amp; the two cross-tabs below include ${exportGuestProfiles.length} guest${exportGuestProfiles.length===1?"":"s"}' Eligibility Checker answers, not just signed-in users. Marital Status, Disability, Housing, Children, Land, KCC, Education &amp; Institution remain signed-in-users-only (no checker equivalent exists for guests).
-        </div>` : ""}
-        <div class="two-col">
-          ${breakdownBlock("💼 Occupation", Object.entries(byOcc).map(([k,v]) => [OCC_LABELS[k]||k, v]), "#4f8ef7")}
-          ${breakdownBlock("💰 Income Range", Object.entries(byInc).map(([k,v]) => [INC_LABELS[k]||k, v]), "#f7824f")}
-        </div>
-        <div class="two-col">
-          ${breakdownBlock("🎂 Age Group", Object.entries(byAge).map(([k,v]) => [AGE_LABELS[k]||k, v]), "#a78bfa")}
-          ${breakdownBlock("🏘️ Area Type", Object.entries(byArea).map(([k,v]) => [AREA_LABELS[k]||k, v]), "#3dd68c")}
-        </div>
-        <div class="two-col">
-          ${breakdownBlock("⚧ Gender", Object.entries(byGender).map(([k,v]) => [strip(GENDER_LABELS[k]||k), v]), "#f472b6")}
-          ${breakdownBlock("💍 Marital Status", Object.entries(byMarital).map(([k,v]) => [strip(MARITAL_LABELS[k]||k), v]), "#4f8ef7")}
-        </div>
-        <div class="two-col">
-          ${breakdownBlock("🪪 Ration Card", Object.entries(byRation).map(([k,v]) => [strip(RATION_LABELS[k]||k), v]), "#fbbf24")}
-          ${breakdownBlock("♿ Disability", Object.entries(byDisab).map(([k,v]) => [strip(DISAB_LABELS[k]||k||"None"), v]), "#3dd68c")}
-        </div>
-        <div class="two-col">
-          ${breakdownBlock("🏠 Housing Status", Object.entries(byHouse).map(([k,v]) => [strip(HOUSE_LABELS[k]||k), v]), "#4f8ef7")}
-          ${breakdownBlock("👨‍👩‍👧 No. of Children", Object.entries(byKids).map(([k,v]) => [CHILDREN_LABELS[k]||k, v]), "#a78bfa")}
-        </div>
-      </div>
-
-      <div class="section page-break">
-        ${sectionHeader("🌾", "Farmer-Specific Analytics")} 
-        <div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">${farmersCount} farmer${farmersCount!==1?"s":""} registered</div>
-        <div class="two-col">
-          ${breakdownBlock("🌾 Land Holding (Farmers)", Object.entries(byLand).map(([k,v]) => [LAND_LABELS[k]||k, v]), "#3dd68c")}
-          ${breakdownBlock("💳 Kisan Credit Card (Farmers)", Object.entries(byKisan).map(([k,v]) => [strip(KISAN_LABELS[k]||k), v]), "#f7824f")}
-        </div>
-        ${sectionHeader("🎓", "Student-Specific Analytics")}
-        <div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">${studentsCount} student${studentsCount!==1?"s":""} registered</div>
-        <div class="two-col">
-          ${breakdownBlock("📚 Education Level (Students)", Object.entries(byEduc).map(([k,v]) => [EDUC_LABELS[k]||k, v]), "#a78bfa")}
-          ${breakdownBlock("🏫 Institution Type (Students)", Object.entries(byInst).map(([k,v]) => [strip(INST_LABELS[k]||k), v]), "#4f8ef7")}
-        </div>
-        ${sectionHeader("🔀", "Cross-Tab Analysis")}
-        ${crossTabBlock("Income vs Ration Card", withGuestsPdf, "income", "ration",
-          { below1:"<1L", "1to3":"1-3L", "3to6":"3-6L", above6:">6L" },
-          { none:"None", apl:"APL", bpl:"BPL", aay:"AAY" }
-        )}
-        ${crossTabBlock("Occupation vs Area Type", withGuestsPdf, "occupation", "area",
-          { farmer:"Farmer", student:"Student", women:"Homemaker", senior:"Senior", business:"Business", general:"General" },
-          { rural:"Rural", urban:"Urban", semi:"Semi-Urban" }
-        )}
-      </div>
-
-      <div class="section page-break">
-        ${sectionHeader("📍", "State-wise User Distribution")}
-        ${dataTable(
-          ["#", "State", "Users", "% of Total", "Active This Week"],
-          Object.entries(byState).sort((a,b) => b[1]-a[1]).map(([st, cnt], i) => {
-            const activeInState = users.filter(u => u.state === st && u.lastSeen?.seconds && (now - u.lastSeen.seconds*1000) < 7*86400000).length;
-            return [i+1, st, cnt, users.length ? Math.round(cnt/users.length*100)+"%" : "—", activeInState];
-          }),
-          ["20px","","40px","60px","80px"]
-        )}
-      </div>`;
-
-    // ══════════════════════════════════════════════════════════════════
-    // SECTION 3 — ALL USERS (Full Profile)
-    // ══════════════════════════════════════════════════════════════════
-    const uHeaders = [
-      "#","Name","UID","Phone","Email","Account",
-      "Gender","Age","Marital","State","Area",
-      "Occupation","Income","Housing","Ration","Disability",
-      "Children","Girl Child","Land","KCC","Education","Institution",
-      "Joined","Last Seen",
-    ];
-    const uRows = users.map((u, i) => [
-      i + 1,
-      u.name        || "—",
-      u.id          || "—",
-      u.phone       ? `+91 ${u.phone}` : "—",
-      u.email       || "—",
-      u.photo       ? "Google" : "Guest",
-      strip(GENDER_LABELS[u.gender]  || u.gender  || "—"),
-      AGE_LABELS[u.age]              || u.age      || "—",
-      strip(MARITAL_LABELS[u.marital]|| u.marital  || "—"),
-      u.state       || "—",
-      AREA_LABELS[u.area]            || u.area     || "—",
-      OCC_LABELS[u.occupation]       || u.occupation|| "—",
-      INC_LABELS[u.income]           || u.income   || "—",
-      strip(HOUSE_LABELS[u.house]    || u.house    || "—"),
-      strip(RATION_LABELS[u.ration]  || u.ration   || "—"),
-      strip(DISAB_LABELS[u.disability]||u.disability||"—"),
-      CHILDREN_LABELS[u.numChildren] || u.numChildren|| "—",
-      u.numChildren && u.numChildren !== "0"
-        ? (u.hasGirls === "yes" ? "Yes" : u.hasGirls === "no" ? "No" : "—")
-        : "N/A",
-      u.occupation === "farmer" ? (LAND_LABELS[u.landHolding] || u.landHolding || "—") : "N/A",
-      u.occupation === "farmer" ? (strip(KISAN_LABELS[u.kisanCard] || u.kisanCard || "—")) : "N/A",
-      u.occupation === "student" ? (EDUC_LABELS[u.educationLevel] || u.educationLevel || "—") : "N/A",
-      u.occupation === "student" ? (strip(INST_LABELS[u.institutionType] || u.institutionType || "—")) : "N/A",
-      formatDate(u.createdAt),
-      formatDate(u.lastSeen),
-    ]);
-
-    const usersHTML = `
-      <div class="section page-break">
-        ${sectionHeader("👥", "Complete User Registry", users.length)}
-        <div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">All ${users.length} users · All profile fields · Sorted by registration order</div>
-        ${dataTable(uHeaders, uRows)}
-      </div>`;
-
-    // ══════════════════════════════════════════════════════════════════
-    // SECTION 4 — ACTIVITY
-    // ══════════════════════════════════════════════════════════════════
-    const recentActive  = [...users]
-      .filter(u => u.lastSeen?.seconds)
-      .sort((a, b) => (b.lastSeen.seconds||0) - (a.lastSeen.seconds||0))
-      .slice(0, 30);
-    const newWeekUsers  = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds*1000) < 7*86400000);
-    const newMonthUsers = users.filter(u => u.createdAt?.seconds && (now - u.createdAt.seconds*1000) < 30*86400000);
-    const dormant       = users.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds*1000) > 30*86400000);
-
-    // Occupation × Activity — reach vs. weekly-active, feeds the donut + matrix below
-    const occStats = Object.keys(OCC_LABELS)
-      .map(k => {
-        const cohort = users.filter(u => u.occupation === k);
-        const active = cohort.filter(u => u.lastSeen?.seconds && (now - u.lastSeen.seconds*1000) < 7*86400000).length;
-        return {
-          key: k, label: OCC_LABELS[k], color: OCC_COLORS[k] || "#4f8ef7",
-          total: cohort.length, active, rate: cohort.length ? Math.round(active/cohort.length*100) : 0,
-        };
-      })
-      .filter(o => o.total > 0)
-      .sort((a, b) => b.active - a.active);
-
-    const activityHTML = `
-      <div class="section page-break">
-        ${sectionHeader("🕐", "Activity & Engagement")}
-        <div class="three-col">
-          ${summaryTable([
-            ["🟢 Active Today",         activeToday],
-            ["📅 Active This Week",     activeWeek],
-            ["📆 Active This Month",    activeMonth],
-          ], "#3dd68c")}
-          ${summaryTable([
-            ["🆕 Joined Today",         newToday],
-            ["🆕 Joined This Week",     newThisWeek],
-            ["🆕 Joined This Month",    newThisMonth],
-          ], "#4f8ef7")}
-          ${summaryTable([
-            ["😴 Dormant (30+ days)",   dormant.length],
-            ["📊 Engagement Rate",      users.length ? Math.round(activeWeek/users.length*100)+"%" : "—"],
-            ["📈 Monthly Retention",    users.length ? Math.round(activeMonth/users.length*100)+"%" : "—"],
-          ], "#a78bfa")}
-        </div>
-
-        ${occStats.length > 0 ? `
-        <div class="sub-title" style="margin-top:4px">Occupation Pulse — Who's Actually Active</div>
-        <div class="two-col">
-          ${occPulseDonut(occStats)}
-          ${occEngagementMatrix(occStats)}
-        </div>` : ""}
-
-        <div class="sub-title" style="margin-top:10px">Recent Activity — Top 30 Most Recently Active Users</div>
-        ${dataTable(
-          ["#","Name","Phone","Email","State","Occupation","Income","Area","Joined","Last Seen"],
-          recentActive.map((u, i) => [
-            i+1,
-            u.name || "—",
-            u.phone ? `+91 ${u.phone}` : "—",
-            u.email || "—",
-            u.state || "—",
-            OCC_LABELS[u.occupation] || u.occupation || "—",
-            INC_LABELS[u.income]     || u.income     || "—",
-            AREA_LABELS[u.area]      || u.area       || "—",
-            formatDate(u.createdAt),
-            formatDate(u.lastSeen),
-          ])
-        )}
-
-        <div class="sub-title" style="margin-top:14px">🆕 Joined This Week <span class="badge">${newWeekUsers.length}</span></div>
-        ${newWeekUsers.length === 0
-          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">No new users this week.</div>`
-          : dataTable(
-              ["#","Name","Phone","Email","State","Occupation","Area","Ration","Joined"],
-              newWeekUsers.map((u, i) => [
-                i+1,
-                u.name || "—",
-                u.phone ? `+91 ${u.phone}` : "—",
-                u.email || "—",
-                u.state || "—",
-                OCC_LABELS[u.occupation] || u.occupation || "—",
-                AREA_LABELS[u.area]      || u.area       || "—",
-                strip(RATION_LABELS[u.ration] || u.ration || "—"),
-                formatDate(u.createdAt),
-              ])
-            )
-        }
-
-        <div class="sub-title" style="margin-top:14px">😴 Dormant Users (30+ days inactive) <span class="badge">${dormant.length}</span></div>
-        ${dormant.length === 0
-          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">No dormant users.</div>`
-          : dataTable(
-              ["#","Name","State","Occupation","Last Seen","Days Inactive"],
-              dormant.slice(0,30).map((u, i) => [
-                i+1,
-                u.name || "—",
-                u.state || "—",
-                OCC_LABELS[u.occupation] || u.occupation || "—",
-                formatDate(u.lastSeen),
-                Math.floor((now - u.lastSeen.seconds*1000) / 86400000) + " days",
-              ])
-            )
-        }
-      </div>`;
-
-    // ══════════════════════════════════════════════════════════════════
-    // SECTION 4.5 — PLATFORM USAGE (Checker runs, searches, guest activity)
-    // ══════════════════════════════════════════════════════════════════
-    // exportUsageData is derived up top (near exportGuestProfiles) as
-    // `freshUsageData || usageData` — same stale-closure guard as guests.
-    const checkerRuns     = Array.isArray(exportUsageData?.checkerRuns)     ? exportUsageData.checkerRuns     : [];
-    const schemeSearches  = Array.isArray(exportUsageData?.schemeSearches)  ? exportUsageData.schemeSearches  : [];
-    const stateSelections = Array.isArray(exportUsageData?.stateSelections) ? exportUsageData.stateSelections : [];
-    const totalRunsUsage    = exportUsageData?.checkerTotal || checkerRuns.length;
-    const totalSearchesUsage = exportUsageData?.searchTotal || schemeSearches.length;
-
-    const avgMatchedUsage = checkerRuns.length
-      ? (checkerRuns.reduce((s, r) => s + (r.matchedCount || 0), 0) / checkerRuns.length).toFixed(1)
-      : "—";
-    const maxMatchedUsage = checkerRuns.length ? Math.max(...checkerRuns.map(r => r.matchedCount || 0)) : 0;
-    const usersWithChecker = users.filter(u => u.matchedCount != null).length;
-    const checkerPctUsage  = users.length ? Math.round(usersWithChecker / users.length * 100) : 0;
-
-    // Guest activity — identical per-browser guest-id grouping logic to the
-    // live Usage tab (see UsageSection above), reimplemented here as a pure
-    // computation since that grouping isn't exposed as a shared function.
-    const guestMapUsage = {};
-    let legacyAnonCountUsage = 0;
-    const touchGuestUsage = (uid, ts, kind) => {
-      if (!uid) return;
-      if (uid === "anon") { legacyAnonCountUsage++; return; }
-      if (typeof uid !== "string" || !uid.startsWith("guest_")) return;
-      if (!guestMapUsage[uid]) guestMapUsage[uid] = { uid, runs:0, searches:0, states:0, first:ts, last:ts, lastMatched:null };
-      const g = guestMapUsage[uid];
-      g[kind]++;
-      if (ts && (!g.first || ts < g.first)) g.first = ts;
-      if (ts && (!g.last || ts > g.last)) { g.last = ts; if (kind === "runs") g.lastMatched = null; }
-    };
-    checkerRuns.forEach(r => {
-      touchGuestUsage(r.uid, r.ts, "runs");
-      const g = guestMapUsage[r.uid];
-      if (g && r.ts === g.last) g.lastMatched = r.matchedCount ?? null;
+    const report = buildAdminReportHtml({
+      users, reports,
+      guestProfiles: freshUsageData ? deriveGuestProfiles(freshUsageData) : guestProfiles,
+      usage: freshUsageData || usageData,
+      events: opts.events || eventsRef.current || eventsData,
+      humanAgents, aiAgents: AI_AGENTS, agentsData: freshAgentsData,
+      schemes: Array.isArray(SCHEME_DB) ? SCHEME_DB : Object.values(SCHEME_DB || {}),
+      states: Array.isArray(INDIA_STATES) ? INDIA_STATES : Object.values(INDIA_STATES || {}),
+      audiences: AUDIENCES,
+      labels: {
+        OCC: OCC_LABELS, INC: INC_LABELS, AGE: AGE_LABELS, AREA: AREA_LABELS, GENDER: GENDER_LABELS,
+        MARITAL: MARITAL_LABELS, RATION: RATION_LABELS, DISAB: DISAB_LABELS, HOUSE: HOUSE_LABELS,
+        CHILDREN: CHILDREN_LABELS, LAND: LAND_LABELS, KISAN: KISAN_LABELS, EDUC: EDUC_LABELS,
+        INST: INST_LABELS, CASTE: CASTE_LABELS, TYPE: TYPE_META, STATUS: STATUS_META, TAB: TAB_LABELS,
+      },
+      helpers: { getPresenceState, sessionDuration },
+      sections: sectionsToInclude, theme, orientation, pageSize,
+      preparedBy: preparedByName, dateRangeLabel,
+      rangeStart: opts.rangeStart ?? null, rangeEnd: opts.rangeEnd ?? null,
+      filters: opts.filters || {}, maskPII: !!opts.maskPII,
+      logoUri: LOGO_DATA_URI,
     });
-    schemeSearches.forEach(r => touchGuestUsage(r.uid, r.ts, "searches"));
-    stateSelections.forEach(r => touchGuestUsage(r.uid, r.ts, "states"));
-    const guestListUsage = Object.values(guestMapUsage)
-      .map(g => ({ ...g, total: g.runs + g.searches + g.states }))
-      .sort((a, b) => b.total - a.total);
-
-    // Top search queries
-    const queryCountsUsage = {};
-    schemeSearches.forEach(r => {
-      if (!r.q) return;
-      const k = r.q.toLowerCase().trim();
-      queryCountsUsage[k] = (queryCountsUsage[k] || 0) + 1;
-    });
-    const topQueriesUsage = Object.entries(queryCountsUsage).sort((a, b) => b[1] - a[1]).slice(0, 8);
-
-    // Who ran the checker, by declared occupation
-    const whoCountsUsage = {};
-    checkerRuns.forEach(r => { if (r.who) whoCountsUsage[r.who] = (whoCountsUsage[r.who] || 0) + 1; });
-    const whoEntriesUsage = Object.entries(whoCountsUsage).sort((a, b) => b[1] - a[1])
-      .map(([k, v]) => [OCC_LABELS[k] || k, v]);
-
-    // 7-day checker-run trend
-    const spark7Usage = Array.from({ length: 7 }, (_, i) => {
-      const dayStart = now - (6 - i) * 86400000;
-      const dayEnd   = dayStart + 86400000;
-      return checkerRuns.filter(r => {
-        if (!r.ts) return false;
-        const ms = new Date(r.ts).getTime();
-        return ms >= dayStart && ms < dayEnd;
-      }).length;
-    });
-    const sparkLabelsUsage = ["6d","5d","4d","3d","2d","1d","Today"];
-
-    const usageHTML = `
-      <div class="section page-break">
-        ${sectionHeader("📈", "Platform Usage — Checker & Search Activity")}
-        <div class="three-col">
-          ${summaryTable([
-            ["🧮 Total Checker Runs",      totalRunsUsage],
-            ["🔍 Total Searches",          totalSearchesUsage],
-            ["✅ Users Who Used Checker",  `${usersWithChecker} (${checkerPctUsage}%)`],
-          ], "#4f8ef7")}
-          ${summaryTable([
-            ["🎯 Avg Matched Schemes",     avgMatchedUsage],
-            ["🏆 Max Matched Schemes",     maxMatchedUsage],
-            ["👤 Unique Guest Sessions",   guestListUsage.length],
-          ], "#3dd68c")}
-          ${summaryTable([
-            ["📅 Runs Today",              spark7Usage[6]],
-            ["📆 Runs (7-day total)",      spark7Usage.reduce((s,v) => s+v, 0)],
-            ["🕸️ Legacy / Unattributed",   legacyAnonCountUsage],
-          ], "#a78bfa")}
-        </div>
-
-        <div class="sub-title" style="margin-top:4px">Checker Runs — Last 7 Days</div>
-        ${sparkChart(sparkLabelsUsage, spark7Usage, "#4f8ef7")}
-
-        <div class="two-col" style="margin-top:10px">
-          ${breakdownBlock("🔎 Top Search Queries", topQueriesUsage, "#f7824f")}
-          ${breakdownBlock("👥 Who Ran the Checker", whoEntriesUsage, "#a78bfa")}
-        </div>
-
-        <div class="sub-title" style="margin-top:14px">👤 Guest Activity — Top 30 by Engagement <span class="badge">${guestListUsage.length}</span></div>
-        ${guestListUsage.length === 0
-          ? `<div style="color:#4a4f6a;padding:8px 0;font-size:7.5px;font-style:italic">No guest activity recorded.</div>`
-          : dataTable(
-              ["#","Guest ID","Runs","Searches","States","Total","First Seen","Last Seen","Last Matched"],
-              guestListUsage.slice(0, 30).map((g, i) => [
-                i+1,
-                g.uid.replace("guest_", "").slice(0, 10) + "…",
-                g.runs, g.searches, g.states, g.total,
-                formatDateTime(g.first), formatDateTime(g.last),
-                g.lastMatched ?? "—",
-              ])
-            )
-        }
-      </div>`;
-
-    // ══════════════════════════════════════════════════════════════════
-    // SECTION 5 — SCHEMES COVERAGE
-    // ══════════════════════════════════════════════════════════════════
-    const allSchemes  = Array.isArray(SCHEME_DB) ? SCHEME_DB : Object.values(SCHEME_DB || {});
-    const centralCnt  = allSchemes.filter(s => s.scope === "national").length;
-    const stSchCounts = {};
-    allSchemes.forEach(s => {
-      if (s.scope === "state" && s.state) stSchCounts[s.state] = (stSchCounts[s.state] || 0) + 1;
-    });
-    const stateList = Array.isArray(INDIA_STATES) ? INDIA_STATES : Object.values(INDIA_STATES || {});
-
-    // Tier thresholds matching the UI (0 / ≤30 / ≤100 / >100)
-    function schemeTier(n) {
-      if (n === 0)    return "None";
-      if (n <= 30)    return "Low";
-      if (n <= 100)   return "Medium";
-      return "Good";
-    }
-    const schemeRows = stateList
-      .map(st => {
-        const cnt  = stSchCounts[st] || 0;
-        const tier = schemeTier(cnt);
-        const userCnt = (byState[st] || 0);
-        return [st, cnt, tier, userCnt,
-          userCnt > 0 && cnt > 0 ? (cnt / userCnt).toFixed(1) : "—"];
-      })
-      .sort((a, b) => b[1] - a[1]);
-
-    const tierSummary = {
-      None:   stateList.filter(s => (stSchCounts[s]||0) === 0).length,
-      Low:    stateList.filter(s => { const n=stSchCounts[s]||0; return n>0  && n<=30;  }).length,
-      Medium: stateList.filter(s => { const n=stSchCounts[s]||0; return n>30 && n<=100; }).length,
-      Good:   stateList.filter(s => (stSchCounts[s]||0) > 100).length,
-    };
-
-    const schemesHTML = `
-      <div class="section page-break">
-        ${sectionHeader("🗺️", "Schemes Coverage")}
-        <div class="two-col">
-          ${summaryTable([
-            ["🇮🇳 Central / National Schemes",  centralCnt, ` (${allSchemes.length ? Math.round(centralCnt/allSchemes.length*100) : 0}% of total)`],
-            ["📋 Total Schemes in DB",           allSchemes.length],
-            ["✅ States with Schemes",            stateList.filter(s => stSchCounts[s]).length],
-            ["🔴 States with 0 Schemes",         stateList.filter(s => !stSchCounts[s]).length],
-          ], "#4f8ef7")}
-          ${summaryTable([
-            ["⬜ None (0 schemes)",   tierSummary.None,   " states"],
-            ["🟡 Low (1–30)",         tierSummary.Low,    " states"],
-            ["🔵 Medium (31–100)",    tierSummary.Medium, " states"],
-            ["🟢 Good (100+)",        tierSummary.Good,   " states"],
-          ], "#3dd68c")}
-        </div>
-        <div class="sub-title" style="margin-top:8px">State-wise Scheme Coverage (with User Cross-reference)</div>
-        ${dataTable(
-          ["#","State / UT","Scheme Count","Coverage Tier","Users Registered","Schemes per User"],
-          schemeRows.map((r, i) => [i+1, ...r]),
-          ["20px","","60px","60px","80px","80px"]
-        )}
-      </div>`;
-
-    // ══════════════════════════════════════════════════════════════════
-    // SECTION 6 — REPORTS (Full Detail)
-    // ══════════════════════════════════════════════════════════════════
-    const byRepType   = groupBy(reports, "type");
-    const byRepStatus = groupBy(reports, "status");
-    const avgReplyTime = (() => {
-      const replied = reports.filter(r => r.repliedAt?.seconds && r.createdAt?.seconds);
-      if (!replied.length) return "—";
-      const avg = replied.reduce((s, r) => s + (r.repliedAt.seconds - r.createdAt.seconds), 0) / replied.length;
-      const hrs = avg / 3600;
-      return hrs < 24 ? `${Math.round(hrs)}h` : `${Math.round(hrs/24)}d`;
-    })();
-
-    const reportsHTML = `
-      <div class="section page-break">
-        ${sectionHeader("📬", "Reports / Queries — Full Detail", reports.length)}
-        <div class="three-col">
-          ${summaryTable([
-            ["📬 Total Reports",    reports.length],
-            ["🔴 Open",             openRep],
-            ["🟡 In Progress",      inProgRep],
-            ["✅ Resolved",          resolvedRep],
-            ["🔁 Reopened",          reopenedRep],
-          ], "#f87171")}
-          ${summaryTable([
-            ["💬 Admin Replied",    repliedRep],
-            ["⚠️ Unreplied (open)", unrepliedOpen],
-            ["⏱️ Avg Reply Time",   avgReplyTime],
-          ], "#fbbf24")}
-          ${summaryTable(
-            Object.entries(byRepType).map(([k, v]) => [strip((TYPE_META[k]?.icon||"")+" "+(TYPE_META[k]?.label||k)), v]),
-            "#a78bfa"
-          )}
-        </div>
-        <div class="sub-title" style="margin-top:8px">All Reports — Full Message & Reply History</div>
-        ${dataTable(
-          ["#","User","Contact","Type","Status","Submitted","Message","Admin Reply","Reply History"],
-          reports.map((r, i) => {
-            const replyCount = r.replyHistory?.length || 0;
-            const lastReply  = r.replyHistory?.[replyCount-1];
-            return [
-              i+1,
-              r.userName    || r.userEmail || "—",
-              r.userPhone   ? `+91 ${r.userPhone}` : r.userEmail || "—",
-              strip((TYPE_META[r.type]?.icon||"")+" "+(TYPE_META[r.type]?.label||r.type||"—")),
-              strip((STATUS_META[r.status]?.icon||"")+" "+(STATUS_META[r.status]?.label||r.status||"—")),
-              formatDate(r.createdAt),
-              (r.message || "—").slice(0, 200) + ((r.message||"").length > 200 ? "…" : ""),
-              r.adminReply
-                ? r.adminReply.slice(0, 150) + (r.adminReply.length > 150 ? "…" : "") + ` (${formatDate(r.repliedAt)})`
-                : "—",
-              replyCount > 0
-                ? `${replyCount} exchange${replyCount!==1?"s":""}; last: ${formatDate(lastReply?.sentAt)}`
-                : "—",
-            ];
-          })
-        )}
-      </div>`;
-
-    // ══════════════════════════════════════════════════════════════════
-    // SECTION 7 — HUMAN AGENTS & TEAM
-    // ══════════════════════════════════════════════════════════════════
-    // This section covers HUMAN agents (sub-admins) only — full live roster,
-    // today's attendance and this-month's attendance summary. The heading
-    // below still states the *total* agent count (human + AI/automation)
-    // for clarity, since "agents" on this dashboard also includes the 5
-    // non-human Groq/Tavily/Serper agents tracked on the Team tab.
-    const totalAgentsAll   = humanAgents.length + AI_AGENTS.length;
-    const onlineHumanCount = humanAgents.filter(a => getPresenceState(a.lastSeen, "human") !== "offline").length;
-    const fullAdminCount   = humanAgents.filter(a => a.allowedTabs === null || a.allowedTabs === undefined).length;
-
-    // Month-to-date attendance report, built fresh (or empty if unavailable —
-    // e.g. the export was retried without "agents" reselected after a failed
-    // fetch; the section still renders the live roster either way).
-    const agentsReport   = freshAgentsData?.monthReport || null;
-    const agentsRows     = agentsReport?.rows || [];
-    const agentsTodayStr = freshAgentsData?.todayStr || isoDate;
-    // Per-agent lookup, keyed by uid, for both the today-table and the
-    // month-summary table below.
-    const agentsReportByUid = new Map(agentsRows.map(r => [r.uid, r]));
-
-    function fmtAllowedTabs(allowedTabs) {
-      if (allowedTabs === null || allowedTabs === undefined) return "ALL_TABS (Full Admin)";
-      if (!Array.isArray(allowedTabs) || allowedTabs.length === 0) return "—";
-      return allowedTabs.map(t => TAB_LABELS[t] || t).join(", ");
-    }
-
-    const agentsHTML = `
-      <div class="section page-break">
-        ${sectionHeader("🧑‍💼", `Human Agents & Team — ${totalAgentsAll} Total Agents Monitored`, humanAgents.length)}
-        <div style="color:${T.textSub};font-family:var(--mono);font-size:7.5px;margin-bottom:6px">
-          This dashboard tracks ${totalAgentsAll} agent${totalAgentsAll!==1?"s":""} in total — ${humanAgents.length} human sub-admin${humanAgents.length!==1?"s":""} and ${AI_AGENTS.length} AI / automation agent${AI_AGENTS.length!==1?"s":""}
-          (${AI_AGENTS.map(a => strip(a.name)).join(", ")}). Everything below covers <b>human agents only</b>; AI/automation agent health is reported separately on the Team tab.
-        </div>
-
-        <div class="three-col">
-          ${summaryTable([
-            ["👥 Human Agents",     humanAgents.length],
-            ["🟢 Online Now",       onlineHumanCount],
-            ["🛡️ Full Admins",      fullAdminCount],
-          ], "#4f8ef7")}
-          ${summaryTable([
-            ["🤖 AI / Automation Agents", AI_AGENTS.length],
-            ["📊 Total Agents (All Types)", totalAgentsAll],
-          ], "#a78bfa")}
-          ${summaryTable([
-            ["📅 Attendance Period",  agentsReport ? `${fmtDateShort(agentsReport.startStr)} – ${fmtDateShort(agentsReport.endStr)}` : "—"],
-            ["🗓️ Working Days So Far", agentsReport ? agentsReport.totalWorkingDays : "—"],
-          ], "#3dd68c")}
-        </div>
-
-        <div class="sub-title" style="margin-top:10px">Live Roster — Status, Access & Session</div>
-        ${dataTable(
-          ["#","Name","Email","Status","Device","Access","Last Seen","Current / Last Session"],
-          humanAgents.map((ag, i) => {
-            const state = getPresenceState(ag.lastSeen, "human");
-            const stateLabel = state === "online" ? "🟢 Online" : state === "idle" ? "🟡 Idle" : "⚪ Offline";
-            return [
-              i+1,
-              ag.name || "—",
-              ag.email || "—",
-              strip(stateLabel),
-              ag.deviceType === "mobile" ? "Mobile" : ag.deviceType === "desktop" ? "Desktop" : "Unknown",
-              fmtAllowedTabs(ag.allowedTabs),
-              timeAgo(ag.lastSeen),
-              state !== "offline" ? sessionDuration(ag.sessionStart, null) : (ag.lastSessionDuration || "—"),
-            ];
-          })
-        )}
-
-        <div class="sub-title" style="margin-top:14px">Today's Attendance — ${fmtDateShort(agentsTodayStr)}</div>
-        ${humanAgents.length === 0
-          ? `<div style="color:${T.textSub};padding:8px 0;font-size:7.5px;font-style:italic">No human agents on record.</div>`
-          : dataTable(
-              ["#","Name","In Time","Last Active","Hours Today","Status"],
-              humanAgents.map((ag, i) => {
-                const uid = ag.uid || ag.id;
-                const rep = agentsReportByUid.get(uid);
-                const todayDay = rep?.days?.find(d => d.date === agentsTodayStr) || null;
-                return [
-                  i+1,
-                  ag.name || "—",
-                  todayDay?.inTime || "—",
-                  todayDay?.lastTime || "—",
-                  todayDay ? todayDay.hours.toFixed(1) + "h" : "0.0h",
-                  todayDay ? todayDay.status : "Absent",
-                ];
-              })
-            )
-        }
-
-        <div class="sub-title" style="margin-top:14px">This Month's Attendance Summary</div>
-        ${agentsRows.length === 0
-          ? `<div style="color:${T.textSub};padding:8px 0;font-size:7.5px;font-style:italic">Attendance summary unavailable — logs were not fetched for this export.</div>`
-          : dataTable(
-              ["#","Name","Days Present","Full Days","Half Days","Days Absent","Attendance %","Total Hours","Avg Hrs/Day","Overtime","Shortfall"],
-              agentsRows.map((r, i) => [
-                i+1,
-                r.name || "—",
-                r.daysPresent,
-                r.daysFull,
-                r.daysHalf,
-                r.daysAbsent,
-                r.attendancePct.toFixed(0) + "%",
-                r.totalHours.toFixed(1) + "h",
-                r.avgHoursPerDay.toFixed(1) + "h",
-                r.overtimeHours.toFixed(1) + "h",
-                r.shortfallHours.toFixed(1) + "h",
-              ])
-            )
-        }
-      </div>`;
-
-    // ══════════════════════════════════════════════════════════════════
-    // ASSEMBLE
-    // ══════════════════════════════════════════════════════════════════
-    // ── Build the section list label for the cover header ──────────────────
-    const includedLabels = [
-      s.has("overview")  && "Overview",
-      s.has("analytics") && "Demographics & Analytics",
-      s.has("users")     && "User Registry",
-      s.has("activity")  && "Activity",
-      s.has("usage")     && "Platform Usage",
-      s.has("schemes")   && "Schemes Coverage",
-      s.has("reports")   && "Reports",
-      s.has("agents")    && "Human Agents & Team",
-    ].filter(Boolean).join(" · ");
-
-    const exportId = `YS-${isoDate.replace(/-/g,"")}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
-
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>YojanaSahay — Intelligence Report ${isoDate}</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg:       ${T.bg};
-      --surface:  ${T.surface};
-      --card:     ${T.card};
-      --card2:    ${T.card2};
-      --border:   ${T.border};
-      --border2:  ${T.border2};
-      --text:     ${T.text};
-      --textMid:  ${T.textMid};
-      --textSub:  ${T.textSub};
-      --accent1:  ${T.accent1};   /* electric blue */
-      --accent2:  ${T.accent2};   /* saffron glow  */
-      --accent3:  ${T.accent3};   /* green signal  */
-      --accent4:  ${T.accent4};   /* violet        */
-      --accent5:  ${T.accent5};   /* pink          */
-      --red:      ${T.red};
-      --amber:    ${T.amber};
-      --mono:     'JetBrains Mono', monospace;
-      --head:     'Syne', sans-serif;
-      --body:     'DM Sans', sans-serif;
-    }
-
-    * { margin:0; padding:0; box-sizing:border-box; }
-
-    body {
-      font-family: var(--body);
-      font-size: 8.5px;
-      color: var(--text);
-      background: var(--bg);
-      padding: 18px 20px;
-    }
-
-    /* ────────────────────────────────────────────────
-       LOGO WATERMARK — fixed, centered ghost-seal on
-       every printed page (same treatment as the Agents
-       tab's attendance PDF). Slightly stronger opacity
-       on the light theme since a pale seal disappears
-       against white paper.
-    ──────────────────────────────────────────────── */
-    body::after {
-      content: '';
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 260px;
-      height: 260px;
-      background-image: url("${LOGO_DATA_URI}");
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: contain;
-      filter: grayscale(100%) opacity(${isLightPdf ? "0.08" : "0.05"});
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ────────────────────────────────────────────────
-       COVER HEADER
-    ──────────────────────────────────────────────── */
-    .cover {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 20px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border2);
-      position: relative;
-    }
-    .cover::after {
-      content: '';
-      position: absolute;
-      bottom: -1px; left: 0;
-      width: 120px; height: 2px;
-      background: linear-gradient(90deg, var(--accent1), var(--accent2));
-    }
-    .brand {
-      font-family: var(--head);
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -1px;
-      color: var(--text);
-      line-height: 1;
-    }
-    .brand-accent { color: var(--accent2); }
-    .brand-sub {
-      font-family: var(--mono);
-      font-size: 7px;
-      color: var(--textSub);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-top: 5px;
-    }
-    .cover-meta {
-      text-align: right;
-      font-family: var(--mono);
-      font-size: 7.5px;
-      color: var(--textMid);
-      line-height: 2;
-    }
-    .cover-meta .export-id {
-      font-size: 9px;
-      font-weight: 700;
-      color: var(--accent1);
-      letter-spacing: 1px;
-    }
-    .cover-meta .confidential {
-      display: inline-block;
-      background: rgba(${T.redRGB},0.12);
-      border: 1px solid rgba(${T.redRGB},0.3);
-      color: var(--red);
-      font-size: 7px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 2px 7px;
-      border-radius: 3px;
-    }
-    .sections-pill {
-      display: inline-block;
-      background: rgba(${T.accent1RGB},0.1);
-      border: 1px solid rgba(${T.accent1RGB},0.2);
-      color: var(--accent1);
-      font-size: 7px;
-      padding: 2px 8px;
-      border-radius: 3px;
-      letter-spacing: 0.5px;
-      margin-top: 3px;
-    }
-
-    /* ────────────────────────────────────────────────
-       SECTIONS
-    ──────────────────────────────────────────────── */
-    .section { margin-bottom: 22px; }
-
-    .section-title {
-      font-family: var(--head);
-      font-size: 10.5px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: 0.2px;
-      margin-bottom: 10px;
-      padding: 7px 10px 7px 12px;
-      background: var(--card);
-      border: 1px solid var(--border2);
-      border-left: 3px solid var(--accent1);
-      border-radius: 0 5px 5px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .section-title .s-icon {
-      font-size: 11px;
-      opacity: 0.85;
-    }
-
-    .sub-title {
-      font-family: var(--mono);
-      font-size: 7.5px;
-      font-weight: 700;
-      color: var(--accent1);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin: 10px 0 6px;
-      padding-left: 1px;
-    }
-
-    .badge {
-      display: inline-block;
-      background: rgba(${T.accent1RGB},0.15);
-      border: 1px solid rgba(${T.accent1RGB},0.3);
-      color: var(--accent1);
-      font-family: var(--mono);
-      font-size: 7px;
-      font-weight: 700;
-      padding: 1px 6px;
-      border-radius: 10px;
-      margin-left: 6px;
-      vertical-align: middle;
-      letter-spacing: 0.5px;
-    }
-
-    /* ────────────────────────────────────────────────
-       GRID LAYOUTS
-    ──────────────────────────────────────────────── */
-    .two-col   { display:flex; gap:10px; margin-bottom:10px; }
-    .two-col > * { flex:1; min-width:0; }
-    .three-col { display:flex; gap:8px; margin-bottom:10px; }
-    .three-col > * { flex:1; min-width:0; }
-
-    /* ────────────────────────────────────────────────
-       STAT CARDS (inline summary blocks)
-    ──────────────────────────────────────────────── */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border2);
-      border-radius: 6px;
-      padding: 8px 10px;
-      min-width: 0;
-    }
-
-    /* ────────────────────────────────────────────────
-       SUMMARY TABLE
-    ──────────────────────────────────────────────── */
-    .sum-tbl { width:100%; border-collapse:collapse; }
-    .sum-key {
-      font-size: 7.5px;
-      color: var(--textMid);
-      padding: 3.5px 6px;
-      border-bottom: 1px solid var(--border);
-      font-family: var(--body);
-    }
-    .sum-val {
-      font-family: var(--mono);
-      font-size: 9px;
-      font-weight: 700;
-      padding: 3.5px 6px;
-      border-bottom: 1px solid var(--border);
-      text-align: right;
-      white-space: nowrap;
-    }
-    .sum-sub {
-      font-size: 6.5px;
-      font-weight: 400;
-      color: var(--textSub);
-      margin-left: 4px;
-    }
-
-    /* ────────────────────────────────────────────────
-       DATA TABLES
-    ──────────────────────────────────────────────── */
-    table { width:100%; border-collapse:collapse; margin-bottom:8px; }
-    thead tr {
-      background: var(--card2);
-      border-bottom: 1px solid var(--accent1);
-    }
-    th {
-      font-family: var(--mono);
-      font-size: 7px;
-      font-weight: 700;
-      color: var(--accent1);
-      padding: 5px 5px;
-      text-align: left;
-      white-space: nowrap;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      border-bottom: 1px solid var(--border2);
-    }
-    td {
-      padding: 4px 5px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-      word-break: break-word;
-      font-size: 7.5px;
-      line-height: 1.5;
-      color: var(--textMid);
-    }
-    tr.even { background: var(--surface); }
-    tr.odd  { background: var(--card); }
-    td:first-child {
-      font-family: var(--mono);
-      font-size: 7px;
-      color: var(--textSub);
-    }
-
-    /* ────────────────────────────────────────────────
-       BREAKDOWN BLOCK (bar charts)
-    ──────────────────────────────────────────────── */
-    .breakdown {
-      background: var(--card);
-      border: 1px solid var(--border2);
-      border-radius: 6px;
-      padding: 8px 10px;
-      margin-bottom: 0;
-    }
-    .bd-title {
-      font-family: var(--mono);
-      font-size: 7.5px;
-      font-weight: 700;
-      color: var(--textMid);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-    .bd-total { font-size: 7px; font-weight: 400; color: var(--textSub); margin-left: 4px; }
-    .breakdown table { margin-bottom: 0; }
-    .breakdown th {
-      background: transparent;
-      border-bottom: 1px solid var(--border);
-      color: var(--textSub);
-      font-size: 6.5px;
-    }
-    .breakdown td { font-size: 7.5px; color: var(--textMid); }
-    .breakdown tr.even { background: transparent; }
-    .breakdown tr.odd  { background: ${T.stripe}; }
-
-    /* SVG bar */
-    .bar-track {
-      display: inline-block;
-      width: 72px;
-      height: 6px;
-      background: var(--border2);
-      border-radius: 3px;
-      vertical-align: middle;
-      position: relative;
-      overflow: hidden;
-    }
-    .bar-fill {
-      display: inline-block;
-      height: 6px;
-      border-radius: 3px;
-      vertical-align: middle;
-    }
-
-    /* ────────────────────────────────────────────────
-       OCCUPATION PULSE — donut chart + engagement matrix
-    ──────────────────────────────────────────────── */
-    .pulse-wrap {
-      display: flex;
-      gap: 14px;
-      background: var(--card);
-      border: 1px solid var(--border2);
-      border-radius: 6px;
-      padding: 10px 12px;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .pulse-wrap::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, var(--accent1), var(--accent3), var(--accent4), var(--accent2));
-      opacity: 0.7;
-    }
-    .donut {
-      width: 88px;
-      height: 88px;
-      border-radius: 50%;
-      position: relative;
-      flex-shrink: 0;
-      box-shadow: 0 0 0 1px var(--border2);
-    }
-    .donut-hole {
-      position: absolute;
-      top: 9px; left: 9px; right: 9px; bottom: 9px;
-      background: var(--surface);
-      border-radius: 50%;
-      border: 1px solid var(--border2);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .donut-num {
-      font-family: var(--mono);
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1;
-    }
-    .donut-label {
-      font-family: var(--mono);
-      font-size: 5px;
-      color: var(--textSub);
-      letter-spacing: 1.2px;
-      text-align: center;
-      margin-top: 3px;
-      text-transform: uppercase;
-    }
-    .pulse-legend { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-    .pulse-legend-row {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-family: var(--mono);
-      font-size: 7px;
-      color: var(--textMid);
-    }
-    .pulse-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .pulse-legend-name { flex: 1; }
-    .pulse-legend-val { font-weight: 700; color: var(--text); }
-    .pulse-legend-pct { color: var(--textSub); width: 28px; text-align: right; }
-
-    .eng-matrix .bd-title { display: flex; align-items: center; gap: 5px; }
-    .eng-track {
-      display: inline-block;
-      height: 6px;
-      background: var(--border2);
-      border-radius: 3px;
-      vertical-align: middle;
-      position: relative;
-      overflow: hidden;
-    }
-    .eng-fill {
-      display: block;
-      height: 6px;
-      border-radius: 3px;
-      box-shadow: 0 0 4px rgba(${T.accent1RGB},0.5);
-    }
-    .rate-chip {
-      display: inline-block;
-      font-family: var(--mono);
-      font-size: 6.5px;
-      font-weight: 700;
-      padding: 1.5px 6px;
-      border-radius: 8px;
-      border: 1px solid;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-    }
-
-    /* ────────────────────────────────────────────────
-       SPARK CHART — 7-day checker-run trend
-    ──────────────────────────────────────────────── */
-    .spark-wrap {
-      display: flex;
-      align-items: flex-end;
-      gap: 6px;
-      height: 82px;
-      background: var(--card);
-      border: 1px solid var(--border2);
-      border-radius: 6px;
-      padding: 10px 12px 6px;
-    }
-    .spark-col {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      height: 100%;
-    }
-    .spark-val {
-      font-family: var(--mono);
-      font-size: 6.5px;
-      color: var(--textMid);
-      margin-bottom: 3px;
-    }
-    .spark-bar {
-      width: 60%;
-      border-radius: 2px 2px 0 0;
-      box-shadow: 0 0 4px rgba(${T.accent1RGB},0.4);
-    }
-    .spark-lbl {
-      font-family: var(--mono);
-      font-size: 6px;
-      color: var(--textSub);
-      margin-top: 4px;
-      letter-spacing: 0.3px;
-    }
-
-    /* ────────────────────────────────────────────────
-       INFO BAR
-    ──────────────────────────────────────────────── */
-    .info-bar {
-      background: rgba(${T.accent1RGB},0.06);
-      border: 1px solid rgba(${T.accent1RGB},0.15);
-      border-radius: 6px;
-      padding: 7px 12px;
-      font-family: var(--mono);
-      font-size: 7.5px;
-      color: var(--textMid);
-      margin-top: 8px;
-      line-height: 2;
-    }
-    .info-bar strong { color: var(--accent3); font-weight: 700; }
-
-    /* ────────────────────────────────────────────────
-       FOOTER
-    ──────────────────────────────────────────────── */
-    .footer {
-      margin-top: 18px;
-      font-family: var(--mono);
-      font-size: 7px;
-      color: var(--textSub);
-      text-align: center;
-      border-top: 1px solid var(--border);
-      padding-top: 8px;
-      letter-spacing: 0.5px;
-    }
-
-    /* ────────────────────────────────────────────────
-       SIGN-OFF — "Prepared by" / "Verified by" lines
-    ──────────────────────────────────────────────── */
-    .signoff {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 22px;
-      gap: 20px;
-      page-break-inside: avoid;
-    }
-    .signoff .sign-line { width: 44%; }
-    .signoff .sign-blank {
-      border-bottom: 1px solid var(--border2);
-      height: 26px;
-    }
-    .signoff .sign-name {
-      height: 26px;
-      display: flex;
-      align-items: flex-end;
-      padding-bottom: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text);
-      border-bottom: 1px solid var(--border2);
-    }
-    .signoff .sign-label {
-      font-family: var(--mono);
-      font-size: 7px;
-      color: var(--textSub);
-      margin-top: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* ────────────────────────────────────────────────
-       PAGE NUMBERS via CSS counters
-    ──────────────────────────────────────────────── */
-    @page {
-      size: ${pageSize} ${orientation};
-      margin: 12mm 10mm 14mm 10mm;
-
-      @bottom-right {
-        content: "Page " counter(page) " of " counter(pages);
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 7pt;
-        color: ${T.textSub};
-      }
-      @bottom-left {
-        content: "YojanaSahay · Confidential";
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 7pt;
-        color: ${T.border2};
-      }
-      @bottom-center {
-        content: "${exportId}";
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 7pt;
-        color: ${T.border2};
-      }
-    }
-
-    /* CSS-counter page numbers shown in the static footer bar */
-    body {
-      counter-reset: pagenum;
-    }
-    .page-break {
-      counter-increment: pagenum;
-    }
-
-    /* Printed page-number strip */
-    .pg-footer {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 5px 20px;
-      border-top: 1px solid var(--border2);
-      background: var(--bg);
-      font-family: var(--mono);
-      font-size: 7px;
-      color: var(--textSub);
-      letter-spacing: 0.5px;
-    }
-    .pg-footer .pg-brand { color: var(--accent1); font-weight: 700; }
-    .pg-footer .pg-id    { color: var(--textSub); }
-    .pg-footer .pg-num   { color: var(--textMid); }
-
-    /* ────────────────────────────────────────────────
-       PRINT
-    ──────────────────────────────────────────────── */
-    @media print {
-      body {
-        background: ${T.bg} !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        color-adjust: exact;
-        padding: 8px 10px 22px 10px;
-        font-size: 7.5px;
-      }
-      .page-break { page-break-before: always; }
-      thead { display: table-header-group; }
-      tfoot { display: table-footer-group; }
-      .cover::after { -webkit-print-color-adjust: exact; }
-      .pg-footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- ═══════════════════════════════════════════
-       COVER HEADER
-  ═══════════════════════════════════════════ -->
-  <div class="cover">
-    <div>
-      <div class="brand">Yojana<span class="brand-accent">Sahay</span></div>
-      <div class="brand-sub">Admin Intelligence Report &nbsp;/&nbsp; Confidential</div>
-      <div class="sections-pill">${includedLabels || "—"}</div>
-    </div>
-    <div class="cover-meta">
-      <div class="export-id">${exportId}</div>
-      <div>Generated &nbsp;<strong style="color:var(--text)">${dateStr}</strong>&nbsp; at &nbsp;<strong style="color:var(--text)">${timeStr}</strong></div>
-      <div>
-        <strong style="color:var(--text)">${users.length}</strong> Users &nbsp;·&nbsp;
-        <strong style="color:var(--text)">${reports.length}</strong> Reports
-      </div>
-      <div>Date Range &nbsp;<strong style="color:var(--text)">${escHtml(dateRangeLabel)}</strong></div>
-      <div class="confidential">Confidential — Do Not Share</div>
-    </div>
-  </div>
-
-  ${s.has("overview")  ? overviewHTML  : ""}
-  ${s.has("analytics") ? analyticsHTML : ""}
-  ${s.has("users")     ? usersHTML     : ""}
-  ${s.has("activity")  ? activityHTML  : ""}
-  ${s.has("usage")     ? usageHTML     : ""}
-  ${s.has("schemes")   ? schemesHTML   : ""}
-  ${s.has("reports")   ? reportsHTML   : ""}
-  ${s.has("agents")    ? agentsHTML    : ""}
-
-  <!-- ═══════════════════════════════════════════
-       SIGN-OFF
-  ═══════════════════════════════════════════ -->
-  <div class="signoff">
-    <div class="sign-line">
-      ${preparedByName
-        ? `<div class="sign-name">${escHtml(preparedByName)}</div>`
-        : `<div class="sign-blank"></div>`}
-      <div class="sign-label">Prepared by (Admin)</div>
-    </div>
-    <div class="sign-line">
-      <div class="sign-blank"></div>
-      <div class="sign-label">Verified / Approved by</div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════
-       FIXED PAGE-NUMBER FOOTER
-  ═══════════════════════════════════════════ -->
-  <div class="pg-footer">
-    <span class="pg-brand">YojanaSahay</span>
-    <span class="pg-id">${exportId}</span>
-    <span class="pg-num" id="pg-label">Page 1</span>
-  </div>
-
-  <div class="footer">
-    YojanaSahay Admin Dashboard &nbsp;·&nbsp; ${exportId} &nbsp;·&nbsp;
-    ${dateStr} ${timeStr} &nbsp;·&nbsp;
-    ${users.length} users &nbsp;/&nbsp; ${reports.length} reports &nbsp;/&nbsp; ${allSchemes.length} schemes &nbsp;/&nbsp; ${humanAgents.length} human agents &nbsp;·&nbsp;
-    Confidential — For Authorised Admin Use Only
-  </div>
-
-  <script>
-    // Inject real page numbers via browser's beforeprint
-    var totalPages = document.querySelectorAll('.page-break').length + 1;
-
-    // Update footer label before print dialog opens
-    window.addEventListener('beforeprint', function() {
-      var lbl = document.getElementById('pg-label');
-      if (lbl) lbl.textContent = 'Page 1 of ' + totalPages;
-    });
-
-    // Auto-open print
-    window.onload = function() { window.print(); };
-  <\/script>
-</body>
-</html>`;
-
-    const blob = new Blob([html], { type:"text/html;charset=utf-8;" });
-    const url  = URL.createObjectURL(blob);
-    const win  = window.open(url, "_blank");
-    if (!win) {
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `yojanasahay_admin_report_${isoDate}.html`;
-      a.click();
-    }
-    setTimeout(() => URL.revokeObjectURL(url), 15000);
-  }, [guestProfiles, usageData, humanAgents]);
+    openAdminReport(report);
+    return report;
+  }, [guestProfiles, usageData, eventsData, humanAgents]);
 
   // ── Shared date-range + sub-filter computation ───────────────────────────
   // Powers the live count badges/preview in the Export tab AND the actual
@@ -7760,6 +6205,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     let outUsers = users;
     let outReports = reports;
     let dateRangeLabel = "All Time";
+    let rangeStartOut = null, rangeEndOut = null;
 
     if (pdfDateRangeMode !== "all") {
       const rangeNow = Date.now();
@@ -7784,6 +6230,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
         };
         outUsers   = outUsers.filter(createdInRange);
         outReports = outReports.filter(createdInRange);
+        rangeStartOut = rangeStart; rangeEndOut = rangeEnd;
       } else {
         dateRangeLabel = "All Time";
       }
@@ -7794,7 +6241,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     if (exportUserOcc   !== "all")    outUsers = outUsers.filter(u => u.occupation === exportUserOcc);
     if (exportReportStatus !== "all") outReports = outReports.filter(r => r.status === exportReportStatus);
 
-    return { users: outUsers, reports: outReports, dateRangeLabel };
+    return { users: outUsers, reports: outReports, dateRangeLabel, rangeStart: rangeStartOut, rangeEnd: rangeEndOut };
   }, [users, reports, pdfDateRangeMode, pdfDateStart, pdfDateEnd, exportUserState, exportUserOcc, exportReportStatus]);
 
   // ── Live per-module counts — what the badges/preview show right now ─────
@@ -7804,10 +6251,11 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     users:     exportFilteredData.users.length,
     activity:  exportFilteredData.users.length,
     usage:     usageData ? (Array.isArray(usageData.checkerRuns) ? usageData.checkerRuns.length : 0) : null, // null = not fetched this session yet
+    impact:    eventsData ? Object.values(eventsData.days || {}).reduce((n, d) => n + (d?.scheme_view || 0), 0) : null,
     schemes:   OPEN_SCHEME_COUNT,
     reports:   exportFilteredData.reports.length,
     agents:    humanAgents.length,
-  }), [exportFilteredData, guestProfiles, usageData, humanAgents]);
+  }), [exportFilteredData, guestProfiles, usageData, eventsData, humanAgents]);
 
   // ── Rough size/page estimate — clearly a heuristic, not exact ────────────
   // ~rows-per-page constants per section type, based on how exportAllPDF
@@ -7816,6 +6264,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
   const estimateExportSize = useCallback((sectionsSet, counts) => {
     let pages = 0;
     if (sectionsSet.has("overview"))  pages += 2;
+    if (sectionsSet.has("impact"))    pages += 4;
     if (sectionsSet.has("analytics")) pages += 4;
     if (sectionsSet.has("users"))     pages += Math.max(1, Math.ceil(counts.users / 35));
     if (sectionsSet.has("activity"))  pages += 2;
@@ -7824,6 +6273,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     if (sectionsSet.has("reports"))   pages += Math.max(1, Math.ceil(counts.reports / 10)); // reply history makes these denser
     if (sectionsSet.has("agents"))    pages += 2 + Math.ceil(counts.agents / 20);
     if (pages === 0) return null;
+    pages += 6; // cover, document control, contents, executive summary, annexures
     const kb = pages * 26;
     const sizeLabel = kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`;
     return { pages, sizeLabel };
@@ -7838,7 +6288,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       name: trimmed,
       sections: Array.from(exportSections),
       dateRangeMode: pdfDateRangeMode, dateStart: pdfDateStart, dateEnd: pdfDateEnd,
-      theme: pdfTheme, orientation: pdfOrientation, pageSize: pdfPageSize,
+      theme: pdfTheme, orientation: pdfOrientation, pageSize: pdfPageSize, maskPII: pdfMaskPII,
       userState: exportUserState, userOcc: exportUserOcc, reportStatus: exportReportStatus,
     };
     setExportPresets(prev => {
@@ -7846,14 +6296,15 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       try { localStorage.setItem("ys_admin_export_presets", JSON.stringify(next)); } catch {}
       return next;
     });
-  }, [exportSections, pdfDateRangeMode, pdfDateStart, pdfDateEnd, pdfTheme, pdfOrientation, pdfPageSize, exportUserState, exportUserOcc, exportReportStatus]);
+  }, [exportSections, pdfDateRangeMode, pdfDateStart, pdfDateEnd, pdfTheme, pdfOrientation, pdfPageSize, pdfMaskPII, exportUserState, exportUserOcc, exportReportStatus]);
 
   const applyExportPreset = useCallback((preset) => {
     setExportSections(new Set(preset.sections || []));
     setPdfDateRangeMode(preset.dateRangeMode ?? "all");
     setPdfDateStart(preset.dateStart ?? "");
     setPdfDateEnd(preset.dateEnd ?? "");
-    setPdfTheme(preset.theme ?? "dark");
+    setPdfTheme(preset.theme ?? "light");
+    if (typeof preset.maskPII === "boolean") setPdfMaskPII(preset.maskPII);
     setPdfOrientation(preset.orientation ?? "landscape");
     setPdfPageSize(preset.pageSize ?? "A4");
     setExportUserState(preset.userState ?? "all");
@@ -7894,23 +6345,27 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
       steps.push({ label: "Building overview & welfare metrics", dur: 420 });
     if (exportSections.has("analytics")) {
       steps.push({ label: `Collecting ${fUsers.length} full user profiles`, dur: 480 });
-      steps.push({ label: "Computing demographics & 8 breakdowns", dur: 560 });
+      steps.push({ label: "Computing demographic breakdowns", dur: 560 });
       steps.push({ label: "Generating farmer & student analytics", dur: 400 });
       steps.push({ label: "Building cross-tab matrices", dur: 460 });
     }
     if (exportSections.has("users"))
-      steps.push({ label: "Rendering 24-column user registry table", dur: 720 });
+      steps.push({ label: "Rendering user registry — identity & profile tables", dur: 720 });
     if (exportSections.has("activity"))
       steps.push({ label: "Compiling activity, dormancy & retention data", dur: 440 });
     if (exportSections.has("usage"))
       steps.push({ label: "Aggregating checker runs, searches & guest activity", dur: 460 });
+    if (exportSections.has("impact"))
+      steps.push({ label: "Summarising scheme views, Apply taps & outcomes", dur: 460 });
     if (exportSections.has("schemes"))
       steps.push({ label: "Processing schemes coverage & user cross-reference", dur: 500 });
     if (exportSections.has("reports"))
       steps.push({ label: `Formatting ${fReports.length} report${fReports.length !== 1 ? "s" : ""} with reply history`, dur: 540 });
     if (exportSections.has("agents"))
       steps.push({ label: `Compiling ${humanAgents.length} human agent record${humanAgents.length !== 1 ? "s" : ""} & attendance`, dur: 500 });
-    steps.push({ label: "Assembling HTML layout & print styles", dur: 780 });
+    steps.push({ label: "Writing executive summary & matters needing attention", dur: 520 });
+    steps.push({ label: "Adding document control, contents & annexures", dur: 480 });
+    steps.push({ label: "Applying official layout & page numbering", dur: 640 });
     steps.push({ label: "Finalizing & packaging document", dur: 520 });
     return steps;
   }, [exportSections, exportFilteredData, humanAgents.length]);
@@ -7926,7 +6381,9 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     // checker answers AND the whole Platform Usage section would silently
     // come up empty even though fresh data exists.
     let freshUsageData = null;
-    if ((exportSections.has("analytics") || exportSections.has("usage")) && !usageData) {
+    // Fetched whenever missing — the executive summary uses usage figures
+    // even when the Usage module itself isn't selected.
+    if (!usageData) {
       freshUsageData = await fetchUsage();
     }
 
@@ -7955,6 +6412,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     const dateFilteredUsers   = exportFilteredData.users;
     const dateFilteredReports = exportFilteredData.reports;
     const dateRangeLabel      = exportFilteredData.dateRangeLabel;
+    const { rangeStart, rangeEnd } = exportFilteredData;
 
     setExportModal(true);
     setExportStep(-1);
@@ -7970,14 +6428,17 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     // Hold everything the actual PDF/print step needs — the admin now has to
     // tap "Download PDF" on the ready-state modal to actually trigger it,
     // rather than it opening automatically the instant compiling finishes.
-    setPendingExport({ freshUsageData, freshAgentsData, dateFilteredUsers, dateFilteredReports, dateRangeLabel });
+    setPendingExport({ freshUsageData, freshAgentsData, dateFilteredUsers, dateFilteredReports, dateRangeLabel, rangeStart, rangeEnd });
   }, [EXPORT_STEPS, exportSections, usageData, fetchUsage, humanAgents, exportFilteredData]);
 
   // Fires when the admin taps "Download PDF" on the ready-state modal.
   const handleDownloadReadyExport = useCallback(() => {
     if (!pendingExport) return;
-    const { freshUsageData, freshAgentsData, dateFilteredUsers, dateFilteredReports, dateRangeLabel } = pendingExport;
-    exportAllPDF(exportSections, freshUsageData, freshAgentsData, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, dateFilteredUsers, dateFilteredReports, dateRangeLabel);
+    const { freshUsageData, freshAgentsData, dateFilteredUsers, dateFilteredReports, dateRangeLabel, rangeStart, rangeEnd } = pendingExport;
+    exportAllPDF(exportSections, freshUsageData, freshAgentsData, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, dateFilteredUsers, dateFilteredReports, dateRangeLabel, {
+      rangeStart, rangeEnd, maskPII: pdfMaskPII,
+      filters: { state: exportUserState, occupation: exportUserOcc, reportStatus: exportReportStatus },
+    });
     logExportToHistory({
       sections: Array.from(exportSections),
       userCount: dateFilteredUsers.length,
@@ -7988,7 +6449,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
     setExportModal(false);
     setPendingExport(null);
     setTimeout(() => { setExportStep(-1); setExportDone(false); }, 600);
-  }, [pendingExport, exportAllPDF, exportSections, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, logExportToHistory]);
+  }, [pendingExport, exportAllPDF, exportSections, pdfTheme, preparedBy, pdfOrientation, pdfPageSize, pdfMaskPII, exportUserState, exportUserOcc, exportReportStatus, logExportToHistory]);
 
   // Fires if the admin dismisses the ready-state modal (tap outside)
   // without downloading — just closes it, no PDF/print window opens.
@@ -9638,11 +8099,12 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
         const EXPORT_SECTION_CONFIG = [
           { id:"overview",  icon:"📊", label:"Overview",          desc:"Platform summary, welfare snapshot & key metrics" },
           { id:"analytics", icon:"🧮", label:"Demographics",      desc:"Occupation, income, age, gender, cross-tab matrices" },
-          { id:"users",     icon:"👥", label:"User Registry",     desc:"Full 24-column table of all registered users" },
+          { id:"users",     icon:"👥", label:"User Registry",     desc:"Every registered user — identity & contact, plus full socio-economic profile" },
           { id:"activity",  icon:"🕐", label:"Activity",          desc:"Recent activity, new joiners & dormant users" },
-          { id:"usage",     icon:"📈", label:"Platform Usage",    desc:"Checker runs, search queries, guest activity & 7-day trend" },
+          { id:"usage",     icon:"📈", label:"Platform Usage",    desc:"Checker runs, search queries, searches with no result & guest activity" },
+          { id:"impact",    icon:"🎯", label:"Citizen Actions & Outcomes", desc:"Scheme views, Apply taps, applications, approvals, quiz completion & top schemes" },
           { id:"schemes",   icon:"🗺️", label:"Schemes Coverage",  desc:"State-wise coverage table & tier summary" },
-          { id:"reports",   icon:"📬", label:"Reports",           desc:"All reports with full reply history" },
+          { id:"reports",   icon:"📬", label:"Reports",           desc:"Status, type, response times, ageing & full register with replies" },
           { id:"agents",    icon:"🧑‍💼", label:"Human Agents & Team", desc:"Human agent roster, live status, today's & this month's attendance" },
         ];
         const selectedCount = exportSections.size;
@@ -9679,8 +8141,8 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
         // fine on near-black but wash out on white, so light mode uses
         // darker/more saturated shades of the same hues for equivalent
         // contrast instead of literally the same hex values.
-        const SECTION_COLORS_DARK  = [C.blue, C.green, C.amber, C.purple, C.red, "#f7824f", "#f472b6", "#22d3ee"];
-        const SECTION_COLORS_LIGHT = ["#2563eb", "#059669", "#b45309", "#7c3aed", "#dc2626", "#c2410c", "#db2777", "#0e7490"];
+        const SECTION_COLORS_DARK  = [C.blue, C.green, C.amber, C.purple, C.red, "#34d399", "#f7824f", "#f472b6", "#22d3ee"];
+        const SECTION_COLORS_LIGHT = ["#2563eb", "#059669", "#b45309", "#7c3aed", "#dc2626", "#047857", "#c2410c", "#db2777", "#0e7490"];
         const SECTION_COLORS = dark ? SECTION_COLORS_DARK : SECTION_COLORS_LIGHT;
         // Subtitle text — C.sub is used all over this tab for small uppercase
         // labels; this is a dedicated, higher-contrast color just for the
@@ -9748,7 +8210,7 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
                     <span style={{ color:C.blue, fontSize:9, animation:"exp-pulse 1.1s ease infinite" }}>▋</span>
                   </div>
                   <div style={{ color:"#fff", fontSize:14, fontWeight:800, letterSpacing:-0.3 }}>
-                    Intelligence Report
+                    Administrative Report
                   </div>
                   <div style={{ color:C.sub, fontSize:9, marginTop:3 }}>
                     Configure sections · Compile · Export PDF
@@ -10260,9 +8722,9 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
               <div style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
                 <span style={{ color:C.blue, fontSize:10, flexShrink:0, marginTop:0.5 }}>ℹ</span>
                 <div style={{ fontSize:9, color:C.sub, lineHeight:1.7 }}>
-                  Opens as styled HTML in new tab.{" "}
-                  <span style={{ color:C.text }}>Print → Save as PDF</span>
-                  {" "}({pdfOrientation} {pdfPageSize}). Document is marked{" "}
+                  Opens in a new tab and the print window appears by itself — choose{" "}
+                  <span style={{ color:C.text }}>Save as PDF</span>
+                  {" "}({pdfOrientation} {pdfPageSize}). Includes cover page, document control, contents, executive summary, numbered sections, definitions and sign-off. Marked{" "}
                   <span style={{ color:C.red, fontWeight:700 }}>CONFIDENTIAL</span>
                   {" "}— authorised admin use only.
                 </div>
@@ -10506,6 +8968,11 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
           pageSize={pdfPageSize}
           onSelectPageSize={setPdfPageSize}
           dateRangeLabel={exportFilteredData.dateRangeLabel}
+          maskPII={pdfMaskPII}
+          onMaskPIIChange={v => {
+            setPdfMaskPII(v);
+            try { localStorage.setItem("ys_admin_pdf_mask", v ? "1" : "0"); } catch {}
+          }}
           preparedBy={preparedBy}
           onPreparedByChange={v => {
             setPreparedBy(v);
