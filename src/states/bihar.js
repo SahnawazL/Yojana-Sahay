@@ -580,4 +580,21 @@ export const BIHAR_SCHEMES = [
     match: (a) => a.state === "Bihar",
   },
 
+  // <auto-scheme id="bihar_bcebc_scholarship"> added by Scheme Discovery agent on 2026-10-31 · source: https://www.google.com/goto?url=CAESXAHrOzAVEpcpGuVx4md5enQuvpeSOGLs8ejBW9GL5QhR2zJDpSSVOPWORlGHI1zWfz1cXcLgqTV6-TA3SqCC1U0ZUg1W6uGBgT3Py-QXkvQZxGMYsHvnuvdVXmyH
+  {
+    id: "bihar_bcebc_scholarship",
+    icon: "📚", color: "#003580", scope: "state", state: "Bihar",
+    ministry: { en: "Department of Education, Bihar", hi: "शिक्षा विभाग, बिहार" },
+    name:    { en: "BCEBC Scholarship Scheme", hi: "बीसीईबीसी छात्रवृत्ति योजना" },
+    benefit: { en: "Free accommodation and teaching for BC-EBC girls in +2 residential schools", hi: "बीसीईबीसी लड़कियों के लिए +2 आवासीय विद्यालयों में निःशुल्क आवास और शिक्षण" },
+    tag:     { en: "Scholarship", hi: "छात्रवृत्ति" },
+    annual: 0,
+    apply:   { en: "https://www.bihar.gov.in/education/", hi: "https://www.bihar.gov.in/education/" }, applyType: "online",
+    docs:    { en: ["Admission Form","Merit List"],
+               hi: ["प्रवेश पत्र","मेरिट सूची"] },
+    autoAdded: "2026-10-31", source: "https://www.google.com/goto?url=CAESXAHrOzAVEpcpGuVx4md5enQuvpeSOGLs8ejBW9GL5QhR2zJDpSSVOPWORlGHI1zWfz1cXcLgqTV6-TA3SqCC1U0ZUg1W6uGBgT3Py-QXkvQZxGMYsHvnuvdVXmyH",
+    match: (a) => a.state === "Bihar" && a.who === "student" && ["obc","sc","st","ews"].includes(a.caste) && a.educationLevel === "class9to12" && (a.who === "women" || a.gender === "female" || (a.gender == null && a.who === "student")),
+  },
+  // </auto-scheme id="bihar_bcebc_scholarship">
+
 ];
