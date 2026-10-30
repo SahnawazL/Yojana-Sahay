@@ -217,4 +217,21 @@ export const MANIPUR_SCHEMES = [
   //   match: (a) => a.state === "Manipur",
   // },
 
+  // <auto-scheme id="manipur_balika_samridhi"> added by Scheme Discovery agent on 2026-10-26 · source: https://socialwelfare.mn.gov.in/en/rules-regulations/balika-samridhi-yojna-bys/
+  {
+    id: "manipur_balika_samridhi",
+    icon: "👶", color: "#EC4899", scope: "state", state: "Manipur",
+    ministry: { en: "Social Welfare Department, Govt. of Manipur", hi: "सामाजिक कल्याण विभाग, सरकार मणिपुर" },
+    name:    { en: "Balika Samridhi Yojna", hi: "बालिका समृद्धि योजना" },
+    benefit: { en: "Annual scholarship up to ₹1,000 per year for girls", hi: "प्रति वर्ष ₹1,000 तक की वार्षिक छात्रवृत्ति" },
+    tag:     { en: "Scholarship", hi: "छात्रवृत्ति" },
+    annual: 1000,
+    apply:   { en: "https://socialwelfare.mn.gov.in/en/rules-regulations/balika-samridhi-yojna-bys/", hi: "https://socialwelfare.mn.gov.in/en/rules-regulations/balika-samridhi-yojna-bys/" }, applyType: "offline",
+    docs:    { en: ["Application Form"],
+               hi: ["आवेदन पत्र"] },
+    autoAdded: "2026-10-26", source: "https://socialwelfare.mn.gov.in/en/rules-regulations/balika-samridhi-yojna-bys/",
+    match: (a) => a.state === "Manipur" && a.who === "general" && a.age === "below18" && ["class1to8","class9to12"].includes(a.educationLevel) && (a.who === "women" || a.gender === "female" || (a.gender == null && a.who === "student")),
+  },
+  // </auto-scheme id="manipur_balika_samridhi">
+
 ];
