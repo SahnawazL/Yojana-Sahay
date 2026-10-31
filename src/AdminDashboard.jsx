@@ -3952,6 +3952,8 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   const [activeTab, setActiveTab] = React.useState("runs");
   const [usagePage,  setUsagePage]  = React.useState(1);
   const [usageSort,  setUsageSort]  = React.useState("newest"); // "newest" | "oldest"
+  const [guestSort,  setGuestSort]  = React.useState("latest"); // "latest" | "active" | "new"
+  const [guestAll,   setGuestAll]   = React.useState(false);
   const USAGE_PER_PAGE = 10;
 
   // O(1) user lookup — avoids O(n²) users.find() inside .map() on paged results
@@ -4025,26 +4027,55 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   // there isn't one to attach; it's just a per-browser random label. ──────────
   const guestMap = {};
   let legacyAnonCount = 0;
-  const touchGuest = (uid, ts, kind) => {
+  const msOf = ts => { const ms = ts ? new Date(ts).getTime() : NaN; return isNaN(ms) ? null : ms; };
+  const istDayOf = ms => new Date(ms + 5.5 * 3600e3).toISOString().slice(0, 10);
+  const touchGuest = (uid, ts, kind, matched) => {
     if (!uid) return;
     if (uid === "anon") { legacyAnonCount++; return; } // pre-fix data — shared bucket, can't be split apart
     if (typeof uid !== "string" || !uid.startsWith("guest_")) return; // real logged-in uid — not a guest
-    if (!guestMap[uid]) guestMap[uid] = { uid, runs: 0, searches: 0, states: 0, first: ts, last: ts, lastMatched: null };
-    const g = guestMap[uid];
+    const g = guestMap[uid] || (guestMap[uid] = { uid, runs: 0, searches: 0, states: 0, first: null, last: null, lastRun: null, lastMatched: null, days: new Set() });
     g[kind]++;
-    if (ts && (!g.first || ts < g.first)) g.first = ts;
-    if (ts && (!g.last  || ts > g.last)) { g.last = ts; if (kind === "runs") g.lastMatched = null; }
+    const ms = msOf(ts);
+    if (ms == null) return;
+    if (g.first == null || ms < g.first) g.first = ms;
+    if (g.last == null || ms > g.last) g.last = ms;
+    g.days.add(istDayOf(ms));
+    // "matched" = schemes found on this guest's most recent checker run
+    if (kind === "runs" && (g.lastRun == null || ms >= g.lastRun)) { g.lastRun = ms; g.lastMatched = matched ?? null; }
   };
-  checkerRuns.forEach(r => {
-    touchGuest(r.uid, r.ts, "runs");
-    const g = guestMap[r.uid];
-    if (g && r.ts === g.last) g.lastMatched = r.matchedCount ?? null;
-  });
+  checkerRuns.forEach(r => touchGuest(r.uid, r.ts, "runs", r.matchedCount));
   schemeSearches.forEach(r => touchGuest(r.uid, r.ts, "searches"));
   stateSelections.forEach(r => touchGuest(r.uid, r.ts, "states"));
-  const guestList = Object.values(guestMap)
-    .map(g => ({ ...g, total: g.runs + g.searches + g.states }))
-    .sort((a, b) => b.total - a.total);
+  const guestAll_ = Object.values(guestMap).map(g => ({ ...g, total: g.runs + g.searches + g.states, dayCount: g.days.size }));
+  const nowG = Date.now();
+  const guestStats = {
+    today:     guestAll_.filter(g => g.last != null && istDayOf(g.last) === istDayOf(nowG)).length,
+    week:      guestAll_.filter(g => g.last != null && nowG - g.last < 7 * 86400000).length,
+    month:     guestAll_.filter(g => g.last != null && nowG - g.last < 30 * 86400000).length,
+    returning: guestAll_.filter(g => g.dayCount >= 2).length,
+    lastAny:   guestAll_.reduce((m, g) => (g.last != null && g.last > m ? g.last : m), 0) || null,
+  };
+  const GUEST_SORTS = {
+    latest: (a, b) => (b.last || 0) - (a.last || 0),
+    active: (a, b) => b.total - a.total || (b.last || 0) - (a.last || 0),
+    new:    (a, b) => (b.first || 0) - (a.first || 0),
+  };
+  const guestList = [...guestAll_].sort(GUEST_SORTS[guestSort] || GUEST_SORTS.latest);
+  // Latest activity of any kind in the log (signed-in or guest) — shows the log is still receiving data.
+  const lastLogged = [...checkerRuns, ...schemeSearches, ...stateSelections].reduce((m, r) => { const ms = msOf(r?.ts); return ms != null && ms > m ? ms : m; }, 0) || null;
+  const ago = ms => {
+    if (ms == null) return "—";
+    const m = Math.floor((Date.now() - ms) / 60000);
+    if (m < 1) return "just now";
+    if (m < 60) return `${m} min ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h} hr${h === 1 ? "" : "s"} ago`;
+    const d = Math.floor(h / 24);
+    if (d < 30) return `${d} day${d === 1 ? "" : "s"} ago`;
+    const mo = Math.floor(d / 30);
+    return `${mo} month${mo === 1 ? "" : "s"} ago`;
+  };
+  const freshness = ms => (ms == null ? "old" : istDayOf(ms) === istDayOf(Date.now()) ? "today" : Date.now() - ms < 7 * 86400000 ? "week" : Date.now() - ms < 30 * 86400000 ? "month" : "old");
 
   // Top search queries
   const queryCounts = {};
@@ -4065,7 +4096,8 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   const nowMs = Date.now();
   const ONE_DAY = 86400000;
   const spark7 = Array.from({ length: 7 }, (_, i) => {
-    const dayStart = nowMs - (6 - i) * ONE_DAY;
+    // Calendar days in IST (midnight to midnight) — 'Today' is today so far.
+    const dayStart = (Math.floor((nowMs + 19800000) / 86400000) * 86400000 - 19800000) - (6 - i) * ONE_DAY;
     const dayEnd   = dayStart + ONE_DAY;
     return checkerRuns.filter(r => {
       if (!r.ts) return false;
@@ -4192,7 +4224,7 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
           {[
             { label: "Avg Matched", value: avgMatched, color: NAVY },
             { label: "Max Matched", value: maxMatched || "—", color: IND_GREEN },
-            { label: "Total Runs",  value: checkerRuns.length, color: VIOLET },
+            { label: "Runs in Log", value: checkerRuns.length, color: VIOLET },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ flex: 1, textAlign: "center" }}>
               <div style={{ fontSize: 16, fontWeight: 900, color }}>{value}</div>
@@ -4200,80 +4232,130 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
             </div>
           ))}
         </div>
+        <div style={{ fontSize: 9, color: th.textSub, marginTop: 8, lineHeight: 1.5 }}>
+          Last activity logged <b style={{ color: th.text }}>{ago(lastLogged)}</b>
+          {lastLogged ? ` (${fmtTime(lastLogged)})` : ""}. Checker Runs is the all-time counter; Runs in Log is how many are kept in detail
+          {checkerRuns.length < totalRuns ? ` (${totalRuns - checkerRuns.length} older entries were cleared from the detail log)` : ""}.
+        </div>
       </div>
 
       {/* ── SECTION 1.5: Guest Activity — anonymous browsers, kept separate from Users tab ── */}
-      {(guestList.length > 0 || legacyAnonCount > 0) && (
+      {(guestList.length > 0 || legacyAnonCount > 0) && (() => {
+        const FRESH = {
+          today: { color: IND_GREEN, label: "Today" },
+          week:  { color: SAFFRON,   label: "This week" },
+          month: { color: NAVY,      label: "This month" },
+          old:   { color: th.textSub, label: "Older" },
+        };
+        const shown = guestAll ? guestList : guestList.slice(0, 8);
+        const fmtDay = ms => (ms == null ? "—" : new Date(ms).toLocaleDateString("en-IN", { day: "numeric", month: "short" }));
+        return (
         <div style={cardStyle}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: th.textMid, letterSpacing: 0.3 }}>
-              🕵️ GUEST ACTIVITY <span style={{ color: th.textSub, fontWeight: 600 }}>(not signed in)</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 800, color: th.textMid, letterSpacing: 0.3 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={VIOLET} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              GUEST ACTIVITY <span style={{ color: th.textSub, fontWeight: 600 }}>(not signed in)</span>
             </div>
             {guestList.length > 0 && (
-              <div style={{
-                fontSize: 9, fontWeight: 800, color: SAFFRON,
-                background: SAFFRON + "18", borderRadius: 8, padding: "2px 8px",
-              }}>
+              <div style={{ fontSize: 9, fontWeight: 800, color: SAFFRON, background: SAFFRON + "18", borderRadius: 8, padding: "2px 8px", flexShrink: 0 }}>
                 {guestList.length} browser{guestList.length === 1 ? "" : "s"}
               </div>
             )}
           </div>
+          <div style={{ fontSize: 9, color: th.textSub, marginBottom: 10, lineHeight: 1.5 }}>
+            One row per phone or browser that used the app without signing in. Last guest activity{" "}
+            <b style={{ color: th.text }}>{ago(guestStats.lastAny)}</b>.
+          </div>
 
-          {guestList.length > 0 && (
+          {guestList.length > 0 && (<>
+            {/* Recency summary */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6, marginBottom: 10 }}>
+              {[
+                { label: "Today",        value: guestStats.today,     color: IND_GREEN },
+                { label: "Last 7 days",  value: guestStats.week,      color: SAFFRON },
+                { label: "Last 30 days", value: guestStats.month,     color: NAVY },
+                { label: "Came back",    value: guestStats.returning, color: VIOLET, hint: "active on 2+ days" },
+              ].map(k => (
+                <div key={k.label} title={k.hint || ""} style={{ background: k.color + "12", border: `1px solid ${k.color}33`, borderRadius: 10, padding: "7px 4px", textAlign: "center" }}>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: k.color, lineHeight: 1.1 }}>{k.value}</div>
+                  <div style={{ fontSize: 8, color: th.textSub, marginTop: 2 }}>{k.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Sort */}
+            <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
+              {[["latest", "Latest activity"], ["active", "Most active"], ["new", "Newest guests"]].map(([id, label]) => {
+                const on = guestSort === id;
+                return (
+                  <div key={id} onClick={() => setGuestSort(id)} style={{
+                    fontSize: 9.5, fontWeight: 800, padding: "5px 10px", borderRadius: 8, cursor: "pointer", userSelect: "none",
+                    background: on ? NAVY : th.card2, color: on ? "#fff" : th.textMid, border: `1px solid ${on ? NAVY : th.border}`,
+                  }}>{label}</div>
+                );
+              })}
+            </div>
+
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {guestList.slice(0, 8).map((g, i) => (
+              {shown.map((g, i) => {
+                const f = FRESH[freshness(g.last)];
+                return (
                 <div key={g.uid} style={{
-                  display: "flex", alignItems: "center", gap: 8,
+                  display: "flex", alignItems: "center", gap: 9,
                   background: th.card2, borderRadius: 10, padding: "8px 10px", border: `1px solid ${th.border}`,
+                  borderLeft: `3px solid ${f.color}`,
                 }}>
                   <div style={{
-                    width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                    width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
                     background: VIOLET + "22", color: VIOLET, fontSize: 9, fontWeight: 900,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>#{i + 1}</div>
+                  }}>{i + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: th.text }}>
-                      Guest {g.uid.slice(6, 12)}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 10.5, fontWeight: 800, color: th.text }}>Guest {g.uid.slice(6, 12)}</span>
+                      {g.lastMatched != null && (
+                        <span style={{ fontSize: 8.5, fontWeight: 800, color: IND_GREEN, background: IND_GREEN + "18", borderRadius: 6, padding: "1px 6px" }}>
+                          {g.lastMatched} matched
+                        </span>
+                      )}
                     </div>
-                    <div style={{
-                      fontSize: 9, color: th.textSub, marginTop: 1,
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                    }}>
+                    <div style={{ fontSize: 9, color: th.textMid, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {[
-                        g.runs > 0     && `${g.runs} run${g.runs === 1 ? "" : "s"}`,
+                        g.runs > 0     && `${g.runs} checker run${g.runs === 1 ? "" : "s"}`,
                         g.searches > 0 && `${g.searches} search${g.searches === 1 ? "" : "es"}`,
                         g.states > 0   && `${g.states} state pick${g.states === 1 ? "" : "s"}`,
                       ].filter(Boolean).join(" · ")}
                     </div>
-                  </div>
-                  {g.lastMatched != null && (
-                    <div style={{
-                      fontSize: 9, fontWeight: 800, color: IND_GREEN,
-                      background: IND_GREEN + "18", borderRadius: 6, padding: "2px 6px", flexShrink: 0,
-                    }}>
-                      {g.lastMatched} matched
+                    <div style={{ fontSize: 8.5, color: th.textSub, marginTop: 1 }}>
+                      First seen {fmtDay(g.first)} · active on {g.dayCount} day{g.dayCount === 1 ? "" : "s"}
                     </div>
-                  )}
-                  <div style={{ fontSize: 8.5, color: th.textMid, flexShrink: 0, textAlign: "right", minWidth: 50 }}>
-                    {fmtTime(g.last)}
+                  </div>
+                  <div style={{ flexShrink: 0, textAlign: "right", minWidth: 64 }}>
+                    <div style={{ fontSize: 9.5, fontWeight: 800, color: f.color }}>{ago(g.last)}</div>
+                    <div style={{ fontSize: 8.5, color: th.textSub, marginTop: 1 }}>{fmtTime(g.last)}</div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
               {guestList.length > 8 && (
-                <div style={{ fontSize: 9, color: th.textSub, textAlign: "center", marginTop: 2 }}>
-                  +{guestList.length - 8} more guest browser{guestList.length - 8 === 1 ? "" : "s"}
+                <div onClick={() => setGuestAll(v => !v)} style={{
+                  fontSize: 10, fontWeight: 800, color: NAVY, textAlign: "center", marginTop: 2, padding: "7px",
+                  borderRadius: 8, cursor: "pointer", border: `1px dashed ${th.border}`, userSelect: "none",
+                }}>
+                  {guestAll ? "Show fewer" : `Show all ${guestList.length} guest browsers`}
                 </div>
               )}
             </div>
-          )}
+          </>)}
 
           {legacyAnonCount > 0 && (
             <div style={{ fontSize: 8.5, color: th.textSub, textAlign: "center", marginTop: guestList.length > 0 ? 8 : 0, fontStyle: "italic" }}>
-              + {legacyAnonCount} older guest entr{legacyAnonCount === 1 ? "y" : "ies"} from before per-guest tracking was added — counted above in the totals, but can't be split apart individually.
+              + {legacyAnonCount} older guest entr{legacyAnonCount === 1 ? "y" : "ies"} from before per-guest tracking was added — counted in the totals, but can't be split by browser.
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {/* ── SECTION 2: 7-day bar + Who (side by side) ── */}
       {checkerRuns.length > 0 && (
@@ -5040,7 +5122,8 @@ function HomeScreen({ users, reports, loading, dark, isDesktop, TABS, navigateTa
   // 7-day new-user sparkline
   const ONE_DAY = 86400000;
   const spark7 = Array.from({ length: 7 }, (_, i) => {
-    const dayStart = nowMs - (6 - i) * ONE_DAY;
+    // Calendar days in IST (midnight to midnight) — 'Today' is today so far.
+    const dayStart = (Math.floor((nowMs + 19800000) / 86400000) * 86400000 - 19800000) - (6 - i) * ONE_DAY;
     const dayEnd   = dayStart + ONE_DAY;
     return users.filter(u => u.createdAt?.seconds &&
       u.createdAt.seconds * 1000 >= dayStart &&
@@ -6059,7 +6142,8 @@ export default function AdminDashboard({ onClose, onSignOut = null, dark: darkPr
 
     // 7-day signup sparkline
     const spark = Array.from({ length:7 }, (_, i) => {
-      const dayStart = now - (6 - i) * ONE_DAY;
+      // Calendar days in IST (midnight to midnight) — 'Today' is today so far.
+      const dayStart = (Math.floor((now + 19800000) / 86400000) * 86400000 - 19800000) - (6 - i) * ONE_DAY;
       const dayEnd   = dayStart + ONE_DAY;
       return users.filter(u => {
         if (!u.createdAt?.seconds) return false;
