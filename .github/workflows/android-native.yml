@@ -60,6 +60,7 @@ jobs:
         run: |
           npm install --no-audit --no-fund --loglevel=error > "$RUNNER_TEMP/npm.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm.log"; exit 1; }
           bash scripts/android-native/install-deps.sh >> "$RUNNER_TEMP/npm.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm.log"; exit 1; }
+          node scripts/android-native/patch-google-signin.mjs
           cd scripts/android && npm install --no-save --no-package-lock --loglevel=error node-forge@1.3.1 >> "$RUNNER_TEMP/npm.log" 2>&1
           cd "$GITHUB_WORKSPACE" && npx cap --version
 

@@ -175,7 +175,27 @@ if (Capacitor.isNativePlatform()) {
   window.ysNative = Object.assign(window.ysNative || {}, {
     platform: Capacitor.getPlatform(),
     async googleSignIn() {
-      const r = await FirebaseAuthentication.signInWithGoogle();
+      // Google's account chooser dialog ("Choose an account · to continue to
+      // Yojana Sahay" with "Add another account") instead of the bottom sheet.
+      // If that path fails for any reason other than the user backing out,
+      // fall back to the Credential Manager sheet so sign-in never breaks.
+      const cancelled = e => /cancel|12501|dismiss|aborted/i.test(String((e && (e.code || "")) + " " + (e && e.message || "")));
+      // Only app builds from 176 on carry the native fix that shows the
+      // chooser every time (scripts/android-native/patch-google-signin.mjs);
+      // older installed apps keep the bottom sheet.
+      const info = await App.getInfo().catch(() => ({}));
+      const chooser = Number(info && info.build) >= 176;
+      let r;
+      if (chooser) {
+        try {
+          r = await FirebaseAuthentication.signInWithGoogle({ useCredentialManager: false });
+        } catch (e) {
+          if (cancelled(e)) throw Object.assign(new Error("Google sign-in was cancelled."), { code: "auth/cancelled-popup-request" });
+          r = await FirebaseAuthentication.signInWithGoogle();
+        }
+      } else {
+        r = await FirebaseAuthentication.signInWithGoogle();
+      }
       const c = r && r.credential;
       if (!c || !c.idToken) throw Object.assign(new Error("Google sign-in was cancelled."), { code: "auth/cancelled-popup-request" });
       return { idToken: c.idToken, accessToken: c.accessToken || null };
