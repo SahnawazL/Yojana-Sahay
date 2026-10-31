@@ -1,6 +1,6 @@
 {
   "assam_orunodoi": {
-    "lastVerified": "2026-10-10T11:53:51.234Z",
+    "lastVerified": "2026-10-31T21:35:03.484Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -12,13 +12,13 @@
     "confidence": 0
   },
   "assam_nijut_moina": {
-    "lastVerified": "2026-10-10T11:53:51.234Z",
+    "lastVerified": "2026-10-31T21:34:49.057Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_pragyan_bharati": {
-    "lastVerified": "2026-10-10T11:53:58.797Z",
+    "lastVerified": "2026-10-31T21:35:31.437Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -48,7 +48,7 @@
     "confidence": 0
   },
   "assam_mukhyamantri_atmanirbhar": {
-    "lastVerified": "2026-10-10T11:55:02.067Z",
+    "lastVerified": "2026-10-31T21:34:11.087Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -90,7 +90,7 @@
     "confidence": 0
   },
   "assam_sarothi": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-31T21:36:05.765Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -108,13 +108,13 @@
     "confidence": 0
   },
   "assam_silpi_pension": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-31T21:36:54.761Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_shishu_seva": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-31T21:36:08.608Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -166,13 +166,13 @@
     "confidence": 0
   },
   "assam_obc_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-31T21:34:53.104Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "assam_solar_pump": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-10-31T21:37:23.306Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 1,
@@ -3668,5 +3668,8 @@
   },
   "bihar_bcebc_scholarship": {
     "lastVerified": "2026-10-30T21:35:09.643Z"
+  },
+  "assam_speed_phase_duck": {
+    "lastVerified": "2026-10-31T21:38:00.714Z"
   }
 }
