@@ -20,7 +20,7 @@ import { RELATIONS, REL_BY_KEY, MAX_MEMBERS, defaultWho, familyResults, useFamil
 import { pushState, enablePush, disablePush, isAndroidApp } from "./push.js";
 import { HaloMark, BRAND_GRADIENT } from "./HaloMark.jsx";
 import { track } from "./track.js";
-import React, { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, startTransition, useMemo, useCallback, useDeferredValue, memo, Suspense } from "react";
 import { createPortal } from "react-dom";
 import {
   INDIA_STATES,
@@ -762,6 +762,7 @@ CATEGORY_ICONS.default = (c) => (
 
 // ─── TAB ORDER (stable reference — defined once at module level) ───────────────
 const TABS = ["home","search","schemes","ai","profile"];
+const TAB_CV_OK = typeof CSS !== "undefined" && !!CSS.supports && CSS.supports("content-visibility", "hidden");
 const fontFamily = (lang) => lang==="hi"
   ? "'Noto Sans Devanagari',sans-serif"
   : "'Noto Sans',sans-serif";
@@ -10144,12 +10145,12 @@ export const APP_STYLES = `
         /* Direction-aware slide: swipe-left → new tab enters from right; swipe-right → from left */
         /* Direction-aware slide — opacity stays 1 the whole time, no flash frame */
         @keyframes slideInFromRight{
-          from{transform:translateX(60px);}
-          to  {transform:translateX(0);}
+          from{transform:translate3d(34px,0,0);opacity:.45;}
+          to  {transform:none;opacity:1;}
         }
         @keyframes slideInFromLeft{
-          from{transform:translateX(-60px);}
-          to  {transform:translateX(0);}
+          from{transform:translate3d(-34px,0,0);opacity:.45;}
+          to  {transform:none;opacity:1;}
         }
         @keyframes tabEnter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
         @keyframes iconPop{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:scale(1)}}
@@ -10218,8 +10219,9 @@ export const APP_STYLES = `
         @keyframes vault-row-in{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
         @keyframes vault-check{from{stroke-dashoffset:20}to{stroke-dashoffset:0}}
         .tab-enter{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;animation:tabEnter 0.28s cubic-bezier(0.22,1,0.36,1);}
-        .tab-enter-left {animation:slideInFromRight 0.30s cubic-bezier(0.25,1,0.5,1) both;}
-        .tab-enter-right{animation:slideInFromLeft  0.30s cubic-bezier(0.25,1,0.5,1) both;}
+        .tab-enter-left {animation:slideInFromRight 0.32s cubic-bezier(0.22,1,0.36,1) both;}
+        .tab-enter-right{animation:slideInFromLeft  0.32s cubic-bezier(0.22,1,0.36,1) both;}
+        @media (prefers-reduced-motion:reduce){.tab-enter-left,.tab-enter-right{animation:none;}}
         .bn-icon{transition:transform 0.2s cubic-bezier(0.22,1,0.36,1);}
         .bn-icon.active{animation:iconPop 0.35s cubic-bezier(0.22,1,0.36,1);}
         @keyframes btn-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -10570,6 +10572,7 @@ function YojanaSahayInner(){
   // ── SMOOTH SWIPE — direction-aware slide transition ────────────────────────
   const swipeRef    = useRef(null);   // { x, y, lockedAxis } from touchstart
   const [swipeDir,  setSwipeDir]  = useState(null);   // "left"|"right"|null
+  const swipeBusyRef = useRef(false);                  // true while a swipe's exit animation runs
   const dragXRef      = useRef(0);          // live finger offset — no re-render
   const dragTargetRef = useRef(null);       // DOM ref to whichever tab is active
   // Lazy-mount tracker — tabs are only mounted on first visit, then kept alive.
@@ -10577,6 +10580,44 @@ function YojanaSahayInner(){
   // mounts on the SAME render it becomes active — no one-frame blank flash.
   // "home" is pre-seeded because it's the initial activeTab.
   const mountedTabsRef = useRef(new Set(["home"]));
+  const laidOutTabsRef = useRef(new Set());
+  const [, setPremountTick] = useState(0);
+  // Build Search and Schemes in the background once the app is idle, so the
+  // first tap on them is as quick as every later one. Rendering is done as a
+  // low-priority transition (never blocks a scroll or tap) and waits for a
+  // moment with no touch. Profile is left to mount on first visit.
+  const lastTouchRef = useRef(0);
+  useEffect(() => {
+    if (!TAB_CV_OK) return;
+    let cancelled = false, timer = null;
+    const idle = (fn) => (window.requestIdleCallback ? window.requestIdleCallback(fn, { timeout: 3000 }) : setTimeout(fn, 200));
+    const queue = ["search", "schemes"];
+    const step = () => {
+      if (cancelled) return;
+      const tab = queue.find(t => !mountedTabsRef.current.has(t));
+      if (!tab) return;
+      if (Date.now() - lastTouchRef.current < 1200) { timer = setTimeout(step, 800); return; }
+      idle(() => {
+        if (cancelled || mountedTabsRef.current.has(tab)) { timer = setTimeout(step, 400); return; }
+        startTransition(() => { mountedTabsRef.current.add(tab); setPremountTick(n => n + 1); });
+        // once it is in the page and laid out (hidden), keep that layout cheaply
+        let tries = 0;
+        const settle = () => {
+          if (cancelled) return;
+          const el = tabWrapRefs.current[tab];
+          if ((!el || !el.childElementCount) && tries++ < 40) { timer = setTimeout(settle, 150); return; }
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (cancelled) return;
+            laidOutTabsRef.current.add(tab); setPremountTick(n => n + 1);
+            timer = setTimeout(step, 1200);
+          }));
+        };
+        timer = setTimeout(settle, 150);
+      });
+    };
+    timer = setTimeout(step, 3500);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, []);
 
   // ── TAB "scroll to top" on nav tap ──────────────────────────────────────
   // Keeps a persistent DOM ref to each tab's outer wrapper (unlike
@@ -10599,6 +10640,10 @@ function YojanaSahayInner(){
     }
     return null;
   };
+  // Switching INTO a tab lands it at the top instantly, before the first
+  // frame is painted (a smooth scroll after it appears looked like a jolt).
+  // Re-tapping the tab you're already on still glides to the top.
+  const pendingTopRef = useRef(null);
   const scrollTabToTop = useCallback((tab, { wasActive = true } = {}) => {
     const wrap = tabWrapRefs.current[tab];
     if (!wrap) return;
@@ -10617,6 +10662,24 @@ function YojanaSahayInner(){
     const scroller = findScroller(wrap) || wrap;
     scroller.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+  // Switch tab with a direction-aware entrance (same slide as a swipe).
+  // Already on that tab → glide to the top instead.
+  // Hidden tabs keep the active tab's height, so showing one needs no new layout
+  const rememberTabHeight = () => {
+    const el = tabWrapRefs.current[activeTabRef.current], root = appRootRef.current;
+    if (el && root && el.offsetHeight) root.style.setProperty("--ys-tab-h", el.offsetHeight + "px");
+  };
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  const goTab = useCallback((tab, { top = true } = {}) => {
+    const prev = activeTabRef.current;
+    if (prev === tab) { if (top) scrollTabToTop(tab, { wasActive: true }); return; }
+    const a = TABS.indexOf(prev), b = TABS.indexOf(tab);
+    if (a > -1 && b > -1) setSwipeDir(b > a ? "left" : "right");
+    if (top) pendingTopRef.current = tab;
+    rememberTabHeight();
+    setActiveTab(tab);
+  }, [scrollTabToTop]);
 
   // ── SMART BOTTOM NAV — hides on scroll-down, reveals on scroll-up ───────
   // Each tab (Home / Search / Schemes / Profile / AI) owns its own inner
@@ -10748,6 +10811,16 @@ function YojanaSahayInner(){
     return () => { if (ro) ro.disconnect(); };
   }, []);
 
+  useLayoutEffect(() => {
+    const tab = pendingTopRef.current;
+    if (!tab || tab !== activeTab) return;
+    pendingTopRef.current = null;
+    if (tab === "ai") { window.dispatchEvent(new CustomEvent("ys-chat-latest", { detail: { instant: true } })); return; }
+    const wrap = tabWrapRefs.current[tab];
+    const scroller = wrap && (findScroller(wrap) || wrap);
+    if (scroller) scroller.scrollTop = 0;
+  }, [activeTab]);
+
   // Always reveal the nav right after switching tabs — landing on a tab
   // with a hidden nav (from wherever the previous tab was scrolled to)
   // would strand the user with no way to tap between tabs.
@@ -10756,9 +10829,11 @@ function YojanaSahayInner(){
   }, [activeTab, setNavHiddenLocked]);
 
   const handleTouchStart = useCallback((e) => {
+    lastTouchRef.current = Date.now();
     if (showAdmin || showChecker || showFAQ || selectedScheme || selectedCategory) return;
+    if (swipeBusyRef.current) return;   // the previous swipe is still finishing
     const t = e.touches[0];
-    swipeRef.current = { x: t.clientX, y: t.clientY, lockedAxis: null };
+    swipeRef.current = { x: t.clientX, y: t.clientY, lockedAxis: null, t0: performance.now() };
     dragXRef.current = 0;
     // Safety: clear any stale transform from an interrupted previous touch
     if (dragTargetRef.current) {
@@ -10803,27 +10878,55 @@ function YojanaSahayInner(){
     const t   = e.changedTouches[0];
     const dx  = t.clientX - swipeRef.current.x;
     const dy  = t.clientY - swipeRef.current.y;
+    const dt  = performance.now() - (swipeRef.current.t0 || 0);
+    const horizontal = swipeRef.current.lockedAxis === "h";
     swipeRef.current = null;
-
-    // Reset DOM directly — one re-render only when tab actually switches
+    const el = dragTargetRef.current;
+    const dragged = dragXRef.current;
     dragXRef.current = 0;
-    if (dragTargetRef.current) {
-      dragTargetRef.current.style.transform = "";
-      dragTargetRef.current.style.transition = "";
-    }
-
-    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
 
     const idx = TABS.indexOf(activeTab);
-    if (dx < 0 && idx < TABS.length - 1) {
-      hapticImportant("tick");
-      setSwipeDir("left");
-      setActiveTab(TABS[idx + 1]);
-    } else if (dx > 0 && idx > 0) {
-      hapticImportant("tick");
-      setSwipeDir("right");
-      setActiveTab(TABS[idx - 1]);
+    // A long drag, or a quick flick, counts as a swipe
+    const far   = Math.abs(dx) >= 48;
+    const flick = Math.abs(dx) >= 24 && dt < 260;
+    const dir   = dx < 0 ? 1 : -1;
+    const next  = TABS[idx + dir];
+    const go = horizontal && (far || flick) && Math.abs(dx) >= Math.abs(dy) * 1.5 && !!next;
+
+    if (!el) { if (go) { hapticImportant("tick"); setSwipeDir(dir > 0 ? "left" : "right"); setActiveTab(next); } return; }
+
+    if (!go) {
+      // Not far enough — ease back into place instead of jumping
+      if (dragged) {
+        el.style.transition = "transform 220ms cubic-bezier(0.22,1,0.36,1)";
+        el.style.transform = "translate3d(0,0,0)";
+        setTimeout(() => { if (!swipeRef.current) { el.style.transition = ""; el.style.transform = ""; } }, 240);
+      } else { el.style.transition = ""; el.style.transform = ""; }
+      return;
     }
+
+    // Swipe: carry on in the finger's direction and fade a little, then the
+    // next tab slides in from the other side — one continuous motion.
+    hapticImportant("tick");
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.style.transition = ""; el.style.transform = "";
+      setSwipeDir(dir > 0 ? "left" : "right"); setActiveTab(next); return;
+    }
+    swipeBusyRef.current = true;
+    const outX = -dir * Math.min(window.innerWidth * 0.32, Math.abs(dragged) + 70);
+    el.style.transition = "transform 130ms cubic-bezier(0.4,0,1,1), opacity 130ms linear";
+    el.style.transform = `translate3d(${outX}px,0,0)`;
+    el.style.opacity = "0.4";
+    setTimeout(() => {
+      rememberTabHeight();
+      setSwipeDir(dir > 0 ? "left" : "right");
+      setActiveTab(next);
+      // The old tab is hidden now — clear what the drag left on it
+      requestAnimationFrame(() => {
+        el.style.transition = ""; el.style.transform = ""; el.style.opacity = "";
+        swipeBusyRef.current = false;
+      });
+    }, 120);
   }, [activeTab, showAdmin, showChecker, selectedScheme, selectedCategory]);
 
   // Clear swipeDir after animation completes
@@ -11075,7 +11178,7 @@ function YojanaSahayInner(){
       case "faq": setShowFAQ(true); break;
       case "toggleDark": toggleDark(); break;
       case "toggleLang": toggleLang(); break;
-      case "tab": setActiveTab(a.tab); if(a.tab!=="ai") requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTabToTop(a.tab))); break;
+      case "tab": if(a.tab==="ai") goTab("ai",{top:false}); else goTab(a.tab); break;
       case "myapps": act({kind:"scroll",target:"home-myapps",fallback:{kind:"tab",tab:"schemes"}}); break;
       case "scroll": {
         setActiveTab("home");
@@ -11364,6 +11467,22 @@ function YojanaSahayInner(){
   // Seed the currently-active tab before JSX so its content renders immediately
   mountedTabsRef.current.add(activeTab);
 
+  // Visited tabs stay laid out while hidden (content-visibility:hidden keeps
+  // their layout, display:none throws it away) — so coming back to Search or
+  // Schemes doesn't re-lay-out ~1,300 elements before the slide can start.
+  // Browsers without content-visibility keep the old display:none.
+  const tabBox = (name) => {
+    const base = { flexDirection:"column", minHeight:0, overflow:"hidden" };
+    if (activeTab === name) { laidOutTabsRef.current.add(name); return { ...base, display:"flex", flex:1, willChange:"transform" }; }
+    if (TAB_CV_OK && mountedTabsRef.current.has(name)) return {
+      ...base, display:"flex", position:"absolute", top:0, left:0, right:0,
+      height:"var(--ys-tab-h, 100%)", pointerEvents:"none",
+      // built in the background but never shown yet → lay it out once, unseen
+      ...(laidOutTabsRef.current.has(name) ? { contentVisibility:"hidden" } : { visibility:"hidden" }),
+    };
+    return { ...base, display:"none", flex:1 };
+  };
+
   return(
     <div ref={appRootRef} className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0.7:1,transition:"opacity 0.12s,background 0.3s"}}>
       <style>{APP_STYLES}</style>
@@ -11380,12 +11499,8 @@ function YojanaSahayInner(){
       <div
         ref={(el)=>{ tabWrapRefs.current["home"]=el; if(activeTab==="home") dragTargetRef.current=el; }}
         className={activeTab==="home" ? (swipeDir==="left"?"tab-enter-left":swipeDir==="right"?"tab-enter-right":undefined) : undefined}
-        style={{
-          display:activeTab==="home"?"flex":"none",
-          flex:1,
-          flexDirection:"column",minHeight:0,overflow:"hidden",
-          willChange:activeTab==="home"?"transform":"auto",
-        }}>
+        aria-hidden={activeTab==="home"?undefined:true}
+        style={tabBox("home")}>
         <div style={{flex:1,overflowY:"auto"}}>
           {/* ── PREMIUM HEADER ── */}
           <div style={{background:"linear-gradient(160deg,#0c1445 0%,#06038D 38%,#003580 65%,#FF8C00 100%)",padding:"0 0 0",position:"relative",overflow:"hidden",
@@ -12058,12 +12173,8 @@ function YojanaSahayInner(){
       <div
         ref={(el)=>{ tabWrapRefs.current["search"]=el; if(activeTab==="search") dragTargetRef.current=el; }}
         className={activeTab==="search" ? (swipeDir==="left"?"tab-enter-left":swipeDir==="right"?"tab-enter-right":undefined) : undefined}
-        style={{
-          display:activeTab==="search"?"flex":"none",
-          flex:1,
-          flexDirection:"column",minHeight:0,overflow:"hidden",
-          willChange:activeTab==="search"?"transform":"auto",
-        }}>
+        aria-hidden={activeTab==="search"?undefined:true}
+        style={tabBox("search")}>
         {mountedTabsRef.current.has("search") && <SearchTab lang={lang} dark={dark} onOpenDetail={setSelectedScheme}/>}
       </div>
 
@@ -12071,12 +12182,8 @@ function YojanaSahayInner(){
       <div
         ref={(el)=>{ tabWrapRefs.current["schemes"]=el; if(activeTab==="schemes") dragTargetRef.current=el; }}
         className={activeTab==="schemes" ? (swipeDir==="left"?"tab-enter-left":swipeDir==="right"?"tab-enter-right":undefined) : undefined}
-        style={{
-          display:activeTab==="schemes"?"flex":"none",
-          flex:1,
-          flexDirection:"column",minHeight:0,overflow:"hidden",
-          willChange:activeTab==="schemes"?"transform":"auto",
-        }}>
+        aria-hidden={activeTab==="schemes"?undefined:true}
+        style={tabBox("schemes")}>
         {mountedTabsRef.current.has("schemes") && <SchemesTab lang={lang} dark={dark} onOpenDetail={setSelectedScheme}/>}
       </div>
 
@@ -12084,12 +12191,8 @@ function YojanaSahayInner(){
       <div
         ref={(el)=>{ tabWrapRefs.current["profile"]=el; if(activeTab==="profile") dragTargetRef.current=el; }}
         className={activeTab==="profile" ? (swipeDir==="left"?"tab-enter-left":swipeDir==="right"?"tab-enter-right":undefined) : undefined}
-        style={{
-          display:activeTab==="profile"?"flex":"none",
-          flex:1,
-          flexDirection:"column",minHeight:0,overflow:"hidden",
-          willChange:activeTab==="profile"?"transform":"auto",
-        }}>
+        aria-hidden={activeTab==="profile"?undefined:true}
+        style={tabBox("profile")}>
         {mountedTabsRef.current.has("profile") && <ProfileTabMemo
           lang={lang}
           profile={profile}
@@ -12198,14 +12301,13 @@ function YojanaSahayInner(){
             <div key={item.tab} className="bn"
               style={{animationDelay:`${idx*0.05}s`}}
               onClick={()=>{
-                if(!active) hapticImportant("tick");   // a soft tick only when switching
-                setActiveTab(item.tab);
-                // Double rAF: wait for the display:none→flex swap to commit
-                // and lay out before measuring/scrolling, so this works
-                // whether you're re-tapping the active tab or switching in.
-                requestAnimationFrame(()=>{
-                  requestAnimationFrame(()=>scrollTabToTop(item.tab, { wasActive: active }));
-                });
+                if(active){
+                  // Re-tap: glide back to the top (or the latest chat message)
+                  scrollTabToTop(item.tab, { wasActive: true });
+                  return;
+                }
+                hapticImportant("tick");   // a soft tick only when switching
+                goTab(item.tab);            // slides in from the side it lives on, already at the top
               }}>
 
               <div className={`bn-pill${active?" active":""}`}>
