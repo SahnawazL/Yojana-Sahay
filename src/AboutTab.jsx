@@ -1642,7 +1642,50 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
               {s.proBody}
             </div>
 
-            {/* ── COMPARISON TABLE ── */}
+            {/* ── INCLUDED FOR EVERYONE — features that are the same on Free and Pro ── */}
+            {(() => {
+              const same = s.proFeatures.filter(f => f.free === f.pro);
+              if (!same.length) return null;
+              return (
+                <div style={{ marginBottom: 18, position: "relative" }}>
+                  <div style={{
+                    fontSize: 9, fontWeight: 700, color: "rgba(74,222,128,0.75)",
+                    letterSpacing: 1.6, textTransform: "uppercase", marginBottom: 10, fontFamily: bf,
+                  }}>
+                    {isHindi ? "सभी के लिए मुफ़्त — Free और Pro दोनों में" : "Free for everyone — same on Free and Pro"}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                    {same.map((f, i) => (
+                      <div key={i} style={{
+                        display: "flex", gap: 9, alignItems: "flex-start",
+                        padding: "10px 11px", borderRadius: R.sm,
+                        background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.16)",
+                      }}>
+                        <span style={{
+                          width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          background: "rgba(74,222,128,0.16)",
+                        }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        </span>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.85)", fontFamily: bf, lineHeight: 1.3 }}>{f.title}</div>
+                          <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.38)", fontFamily: bf, marginTop: 2, lineHeight: 1.4 }}>{f.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── WHAT PRO ADDS — only the features that differ ── */}
+            <div style={{
+              fontSize: 9, fontWeight: 700, color: "rgba(201,168,76,0.75)",
+              letterSpacing: 1.6, textTransform: "uppercase", marginBottom: 10, fontFamily: bf, position: "relative",
+            }}>
+              {isHindi ? "Pro में अतिरिक्त क्या मिलेगा" : "What Pro adds"}
+            </div>
             <div style={{
               borderRadius: R.md,
               border: "1px solid rgba(201,168,76,0.18)",
@@ -1684,8 +1727,9 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
               </div>
 
               {/* Rows */}
-              {s.proFeatures.map((f, i) => {
-                const isLast = i === s.proFeatures.length - 1;
+              {s.proFeatures.filter(f => f.free !== f.pro).map((f, i, rows) => {
+                const isLast = i === rows.length - 1;
+                const freeText = f.free === "✓" ? (isHindi ? "शामिल" : "Included") : f.free;
                 const isEven = i % 2 === 0;
                 return (
                   <div key={i} style={{
@@ -1716,11 +1760,11 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
                         fontSize: f.free === "✗" ? 13 : 10,
                         fontWeight: 700,
                         color: f.free === "✗" ? "rgba(255,255,255,0.14)"
-                          : f.free === "✓" ? "#4ADE80"
+                          : f.free === "✓" ? "rgba(74,222,128,0.85)"
                           : "rgba(255,255,255,0.42)",
                         fontFamily: bf, textAlign: "center", lineHeight: 1.3,
                       }}>
-                        {f.free}
+                        {freeText}
                       </span>
                     </div>
 
