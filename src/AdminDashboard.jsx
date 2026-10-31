@@ -3953,7 +3953,10 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
   const [usagePage,  setUsagePage]  = React.useState(1);
   const [usageSort,  setUsageSort]  = React.useState("newest"); // "newest" | "oldest"
   const [guestSort,  setGuestSort]  = React.useState("latest"); // "latest" | "active" | "new"
-  const [guestAll,   setGuestAll]   = React.useState(false);
+  const [guestPage,  setGuestPage]  = React.useState(1);
+  const GUEST_PER_PAGE = 8;
+  // A new sort starts again from page 1
+  React.useEffect(() => { setGuestPage(1); }, [guestSort]);
   const USAGE_PER_PAGE = 10;
 
   // O(1) user lookup — avoids O(n²) users.find() inside .map() on paged results
@@ -4074,6 +4077,15 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
     if (d < 30) return `${d} day${d === 1 ? "" : "s"} ago`;
     const mo = Math.floor(d / 30);
     return `${mo} month${mo === 1 ? "" : "s"} ago`;
+  };
+  // Name for a log entry: the registered user, else the guest browser label.
+  const whoOf = uid => {
+    const u = usersById[uid];
+    if (u) return { name: u.name || "Signed-in user", sub: u.email || u.phone || "—" };
+    if (typeof uid === "string" && uid.startsWith("guest_")) return { name: `Guest ${uid.slice(6, 12)}`, sub: "Not signed in" };
+    if (uid === "anon") return { name: "Guest (older entry)", sub: "Not signed in" };
+    if (uid === "deleted") return { name: "Deleted account", sub: "—" };
+    return { name: "Signed-in user", sub: "Profile not found" };
   };
   const freshness = ms => (ms == null ? "old" : istDayOf(ms) === istDayOf(Date.now()) ? "today" : Date.now() - ms < 7 * 86400000 ? "week" : Date.now() - ms < 30 * 86400000 ? "month" : "old");
 
@@ -4247,7 +4259,28 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
           month: { color: NAVY,      label: "This month" },
           old:   { color: th.textSub, label: "Older" },
         };
-        const shown = guestAll ? guestList : guestList.slice(0, 8);
+        const gPages = Math.max(1, Math.ceil(guestList.length / GUEST_PER_PAGE));
+        const gPage  = Math.min(guestPage, gPages);
+        const gFrom  = (gPage - 1) * GUEST_PER_PAGE;
+        const shown  = guestList.slice(gFrom, gFrom + GUEST_PER_PAGE);
+        // Page numbers: first, last, current ±1, with "…" for the gaps
+        // (a gap of just one page shows that page instead of "…")
+        const keep = p => p === 1 || p === gPages || Math.abs(p - gPage) <= 1
+          || (p === 2 && gPage === 4) || (p === gPages - 1 && gPage === gPages - 3);
+        const pageNums = [];
+        for (let p = 1; p <= gPages; p++) {
+          if (keep(p)) pageNums.push(p);
+          else if (pageNums[pageNums.length - 1] !== "…") pageNums.push("…");
+        }
+        const goPage = p => setGuestPage(Math.max(1, Math.min(gPages, p)));
+        const pgBtn = (on, enabled = true) => ({
+          minWidth: 30, height: 30, padding: "0 8px", boxSizing: "border-box",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          borderRadius: 9, fontSize: 10.5, fontWeight: 800, userSelect: "none",
+          cursor: enabled ? "pointer" : "default", opacity: enabled ? 1 : 0.35,
+          background: on ? NAVY : th.card2, color: on ? "#fff" : th.textMid,
+          border: `1.5px solid ${on ? NAVY : th.border}`, transition: "background .15s, color .15s",
+        });
         const fmtDay = ms => (ms == null ? "—" : new Date(ms).toLocaleDateString("en-IN", { day: "numeric", month: "short" }));
         return (
         <div style={cardStyle}>
@@ -4309,7 +4342,7 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
                     width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
                     background: VIOLET + "22", color: VIOLET, fontSize: 9, fontWeight: 900,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>{i + 1}</div>
+                  }}>{gFrom + i + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 10.5, fontWeight: 800, color: th.text }}>Guest {g.uid.slice(6, 12)}</span>
@@ -4337,12 +4370,22 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
                 </div>
                 );
               })}
-              {guestList.length > 8 && (
-                <div onClick={() => setGuestAll(v => !v)} style={{
-                  fontSize: 10, fontWeight: 800, color: NAVY, textAlign: "center", marginTop: 2, padding: "7px",
-                  borderRadius: 8, cursor: "pointer", border: `1px dashed ${th.border}`, userSelect: "none",
-                }}>
-                  {guestAll ? "Show fewer" : `Show all ${guestList.length} guest browsers`}
+              {gPages > 1 && (
+                <div style={{ marginTop: 4 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, flexWrap: "wrap" }}>
+                    <div role="button" aria-label="Previous page" onClick={() => gPage > 1 && goPage(gPage - 1)} style={pgBtn(false, gPage > 1)}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </div>
+                    {pageNums.map((p, k) => p === "…"
+                      ? <span key={`gap${k}`} style={{ color: th.textSub, fontSize: 11, padding: "0 2px" }}>…</span>
+                      : <div key={p} role="button" aria-current={p === gPage ? "page" : undefined} onClick={() => goPage(p)} style={pgBtn(p === gPage)}>{p}</div>)}
+                    <div role="button" aria-label="Next page" onClick={() => gPage < gPages && goPage(gPage + 1)} style={pgBtn(false, gPage < gPages)}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 9, color: th.textSub, textAlign: "center", marginTop: 6 }}>
+                    Showing {gFrom + 1}–{gFrom + shown.length} of {guestList.length} guest browsers
+                  </div>
                 </div>
               )}
             </div>
@@ -4525,9 +4568,9 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
           {activeTab === "runs" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {pagedRuns.map((r, i) => {
-                const user = usersById[r.uid];
-                const userName  = user?.name  || "—";
-                const userEmail = user?.email || user?.phone || "—";
+                const who = whoOf(r.uid);
+                const userName  = who.name;
+                const userEmail = who.sub;
                 const matched   = r.matchedCount ?? null;
                 const matchColor = matched != null ? (matched > 5 ? IND_GREEN : SAFFRON) : th.textSub;
                 const tags = [
@@ -4596,7 +4639,6 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
           {activeTab === "searches" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {pagedSearches.map((s, i) => {
-                const user = usersById[s.uid];
                 return (
                   <div key={i} style={{
                     display: "flex", alignItems: "center", gap: 8,
@@ -4619,13 +4661,13 @@ function UsageSection({ usageData, users, loading, onRefresh, dark }) {
                         fontSize: 10, fontWeight: 600, color: th.text,
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }}>
-                        {user?.name || "—"}
+                        {whoOf(s.uid).name}
                       </div>
                       <div style={{
                         fontSize: 8.5, color: th.textSub,
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }}>
-                        {user?.email || user?.phone || "—"}
+                        {whoOf(s.uid).sub}
                       </div>
                     </div>
                     {/* Time — fixed dark mode */}
