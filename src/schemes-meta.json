@@ -36,7 +36,7 @@
     "confidence": 0
   },
   "assam_swanirbhar_naari": {
-    "lastVerified": "2026-10-10T11:55:02.067Z",
+    "lastVerified": "2026-11-01T21:34:36.173Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -60,7 +60,7 @@
     "confidence": 0
   },
   "assam_svayem": {
-    "lastVerified": "2026-10-10T11:55:02.067Z",
+    "lastVerified": "2026-11-01T21:34:29.847Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -160,7 +160,7 @@
     "confidence": 0
   },
   "assam_sports_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-01T21:33:45.508Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -180,7 +180,7 @@
     "lastDate": "2026-03-31"
   },
   "bihar_kanya_utthan": {
-    "lastVerified": "2026-09-26T23:19:02.766Z",
+    "lastVerified": "2026-11-01T21:37:51.562Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -234,7 +234,7 @@
     "linkAlive": true
   },
   "bihar_fasal_sahayata": {
-    "lastVerified": "2026-09-26T23:18:46.662Z",
+    "lastVerified": "2026-11-01T21:37:09.256Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -246,13 +246,13 @@
     "linkAlive": true
   },
   "bihar_diesel_anudan": {
-    "lastVerified": "2026-09-26T23:18:40.514Z",
+    "lastVerified": "2026-11-01T21:36:11.717Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "bihar_gram_parivahan": {
-    "lastVerified": "2026-09-26T23:18:53.353Z",
+    "lastVerified": "2026-11-01T21:37:13.154Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -282,7 +282,7 @@
     "linkAlive": true
   },
   "ayushman": {
-    "lastVerified": "2026-09-26T23:18:24.298Z",
+    "lastVerified": "2026-11-01T21:34:55.162Z",
     "confidence": 0
   },
   "scholarship": {
@@ -304,7 +304,7 @@
     "linkAlive": true
   },
   "betibachao": {
-    "lastVerified": "2026-09-26T23:18:31.668Z",
+    "lastVerified": "2026-11-01T21:34:58.818Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -3667,9 +3667,30 @@
     "lastVerified": "2026-10-30T21:35:04.395Z"
   },
   "bihar_bcebc_scholarship": {
-    "lastVerified": "2026-10-30T21:35:09.643Z"
+    "lastVerified": "2026-11-01T21:35:11.259Z"
   },
   "assam_speed_phase_duck": {
     "lastVerified": "2026-10-31T21:38:00.714Z"
+  },
+  "bihar_bocw_matritva": {
+    "lastVerified": "2026-11-01T21:35:24.504Z"
+  },
+  "bihar_bocw_mrityu": {
+    "lastVerified": "2026-11-01T21:35:37.780Z"
+  },
+  "bihar_bocw_vivah": {
+    "lastVerified": "2026-11-01T21:35:48.401Z"
+  },
+  "bihar_civil_seva_ebc": {
+    "lastVerified": "2026-11-01T21:35:59.485Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "bihar_disability_pension": {
+    "lastVerified": "2026-11-01T21:36:26.549Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
   }
 }
