@@ -1443,67 +1443,67 @@
     "confidence": 0
   },
   "cg_higher_ed_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:34:06.767Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_solar_suryashakti": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:37:18.938Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "cg_shauchalay_nirman": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:37:17.174Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "cg_kaushal_vikas": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:35:07.130Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_labour_card": {
-    "lastVerified": "2026-10-10T13:12:15.473Z",
+    "lastVerified": "2026-11-03T21:35:35.326Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_pre_matric_tribal": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:36:25.365Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_saur_sujala": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:36:37.601Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "cg_organic_farming": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:36:12.922Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_drip_sprinkler": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:34:00.874Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_msme_subsidy": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:36:10.961Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "cg_startup_niti": {
-    "lastVerified": "2026-10-10T13:12:15.473Z",
+    "lastVerified": "2026-11-03T21:37:32.315Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -2478,7 +2478,7 @@
     "confidence": 0
   },
   "cg_mahtari_vandan": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-03T21:35:57.673Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3714,5 +3714,8 @@
     "confidence": 1,
     "isActive": true,
     "lastDate": "2026-09-30"
+  },
+  "cg_jeevan_jyoti_cg": {
+    "lastVerified": "2026-11-03T21:34:34.695Z"
   }
 }
