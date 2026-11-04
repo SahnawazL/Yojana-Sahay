@@ -405,7 +405,7 @@
     "linkAlive": true
   },
   "daynrlm": {
-    "lastVerified": "2026-09-29T00:47:22.572Z",
+    "lastVerified": "2026-11-04T21:34:57.933Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -435,7 +435,7 @@
     "linkAlive": true
   },
   "ddu_gky": {
-    "lastVerified": "2026-09-29T00:47:39.560Z",
+    "lastVerified": "2026-11-04T21:35:23.608Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -513,7 +513,7 @@
     "confidence": 0
   },
   "daynulm": {
-    "lastVerified": "2026-09-29T00:47:27.588Z",
+    "lastVerified": "2026-11-04T21:35:09.529Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -599,7 +599,7 @@
     "linkAlive": true
   },
   "csss": {
-    "lastVerified": "2026-09-29T00:47:17.286Z",
+    "lastVerified": "2026-11-04T21:34:44.886Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1080,7 +1080,7 @@
     "linkAlive": true
   },
   "delhi_divyang_pension": {
-    "lastVerified": "2026-10-08T07:46:44.052Z",
+    "lastVerified": "2026-11-04T21:37:35.216Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1110,7 +1110,7 @@
     "confidence": 0
   },
   "delhi_bocw": {
-    "lastVerified": "2026-10-08T07:46:44.052Z",
+    "lastVerified": "2026-11-04T21:36:23.428Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1146,7 +1146,7 @@
     "confidence": 0
   },
   "delhi_disability_scholarship": {
-    "lastVerified": "2026-10-08T07:47:55.024Z",
+    "lastVerified": "2026-11-04T21:37:16.877Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1158,7 +1158,7 @@
     "httpStatus": 200
   },
   "delhi_ayushman_arogya": {
-    "lastVerified": "2026-10-08T07:47:55.024Z",
+    "lastVerified": "2026-11-04T21:36:06.317Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1186,13 +1186,13 @@
     "confidence": 0
   },
   "delhi_apprenticeship": {
-    "lastVerified": "2026-10-08T07:49:21.663Z",
+    "lastVerified": "2026-11-04T21:35:54.252Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_doorstep_services": {
-    "lastVerified": "2026-10-08T07:49:21.663Z",
+    "lastVerified": "2026-11-04T21:37:37.598Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
@@ -1222,7 +1222,7 @@
     "linkAlive": true
   },
   "delhi_dilli_yogshala": {
-    "lastVerified": "2026-10-08T07:49:21.663Z",
+    "lastVerified": "2026-11-04T21:36:31.664Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1778,13 +1778,13 @@
     "httpStatus": 410
   },
   "chandigarh_post_matric_scholarship": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-04T21:34:42.953Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "chandigarh_chb_ews_housing": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-04T21:34:04.673Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3322,7 +3322,7 @@
     "confidence": 0
   },
   "delhi_ambedkar_awas": {
-    "lastVerified": "2026-10-08T07:51:43.676Z",
+    "lastVerified": "2026-11-04T21:35:52.257Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
@@ -3717,5 +3717,11 @@
   },
   "cg_jeevan_jyoti_cg": {
     "lastVerified": "2026-11-03T21:34:34.695Z"
+  },
+  "cg_unemployment_allowance": {
+    "lastVerified": "2026-11-04T21:33:44.361Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
   }
 }
