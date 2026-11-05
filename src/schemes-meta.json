@@ -1043,16 +1043,16 @@
     "confidence": 0
   },
   "delhi_mohalla": {
-    "lastVerified": "2026-10-08T07:45:25.002Z",
+    "lastVerified": "2026-11-05T21:36:52.902Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_mahila_samman": {
-    "lastVerified": "2026-10-08T07:45:25.002Z",
+    "lastVerified": "2026-11-05T21:35:46.715Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 1,
+    "confidence": 0,
     "isActive": false
   },
   "delhi_vidhwa_pension": {
@@ -1062,7 +1062,7 @@
     "linkAlive": true
   },
   "delhi_ladli": {
-    "lastVerified": "2026-10-08T07:45:36.166Z",
+    "lastVerified": "2026-11-05T21:35:18.365Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1116,13 +1116,13 @@
     "confidence": 0
   },
   "delhi_kaushal_vikas": {
-    "lastVerified": "2026-10-08T07:46:44.052Z",
+    "lastVerified": "2026-11-05T21:35:11.878Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
   },
   "delhi_dsidc_sc_loan": {
-    "lastVerified": "2026-10-08T07:46:50.299Z",
+    "lastVerified": "2026-11-05T21:33:44.104Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1134,13 +1134,13 @@
     "confidence": 0.49
   },
   "delhi_ews_scholarship": {
-    "lastVerified": "2026-10-08T07:47:55.024Z",
+    "lastVerified": "2026-11-05T21:34:29.730Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_free_coaching": {
-    "lastVerified": "2026-10-08T07:47:55.024Z",
+    "lastVerified": "2026-11-05T21:34:42.543Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1152,7 +1152,7 @@
     "linkAlive": true
   },
   "delhi_muva": {
-    "lastVerified": "2026-10-08T07:47:55.024Z",
+    "lastVerified": "2026-11-05T21:37:31.241Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
@@ -1164,7 +1164,7 @@
     "confidence": 0
   },
   "delhi_ews_dda_flat": {
-    "lastVerified": "2026-10-08T07:47:55.024Z",
+    "lastVerified": "2026-11-05T21:34:27.906Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1198,13 +1198,13 @@
     "linkAlive": true
   },
   "delhi_ev_subsidy": {
-    "lastVerified": "2026-10-08T07:49:21.663Z",
+    "lastVerified": "2026-11-05T21:33:56.751Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_minority_scholarship": {
-    "lastVerified": "2026-10-08T07:49:21.663Z",
+    "lastVerified": "2026-11-05T21:36:39.674Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1216,7 +1216,7 @@
     "confidence": 0
   },
   "delhi_marriage_assistance": {
-    "lastVerified": "2026-10-08T07:49:21.663Z",
+    "lastVerified": "2026-11-05T21:36:25.685Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1228,13 +1228,13 @@
     "confidence": 0
   },
   "delhi_obc_prematric": {
-    "lastVerified": "2026-10-08T07:49:21.663Z",
+    "lastVerified": "2026-11-05T21:37:33.118Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "delhi_minority_coaching": {
-    "lastVerified": "2026-10-08T07:49:21.663Z",
+    "lastVerified": "2026-11-05T21:36:26.967Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3483,10 +3483,10 @@
     "confidence": 0
   },
   "delhi_lakshmi": {
-    "lastVerified": "2026-10-17T21:34:00.017Z",
+    "lastVerified": "2026-11-05T21:35:43.330Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0.5,
+    "confidence": 0,
     "isActive": true
   },
   "ap_housing_all_subsidised": {
