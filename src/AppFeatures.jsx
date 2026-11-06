@@ -1,0 +1,189 @@
+// src/AppFeatures.jsx — "Made for your phone": what only the Android app can do
+// ─────────────────────────────────────────────────────────────────────────────
+// Shown once, a moment after the Android app first opens, and any time from
+// Profile → "App features". Each row is something the website can't do, with a
+// button that does it right there: put a widget on the home screen, turn on
+// deadline notifications, search by voice. Never shown on the website.
+import React, { useEffect, useState } from "react";
+
+const SEEN_KEY = "ys_app_features_seen";
+
+export const isNativeApp = () =>
+  typeof window !== "undefined" && !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
+export function appFeaturesSeen() {
+  try { return localStorage.getItem(SEEN_KEY) === "1"; } catch { return true; }
+}
+export function markAppFeaturesSeen() {
+  try { localStorage.setItem(SEEN_KEY, "1"); } catch {}
+}
+
+const native = (plugin, method, args = {}) => {
+  const C = window.Capacitor;
+  if (!C || !C.isPluginAvailable || !C.isPluginAvailable(plugin)) return Promise.reject(new Error("unavailable"));
+  return C.nativePromise(plugin, method, args);
+};
+
+// ── icons (stroke SVG, inherit colour) ──────────────────────────────────────
+const I = {
+  widget: <><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/></>,
+  bell: <><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a1.9 1.9 0 0 0 3.4 0"/></>,
+  mic: <><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/><path d="M8 21h8"/></>,
+  shield: <><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></>,
+  offline: <><path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5.5 12a10 10 0 0 1 13 0"/><path d="M9 15.5a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r="1.2"/></>,
+  speaker: <><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></>,
+  check: <path d="M20 6L9 17l-5-5"/>,
+  close: <><path d="M18 6L6 18"/><path d="M6 6l12 12"/></>,
+};
+const Icon = ({ d, size = 20, sw = 2 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d}</svg>
+);
+
+export default function AppFeatures({ lang = "en", dark = false, onClose, pushSlot = null, signedIn = false, onSignIn, schemeCount }) {
+  const hi = lang === "hi";
+  const L = (en, h) => (hi ? h : en);
+  const [canPin, setCanPin] = useState(null);       // null = checking
+  const [pinned, setPinned] = useState({});          // kind → true once asked
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    native("YSWidget", "canPin").then(r => live && setCanPin(!!(r && r.supported))).catch(() => live && setCanPin(false));
+    const t = requestAnimationFrame(() => setShown(true));
+    const onKey = e => { if (e.key === "Escape") close(); };
+    window.addEventListener("keydown", onKey);
+    return () => { live = false; cancelAnimationFrame(t); window.removeEventListener("keydown", onKey); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const close = () => { setShown(false); markAppFeaturesSeen(); setTimeout(() => onClose && onClose(), 220); };
+  const pin = kind => {
+    native("YSWidget", "pin", { kind }).then(r => { if (r && r.requested) setPinned(p => ({ ...p, [kind]: true })); }).catch(() => setCanPin(false));
+  };
+  const go = g => { close(); setTimeout(() => { try { window.__ysGo && window.__ysGo(g); } catch {} }, 260); };
+
+  const C = dark ? {
+    sheet: "#111826", card: "#182233", border: "rgba(255,255,255,0.08)", text: "#F1F4F9", sub: "rgba(241,244,249,0.62)",
+    chipBg: "rgba(255,255,255,0.06)", btn: "#F59E0B", btnText: "#111", ghost: "rgba(255,255,255,0.08)", ghostText: "#F1F4F9",
+  } : {
+    sheet: "#FFFFFF", card: "#F6F8FB", border: "rgba(11,42,91,0.09)", text: "#0F1B2D", sub: "#5B6575",
+    chipBg: "rgba(11,42,91,0.06)", btn: "#0B2A5B", btnText: "#fff", ghost: "rgba(11,42,91,0.07)", ghostText: "#0B2A5B",
+  };
+  const ACC = { widget: "#2F6FDB", bell: "#E8730C", mic: "#7C3AED", shield: "#0E9F6E", offline: "#0891B2", speaker: "#DB2777" };
+  const font = hi ? "'Noto Sans Devanagari','Noto Sans',system-ui,sans-serif" : "'DM Sans','Noto Sans',system-ui,sans-serif";
+
+  const btn = (label, onClick, { ghost = false, done = false } = {}) => (
+    <button type="button" onClick={onClick} disabled={done} style={{
+      border: 0, borderRadius: 10, padding: "8px 12px", fontFamily: font, fontSize: 12.5, fontWeight: 700, cursor: done ? "default" : "pointer",
+      background: done ? "rgba(14,159,110,0.14)" : ghost ? C.ghost : C.btn, color: done ? "#0E9F6E" : ghost ? C.ghostText : C.btnText,
+      display: "inline-flex", alignItems: "center", gap: 6, WebkitTapHighlightColor: "transparent",
+    }}>{done && <Icon d={I.check} size={14} sw={2.6} />}{label}</button>
+  );
+
+  const rows = [
+    {
+      k: "widget",
+      title: L("Home-screen widgets", "होम स्क्रीन विजेट"),
+      desc: L("See your next scheme deadlines, or start a search, straight from your phone's home screen.",
+              "अपने फ़ोन की होम स्क्रीन से ही योजनाओं की आखिरी तारीखें देखें या खोज शुरू करें।"),
+      action: canPin ? (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {btn(pinned.quick ? L("Added", "जोड़ा गया") : L("Add deadline widget", "तारीख विजेट जोड़ें"), () => pin("quick"), { done: pinned.quick })}
+          {btn(pinned.search ? L("Added", "जोड़ा गया") : L("Add search widget", "खोज विजेट जोड़ें"), () => pin("search"), { ghost: !pinned.search, done: pinned.search })}
+        </div>
+      ) : canPin === false ? (
+        <div style={{ fontSize: 11.5, color: C.sub, lineHeight: 1.5 }}>
+          {L("Touch and hold an empty part of your home screen → Widgets → Yojana Sahay.",
+             "होम स्क्रीन पर खाली जगह को दबाकर रखें → विजेट → योजना सहाय।")}
+        </div>
+      ) : null,
+    },
+    {
+      k: "bell",
+      title: L("Deadline reminders", "आखिरी तारीख के रिमाइंडर"),
+      desc: L("A notification on this phone before a scheme's last date — even when the app is closed.",
+              "योजना की आखिरी तारीख से पहले इस फ़ोन पर सूचना — ऐप बंद होने पर भी।"),
+      action: signedIn ? pushSlot : btn(L("Sign in to turn on", "चालू करने के लिए साइन इन करें"), () => { close(); setTimeout(() => onSignIn && onSignIn(), 260); }, { ghost: true }),
+    },
+    {
+      k: "mic",
+      title: L("Search by speaking", "बोलकर खोजें"),
+      desc: L("Say the scheme or benefit you need, in Hindi or English.", "जो योजना या लाभ चाहिए, हिंदी या अंग्रेज़ी में बोलें।"),
+      action: btn(L("Try it", "आज़माएं"), () => go("voice")),
+    },
+    {
+      k: "shield",
+      title: L("Is this message real?", "क्या यह संदेश असली है?"),
+      desc: L("Got a WhatsApp forward about a scheme? Share it to Yojana Sahay to check it before you trust it.",
+              "किसी योजना के बारे में WhatsApp फ़ॉरवर्ड मिला? भरोसा करने से पहले उसे योजना सहाय पर शेयर करके जाँचें।"),
+      note: L("In WhatsApp: hold the message → Share → Yojana Sahay", "WhatsApp में: संदेश दबाकर रखें → शेयर → योजना सहाय"),
+    },
+    {
+      k: "offline",
+      title: L("Works without internet", "बिना इंटरनेट के भी"),
+      desc: L(`All ${schemeCount ? schemeCount.toLocaleString("en-IN") + " " : ""}schemes are stored inside the app, so you can browse them anywhere. Only the AI Assistant needs internet.`,
+              `सभी ${schemeCount ? schemeCount.toLocaleString("en-IN") + " " : ""}योजनाएं ऐप के अंदर रखी हैं, इसलिए कहीं भी देख सकते हैं। सिर्फ़ AI सहायक को इंटरनेट चाहिए।`),
+    },
+    {
+      k: "speaker",
+      title: L("Read aloud", "पढ़कर सुनाएं"),
+      desc: L("Listen to any scheme's details in Hindi or English, with your phone's own voice.", "किसी भी योजना की जानकारी हिंदी या अंग्रेज़ी में सुनें।"),
+    },
+  ];
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label={L("App features", "ऐप की सुविधाएं")}
+      onClick={close}
+      style={{
+        position: "fixed", inset: 0, zIndex: 9000, display: "flex", alignItems: "flex-end", justifyContent: "center",
+        background: shown ? "rgba(6,12,24,0.55)" : "rgba(6,12,24,0)", transition: "background 220ms ease",
+      }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: "100%", maxWidth: 480, maxHeight: "88vh", overflowY: "auto", WebkitOverflowScrolling: "touch",
+        background: C.sheet, color: C.text, fontFamily: font, borderRadius: "22px 22px 0 0",
+        padding: "10px 18px calc(18px + env(safe-area-inset-bottom))", boxSizing: "border-box",
+        transform: shown ? "translate3d(0,0,0)" : "translate3d(0,100%,0)", transition: "transform 260ms cubic-bezier(0.22,1,0.36,1)",
+        boxShadow: "0 -10px 40px rgba(0,0,0,0.25)",
+      }}>
+        <div style={{ width: 40, height: 4, borderRadius: 4, background: C.border, margin: "0 auto 12px" }} />
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
+          <img src="/icons/app-icon-192.png" alt="" width="44" height="44" style={{ borderRadius: 12, flexShrink: 0, background: "#fff" }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#E8730C" }}>
+              {L("Only in the app", "सिर्फ़ ऐप में")}
+            </div>
+            <div style={{ fontSize: 19, fontWeight: 800, lineHeight: 1.2, marginTop: 2 }}>{L("Made for your phone", "आपके फ़ोन के लिए बना")}</div>
+            <div style={{ fontSize: 12.5, color: C.sub, marginTop: 3, lineHeight: 1.45 }}>
+              {L("Things the Yojana Sahay app does that a website can't.", "योजना सहाय ऐप ये काम करता है, जो वेबसाइट नहीं कर सकती।")}
+            </div>
+          </div>
+          <button type="button" aria-label={L("Close", "बंद करें")} onClick={close} style={{
+            border: 0, background: C.chipBg, color: C.sub, width: 34, height: 34, borderRadius: 17, display: "flex",
+            alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
+          }}><Icon d={I.close} size={16} /></button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+          {rows.map(r => (
+            <div key={r.k} style={{ display: "flex", gap: 12, padding: "12px 12px", borderRadius: 14, background: C.card, border: `1px solid ${C.border}` }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                color: ACC[r.k], background: ACC[r.k] + (dark ? "26" : "16"),
+              }}><Icon d={I[r.k]} /></div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, lineHeight: 1.3 }}>{r.title}</div>
+                <div style={{ fontSize: 12, color: C.sub, lineHeight: 1.5, marginTop: 2 }}>{r.desc}</div>
+                {r.note && <div style={{ fontSize: 11.5, color: C.text, opacity: 0.8, marginTop: 6, padding: "6px 8px", borderRadius: 8, background: C.chipBg, lineHeight: 1.45 }}>{r.note}</div>}
+                {r.action && <div style={{ marginTop: 9 }}>{r.action}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button type="button" onClick={close} style={{
+          width: "100%", marginTop: 14, border: 0, borderRadius: 14, padding: "13px 16px", fontFamily: font, fontSize: 14.5, fontWeight: 800,
+          background: C.btn, color: C.btnText, cursor: "pointer",
+        }}>{L("Continue", "आगे बढ़ें")}</button>
+      </div>
+    </div>
+  );
+}

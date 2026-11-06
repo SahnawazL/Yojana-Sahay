@@ -53,6 +53,7 @@ const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
 import SchemeNewsTicker from "./SchemeNewsTicker.jsx";
+import AppFeatures, { isNativeApp, appFeaturesSeen } from "./AppFeatures.jsx";
 import { useOfflineStatus } from "./useOfflineStatus.js";
 import { idbSet, idbDelete, idbGet, OFFLINE_KEYS, migrateLocalStorageToIDB } from "./offlineStorage.js";
 const HomeFAQSection = React.lazy(() => import("./HomeFAQSection.jsx"));
@@ -8008,6 +8009,24 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
             <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
           </div>
 
+          {/* App features — Android app only */}
+          {isNativeApp()&&(
+            <div role="button" tabIndex={0} onClick={()=>{haptic();try{window.dispatchEvent(new Event("ys-open-app-features"));}catch{}}}
+              onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();try{window.dispatchEvent(new Event("ys-open-app-features"));}catch{}}}}
+              style={{padding:"14px 18px",borderBottom:`1px solid ${th.divider}`,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12}}>
+                <div style={{width:38,height:38,borderRadius:11,flexShrink:0,background:dark?"rgba(232,115,12,0.14)":"rgba(232,115,12,0.08)",border:`1.5px solid ${dark?"rgba(232,115,12,0.32)":"rgba(232,115,12,0.22)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:"#E8730C"}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>
+                </div>
+                <div>
+                  <div style={{fontSize:14,fontWeight:600,color:th.text,fontFamily:bf}}>{isHindi?"ऐप की सुविधाएं":"App features"}</div>
+                  <div style={{fontSize:11,color:th.textSub,marginTop:1}}>{isHindi?"विजेट, रिमाइंडर, बोलकर खोज":"Widgets, reminders, voice search"}</div>
+                </div>
+              </div>
+              <div style={{width:28,height:28,borderRadius:8,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:`1.5px solid ${th.border2}`,display:"flex",alignItems:"center",justifyContent:"center",color:th.textMid,fontSize:15,fontWeight:700}}>›</div>
+            </div>
+          )}
+
           {/* Phone notifications on/off */}
           {auth.currentUser&&<PushSwitchRow uid={auth.currentUser.uid} lang={isHindi?"hi":"en"} dark={dark}/>}
 
@@ -8479,6 +8498,23 @@ function usePushControl(uid, lang){
   };
   const turnOff=async()=>{haptic();setBusy(true);setErr("");try{await disablePush(uid,removeSub);}catch{}setState("off");setBusy(false);track("push_off");changed();};
   return {state,setState,busy,err,turnOn,turnOff};
+}
+
+// App features sheet → "Deadline reminders" button
+function PushInlineButton({ uid, lang }){
+  const L=(en,hi)=>lang==="hi"?hi:en;
+  const {state,busy,err,turnOn}=usePushControl(uid,lang);
+  if(!state||state==="unsupported") return null;
+  const on=state==="on";
+  if(state==="denied") return <div style={{fontSize:11.5,color:"#B45309",lineHeight:1.5}}>{L("Notifications are blocked for Yojana Sahay in your phone's settings — allow them there.","फ़ोन की सेटिंग में योजना सहाय के नोटिफ़िकेशन बंद हैं — वहां चालू करें।")}</div>;
+  return(<div>
+    <button type="button" disabled={on||busy} onClick={turnOn} style={{border:0,borderRadius:10,padding:"8px 12px",fontSize:12.5,fontWeight:700,cursor:on?"default":"pointer",display:"inline-flex",alignItems:"center",gap:6,
+      background:on?"rgba(14,159,110,0.14)":"#E8730C",color:on?"#0E9F6E":"#fff",opacity:busy?0.6:1}}>
+      {on&&<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>}
+      {on?L("Reminders are on","रिमाइंडर चालू हैं"):busy?L("Turning on…","चालू हो रहे हैं…"):L("Turn on reminders","रिमाइंडर चालू करें")}
+    </button>
+    {err&&<div style={{fontSize:11,color:"#B91C1C",marginTop:5}}>{err}</div>}
+  </div>);
 }
 
 // Profile → "Phone notifications" switch (always there, even after the Home card is dismissed)
@@ -10446,6 +10482,7 @@ function YojanaSahayInner(){
   const [showChecker,setShowChecker]=useState(false);
   const [showHomeSearch,setShowHomeSearch]=useState(false);
   const [homeSearchVoice,setHomeSearchVoice]=useState(false); // opened by the widget's 🎤
+  const [showAppFeatures,setShowAppFeatures]=useState(false); // Android app: "Made for your phone"
   const [checkerAnswers,setCheckerAnswers]=useState(null); // answers from latest eligibility recheck (raw, pre-decision)
   // Bumped when the AI chat finishes an eligibility check, so Home re-reads it.
   const [quizSavedTick,setQuizSavedTick]=useState(0);
@@ -11482,6 +11519,23 @@ function YojanaSahayInner(){
     };
     return { ...base, display:"none", flex:1 };
   };
+
+  // Android app: "Made for your phone" — once, shortly after the first open
+  // (never over another sheet), and from Profile → App features.
+  useEffect(()=>{
+    if(!isNativeApp()) return;
+    const open=()=>setShowAppFeatures(true);
+    window.addEventListener("ys-open-app-features",open);
+    return()=>window.removeEventListener("ys-open-app-features",open);
+  },[]);
+  useEffect(()=>{
+    if(!loaded||!isNativeApp()||appFeaturesSeen()) return;
+    const t=setTimeout(()=>{
+      if(showChecker||showHomeSearch||selectedScheme||selectedCategory||showAdmin||showFAQ) return;
+      setShowAppFeatures(true);
+    },1800);
+    return()=>clearTimeout(t);
+  },[loaded,showChecker,showHomeSearch,selectedScheme,selectedCategory,showAdmin,showFAQ]);
 
   return(
     <div ref={appRootRef} className="app-root" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{fontFamily:bf,background:th.appBg,maxWidth:420,margin:"0 auto",position:"relative",display:"flex",flexDirection:"column",overflowX:"hidden",boxShadow:"0 0 60px rgba(0,0,0,0.15)",opacity:langAnim?0.7:1,transition:"opacity 0.12s,background 0.3s"}}>
@@ -12782,6 +12836,13 @@ function YojanaSahayInner(){
           <GlobalSearch lang={lang} dark={dark} theme={THEME[dark?"dark":"light"]} expandTags={expandSearchTags}
             appsCount={homeAppsCount} startVoice={homeSearchVoice} onClose={()=>{setShowHomeSearch(false);setHomeSearchVoice(false);}} onAction={handleSearchAction}/>
         </Suspense>
+      )}
+      {showAppFeatures&&(
+        <AppFeatures lang={lang} dark={dark} schemeCount={SCHEME_COUNT}
+          signedIn={!!auth.currentUser}
+          pushSlot={auth.currentUser?<PushInlineButton uid={auth.currentUser.uid} lang={lang}/>:null}
+          onSignIn={()=>goTab("profile")}
+          onClose={()=>setShowAppFeatures(false)}/>
       )}
       {showFAQ&&(
         <div

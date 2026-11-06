@@ -237,5 +237,39 @@ public final class YsWidgets {
       try { refreshAll(c); } catch (Exception ignored) {}
       call.resolve();
     }
+
+    /** Can the phone's launcher place a widget for us? → { supported } */
+    @PluginMethod
+    public void canPin(PluginCall call) {
+      boolean ok = false;
+      try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          ok = AppWidgetManager.getInstance(getContext()).isRequestPinAppWidgetSupported();
+        }
+      } catch (Exception ignored) {}
+      com.getcapacitor.JSObject r = new com.getcapacitor.JSObject();
+      r.put("supported", ok);
+      call.resolve(r);
+    }
+
+    /** Ask the launcher to add a widget: { kind: "quick" | "search" } → { requested } */
+    @PluginMethod
+    public void pin(PluginCall call) {
+      String kind = call.getString("kind", "quick");
+      boolean ok = false;
+      try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          Context c = getContext();
+          AppWidgetManager m = AppWidgetManager.getInstance(c);
+          if (m.isRequestPinAppWidgetSupported()) {
+            ComponentName cn = new ComponentName(c, "search".equals(kind) ? Search.class : Quick.class);
+            ok = m.requestPinAppWidget(cn, null, null);
+          }
+        }
+      } catch (Exception ignored) {}
+      com.getcapacitor.JSObject r = new com.getcapacitor.JSObject();
+      r.put("requested", ok);
+      call.resolve(r);
+    }
   }
 }
