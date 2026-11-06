@@ -599,7 +599,7 @@ export const DELHI_SCHEMES = [
     icon: "🔧", color: "#0369A1", scope: "state", state: "Delhi",
     ministry: { en: "Delhi Directorate of Training & Technical Education (DTTE)", hi: "दिल्ली प्रशिक्षण एवं तकनीकी शिक्षा निदेशालय (DTTE)" },
     name:    { en: "Mukhyamantri Apprenticeship Scheme (Delhi)",          hi: "मुख्यमंत्री अप्रेंटिसशिप योजना (दिल्ली)" },
-    benefit: { en: "Monthly stipend of ₹6,000–₹9,000 during industry apprenticeship + certification for Delhi youth", hi: "दिल्ली युवाओं को उद्योग अप्रेंटिसशिप के दौरान ₹6,000–₹9,000 मासिक वजीफा + प्रमाणीकरण" },
+    benefit: { en: "Monthly stipend ranges from ₹10,900 to ₹12,300 depending on discipline.", hi: "मासिक भत्ता ₹10,900 से ₹12,300 तक, विषय के अनुसार बदलता है।" },
     tag:     { en: "Employment", hi: "रोजगार" },
     annual: 9000,
     apply:   { en: "https://drdo.gov.in/drdo/sites/default/files/vacancy/advtDESIDOC10062026.pdf", hi: "dtte.delhi.gov.in" }, applyType: "online",
