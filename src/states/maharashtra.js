@@ -1257,4 +1257,22 @@ export const MAHARASHTRA_SCHEMES = [
     match: (a) => a.state === "Maharashtra" && a.who === "farmer",
   },
 
+  // <auto-scheme id="maha_foreign_scholarship"> added by Scheme Discovery agent on 2026-11-04 · source: https://fs.maharashtra.gov.in/
+  {
+    id: "maha_foreign_scholarship",
+    icon: "📚", color: "#003580", scope: "state", state: "Maharashtra",
+    ministry: { en: "Higher and Technical Education Department", hi: "उच्च व तांत्रिक शिक्षण विभाग" },
+    name:    { en: "Maharashtra Foreign Scholarship Program", hi: "महाराष्ट्र विदेशी शिष्यवृत्ती कार्यक्रम" },
+    benefit: { en: "Financial assistance for higher education abroad", hi: "परदेशात उच्च शिक्षणासाठी आर्थिक सहाय्य" },
+    tag:     { en: "Scholarship", hi: "शिष्यवृत्ती" },
+    annual: 0,
+    apply:   { en: "https://fs.maharashtra.gov.in/", hi: "https://fs.maharashtra.gov.in/" }, applyType: "online",
+    docs:    { en: ["Foreign Scholarship Year 2026-27 Advertisement","Foreign Scholarship Year 2026-27 Date Extension Letter"],
+               hi: ["परदेशी शिष्यवृत्ती वर्ष 2026-27 जाहिरात","परदेशी शिष्यवृत्ती वर्ष 2026-27 तारीख विस्तार पत्र"] },
+    lastDate: "2026-12-31",
+    autoAdded: "2026-11-04", source: "https://fs.maharashtra.gov.in/",
+    match: (a) => a.state === "Maharashtra" && a.who === "student",
+  },
+  // </auto-scheme id="maha_foreign_scholarship">
+
 ];
