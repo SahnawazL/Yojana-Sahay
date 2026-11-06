@@ -56,7 +56,7 @@ await ev(() => { localStorage.setItem("yojana_lang", "en"); localStorage.setItem
 await restart();
 
 await step("features sheet", async () => {
-  await T(2500);
+  await T(7000);   // the launch screen is gone and the sheet has slid up
   log("sheet open:", await ev(() => !!document.querySelector('[aria-label="App features"]')));
   shot("02-made-for-your-phone");
   await clickText("^Continue$"); await T(900);
@@ -92,6 +92,15 @@ await step("widget", async () => {
   });
   const ui = () => { adb("shell uiautomator dump /sdcard/ui.xml"); return adb("shell cat /sdcard/ui.xml"); };
   const node = (xml, re) => { for (const m of xml.matchAll(/<node [^>]*>/g)) if (re.test(m[0])) { const b = /bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/.exec(m[0]); if (b) return { x: (+b[1] + +b[3]) >> 1, y: (+b[2] + +b[4]) >> 1 }; } return null; };
+  // 1) the app's own "Add deadline widget": Android asks the launcher, we confirm
+  log("pin:", JSON.stringify(await ev(() => window.Capacitor.nativePromise("YSWidget", "pin", { kind: "quick" }).catch(e => "err " + e.message))));
+  await T(2500);
+  const add = node(ui(), /text="(Add to home screen|ADD TO HOME SCREEN|Add|ADD)"/);
+  if (add) { adb(`shell input tap ${add.x} ${add.y}`); await T(3000); }
+  const placed = () => (adb("shell dumpsys appwidget").match(/YsWidgets\$(Quick|Search)/g) || []).length;
+  log("widget dialog:", !!add, "placed entries:", placed());
+  if (add) { adb("shell input keyevent KEYCODE_HOME"); await T(3500); shot("07-home-screen-widget"); return; }
+  // 2) otherwise drag it from the widget picker
   const [W, H] = (/(\d+)x(\d+)/.exec(adb("shell wm size")) || [0, 1080, 2400]).slice(1).map(Number);
   adb("shell input keyevent KEYCODE_HOME"); await T(2000);
   adb(`shell input swipe ${W >> 1} ${Math.round(H * 0.55)} ${W >> 1} ${Math.round(H * 0.55)} 1500`); await T(1500);
