@@ -412,7 +412,7 @@ export const CHHATTISGARH_SCHEMES = [
     icon: "📖", color: "#78350F", scope: "state", state: "Chhattisgarh",
     ministry: { en: "Chhattisgarh Tribal Welfare Dept.", hi: "छत्तीसगढ़ आदिम जाति तथा अनुसूचित जाति विकास विभाग" },
     name:    { en: "Pre-Matric Scholarship for SC/ST Students (CG)", hi: "अनुसूचित जाति/जनजाति प्री-मैट्रिक छात्रवृत्ति (छत्तीसगढ़)" },
-    benefit: { en: "₹500–₹1,000/month scholarship + free books for SC/ST students (Class 1–10)", hi: "SC/ST छात्रों को ₹500–₹1,000/माह छात्रवृत्ति + मुफ्त पाठ्य पुस्तकें (कक्षा 1–10)" },
+    benefit: { en: "₹3,500 per annum for Day Scholars and ₹7,000 per annum for Hostellers (Component 1) and ₹8,000 per annum for classes III‑X (Component 2).", hi: "₹3,500 प्रति वर्ष दिन के छात्र और ₹7,000 प्रति वर्ष रात्रि छात्र (घटक 1) तथा ₹8,000 प्रति वर्ष कक्षा III‑X (घटक 2)।" },
     tag:     { en: "Education", hi: "शिक्षा" },
     annual: 12000,
     apply:   { en: "https://socialjustice.gov.in/schemes/23", hi: "scholarships.gov.in" }, applyType: "online",
