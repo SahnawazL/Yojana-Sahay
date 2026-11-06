@@ -5,7 +5,9 @@
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 const OUT = process.env.RUNNER_TEMP + "/shots";
-const log = (...a) => console.log(...a);
+const log = (...a) => { const line = a.join(" "); console.log(line); try { fs.appendFileSync(OUT + "/progress.txt", line + "\n"); } catch {} };
+// never let the run hang: give up after 9 minutes, keeping what was taken
+setTimeout(() => { log("TIMEOUT — stopping"); process.exit(0); }, 9 * 60 * 1000).unref();
 const adb = (c) => { try { return execSync("adb " + c, { encoding: "utf8", timeout: 30000 }).trim(); } catch (e) { return "ADB-ERR " + e.message.slice(0, 200); } };
 const T = (ms) => new Promise(r => setTimeout(r, ms));
 let ws = null, seq = 0; const waiting = new Map();
@@ -17,11 +19,11 @@ async function connect() {
   let target = null;
   for (let i = 0; i < 15 && !target; i++) {
     if (i > 0) { reforward(); await T(1500); }
-    try { target = (await (await fetch("http://127.0.0.1:9222/json/list")).json()).find(t => t.type === "page" && String(t.url).startsWith("https://localhost")); } catch {}
+    try { target = (await (await fetch("http://127.0.0.1:9222/json/list", { signal: AbortSignal.timeout(4000) })).json()).find(t => t.type === "page" && String(t.url).startsWith("https://localhost")); } catch {}
   }
   if (!target) throw new Error("app page not found");
   ws = new WebSocket(target.webSocketDebuggerUrl);
-  await new Promise((ok, bad) => { ws.onopen = ok; ws.onerror = bad; });
+  await new Promise((ok, bad) => { ws.onopen = ok; ws.onerror = bad; setTimeout(() => bad(new Error("connect timeout")), 8000); });
   ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && waiting.has(d.id)) { waiting.get(d.id)(d); waiting.delete(d.id); } };
 }
 const send = (method, params = {}) => new Promise(r => {
@@ -30,17 +32,25 @@ const send = (method, params = {}) => new Promise(r => {
   try { ws.send(JSON.stringify({ id, method, params })); } catch { waiting.delete(id); r({}); }
 });
 const ev = async (fn, arg) => {
-  if (!ws || ws.readyState !== 1) await connect();
+  if (!ws || ws.readyState !== 1) { reforward(); await connect(); }
   const r = await send("Runtime.evaluate", { expression: `(${fn.toString()})(${JSON.stringify(arg ?? null)})`, awaitPromise: true, returnByValue: true, userGesture: true });
   return r.result?.exceptionDetails ? "ERR " + (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text) : r.result?.result?.value;
 };
-const shot = (name) => { const png = execSync("adb exec-out screencap -p", { maxBuffer: 64 * 1024 * 1024 }); fs.writeFileSync(`${OUT}/${name}.png`, png); log("saved", name, png.length); };
+const shot = (name) => { const png = execSync("adb exec-out screencap -p", { maxBuffer: 64 * 1024 * 1024, timeout: 20000 }); fs.writeFileSync(`${OUT}/${name}.png`, png); log("saved", name, png.length); };
 const step = async (name, fn) => { try { await fn(); } catch (e) { log("FAILED", name, e.message); } };
-const restart = async () => { adb("shell am force-stop com.yojanasahay.app"); await T(1200); adb("shell am start -n com.yojanasahay.app/.MainActivity"); await T(9000); ws = null; await connect(); };
+const restart = async () => {
+  try { ws && ws.close(); } catch {}
+  ws = null;
+  adb("shell am force-stop com.yojanasahay.app"); await T(1200);
+  adb("shell am start -n com.yojanasahay.app/.MainActivity"); await T(9000);
+  reforward(); await connect();
+};
 const clickText = (re) => ev((s) => { const r = new RegExp(s); const b = [...document.querySelectorAll("button,[role=button],div")].reverse().find(e => r.test((e.textContent || "").trim()) && e.offsetParent); if (b) { b.click(); return true; } return false; }, re);
 const escape = () => ev(() => { window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); return true; });
 
+log("start");
 await connect();
+log("connected");
 // English, light theme, fresh "first open" so the features sheet appears
 await ev(() => { localStorage.setItem("yojana_lang", "en"); localStorage.setItem("yojana_dark", "false"); localStorage.removeItem("ys_app_features_seen"); return true; });
 await restart();

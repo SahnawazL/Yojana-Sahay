@@ -19,6 +19,7 @@ adb shell am start -n com.yojanasahay.app/.MainActivity > /dev/null
 sleep 25
 PID=$(adb shell pidof com.yojanasahay.app | tr -d '\r')
 adb forward tcp:9222 "localabstract:webview_devtools_remote_$PID" > /dev/null 2>&1
-node "$RUNNER_TEMP/pw/store-shots.mjs" > "$OUT/log.txt" 2>&1
+timeout 660 node "$RUNNER_TEMP/pw/store-shots.mjs" > "$OUT/log.txt" 2>&1
 cat "$OUT/log.txt"
+echo "::notice title=Store screenshots log::$(tr '\n' '|' < "$OUT/log.txt" | cut -c1-3000)"
 exit 0
