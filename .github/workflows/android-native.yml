@@ -24,6 +24,11 @@ on:
         type: boolean
         required: false
         default: false
+      store_screenshots:
+        description: "Take app-store screenshots on an Android emulator (test build, not for release)"
+        type: boolean
+        required: false
+        default: false
   push:
     branches: [main]
     paths:
@@ -81,7 +86,7 @@ jobs:
 
       - name: Test build switch
         run: |
-          if [ "${{ github.event.inputs.diagnose }}" = "true" ]; then
+          if [ "${{ github.event.inputs.diagnose }}" = "true" ] || [ "${{ github.event.inputs.store_screenshots }}" = "true" ]; then
             echo "YS_DIAG=1" >> "$GITHUB_ENV"
             # live updates are tested against a local feed on the build machine
             echo "YS_LIVE_URL=http://localhost:8000/latest.json" >> "$GITHUB_ENV"
@@ -193,6 +198,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw" && npm init -y > /dev/null && true
           echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
           cp "$GITHUB_WORKSPACE/scripts/android-native/diagnose.mjs" "$RUNNER_TEMP/pw/diagnose.mjs"
+          cp "$GITHUB_WORKSPACE/scripts/android-native/store-shots.mjs" "$RUNNER_TEMP/pw/store-shots.mjs"
           mkdir -p "$RUNNER_TEMP/pw/node_modules" && ln -sfn "$GITHUB_WORKSPACE/node_modules/sharp" "$RUNNER_TEMP/pw/node_modules/sharp"
           # live-update test feed: a newer working copy and a deliberately broken one
           cd "$GITHUB_WORKSPACE"
@@ -218,7 +224,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
-          script: bash scripts/android-native/diagnose.sh "${{ runner.temp }}/out"
+          script: bash scripts/android-native/${{ github.event.inputs.store_screenshots == 'true' && 'store-shots.sh' || 'diagnose.sh' }} "${{ runner.temp }}/out"
 
       - name: Report what happened inside the app (test build)
         if: always() && env.YS_DIAG == '1'
@@ -243,6 +249,17 @@ jobs:
             --title "Automated test reports" --notes "Screenshots from the automated Android emulator test. Not a download for people."
           cp "$F" "$RUNNER_TEMP/launch-frames.txt"
           gh release upload test-reports "$RUNNER_TEMP/launch-frames.txt" --clobber
+
+      - name: Upload store screenshots
+        if: always() && github.event.inputs.store_screenshots == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls "$RUNNER_TEMP/shots"/*.png > /dev/null 2>&1 || { echo "::warning::no screenshots were taken"; exit 0; }
+          gh release view store-screenshots > /dev/null 2>&1 || gh release create store-screenshots --prerelease --latest=false \
+            --title "Store screenshots" --notes "Screenshots taken automatically on an Android emulator, for app-store listings."
+          gh release upload store-screenshots "$RUNNER_TEMP/shots"/*.png --clobber
+          echo "::notice title=Store screenshots::$(cd "$RUNNER_TEMP/shots" && ls *.png | tr '\n' ' ')"
 
       - name: Report errors (readable from the run's annotations)
         if: failure()
