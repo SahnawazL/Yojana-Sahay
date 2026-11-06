@@ -5,9 +5,7 @@
 set -u
 OUT="$RUNNER_TEMP/shots"; mkdir -p "$OUT"
 APK=$(ls "$1"/*.apk | head -n 1)
-# phone-like screen: 1080 × 2400 pixels at 420 dpi (like a Pixel)
-adb shell wm size 1080x2400 > /dev/null 2>&1 || true
-adb shell wm density 420 > /dev/null 2>&1 || true
+adb wait-for-device; adb shell wm size > "$OUT/size.txt" 2>&1
 adb install -r "$APK" > "$OUT/install.txt" 2>&1
 adb shell pm grant com.yojanasahay.app android.permission.POST_NOTIFICATIONS >> "$OUT/install.txt" 2>&1 || true
 # clean status bar: 10:00, full battery and signal, no notification icons
