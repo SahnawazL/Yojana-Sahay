@@ -661,4 +661,21 @@ export const TELANGANA_SCHEMES = [
   },
   // </auto-scheme id="ts_indiramma_bheema_life">
 
+  // <auto-scheme id="ts_indiramma_minority_mahila"> added by Scheme Discovery agent on 2026-11-06 · source: https://suryapet.telangana.gov.in/scheme-category/schemes/
+  {
+    id: "ts_indiramma_minority_mahila",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Telangana",
+    ministry: { en: "Telangana State Government", hi: "तेलंगाना राज्य सरकार" },
+    name:    { en: "Indiramma Minority Mahila Yojana", hi: "इंदिरम्मा अल्पसंख्यक महिला योजना" },
+    benefit: { en: "₹50,000 one‑time financial assistance for minority women", hi: "₹50,000 एक बार की आर्थिक सहायता" },
+    tag:     { en: "Minority women", hi: "अल्पसंख्यक महिलाएं" },
+    annual: 50000,
+    apply:   { en: "https://suryapet.telangana.gov.in/scheme-category/schemes/", hi: "https://suryapet.telangana.gov.in/scheme-category/schemes/" }, applyType: "online",
+    docs:    { en: ["Application Form","Proof of Identity","Proof of Ration Card","Proof of Income","Proof of Education"],
+               hi: ["आवेदन पत्र","पहचान प्रमाण","रेशन कार्ड प्रमाण","आय प्रमाण","शैक्षणिक प्रमाण"] },
+    autoAdded: "2026-11-06", source: "https://suryapet.telangana.gov.in/scheme-category/schemes/",
+    match: (a) => a.state === "Telangana" && a.who === "women" && a.income === "below1" && ["18to35","35to60"].includes(a.age) && a.educationLevel === "class1to8",
+  },
+  // </auto-scheme id="ts_indiramma_minority_mahila">
+
 ];
