@@ -678,4 +678,21 @@ export const TELANGANA_SCHEMES = [
   },
   // </auto-scheme id="ts_indiramma_minority_mahila">
 
+  // <auto-scheme id="ts_muslim_welfare_one"> added by Scheme Discovery agent on 2026-11-06 · source: https://organiser.org/2026/02/19/340815/bharat/telangana-congress-launches-muslim-appeasement-schemes-with-rs-50000-cheques-80-e-scooters-mopeds-for-fakheers/
+  {
+    id: "ts_muslim_welfare_one",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Telangana",
+    ministry: { en: "Minorities Welfare & Public Enterprises", hi: "अल्पसंख्यक कल्याण एवं सार्वजनिक उद्यम" },
+    name:    { en: "Muslim Welfare Scheme – One‑time ₹50,000 Cheque", hi: "मुस्लिम कल्याण योजना – एक‑बार ₹50,000 चेक" },
+    benefit: { en: "₹50,000 one‑time subsidy cheque for minority women", hi: "मुस्लिम महिलाओं के लिए एक‑बार ₹50,000 अनुदान चेक" },
+    tag:     { en: "Minority women", hi: "अल्पसंख्यक महिलाएँ" },
+    annual: 50000,
+    apply:   { en: "https://organiser.org/2026/02/19/340815/bharat/telangana-congress-launches-muslim-appeasement-schemes-with-rs-50000-cheques-80-e-scooters-mopeds-for-fakheers/", hi: "https://organiser.org/2026/02/19/340815/bharat/telangana-congress-launches-muslim-appeasement-schemes-with-rs-50000-cheques-80-e-scooters-mopeds-for-fakheers/" }, applyType: "offline",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-11-06", source: "https://organiser.org/2026/02/19/340815/bharat/telangana-congress-launches-muslim-appeasement-schemes-with-rs-50000-cheques-80-e-scooters-mopeds-for-fakheers/",
+    match: (a) => a.state === "Telangana" && a.who === "women",
+  },
+  // </auto-scheme id="ts_muslim_welfare_one">
+
 ];
