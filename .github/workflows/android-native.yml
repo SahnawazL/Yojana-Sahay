@@ -222,9 +222,8 @@ jobs:
           api-level: 36
           target: google_apis
           arch: x86_64
-          profile: ${{ github.event.inputs.store_screenshots == 'true' && 'pixel_7' || '' }}
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot ${{ github.event.inputs.store_screenshots == 'true' && '-skin 1080x2400 -memory 4096' || '' }}
           script: bash scripts/android-native/${{ github.event.inputs.store_screenshots == 'true' && 'store-shots.sh' || 'diagnose.sh' }} "${{ runner.temp }}/out"
 
       - name: Report what happened inside the app (test build)
