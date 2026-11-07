@@ -463,8 +463,10 @@
     "confidence": 0
   },
   "e_shram": {
-    "lastVerified": "2026-10-02T00:22:56.554Z",
-    "confidence": 0
+    "lastVerified": "2026-11-07T21:34:01.247Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "pmkmy": {
     "lastVerified": "2026-10-17T21:34:39.645Z",
@@ -611,7 +613,7 @@
     "linkAlive": true
   },
   "free_coaching_sc": {
-    "lastVerified": "2026-10-02T00:23:08.606Z",
+    "lastVerified": "2026-11-07T21:34:10.297Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -939,7 +941,7 @@
     "confidence": 0
   },
   "goa_housing_board_affordable": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-07T21:34:59.436Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2484,7 +2486,7 @@
     "confidence": 0
   },
   "gujarat_amrutum": {
-    "lastVerified": "2026-10-02T00:23:54.904Z",
+    "lastVerified": "2026-11-07T21:35:52.998Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2540,7 +2542,7 @@
     "confidence": 0
   },
   "gujarat_dr_ambedkar_awas": {
-    "lastVerified": "2026-10-02T00:24:56.139Z",
+    "lastVerified": "2026-11-07T21:37:23.436Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2570,7 +2572,7 @@
     "confidence": 0
   },
   "gujarat_drip_irrigation": {
-    "lastVerified": "2026-10-08T07:35:36.509Z",
+    "lastVerified": "2026-11-07T21:38:04.463Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2594,7 +2596,7 @@
     "confidence": 0
   },
   "gujarat_bocw": {
-    "lastVerified": "2026-10-08T07:35:36.509Z",
+    "lastVerified": "2026-11-07T21:36:32.867Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2654,8 +2656,10 @@
     "confidence": 0
   },
   "gujarat_beekeeping": {
-    "lastVerified": "2026-10-08T07:38:01.616Z",
-    "confidence": 0
+    "lastVerified": "2026-11-07T21:36:27.140Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "gujarat_widow_remarriage": {
     "lastVerified": "2026-10-08T07:38:01.616Z",
@@ -2664,13 +2668,13 @@
     "confidence": 0
   },
   "gujarat_divyang_employment": {
-    "lastVerified": "2026-10-08T07:38:01.616Z",
+    "lastVerified": "2026-11-07T21:37:06.494Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_cm_pratibha": {
-    "lastVerified": "2026-10-08T07:39:02.437Z",
+    "lastVerified": "2026-11-07T21:36:44.214Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2687,7 +2691,7 @@
     "linkAlive": true
   },
   "gujarat_cold_chain": {
-    "lastVerified": "2026-10-08T07:39:02.437Z",
+    "lastVerified": "2026-11-07T21:36:54.081Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3733,6 +3737,18 @@
   },
   "ts_indiramma_minority_mahila": {
     "lastVerified": "2026-11-06T21:33:57.377Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "goa_gagan_bharari_shiksha": {
+    "lastVerified": "2026-11-07T21:34:46.427Z"
+  },
+  "goa_interest_free_education": {
+    "lastVerified": "2026-11-07T21:35:08.166Z"
+  },
+  "goa_post_matric_scholarship": {
+    "lastVerified": "2026-11-07T21:35:13.259Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
