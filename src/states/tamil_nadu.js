@@ -741,4 +741,22 @@ export const TAMIL_NADU_SCHEMES = [
   },
   // </auto-scheme id="tn_evr_nagammai_scholarship">
 
+  // <auto-scheme id="tn_annapoorani_super_six"> added by Scheme Discovery agent on 2026-11-08 · source: https://currentaffairs.adda247.com/tamil-nadu-launches-annapoorani-super-six-lpg-scheme/
+  {
+    id: "tn_annapoorani_super_six",
+    icon: "🏠", color: "#0F766E", scope: "state", state: "Tamil Nadu",
+    ministry: { en: "Tamil Nadu Government", hi: "तमिलनाडु सरकार" },
+    name:    { en: "Annapoorani Super Six LPG Scheme", hi: "अननापोरणी सुपर सिक्स एलपीजी योजना" },
+    benefit: { en: "Reimbursement of LPG cylinder cost via DBT", hi: "डीबीटी के माध्यम से एलपीजी सिलिंडर लागत की प्रतिपूर्ति" },
+    tag:     { en: "LPG Subsidy", hi: "एलपीजी सब्सिडी" },
+    annual: 10000000,
+    apply:   { en: "https://currentaffairs.adda247.com/tamil-nadu-launches-annapoorani-super-six-lpg-scheme/", hi: "https://currentaffairs.adda247.com/tamil-nadu-launches-annapoorani-super-six-lpg-scheme/" }, applyType: "online",
+    docs:    { en: ["Eligibility Criteria","Application Form"],
+               hi: ["पात्रता मानदंड","आवेदन पत्र"] },
+    lastDate: "2027-01-15",
+    autoAdded: "2026-11-08", source: "https://currentaffairs.adda247.com/tamil-nadu-launches-annapoorani-super-six-lpg-scheme/",
+    match: (a) => a.state === "Tamil Nadu" && a.who === "general" && a.income === "below1" && (a.disability == null || a.disability !== "none"),
+  },
+  // </auto-scheme id="tn_annapoorani_super_six">
+
 ];
