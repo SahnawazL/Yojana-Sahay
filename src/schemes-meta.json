@@ -2508,13 +2508,13 @@
     "confidence": 0
   },
   "gujarat_vhali_dikri": {
-    "lastVerified": "2026-10-03T23:27:05.455Z",
+    "lastVerified": "2026-11-09T21:37:04.924Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_namo_lakshmi": {
-    "lastVerified": "2026-10-03T00:06:15.834Z",
+    "lastVerified": "2026-11-09T21:33:57.287Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2532,13 +2532,13 @@
     "confidence": 0
   },
   "gujarat_vriddha_sahay": {
-    "lastVerified": "2026-10-03T23:27:10.575Z",
+    "lastVerified": "2026-11-09T21:37:13.235Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_pandit_dindayal_awas": {
-    "lastVerified": "2026-10-03T00:06:42.585Z",
+    "lastVerified": "2026-11-09T21:35:02.023Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2550,19 +2550,19 @@
     "confidence": 0
   },
   "gujarat_namo_saraswati": {
-    "lastVerified": "2026-10-13T03:42:04.473Z",
+    "lastVerified": "2026-11-09T21:34:09.458Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_postmatric_sc": {
-    "lastVerified": "2026-10-08T07:35:36.509Z",
+    "lastVerified": "2026-11-09T21:35:23.496Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "gujarat_swavlamban": {
-    "lastVerified": "2026-10-08T07:35:36.509Z",
+    "lastVerified": "2026-11-09T21:36:58.112Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2586,7 +2586,7 @@
     "confidence": 0
   },
   "gujarat_prematric_sc": {
-    "lastVerified": "2026-10-08T07:35:36.509Z",
+    "lastVerified": "2026-11-09T21:35:24.723Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2616,7 +2616,7 @@
     "linkAlive": true
   },
   "gujarat_surya_rooftop": {
-    "lastVerified": "2026-10-08T07:37:03.099Z",
+    "lastVerified": "2026-11-09T21:36:47.328Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2628,7 +2628,7 @@
     "confidence": 0
   },
   "gujarat_organic_farming": {
-    "lastVerified": "2026-10-08T07:37:03.099Z",
+    "lastVerified": "2026-11-09T21:34:58.678Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2664,7 +2664,7 @@
     "linkAlive": true
   },
   "gujarat_widow_remarriage": {
-    "lastVerified": "2026-10-08T07:38:01.616Z",
+    "lastVerified": "2026-11-09T21:37:26.503Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2682,7 +2682,7 @@
     "confidence": 0
   },
   "gujarat_rte_reimburse": {
-    "lastVerified": "2026-10-16T11:30:26.682Z",
+    "lastVerified": "2026-11-09T21:36:09.525Z",
     "confidence": 0,
     "httpStatus": 503
   },
@@ -2747,7 +2747,7 @@
     "confidence": 0
   },
   "haryana_ambedkar_awas": {
-    "lastVerified": "2026-10-08T08:39:26.694Z",
+    "lastVerified": "2026-11-09T21:37:38.968Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3751,6 +3751,12 @@
   },
   "goa_post_matric_scholarship": {
     "lastVerified": "2026-11-07T21:35:13.259Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "tn_annapoorani_super_six": {
+    "lastVerified": "2026-11-09T21:33:43.551Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
