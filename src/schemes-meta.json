@@ -2711,13 +2711,13 @@
     "confidence": 0
   },
   "haryana_mmpsy": {
-    "lastVerified": "2026-10-08T08:20:20.425Z",
+    "lastVerified": "2026-11-10T21:37:32.735Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "haryana_old_age_allowance": {
-    "lastVerified": "2026-10-08T08:20:33.838Z",
+    "lastVerified": "2026-11-10T21:37:37.834Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2735,13 +2735,13 @@
     "confidence": 0
   },
   "haryana_bhavantar": {
-    "lastVerified": "2026-10-08T08:39:26.694Z",
+    "lastVerified": "2026-11-10T21:34:14.361Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_chirayu": {
-    "lastVerified": "2026-10-08T08:39:26.694Z",
+    "lastVerified": "2026-11-10T21:34:33.997Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2753,19 +2753,19 @@
     "confidence": 0
   },
   "haryana_disability_allowance": {
-    "lastVerified": "2026-10-08T08:39:26.694Z",
+    "lastVerified": "2026-11-10T21:35:12.186Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_antyodaya": {
-    "lastVerified": "2026-10-08T08:39:26.694Z",
+    "lastVerified": "2026-11-10T21:34:03.171Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_meri_fasal": {
-    "lastVerified": "2026-10-08T08:39:26.694Z",
+    "lastVerified": "2026-11-10T21:36:53.201Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
@@ -2777,7 +2777,7 @@
     "confidence": 0
   },
   "haryana_e_karma": {
-    "lastVerified": "2026-10-08T16:34:08.910Z",
+    "lastVerified": "2026-11-10T21:35:24.270Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2789,25 +2789,25 @@
     "confidence": 0
   },
   "haryana_ladli": {
-    "lastVerified": "2026-10-08T16:35:10.960Z",
+    "lastVerified": "2026-11-10T21:35:55.519Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_farm_equipment": {
-    "lastVerified": "2026-10-08T16:35:10.960Z",
+    "lastVerified": "2026-11-10T21:35:54.346Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
   },
   "haryana_micro_irrigation": {
-    "lastVerified": "2026-10-08T16:35:10.960Z",
+    "lastVerified": "2026-11-10T21:37:23.665Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
   },
   "haryana_bocw": {
-    "lastVerified": "2026-10-08T16:35:10.960Z",
+    "lastVerified": "2026-11-10T21:34:21.046Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2819,7 +2819,7 @@
     "confidence": 0
   },
   "haryana_ddjay": {
-    "lastVerified": "2026-10-08T16:35:10.960Z",
+    "lastVerified": "2026-11-10T21:34:59.173Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3564,7 +3564,7 @@
     "lastVerified": "2026-10-25T21:34:30.734Z"
   },
   "haryana_ambedkar_medhavi_chhatar": {
-    "lastVerified": "2026-10-25T21:33:43.953Z",
+    "lastVerified": "2026-11-10T21:33:43.983Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3760,5 +3760,14 @@
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
+  },
+  "haryana_dayalu": {
+    "lastVerified": "2026-11-10T21:34:46.834Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "haryana_lpg_500": {
+    "lastVerified": "2026-11-10T21:36:34.628Z"
   }
 }
