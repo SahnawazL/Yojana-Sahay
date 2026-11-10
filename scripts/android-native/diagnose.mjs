@@ -203,7 +203,12 @@ if (LIVE && B0) {
   const liveInfo = () => ev(() => window.__ysLive ? { build: window.__ysLive.build, state: window.__ysLive.state, ready: !!window.__ysLive.ready, log: window.__ysLive.log.slice(-6) } : { none: document.title + " | " + document.body.innerText.slice(0, 60) });
   feed(B0 + 100, "bundle-good.zip");
   await restart(25000);
-  out("live 1 (installed copy " + B0 + ") finds + downloads " + (B0 + 100), await liveInfo());
+  out("live 1 (installed copy " + B0 + ") finds " + (B0 + 100) + " and asks first", await liveInfo());
+  out("live 1 update prompt on screen", await ev(() => ({ shown: !!document.querySelector('[aria-label="Update available"],[aria-label="अपडेट उपलब्ध है"]'), featuresSheetOpen: !!document.querySelector('[aria-label="App features"]') })));
+  // the person taps "Update now" with "update automatically" ticked (fire and forget: the page reloads)
+  out("live 1 tap Update now (auto on)", await ev(() => { window.ysNative.liveUpdate("auto").then(r => { window.__ysLiveChoice = r; }); return "tapped"; }));
+  await T(20000);
+  out("live 1 after tapping", await ev(() => ({ choice: window.__ysLiveChoice || null, auto: window.ysNative && window.ysNative.liveAutoOn && window.ysNative.liveAutoOn(), live: window.__ysLive ? { build: window.__ysLive.build, state: window.__ysLive.state, log: window.__ysLive.log.slice(-4) } : null })));
   // this start switches to the downloaded copy: film what people see meanwhile
   {
     const sharp = (await import("sharp")).default;

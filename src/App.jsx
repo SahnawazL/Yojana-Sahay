@@ -6543,7 +6543,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         {/* Email field */}
         <div style={{marginBottom:12}}>
           <div style={{fontSize:11.5,fontWeight:700,color:dark?"#aaa":"#555",marginBottom:6,fontFamily:bf,letterSpacing:0.3}}>
-            📧 {pt.emailLabel}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign:"-1px",marginRight:4}}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>{pt.emailLabel}
           </div>
           <input
             type="email" inputMode="email" autoComplete="email"
@@ -6562,7 +6562,7 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
         {/* Password field */}
         <div style={{marginBottom:18}}>
           <div style={{fontSize:11.5,fontWeight:700,color:dark?"#aaa":"#555",marginBottom:6,fontFamily:bf,letterSpacing:0.3}}>
-            🔒 {pt.passwordLabel}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign:"-1px",marginRight:4}}><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>{pt.passwordLabel}
           </div>
           <div style={{position:"relative"}}>
             <input
@@ -6724,19 +6724,37 @@ function ProfileTab({lang,profile,setProfile,toggleLang,onViewChecker,dark=false
       {/* ── Trust badges ── */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:0,padding:"2px 16px 14px"}}>
         {[
-          {icon:"🔒",label:"SSL Secured",col:"#138808"},
-          {icon:"✨",label:"Free & Independent",col:"#FF9933"},
-          {icon:"🔥",label:"Firebase Auth",col:"#1a56db"},
+          {icon:"lock",label:"SSL Secured",col:"#138808"},
+          {icon:"free",label:"Free & Independent",col:"#FF9933"},
+          {icon:"key",label:"Firebase Auth",col:"#1a56db"},
         ].map((b,i)=>(
           <div key={i} style={{display:"flex",alignItems:"center",gap:0}}>
             <div style={{display:"flex",alignItems:"center",gap:4,padding:"5px 10px"}}>
-              <span style={{fontSize:11}}>{b.icon}</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={dark?"#666":b.col} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{b.icon==="lock"?<><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></>:b.icon==="free"?<path d="M20 6 9 17l-5-5"/>:<><circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 9.2-9.2M17 6l3 3"/></>}</svg>
               <span style={{fontSize:9.5,fontWeight:700,color:dark?"#555":b.col,fontFamily:bf,letterSpacing:0.2}}>{b.label}</span>
             </div>
             {i<2&&<div style={{width:1,height:14,background:dark?"#333":"#e0e0e0"}}/>}
           </div>
         ))}
       </div>
+
+      {/* App features — Android app only, reachable before signing in too */}
+      {isNativeApp()&&(
+        <div style={{padding:"0 20px 12px"}}>
+          <button type="button" onClick={()=>{haptic();try{window.dispatchEvent(new Event("ys-open-app-features"));}catch{}}}
+            style={{width:"100%",display:"flex",alignItems:"center",gap:12,padding:"12px 14px",borderRadius:16,cursor:"pointer",textAlign:"left",
+              background:dark?"rgba(232,115,12,0.10)":"rgba(232,115,12,0.05)",border:`1.5px solid ${dark?"rgba(232,115,12,0.30)":"rgba(232,115,12,0.20)"}`,fontFamily:bf}}>
+            <span style={{width:36,height:36,borderRadius:10,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#E8730C",background:dark?"rgba(232,115,12,0.14)":"rgba(232,115,12,0.08)"}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>
+            </span>
+            <span style={{flex:1}}>
+              <span style={{display:"block",fontSize:14,fontWeight:700,color:dark?"#f2f2f2":"#1a1a1a"}}>{isHindi?"ऐप की सुविधाएं":"App features"}</span>
+              <span style={{display:"block",fontSize:11,color:dark?"#9a9a9a":"#666",marginTop:1}}>{isHindi?"विजेट, रिमाइंडर, बोलकर खोज — बिना साइन इन के भी":"Widgets, reminders, voice search — no sign-in needed"}</span>
+            </span>
+            <span aria-hidden="true" style={{color:dark?"#9a9a9a":"#888",fontSize:18,fontWeight:700}}>›</span>
+          </button>
+        </div>
+      )}
 
       {/* About & Helplines — unified premium card */}
       <div style={{padding:"0 20px 36px"}}>
@@ -10574,6 +10592,9 @@ function YojanaSahayInner(){
 
   // ── Offline status ─────────────────────────────────────────────────────────
   const isOffline = useOfflineStatus();
+  // Offline on first launch: don't make the scheme count wait 8 s for a
+  // "people helped" number that can't arrive — the scheme list is on the phone.
+  useEffect(()=>{ if(isOffline) setLiveCheckerTotal(prev=>prev??0); },[isOffline]);
   const wasOfflineRef = useRef(false);
 
   // ── Dismiss HTML splash when React mounts ─────────────────────────────────
@@ -10718,6 +10739,14 @@ function YojanaSahayInner(){
     rememberTabHeight();
     setActiveTab(tab);
   }, [scrollTabToTop]);
+
+  // Android back with nothing open: another tab → Home first (as in other
+  // Android apps); only Home leaves the app. Sent by src/native/bridge.js.
+  useEffect(()=>{
+    const onRootBack=(e)=>{ if(activeTabRef.current!=="home"){ e.preventDefault(); goTab("home"); } };
+    window.addEventListener("ys-native-root-back",onRootBack);
+    return()=>window.removeEventListener("ys-native-root-back",onRootBack);
+  },[goTab]);
 
   // ── SMART BOTTOM NAV — hides on scroll-down, reveals on scroll-up ───────
   // Each tab (Home / Search / Schemes / Profile / AI) owns its own inner

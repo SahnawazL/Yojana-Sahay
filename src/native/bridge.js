@@ -441,7 +441,8 @@ if (Capacitor.isNativePlatform()) {
   //   1) an open pop-up without its own history entry (search, money check,
   //      chat sheets) → close it (Escape, then its close button)
   //   2) history → back (closes the top screen)
-  //   3) nothing open → leave the app (it stays in recent apps)
+  //   3) nothing open on another tab → Home tab
+  //   4) nothing open on Home → leave the app (it stays in recent apps)
   const openDialog = () => {
     const list = document.querySelectorAll('[role="dialog"], [aria-modal="true"]');
     for (let i = list.length - 1; i >= 0; i--) {
@@ -457,6 +458,7 @@ if (Capacitor.isNativePlatform()) {
   };
   const back = (canGoBack) => {
     if (canGoBack && history.length > 1) history.back();
+    else if (!window.dispatchEvent(new CustomEvent("ys-native-root-back", { cancelable: true }))) return; // another tab → Home
     else App.minimizeApp();
   };
   App.addListener("backButton", ({ canGoBack }) => {
