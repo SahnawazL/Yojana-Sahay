@@ -84,6 +84,15 @@ if (!man.includes("default_notification_icon")) {
         <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/ys_notify" />
         <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="reminders" />`);
 }
+// Remove a permission and service the app never uses: WorkManager (pulled in
+// by the update downloader) declares a foreground service, but nothing in the
+// app runs one (downloads run as normal / expedited jobs). An undeclared
+// foreground-service permission is a store-review flag on Android 14+.
+if (!man.includes('xmlns:tools=')) man = man.replace(/<manifest\b/, '<manifest xmlns:tools="http://schemas.android.com/tools"');
+if (!man.includes("SystemForegroundService")) {
+  man = man.replace("</application>", '        <service android:name="androidx.work.impl.foreground.SystemForegroundService" tools:node="remove" />\n    </application>');
+  man = man.replace("</manifest>", '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />\n</manifest>');
+}
 if (!man.includes("android.permission.RECORD_AUDIO")) {
   man = man.replace("</manifest>", '    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n</manifest>');
 }
