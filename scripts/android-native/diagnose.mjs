@@ -145,7 +145,8 @@ adb("shell am start -a android.intent.action.VIEW -d yojanasahay://go/checker co
 await T(6000);
 out("shortcut yojanasahay://go/checker opens checker", await ev(() => /STEP 1|Eligibility Check|question/i.test(document.body.innerText) + " url=" + location.href));
 out("before back", await ev(() => ({ len: history.length, state: history.state, focus: document.activeElement && document.activeElement.tagName })));
-adb("shell input keyevent 4"); await T(1500);
+adb("shell input keyevent 4");
+for (let k = 0; k < 12 && await ev(() => /STEP 1 OF/i.test(document.body.innerText)); k++) await T(500);   // slow emulator: up to 6 s
 out("back button closes it (app still open)", await ev(() => "url=" + location.href + " stillChecker=" + /STEP 1 OF/i.test(document.body.innerText) + " back=" + JSON.stringify(window.__ysBackLog || null)) + " | top=" + adb("shell dumpsys activity activities | grep -m1 -E 'topResumedActivity|mResumedActivity'"));
 adb("shell am start -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT PM-Kisan-6000-bonus-click-bit.ly/x-to-claim -n com.yojanasahay.app/.MainActivity");
 await T(7000);
