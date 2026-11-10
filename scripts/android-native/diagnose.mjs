@@ -144,8 +144,9 @@ out("home-screen widgets", adb("shell dumpsys appwidget").split("\n").filter(l =
 adb("shell am start -a android.intent.action.VIEW -d yojanasahay://go/checker com.yojanasahay.app");
 await T(6000);
 out("shortcut yojanasahay://go/checker opens checker", await ev(() => /STEP 1|Eligibility Check|question/i.test(document.body.innerText) + " url=" + location.href));
+out("before back", await ev(() => ({ len: history.length, state: history.state, focus: document.activeElement && document.activeElement.tagName })));
 adb("shell input keyevent 4"); await T(1500);
-out("back button closes it (app still open)", await ev(() => "url=" + location.href + " stillChecker=" + /STEP 1 OF/i.test(document.body.innerText)) + " | top=" + adb("shell dumpsys activity activities | grep -m1 -E 'topResumedActivity|mResumedActivity'"));
+out("back button closes it (app still open)", await ev(() => "url=" + location.href + " stillChecker=" + /STEP 1 OF/i.test(document.body.innerText) + " back=" + JSON.stringify(window.__ysBackLog || null)) + " | top=" + adb("shell dumpsys activity activities | grep -m1 -E 'topResumedActivity|mResumedActivity'"));
 adb("shell am start -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT PM-Kisan-6000-bonus-click-bit.ly/x-to-claim -n com.yojanasahay.app/.MainActivity");
 await T(7000);
 out("text shared from another app reaches the AI check", await ev(() => ({ pending: !!window.__ysPendingChat || !!window.__ysPendingShare, onAI: /AI Assistant|Unlock AI|Is this message real/i.test(document.body.innerText) })));

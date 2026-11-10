@@ -461,7 +461,10 @@ if (Capacitor.isNativePlatform()) {
     else if (!window.dispatchEvent(new CustomEvent("ys-native-root-back", { cancelable: true }))) return; // another tab → Home
     else App.minimizeApp();
   };
+  const backLog = window.__ysBackLog = [];                         // last few presses, read by the emulator test
   App.addListener("backButton", ({ canGoBack }) => {
+    backLog.push({ canGoBack, len: history.length, state: history.state ? Object.keys(history.state).join(",") : null });
+    if (backLog.length > 6) backLog.shift();
     if (window.dispatchEvent(new CustomEvent("ys-native-back", { cancelable: true })) === false) return; // a screen handled it
     const d = openDialog();
     if (!d) { back(canGoBack); return; }
