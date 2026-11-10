@@ -53,7 +53,7 @@ const AboutTab = React.lazy(() => import("./AboutTab.jsx"));
 const Helpline  = React.lazy(() => import("./Helpline.jsx"));
 import appLogo from "./logo.webp";
 import SchemeNewsTicker from "./SchemeNewsTicker.jsx";
-import AppFeatures, { isNativeApp, appFeaturesSeen } from "./AppFeatures.jsx";
+import AppFeatures, { isNativeApp, appFeaturesSeen, UpdatePrompt } from "./AppFeatures.jsx";
 import { useOfflineStatus } from "./useOfflineStatus.js";
 import { idbSet, idbDelete, idbGet, OFFLINE_KEYS, migrateLocalStorageToIDB } from "./offlineStorage.js";
 const HomeFAQSection = React.lazy(() => import("./HomeFAQSection.jsx"));
@@ -2753,7 +2753,7 @@ function VerificationBanner({lang,dark=false}){
         borderRadius:20,padding:"4px 9px",textTransform:"uppercase",
         boxShadow:"0 2px 7px rgba(22,163,74,0.32)",
       }}>
-        {isHindi?"सत्यापित":"AI VERIFIED"}
+        {isHindi?"लिंक जाँचे गए":"LINKS CHECKED"}
       </div>
     </div>
   ):(
@@ -10483,6 +10483,7 @@ function YojanaSahayInner(){
   const [showHomeSearch,setShowHomeSearch]=useState(false);
   const [homeSearchVoice,setHomeSearchVoice]=useState(false); // opened by the widget's 🎤
   const [showAppFeatures,setShowAppFeatures]=useState(false); // Android app: "Made for your phone"
+  const [updateOffer,setUpdateOffer]=useState(null);           // Android app: { build, size } — asked before downloading
   const [checkerAnswers,setCheckerAnswers]=useState(null); // answers from latest eligibility recheck (raw, pre-decision)
   // Bumped when the AI chat finishes an eligibility check, so Home re-reads it.
   const [quizSavedTick,setQuizSavedTick]=useState(0);
@@ -11525,8 +11526,10 @@ function YojanaSahayInner(){
   useEffect(()=>{
     if(!isNativeApp()) return;
     const open=()=>setShowAppFeatures(true);
+    const offer=e=>setUpdateOffer(e.detail||{});
     window.addEventListener("ys-open-app-features",open);
-    return()=>window.removeEventListener("ys-open-app-features",open);
+    window.addEventListener("ys-update-available",offer);
+    return()=>{window.removeEventListener("ys-open-app-features",open);window.removeEventListener("ys-update-available",offer);};
   },[]);
   useEffect(()=>{
     if(!loaded||!isNativeApp()||appFeaturesSeen()) return;
@@ -12186,7 +12189,9 @@ function YojanaSahayInner(){
             </div>
 
             {/* FAQ pill — shown only when not logged in; moves to Profile → Settings post-login */}
-            <SchemeDirectory lang={lang} dark={dark}/>
+            {/* Website only: its links open the website's state and scheme pages.
+                In the Android app the Schemes tab does this natively. */}
+            {!isNativeApp()&&<SchemeDirectory lang={lang} dark={dark}/>}
 
             {!profile&&(
             <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
@@ -12843,6 +12848,9 @@ function YojanaSahayInner(){
           pushSlot={auth.currentUser?<PushInlineButton uid={auth.currentUser.uid} lang={lang}/>:null}
           onSignIn={()=>goTab("profile")}
           onClose={()=>setShowAppFeatures(false)}/>
+      )}
+      {updateOffer&&!showAppFeatures&&!showChecker&&!selectedScheme&&(
+        <UpdatePrompt lang={lang} dark={dark} size={updateOffer.size} onClose={()=>setUpdateOffer(null)}/>
       )}
       {showFAQ&&(
         <div

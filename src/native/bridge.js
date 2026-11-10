@@ -51,16 +51,36 @@ if (Capacitor.isNativePlatform()) {
     catch (e) { (window.__ysBridgeErrors = window.__ysBridgeErrors || []).push(name + ": " + (e && e.message || e)); console.error("[app] " + name, e); }
   };
 
+  // ── Feel like an app, not a web page ──────────────────────────────────────
+  // no pinch-zoom, no grey flash when tapping, no "open link / copy image"
+  // menu on long-press, no rubber-band over-scroll, buttons and icons can't
+  // be text-selected. Text in answers, scheme details and fields stays
+  // selectable so people can still copy it.
+  part("native feel", () => {
+    const vp = document.querySelector('meta[name="viewport"]');
+    if (vp && !/user-scalable/.test(vp.content)) vp.content += ", maximum-scale=1, user-scalable=no";
+    const st = document.createElement("style");
+    st.id = "ys-native-feel";
+    st.textContent = [
+      "html.ys-native, html.ys-native body { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }",
+      "html.ys-native a, html.ys-native img, html.ys-native svg { -webkit-touch-callout: none; }",
+      "html.ys-native button, html.ys-native [role=button], html.ys-native nav, html.ys-native img, html.ys-native svg, html.ys-native label { -webkit-user-select: none; user-select: none; }",
+    ].join("\n");
+    document.head.appendChild(st);
+  });
+
   // ── Live updates: always the newest app files ─────────────────────────────
   // 1) once this copy has drawn its screen, tell the updater it works (a copy
   //    that never gets this far is rolled back automatically);
   // 2) a newer copy downloaded earlier is switched to at start-up, while the
   //    launch screen is still showing;
-  // 3) every open checks for a newer copy and downloads it in the background;
+  // 3) every open checks for a newer copy. Nothing is downloaded without the
+  //    user's say: the app shows "Update available · size" and downloads only
+  //    on "Update now" (or every time, if they chose "update automatically");
   // 4) after 10+ minutes away, coming back switches to it too (never in the
   //    middle of something — Google sign-in, sharing, a form).
   part("live update", () => {
-    const K = { pending: "ys_live_pending", failed: "ys_live_failed", applying: "ys_live_applying" };
+    const K = { pending: "ys_live_pending", failed: "ys_live_failed", applying: "ys_live_applying", auto: "ys_live_auto", later: "ys_live_later" };
     const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
                  set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
                  del: (k) => { try { localStorage.removeItem(k); } catch {} } };
@@ -125,15 +145,37 @@ if (Capacitor.isNativePlatform()) {
         if (isFailed(m.build)) { live.state = "skipping failed " + m.build; return; }
         const have = pendingInfo();
         if (have && have.build >= m.build) { live.state = "ready to apply " + have.build; return; }
-        live.state = "downloading " + m.build; note("download " + m.build);
-        // checksum (SHA-256 of the zip): the updater only accepts the exact file that was published
-        const b = await CapacitorUpdater.download({ url: m.url, version: String(m.build), checksum: String(m.sha256).toLowerCase() });
-        ls.set(K.pending, JSON.stringify({ id: b.id, build: m.build }));
-        live.state = "ready to apply " + m.build; note("downloaded " + m.build);
+        live.available = m;
+        if (ls.get(K.auto) === "1") { await fetchUpdate(m); return; }          // the user chose "update automatically"
+        const later = Number(ls.get(K.later) || 0);
+        if (later && Date.now() - later < 20 * 3600 * 1000) { live.state = "offered (later)"; return; }
+        live.state = "offered " + m.build; note("offer " + m.build);
+        window.dispatchEvent(new CustomEvent("ys-update-available", { detail: { build: m.build, size: Number(m.size) || 0 } }));
       } catch (e) {
         live.state = "check failed"; note("check failed " + (e && e.message));
       } finally { checking = false; }
     };
+    // download (only after the user agreed) — checksum (SHA-256 of the zip):
+    // the updater only accepts the exact file that was published
+    const fetchUpdate = async (m) => {
+      live.state = "downloading " + m.build; note("download " + m.build);
+      const b = await CapacitorUpdater.download({ url: m.url, version: String(m.build), checksum: String(m.sha256).toLowerCase() });
+      const p = { id: b.id, build: m.build };
+      ls.set(K.pending, JSON.stringify(p));
+      live.state = "ready to apply " + m.build; note("downloaded " + m.build);
+      return p;
+    };
+    // the app's "Update available" sheet calls this: "now" | "auto" | "later"
+    const liveUpdate = async (choice) => {
+      if (choice === "later") { ls.set(K.later, String(Date.now())); live.state = "later"; return { ok: true }; }
+      if (choice === "auto") ls.set(K.auto, "1");
+      ls.del(K.later);
+      const m = live.available;
+      if (!m) return { ok: false, error: "no update" };
+      try { const p = await fetchUpdate(m); apply(p, "user"); return { ok: true }; }
+      catch (e) { live.state = "download failed"; note("download failed " + (e && e.message)); return { ok: false, error: (e && e.message) || "download failed" }; }
+    };
+    const liveAuto = (on) => { if (on) ls.set(K.auto, "1"); else ls.del(K.auto); return ls.get(K.auto) === "1"; };
     setTimeout(check, 5000);
 
     // 4) back after 10+ minutes → switch; otherwise just check again
@@ -146,7 +188,7 @@ if (Capacitor.isNativePlatform()) {
       if (away >= 10 * 60 * 1000 && p && p.build > BUILD && !isFailed(p.build)) apply(p, "resume");
       else if (away >= 60 * 1000) check();
     });
-    window.ysNative = Object.assign(window.ysNative || {}, { liveCheck: check });
+    window.ysNative = Object.assign(window.ysNative || {}, { liveCheck: check, liveUpdate, liveAuto, liveAutoOn: () => ls.get(K.auto) === "1" });
   });
 
   // ── Server calls: relative /api/… → the website's server ─────────────────

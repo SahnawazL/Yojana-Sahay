@@ -179,10 +179,86 @@ export default function AppFeatures({ lang = "en", dark = false, onClose, pushSl
           ))}
         </div>
 
+        <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: 12, background: C.chipBg, fontSize: 11.5, lineHeight: 1.5, color: C.sub }}>
+          <b style={{ color: C.text }}>{L("Independent app.", "स्वतंत्र ऐप।")}</b>{" "}
+          {L("Yojana Sahay is not a government app and is not linked to any government department. Always apply on the official website or office shown for each scheme.",
+             "योजना सहाय सरकारी ऐप नहीं है और किसी सरकारी विभाग से जुड़ा नहीं है। हर योजना के लिए बताई गई आधिकारिक वेबसाइट या दफ़्तर पर ही आवेदन करें।")}
+        </div>
+
         <button type="button" onClick={close} style={{
-          width: "100%", marginTop: 14, border: 0, borderRadius: 14, padding: "13px 16px", fontFamily: font, fontSize: 14.5, fontWeight: 800,
+          width: "100%", marginTop: 12, border: 0, borderRadius: 14, padding: "13px 16px", fontFamily: font, fontSize: 14.5, fontWeight: 800,
           background: C.btn, color: C.btnText, cursor: "pointer",
         }}>{L("Continue", "आगे बढ़ें")}</button>
+      </div>
+    </div>
+  );
+}
+
+
+// ── "Update available" — asked before anything is downloaded ────────────────
+// The Android app gets newer scheme information and fixes as small updates.
+// Nothing downloads until the person taps "Update now" (or chose to always
+// update automatically); the size is shown first.
+export function UpdatePrompt({ lang = "en", dark = false, size = 0, onClose }) {
+  const hi = lang === "hi";
+  const L = (en, h) => (hi ? h : en);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [auto, setAuto] = useState(false);
+  const [shown, setShown] = useState(false);
+  useEffect(() => { const t = requestAnimationFrame(() => setShown(true)); return () => cancelAnimationFrame(t); }, []);
+  const mb = size > 0 ? (size / 1048576 < 0.1 ? "0.1" : (size / 1048576).toFixed(1)) : null;
+  const C = dark
+    ? { sheet: "#111826", text: "#F1F4F9", sub: "rgba(241,244,249,0.62)", chip: "rgba(255,255,255,0.06)", btn: "#F59E0B", btnText: "#111", ghost: "rgba(255,255,255,0.08)", ghostText: "#F1F4F9" }
+    : { sheet: "#FFFFFF", text: "#0F1B2D", sub: "#5B6575", chip: "rgba(11,42,91,0.06)", btn: "#0B2A5B", btnText: "#fff", ghost: "rgba(11,42,91,0.07)", ghostText: "#0B2A5B" };
+  const font = hi ? "'Noto Sans Devanagari','Noto Sans',system-ui,sans-serif" : "'DM Sans','Noto Sans',system-ui,sans-serif";
+  const close = (choice) => {
+    if (busy) return;
+    if (choice === "later") { try { window.ysNative && window.ysNative.liveUpdate && window.ysNative.liveUpdate("later"); } catch {} }
+    setShown(false); setTimeout(() => onClose && onClose(), 220);
+  };
+  const updateNow = async () => {
+    if (busy) return;
+    setBusy(true); setErr("");
+    let r = null;
+    try { r = await window.ysNative.liveUpdate(auto ? "auto" : "now"); } catch (e) { r = { ok: false, error: e && e.message }; }
+    if (!r || !r.ok) { setBusy(false); setErr(L("Couldn't download the update. Check your internet and try again.", "अपडेट डाउनलोड नहीं हो पाया। इंटरनेट जाँचकर फिर कोशिश करें।")); }
+    // on success the app restarts on the new version by itself
+  };
+  return (
+    <div role="dialog" aria-modal="true" aria-label={L("Update available", "अपडेट उपलब्ध है")} onClick={() => close("later")}
+      style={{ position: "fixed", inset: 0, zIndex: 9001, display: "flex", alignItems: "flex-end", justifyContent: "center",
+        background: shown ? "rgba(6,12,24,0.5)" : "rgba(6,12,24,0)", transition: "background 220ms ease" }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: "100%", maxWidth: 480, background: C.sheet, color: C.text, fontFamily: font, borderRadius: "22px 22px 0 0",
+        padding: "18px 18px calc(18px + env(safe-area-inset-bottom))", boxSizing: "border-box",
+        transform: shown ? "translate3d(0,0,0)" : "translate3d(0,100%,0)", transition: "transform 260ms cubic-bezier(0.22,1,0.36,1)",
+      }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(14,159,110,0.14)", color: "#0E9F6E" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.25 }}>{L("Update available", "अपडेट उपलब्ध है")}</div>
+            <div style={{ fontSize: 12.5, color: C.sub, marginTop: 3, lineHeight: 1.5 }}>
+              {L("Newer scheme information and fixes for Yojana Sahay.", "योजना सहाय के लिए नई योजना जानकारी और सुधार।")}
+              {mb && <> {L(`Download size: ${mb} MB.`, `डाउनलोड साइज़: ${mb} MB।`)}</>}
+            </div>
+          </div>
+        </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 14, padding: "10px 12px", borderRadius: 12, background: C.chip, fontSize: 12.5, cursor: "pointer" }}>
+          <input type="checkbox" checked={auto} onChange={e => setAuto(e.target.checked)} disabled={busy} style={{ width: 17, height: 17, accentColor: "#0E9F6E", margin: 0 }} />
+          {L("Update automatically from now on", "आगे से अपने-आप अपडेट करें")}
+        </label>
+        {err && <div style={{ fontSize: 12, color: "#B91C1C", marginTop: 10 }}>{err}</div>}
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+          <button type="button" onClick={() => close("later")} disabled={busy} style={{ flex: 1, border: 0, borderRadius: 13, padding: "12px", fontFamily: font, fontSize: 14, fontWeight: 700, background: C.ghost, color: C.ghostText, cursor: "pointer", opacity: busy ? 0.5 : 1 }}>
+            {L("Later", "बाद में")}
+          </button>
+          <button type="button" onClick={updateNow} disabled={busy} style={{ flex: 1.4, border: 0, borderRadius: 13, padding: "12px", fontFamily: font, fontSize: 14, fontWeight: 800, background: C.btn, color: C.btnText, cursor: busy ? "default" : "pointer" }}>
+            {busy ? L("Downloading…", "डाउनलोड हो रहा है…") : L("Update now", "अभी अपडेट करें")}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -39,6 +39,7 @@ const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
 // ─── NON-TRANSLATED CONSTANTS ─────────────────────────────────────────────────
 const PLATFORM_ID   = "Platform ID: YSH-2026-IND · MIT Licensed · v2.1";
 const DEV_WEBSITE   = "https://sahnawaz-portfolio.vercel.app";
+const IS_NATIVE_APP = typeof window !== "undefined" && !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const CONTACT_EMAIL = "yojanasahayofficial@gmail.com";
 const GITHUB_REPO    = "https://github.com/SahnawazL/Yojana-Sahay";
 
@@ -176,7 +177,7 @@ const STRINGS = {
     proPricingNote:  "Final pricing will be confirmed before launch. Nothing is charged today.",
     proLoginTitle:   "Login Required for AI Chat",
     proLoginNotice:
-      "Signing in (mobile OTP, Google or email) is required to use the AI Chat tab. When YojanaSahay Pro launches, this also links your daily usage and Pro benefits to your account — ensuring fair access for free users and full access for Pro.",
+      "Signing in (Google or email) is required to use the AI Chat tab. When YojanaSahay Pro launches, this also links your daily usage and Pro benefits to your account — ensuring fair access for free users and full access for Pro.",
 
     signInTitle: "Benefits of Signing In",
     signInSub:   "Creating an account unlocks the full YojanaSahay experience.",
@@ -341,7 +342,7 @@ const STRINGS = {
     proPricingNote:  "अंतिम मूल्य लॉन्च से पहले तय होगा। आज कुछ भी शुल्क नहीं लिया जाता।",
     proLoginTitle:   "AI Chat के लिए लॉगिन आवश्यक",
     proLoginNotice:
-      "AI Chat टैब इस्तेमाल करने के लिए साइन इन (मोबाइल OTP, Google या ईमेल) ज़रूरी है। YojanaSahay Pro लॉन्च होने पर इससे आपकी दैनिक उपयोग सीमा और Pro सुविधाएं भी सीधे आपके खाते से जुड़ी रहेंगी।",
+      "AI Chat टैब इस्तेमाल करने के लिए साइन इन (Google या ईमेल) ज़रूरी है। YojanaSahay Pro लॉन्च होने पर इससे आपकी दैनिक उपयोग सीमा और Pro सुविधाएं भी सीधे आपके खाते से जुड़ी रहेंगी।",
 
     signInTitle: "साइन इन के लाभ",
     signInSub:   "खाता बनाकर YojanaSahay का पूरा अनुभव प्राप्त करें।",
@@ -1544,6 +1545,9 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
         </div>
 
         {/* ── YOJANASAHAY PRO — COMING SOON ───────────────────────────── */}
+        {/* Website only: inside the Android app nothing is sold, so a plan
+            that can't be bought yet isn't advertised there. */}
+        {!IS_NATIVE_APP && (
         <div className="ys-card" id="ys-pro-section">
           <div style={{
             borderRadius: R.xl,
@@ -1884,6 +1888,7 @@ export default function AboutTab({ onClose, citizensGuided = null, scrollToSecti
 
           </div>
         </div>
+        )}
 
         {/* ── SIGN-IN BENEFITS ─────────────────────────────────────────── */}
         <div className="ys-card">

@@ -1080,7 +1080,8 @@ export default function AILockedScreen({
           ))}
         </div>
 
-        {/* ── COMING SOON STRIP ── */}
+        {/* ── COMING SOON STRIP (website only — nothing is sold in the Android app) ── */}
+        {!(typeof window !== "undefined" && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) && (
         <div
           onClick={() => { setProPressed(false); onGoToAboutPro?.(); }}
           onPointerDown={() => setProPressed(true)}
@@ -1124,6 +1125,7 @@ export default function AILockedScreen({
           </span>
           <ChevronRightIcon size={11} color={th.textSub} />
         </div>
+        )}
 
       </div>
     </div>

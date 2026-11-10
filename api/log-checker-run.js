@@ -57,9 +57,11 @@ function getAdminApp() {
 // Only these fields are ever trusted from the client for a checker run —
 // anything else in the request body is ignored, so a malicious guest can't
 // inject arbitrary fields into appStats/usage through this endpoint.
+// Social category, disability and special groups are NOT kept with a run:
+// they are sensitive, and the run carries a device/account id. (Anonymous
+// totals for special groups are still counted in appStats/events.)
 const ALLOWED_RUN_FIELDS = [
   "uid", "matchedCount", "state", "who", "income", "age", "area", "gender", "ration",
-  "caste", "disability", "groups",
 ];
 
 // ── Anonymous usage counters (type "events") → appStats/events ──────────
