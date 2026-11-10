@@ -443,6 +443,7 @@ if (Capacitor.isNativePlatform()) {
   //   2) history → back (closes the top screen)
   //   3) nothing open on another tab → Home tab
   //   4) nothing open on Home → leave the app (it stays in recent apps)
+  const backLog = window.__ysBackLog = [];                         // last few presses, read by the emulator test
   const openDialog = () => {
     const list = document.querySelectorAll('[role="dialog"], [aria-modal="true"]');
     for (let i = list.length - 1; i >= 0; i--) {
@@ -456,12 +457,28 @@ if (Capacitor.isNativePlatform()) {
     (document.activeElement && document.activeElement !== document.body ? document.activeElement : document).dispatchEvent(new KeyboardEvent("keydown", o));
     window.dispatchEvent(new KeyboardEvent("keydown", o));
   };
-  const back = (canGoBack) => {
-    if (canGoBack && history.length > 1) history.back();
-    else if (!window.dispatchEvent(new CustomEvent("ys-native-root-back", { cancelable: true }))) return; // another tab → Home
-    else App.minimizeApp();
+  const root = () => {
+    if (!window.dispatchEvent(new CustomEvent("ys-native-root-back", { cancelable: true }))) return; // another tab → Home
+    App.minimizeApp();
   };
-  const backLog = window.__ysBackLog = [];                         // last few presses, read by the emulator test
+  const back = (canGoBack) => {
+    if (!(canGoBack && history.length > 1)) return root();
+    // Android's web view can skip history entries a screen added without a tap
+    // (e.g. one opened from a shortcut). If going back changes nothing within
+    // half a second, the app closes its top screen itself.
+    let moved = false;
+    const mark = () => { moved = true; };
+    window.addEventListener("popstate", mark, { once: true });
+    window.addEventListener("pagehide", mark, { once: true });
+    history.back();
+    setTimeout(() => {
+      window.removeEventListener("popstate", mark); window.removeEventListener("pagehide", mark);
+      backLog.push({ moved });
+      if (moved) return;
+      if (!window.dispatchEvent(new CustomEvent("ys-native-back-stuck", { cancelable: true }))) return; // a screen closed
+      root();
+    }, 500);
+  };
   App.addListener("backButton", ({ canGoBack }) => {
     backLog.push({ canGoBack, len: history.length, state: history.state ? Object.keys(history.state).join(",") : null });
     if (backLog.length > 6) backLog.shift();

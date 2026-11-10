@@ -11285,14 +11285,18 @@ function YojanaSahayInner(){
   useEffect(()=>{
     const handlePop=()=>{
       // Close in reverse-open order (most recently opened first)
-      if(showAdmin)        {setShowAdmin(false);return;}
-      if(showFAQ)          {setShowFAQ(false);return;}
-      if(showChecker)      {setShowChecker(false);return;}
-      if(selectedScheme)   {setSelectedScheme(null);return;}
-      if(selectedCategory) {setSelectedCategory(null);return;}
+      if(showAdmin)        {setShowAdmin(false);return true;}
+      if(showFAQ)          {setShowFAQ(false);return true;}
+      if(showChecker)      {setShowChecker(false);return true;}
+      if(selectedScheme)   {setSelectedScheme(null);return true;}
+      if(selectedCategory) {setSelectedCategory(null);return true;}
+      return false;
     };
+    // Android: going back didn't move (see src/native/bridge.js) → close the top screen directly
+    const onStuck=(e)=>{ if(handlePop()) e.preventDefault(); };
     window.addEventListener("popstate",handlePop);
-    return()=>window.removeEventListener("popstate",handlePop);
+    window.addEventListener("ys-native-back-stuck",onStuck);
+    return()=>{ window.removeEventListener("popstate",handlePop); window.removeEventListener("ys-native-back-stuck",onStuck); };
   },[showAdmin,showChecker,showFAQ,selectedScheme,selectedCategory]);
 
   // Live stat targets: real scheme count + states + real checkerTotal from Firestore
