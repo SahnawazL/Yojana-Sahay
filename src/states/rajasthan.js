@@ -736,4 +736,21 @@ export const RAJASTHAN_SCHEMES = [
   },
   // </auto-scheme id="raj_swami_vivekananda_scholarship">
 
+  // <auto-scheme id="raj_ekal_nari_samman"> added by Scheme Discovery agent on 2026-11-11 · source: https://web.umang.gov.in/landing/scheme/detail/chief-minister-ekal-nari-samman-pension-yojana_cmenspy.html
+  {
+    id: "raj_ekal_nari_samman",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Rajasthan",
+    ministry: { en: "Rajasthan Government", hi: "राजस्थान सरकार" },
+    name:    { en: "Chief Minister Ekal Nari Samman Pension Yojana", hi: "मुख्यमंत्री एकल नारी सम्मान पेंशन योजना" },
+    benefit: { en: "Rs. 500 to 1500 per month based on age", hi: "आयु के अनुसार ₹500 से ₹1500 प्रति माह" },
+    tag:     { en: "Pension", hi: "पेंशन" },
+    annual: 6000,
+    apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/chief-minister-ekal-nari-samman-pension-yojana_cmenspy.html", hi: "https://web.umang.gov.in/landing/scheme/detail/chief-minister-ekal-nari-samman-pension-yojana_cmenspy.html" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card","Birth Certificate","Ration Card","Original Residence Certificate","Bank Account Details","Income Declaration Form"],
+               hi: ["आधार कार्ड","जन्म प्रमाणपत्र","रायशन कार्ड","मूल निवास प्रमाणपत्र","बैंक खाता विवरण","आय घोषणा पत्र"] },
+    autoAdded: "2026-11-11", source: "https://web.umang.gov.in/landing/scheme/detail/chief-minister-ekal-nari-samman-pension-yojana_cmenspy.html",
+    match: (a) => a.state === "Rajasthan" && a.who === "women" && a.income === "below1" && ["18to35","35to60","above60"].includes(a.age),
+  },
+  // </auto-scheme id="raj_ekal_nari_samman">
+
 ];
