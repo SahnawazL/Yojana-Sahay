@@ -10564,6 +10564,7 @@ function YojanaSahayInner(){
       // App-icon shortcuts (manifest "shortcuts", long-press on Android): ?go=…
       // Home-screen widgets: find = search with the keyboard up, voice = search by speaking
       const runGo=(g)=>{
+        setShowAppFeatures(false); // a shortcut / widget screen goes on top; the first-launch sheet comes back after
         if(g==="checker") setShowChecker(true);
         else if(g==="money") setTimeout(()=>openMoneyCheck(null),500); // "Why didn't my money come?" (Telegram bot link)
         else if(g==="find"||g==="voice"){ setSelectedScheme(null); setHomeSearchVoice(g==="voice"); setShowHomeSearch(true); }
@@ -10571,7 +10572,7 @@ function YojanaSahayInner(){
       };
       // the Android app calls these when a widget / shortcut is tapped while the app is open (no reload)
       window.__ysGo=(g)=>{ if(typeof g!=="string"||!/^[a-z]{2,20}$/.test(g)) return false; runGo(g); return true; };
-      window.__ysOpenScheme=(id)=>{ if(typeof id!=="string"||!/^[A-Za-z0-9_-]{2,80}$/.test(id)) return false; setShowHomeSearch(false); setSelectedScheme(id); return true; };
+      window.__ysOpenScheme=(id)=>{ if(typeof id!=="string"||!/^[A-Za-z0-9_-]{2,80}$/.test(id)) return false; setShowAppFeatures(false); setShowHomeSearch(false); setSelectedScheme(id); return true; };
       const go = params.get("go");
       if(go){
         runGo(go);
