@@ -2705,7 +2705,7 @@
     "confidence": 0
   },
   "haryana_saksham": {
-    "lastVerified": "2026-10-08T08:20:20.425Z",
+    "lastVerified": "2026-11-11T21:34:09.518Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2723,13 +2723,13 @@
     "confidence": 0
   },
   "haryana_widow_allowance": {
-    "lastVerified": "2026-10-08T08:20:33.838Z",
+    "lastVerified": "2026-11-11T21:34:59.252Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "haryana_vivah_shagun": {
-    "lastVerified": "2026-10-08T08:39:26.694Z",
+    "lastVerified": "2026-11-11T21:34:47.143Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2771,10 +2771,12 @@
     "linkAlive": true
   },
   "haryana_pratibha": {
-    "lastVerified": "2026-10-08T08:39:26.694Z",
+    "lastVerified": "2026-11-11T21:33:57.663Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 1,
+    "isActive": true,
+    "lastDate": "2026-11-30"
   },
   "haryana_e_karma": {
     "lastVerified": "2026-11-10T21:35:24.270Z",
@@ -2783,7 +2785,7 @@
     "confidence": 0
   },
   "haryana_solar_pump": {
-    "lastVerified": "2026-10-08T16:34:08.910Z",
+    "lastVerified": "2026-11-11T21:34:34.765Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2813,7 +2815,7 @@
     "confidence": 0
   },
   "haryana_sc_postmatric": {
-    "lastVerified": "2026-10-08T16:35:10.960Z",
+    "lastVerified": "2026-11-11T21:34:27.082Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2867,7 +2869,7 @@
     "linkAlive": true
   },
   "hp_disabled_pension": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-11T21:36:12.568Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2897,19 +2899,19 @@
     "linkAlive": true
   },
   "hp_e_taxi": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-11T21:36:19.139Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
   },
   "hp_fasal_bima": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-11T21:37:00.297Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "hp_bocw_welfare": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-11T21:36:05.602Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
@@ -2921,7 +2923,7 @@
     "confidence": 0
   },
   "hp_free_coaching": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-11T21:37:52.551Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
@@ -3769,5 +3771,17 @@
   },
   "haryana_lpg_500": {
     "lastVerified": "2026-11-10T21:36:34.628Z"
+  },
+  "raj_ekal_nari_samman": {
+    "lastVerified": "2026-11-11T21:33:55.093Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "hp_apna_parivar_sukhi": {
+    "lastVerified": "2026-11-11T21:35:16.511Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
   }
 }
