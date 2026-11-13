@@ -40,8 +40,8 @@ import nodemailer               from "nodemailer";
 import { runAutoFixAgent }      from "./_lib/autoFixAgent.js";
 import { getAgentHealth, saveAgentHealth } from "./_lib/agentHealth.js";
 import refreshNewsHandler       from "./refresh-news.js";
-import { loadInsights, scanDemand, refreshDemandIfStale, dismissDemand, scanOfficialList, applyUpdate, dismissUpdate } from "./_lib/discoveryInsights.js";
-import { runAndLogDiscovery, listSchemeDrafts, reviewSchemeDraft, discoveryPlan, REGIONS as DISCOVERY_REGIONS, FOCUS as DISCOVERY_FOCUS, MAX_NEW_PER_RUN as DISCOVERY_MAX } from "./_lib/schemeDiscovery.js";
+import { loadInsights, scanDemand, refreshDemandIfStale, dismissDemand, scanOfficialList, applyUpdate, applyUpdates, dismissUpdate } from "./_lib/discoveryInsights.js";
+import { runAndLogDiscovery, listSchemeDrafts, reviewSchemeDraft, approveSchemeDrafts, discoveryPlan, REGIONS as DISCOVERY_REGIONS, FOCUS as DISCOVERY_FOCUS, MAX_NEW_PER_RUN as DISCOVERY_MAX } from "./_lib/schemeDiscovery.js";
 import { createProgress, isJobRunning, readAgentLive } from "./_lib/agentProgress.js";
 import { getFirebaseUsage }    from "./_lib/firebaseUsage.js";
 
@@ -819,6 +819,7 @@ export default async function handler(req, res) {
       if (!auth.full) return res.status(403).json({ error: "Only a full admin can change schemes or dismiss items." });
       if (op === "dismissDemand") return res.status(200).json(await dismissDemand(auth.db, req.body?.name));
       if (op === "applyUpdate") return res.status(200).json(await applyUpdate(auth.db, req.body?.id, auth.email ?? null));
+      if (op === "applyUpdates") return res.status(200).json(await applyUpdates(auth.db, req.body?.ids, auth.email ?? null));
       if (op === "dismissUpdate") return res.status(200).json(await dismissUpdate(auth.db, req.body?.id, auth.email ?? null));
       return res.status(400).json({ error: "Unknown op" });
     } catch (err) {
@@ -845,6 +846,7 @@ export default async function handler(req, res) {
       }
       // Changing what's published on the site is for full admins only.
       if (!auth.full) return res.status(403).json({ error: "Only a full admin can approve, reject or remove schemes." });
+      if (op === "approveMany") return res.status(200).json(await approveSchemeDrafts(auth.db, { ids: req.body?.ids, by: auth.email ?? null }));
       const out = await reviewSchemeDraft(auth.db, { id: req.body?.id, op, by: auth.email ?? null });
       return res.status(200).json(out);
     } catch (err) {

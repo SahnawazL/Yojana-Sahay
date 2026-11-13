@@ -1005,6 +1005,42 @@ export async function reviewSchemeDraft(db, { id, op, by }) {
   throw new Error(`Unknown op: ${op}`);
 }
 
+// ── "Approve all": many drafts, one commit per file ─────────────────────────
+// Same checks as a single approve; a draft that fails a check is reported and
+// the rest still go live. Drafts for the same state file share one commit, so
+// the site rebuilds once instead of once per scheme.
+export async function approveSchemeDrafts(db, { ids, by }) {
+  const list = [...new Set((Array.isArray(ids) ? ids : []).map(String))].slice(0, 30);
+  if (!list.length) throw new Error("Nothing to approve");
+  const snaps = await Promise.all(list.map(id => db.collection("schemeDrafts").doc(id).get()));
+  const live = await liveSchemeNames([...new Set(snaps.filter(x => x.exists).map(x => x.data().file).filter(Boolean))]);
+  const results = [], ready = [];
+  for (const snap of snaps) {
+    const id = snap.id, d = snap.exists ? snap.data() : null, sc = d?.scheme ?? {}, name = sc.name?.en ?? id;
+    if (!d) { results.push({ id, name, ok: false, error: "Draft not found" }); continue; }
+    if (d.status === "published") { results.push({ id, name, ok: true, already: true }); continue; }
+    if (d.status !== "pending") { results.push({ id, name, ok: false, error: `It was ${d.status} already` }); continue; }
+    if (!sc.benefit?.en || !DEVANAGARI.test(sc.name?.hi ?? "") || !DEVANAGARI.test(sc.benefit?.hi ?? "")) {
+      results.push({ id, name, ok: false, error: "no benefit text or no Hindi translation — reject it" }); continue;
+    }
+    const others = [...SCHEME_DB, ...live, ...ready.map(r => r.d.scheme)].filter(x => x.id !== sc.id);
+    const dup = findDuplicate(sc.name.en, d.region, others);
+    if (dup) { results.push({ id, name, ok: false, error: `already in the app as "${dup.name?.en}"` }); continue; }
+    ready.push({ ref: snap.ref, d, name });
+  }
+  const pub = ready.length ? await publishSchemes(ready.map(({ d }) => ({ scheme: d.scheme, matchSrc: d.matchSrc, file: d.file }))) : [];
+  for (const { ref, d, name } of ready) {
+    const r = pub.find(p => p.id === d.scheme.id);
+    if (!r?.ok) { results.push({ id: ref.id, name, ok: false, error: r?.error ?? "publish failed" }); continue; }
+    await ref.set({ status: "published", publishedAt: new Date(), publishedBy: by ?? "admin", commitUrl: r.commitUrl ?? null }, { merge: true });
+    await postNote(db, { from: "discover", to: "verifyBatch", type: "verify", schemeId: d.scheme.id, schemeName: name,
+      text: `The admin approved "${name}" — it's live now. Please check its deadline and link first.` }).catch(() => {});
+    const answered = await replyToRequests(db, d.reportIds, d.scheme).catch(() => 0);
+    results.push({ id: ref.id, name, ok: true, answered, commitUrl: r.commitUrl ?? null });
+  }
+  return { results };
+}
+
 // ── Run + log (cron, watchdog, admin "Run") ──────────────────────────────────
 export async function runAndLogDiscovery({ db, trigger = "cron", options = {} } = {}) {
   const startedAt = new Date().toISOString();

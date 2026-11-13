@@ -290,6 +290,58 @@ export async function applyUpdate(db, id, by) {
   return { ok: true, hindiUpdated: hiDone, note: hiDone ? null : "English updated — the Hindi text was not changed automatically; please check it." };
 }
 
+// ── "Apply all": many benefit changes, one commit per scheme file ───────────
+// A change whose old text can't be found exactly once is skipped and reported;
+// the others in the same file still go in that file's one commit.
+export async function applyUpdates(db, ids, by) {
+  const list = [...new Set((Array.isArray(ids) ? ids : []).map(String))].slice(0, 40);
+  if (!list.length) throw new Error("Nothing to apply");
+  const snaps = await Promise.all(list.map(id => db.collection("schemeUpdates").doc(id).get()));
+  const results = [], byFile = new Map();
+  for (const snap of snaps) {
+    const u = snap.exists ? snap.data() : null, name = u?.name ?? snap.id;
+    if (!u || u.status !== "pending") { results.push({ id: snap.id, name, ok: false, error: "no longer waiting" }); continue; }
+    const scheme = SCHEME_DB.find(s => s.id === u.schemeId);
+    if (!scheme) { results.push({ id: snap.id, name, ok: false, error: "scheme not found in the app any more" }); continue; }
+    const path = getUrlIssueFilePath(scheme);
+    if (!byFile.has(path)) byFile.set(path, []);
+    byFile.get(path).push({ ref: snap.ref, u, name });
+  }
+  for (const [path, items] of byFile) {
+    const done = new Map();   // id → hindi updated?
+    const skipped = new Map(); // id → reason
+    try {
+      const r = await updateRepoFile(path, text => {
+        done.clear(); skipped.clear();
+        let next = text;
+        for (const { ref, u } of items) {
+          const oldEn = JSON.stringify(u.oldEn), newEn = JSON.stringify(u.newEn);
+          if (countOf(next, oldEn) !== 1) { skipped.set(ref.id, "the current benefit text wasn't found exactly once — update it by hand"); continue; }
+          next = next.replace(oldEn, () => newEn);
+          let hi = false;
+          if (u.oldHi && u.newHi) {
+            const oldHi = JSON.stringify(u.oldHi), newHi = JSON.stringify(u.newHi);
+            if (countOf(next, oldHi) === 1) { next = next.replace(oldHi, () => newHi); hi = true; }
+          }
+          done.set(ref.id, hi);
+        }
+        return { text: next, changed: next !== text };
+      }, () => done.size === 1
+        ? `Scheme update: ${items.find(i => done.has(i.ref.id)).name} — benefit amount (approved by admin)`
+        : `Scheme update: ${done.size} benefit amounts — ${items.filter(i => done.has(i.ref.id)).map(i => i.name).join(", ").slice(0, 110)} (approved by admin)`);
+      for (const { ref, name } of items) {
+        if (skipped.has(ref.id)) { results.push({ id: ref.id, name, ok: false, error: skipped.get(ref.id) }); continue; }
+        const hindiUpdated = done.get(ref.id) === true;
+        await ref.set({ status: "applied", appliedAt: new Date(), appliedBy: by ?? "admin", commitUrl: r.commitUrl || null, hindiUpdated }, { merge: true });
+        results.push({ id: ref.id, name, ok: true, hindiUpdated });
+      }
+    } catch (err) {
+      for (const { ref, name } of items) results.push({ id: ref.id, name, ok: false, error: err.message });
+    }
+  }
+  return { results };
+}
+
 export async function dismissUpdate(db, id, by) {
   await db.collection("schemeUpdates").doc(String(id)).set({ status: "dismissed", dismissedAt: new Date(), dismissedBy: by ?? "admin" }, { merge: true });
   return { ok: true };

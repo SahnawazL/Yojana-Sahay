@@ -2763,6 +2763,23 @@ export function DiscoveryInsights({ plan, canPublish, busy, onRun, dark, isDeskt
       {open === "updates" && (
         <div style={{ paddingBottom:6 }}>
           {!updates.length && <div style={{ fontSize:fs(9.5, isDesktop), color:th.textSub, padding:"4px 0" }}>No changes found. Each scheme's page is re-read on the verifier's regular lap.</div>}
+          {updates.length > 1 && canPublish && (
+            <div style={{ display:"flex", gap:8, alignItems:"center", padding:"2px 0 6px" }}>
+              {small(working === "applyAll" ? `Applying ${updates.length}…` : `Apply all ${updates.length}`, () => {
+                const names = updates.map(u => `• ${u.name}: ${u.newEn}`);
+                if (!window.confirm(`Apply all ${updates.length} benefit changes?\n\n${names.slice(0, 6).join("\n")}${names.length > 6 ? `\n…and ${names.length - 6} more` : ""}\n\nThe site updates in about 2 minutes.`)) return;
+                call("applyAll", { op: "applyUpdates", ids: updates.map(u => u.id) }, r => {
+                  const res = r?.results ?? [], ok = res.filter(x => x.ok), bad = res.filter(x => !x.ok), noHi = ok.filter(x => !x.hindiUpdated);
+                  return [
+                    ok.length ? `${ok.length} updated — live in ~2 minutes.` : "",
+                    noHi.length ? `Hindi not changed automatically for: ${noHi.map(x => x.name).join(", ")} — please check.` : "",
+                    bad.length ? `Not applied: ${bad.map(x => `${x.name} (${x.error})`).join(" · ")}` : "",
+                  ].filter(Boolean).join(" ");
+                });
+              }, IND_GREEN, !!working)}
+              <span style={{ fontSize:fs(9, isDesktop), color:th.textSub }}>One update per file, so the site rebuilds once.</span>
+            </div>
+          )}
           {updates.map(u => (
             <div key={u.id} style={{ padding:"6px 0", borderTop:`1px dashed ${th.border}` }}>
               <div style={{ fontSize:fs(10.5, isDesktop), fontWeight:800, color:th.text }}>{u.name} <span style={{ fontWeight:600, color:th.textSub }}>· {u.state}</span></div>
@@ -2827,8 +2844,38 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
     }
   }, [load]);
 
+  // "Approve all": one request; schemes for the same state share one commit
+  const [bulk, setBulk] = useState(null);
+  const approveAll = useCallback(async (list) => {
+    const names = list.map(d => d.scheme?.name?.en || d.id);
+    const noted = list.filter(d => d.problems?.length).length;
+    if (!window.confirm(`Publish all ${list.length} schemes to the app?\n\n${names.slice(0, 8).map(n => "• " + n).join("\n")}${names.length > 8 ? `\n…and ${names.length - 8} more` : ""}${noted ? `\n\n${noted} of them ${noted === 1 ? "has" : "have"} a note (shown in amber) — open those first if unsure.` : ""}\n\nThe site updates in about 2 minutes.`)) return;
+    setBulk(`Publishing ${list.length}…`); setBusyId("__all"); setMsg(null);
+    setAdminTask("discovery-all", { tab: "agents", label: `Publishing ${list.length} schemes` });
+    try {
+      const r = await adminJson("/api/deadline-alerts", { action: "schemeDrafts", op: "approveMany", ids: list.map(d => d.id) });
+      const res = r.results ?? [], ok = res.filter(x => x.ok), bad = res.filter(x => !x.ok);
+      // Show them under "Added" straight away; the reload below confirms it.
+      const okIds = new Set(ok.map(x => x.id)), now = new Date().toISOString();
+      setState(p => ({ ...p, drafts: p.drafts.map(d => okIds.has(d.id) ? { ...d, status: "published", publishedAt: now, publishedBy: "admin" } : d) }));
+      setMsg({ ok: !bad.length, partial: ok.length > 0 && bad.length > 0, text: [
+        ok.length ? `${ok.length} scheme${ok.length === 1 ? "" : "s"} published — live in ~2 minutes.` : "",
+        bad.length ? `Not published: ${bad.map(x => `${x.name} (${x.error})`).join(" · ")}` : "",
+      ].filter(Boolean).join(" ") });
+      if (ok.length) logMyActivity(`Approved ${ok.length} schemes: ${ok.map(x => x.name).join(", ").slice(0, 150)}`, "agents", "update");
+      await load();
+    } catch (err) {
+      setMsg({ ok: false, text: err.message });
+    } finally {
+      setBusyId(null); setBulk(null);
+      setAdminTask("discovery-all", null);
+    }
+  }, [load]);
+
   const pending = state.drafts.filter(d => d.status === "pending");
-  const added   = state.drafts.filter(d => d.status === "published");
+  // newest first, so what you just approved is at the top
+  const added   = state.drafts.filter(d => d.status === "published")
+    .slice().sort((a, b) => String(b.publishedAt ?? "").localeCompare(String(a.publishedAt ?? "")));
   const run     = state.lastRun;
   const lastAt  = run?.createdAt ? new Date(run.createdAt) : null;
   const overdue = !!lastAt && Date.now() - lastAt.getTime() > 30 * 3600 * 1000;
@@ -2917,7 +2964,7 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
         {ctl.explaining && <DiscoveryPlanner plan={state.plan} onStart={ctl.start} onCancel={ctl.cancel} dark={dark} isDesktop={isDesktop} busy={ctl.running} />}
         {ctl.showLog && <LiveJobLog job="discover" live={ctl.live} dark={dark} isDesktop={isDesktop} />}
         <RunMessage runner={runner} isDesktop={isDesktop} />
-        {msg && <div role="status" style={{ fontSize:fs(9.5, isDesktop), color: msg.ok ? IND_GREEN : "#EF4444", marginBottom:8, lineHeight:1.45 }}>{msg.text}</div>}
+        {msg && <div role="status" style={{ fontSize:fs(9.5, isDesktop), color: msg.partial ? IDLE_AMBER : msg.ok ? IND_GREEN : "#EF4444", marginBottom:8, lineHeight:1.45 }}>{msg.text}</div>}
 
         {state.loading ? (
           <Skeleton height={90} radius={10} dark={dark} />
@@ -2963,7 +3010,10 @@ const SchemeDiscoveryCard = React.memo(function SchemeDiscoveryCard({ dark, isDe
               dark={dark} isDesktop={isDesktop} reloadKey={run?.createdAt ?? ""} />
             {pending.length > 0 && (
               <>
-                <div style={{ fontSize:fs(8.5, isDesktop), fontWeight:800, color:SAFFRON, textTransform:"uppercase", letterSpacing:0.3, marginTop:6 }}>Waiting for approval</div>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:6, marginBottom:2 }}>
+                  <div style={{ flex:1, fontSize:fs(8.5, isDesktop), fontWeight:800, color:SAFFRON, textTransform:"uppercase", letterSpacing:0.3 }}>Waiting for approval · {pending.length}</div>
+                  {pending.length > 1 && state.canPublish && btn(bulk || `Approve all ${pending.length}`, () => approveAll(pending), IND_GREEN, !!busyId)}
+                </div>
                 {pending.map(d => <DraftRow key={d.id} d={d} mode="pending" />)}
               </>
             )}
