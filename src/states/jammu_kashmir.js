@@ -267,4 +267,21 @@ export const JAMMU_KASHMIR_SCHEMES = [
   //   match: (a) => a.state === "Jammu & Kashmir",
   // },
 
+  // <auto-scheme id="jk_uspy_sssjkl_scholarship"> added by Scheme Discovery agent on 2026-11-09 · source: https://scholarships.gov.in/public/schemeGuidelines/AICTE/PM_USPY(SSSJKL)SchemeSpecifications.pdf
+  {
+    id: "jk_uspy_sssjkl_scholarship",
+    icon: "📚", color: "#003580", scope: "state", state: "Jammu & Kashmir",
+    ministry: { en: "Department of Higher Education, Ministry of Education", hi: "उच्च शिक्षा विभाग, शिक्षा मंत्रालय" },
+    name:    { en: "PM-USPY (SSSJKL) Scholarship Scheme", hi: "पीएम-यूएसपीय (एसएसएसजेकेल) छात्रवृत्ति योजना" },
+    benefit: { en: "Academic fee up to ₹1.25 lakh and maintenance allowance ₹1 lakh per annum", hi: "शैक्षणिक शुल्क ₹1.25 लाख तक और रखरखाव भत्ता ₹1 लाख प्रति वर्ष" },
+    tag:     { en: "Higher Education", hi: "उच्च शिक्षा" },
+    annual: 125000,
+    apply:   { en: "https://scholarships.gov.in", hi: "https://scholarships.gov.in" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-11-09", source: "https://scholarships.gov.in/public/schemeGuidelines/AICTE/PM_USPY(SSSJKL)SchemeSpecifications.pdf",
+    match: (a) => a.state === "Jammu & Kashmir" && a.who === "student" && a.income === "below1" && a.educationLevel === "undergrad",
+  },
+  // </auto-scheme id="jk_uspy_sssjkl_scholarship">
+
 ];
