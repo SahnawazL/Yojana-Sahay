@@ -100,7 +100,7 @@ export const GUJARAT_SCHEMES = [
     icon: "👩‍💼", color: "#9D174D", scope: "state", state: "Gujarat",
     ministry: { en: "Gujarat Finance Dept. / SEWA Bank", hi: "गुजरात वित्त विभाग / सेवा बैंक" },
     name:    { en: "Mukhyamantri Mahila Utkarsh Yojana (Gujarat)",    hi: "मुख्यमंत्री महिला उत्कर्ष योजना (गुजरात)" },
-    benefit: { en: "Interest-free loan up to ₹1 Lakh for women SHGs (SWAMIH / SHRI groups)", hi: "महिला स्वयं सहायता समूहों (SWAMIH/SHRI) को ₹1 लाख तक ब्याज मुक्त ऋण" },
+    benefit: { en: "Interest‑free loan up to ₹1,25,000 with 4% annual interest", hi: "ब्याज‑रहित ऋण अधिकतम ₹1,25,000 4% वार्षिक ब्याज के साथ" },
     tag:     { en: "Women / SHG", hi: "महिला / SHG" },
     annual: 0,
     apply:   { en: "https://sje.gujarat.gov.in/gntdnt/Women-affluence-scheme", hi: "mmuy.gujarat.gov.in" }, applyType: "online",
