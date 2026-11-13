@@ -285,4 +285,21 @@ export const TRIPURA_SCHEMES = [
   },
   // </auto-scheme id="tripura_yuva_yogayog_special">
 
+  // <auto-scheme id="tripura_matru_pushti_uphaar"> added by Scheme Discovery agent on 2026-11-12 · source: https://northtripura.nic.in/social-welfare-social-education/
+  {
+    id: "tripura_matru_pushti_uphaar",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Tripura",
+    ministry: { en: "Ministry of Social Welfare & Social Education", hi: "सामाजिक कल्याण व सामाजिक शिक्षा विभाग" },
+    name:    { en: "Mukhyamantri Matru Pushti Uphaar Yojana", hi: "मुख्यमंत्री मातृ पोषण उपहार योजना" },
+    benefit: { en: "Up to 4 nutrition kits (₹500 each) after check‑ups", hi: "प्रत्येक जांच के बाद 4 पोषण किट (₹500 प्रत्येक) तक" },
+    tag:     { en: "Nutrition", hi: "पोषण" },
+    annual: 2000,
+    apply:   { en: "https://northtripura.nic.in/social-welfare-social-education/", hi: "https://northtripura.nic.in/social-welfare-social-education/" }, applyType: "offline",
+    docs:    { en: ["Identity Proof","Address Proof","Health Card or antenatal records","Bank Account Details"],
+               hi: ["पहचान पत्र","पते का प्रमाण","स्वास्थ्य कार्ड या प्रसवपूर्व रिकॉर्ड","बैंक खाता विवरण"] },
+    autoAdded: "2026-11-12", source: "https://northtripura.nic.in/social-welfare-social-education/",
+    match: (a) => a.state === "Tripura" && a.who === "women",
+  },
+  // </auto-scheme id="tripura_matru_pushti_uphaar">
+
 ];
