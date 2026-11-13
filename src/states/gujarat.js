@@ -71,7 +71,7 @@ export const GUJARAT_SCHEMES = [
     icon: "👧", color: "#EC4899", scope: "state", state: "Gujarat",
     ministry: { en: "Gujarat Women & Child Development Dept.", hi: "गुजरात महिला एवं बाल विकास विभाग" },
     name:    { en: "Vhali Dikri Yojana (Gujarat)",                    hi: "वहाली दीकरी योजना (गुजरात)" },
-    benefit: { en: "₹4,000 at birth · ₹6,000 at Class 1 · ₹10,000 at Class 9 · ₹1 Lakh at age 18", hi: "जन्म पर ₹4,000 · कक्षा 1 में ₹6,000 · कक्षा 9 में ₹10,000 · 18 वर्ष पर ₹1 लाख" },
+    benefit: { en: "₹4,000 at 1st standard, ₹6,000 at 9th standard, ₹1,00,000 at age 18", hi: "₹4,000 1st स्टैंडर्ड पर, ₹6,000 9th स्टैंडर्ड पर, ₹1,00,000 उम्र 18 पर" },
     tag:     { en: "Girl Child / Women", hi: "बालिका / महिला" },
     annual: 4000,
     apply:   { en: "https://wcd.gujarat.gov.in/posts?id=305", hi: "wcd.gujarat.gov.in" }, applyType: "online",
