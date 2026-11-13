@@ -626,7 +626,7 @@ export const SCHEME_DB = [
     ministry: { en: "Ministry of Rural Development", hi: "ग्रामीण विकास मंत्रालय" },
     name:    { en: "Indira Gandhi National Widow Pension (IGNWPS)",   hi: "इंदिरा गांधी राष्ट्रीय विधवा पेंशन" },
     description: { en: "Monthly pension for poor widows to support them financially after losing their husband.", hi: "गरीब विधवाओं को पति की मृत्यु के बाद आर्थिक सहारे हेतु मासिक पेंशन।" },
-    benefit: { en: "₹300/month pension for BPL widows aged 40–79 years", hi: "40–79 वर्ष की BPL विधवाओं को ₹300/माह पेंशन" },
+    benefit: { en: "₹1,500 per month pension for eligible widows", hi: "₹1,500 प्रति माह पेंशन योग्य विधवाओं के लिए" },
     tag:     { en: "Women / Widow", hi: "महिला / विधवा" },
     annual: 3600,
     apply:   { en: "https://sjsa.maharashtra.gov.in/en/scheme/indira-gandhi-national-widow-pension-scheme", hi: "nsap.nic.in" }, applyType: "online",
