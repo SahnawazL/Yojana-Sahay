@@ -753,4 +753,21 @@ export const RAJASTHAN_SCHEMES = [
   },
   // </auto-scheme id="raj_ekal_nari_samman">
 
+  // <auto-scheme id="raj_balika_protsahan_class"> added by Scheme Discovery agent on 2026-11-11 · source: https://web.umang.gov.in/landing/scheme/detail/bpyftc.html
+  {
+    id: "raj_balika_protsahan_class",
+    icon: "📚", color: "#003580", scope: "state", state: "Rajasthan",
+    ministry: { en: "Education (Elementary and Secondary) Department, Government of Rajasthan", hi: "शिक्षा (मूल और माध्यमिक) विभाग, सरकार राजस्थान" },
+    name:    { en: "Balika Protsahan Yojana (For Class 12th)", hi: "बालिका प्रोत्साहन योजना (कक्षा 12वीं के लिए)" },
+    benefit: { en: "Financial incentive for meritorious girls", hi: "उत्कृष्ट लड़की छात्रों के लिए वित्तीय प्रोत्साहन" },
+    tag:     { en: "Scholarship", hi: "वित्तीय सहायता" },
+    annual: 0,
+    apply:   { en: "https://www.education.rajasthan.gov.in/", hi: "https://www.education.rajasthan.gov.in/" }, applyType: "online",
+    docs:    { en: ["Domicile Certificate","School Certificate","Bank Account (in child's name)","Class 12th Marksheet","Passport Size Photograph","Mobile Number"],
+               hi: ["निवास प्रमाणपत्र","स्कूल प्रमाणपत्र","बैंक खाता (बच्चे के नाम पर)","कक्षा 12वीं मार्कशीट","पासपोर्ट साइज फोटो","मोबाइल नंबर"] },
+    autoAdded: "2026-11-11", source: "https://web.umang.gov.in/landing/scheme/detail/bpyftc.html",
+    match: (a) => a.state === "Rajasthan" && a.who === "student" && a.educationLevel === "class9to12" && (a.who === "women" || a.gender === "female" || (a.gender == null && a.who === "student")),
+  },
+  // </auto-scheme id="raj_balika_protsahan_class">
+
 ];
