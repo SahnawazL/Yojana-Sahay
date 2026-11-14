@@ -429,7 +429,7 @@
     "linkAlive": true
   },
   "jjm": {
-    "lastVerified": "2026-10-07T00:17:52.332Z",
+    "lastVerified": "2026-11-14T21:36:01.138Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1710,15 +1710,15 @@
     "confidence": 0
   },
   "jk_kisan_samman": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-14T21:36:53.893Z",
     "confidence": 0
   },
   "jk_apple_mission": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-14T21:36:15.018Z",
     "confidence": 0
   },
   "jk_crop_insurance": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-14T21:36:38.808Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -1728,11 +1728,11 @@
     "confidence": 0
   },
   "jk_sehat_health_insurance": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-14T21:37:38.897Z",
     "confidence": 0
   },
   "jk_himayat": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-14T21:36:42.223Z",
     "confidence": 0
   },
   "ladakh_himayat_skill": {
@@ -1764,10 +1764,11 @@
     "confidence": 0
   },
   "jk_post_matric_sc_st": {
-    "lastVerified": "2026-10-10T12:20:51.901Z",
+    "lastVerified": "2026-11-14T21:37:35.686Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 0.5,
+    "isActive": true
   },
   "tn_mudhalvar_marundhagam": {
     "lastVerified": "2026-10-22T19:20:41.050Z",
@@ -2949,7 +2950,7 @@
     "confidence": 0
   },
   "jharkhand_mmkay": {
-    "lastVerified": "2026-10-10T11:52:26.290Z",
+    "lastVerified": "2026-11-14T21:33:44.215Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2961,7 +2962,7 @@
     "confidence": 0
   },
   "jharkhand_protsahan_yojana": {
-    "lastVerified": "2026-10-10T11:52:26.290Z",
+    "lastVerified": "2026-11-14T21:34:22.755Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2985,13 +2986,13 @@
     "confidence": 0
   },
   "jharkhand_nalkoop": {
-    "lastVerified": "2026-10-10T11:52:43.986Z",
+    "lastVerified": "2026-11-14T21:33:56.727Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_sukhad_rahat": {
-    "lastVerified": "2026-10-10T11:52:43.986Z",
+    "lastVerified": "2026-11-14T21:35:50.056Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3009,19 +3010,19 @@
     "confidence": 0
   },
   "jharkhand_solar_jreda": {
-    "lastVerified": "2026-10-10T11:53:51.234Z",
+    "lastVerified": "2026-11-14T21:35:38.303Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_rojgar_srijan": {
-    "lastVerified": "2026-10-10T11:53:51.234Z",
+    "lastVerified": "2026-11-14T21:34:33.794Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "jharkhand_obc_scholarship": {
-    "lastVerified": "2026-10-10T11:53:51.234Z",
+    "lastVerified": "2026-11-14T21:34:09.260Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3814,5 +3815,14 @@
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
+  },
+  "jharkhand_shiksha_protsahan": {
+    "lastVerified": "2026-11-14T21:34:47.532Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
+  },
+  "jharkhand_shramik_yojana": {
+    "lastVerified": "2026-11-14T21:35:34.618Z"
   }
 }
