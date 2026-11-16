@@ -1842,4 +1842,21 @@ export const DELHI_SCHEMES = [
   },
   // </auto-scheme id="delhi_lakshmi">
 
+  // <auto-scheme id="delhi_mahila_samriddhi"> added by Scheme Discovery agent on 2026-11-15 · source: https://www.hindustantimes.com/cities/delhi-news/delhi-govt-to-launch-portal-for-2-500-monthly-aid-101778434723254.html
+  {
+    id: "delhi_mahila_samriddhi",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Delhi",
+    ministry: { en: "Delhi Government", hi: "दिल्ली सरकार" },
+    name:    { en: "Mukhyamantri Mahila Samriddhi Yojana", hi: "मुख्यमंत्री महिला समृद्धि योजना" },
+    benefit: { en: "₹2,500 monthly aid to eligible women", hi: "पात्र महिलाओं को ₹2,500 मासिक सहायता" },
+    tag:     { en: "Financial Assistance", hi: "वित्तीय सहायता" },
+    annual: 30000,
+    apply:   { en: "https://www.hindustantimes.com/cities/delhi-news/delhi-govt-to-launch-portal-for-2-500-monthly-aid-101778434723254.html", hi: "https://www.hindustantimes.com/cities/delhi-news/delhi-govt-to-launch-portal-for-2-500-monthly-aid-101778434723254.html" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-11-15", source: "https://www.hindustantimes.com/cities/delhi-news/delhi-govt-to-launch-portal-for-2-500-monthly-aid-101778434723254.html",
+    match: (a) => a.state === "Delhi" && a.who === "women" && a.income === "1to3" && a.age === "18to35",
+  },
+  // </auto-scheme id="delhi_mahila_samriddhi">
+
 ];
