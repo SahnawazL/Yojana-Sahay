@@ -167,7 +167,7 @@ export const KARNATAKA_SCHEMES = [
     icon: "♿", color: "#92400E", scope: "state", state: "Karnataka",
     ministry: { en: "Karnataka Dept. of Disabled Welfare", hi: "कर्नाटक दिव्यांग कल्याण विभाग" },
     name:    { en: "Disability Pension Scheme (KA)",               hi: "विकलांगता पेंशन योजना (कर्नाटक)" },
-    benefit: { en: "₹1,000/month for persons with 40%+ disability", hi: "40%+ विकलांगता वाले व्यक्तियों को ₹1,000/माह" },
+    benefit: { en: "₹400 per month for persons with disability in poor economic condition; ₹1,000 per month for those with more than 75% disability.", hi: "प्रति माह ₹400 उन विकलांग व्यक्तियों के लिए जो आर्थिक रूप से गरीब हैं; ₹1,000 उन लोगों के लिए जिनकी विकलांगता 75% से अधिक है।" },
     tag:     { en: "Senior / Pension", hi: "वरिष्ठ / पेंशन" },
     annual: 12000,
     apply:   { en: "https://chikkamagaluru.nic.in/en/service/social-security-scheme", hi: "sevasindhu.karnataka.gov.in" }, applyType: "online",
