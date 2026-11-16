@@ -1859,4 +1859,21 @@ export const DELHI_SCHEMES = [
   },
   // </auto-scheme id="delhi_mahila_samriddhi">
 
+  // <auto-scheme id="delhi_pink_common_mobility"> added by Scheme Discovery agent on 2026-11-15 · source: https://www.thehindu.com/news/cities/Delhi/president-droupadi-murmu-launches-four-women-welfare-schemes-of-delhi-government/article70694364.ece
+  {
+    id: "delhi_pink_common_mobility",
+    icon: "👩", color: "#BE185D", scope: "state", state: "Delhi",
+    ministry: { en: "Delhi Government", hi: "दिल्ली सरकार" },
+    name:    { en: "Pink National Common Mobility Card", hi: "पिंक राष्ट्रीय सामान्य गतिशीलता कार्ड" },
+    benefit: { en: "Free bus travel and integrated transport access for women", hi: "महिलाओं के लिए मुफ्त बस यात्रा और एकीकृत परिवहन पहुँच" },
+    tag:     { en: "Transport", hi: "परिवहन" },
+    annual: 0,
+    apply:   { en: "https://www.thehindu.com/news/cities/Delhi/president-droupadi-murmu-launches-four-women-welfare-schemes-of-delhi-government/article70694364.ece", hi: "https://www.thehindu.com/news/cities/Delhi/president-droupadi-murmu-launches-four-women-welfare-schemes-of-delhi-government/article70694364.ece" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-11-15", source: "https://www.thehindu.com/news/cities/Delhi/president-droupadi-murmu-launches-four-women-welfare-schemes-of-delhi-government/article70694364.ece",
+    match: (a) => a.state === "Delhi" && a.who === "women",
+  },
+  // </auto-scheme id="delhi_pink_common_mobility">
+
 ];
