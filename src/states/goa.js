@@ -287,4 +287,21 @@ export const GOA_SCHEMES = [
   },
   // </auto-scheme id="goa_self_employment_entrepreneurs">
 
+  // <auto-scheme id="goa_atal_asra"> added by Scheme Discovery agent on 2026-11-13 · source: https://www.gktoday.in/goa-expands-atal-asra-yojana-for-tribal-housing/
+  {
+    id: "goa_atal_asra",
+    icon: "🏠", color: "#0F766E", scope: "state", state: "Goa",
+    ministry: { en: "Department of Tribal Welfare, Government of Goa", hi: "विभागीय जनजातीय कल्याण, सरकार गोवा" },
+    name:    { en: "Atal Asra Yojana", hi: "अटल आश्रा योजना" },
+    benefit: { en: "Financial support for house repairs (₹1.5-3 lakh) and construction/reconstruction (₹3-5 lakh)", hi: "घर की मरम्मत (₹1.5-3 लाख) और निर्माण/पुनर्निर्माण (₹3-5 लाख) के लिए वित्तीय सहायता" },
+    tag:     { en: "Tribal Housing", hi: "जनजातीय आवास" },
+    annual: 0,
+    apply:   { en: "https://www.gktoday.in/goa-expands-atal-asra-yojana-for-tribal-housing/", hi: "https://www.gktoday.in/goa-expands-atal-asra-yojana-for-tribal-housing/" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    autoAdded: "2026-11-13", source: "https://www.gktoday.in/goa-expands-atal-asra-yojana-for-tribal-housing/",
+    match: (a) => a.state === "Goa" && a.income === "3to6" && a.caste === "st",
+  },
+  // </auto-scheme id="goa_atal_asra">
+
 ];
