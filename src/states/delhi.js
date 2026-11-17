@@ -1851,7 +1851,7 @@ export const DELHI_SCHEMES = [
     benefit: { en: "₹2,500 monthly aid to eligible women", hi: "पात्र महिलाओं को ₹2,500 मासिक सहायता" },
     tag:     { en: "Financial Assistance", hi: "वित्तीय सहायता" },
     annual: 30000,
-    apply:   { en: "https://www.hindustantimes.com/cities/delhi-news/delhi-govt-to-launch-portal-for-2-500-monthly-aid-101778434723254.html", hi: "https://www.hindustantimes.com/cities/delhi-news/delhi-govt-to-launch-portal-for-2-500-monthly-aid-101778434723254.html" }, applyType: "online",
+    apply:   { en: "https://www.myscheme.gov.in/schemes/cbssc-msy", hi: "https://www.myscheme.gov.in/schemes/cbssc-msy" }, applyType: "online",
     docs:    { en: ["Aadhaar Card"],
                hi: ["आधार कार्ड"] },
     autoAdded: "2026-11-15", source: "https://www.hindustantimes.com/cities/delhi-news/delhi-govt-to-launch-portal-for-2-500-monthly-aid-101778434723254.html",
