@@ -1881,11 +1881,11 @@
     "confidence": 0
   },
   "karnataka_sanchi_hosahalli": {
-    "lastVerified": "2026-10-08T21:35:44.764Z",
+    "lastVerified": "2026-11-18T21:34:11.334Z",
     "confidence": 0
   },
   "karnataka_sandhya_suraksha": {
-    "lastVerified": "2026-10-08T21:35:47.437Z",
+    "lastVerified": "2026-11-18T21:34:16.396Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1915,13 +1915,13 @@
     "confidence": 0
   },
   "karnataka_skill_connect": {
-    "lastVerified": "2026-10-08T21:36:38.244Z",
+    "lastVerified": "2026-11-18T21:35:22.684Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_sericulture": {
-    "lastVerified": "2026-10-08T21:36:12.601Z",
+    "lastVerified": "2026-11-18T21:34:58.564Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1939,10 +1939,11 @@
     "confidence": 0
   },
   "karnataka_stree_shakti": {
-    "lastVerified": "2026-10-08T21:37:27.268Z",
+    "lastVerified": "2026-11-18T21:36:12.464Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 0.5,
+    "lastDate": "2026-08-15"
   },
   "karnataka_morarji_desai": {
     "lastVerified": "2026-11-17T21:34:23.818Z",
@@ -1979,7 +1980,7 @@
     "confidence": 0
   },
   "karnataka_sc_corporation_housing": {
-    "lastVerified": "2026-10-08T21:35:59.569Z",
+    "lastVerified": "2026-11-18T21:34:55.580Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1991,13 +1992,13 @@
     "confidence": 0
   },
   "karnataka_udyogini": {
-    "lastVerified": "2026-10-09T21:34:22.935Z",
+    "lastVerified": "2026-11-18T21:37:56.376Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
   },
   "karnataka_suvarna_arogya_suraksha": {
-    "lastVerified": "2026-10-09T21:33:42.651Z",
+    "lastVerified": "2026-11-18T21:36:58.856Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2015,7 +2016,7 @@
     "confidence": 0
   },
   "karnataka_tribal_ashrama": {
-    "lastVerified": "2026-10-09T21:34:07.574Z",
+    "lastVerified": "2026-11-18T21:37:24.164Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2027,23 +2028,23 @@
     "confidence": 0
   },
   "karnataka_shaadi_bhagya": {
-    "lastVerified": "2026-10-08T21:36:25.231Z",
+    "lastVerified": "2026-11-18T21:35:10.058Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "karnataka_solar_pump": {
-    "lastVerified": "2026-10-08T21:36:51.106Z",
+    "lastVerified": "2026-11-18T21:35:36.451Z",
     "confidence": 0
   },
   "karnataka_surya_raitha": {
-    "lastVerified": "2026-10-08T21:37:45.624Z",
+    "lastVerified": "2026-11-18T21:36:56.161Z",
     "confidence": 0,
     "linkAlive": true,
     "httpStatus": 200
   },
   "karnataka_sports_scholarship": {
-    "lastVerified": "2026-10-08T21:37:02.411Z",
+    "lastVerified": "2026-11-18T21:35:46.878Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2103,14 +2104,14 @@
     "confidence": 0
   },
   "karnataka_transgender_welfare": {
-    "lastVerified": "2026-10-09T21:33:54.437Z",
+    "lastVerified": "2026-11-18T21:37:10.464Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0,
-    "isActive": true
+    "confidence": 0.5,
+    "lastDate": "2026-08-15"
   },
   "karnataka_startup_policy": {
-    "lastVerified": "2026-10-08T21:37:16.008Z",
+    "lastVerified": "2026-11-18T21:36:00.588Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
