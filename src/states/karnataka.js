@@ -472,7 +472,7 @@ export const KARNATAKA_SCHEMES = [
     icon: "🏪", color: "#7C3AED", scope: "state", state: "Karnataka",
     ministry: { en: "Karnataka Women Development Corp. (KWDC)", hi: "कर्नाटक महिला विकास निगम (KWDC)" },
     name:    { en: "Udyogini — Women Entrepreneur Scheme",                          hi: "उद्योगिनी — महिला उद्यमी योजना" },
-    benefit: { en: "Interest-free or subsidised loan ₹1–₹3 Lakh for women starting small businesses (income < ₹1.5L)", hi: "छोटे व्यवसाय शुरू करने वाली महिलाओं को ₹1–₹3 लाख ब्याज मुक्त/सब्सिडी ऋण (आय < ₹1.5L)" },
+    benefit: { en: "Subsidy 50% of loan up to ₹3,00,000 for SC/ST; 30% up to ₹90,000 for general/special.", hi: "सब्सिडी 50% तक ₹3,00,000 (SC/ST) और 30% तक ₹90,000 (सामान्य/विशेष) के लिए।" },
     tag:     { en: "Business", hi: "व्यापार" },
     annual: 0,
     apply:   { en: "https://web.umang.gov.in/landing/scheme/detail/udyogini-scheme_us.html", hi: "kwdc.karnataka.gov.in" }, applyType: "online",
