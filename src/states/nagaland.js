@@ -268,4 +268,22 @@ export const NAGALAND_SCHEMES = [
   },
   // </auto-scheme id="nagaland_financial_assistance_destitute">
 
+  // <auto-scheme id="nagaland_life_insurance"> added by Scheme Discovery agent on 2026-11-17 · source: https://ipr.nagaland.gov.in/NAGALAND-NOTIFIES-REVISED-CHIEF-MINISTER%27S-LIFE-INSURANCE-SCHEME-FOR-2026-27
+  {
+    id: "nagaland_life_insurance",
+    icon: "🛡️", color: "#DC2626", scope: "state", state: "Nagaland",
+    ministry: { en: "Finance Department", hi: "वित्त विभाग" },
+    name:    { en: "Chief Minister's Life Insurance Scheme", hi: "मुख्यमंत्री जीवन बीमा योजना" },
+    benefit: { en: "₹2 lakh life insurance + ₹2 lakh accidental cover per breadwinner, ₹2 lakh for 3 family members", hi: "₹2 लाख जीवन बीमा + ₹2 लाख आकस्मिक कवरेज प्रति मुख्य कमाने वाला, ₹2 लाख 3 परिवार सदस्यों के लिए" },
+    tag:     { en: "Life & Accidental", hi: "जीवन एवं आकस्मिक" },
+    annual: 200000,
+    apply:   { en: "https://ipr.nagaland.gov.in/CMLIS-portal", hi: "https://ipr.nagaland.gov.in/CMLIS-portal" }, applyType: "online",
+    docs:    { en: ["Aadhaar Card"],
+               hi: ["आधार कार्ड"] },
+    lastDate: "2027-06-30",
+    autoAdded: "2026-11-17", source: "https://ipr.nagaland.gov.in/NAGALAND-NOTIFIES-REVISED-CHIEF-MINISTER%27S-LIFE-INSURANCE-SCHEME-FOR-2026-27",
+    match: (a) => a.state === "Nagaland" && a.who === "general",
+  },
+  // </auto-scheme id="nagaland_life_insurance">
+
 ];
