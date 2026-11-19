@@ -770,4 +770,21 @@ export const RAJASTHAN_SCHEMES = [
   },
   // </auto-scheme id="raj_balika_protsahan_class">
 
+  // <auto-scheme id="raj_gargi_puruskar"> added by Scheme Discovery agent on 2026-11-19 · source: https://web.umang.gov.in/landing/scheme/detail/gargi-puruskar-yojana_gpy.html
+  {
+    id: "raj_gargi_puruskar",
+    icon: "📚", color: "#003580", scope: "state", state: "Rajasthan",
+    ministry: { en: "Ministry of Electronics and Information Technology", hi: "मंत्रालय सूचना प्रौद्योगिकी और इलेक्ट्रॉनिक्स" },
+    name:    { en: "Gargi Puruskar Yojana", hi: "गर्जी पुरस्कार योजना" },
+    benefit: { en: "₹3,000 to 11th & 12th class girl students on Basant Panchami", hi: "बासंत पंचमी पर 11वीं और 12वीं कक्षा की लड़की विद्यार्थियों को ₹3,000" },
+    tag:     { en: "Girl Education", hi: "लड़की शिक्षा" },
+    annual: 3000,
+    apply:   { en: "https://shaladarpan.gov.in", hi: "https://shaladarpan.gov.in" }, applyType: "online",
+    docs:    { en: ["Marksheet / Certificate Copy","Aadhar Card Copy","Bank Passbook Copy","Jan Aadhar/Bhamashah Card Copy"],
+               hi: ["मार्कशीट / प्रमाणपत्र कॉपी","आधार कार्ड कॉपी","बैंक पासबुक कॉपी","जन आधार/भामाशाह कार्ड कॉपी"] },
+    autoAdded: "2026-11-19", source: "https://web.umang.gov.in/landing/scheme/detail/gargi-puruskar-yojana_gpy.html",
+    match: (a) => a.state === "Rajasthan" && a.who === "student" && a.educationLevel === "class9to12" && (a.who === "women" || a.gender === "female" || (a.gender == null && a.who === "student")),
+  },
+  // </auto-scheme id="raj_gargi_puruskar">
+
 ];
