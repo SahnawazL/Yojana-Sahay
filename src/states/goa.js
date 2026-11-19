@@ -293,7 +293,7 @@ export const GOA_SCHEMES = [
     icon: "🏠", color: "#0F766E", scope: "state", state: "Goa",
     ministry: { en: "Department of Tribal Welfare, Government of Goa", hi: "विभागीय जनजातीय कल्याण, सरकार गोवा" },
     name:    { en: "Atal Asra Yojana", hi: "अटल आश्रा योजना" },
-    benefit: { en: "Financial support for house repairs (₹1.5-3 lakh) and construction/reconstruction (₹3-5 lakh)", hi: "घर की मरम्मत (₹1.5-3 लाख) और निर्माण/पुनर्निर्माण (₹3-5 लाख) के लिए वित्तीय सहायता" },
+    benefit: { en: "Financial assistance for repairs is proposed to rise from ₹1.5 lakh to ₹3 lakh, while assistance for construction or reconstruction is proposed to rise from ₹3 lakh to ₹5 lakh.", hi: "मरम्मत के लिए वित्तीय सहायता ₹1.5 लाख से ₹3 लाख तक बढ़ाने का प्रस्ताव है, जबकि निर्माण या पुनर्निर्माण के लिए सहायता ₹3 लाख से ₹5 लाख तक बढ़ाने का प्रस्ताव है।" },
     tag:     { en: "Tribal Housing", hi: "जनजातीय आवास" },
     annual: 0,
     apply:   { en: "https://www.gktoday.in/goa-expands-atal-asra-yojana-for-tribal-housing/", hi: "https://www.gktoday.in/goa-expands-atal-asra-yojana-for-tribal-housing/" }, applyType: "online",
