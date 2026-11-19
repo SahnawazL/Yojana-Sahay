@@ -1531,4 +1531,21 @@ export const KARNATAKA_SCHEMES = [
   },
   // </auto-scheme id="karnataka_gruha_jyothi">
 
+  // <auto-scheme id="karnataka_term_loan_women"> added by Scheme Discovery agent on 2026-11-18 · source: https://ksfc.karnataka.gov.in/43/schemes/en
+  {
+    id: "karnataka_term_loan_women",
+    icon: "💼", color: "#6B21A8", scope: "state", state: "Karnataka",
+    ministry: { en: "Karnataka State Financial Corporation", hi: "कर्नाटक राज्य वित्तीय निगम" },
+    name:    { en: "Term Loan Women Entrepreneurs Scheme", hi: "टर्म लोन महिला उद्यमी योजना" },
+    benefit: { en: "Term loan with interest subsidy for women entrepreneurs", hi: "महिला उद्यमियों के लिए ब्याज सब्सिडी के साथ टर्म लोन" },
+    tag:     { en: "Women Entrepreneurs", hi: "महिला उद्यमी" },
+    annual: 0,
+    apply:   { en: "https://ksfc.karnataka.gov.in/43/schemes/en", hi: "https://ksfc.karnataka.gov.in/43/schemes/en" }, applyType: "online",
+    docs:    { en: ["Scheme Details"],
+               hi: ["योजना विवरण"] },
+    autoAdded: "2026-11-18", source: "https://ksfc.karnataka.gov.in/43/schemes/en",
+    match: (a) => a.state === "Karnataka" && ["women","business"].includes(a.who) && (a.who === "women" || a.gender === "female" || (a.gender == null && a.who === "student")),
+  },
+  // </auto-scheme id="karnataka_term_loan_women">
+
 ];
