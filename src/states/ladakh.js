@@ -228,7 +228,7 @@ export const LADAKH_SCHEMES = [
     icon: "💼", color: "#6B21A8", scope: "state", state: "Ladakh",
     ministry: { en: "Sindhu Infrastructure Development Corporation (SIDCO), UT Ladakh", hi: "सिंधु इंफ्रास्ट्रक्चर डेवलपमेंट कॉर्पोरेशन (सिडको), केंद्र शासित प्रदेश लद्दाख" },
     name:    { en: "SIDCO Subsidized Loan Scheme for Unemployed Youth (Ladakh UT)", hi: "सिडको रियायती ऋण योजना — बेरोजगार युवा (लद्दाख यूटी)" },
-    benefit: { en: "Low-interest loans of ₹3–50 lakh for ST, minority & divyang youth ventures", hi: "ST, अल्पसंख्यक व दिव्यांग युवाओं के उद्यम हेतु ₹3–50 लाख तक कम ब्याज ऋण" },
+    benefit: { en: "Low-interest loans up to ₹3.00 lakh per annum for STs and Minorities, up to ₹8.00 lakh per annum for Minorities, and no income ceiling for Persons with Disabilities.", hi: "निम्न ब्याज दर पर ऋण, स्ट और अल्पसंख्यकों के लिए प्रति वर्ष ₹3.00 लाख तक, अल्पसंख्यकों के लिए प्रति वर्ष ₹8.00 लाख तक, और दिव्यांगों के लिए आय सीमा नहीं।" },
     tag:     { en: "Business / Self-Employment Loan", hi: "व्यवसाय / स्वरोजगार ऋण" },
     annual: 0,
     apply:   { en: "https://sidco.ladakh.gov.in/uploads/schemedocument_3aa55eb835945982cbd6a5f48664be8b.pdf", hi: "https://sidco.ladakh.gov.in/uploads/schemedocument_3aa55eb835945982cbd6a5f48664be8b.pdf" }, applyType: "online",
