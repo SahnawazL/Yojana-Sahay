@@ -206,7 +206,7 @@ export const KERALA_SCHEMES = [
     icon: "💼", color: "#4338CA", scope: "state", state: "Kerala",
     ministry: { en: "Kerala Employment Dept.", hi: "केरल रोजगार विभाग" },
     name:    { en: "Kerala Unemployment Assistance Scheme (Karmasena)", hi: "केरल बेरोजगारी सहायता योजना (कर्मसेना)" },
-    benefit: { en: "₹500–₹1,000/month allowance for educated unemployed youth registered in employment exchange", hi: "रोजगार कार्यालय में पंजीकृत शिक्षित बेरोजगार युवाओं को ₹500–₹1,000/माह भत्ता" },
+    benefit: { en: "₹1,000/month financial aid for skill training or competitive exam preparation for one year.", hi: "₹1,000/माह कौशल प्रशिक्षण या प्रतियोगी परीक्षा तैयारी के लिए वित्तीय सहायता।" },
     tag:     { en: "Employment", hi: "रोजगार" },
     annual: 9000,
     apply:   { en: "https://eemployment.kerala.gov.in", hi: "employment.kerala.gov.in" }, applyType: "online",
