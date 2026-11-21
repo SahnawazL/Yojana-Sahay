@@ -206,7 +206,7 @@ export const MAHARASHTRA_SCHEMES = [
     icon: "♿", color: "#6B21A8", scope: "state", state: "Maharashtra",
     ministry: { en: "Maharashtra Social Justice & Special Assistance Dept.", hi: "महाराष्ट्र सामाजिक न्याय व विशेष सहाय्य विभाग" },
     name:    { en: "Indira Gandhi National Disability Pension (Maha Top-up)",  hi: "इंदिरा गांधी राष्ट्रीय दिव्यांग पेंशन (महाराष्ट्र टॉप-अप)" },
-    benefit: { en: "₹600/month state pension for persons with 80%+ disability (BPL)", hi: "80%+ दिव्यांग BPL व्यक्तियों को ₹600/माह राज्य पेंशन" },
+    benefit: { en: "₹1,500 per month", hi: "₹१,५०० प्रति माह" },
     tag:     { en: "Disability / Pension", hi: "दिव्यांग / पेंशन" },
     annual: 7200,
     apply:   { en: "https://sjsa.maharashtra.gov.in/en/scheme/indira-gandhi-national-disability-pension-scheme", hi: "aaplesarkar.mahaonline.gov.in" }, applyType: "online",
