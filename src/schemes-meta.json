@@ -611,7 +611,7 @@
     "linkAlive": true
   },
   "mcm_minority": {
-    "lastVerified": "2026-10-13T21:34:45.149Z",
+    "lastVerified": "2026-11-22T21:37:21.685Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -1625,29 +1625,31 @@
     "confidence": 0
   },
   "manipur_cm_kisan_samman": {
-    "lastVerified": "2026-10-13T21:34:10.664Z",
-    "confidence": 0
+    "lastVerified": "2026-11-22T21:36:54.947Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "manipur_cm_health_insurance": {
-    "lastVerified": "2026-10-13T21:33:55.107Z",
+    "lastVerified": "2026-11-22T21:36:34.428Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "manipur_cm_scholarship": {
-    "lastVerified": "2026-10-13T21:34:19.806Z",
+    "lastVerified": "2026-11-22T21:37:02.686Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "manipur_startup_manipur": {
-    "lastVerified": "2026-10-13T21:34:33.307Z",
+    "lastVerified": "2026-11-22T21:37:08.956Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_cm_kisan_samman": {
-    "lastVerified": "2026-10-13T21:34:57.331Z",
+    "lastVerified": "2026-11-22T21:37:40.404Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
@@ -2202,10 +2204,10 @@
     "confidence": 0
   },
   "maha_swadhar_gruh": {
-    "lastVerified": "2026-10-12T21:36:38.278Z",
+    "lastVerified": "2026-11-22T21:34:45.702Z",
     "httpStatus": 200,
     "linkAlive": true,
-    "confidence": 0
+    "confidence": 0.49
   },
   "maha_gharkul": {
     "lastVerified": "2026-11-20T21:35:59.121Z",
@@ -2220,19 +2222,19 @@
     "confidence": 0
   },
   "maha_shravan_bal": {
-    "lastVerified": "2026-10-12T21:35:47.044Z",
+    "lastVerified": "2026-11-22T21:34:01.799Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_yellow_ration": {
-    "lastVerified": "2026-10-12T21:37:39.745Z",
+    "lastVerified": "2026-11-22T21:36:16.305Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_yuva_karya": {
-    "lastVerified": "2026-10-13T21:33:46.468Z",
+    "lastVerified": "2026-11-22T21:36:22.258Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2244,7 +2246,7 @@
     "confidence": 0
   },
   "maha_tribal_scholarship": {
-    "lastVerified": "2026-10-12T21:37:02.907Z",
+    "lastVerified": "2026-11-22T21:35:11.317Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2292,7 +2294,7 @@
     "confidence": 0
   },
   "maha_smart_solar": {
-    "lastVerified": "2026-10-12T21:36:21.573Z",
+    "lastVerified": "2026-11-22T21:34:20.011Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2354,7 +2356,7 @@
     "confidence": 0
   },
   "maha_women_professional_fee": {
-    "lastVerified": "2026-10-12T21:37:27.763Z",
+    "lastVerified": "2026-11-22T21:35:36.091Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2366,7 +2368,7 @@
     "confidence": 0
   },
   "maha_shiv_chhatrapati_sports": {
-    "lastVerified": "2026-10-12T21:35:45.032Z",
+    "lastVerified": "2026-11-22T21:33:47.504Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -2384,20 +2386,22 @@
     "confidence": 0
   },
   "maha_vjnt_scholarship": {
-    "lastVerified": "2026-10-12T21:37:16.445Z",
+    "lastVerified": "2026-11-22T21:35:23.794Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_sthalantar_kamgar": {
-    "lastVerified": "2026-10-12T21:36:24.325Z",
+    "lastVerified": "2026-11-22T21:34:32.673Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "maha_slum_sanitation": {
-    "lastVerified": "2026-10-12T21:36:02.694Z",
-    "confidence": 0
+    "lastVerified": "2026-11-22T21:34:18.837Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "maha_mukhyamantri_udyojak": {
     "lastVerified": "2026-11-21T21:34:58.300Z",
@@ -2406,7 +2410,7 @@
     "confidence": 0
   },
   "maha_teerth_darshan": {
-    "lastVerified": "2026-10-12T21:36:49.587Z",
+    "lastVerified": "2026-11-22T21:34:57.772Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
