@@ -373,7 +373,7 @@
     "linkAlive": true
   },
   "mgnrega": {
-    "lastVerified": "2026-10-13T21:35:48.858Z",
+    "lastVerified": "2026-11-23T21:34:36.863Z",
     "confidence": 0
   },
   "pmkvy": {
@@ -952,13 +952,13 @@
     "confidence": 0
   },
   "mp_ladli": {
-    "lastVerified": "2026-10-14T21:35:35.162Z",
+    "lastVerified": "2026-11-23T21:37:03.884Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_kanya_vivah": {
-    "lastVerified": "2026-10-14T21:35:10.492Z",
+    "lastVerified": "2026-11-23T21:36:40.949Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1004,13 +1004,13 @@
     "confidence": 0
   },
   "mp_chirayu": {
-    "lastVerified": "2026-10-14T21:34:32.603Z",
+    "lastVerified": "2026-11-23T21:36:00.872Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_ladli_behna": {
-    "lastVerified": "2026-10-14T21:35:47.495Z",
+    "lastVerified": "2026-11-23T21:37:16.094Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1022,7 +1022,7 @@
     "confidence": 0
   },
   "mp_kalyani_sahayata": {
-    "lastVerified": "2026-10-14T21:34:58.406Z",
+    "lastVerified": "2026-11-23T21:36:27.167Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1034,7 +1034,7 @@
     "confidence": 0
   },
   "mp_gaon_ki_beti": {
-    "lastVerified": "2026-10-14T21:34:44.579Z",
+    "lastVerified": "2026-11-23T21:36:13.810Z",
     "confidence": 0
   },
   "uk_vatsalya": {
@@ -1655,29 +1655,29 @@
     "confidence": 0
   },
   "meghalaya_mhis": {
-    "lastVerified": "2026-10-13T21:35:31.872Z",
+    "lastVerified": "2026-11-23T21:34:10.997Z",
     "confidence": 0
   },
   "meghalaya_cm_scholarship": {
-    "lastVerified": "2026-10-13T21:35:10.899Z",
+    "lastVerified": "2026-11-23T21:33:56.759Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "meghalaya_msy_entrepreneur": {
-    "lastVerified": "2026-10-13T21:35:34.906Z",
+    "lastVerified": "2026-11-23T21:34:23.935Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "mizoram_health_insurance": {
-    "lastVerified": "2026-10-13T21:36:12.993Z",
+    "lastVerified": "2026-11-23T21:34:58.341Z",
     "linkAlive": true,
     "httpStatus": 200,
     "confidence": 0
   },
   "mizoram_cm_scholarship": {
-    "lastVerified": "2026-10-13T21:35:59.926Z",
+    "lastVerified": "2026-11-23T21:34:45.987Z",
     "confidence": 1,
     "httpStatus": 200,
     "linkAlive": true,
@@ -2152,7 +2152,7 @@
     "linkAlive": true
   },
   "karnataka_obc_prematric": {
-    "lastVerified": "2026-11-17T21:34:52.108Z",
+    "lastVerified": "2026-11-23T21:33:45.414Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 1,
@@ -3063,7 +3063,7 @@
     "confidence": 0
   },
   "mp_ladli_behna_awas": {
-    "lastVerified": "2026-10-14T21:36:00.004Z",
+    "lastVerified": "2026-11-23T21:37:28.904Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3410,31 +3410,34 @@
     "confidence": 0.49
   },
   "mp_aahar_anudan": {
-    "lastVerified": "2026-10-14T21:33:48.603Z",
+    "lastVerified": "2026-11-23T21:35:12.888Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_avivahita_pension": {
-    "lastVerified": "2026-10-15T19:06:17.094Z",
+    "lastVerified": "2026-11-23T21:35:23.316Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0.49
   },
   "mp_awas_sahayata": {
-    "lastVerified": "2026-10-14T21:34:08.012Z"
+    "lastVerified": "2026-11-23T21:35:36.853Z"
   },
   "mp_birsa_munda_swarojgar": {
-    "lastVerified": "2026-10-14T21:34:29.739Z"
+    "lastVerified": "2026-11-23T21:35:48.109Z",
+    "httpStatus": 200,
+    "linkAlive": true,
+    "confidence": 0
   },
   "mp_kisan_kalyan": {
-    "lastVerified": "2026-10-14T21:35:22.560Z",
+    "lastVerified": "2026-11-23T21:36:52.038Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "mp_laptop": {
-    "lastVerified": "2026-10-15T21:34:18.275Z"
+    "lastVerified": "2026-11-23T21:37:50.755Z"
   },
   "mp_parityakta_pension": {
     "lastVerified": "2026-10-15T21:34:44.908Z",
