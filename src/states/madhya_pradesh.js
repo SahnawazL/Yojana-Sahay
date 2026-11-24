@@ -316,7 +316,7 @@ export const MADHYA_PRADESH_SCHEMES = [
     icon: "🏠", color: "#EA580C", scope: "state", state: "Madhya Pradesh",
     ministry: { en: "MP Housing & Environment Dept.", hi: "मध्यप्रदेश आवास एवं पर्यावरण विभाग" },
     name:    { en: "Ladli Behna Awas Yojana (MP)", hi: "लाड़ली बहना आवास योजना (म.प्र.)" },
-    benefit: { en: "Free pucca house (₹1.2–₹1.5 Lakh grant) for women in families missed by PMAY Gramin · Priority to Ladli Behna beneficiaries", hi: "PMAY ग्रामीण से छूटे परिवारों की महिलाओं को मुफ्त पक्का मकान (₹1.2–₹1.5 लाख अनुदान) · लाड़ली बहना लाभार्थियों को प्राथमिकता" },
+    benefit: { en: "Monthly economic assistance of ₹1,500 per month", hi: "मासिक आर्थिक सहायता ₹1,500 प्रति माह" },
     tag:     { en: "Housing / Women", hi: "आवास / महिला" },
     annual: 150000,
     apply:   { en: "https://cmladlibahna.mp.gov.in", hi: "cmladlibahna.mp.gov.in / नजदीकी ग्राम पंचायत" }, applyType: "online",
