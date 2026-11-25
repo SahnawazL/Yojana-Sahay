@@ -395,7 +395,7 @@
     "linkAlive": true
   },
   "nfsa_pds": {
-    "lastVerified": "2026-10-16T09:44:42.291Z",
+    "lastVerified": "2026-11-25T21:34:33.130Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
@@ -477,7 +477,7 @@
     "linkAlive": true
   },
   "nmmss": {
-    "lastVerified": "2026-10-16T09:13:18.500Z",
+    "lastVerified": "2026-11-25T21:35:24.328Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -501,7 +501,7 @@
     "confidence": 0
   },
   "nikshay_poshan": {
-    "lastVerified": "2026-10-16T09:12:52.717Z",
+    "lastVerified": "2026-11-25T21:35:00.973Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -563,7 +563,7 @@
     "linkAlive": true
   },
   "naps": {
-    "lastVerified": "2026-10-16T09:11:12.941Z",
+    "lastVerified": "2026-11-25T21:33:44.005Z",
     "httpStatus": 200,
     "confidence": 0,
     "linkAlive": true
@@ -879,14 +879,14 @@
     "confidence": 0
   },
   "odisha_cm_kisan": {
-    "lastVerified": "2026-10-16T13:33:33.622Z",
+    "lastVerified": "2026-11-25T21:36:57.585Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 1,
     "isActive": true
   },
   "odisha_kalia": {
-    "lastVerified": "2026-10-16T13:34:31.777Z",
+    "lastVerified": "2026-11-25T21:37:41.816Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -904,7 +904,7 @@
     "httpStatus": 200
   },
   "odisha_godabarisha_laptop": {
-    "lastVerified": "2026-10-16T13:34:18.836Z",
+    "lastVerified": "2026-11-25T21:37:39.459Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1432,7 +1432,7 @@
     "confidence": 0
   },
   "nlm": {
-    "lastVerified": "2026-10-16T09:13:05.687Z",
+    "lastVerified": "2026-11-25T21:35:19.417Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -1613,7 +1613,7 @@
     "httpStatus": 200
   },
   "odisha_gjay": {
-    "lastVerified": "2026-10-16T13:34:17.264Z",
+    "lastVerified": "2026-11-25T21:37:24.838Z",
     "confidence": 0,
     "httpStatus": 200,
     "linkAlive": true
@@ -1800,7 +1800,7 @@
     "confidence": 0
   },
   "nfobc": {
-    "lastVerified": "2026-10-16T09:11:38.425Z",
+    "lastVerified": "2026-11-25T21:34:08.421Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3250,7 +3250,7 @@
     "confidence": 0
   },
   "nsigse": {
-    "lastVerified": "2026-10-16T09:13:43.321Z",
+    "lastVerified": "2026-11-25T21:35:36.611Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3268,8 +3268,10 @@
     "confidence": 0
   },
   "nfst": {
-    "lastVerified": "2026-10-16T09:12:50.382Z",
-    "confidence": 0
+    "lastVerified": "2026-11-25T21:34:46.065Z",
+    "confidence": 0,
+    "httpStatus": 200,
+    "linkAlive": true
   },
   "ig_pg_sgc": {
     "lastVerified": "2026-11-12T21:36:50.248Z",
@@ -3316,13 +3318,13 @@
     "confidence": 0
   },
   "nfpwd": {
-    "lastVerified": "2026-10-16T09:11:50.767Z",
+    "lastVerified": "2026-11-25T21:34:20.755Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "nats_apprenticeship": {
-    "lastVerified": "2026-10-16T09:11:25.606Z",
+    "lastVerified": "2026-11-25T21:33:55.934Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
@@ -3487,25 +3489,25 @@
     "confidence": 0
   },
   "odisha_banishree": {
-    "lastVerified": "2026-10-16T13:32:39.100Z",
+    "lastVerified": "2026-11-25T21:36:06.396Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_bocw_death": {
-    "lastVerified": "2026-10-16T13:33:07.007Z",
+    "lastVerified": "2026-11-25T21:36:07.754Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_bocw_marriage": {
-    "lastVerified": "2026-10-16T13:33:08.693Z",
+    "lastVerified": "2026-11-25T21:36:20.394Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
   },
   "odisha_bocw_maternity": {
-    "lastVerified": "2026-10-16T13:33:21.006Z",
+    "lastVerified": "2026-11-25T21:36:32.916Z",
     "httpStatus": 200,
     "linkAlive": true,
     "confidence": 0
